@@ -1,0 +1,23 @@
+<odoo>
+    <record id="view_project_form_inherit" model="ir.ui.view">
+        <field name="name">project.project.form.inherit</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.edit_project"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <group string="Inbound Charge Settings" col="2">
+                    <group col="2">
+                        <field name="inbound_trucking_charge"/>
+                        <field name="inbound_handling_price"/>
+                        <field name="inbound_handling_per"/>
+                    </group>
+                    <group col="2">
+                        <field name="inbound_system_file_charge"/>
+                        <field name="inbound_DGD_charge"/>
+                        <field name="inbound_scanning_price"/>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

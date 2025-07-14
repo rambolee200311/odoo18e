@@ -1,0 +1,130 @@
+<odoo>
+    <!-- Tree View -->
+    <record id="view_outbound_order_tree" model="ir.ui.view">
+        <field name="name">outbound.order.tree</field>
+        <field name="model">world.depot.outbound.order</field>
+        <field name="arch" type="xml">
+            <list string="Outbound Orders">
+                <field name="billno"/>
+                <field name="date"/>
+                <field name="owner"/>
+                <field name="project"/>
+                <field name="warehouse"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_outbound_order_form" model="ir.ui.view">
+        <field name="name">outbound.order.form</field>
+        <field name="model">world.depot.outbound.order</field>
+        <field name="arch" type="xml">
+            <form string="Outbound Order">
+                <header>
+                    <!-- groups="panexLogi.groups_panex_finance_manager"-->
+                    <button name="action_confirm" type="object" string="Confirm" class="btn-primary" invisible="state!='new'"/>
+                    <button name="action_unconfirm" type="object" string="UnConfirm" class="btn-primary" invisible="state!='confirm'"/>
+                    <button name="action_cancel" type="object" string="Cancel" class="btn-secondary" invisible="state!='new'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="new,confirm"/>
+                    <widget name="web_ribbon" title="CANCEL" bg_color="bg-danger" invisible="state!='cancel'"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            Outbound Order
+                        </h1>
+                        <h2>
+                            <field name="billno"/>
+                        </h2>
+                    </div>
+                     <div class="oe_button_box" name="button_box">
+                        <button name="action_create_picking_PICK"
+                                type="object"
+                                string="Create Picking"
+                                class="oe_stat_button" icon="fa-bus"/>
+                    </div>
+                    <group col="2">
+                        <group col="2" string="Main">
+                            <field name="date" readonly="state!='new'"/>
+                            <field name="a_date" readonly="state!='new'"/>
+                            <field name="owner" readonly="state!='new'"/>
+                            <field name="project" readonly="state!='new'"/>
+                            <field name="warehouse" readonly="state!='new'"/>
+                        </group>
+                        <group col="2" string="Info">
+                            <field name="remark" readonly="state!='new'"/>
+                            <field name="reference" readonly="state!='new'"/>
+                            <field name="picking_PICK" readonly="1"/>
+                            <field name="picking_PACK" readonly="1"/>
+                            <field name="picking_Out" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Products">
+                            <field name="outbound_order_product_ids" readonly="state!='new'">
+                                <list editable="bottom">
+                                    <field name="product_id"/>
+                                    <field name="quantity"/>
+                                    <field name="pallets"/>
+                                    <field name="cntr_no"/>
+                                    <field name="serial_numbers"/>
+                                    <field name="remark"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Unload Information">
+                            <group col="2">
+                                <group col="2">
+                                    <field name="unload_company"  readonly="state!='new'"/>
+                                    <field name="unload_street" readonly="state!='new'"/>
+                                    <field name="unload_city" readonly="state!='new'"/>
+                                    <field name="unload_state" readonly="state!='new'"/>
+                                    <field name="unload_zip" readonly="state!='new'"/>
+                                    <field name="unload_country" readonly="state!='new'"/>
+                                </group>
+                                <group col="2">
+                                    <field name="unload_contact" readonly="state!='new'"/>
+                                    <field name="unload_phone" readonly="state!='new'"/>
+                                    <field name="unload_timeslot" readonly="state!='new'"/>
+                                    <field name="unload_date" readonly="state!='new'"/>
+                                    <field name="unload_remark" readonly="state!='new'"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <!--<div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers" />
+                    <field name="activity_ids" widget="mail_activity" />
+                    <field name="message_ids" widget="mail_thread" />
+                </div>-->
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_outbound_order_search" model="ir.ui.view">
+        <field name="name">outbound.order.search</field>
+        <field name="model">world.depot.outbound.order</field>
+        <field name="arch" type="xml">
+            <search string="Outbound Orders">
+                <field name="billno"/>
+                <field name="date"/>
+                <field name="owner"/>
+                <field name="project"/>
+                <field name="warehouse"/>
+                <field name="state"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_outbound_order" model="ir.actions.act_window">
+        <field name="name">Outbound Orders</field>
+        <field name="res_model">world.depot.outbound.order</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_outbound_order_tree"/>
+    </record>
+</odoo>

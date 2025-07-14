@@ -1,0 +1,34 @@
+<odoo>
+    <!-- Stock Picking Form View -->
+    <record id="view_stock_picking_form_inherit" model="ir.ui.view">
+        <field name="name">stock.picking.form.inherit</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/group" position="inside">
+                <group>
+                    <field name="bill_of_lading"/>
+                    <field name="cntrno"/>
+                </group>
+            </xpath>
+            <!--<xpath expr="//header" position="inside">
+                <button name="delete_done_pickings_confirm" type="object" string="Delete Done Pickings" class="btn-danger" />
+            </xpath>-->
+        </field>
+    </record>
+
+    <!-- Stock Lot Form View -->
+    <record id="view_stock_lot_form_inherit" model="ir.ui.view">
+        <field name="name">stock.lot.form.inherit</field>
+        <field name="model">stock.lot</field>
+        <field name="inherit_id" ref="stock.view_production_lot_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/group[@name='main_group']" position="inside">
+                <group>
+                    <field name="bill_of_lading"/>
+                    <field name="cntrno"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

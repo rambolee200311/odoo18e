@@ -1,0 +1,24 @@
+<odoo>
+    <data noupdate="1">
+        <record id="seq_inbound_order" model="ir.sequence">
+            <field name="name">Inbound Order No</field>
+            <field name="code">seq.inbound.order</field>
+            <field name="prefix">IO%(year)s%(month)s%(day)s</field>
+            <field name="padding">4</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="use_date_range" eval="True"/>
+        </record>
+    </data>
+    <data noupdate="1">
+        <record id="seq_outbound_order" model="ir.sequence">
+            <field name="name">Outbound Order No</field>
+            <field name="code">seq.outbound.order</field>
+            <field name="prefix">OO%(year)s%(month)s%(day)s</field>
+            <field name="padding">4</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="use_date_range" eval="True"/>
+        </record>
+    </data>
+</odoo>

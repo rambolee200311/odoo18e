@@ -1,0 +1,176 @@
+<odoo>
+    <!-- Separate tree view for child model -->
+    <record id="view_inbound_order_product_tree" model="ir.ui.view">
+        <field name="name">inbound.order.product.tree</field>
+        <field name="model">world.depot.inbound.order.product</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="product_id"/>
+                <field name="pallets"/>
+                <field name="quantity"/>
+                <field name="remark"/>
+                <field name="is_serial_tracked" widget="boolean"/>
+                <field name="is_inbound_handling" widget="boolean"/>
+                <field name="inbound_handling_price"/>
+                <field name="inbound_handling_unit"/>
+                <field name="inbound_handling_charge"/>
+                <field name="is_scanning" widget="boolean"/>
+                <field name="inbound_scanning_price"/>
+                <field name="inbound_scanning_charge"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_inbound_order_form" model="ir.ui.view">
+        <field name="name">inbound.order.form</field>
+        <field name="model">world.depot.inbound.order</field>
+        <field name="arch" type="xml">
+            <form string="Inbound Order" class="o_inbound_order">
+                <header>
+                    <button name="action_confirm" type="object" string="Confirm" class="btn-primary" invisible="state!='new'"/>
+                    <button name="action_unconfirm" type="object" string="UnConfirm" class="btn-primary" invisible="state!='confirm'"/>
+                    <button name="action_cancel" type="object" string="Cancel" class="btn-secondary" invisible="state!='new'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="new,confirm"/>
+                    <widget name="web_ribbon" title="CANCEL" bg_color="bg-danger" invisible="state!='cancel'"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                         <h1>
+                            Inbound Order
+                        </h1>
+                        <h1>
+                            <field name="billno"/>
+                        </h1>
+                    </div>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_calculate_charges"
+                                type="object"
+                                string="Cal Charges"
+                                class="oe_stat_button" icon="fa-calculator"/>
+                        <button name="action_create_stock_picking"
+                                type="object"
+                                string="Create Receipt"
+                                class="oe_stat_button" icon="fa-bus"/>
+                        <button name="action_view_stock_picking"
+                                type="object"
+                                string="View Receipt"
+                                class="oe_stat_button" icon="fa-clone"/>
+                    </div>
+                    <group col="2">
+                        <group col="2" string="Main">
+                            <field name="type" readonly="state!='new'"/>
+                            <field name="reference"/>
+                            <field name="date"/>
+                            <field name="a_date"/>
+                            <field name="project"/>
+                            <field name="owner"/>
+                            <field name="bl_no"/>
+                            <field name="cntr_no"/>
+                             <field name="is_adr"/>
+                        </group>
+                        <group col="2" string="Info">
+                            <field name="from_partner"/>
+                            <field name="warehouse"/>
+                            <field name="status"/>
+                            <field name="stock_picking_id" readonly="1"/>
+                            <field name="i_date" readonly="1"/>
+                            <field name="remark"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Products">
+                            <field name="inbound_order_product_ids" widget="one2many_list" view_ref="view_inbound_order_product_tree"/>
+                        </page>
+                         <page string="Charges">
+                            <group col="2">
+                                <group col="2">
+                                    <field name="inbound_trucking_charge"/>
+                                    <field name="inbound_terminal_surcharge"/>
+                                    <field name="inbound_terminal_surcharge_remark"/>
+                                    <field name="inbound_system_file_charge"/>
+                                    <field name="inbound_DGD_charge"/>
+                                </group>
+                                <group col="2">
+                                    <field name="pallets"/>
+                                    <field name="scanning_quantity"/>
+                                    <field name="inbound_handling_charge"/>
+                                    <field name="inbound_scanning_charge"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <!--<div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>-->
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <!-- Tree View -->
+    <record id="view_inbound_order_tree" model="ir.ui.view">
+        <field name="name">inbound.order.tree</field>
+        <field name="model">world.depot.inbound.order</field>
+        <field name="arch" type="xml">
+            <list string="Inbound Orders">
+                <field name="billno" optional="show"/>
+                <field name="reference" optional="show"/>
+                <field name="date" optional="show"/>
+                <field name="a_date" optional="show"/>
+                <field name="owner" optional="show"/>
+                <field name="bl_no"/>
+                <field name="cntr_no"/>
+                <field name="project" optional="show"/>
+                <field name="warehouse" optional="show"/>
+                <field name="state" optional="show"/>
+                <field name="remark" optional="show"/>
+            </list>
+        </field>
+    </record>
+    <!-- Search View -->
+    <record id="view_inbound_order_search" model="ir.ui.view">
+        <field name="name">inbound.order.search</field>
+        <field name="model">world.depot.inbound.order</field>
+        <field name="arch" type="xml">
+            <search string="Inbound Orders">
+                <field name="billno"/>
+                <field name="date"/>
+                <field name="owner"/>
+                <field name="bl_no"/>
+                <field name="cntr_no"/>
+                <field name="project"/>
+                <field name="warehouse"/>
+                <field name="state"/>
+            </search>
+        </field>
+    </record>
+    <!-- Action
+    <record id="action_inbound_order" model="ir.actions.act_window">
+        <field name="name">Inbound Orders</field>
+        <field name="res_model">world.depot.inbound.order</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_inbound_order_tree"/>
+    </record> -->
+    <record id="action_inbound_order" model="ir.actions.act_window">
+        <field name="name">Inbound Orders</field>
+        <field name="res_model">world.depot.inbound.order</field>
+        <field name="view_mode">list,form</field> <!-- Corrected view_mode -->
+        <field name="view_id" ref="view_inbound_order_tree"/>
+    </record>
+    <!-- Picking -->
+    <record id="view_picking_form_inherit" model="ir.ui.view">
+        <field name="name">stock.picking.form.inherit</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='operations']" position="inside">
+                <group>
+                    <field name="inbound_order_id" string="Inbound Order"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

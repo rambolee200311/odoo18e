@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- menu -->
+        <menuitem id="world_depot_logi_menu" name="WorldDepot" sequence="10"/>
+        <menuitem id="inbound_logi_menu" name="Inbound" parent="world_depot_logi_menu" sequence="100" />
+        <menuitem id="inbound_order_menu" name="Order" parent="inbound_logi_menu" sequence="101" action="action_inbound_order"/>
+        <menuitem id="outbound_logi_menu" name="Outbound" parent="world_depot_logi_menu" sequence="200" />
+        <menuitem id="outbound_order_menu" name="Order" parent="outbound_logi_menu" sequence="201" action="action_outbound_order"/>
+    </data>
+</odoo>
