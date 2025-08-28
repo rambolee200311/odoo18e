@@ -5,6 +5,20 @@
         <field name="inherit_id" ref="project.edit_project"/>
         <field name="arch" type="xml">
             <xpath expr="//sheet" position="inside">
+                <group string="Info">
+                    <field name="category"/>
+                    <field name="owner"/>
+                    <field name="inbound_cmr_template_file" widget="binary" filename="inbound_cmr_template_file_name"/>
+                    <field name="inbound_cmr_template_file_name" invisible="1"/>
+                    <field name="outbound_cmr_template_file" widget="binary" filename="outbound_cmr_template_file_name"/>
+                    <field name="outbound_cmr_template_file_name" invisible="1"/>
+                </group>
+                <!--<group string="Info">
+                    <field name="owner"/>
+                    <field name="warehouse"/>
+                    <field name="receipt_operation_type"/>
+                    <field name="pick_operation_type"/>
+                </group>
                 <group string="Inbound Charge Settings" col="2">
                     <group col="2">
                         <field name="inbound_trucking_charge"/>
@@ -17,7 +31,40 @@
                         <field name="inbound_scanning_price"/>
                     </group>
                 </group>
+                <group string="Outbound Charge Settings" col="2">
+                    <group col="2">
+                        <field name="outbound_delivery_charge"/>
+                        <field name="outbound_handling_price"/>
+                        <field name="outbound_handling_per"/>
+                        <field name="outbound_system_file_charge"/>
+                        <field name="outbound_DGD_charge"/>
+                        <field name="outbound_scanning_price"/>
+                    </group>
+                    <group col="2">
+                        <field name="outbound_palletizing_price"/>
+                        <field name="outbound_palle_fba_stamp"/>
+                        <field name="outbound_palle_non_stamp"/>
+                    </group>
+                </group>
+                <group  string="Outbound Loadings Settings">
+                    <field name="outbound_loading_ids" widget="one2many_list" view_ref="view_outbound_loading_tree"/>
+                </group>-->
             </xpath>
         </field>
     </record>
+    <!--Outbound Loading Tree View
+    <record id="view_outbound_loading_tree" model="ir.ui.view">
+        <field name="name">inbound.order.tree</field>
+        <field name="model">project.outbound.loading</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="weight_range_low"/>
+                <field name="weight_range_high"/>
+                <field name="charge"/>
+                <field name="unit"/>
+                <field name="description"/>
+            </list>
+        </field>
+    </record>
+     -->
 </odoo>

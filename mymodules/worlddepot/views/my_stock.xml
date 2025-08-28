@@ -6,9 +6,16 @@
         <field name="inherit_id" ref="stock.view_picking_form"/>
         <field name="arch" type="xml">
             <xpath expr="//sheet/group" position="inside">
-                <group>
-                    <field name="bill_of_lading"/>
-                    <field name="cntrno"/>
+                <group col="2">
+                    <group col="2">
+                        <field name="bill_of_lading" invisible="picking_type_code!='incoming'"/>
+                        <field name="cntrno" invisible="picking_type_code!='incoming'"/>
+                    </group>
+                    <group col="2">
+                        <field name="ref_1"/>
+                        <field name="ref_2"/>
+                        <field name="planning_date"/>
+                    </group>
                 </group>
             </xpath>
             <!--<xpath expr="//header" position="inside">

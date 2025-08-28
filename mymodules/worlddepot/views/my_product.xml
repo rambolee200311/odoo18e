@@ -1,0 +1,28 @@
+<odoo>
+    <record id="view_product_template_form_inherit_dg" model="ir.ui.view">
+        <field name="name">product.template.form.inherit.dg</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <!-- We are targeting the group_lots_and_weight group in the template form -->
+            <xpath expr="//group[@name='group_lots_and_weight']" position="before">
+                <group>
+                    <field name="is_dg"/>
+                    <field name="un_code"/>
+                    <!--<field name="pcs_per_pallet" string="Pcs/Pallet"/>-->
+                </group>
+            </xpath>
+        </field>
+    </record>
+    <!--
+    <record id="view_product_tree_inherit" model="ir.ui.view">
+        <field name="name">product.product.tree.inherit</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//tree" position="inside">
+                <field name="is_dg"/>
+            </xpath>
+        </field>
+    </record>-->
+</odoo>

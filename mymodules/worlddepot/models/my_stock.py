@@ -7,6 +7,21 @@ class StockPicking(models.Model):
 
     bill_of_lading = fields.Char('Bill of Lading')
     cntrno = fields.Char('Container Number')
+    ref_1 = fields.Char('Reference 1', help='Additional reference field for custom use')
+    ref_2 = fields.Char('Reference 2', help='Additional reference field for custom use')
+    planning_date = fields.Datetime('Planning Date', help='Date when the picking is planned to be processed')
+    inbound_order_id = fields.Many2one(
+        comodel_name='world.depot.inbound.order',
+        string='Inbound Order',
+        help='Reference to the related Inbound Order',
+        readonly=True
+    )
+    outbound_order_id = fields.Many2one(
+        comodel_name='world.depot.outbound.order',
+        string='Outbound Order',
+        help='Reference to the related Outbound Order',
+        readonly=True
+    )
     '''
     @api.constrains('bill_of_lading', 'cntrno', 'picking_type_id', 'origin_returned_picking_id')
     def _check_receipt_fields(self):
@@ -27,6 +42,12 @@ class StockPicking(models.Model):
                         'bill_of_lading': self.bill_of_lading,
                         'cntrno': self.cntrno
                     })
+
+            if self.inbound_order_id:
+                # Update the inbound order with date_done
+                self.inbound_order_id.write({
+                    'i_date': self.date_done,
+                })
         return res
 
     # resetting their state to "draft"
@@ -57,7 +78,7 @@ class StockPicking(models.Model):
             # Skip deletion of quants due to access restrictions
             # You can log or handle quants differently if needed
             # Handle related quants
-            #for move_line in picking.move_line_ids:
+            # for move_line in picking.move_line_ids:
             #    quants = self.env['stock.quant'].search([('lot_id', '=', move_line.lot_id.id)])
             #    quants.unlink()  # Delete related quants
 
@@ -67,9 +88,39 @@ class StockPicking(models.Model):
             # Unlink the picking
             picking.unlink()
 
+
 # models/stock_lot.py
 class StockLot(models.Model):
     _inherit = 'stock.lot'
 
     bill_of_lading = fields.Char('Bill of Lading')
     cntrno = fields.Char('Container Number')
+
+
+class StockLocation(models.Model):
+    _inherit = 'stock.location'
+
+    def _get_removal_strategy_order(self, removal_strategy):
+        if removal_strategy == 'fifo':
+            # 改为按时间戳升序排列
+            return 'date, id'
+        return super(StockLocation, self)._get_removal_strategy_order(removal_strategy)
+
+
+class StockMove(models.Model):
+    _inherit = 'stock.move'
+
+    # InboundOrderProductsOfPallet's ID
+    inbound_order_product_pallet_id = fields.Integer('Inbound Order Product Pallet ID', )
+
+    def _prepare_merge_moves_distinct_fields(self):
+        distinct_fields = super()._prepare_merge_moves_distinct_fields()
+        # Only use pallet_id if set; ignore when null
+        distinct_fields.append('inbound_order_product_pallet_id')
+        return distinct_fields
+'''
+    def _merge_moves_fields(self):
+        vals = super()._merge_moves_fields()
+        vals['product_uom_qty'] = self[0].product_uom_qty  # 禁用数量合并
+        return vals
+'''

@@ -1,0 +1,55 @@
+<odoo>
+    <!-- List View -->
+    <record id="view_world_depot_api_user_list" model="ir.ui.view">
+        <field name="name">world.depot.api.user.list</field>
+        <field name="model">world.depot.api.user</field>
+        <field name="arch" type="xml">
+            <list string="API Users">
+                <field name="user_id"/>
+                <field name="api_key"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_world_depot_api_user_form" model="ir.ui.view">
+        <field name="name">world.depot.api.user.form</field>
+        <field name="model">world.depot.api.user</field>
+        <field name="arch" type="xml">
+            <form string="API User">
+                <sheet>
+                    <header>
+                        <button name="generate_api_key" type="object" string="Generate API Key" class="btn-primary" invisble="api_key"/>
+                    </header>
+                    <group>
+                        <field name="user_id"/>
+                        <field name="api_key"/>
+                        <field name="secret" password="True"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_world_depot_api_user_search" model="ir.ui.view">
+        <field name="name">world.depot.api.user.search</field>
+        <field name="model">world.depot.api.user</field>
+        <field name="arch" type="xml">
+            <search string="API Users">
+                <field name="user_id"/>
+                <field name="api_key"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_world_depot_api_user" model="ir.actions.act_window">
+        <field name="name">API Users</field>
+        <field name="res_model">world.depot.api.user</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_world_depot_api_user_search"/>
+    </record>
+</odoo>

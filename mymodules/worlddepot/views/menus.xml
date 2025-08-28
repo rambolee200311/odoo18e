@@ -3,9 +3,29 @@
     <data>
         <!-- menu -->
         <menuitem id="world_depot_logi_menu" name="WorldDepot" sequence="10"/>
-        <menuitem id="inbound_logi_menu" name="Inbound" parent="world_depot_logi_menu" sequence="100" />
-        <menuitem id="inbound_order_menu" name="Order" parent="inbound_logi_menu" sequence="101" action="action_inbound_order"/>
-        <menuitem id="outbound_logi_menu" name="Outbound" parent="world_depot_logi_menu" sequence="200" />
-        <menuitem id="outbound_order_menu" name="Order" parent="outbound_logi_menu" sequence="201" action="action_outbound_order"/>
+
+        <menuitem id="waybill_logi_menu" name="Waybill" parent="world_depot_logi_menu" sequence="100"/>
+        <menuitem id="waybill_menu" name="Waybills" parent="waybill_logi_menu" action="action_world_depot_waybill" sequence="101"/>
+        <menuitem id="container_menu" name="Containers" parent="waybill_logi_menu" action="action_waybill_container" sequence="102"/>
+        <menuitem id="packing_list_menu" name="Packing Lists" parent="waybill_logi_menu" action="action_waybill_packing_list" sequence="103"/>
+
+        <menuitem id="inbound_logi_menu" name="Inbound" parent="world_depot_logi_menu" sequence="200" />
+        <menuitem id="inbound_order_menu" name="Orders" parent="inbound_logi_menu" sequence="201" action="action_inbound_order"/>
+        <menuitem id="inbound_order_product_pallet_menu" name="Pallet Products" parent="inbound_logi_menu" sequence="202" action="action_inbound_order_products_pallet"/>
+        <menuitem id="inbound_order_summary_menu" name="Orders Summary" parent="inbound_logi_menu" sequence="203" action="action_inbound_order_summary"/>
+
+
+        <menuitem id="outbound_logi_menu" name="Outbound" parent="world_depot_logi_menu" sequence="300" />
+        <menuitem id="outbound_order_menu" name="Orders" parent="outbound_logi_menu" sequence="301" action="action_outbound_order"/>
+        <menuitem id="outbound_order_summary_menu" name="Orders Summary" parent="outbound_logi_menu" sequence="303" action="action_outbound_order_summary"/>
+
+        <menuitem id="menu_world_depot_configuration" parent="world_depot_logi_menu" name="Configuration" sequence="900"/>
+        <menuitem id="menu_world_depot_products" name="Products" parent="menu_world_depot_configuration" action="product.product_template_action_all" sequence="901"/>
+        <menuitem id="menu_world_depot_product" name="Product Template" parent="menu_world_depot_configuration" action="action_product_import" sequence="910"/>
+        <!--<menuitem id="menu_world_depot_excel_template"
+          name="Excel Templates"
+          parent="menu_world_depot_configuration"
+          action="action_world_depot_excel_template"
+          sequence="920"/>-->
     </data>
 </odoo>

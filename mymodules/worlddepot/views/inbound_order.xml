@@ -1,23 +1,93 @@
 <odoo>
-    <!-- Separate tree view for child model -->
+    <!-- Tree view for Pallet product of Inbound Order -->
+    <record id="view_inbound_order_product_pallet_tree" model="ir.ui.view">
+        <field name="name">inbound.order.product.pallet.tree</field>
+        <field name="model">world.depot.inbound.order.products.pallet</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="inbound_order_product_id"/>
+                <field name="product_id"/>
+                <field name="adr"/>
+                <field name="un_number"/>
+                <field name="quantity"/>
+                <field name="weight"/>
+                <field name="weight_subtotal"/>
+                <field name="is_serial_tracked" widget="boolean"/>
+            </list>
+        </field>
+    </record>
+    <!-- Tree view for Pallet of Inbound Order -->
     <record id="view_inbound_order_product_tree" model="ir.ui.view">
         <field name="name">inbound.order.product.tree</field>
         <field name="model">world.depot.inbound.order.product</field>
         <field name="arch" type="xml">
-            <list editable="bottom">
-                <field name="product_id"/>
+            <list>
                 <field name="pallets"/>
-                <field name="quantity"/>
+                <field name="pallet_type"/>
+                <field name="pallet_no"/>
+                <field name="product_description"/>
                 <field name="remark"/>
+                <field name="quantity"/>
+                <!--
+                <field name="product_id"/>
+                <field name="adr"/>
+                <field name="un_number"/>
+                <field name="quantity"/>
                 <field name="is_serial_tracked" widget="boolean"/>
+
                 <field name="is_inbound_handling" widget="boolean"/>
                 <field name="inbound_handling_price"/>
                 <field name="inbound_handling_unit"/>
                 <field name="inbound_handling_charge"/>
                 <field name="is_scanning" widget="boolean"/>
                 <field name="inbound_scanning_price"/>
-                <field name="inbound_scanning_charge"/>
+                <field name="inbound_scanning_charge"/>-->
             </list>
+        </field>
+    </record>
+    <!-- Form view for Pallet of Inbound Order -->
+    <record id="view_inbound_order_product_form" model="ir.ui.view">
+        <field name="name">inbound.order.product.form</field>
+        <field name="model">world.depot.inbound.order.product</field>
+        <field name="arch" type="xml">
+            <form string="Inbound Order Pallets">
+                <sheet>
+                    <div class="oe_title">
+                         <h1>
+                            Inbound Order Pallet
+                        </h1>
+                    </div>
+                    <group col="2" string="Info">
+                        <group col="2">
+                            <field name="pallets"/>
+                            <field name="pallet_type"/>
+                            <field name="pallet_no"/>
+                            <field name="remark"/>
+                        </group>
+                        <group col="2">
+                            <field name="weight_total"/>
+                            <field name="project"/>
+                            <field name="project_category_id"/>
+                            <field name="product_description"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Products of A Pallet">
+                            <field name="inbound_order_product_pallet_ids">
+                                <list editable="bottom" create="true" delete="true">
+                                    <field name="product_id" domain="[('categ_id', '=', parent.project_category_id)]"/>
+                                    <field name="adr"/>
+                                    <field name="un_number"/>
+                                    <field name="quantity"/>
+                                    <field name="weight"/>
+                                    <field name="weight_subtotal"/>
+                                    <field name="is_serial_tracked" widget="boolean"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
         </field>
     </record>
 
@@ -28,6 +98,7 @@
         <field name="arch" type="xml">
             <form string="Inbound Order" class="o_inbound_order">
                 <header>
+                    <button name="save_record" type="object" string="Save" class="btn-primary" invisible="state!='new'"/>
                     <button name="action_confirm" type="object" string="Confirm" class="btn-primary" invisible="state!='new'"/>
                     <button name="action_unconfirm" type="object" string="UnConfirm" class="btn-primary" invisible="state!='confirm'"/>
                     <button name="action_cancel" type="object" string="Cancel" class="btn-secondary" invisible="state!='new'"/>
@@ -44,45 +115,63 @@
                         </h1>
                     </div>
                     <div class="oe_button_box" name="button_box">
-                        <button name="action_calculate_charges"
+                        <!--<button name="action_calculate_charges"
                                 type="object"
                                 string="Cal Charges"
-                                class="oe_stat_button" icon="fa-calculator"/>
+                                class="oe_stat_button" icon="fa-calculator"/>-->
                         <button name="action_create_stock_picking"
                                 type="object"
                                 string="Create Receipt"
                                 class="oe_stat_button" icon="fa-bus"/>
-                        <button name="action_view_stock_picking"
+                        <!--<button name="action_view_stock_picking"
                                 type="object"
                                 string="View Receipt"
-                                class="oe_stat_button" icon="fa-clone"/>
+                                class="oe_stat_button" icon="fa-clone"/>-->
                     </div>
                     <group col="2">
                         <group col="2" string="Main">
-                            <field name="type" readonly="state!='new'"/>
-                            <field name="reference"/>
-                            <field name="date"/>
-                            <field name="a_date"/>
-                            <field name="project"/>
-                            <field name="owner"/>
-                            <field name="bl_no"/>
-                            <field name="cntr_no"/>
-                             <field name="is_adr"/>
+                            <field name="type"/>
+                            <field name="reference" readonly="state!='new'"/>
+                            <field name="date" readonly="state!='new'"/>
+                            <field name="a_date" readonly="state!='new'"/>
+                            <field name="project" readonly="state!='new'"/>
+                            <field name="owner" readonly="state!='new'"/>
+                            <field name="warehouse"/>
+                            <field name="bl_no" readonly="state!='new'"/>
+                            <field name="cntr_no" readonly="state!='new'"/>
+                            <field name="is_adr" readonly="state!='new'"/>
                         </group>
                         <group col="2" string="Info">
-                            <field name="from_partner"/>
-                            <field name="warehouse"/>
+                            <field name="pick_type"/>
+                            <field name="is_scan_sn"/>
+                            <!--<field name="from_partner"/>
+                            -->
+                            <field name="weight_total"/>
+                            <field name="weight_total_input"/>
                             <field name="status"/>
                             <field name="stock_picking_id" readonly="1"/>
                             <field name="i_date" readonly="1"/>
                             <field name="remark"/>
+                            <field name="confirm_user_id" readonly="1"/>
+                            <field name="confirm_time_user_tz" readonly="1"/>
+                            <field name="confirm_time_server" readonly="1"/>
                         </group>
                     </group>
                     <notebook>
                         <page string="Products">
-                            <field name="inbound_order_product_ids" widget="one2many_list" view_ref="view_inbound_order_product_tree"/>
+                            <field name="inbound_order_product_ids" widget="one2many_list" view_ref="view_inbound_order_product_tree" readonly="state!='new'"/>
                         </page>
-                         <page string="Charges">
+                        <page string="Documents">
+                            <field name="inbound_order_doc_ids" readonly="state=='cancel'">
+                                <list editable="bottom">
+                                    <field name="doc_type"/>
+                                    <field name="description"/>
+                                    <field name="file" widget="binary" filename="filename"/>
+                                    <field name="filename" invisible="1"/>
+                                </list>
+                            </field>
+                        </page>
+                         <!--<page string="Charges">
                             <group col="2">
                                 <group col="2">
                                     <field name="inbound_trucking_charge"/>
@@ -98,7 +187,7 @@
                                     <field name="inbound_scanning_charge"/>
                                 </group>
                             </group>
-                        </page>
+                        </page>-->
                     </notebook>
                 </sheet>
                 <!--<div class="oe_chatter">
@@ -117,12 +206,13 @@
         <field name="arch" type="xml">
             <list string="Inbound Orders">
                 <field name="billno" optional="show"/>
+                <field name="type" optional="show"/>
                 <field name="reference" optional="show"/>
                 <field name="date" optional="show"/>
                 <field name="a_date" optional="show"/>
                 <field name="owner" optional="show"/>
-                <field name="bl_no"/>
-                <field name="cntr_no"/>
+                <field name="bl_no" optional="show"/>
+                <field name="cntr_no" optional="show"/>
                 <field name="project" optional="show"/>
                 <field name="warehouse" optional="show"/>
                 <field name="state" optional="show"/>
@@ -137,6 +227,8 @@
         <field name="arch" type="xml">
             <search string="Inbound Orders">
                 <field name="billno"/>
+                <field name="reference"/>
+                <field name="type"/>
                 <field name="date"/>
                 <field name="owner"/>
                 <field name="bl_no"/>
@@ -144,6 +236,7 @@
                 <field name="project"/>
                 <field name="warehouse"/>
                 <field name="state"/>
+                <filter string="Active Orders" name="state_not_cancel" domain="[('state', '!=', 'cancel')]"/>
             </search>
         </field>
     </record>
@@ -159,6 +252,14 @@
         <field name="res_model">world.depot.inbound.order</field>
         <field name="view_mode">list,form</field> <!-- Corrected view_mode -->
         <field name="view_id" ref="view_inbound_order_tree"/>
+        <field name="context">{'search_default_state_not_cancel': 1}</field>
+        <field name="domain">[]</field>
+    </record>
+     <record id="action_inbound_order_products_pallet" model="ir.actions.act_window">
+        <field name="name">Inbound Pallet Products</field>
+        <field name="res_model">world.depot.inbound.order.products.pallet</field>
+        <field name="view_mode">list</field> <!-- Corrected view_mode -->
+        <field name="view_id" ref="view_inbound_order_product_pallet_tree"/>
     </record>
     <!-- Picking -->
     <record id="view_picking_form_inherit" model="ir.ui.view">
@@ -168,7 +269,8 @@
         <field name="arch" type="xml">
             <xpath expr="//page[@name='operations']" position="inside">
                 <group>
-                    <field name="inbound_order_id" string="Inbound Order"/>
+                    <field name="inbound_order_id" string="Inbound Order" invisible="picking_type_code!='incoming'"/>
+                    <field name="outbound_order_id" string="Outbound Order" invisible="picking_type_code=='incoming'"/>
                 </group>
             </xpath>
         </field>

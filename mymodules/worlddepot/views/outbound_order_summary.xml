@@ -1,0 +1,51 @@
+<odoo>
+    <!-- Tree View -->
+    <record id="view_outbound_order_summary_tree" model="ir.ui.view">
+        <field name="name">outbound.order.summary.tree</field>
+        <field name="model">world.depot.outbound.order.summary</field>
+        <field name="arch" type="xml">
+            <list string="Outbound Order Summary">
+                <field name="order_id" optional="show"/>
+                <field name="type" optional="show"/>
+                <field name="p_date" optional="show"/>
+                <field name="project" optional="show"/>
+                <field name="reference" optional="show"/>
+                <field name="unload_company" optional="show"/>
+                <field name="delivery_method" optional="show"/>
+                <field name="load_ref" optional="show"/>
+                <field name="product_id" optional="show"/>
+                <field name="product_name" optional="show"/>
+                <field name="quantity" optional="show"/>
+                <field name="pallet_prefix_code" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_outbound_order_summary_search" model="ir.ui.view">
+        <field name="name">outbound.order.summary.search</field>
+        <field name="model">world.depot.outbound.order.summary</field>
+        <field name="arch" type="xml">
+            <search string="Outbound Order Summary">
+                <field name="order_id"/>
+                <field name="type"/>
+                <field name="p_date"/>
+                <field name="project"/>
+                <field name="reference"/>
+                <field name="unload_company"/>
+                <field name="delivery_method"/>
+                <field name="product_id"/>
+                <filter string="Confirmed Orders" name="confirmed_orders" domain="[('order_id.state', '=', 'confirm')]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_outbound_order_summary" model="ir.actions.act_window">
+        <field name="name">Outbound Order Summary</field>
+        <field name="res_model">world.depot.outbound.order.summary</field>
+        <field name="view_mode">list,search</field>
+        <field name="view_id" ref="view_outbound_order_summary_tree"/>
+        <field name="search_view_id" ref="view_outbound_order_summary_search"/>
+    </record>
+</odoo>

@@ -1,6 +1,16 @@
 import logging
+from markupsafe import Markup
+from openpyxl.utils import get_column_letter
+
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+import base64
+from io import BytesIO
+import openpyxl
+from openpyxl.styles import Alignment
+from openpyxl.styles import Border, Side
+from copy import copy
+import random
 
 _logger = logging.getLogger(__name__)
 
@@ -11,14 +21,80 @@ class OutboundOrder(models.Model):
     _inherit = ["mail.thread", "mail.activity.mixin"]
     _rec_name = 'billno'
 
+    # Fields
+    type = fields.Selection(
+        selection=[
+            ('outbound', 'Outbound'),
+            ('service', 'Service'),
+            ('transfer', 'Transfer'),
+        ],
+        default='outbound',
+        string="Order Type",
+        required=True,
+        tracking=True
+    )
     billno = fields.Char(string='BillNo', readonly=True)
     date = fields.Date(string='Order Date', required=True, tracking=True, default=fields.Date.today)
-    a_date = fields.Date(string='Arrival Date', required=False, tracking=True)
-    owner = fields.Many2one('res.partner', string='Owner', required=True, tracking=True)
+    p_date = fields.Date(string='Planning Date', required=False, tracking=True)
+    o_date = fields.Date(string='Outbound Date', required=False, tracking=True)
     project = fields.Many2one('project.project', string='Project', required=True)
-    warehouse = fields.Many2one(comodel_name='stock.warehouse', string='Warehouse')
+    owner = fields.Many2one('res.partner', string='Owner', related='project.owner', stored=True, tracking=True)
+    warehouse = fields.Many2one('stock.warehouse', string='Warehouse', tracking=True,
+                                stored=True)
+    pick_type = fields.Many2one('stock.picking.type', string='Picking Type',
+                                tracking=True, help='Picking type for this project', stored=True,
+                                domain=[('code', '=', 'internal')])
+    unload_company = fields.Many2one('res.partner', string='Unload Company/Person', required=True, tracking=True)
     remark = fields.Text(string='Remark')
-    reference = fields.Char(string='Reference', required=False)
+    reference = fields.Char(string='Reference', required=True, help='Reference for the Order No of Owner', )
+    load_ref = fields.Char(string='Loading Reference', required=False, help='Reference for the Delivery', )
+    load_date = fields.Datetime(string='Loading Date', required=False, tracking=True,
+                                help='Date when the loading was completed')
+    delivery_method = fields.Selection(
+        selection=[
+            ('truck', 'Truck Delivery'),
+            ('pickup', 'Customer Pickup'),
+            ('parcel', 'Parcel Delivery'),  # Modified from "express" to "parcel"
+        ],
+        string="Delivery Method",
+        required=False,
+        default='truck',
+        tracking=True,
+        help="Parcel Delivery refers to standard package shipping services"
+    )
+    delivery_company = fields.Many2one(
+        comodel_name='res.partner',
+        string='Delivery Company',
+        required=False,
+        tracking=True,
+        help='Company providing the truck for delivery'
+    )
+    delivery_number = fields.Char(
+        string='Delivery Number',
+        required=False,
+        tracking=True,
+        help='Delivery number for the truck'
+    )
+
+    # 收货人签回日期
+    receiver_sign_back_date = fields.Datetime(string='Receiver Sign Back Date', readonly=False, tracking=True)
+    # 司机签收日期
+    driver_sign_date = fields.Datetime(string='Driver Sign Date', readonly=False, tracking=True)
+    plate_number = fields.Char(string='Plate Number', required=False, tracking=True,
+                               help='Vehicle plate number for the delivery truck')
+    delivery_remark = fields.Text(string='Delivery Remark',
+                                  help='Additional remarks for the delivery process')
+    pod_file = fields.Binary(
+        string='POD File',
+        help='Proof of Delivery file, such as a signed document or image',
+        attachment=True,
+        tracking=True
+    )
+    pod_filename = fields.Char(
+        string='POD Filename',
+        help='Filename of the Proof of Delivery file',
+        tracking=True
+    )
 
     state = fields.Selection(
         selection=[
@@ -33,27 +109,106 @@ class OutboundOrder(models.Model):
     outbound_order_product_ids = fields.One2many(
         comodel_name='world.depot.outbound.order.product',
         inverse_name='outbound_order_id',
-        string='Outbound Order Products'
+        string='Products of Outbound Order',
     )
-
-    unload_street = fields.Char(string='Street')
-    unload_city = fields.Char(string='City')
-    unload_state = fields.Char(string='State')
-    unload_zip = fields.Char(string='Zip')
-    unload_country = fields.Many2one('res.country', string='Country')
-    unload_company = fields.Char(string='Company')
-    unload_contact = fields.Char(string='Contact')
-    unload_phone = fields.Char(string='Phone')
-    unload_timeslot = fields.Char(string='Timeslot')
-    unload_date = fields.Datetime(string='Date')
-    unload_remark = fields.Text(string='Remark')
+    outbound_order_docs_ids = fields.One2many(
+        comodel_name='world.depot.outbound.order.docs',
+        inverse_name='outbound_order_id',
+        string='Other Documents',
+        help='Other documents related to the outbound order, such as invoices, packing lists, etc.'
+    )
 
     picking_PICK = fields.Many2one('stock.picking', string='Picking', readonly=True,
                                    help='Reference to the related Stock Picking')
-    picking_PACK = fields.Many2one('stock.picking', string='Packing', readonly=True,
-                                   help='Reference to the related Stock Packing')
+    picking_PICK_date = fields.Datetime(string='Picking Date', readonly=True,
+                                        help='Date when the stock picking was validated')
     picking_Out = fields.Many2one('stock.picking', string='Outbound', readonly=True,
                                   help='Reference to the related Stock Out')
+    status = fields.Selection(
+        selection=[
+            ('planning', 'Planning'),
+            ('inbound', 'Outbound'),
+        ],
+        default='planning',
+        string="Status",
+        readonly=True,
+        tracking=True
+    )
+    pallets = fields.Float(string='Pallets')
+    scanning_quantity = fields.Float(string='Scanning Quantity', default=0.0, tracking=True)
+    is_adr = fields.Boolean(string='ADR', default=True, tracking=True)
+
+    # 尾程配送 (Last Mile Delivery Charge)
+    outbound_delivery_charge = fields.Float(
+        string='Delivery Charge',
+        default=0.0,
+        tracking=True
+    )
+
+    # 系统 (System File and Document Admin Fee)
+    outbound_system_file_charge = fields.Float(
+        string='System File and Document Admin Fee',
+        default=10.0,
+        tracking=True
+    )
+    # 危险品 (Dangerous Goods Declaration Charge)
+    outbound_DGD_charge = fields.Float(
+        string='Dangerous Goods Declaration Charge',
+        default=7.5,
+        tracking=True
+    )
+
+    # 出库操作 (Outbound Handling)
+    outbound_handling_charge = fields.Float(
+        string='Outbound Handling',
+        default=0.0,
+        tracking=True
+    )
+
+    # 扫描费用
+    outbound_scanning_charge = fields.Float(string='Scanning Charge', default=0.0, tracking=True)
+    # 托盘
+    outbound_pallet_type = fields.Selection(
+        [('fba-stamp', 'FBA Stamp'), ('non-stamp', 'Non Stamp')],
+        string='Pallet Type',
+        default='fba-stamp'
+    )
+    outbound_pallet_fee = fields.Float(string='Outbound Pallet Fee', default=0.0, tracking=True)
+
+    # 打托
+    outbound_palletizing_qty = fields.Float(string='Palletizing Qty', default=1.0, tracking=True)
+    outbound_palletizing_charge = fields.Float(string='Palletizing Charge', default=0.0, tracking=True)
+
+    confirm_user_id = fields.Many2one(
+        'res.users', string='Confirmed By', readonly=True, help="User who confirmed the order."
+        , tracking=True)
+    confirm_time_user_tz = fields.Datetime(
+        string='Confirm Time (User Timezone)', readonly=True, help="Confirmation time in the user's timezone."
+        , tracking=True)
+    confirm_time_server = fields.Datetime(
+        string='Confirm Time (Server)', readonly=True, help="Confirmation time in the server's timezone."
+        , tracking=True)
+
+    pallet_prefix_code = fields.Char(
+
+        string="Pallet Prefix",
+
+        index=True,  # Optimize prefix searches [4](@ref)
+
+        help="Client-specific pallet grouping identifier (e.g., AX20250404335)"
+
+    )
+    is_auto_moves = fields.Boolean(
+        string="Auto Create Move Lines",
+        default=True,
+        help="Automatically create stock moves for this outbound order."
+    )
+
+    '''
+    @api.model
+    def _search_default_state_not_cancel(self):
+        return [('state', '!=', 'cancel')]
+    '''
 
     @api.model
     def create(self, values):
@@ -68,10 +223,40 @@ class OutboundOrder(models.Model):
         """
         Confirm the outbound order
         """
-        if self.state != 'new':
-            raise UserError(_("Outbound order can only be confirmed from 'New' state."))
-        else:
-            self.state = 'confirm'
+
+        for record in self:
+            if record.state != 'new':
+                raise UserError(_("Outbound order can only be confirmed from 'New' state."))
+            else:
+                record.state = 'confirm'
+                # Record the user who confirmed
+                record.confirm_user_id = self.env.user
+                # Record the confirmation time in the user's timezone
+                user_time = fields.Datetime.context_timestamp(self, fields.Datetime.now())
+                record.confirm_time_user_tz = fields.Datetime.to_string(user_time)
+                # Record the server confirmation time
+                record.confirm_time_server = fields.Datetime.now()
+
+                # Automatically add followers
+                try:
+                    inventory_admin_group = self.env.ref('stock.group_stock_manager')
+                    inventory_user_group = self.env.ref('stock.group_stock_user')
+                    valid_users = (inventory_admin_group.users | inventory_user_group.users).filtered('active')
+                    partner_ids = valid_users.partner_id.ids
+                    record.message_subscribe(partner_ids=partner_ids)
+                    record.message_post(
+                        body=Markup(
+                            "Outbound Order <a href='#' data-oe-model='world.depot.outbound.order' data-oe-id='%d'>%s</a> has been confirmed, please check it."
+                        ) % (record.id, record.billno),
+                        partner_ids=partner_ids,
+                        subtype_id=self.env.ref('mail.mt_comment').id,  # Ensures HTML rendering
+                        message_type='comment',  # Explicitly set the message type
+                        notify=False  # Disable email notifications
+                    )
+
+                except Exception as e:
+                    _logger.error("出库单关注者通知失败: %s | 单据: %s", str(e), record.billno)
+                    # 可选：raise UserError(_("通知发送失败，请手动检查"))  # 关键业务场景可中断
         return True
 
     def action_cancel(self):
@@ -86,11 +271,19 @@ class OutboundOrder(models.Model):
     def action_unconfirm(self):
         """ Unconfirm the outbound order
         """
-        if self.state != 'confirm':
-            raise UserError(_("Outbound order can only be unconfirmed from 'Confirm' state."))
-        else:
-            self.state = 'new'
-        return True
+        for record in self:
+            if record.state != 'confirm':
+                raise UserError(_("Outbound order can only be unconfirmed from 'Confirm' state."))
+            related_picking = self.env['stock.picking'].search(
+                [('outbound_order_id', '=', record.id), ('state', '!=', 'cancel')], limit=1
+            )
+            if related_picking:
+                raise UserError(_("Cannot unconfirm an order with completed stock picking."))
+
+            record.state = 'new'
+            record.confirm_user_id = False
+            record.confirm_time_user_tz = False
+            record.confirm_time_server = False
 
     def action_create_picking_PICK(self):
         """
@@ -98,53 +291,37 @@ class OutboundOrder(models.Model):
         """
         if self.state != 'confirm':
             raise UserError(_("Outbound order must be confirmed before creating a stock picking."))
-        for record in self:
-            # Create stock picking
-            picking_type = self.env['stock.picking.type'].search([
-                ('sequence_code', '=', 'PICK'),
-                ('warehouse_id', '=', record.warehouse.id)
-            ], limit=1)
-            if not picking_type:
-                raise UserError(_("No picking type found for the warehouse."))
+        if not self.pick_type:
+            raise UserError(_("Picking type must be set before creating a stock picking."))
+        if not self.p_date:
+            raise UserError(_("Planning date must be set before creating a stock picking."))
+        if not self.reference:
+            raise UserError(_("Reference must be set before creating a stock picking."))
 
+        for record in self:
             # Check if stock picking already exists
             existing_picking = self.env['stock.picking'].search(
                 [('outbound_order_id', '=', record.id),
-                 ('picking_type_id', '=', picking_type.id)],
+                 ('picking_type_id', '=', record.pick_type.id),
+                 ('state', '!=', 'cancel')],
                 limit=1)
             if existing_picking:
-                raise UserError(_("A stock picking already exists for this Inbound Order."))
-
-            # Create a contact from unload company if it doesn't exist
-            contact = self.env['res.partner'].search([
-                ('name', '=', record.unload_company)
-            ], limit=1)
-            if not contact:
-                self.env['res.partner'].create({
-                    'name': record.unload_company,
-                    'street': record.unload_street,
-                    'city': record.unload_city,
-                    'zip': record.unload_zip,
-                    'country_id': record.unload_country.id if record.unload_country else False,
-                    'phone': record.unload_phone,
-                })
-
-            contact_new = self.env['res.partner'].search([
-                ('name', '=', record.unload_company)
-            ], limit=1)
+                raise UserError(_("A stock picking already exists for this Outbound Order."))
 
             picking = self.env['stock.picking'].create({
-                'picking_type_id': picking_type.id,
-                'location_id': picking_type.default_location_src_id.id,
-                'location_dest_id': picking_type.default_location_dest_id.id,
+                'picking_type_id': record.pick_type.id,
+                'location_id': record.pick_type.default_location_src_id.id,
+                'location_dest_id': record.pick_type.default_location_dest_id.id,
                 'origin': record.billno,
-                'partner_id': contact_new.id,
+                'partner_id': record.unload_company.id,
                 'outbound_order_id': record.id,
+                'planning_date': record.p_date,
+                'ref_1': record.reference,
             })
 
             # Create stock moves
             for product in record.outbound_order_product_ids:
-                self.env['stock.move'].create({
+                stock_move = self.env['stock.move'].create({
                     'name': product.product_id.name,
                     'product_id': product.product_id.id,
                     'product_uom_qty': product.quantity,
@@ -153,6 +330,62 @@ class OutboundOrder(models.Model):
                     'location_id': picking.location_id.id,
                     'location_dest_id': picking.location_dest_id.id,
                 })
+                if record.is_auto_moves:
+                    # Find pallets matching prefix with available stock
+                    prefix = product.pallet_prefix_code or ''
+                    if prefix:
+                        pallets = self.env['stock.quant.package'].search([
+                            ('name', '=ilike', f'%-{prefix}-%'),
+                            ('quant_ids.quantity', '>', 0),  # Directly filter on related quant fields
+                            ('quant_ids.product_id', '=', product.product_id.id)
+                            # Ensure pallets have stock for the specific product
+                        ], order='create_date,name')  # Prioritize oldest pallets first
+                        moves = []
+                        remaining_qty = product.quantity
+                        for pallet in pallets:
+                            # Get total on-hand qty for the pallet
+                            pallet_qty = sum(pallet.quant_ids.mapped('quantity'))
+                            alloc_qty = min(pallet_qty, remaining_qty)
+
+                            if alloc_qty <= 0:
+                                continue
+
+                            # Create move line for full/partial pallet
+                            if product.product_id.tracking == 'serial':
+                                for i_index in range(1, int(alloc_qty) + 1):
+                                    moves.append({
+                                        'move_id': stock_move.id,
+                                        'picking_id': picking.id,
+                                        'product_id': product.product_id.id,
+                                        'product_uom_id': product.product_id.uom_id.id,
+                                        'quantity': 1,  # Serial numbers are tracked one by one
+                                        'location_id': pallet.location_id.id,
+                                        'location_dest_id': picking.location_dest_id.id,
+                                        'package_id': pallet.id,
+                                        'owner_id': pallet.owner_id.id,
+                                    })
+                            else:
+                                moves.append({
+                                    'move_id': stock_move.id,
+                                    'picking_id': picking.id,
+                                    'product_id': product.product_id.id,
+                                    'product_uom_id': product.product_id.uom_id.id,
+                                    'quantity': alloc_qty,  # Planned quantity
+                                    'location_id': pallet.location_id.id,
+                                    'location_dest_id': picking.location_dest_id.id,
+                                    'package_id': pallet.id,
+                                    'owner_id': pallet.owner_id.id,
+                                })
+                            remaining_qty -= alloc_qty
+
+                            if remaining_qty <= 0:
+                                break  # Exit when requirement met
+                        # Handle insufficient stock
+                        if remaining_qty > 0:
+                            raise UserError(f"Insufficient stock! Shortfall: {remaining_qty} units")
+
+                        self.env['stock.move.line'].create(moves)
+
             # Update the stock picking reference in the outbound order
             record.picking_PICK = picking.id
 
@@ -167,22 +400,343 @@ class OutboundOrder(models.Model):
                 }
             }
 
+    @api.depends('Outbound_order_product_ids')
+    def _onchange_sum(self):
+        """Update pallets field based on Outbound order products."""
+        total_pallets = sum(
+            product.pallets for product in self.outbound_order_product_ids if product.is_outbound_handling)
+        scanning_quantity = sum(product.quantity for product in self.outbound_order_product_ids if product.is_scanning)
+        self.pallets = total_pallets
+        self.scanning_quantity = scanning_quantity
+        self.is_adr = any(product.adr for product in self.outbound_order_product_ids)
+        '''
+        total_outbound_handling_charge = sum(
+            product.outbound_handling_charge for product in self.outbound_order_product_ids)
+        total_scanning_charge = sum(product.Outbound_scanning_charge for product in self.outbound_order_product_ids)
+       
+        self.outbound_handling_charge = total_outbound_handling_charge
+        self.outbound_scanning_charge = total_scanning_charge
+        '''
+
+    '''
+    @api.onchange('outbound_pallet_type')
+    def _onchange_outbound_pallet_type(self):
+        """Update the outbound pallet fee based on the selected pallet type."""
+        if self.outbound_pallet_type == 'fba-stamp':
+            self.outbound_pallet_fee = self.project.outbound_palle_fba_stamp
+        elif self.outbound_pallet_type == 'non-stamp':
+            self.outbound_pallet_fee = self.project.outbound_palle_non_stamp
+        else:
+            self.outbound_pallet_fee = 0.0
+
+    
+    @api.onchange('outbound_palletizing_qty')
+    def _onchange_outbound_palletizing_qty(self):
+        """Update the outbound palletizing charge based on the palletizing quantity."""
+        
+        if self.outbound_palletizing_qty > 0:
+            self.outbound_palletizing_charge = (self.outbound_palletizing_qty
+                                                * self.project.outbound_palletizing_price)
+        else:
+            self.outbound_palletizing_charge = 0.0
+            
+
+    def action_calculate_charges(self):
+        """Calculate the total charges for the Outbound order."""
+        for record in self:
+            if record.outbound_pallet_type == 'fba-stamp':
+                record.outbound_pallet_fee = record.project.outbound_palle_fba_stamp
+            elif record.outbound_pallet_type == 'non-stamp':
+                record.outbound_pallet_fee = record.project.outbound_palle_non_stamp
+            else:
+                record.outbound_pallet_fee = 0.0
+
+            # Calculate palletizing charge
+            record.outbound_palletizing_charge = (record.outbound_palletizing_qty
+                                                  * record.project.outbound_palletizing_price)
+
+
+            for detail in record.outbound_order_product_ids:
+                # Compute handling and scanning charges for each product
+                detail._compute_outbound_handling_charge()
+                detail._compute_outbound_scanning_charge()
+            # Recalculate total charges
+            record.pallets = sum(
+                product.pallets for product in record.outbound_order_product_ids if product.is_outbound_handling)
+            record.scanning_quantity = sum(
+                product.quantity for product in self.outbound_order_product_ids if product.is_scanning)
+            record.outbound_handling_charge = sum(
+                product.outbound_handling_charge for product in record.outbound_order_product_ids)
+            record.outbound_scanning_charge = sum(
+                product.outbound_scanning_charge for product in record.outbound_order_product_ids)
+'''
+
+    def action_create_cmr(self):
+        for rec in self:
+            # Load template
+            template_data = base64.b64decode(rec.project.outbound_cmr_template_file)
+            template_buffer = BytesIO(template_data)
+            workbook = openpyxl.load_workbook(template_buffer, read_only=False)
+            worksheet = workbook.active
+
+            # Define alignment styles
+            ALIGN_TOP_RIGHT = Alignment(vertical="top", horizontal="right", wrap_text=True)
+            ALIGN_TOP_LEFT = Alignment(vertical="top", horizontal="left", wrap_text=True)
+            ALIGN_TOP_CENTER = Alignment(vertical="top", horizontal="center", wrap_text=True)
+
+            # Fill company information
+            worksheet['B3'] = rec.owner.name or ''
+            warehouse_address = [
+                rec.warehouse.partner_id.street or '',
+                rec.warehouse.partner_id.zip or '',
+                rec.warehouse.partner_id.city or ''
+            ]
+            worksheet['B4'] = ', '.join(warehouse_address)
+            worksheet['B8'] = rec.unload_company.name or ''
+            unload_company_address = [
+                rec.unload_company.street or '',
+                rec.unload_company.zip or '',
+                rec.unload_company.city or ''
+            ]
+            worksheet['B9'] = ', '.join(unload_company_address)
+            worksheet['E19'] = rec.load_ref or ''
+            worksheet['D16'] = rec.load_date.strftime('%d/%m/%Y') if rec.load_date else ''
+
+            # Set initial row positions
+            row_index = 24  # Starting row for product data
+            template_row = 24  # Template row to copy styles from
+
+            # Process each product in the outbound order
+            for product in rec.outbound_order_product_ids:
+                self.insert_row_manually(worksheet, row_index, template_row)
+                # Fill product data with proper alignment
+                # Column B: Commodity/Product Name
+                worksheet.cell(row=row_index, column=2, value=product.product_id.name or '').alignment = ALIGN_TOP_LEFT
+                # Column C: Quantity
+                quantity = product.quantity or 0.0
+                worksheet.cell(row=row_index, column=3, value=quantity).alignment = ALIGN_TOP_RIGHT
+                # Column D: Net Weight per Box (NW kg/Box)
+                weight_per_box = product.product_id.weight or 0.0
+                worksheet.cell(row=row_index, column=4, value=weight_per_box).alignment = ALIGN_TOP_RIGHT
+                # Column E: Gross Weight (GW kg) - calculated as quantity * weight per box
+                weight_subtotal = quantity * weight_per_box
+                worksheet.cell(row=row_index, column=5, value=weight_subtotal).alignment = ALIGN_TOP_RIGHT
+                # Column F: Points (empty in the example)
+                worksheet.cell(row=row_index, column=6, value='').alignment = ALIGN_TOP_RIGHT
+                # Column G: Pallets (empty in the example)
+                worksheet.cell(row=row_index, column=7, value='').alignment = ALIGN_TOP_RIGHT
+
+                row_index += 1
+
+            worksheet.delete_rows(row_index)
+            # Save the workbook
+            output = BytesIO()
+            workbook.save(output)
+            output.seek(0)
+
+            # Generate a random sequence (e.g., 001~999)
+            random_seq = f"{random.randint(1, 999):03}"
+
+            # Format the attachment name with the random sequence
+            attachment_name = f"CMR_{rec.billno}_{random_seq}.xlsx"
+            self.env['ir.attachment'].create({
+                'name': attachment_name,
+                'type': 'binary',
+                'datas': base64.b64encode(output.read()),
+                'res_model': self._name,
+                'res_id': rec.id,
+                'mimetype': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            })
+
+            # Return success message and refresh the record
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('CMR Created'),
+                    'message': _('The CMR has been successfully created and attached.'),
+                    'sticky': False,
+                }
+            }
+
+    def insert_row_manually(self, worksheet, new_row_index, template_row_index):
+        """
+        Copy styles, data, and borders from a template row to a new row.
+        :param worksheet: Target worksheet object
+        :param new_row_index: Index of the new row to insert
+        :param template_row_index: Index of the template row
+        """
+        # Insert new row
+        worksheet.insert_rows(new_row_index)
+
+        # Define default border style based on your template image
+        # Using thin black lines as shown in the image
+        default_border = Border(
+            left=Side(style='thin', color='000000'),
+            right=Side(style='thin', color='000000'),
+            top=Side(style='thin', color='000000'),
+            bottom=Side(style='thin', color='000000')
+        )
+
+        # Copy each cell in the template row
+        for col in range(1, worksheet.max_column + 1):
+            template_cell = worksheet.cell(row=template_row_index, column=col)
+            new_cell = worksheet.cell(row=new_row_index, column=col)
+
+            # 1. Copy data
+            new_cell.value = template_cell.value
+
+            # 2. Copy styles (font, fill, alignment, etc.)
+            if template_cell.has_style:
+                new_cell.font = copy(template_cell.font)
+                new_cell.fill = copy(template_cell.fill)
+                new_cell.alignment = copy(template_cell.alignment)
+                new_cell.number_format = template_cell.number_format
+
+            # 3. Apply borders - manually copy border properties to avoid recursion issues
+            if template_cell.border:
+                # Create new Border object with properties from template cell
+                # This avoids the deepcopy recursion error while preserving border styles
+                new_cell.border = Border(
+                    left=template_cell.border.left,
+                    right=template_cell.border.right,
+                    top=template_cell.border.top,
+                    bottom=template_cell.border.bottom,
+                    diagonal=template_cell.border.diagonal,
+                    diagonal_direction=template_cell.border.diagonal_direction,
+                    outline=template_cell.border.outline,
+                    vertical=template_cell.border.vertical,
+                    horizontal=template_cell.border.horizontal
+                )
+            else:
+                new_cell.border = default_border  # Apply default if no border in template
+
+        # 4. Copy row height to maintain consistent row sizing
+        if template_row_index in worksheet.row_dimensions:
+            worksheet.row_dimensions[new_row_index].height = worksheet.row_dimensions[template_row_index].height
+
 
 class OutboundOrderProduct(models.Model):
     _name = 'world.depot.outbound.order.product'
     _description = 'Outbound Order Product'
 
     outbound_order_id = fields.Many2one('world.depot.outbound.order', string='Outbound Order', required=True)
+    project = fields.Many2one(related='outbound_order_id.project', string='Project', store=True, readonly=True)
+    project_category_id = fields.Many2one(related='project.category', string='Project Category', store=True,
+                                          readonly=True)
     cntr_no = fields.Char(string='Container No', required=False)
+    product_id = fields.Many2one('product.product', string='Product', required=True, tracking=True,
+                                 domain="[('categ_id', '=', project_category_id)]")
+    adr = fields.Boolean(string='ADR', help='Indicates if the product is classified as ADR (dangerous goods)',
+                         related='product_id.is_dg', stock=True)
+    un_number = fields.Char(string='UN Number', help='United Nations number for dangerous goods classification',
+                            related='product_id.un_code', store=True)
     pallets = fields.Float(string='Pallets', required=True)
-    product_id = fields.Many2one('product.product', string='Product', required=True)
-    quantity = fields.Float(string='Quantity', required=True)
+    pallet_type = fields.Char(string='Pallet Type', help='How many quantity on a pallet', default='')
+    pallet_no = fields.Char(string='Pallet No', help='Pallet number for tracking', default='')
+    quantity = fields.Float(string='Quantity', default=1.0, required=True, tracking=True, )
     remark = fields.Text(string='Remark')
     is_serial_tracked = fields.Boolean(string='Tracked by Serial', compute='_compute_is_serial_tracked', store=True)
     serial_numbers = fields.Text(string='Serial Numbers',
                                  help="Comma-separated list of serial numbers for the product.")
+    is_outbound_handling = fields.Boolean(string='is Handling', default=True, tracking=True)
+    outbound_handling_price = fields.Float(string='Handling Price', default=True, tracking=True)
+    outbound_handling_unit = fields.Selection(
+        string='Unit',
+        selection=[
+            ('pallet', 'Per Pallet'),
+            ('piece', 'Per Piece')],
+        readonly=True,
+    )
+    outbound_handling_charge = fields.Float(string='Handling Charge', default=0.0, tracking=True)
+    is_scanning = fields.Boolean(string='is Scanning', default=True, tracking=True)
+    outbound_scanning_price = fields.Float(string='Scanning Price', default=0.0, tracking=True)
+    outbound_scanning_charge = fields.Float(string='Scanning Charge', default=0.0, tracking=True)
+    product_serial_number_ids = fields.One2many('world.depot.outbound.order.product.serial.number',
+                                                'inbound_order_product_id', string='Product Serial Numbers')
+    pallet_prefix_code = fields.Char(
+
+        string="Pallet Prefix",
+
+        index=True,  # Optimize prefix searches [4](@ref)
+
+        help="Client-specific pallet grouping identifier (e.g., AX20250404335)"
+
+    )
 
     @api.depends('product_id')
     def _compute_is_serial_tracked(self):
         for record in self:
             record.is_serial_tracked = record.product_id.tracking == 'serial'
+            '''
+            record.is_scanning = record.product_id.tracking == 'serial' or record.product_id.tracking == 'lot'
+            record.outbound_handling_price = record.outbound_order_id.project.outbound_handling_price
+            record.outbound_handling_unit = record.outbound_order_id.project.outbound_handling_unit
+            record.outbound_scanning_price = record.outbound_order_id.project.outbound_scanning_price
+            '''
+
+    @api.depends('pallets', 'quantity', 'outbound_handling_price')
+    def _compute_outbound_handling_charge(self):
+        """Compute the outbound handling charge based on pallets, quantity, and project settings."""
+        for record in self:
+            record.outbound_handling_charge = 0
+            record.outbound_handling_price = 0
+            '''
+            if record.is_outbound_handling:
+                record.outbound_handling_price = record.outbound_order_id.project.outbound_handling_price
+                record.outbound_handling_unit = record.outbound_order_id.project.outbound_handling_per
+                if record.outbound_order_id.project.outbound_handling_per == 'pallet':
+                    record.outbound_handling_charge = record.pallets * record.outbound_order_id.project.outbound_handling_price
+                elif record.outbound_order_id.project.outbound_handling_per == 'piece':
+                    record.outbound_handling_charge = record.quantity * record.outbound_order_id.project.outbound_handling_price
+                else:
+                    record.outbound_handling_unit = False
+                    record.outbound_handling_charge = 0
+                    record.outbound_handling_price = 0
+            '''
+
+    @api.depends('is_scanning', 'quantity', 'outbound_scanning_price')
+    def _compute_outbound_scanning_charge(self):
+        """Compute the Outbound scanning charge based on quantity and project settings."""
+        for record in self:
+            record.outbound_scanning_charge = 0
+            record.outbound_scanning_price = 0
+            '''
+            if record.is_scanning:
+                record.outbound_scanning_price = record.outbound_order_id.project.outbound_scanning_price
+                record.outbound_scanning_charge = record.quantity * record.outbound_order_id.project.outbound_scanning_price
+            else:
+                record.outbound_scanning_price = 0.0
+            '''
+
+
+class OutboundOrderProductSerialNumber(models.Model):
+    _description = 'Outbound Order Product Serial Number'
+    _name = 'world.depot.outbound.order.product.serial.number'
+
+    inbound_order_product_id = fields.Many2one('world.depot.outbound.order.product', string='Outbound Order Product',
+                                               required=True)
+    serial_number = fields.Char(string='Serial Number', required=True, help='Serial number of the product')
+    quantity = fields.Float(string='Quantity', required=True, default=1.0,
+                            help='Quantity of the product with this serial number', readonly=True)
+
+
+# 其他附件
+class OutboundOderDocs(models.Model):
+    _name = 'world.depot.outbound.order.docs'
+    _description = 'world.depot.outbound.order.docs'
+
+    doc_type = fields.Selection(
+        selection=[
+            ('cmr', 'CMR'),
+            ('sn_details', 'SN Details'),
+            ('other', 'Other Document'),
+        ],
+        string="Document Type",
+        required=True,
+        tracking=True
+    )
+    description = fields.Text(string='Description')
+    file = fields.Binary(string='File')
+    filename = fields.Char(string='File name')
+    outbound_order_id = fields.Many2one('world.depot.outbound.order', string='Outbound Order', required=True)
