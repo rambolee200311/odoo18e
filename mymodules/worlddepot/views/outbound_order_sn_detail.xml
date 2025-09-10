@@ -1,0 +1,48 @@
+<odoo>
+    <!-- Tree View -->
+    <record id="view_outbound_order_sn_detail_tree" model="ir.ui.view">
+        <field name="name">outbound.order.sn.detail.tree</field>
+        <field name="model">world.depot.outbound.order.sn.detail</field>
+        <field name="arch" type="xml">
+            <list string="Outbound Order SN Detail">
+                <field name="order_id" widget="many2one" optional="show"/>
+                <field name="project" optional="show"/>
+                <field name="type" optional="show"/>
+                <field name="reference" optional="show"/>
+                <field name="p_date" optional="show"/>
+                <field name="picking_PICK" widget="many2one" optional="show"/>
+                <field name="product_id" widget="many2one" optional="show"/>
+                <field name="product_name" optional="show"/>
+                <field name="lot_name" optional="show"/>
+                <field name="quantity" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_outbound_order_sn_detail_search" model="ir.ui.view">
+        <field name="name">outbound.order.sn.detail.search</field>
+        <field name="model">world.depot.outbound.order.sn.detail</field>
+        <field name="arch" type="xml">
+            <search string="Outbound Order SN Detail">
+                <field name="order_id"/>
+                <field name="type"/>
+                <field name="reference"/>
+                <field name="p_date"/>
+                <field name="project"/>
+                <field name="product_id"/>
+                <field name="lot_id"/>
+                <filter string="Done Orders" name="done_orders" domain="[('picking_PICK.state', '=', 'done')]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_outbound_order_sn_detail" model="ir.actions.act_window">
+        <field name="name">Outbound Order SN Detail</field>
+        <field name="res_model">world.depot.outbound.order.sn.detail</field>
+        <field name="view_mode">list,search</field>
+        <field name="view_id" ref="view_outbound_order_sn_detail_tree"/>
+        <field name="search_view_id" ref="view_outbound_order_sn_detail_search"/>
+    </record>
+</odoo>

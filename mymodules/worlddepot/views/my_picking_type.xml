@@ -6,6 +6,7 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='code']" position="after">
                 <field name="enable_pallet_scanning"/>
+                <field name="strict_quantity_control"/>
             </xpath>
         </field>
     </record>

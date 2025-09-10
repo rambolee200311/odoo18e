@@ -46,6 +46,7 @@ class OutboundOrder(models.Model):
                                 domain=[('code', '=', 'internal')])
     unload_company = fields.Many2one('res.partner', string='Unload Company/Person', required=True, tracking=True)
     remark = fields.Text(string='Remark')
+    remark1 = fields.Text(string='Remark 1')
     reference = fields.Char(string='Reference', required=True, help='Reference for the Order No of Owner', )
     load_ref = fields.Char(string='Loading Reference', required=False, help='Reference for the Delivery', )
     load_date = fields.Datetime(string='Loading Date', required=False, tracking=True,

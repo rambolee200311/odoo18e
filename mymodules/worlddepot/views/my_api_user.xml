@@ -20,7 +20,7 @@
             <form string="API User">
                 <sheet>
                     <header>
-                        <button name="generate_api_key" type="object" string="Generate API Key" class="btn-primary" invisble="api_key"/>
+                        <button name="generate_api_key" type="object" string="Generate API Key" class="btn-primary"/>
                     </header>
                     <group>
                         <field name="user_id"/>
@@ -49,7 +49,7 @@
     <record id="action_world_depot_api_user" model="ir.actions.act_window">
         <field name="name">API Users</field>
         <field name="res_model">world.depot.api.user</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="view_world_depot_api_user_search"/>
     </record>
 </odoo>

@@ -6,9 +6,12 @@
         <field name="arch" type="xml">
             <!-- We are targeting the group_lots_and_weight group in the template form -->
             <xpath expr="//group[@name='group_lots_and_weight']" position="before">
-                <group>
+                <group string="Custom Fields" col="2">
                     <field name="is_dg"/>
                     <field name="un_code"/>
+                    <field name="duty_rate"/>
+                    <field name="brand"/>
+                    <field name="nine_digit_linglong_code" invisible="categ_id!=11"/>
                     <!--<field name="pcs_per_pallet" string="Pcs/Pallet"/>-->
                 </group>
             </xpath>

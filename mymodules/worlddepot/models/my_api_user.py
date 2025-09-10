@@ -11,29 +11,24 @@ class DepotAPIUser(models.Model):
     _name = 'world.depot.api.user'
     _description = 'API User Credentials'
 
-    # Security context for password hashing
     _crypt_context = CryptContext(
         schemes=["bcrypt"],
         deprecated="auto",
-        bcrypt__rounds=14  # Appropriate security level
+        bcrypt__rounds=14
     )
 
     user_id = fields.Many2one('res.users', string='Odoo User', required=True)
     api_key = fields.Char(
         string='API Key',
-        readonly=True,
-        required=True,
-        index=True,
         help="Public identifier for API access"
     )
     hashed_secret = fields.Char(
         string='Hashed Secret',
-        required=True,
         help="Securely stored API secret (bcrypt hash)"
     )
     active = fields.Boolean(string='Active', default=True)
 
-    # Virtual field for form handling (never stored)
+    # Virtual field for form handling (write-only)
     secret = fields.Char(
         string='API Secret (Set Only)',
         compute='_compute_dummy',
@@ -45,53 +40,51 @@ class DepotAPIUser(models.Model):
     _sql_constraints = [
         ('api_key_uniq', 'unique(api_key)', 'API Key must be unique!'),
     ]
+
+    @api.model
     def generate_api_key(self):
-        """Generate a new API key (GUID)"""
-        for rec in self:
-            if  not rec.api_key:
-                rec.api_key = str(uuid.uuid4())
+        """Generate a new unique API key (UUID)"""
+        self.ensure_one()
+        while True:
+            new_key = str(uuid.uuid4())
+            if not self.search([('api_key', '=', new_key)]):
+                self.api_key = new_key
+                break
 
     @api.depends()
     def _compute_dummy(self):
         """Dummy compute method for virtual field"""
         for rec in self:
-            rec.secret = ""  # Never show actual value
+            rec.secret = ""  # Never expose the actual secret
 
     def _set_secret(self):
         """Hash and store secret when set via virtual field"""
         for rec in self:
             if rec.secret:
-                if len(rec.secret) < 12:
-                    raise UserError(_("API secret must be at least 12 characters"))
-                rec.hashed_secret = self._crypt_context.hash(rec.secret)
+                rec._validate_and_store_secret(rec.secret)
 
-    @api.model
-    def create(self, vals):
-        """Handle secret hashing during creation"""
-        # Extract the secret from vals if present (using pop to remove it from vals)
-        secret = vals.pop('secret', None)
-        # Create the record without the secret in vals
-        record = super().create(vals)
-        # If there was a secret provided, set it using the set_secret method
-        if secret:
-            record.set_secret(secret)
-        return record
-
-    def write(self, vals):
-        """Handle secret updates"""
-        if 'secret' in vals and vals['secret']:
-            # Hash new secret
-            if len(vals['secret']) < 12:
-                raise ValidationError(_("API secret must be at least 12 characters"))
-            vals['hashed_secret'] = self._crypt_context.hash(vals.pop('secret'))
-        return super().write(vals)
-
-    def set_secret(self, secret):
-        """Set the secret for a single record (used in create and elsewhere)"""
-        self.ensure_one()
+    def _validate_and_store_secret(self, secret):
+        """Validate and hash the secret"""
         if len(secret) < 12:
             raise UserError(_("API secret must be at least 12 characters"))
         self.hashed_secret = self._crypt_context.hash(secret)
+
+    @api.model
+    def create(self, vals):
+        """Handle API key generation and secret hashing during creation."""
+        if 'api_key' not in vals or not vals.get('api_key'):
+            vals['api_key'] = str(uuid.uuid4())
+        secret = vals.pop('secret', None)
+        record = super().create(vals)
+        if secret:
+            record._validate_and_store_secret(secret)
+        return record
+
+    def write(self, vals):
+        """Handle secret updates during write"""
+        if 'secret' in vals and vals['secret']:
+            self._validate_and_store_secret(vals.pop('secret'))
+        return super().write(vals)
 
     def verify_secret(self, secret):
         """Validate provided secret against stored hash"""

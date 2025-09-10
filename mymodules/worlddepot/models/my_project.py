@@ -23,6 +23,7 @@ class Project(models.Model):
         string='Template File Name(Outbound CMR)',
         help='The name of the uploaded template file.'
     )
+    charge_of_pallet = fields.Boolean(string='Charge of Pallet', default=True, tracking=True, help='Whether to charge for pallets.')
 '''
     # 港至仓 (Trucking Charge)
     inbound_trucking_charge = fields.Float(

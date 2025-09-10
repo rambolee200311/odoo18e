@@ -5,7 +5,7 @@
         <field name="model">world.depot.outbound.order.summary</field>
         <field name="arch" type="xml">
             <list string="Outbound Order Summary">
-                <field name="order_id" optional="show"/>
+                <field name="order_id" widget="many2one" optional="show"/>
                 <field name="type" optional="show"/>
                 <field name="p_date" optional="show"/>
                 <field name="project" optional="show"/>

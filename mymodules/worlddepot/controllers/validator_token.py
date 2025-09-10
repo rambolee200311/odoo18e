@@ -14,7 +14,7 @@ def validate_token(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         # Get token from headers
-        token = request.httprequest.headers.get('X-API-TOKEN')
+        token = request.httprequest.headers.get('Authorization')
 
         if not token:
             _logger.warning("API request missing authentication token")
@@ -46,9 +46,8 @@ def validate_token(func):
                 mimetype='application/json'
             )
 
-        # Set authenticated user in environment
-        request.uid = token_rec.user_id.id
-        request.env = request.env(user=token_rec.user_id.id)
+        # Update environment with authenticated user
+        request.update_env(user=token_rec.user_id.id)
 
         # Proceed to the endpoint function
         return func(*args, **kwargs)

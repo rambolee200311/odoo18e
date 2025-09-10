@@ -46,8 +46,10 @@ class InboundOrder(models.Model):
     warehouse = fields.Many2one('stock.warehouse', string='Warehouse', tracking=True,
                                 stored=True)
     remark = fields.Text(string='Remark')
+    remark1 = fields.Text(string='Remark 1')
     reference = fields.Char(string='Reference', help='Reference for the Order No of Owner', required=True)
     bl_no = fields.Char(string='Bill of Lading')
+    invoice_no = fields.Char(string='Invoice No')
     cntr_no = fields.Char(string='Container No')
     pallets = fields.Float(string='Pallets', readonly=True, default=0.0, tracking=True)
     scanning_quantity = fields.Float(string='Scanning Quantity', default=0.0, tracking=True)
@@ -145,6 +147,7 @@ class InboundOrder(models.Model):
     inbound_order_doc_ids = fields.One2many('world.depot.inbound.order.docs',
                                             'inbound_order_id',
                                             string='Inbound Order Documents')
+
     # Compute adr dgd charge
     @api.depends('is_adr')
     def _compute_is_adr(self):
@@ -272,8 +275,21 @@ class InboundOrder(models.Model):
     def action_cancel(self):
         """Cancel the order."""
         for record in self:
-            if record.state != 'new':
-                raise UserError(_("Only new orders can be cancelled."))
+            if record.state == 'cancel':
+                raise UserError(_("This order %s has already been canceled.") % record.reference)
+
+            if record.state == 'confirm':
+                if record.stock_picking_id:
+                    if record.stock_picking_id.state == 'done':
+                        raise UserError(
+                            _("Cannot cancel the order %s with an active stock picking that is done.") % record.reference)
+                    # If the stock picking is not done, delete it
+                    try:
+                        record.stock_picking_id.unlink()
+                    except Exception as e:
+                        raise UserError(
+                            _("Failed to delete stock picking for order %s: %s") % (record.reference, str(e)))
+
             record.state = 'cancel'
 
     def action_unconfirm(self):
@@ -418,6 +434,29 @@ class InboundOrder(models.Model):
         
     '''
 
+    def unlink(self):
+        for record in self:
+            # Check state
+            if record.state not in ['new', 'cancel']:
+                raise UserError(_("Only new or cancelled orders can be deleted."))
+
+            # Iterate through all fields of the model
+            for field_name, field in record._fields.items():
+                if field.type == 'one2many':
+                    # Get the one2many records
+                    one2many_records = record[field_name]
+                    if one2many_records:
+                        # Recursively unlink nested one2many records
+                        for nested_record in one2many_records:
+                            for nested_field_name, nested_field in nested_record._fields.items():
+                                if nested_field.type == 'one2many':
+                                    nested_one2many_records = nested_record[nested_field_name]
+                                    if nested_one2many_records:
+                                        nested_one2many_records.unlink()
+                        one2many_records.unlink()
+
+        return super(InboundOrder, self).unlink()
+
     def action_create_stock_picking(self):
         """Create the related stock picking with packages and move lines."""
         for record in self:
@@ -439,6 +478,8 @@ class InboundOrder(models.Model):
             if existing_picking:
                 raise UserError(_("A stock picking already exists for this Inbound Order."))
 
+            charge_of_pallet = record.project.charge_of_pallet
+
             # Create the stock picking
             picking = self.env['stock.picking'].create({
                 'picking_type_id': record.pick_type.id,
@@ -457,7 +498,6 @@ class InboundOrder(models.Model):
 
             # Validate total quantity for each product
             for product in record.inbound_order_product_ids:
-
                 # Create stock move for each product on a pallet
                 for pallet in product.inbound_order_product_pallet_ids:
                     total_quantity = pallet.quantity * product.pallets
@@ -491,6 +531,25 @@ class InboundOrder(models.Model):
                         # Check if the pallet is serial-tracked and if scanning is enabled
                         move = self.env['stock.move'].search([('inbound_order_product_pallet_id', '=', pallet.id)],
                                                              limit=1)
+                        # create lot if product is lot tracked
+                        lot = False
+                        if pallet.product_id.tracking == 'lot':
+                            lot_name = f"{record.a_date.strftime('%Y%m')}-{record.cntr_no}"
+                            lot = self.env['stock.lot'].search(
+                                [('name', '=', f"{record.a_date.strftime('%Y%m')}-{record.cntr_no}"),
+                                 ('product_id', '=', pallet.product_id.id)], limit=1)
+                            if not lot:
+                                self.env['stock.lot'].create({
+                                    'name': lot_name,
+                                    'product_id': pallet.product_id.id,
+                                })
+                            lot = self.env['stock.lot'].search(
+                                [('name', '=', lot_name),
+                                 ('product_id', '=', pallet.product_id.id)], limit=1)
+                        if not lot and pallet.product_id.tracking == 'lot':
+                            raise UserError(
+                                _("Failed to create or find lot for product '%s'.") % pallet.product_id.name)
+
                         if pallet.product_id.tracking == 'serial' and record.is_scan_sn:
                             for unit_index in range(1, int(pallet.quantity) + 1):
                                 self.env['stock.move.line'].create({
@@ -501,7 +560,7 @@ class InboundOrder(models.Model):
                                     'quantity': 1.00,  # Planned quantity
                                     'location_id': picking.location_id.id,
                                     'location_dest_id': picking.location_dest_id.id,
-                                    'result_package_id': package.id,
+                                    'result_package_id': package.id if charge_of_pallet else False,
                                 })
                         else:
                             self.env['stock.move.line'].create({
@@ -512,7 +571,9 @@ class InboundOrder(models.Model):
                                 'quantity': pallet.quantity,  # Planned quantity
                                 'location_id': picking.location_id.id,
                                 'location_dest_id': picking.location_dest_id.id,
-                                'result_package_id': package.id,
+                                'result_package_id': package.id if charge_of_pallet else False,
+                                'lot_id': lot.id if lot else False,
+                                'lot_name': lot.name if lot else False,
                             })
 
             record.stock_picking_id = picking.id
@@ -579,6 +640,25 @@ class InboundOrder(models.Model):
             record.inbound_scanning_charge = sum(
                 product.inbound_scanning_charge for product in record.inbound_order_product_ids)
         '''
+
+    def cron_update_inbound_date(self):
+        """Scheduled action to update inbound dates for confirmed orders without an inbound date."""
+        orders = self.search([])
+        for order in orders:
+            stock_picking = self.env['stock.picking'].search(
+                [('inbound_order_id', '=', order.id), ('state', '!=', 'cancel')],
+                order='scheduled_date asc',
+                limit=1
+            )
+
+            if stock_picking:
+                # Update the stock picking ID and inbound date
+                order.stock_picking_id = stock_picking.id
+                if stock_picking.date_done:
+                    order.i_date = stock_picking.date_done
+                    _logger.info("Updated i_date for order %s to %s", order.id, stock_picking.date_done)
+            else:
+                _logger.info("No valid stock picking found for order %s", order.id)
 
 
 class InboundOrderProduct(models.Model):

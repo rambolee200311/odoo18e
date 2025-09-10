@@ -2,13 +2,13 @@ import secrets
 from datetime import datetime, timedelta
 from odoo import http
 from odoo.http import request
-
+import json
 
 class AuthController(http.Controller):
 
     @http.route('/world_depot/api/auth/token', type='json', auth='none', methods=['POST'], csrf=False)
     def generate_token(self, **params):
-        data = request.jsonrequest
+        data = json.loads(request.httprequest.data)
         api_key = data.get('api_key')
         api_secret = data.get('api_secret')
 

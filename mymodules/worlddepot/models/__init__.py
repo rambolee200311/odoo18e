@@ -18,3 +18,5 @@ from . import my_location
 from . import my_product_template
 from . import inbound_order_summary
 from . import outbound_order_summary
+from . import outbound_order_sn_detail
+from . import linglong_inbound_temp

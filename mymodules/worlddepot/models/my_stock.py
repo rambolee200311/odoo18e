@@ -1,5 +1,6 @@
-from odoo import models, fields, api
-from odoo.exceptions import ValidationError
+from odoo import models, fields, api, _
+from odoo.exceptions import ValidationError, UserError
+from odoo.tools import float_is_zero, float_compare
 
 
 class StockPicking(models.Model):
@@ -33,6 +34,29 @@ class StockPicking(models.Model):
     '''
 
     def button_validate(self):
+        # Check strict quantity control for each picking
+        for picking in self:
+            if picking.picking_type_id.strict_quantity_control:
+                for move in picking.move_ids:
+                    if move.state in ('done', 'cancel'):
+                        continue
+                    if not float_is_zero(move.product_uom_qty, precision_rounding=move.product_uom.rounding):
+                        # Use move.quantity instead of quantity_done
+                        if float_compare(move.quantity, move.product_uom_qty,
+                                         precision_rounding=move.product_uom.rounding) != 0:
+                            raise UserError(_(
+                                "Actual quantity must equal demand quantity for product %s.\n"
+                                "Demand: %s %s, Actual: %s %s\n\n"
+                                "This is enforced by the operation type: %s"
+                            ) % (
+                                                move.product_id.display_name,
+                                                move.product_uom_qty,
+                                                move.product_uom.name,
+                                                move.quantity,  # Now shows actual done quantity
+                                                move.product_uom.name,
+                                                picking.picking_type_id.name
+                                            ))
+
         res = super().button_validate()
         if (self.picking_type_id.code == 'incoming'):  # 'incoming' corresponds to Receipt operation type
             for move_line in self.move_line_ids:

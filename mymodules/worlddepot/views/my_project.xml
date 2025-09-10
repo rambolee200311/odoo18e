@@ -8,10 +8,12 @@
                 <group string="Info">
                     <field name="category"/>
                     <field name="owner"/>
+                    <field name="charge_of_pallet"/>
                     <field name="inbound_cmr_template_file" widget="binary" filename="inbound_cmr_template_file_name"/>
                     <field name="inbound_cmr_template_file_name" invisible="1"/>
                     <field name="outbound_cmr_template_file" widget="binary" filename="outbound_cmr_template_file_name"/>
                     <field name="outbound_cmr_template_file_name" invisible="1"/>
+
                 </group>
                 <!--<group string="Info">
                     <field name="owner"/>

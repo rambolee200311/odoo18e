@@ -18,10 +18,14 @@
         <menuitem id="outbound_logi_menu" name="Outbound" parent="world_depot_logi_menu" sequence="300" />
         <menuitem id="outbound_order_menu" name="Orders" parent="outbound_logi_menu" sequence="301" action="action_outbound_order"/>
         <menuitem id="outbound_order_summary_menu" name="Orders Summary" parent="outbound_logi_menu" sequence="303" action="action_outbound_order_summary"/>
+        <menuitem id="outbound_order_sn_detail_menu" name="Orders SN Detail" parent="outbound_logi_menu" sequence="304" action="action_outbound_order_sn_detail"/>
 
         <menuitem id="menu_world_depot_configuration" parent="world_depot_logi_menu" name="Configuration" sequence="900"/>
         <menuitem id="menu_world_depot_products" name="Products" parent="menu_world_depot_configuration" action="product.product_template_action_all" sequence="901"/>
         <menuitem id="menu_world_depot_product" name="Product Template" parent="menu_world_depot_configuration" action="action_product_import" sequence="910"/>
+        <menuitem id="menu_world_depot_api_user" name="API Users" parent="menu_world_depot_configuration" action="action_world_depot_api_user" sequence="911"/>
+        <menuitem id="menu_linglong_product_temp" name="Linglong Product Temp" parent="menu_world_depot_configuration" action="action_linglong_product_temp" sequence="912"/>
+        <menuitem id="menu_api_log_root" name="API Logs" sequence="990" parent="menu_world_depot_configuration" action="action_api_log"/>
         <!--<menuitem id="menu_world_depot_excel_template"
           name="Excel Templates"
           parent="menu_world_depot_configuration"

@@ -7,3 +7,9 @@ class StockPickingType(models.Model):
         string="Enable Pallet Barcode Scanning",
         help="Allow scanning pallet barcodes during put in pack operation"
     )
+
+    strict_quantity_control = fields.Boolean(
+        string='Strict Quantity Control',default=True,
+        help='When enabled, requires actual quantity to exactly match demand quantity during validation'
+    )
+

@@ -17,6 +17,7 @@ class ProductTemplate(models.Model):
     hs_code = fields.Char(string='HS Code')
     dangerous_goods = fields.Boolean(string='Dangerous Goods', default=False)
     un_code = fields.Char(string='UN Code')
+    duty_rate = fields.Float(string="Duty Rate (%)", default=0.0)
     product_id = fields.Many2one('product.template', string='Linked Product')
     state = fields.Selection([
         ('draft', 'Draft'),
@@ -72,6 +73,7 @@ class ProductTemplate(models.Model):
                     'purchase_ok': True,
                     'is_dg': record.dangerous_goods,
                     'un_code': record.un_code,
+                    'duty_rate': record.duty_rate,
                 }
 
                 # Create or update product template
@@ -87,6 +89,7 @@ class ProductTemplate(models.Model):
                     variant.write({
                         'hs_code': record.hs_code,
                         'tracking': tracking,
+                        'duty_rate': record.duty_rate,
                     })
 
                 record.state = 'imported'
