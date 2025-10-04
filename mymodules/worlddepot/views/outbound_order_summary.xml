@@ -35,6 +35,8 @@
                 <field name="unload_company"/>
                 <field name="delivery_method"/>
                 <field name="product_id"/>
+                <field name="state"/>
+                <field name="pallet_prefix_code"/>
                 <filter string="Confirmed Orders" name="confirmed_orders" domain="[('order_id.state', '=', 'confirm')]"/>
             </search>
         </field>

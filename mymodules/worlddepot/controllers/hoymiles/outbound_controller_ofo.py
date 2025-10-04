@@ -9,9 +9,9 @@ from ..api_logs import api_logger
 _logger = logging.getLogger(__name__)
 
 
-class OutboundOrderAPI(http.Controller):
+class OutboundOrderAPIOFO(http.Controller):
     # Create new outbound order
-    @http.route('/world_depot/hoymiles/api/outbound/order/create', type='json', auth='none', methods=['POST'],
+    @http.route('/world_depot/ofoundation/api/outbound/order/create', type='json', auth='none', methods=['POST'],
                 csrf=False)
     @validate_token
     @api_logger
@@ -45,10 +45,10 @@ class OutboundOrderAPI(http.Controller):
                 return {'success': False, 'error': f'Duplicate reference: {data["reference"]}'}
 
             # create unload company if not exists
-            country_id = request.env['res.country'].sudo().search(
-                ['|', ('code', '=', data.get('country')), ('name', '=', data.get('country'))], limit=1).id
             unload_company = request.env['res.partner'].sudo().search([('name', '=', data['unload_company'])], limit=1)
             if not unload_company:
+                country_id = request.env['res.country'].sudo().search(
+                    ['|', ('code', '=', data.get('country')), ('name', '=', data.get('country'))], limit=1).id
                 # create a new company
                 unload_company = request.env['res.partner'].sudo().create({
                     'name': data['unload_company'],
@@ -78,12 +78,6 @@ class OutboundOrderAPI(http.Controller):
                 'remark': data.get('remark', ''),
                 'remark1': data.get('remark1', ''),
                 'delivery_method': data.get('delivery_method', 'truck'),
-                'delivery_street': data.get('street', ''),
-                'delivery_city': data.get('city', ''),
-                'delivery_zip': data.get('zip', ''),
-                'delivery_country_id': country_id or False,
-                'delivery_phone': data.get('phone', ''),
-                'delivery_mobile': data.get('mobile', ''),
             }
 
             # Add products to the order
@@ -115,7 +109,7 @@ class OutboundOrderAPI(http.Controller):
             return {'success': False, 'error': str(e)}
 
     # Get outbound order details
-    @http.route('/world_depot/hoymiles/api/outbound_order/get', type='json', auth='none', methods=['POST'], csrf=False)
+    @http.route('/world_depot/ofoundation/api/outbound_order/get', type='json', auth='none', methods=['POST'], csrf=False)
     @validate_token
     @api_logger
     def get_outbound_order(self, **params):
@@ -152,7 +146,7 @@ class OutboundOrderAPI(http.Controller):
             return {'error': str(e)}
 
     # Update outbound order
-    @http.route('/world_depot/hoymiles/api/outbound_order/update', type='json', auth='none', methods=['POST'],
+    @http.route('/world_depot/ofoundation/api/outbound_order/update', type='json', auth='none', methods=['POST'],
                 csrf=False)
     @validate_token
     @api_logger
@@ -196,7 +190,7 @@ class OutboundOrderAPI(http.Controller):
             return {'error': str(e)}
 
     # Cancel outbound order
-    @http.route('/world_depot/hoymiles/api/outbound/order/cancel', type='json', auth='none', methods=['POST'],
+    @http.route('/world_depot/ofoundation/api/outbound/order/cancel', type='json', auth='none', methods=['POST'],
                 csrf=False)
     @validate_token
     @api_logger
@@ -223,7 +217,7 @@ class OutboundOrderAPI(http.Controller):
             _logger.error("Unexpected error during cancellation: %s", str(e))
             return {'success': False, 'error': 'An unexpected error occurred'}
 
-    @http.route('/world_depot/hoymiles/api/outbound/order/delivery_instruction', type='json', auth='none',
+    @http.route('/world_depot/ofoundation/api/outbound/order/delivery_instruction', type='json', auth='none',
                 methods=['POST'],
                 csrf=False)
     @validate_token
@@ -258,8 +252,6 @@ class OutboundOrderAPI(http.Controller):
                 update_vals['delivery_issuance_time'] = data['issuance_time']
             else:
                 update_vals['delivery_issuance_time'] = fields.Datetime.now()
-            if data.get('delivery_method'):
-                update_vals['delivery_method'] = data['delivery_method']
 
             if data.get('remark'):
                 update_vals['delivery_issuance_remark'] = data['remark']

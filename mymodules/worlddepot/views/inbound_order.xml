@@ -82,6 +82,7 @@
                                     <field name="weight"/>
                                     <field name="weight_subtotal"/>
                                     <field name="is_serial_tracked" widget="boolean"/>
+                                    <field name="remark"/>
                                 </list>
                             </field>
                         </page>
@@ -119,11 +120,23 @@
                                 type="object"
                                 string="Cal Charges"
                                 class="oe_stat_button" icon="fa-calculator"/>-->
+                        <button name="view_inbound_order_product_details"
+                                type="object"
+                                string="Product Detail"
+                                class="oe_stat_button" icon="fa-tasks"/>
                         <button name="action_create_stock_picking"
                                 type="object"
                                 string="Create Receipt"
-                                class="oe_stat_button" icon="fa-bus"/>
-                        <!--<button name="action_view_stock_picking"
+                                class="oe_stat_button" icon="fa-file-text"/>
+                        <!--<button name="action_set_status_to_confirmed"
+                                type="object"
+                                string="Confirm Status"
+                                class="oe_stat_button" icon="fa-file-pdf"/>
+                        <button name="action_set_inbound_result_sync"
+                                type="object"
+                                string="Inbound Result"
+                                class="oe_stat_button" icon="fa-file-pdf"/>
+                        <button name="action_view_stock_picking"
                                 type="object"
                                 string="View Receipt"
                                 class="oe_stat_button" icon="fa-clone"/>-->
@@ -150,7 +163,7 @@
                             <field name="weight_total_input"/>
                             <field name="status"/>
                             <field name="stock_picking_id" readonly="1"/>
-                            <field name="i_date" readonly="1"/>
+                            <field name="i_datetime" readonly="1"/>
                             <field name="remark"/>
                             <field name="confirm_user_id" readonly="1"/>
                             <field name="confirm_time_user_tz" readonly="1"/>
@@ -159,7 +172,29 @@
                     </group>
                     <notebook>
                         <page string="Products">
-                            <field name="inbound_order_product_ids" widget="one2many_list" view_ref="view_inbound_order_product_tree" readonly="state!='new'"/>
+                            <field name="inbound_order_product_ids" readonly="state!='new'">
+                                <list>
+                                    <field name="pallets" sum="Total Pallets"/>
+                                    <field name="pallet_type"/>
+                                    <field name="pallet_no"/>
+                                    <field name="product_description"/>
+                                    <field name="remark"/>
+                                    <field name="quantity" sum="Total Quantity"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Charges">
+                            <field name="inbound_order_charge_ids" readonly="state=='cancel'">
+                                <list>
+                                    <field name="charge_item_id"/>
+                                    <field name="quantity" sum="Total Quantity"/>
+                                    <field name="charge_unit_name"/>
+                                    <field name="charge_unit_id"/>
+                                    <field name="unit_price"/>
+                                    <field name="amount" sum="Total Amount"/>
+                                    <field name="currency_id"/>
+                                </list>
+                            </field>
                         </page>
                         <page string="Documents">
                             <field name="inbound_order_doc_ids" readonly="state=='cancel'">
@@ -188,6 +223,18 @@
                                 </group>
                             </group>
                         </page>-->
+                        <page string="Hoymiles APIs" groups="stock.group_stock_manager">
+                            <div class="oe_button_box" name="button_box">
+                                <button name="action_set_status_to_confirmed"
+                                        type="object"
+                                        string="Confirm Status"
+                                        class="oe_stat_button" icon="fa-file-pdf"/>
+                                <button name="action_set_inbound_result_sync"
+                                        type="object"
+                                        string="Inbound Result"
+                                        class="oe_stat_button" icon="fa-file-pdf"/>
+                            </div>
+                        </page>
                     </notebook>
                 </sheet>
                 <!--<div class="oe_chatter">
@@ -273,6 +320,25 @@
                     <field name="outbound_order_id" string="Outbound Order" invisible="picking_type_code=='incoming'"/>
                 </group>
             </xpath>
+        </field>
+    </record>
+
+    <!-- Tree view for Inbound Order Product Details -->
+    <record id="view_inbound_order_product_details_tree" model="ir.ui.view">
+        <field name="name">world.depot.inbound.order.product.details.tree</field>
+        <field name="model">world.depot.inbound.order.product.details</field>
+        <field name="arch" type="xml">
+             <list>
+                <field name="cntr_no"/>
+                <field name="bl_no"/>
+                <field name="pallets"/>
+                <field name="mixed"/>
+                <field name="product_name"/>
+                <field name="barcode"/>
+                <field name="default_code"/>
+                <field name="quantity"/>
+                <field name="qty_subtotal"/>
+             </list>
         </field>
     </record>
 </odoo>

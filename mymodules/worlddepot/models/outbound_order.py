@@ -17,7 +17,7 @@ _logger = logging.getLogger(__name__)
 
 class OutboundOrder(models.Model):
     _name = 'world.depot.outbound.order'
-    _description = 'world.depot.outbound.order'
+    _description = 'Outbound Order'
     _inherit = ["mail.thread", "mail.activity.mixin"]
     _rec_name = 'billno'
 
@@ -76,6 +76,14 @@ class OutboundOrder(models.Model):
         tracking=True,
         help='Delivery number for the truck'
     )
+    # Address Information
+    delivery_street = fields.Char(string='Delivery Street', required=False, tracking=True)
+    delivery_city = fields.Char(string='Delivery City', required=False, tracking=True)
+    delivery_zip = fields.Char(string='Delivery Zip', required=False, tracking=True)
+    delivery_country_id = fields.Many2one('res.country', string='Delivery Country', required=False, tracking=True)
+    delivery_phone = fields.Char(string='Delivery Phone', required=False, tracking=True)
+    delivery_mobile = fields.Char(string='Delivery Mobile', required=False, tracking=True)
+    delivery_email = fields.Char(string='Delivery Email', required=False, tracking=True)
 
     # 收货人签回日期
     receiver_sign_back_date = fields.Datetime(string='Receiver Sign Back Date', readonly=False, tracking=True)
@@ -125,10 +133,13 @@ class OutboundOrder(models.Model):
                                         help='Date when the stock picking was validated')
     picking_Out = fields.Many2one('stock.picking', string='Outbound', readonly=True,
                                   help='Reference to the related Stock Out')
+    picking_Out_date = fields.Datetime(string='Outbound Date', readonly=True,
+                                       help='Date when the stock delivery was validated')
     status = fields.Selection(
         selection=[
             ('planning', 'Planning'),
-            ('inbound', 'Outbound'),
+            ('picking', 'Picking'),
+            ('outbound', 'Outbound'),
         ],
         default='planning',
         string="Status",
@@ -204,6 +215,11 @@ class OutboundOrder(models.Model):
         default=True,
         help="Automatically create stock moves for this outbound order."
     )
+    # hoymiles 特有字段 delivery instruction
+    delivery_issuance_time = fields.Datetime(string='Delivery Issue Time', readonly=True,
+                                             help='Time when the order can be delivered')
+    delivery_issuance_remark = fields.Text(string='Delivery Issue Description',
+                                           help='Description of the delivery instruction')
 
     '''
     @api.model
@@ -263,11 +279,38 @@ class OutboundOrder(models.Model):
     def action_cancel(self):
         """ Cancel the outbound order
         """
-        if self.state not in ['new']:
-            raise UserError(_("Outbound order can only be canceled from 'New' state."))
-        else:
-            self.state = 'cancel'
-        return True
+        for record in self:
+            if record.state == 'cancel':
+                raise UserError(_("This order %s has already been canceled.") % record.reference)
+
+            if record.state == 'confirm':
+                if record.picking_PICK:
+                    if record.picking_PICK.state == 'done':
+                        raise UserError(
+                            _("Cannot cancel the order %s with an active stock picking that is done.") % record.reference)
+                    # If the stock picking is not done, delete it
+                    try:
+                        record.picking_PICK.unlink()
+                    except Exception as e:
+                        raise UserError(
+                            _("Failed to delete stock picking for order %s: %s") % (record.reference, str(e)))
+
+            record.state = 'cancel'
+
+    def unlink(self):
+        for record in self:
+            # Check state
+            if record.state not in ['new', 'cancel']:
+                raise UserError(_("Only new or cancelled orders can be deleted."))
+
+            # Iterate through all fields of the model
+            for field_name, field in record._fields.items():
+                if field.type == 'one2many':
+                    # Get the one2many records
+                    one2many_records = record[field_name]
+                    one2many_records.unlink()
+
+        return super(OutboundOrder, self).unlink()
 
     def action_unconfirm(self):
         """ Unconfirm the outbound order
@@ -410,67 +453,6 @@ class OutboundOrder(models.Model):
         self.pallets = total_pallets
         self.scanning_quantity = scanning_quantity
         self.is_adr = any(product.adr for product in self.outbound_order_product_ids)
-        '''
-        total_outbound_handling_charge = sum(
-            product.outbound_handling_charge for product in self.outbound_order_product_ids)
-        total_scanning_charge = sum(product.Outbound_scanning_charge for product in self.outbound_order_product_ids)
-       
-        self.outbound_handling_charge = total_outbound_handling_charge
-        self.outbound_scanning_charge = total_scanning_charge
-        '''
-
-    '''
-    @api.onchange('outbound_pallet_type')
-    def _onchange_outbound_pallet_type(self):
-        """Update the outbound pallet fee based on the selected pallet type."""
-        if self.outbound_pallet_type == 'fba-stamp':
-            self.outbound_pallet_fee = self.project.outbound_palle_fba_stamp
-        elif self.outbound_pallet_type == 'non-stamp':
-            self.outbound_pallet_fee = self.project.outbound_palle_non_stamp
-        else:
-            self.outbound_pallet_fee = 0.0
-
-    
-    @api.onchange('outbound_palletizing_qty')
-    def _onchange_outbound_palletizing_qty(self):
-        """Update the outbound palletizing charge based on the palletizing quantity."""
-        
-        if self.outbound_palletizing_qty > 0:
-            self.outbound_palletizing_charge = (self.outbound_palletizing_qty
-                                                * self.project.outbound_palletizing_price)
-        else:
-            self.outbound_palletizing_charge = 0.0
-            
-
-    def action_calculate_charges(self):
-        """Calculate the total charges for the Outbound order."""
-        for record in self:
-            if record.outbound_pallet_type == 'fba-stamp':
-                record.outbound_pallet_fee = record.project.outbound_palle_fba_stamp
-            elif record.outbound_pallet_type == 'non-stamp':
-                record.outbound_pallet_fee = record.project.outbound_palle_non_stamp
-            else:
-                record.outbound_pallet_fee = 0.0
-
-            # Calculate palletizing charge
-            record.outbound_palletizing_charge = (record.outbound_palletizing_qty
-                                                  * record.project.outbound_palletizing_price)
-
-
-            for detail in record.outbound_order_product_ids:
-                # Compute handling and scanning charges for each product
-                detail._compute_outbound_handling_charge()
-                detail._compute_outbound_scanning_charge()
-            # Recalculate total charges
-            record.pallets = sum(
-                product.pallets for product in record.outbound_order_product_ids if product.is_outbound_handling)
-            record.scanning_quantity = sum(
-                product.quantity for product in self.outbound_order_product_ids if product.is_scanning)
-            record.outbound_handling_charge = sum(
-                product.outbound_handling_charge for product in record.outbound_order_product_ids)
-            record.outbound_scanning_charge = sum(
-                product.outbound_scanning_charge for product in record.outbound_order_product_ids)
-'''
 
     def action_create_cmr(self):
         for rec in self:
@@ -616,6 +598,59 @@ class OutboundOrder(models.Model):
         if template_row_index in worksheet.row_dimensions:
             worksheet.row_dimensions[new_row_index].height = worksheet.row_dimensions[template_row_index].height
 
+    def cron_update_outbound_date(self):
+        """Scheduled action to update inbound dates for confirmed orders without an inbound date."""
+        orders = self.search([])
+        for order in orders:
+            stock_picking = self.env['stock.picking'].search(
+                [('outbound_order_id', '=', order.id), ('state', '!=', 'cancel')],
+                order='scheduled_date asc',
+                limit=1
+            )
+
+            if not order.delivery_street:
+                order.delivery_street = order.unload_company.street or ''
+            if not order.delivery_city:
+                order.delivery_city = order.unload_company.city or ''
+            if not order.delivery_zip:
+                order.delivery_zip = order.unload_company.zip or ''
+            if not order.delivery_country_id:
+                order.delivery_country_id = order.unload_company.country_id or False
+            if not order.delivery_phone:
+                order.delivery_phone = order.unload_company.phone or ''
+            if not order.delivery_mobile:
+                order.delivery_mobile = order.unload_company.mobile or ''
+
+            if stock_picking:
+                # Update the stock picking ID and inbound date
+                order.picking_PICK = stock_picking.id
+                if stock_picking.date_done:
+                    order.picking_PICK_date = stock_picking.date_done
+                    if order.status == 'planning':
+                        order.status = 'picking'
+
+                    outbound = self.env['stock.picking'].search(
+                        [('origin', '=', order.picking_PICK.name), ('picking_type_code', '=', 'outgoing')], limit=1)
+                    if outbound:
+                        order.picking_Out = outbound.id
+                        if outbound.date_done:
+                            order.picking_Out_date = outbound.date_done
+                            order.status = 'outbound'
+
+                    _logger.info("Updated o_date for order %s to %s", order.id, stock_picking.date_done)
+            else:
+                _logger.info("No valid stock picking found for order %s", order.id)
+
+    def view_outbound_order_product_details(self):
+        return {
+            'name': _('Outbound Order Product Details'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'world.depot.outbound.order.product',
+            'view_mode': 'list',
+            'domain': [('outbound_order_id', '=', self.id)],
+            'context': {'create': False},
+        }
+
 
 class OutboundOrderProduct(models.Model):
     _name = 'world.depot.outbound.order.product'
@@ -665,6 +700,11 @@ class OutboundOrderProduct(models.Model):
 
     )
 
+    barcode = fields.Char(string='Barcode', related='product_id.barcode', store=True, readonly=True)
+    default_code = fields.Char(string='Default Code', related='product_id.default_code', store=True, readonly=True)
+    weight = fields.Float(string='Weight', related='product_id.weight', store=True, readonly=True)
+    weight_subtotal = fields.Float(string='Weight Subtotal', compute='_compute_weight_subtotal', store=True)
+
     @api.depends('product_id')
     def _compute_is_serial_tracked(self):
         for record in self:
@@ -710,6 +750,11 @@ class OutboundOrderProduct(models.Model):
                 record.outbound_scanning_price = 0.0
             '''
 
+    @api.depends('product_id', 'quantity', 'product_id.weight')
+    def _compute_weight_subtotal(self):
+        for record in self:
+            record.weight_subtotal = (record.product_id.weight or 0.0) * (record.quantity or 0.0)
+
 
 class OutboundOrderProductSerialNumber(models.Model):
     _description = 'Outbound Order Product Serial Number'
@@ -741,3 +786,6 @@ class OutboundOderDocs(models.Model):
     file = fields.Binary(string='File')
     filename = fields.Char(string='File name')
     outbound_order_id = fields.Many2one('world.depot.outbound.order', string='Outbound Order', required=True)
+
+
+

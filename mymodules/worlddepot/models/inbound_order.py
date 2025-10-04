@@ -30,6 +30,7 @@ class InboundOrder(models.Model):
                        help='Planned date')
     a_date = fields.Date(string='Arrival Date', tracking=True, help='Planned date for inbound operation')
     i_date = fields.Date(string='Inbound Date', tracking=True, readonly=True, help='Real date for inbound operation')
+    i_datetime = fields.Datetime(string='Inbound Date', tracking=True, readonly=True)
     project = fields.Many2one('project.project', string='Project', required=True)
     project_category_id = fields.Many2one(
         related='project.category',
@@ -147,6 +148,10 @@ class InboundOrder(models.Model):
     inbound_order_doc_ids = fields.One2many('world.depot.inbound.order.docs',
                                             'inbound_order_id',
                                             string='Inbound Order Documents')
+
+    inbound_order_charge_ids = fields.One2many('world.depot.inbound.order.charge',
+                                               'inbound_order_id',
+                                               string='Inbound Order Charges')
 
     # Compute adr dgd charge
     @api.depends('is_adr')
@@ -520,7 +525,6 @@ class InboundOrder(models.Model):
                 for p_index in range(1, int(product.pallets) + 1):
                     package_name = f"{record.reference}-{record.cntr_no}-{str(pallet_index).zfill(4)}"
                     package = self.env['stock.quant.package'].search([('name', '=', package_name)])
-                    pallet_index += 1
                     if not package:
                         package = self.env['stock.quant.package'].create({
                             'name': package_name,
@@ -534,9 +538,9 @@ class InboundOrder(models.Model):
                         # create lot if product is lot tracked
                         lot = False
                         if pallet.product_id.tracking == 'lot':
-                            lot_name = f"{record.a_date.strftime('%Y%m')}-{record.cntr_no}"
+                            lot_name = f"{record.a_date.strftime('%Y%m')}-{record.cntr_no}-{str(pallet_index).zfill(4)}"
                             lot = self.env['stock.lot'].search(
-                                [('name', '=', f"{record.a_date.strftime('%Y%m')}-{record.cntr_no}"),
+                                [('name', '=', lot_name),
                                  ('product_id', '=', pallet.product_id.id)], limit=1)
                             if not lot:
                                 self.env['stock.lot'].create({
@@ -575,6 +579,8 @@ class InboundOrder(models.Model):
                                 'lot_id': lot.id if lot else False,
                                 'lot_name': lot.name if lot else False,
                             })
+
+                    pallet_index += 1
 
             record.stock_picking_id = picking.id
 
@@ -655,10 +661,50 @@ class InboundOrder(models.Model):
                 # Update the stock picking ID and inbound date
                 order.stock_picking_id = stock_picking.id
                 if stock_picking.date_done:
-                    order.i_date = stock_picking.date_done
+                    order.i_datetime = stock_picking.date_done
+                    if order.status == 'planning':
+                        order.status = 'inbound'
                     _logger.info("Updated i_date for order %s to %s", order.id, stock_picking.date_done)
             else:
                 _logger.info("No valid stock picking found for order %s", order.id)
+
+    # View inbound order product details
+    def view_inbound_order_product_details(self):
+        """Open a window to view inbound order product details."""
+        self.ensure_one()
+        self.env['world.depot.inbound.order.product.details'].search([('inbound_order_id', '=', self.id)]).unlink()
+        for pallet in self.inbound_order_product_ids:
+            mixed = False
+            if len(pallet.inbound_order_product_pallet_ids) > 1:
+                mixed = True
+            i = 1
+            for product in pallet.inbound_order_product_pallet_ids:
+                pallets = pallet.pallets
+                if i > 1:
+                    pallets = 0
+                self.env['world.depot.inbound.order.product.details'].create({
+                    'inbound_order_id': self.id,
+                    'cntr_no': self.cntr_no,
+                    'bl_no': self.bl_no,
+                    'pallet_id': pallet.id,
+                    'pallets': pallets,
+                    'mixed': mixed,
+                    'product_id': product.product_id.id,  # Use the product ID
+                    'product_name': product.product_id.name,  # Use the product name
+                    'barcode': product.product_id.barcode,
+                    'default_code': product.product_id.default_code,
+                    'quantity': product.quantity,
+                    'qty_subtotal': pallet.pallets * product.quantity,
+                })
+                i += 1
+        return {
+            'name': _('Inbound Order Product Details'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'world.depot.inbound.order.product.details',
+            'view_mode': 'list',
+            'domain': [('inbound_order_id', '=', self.id)],
+            'context': {'create': False},
+        }
 
 
 class InboundOrderProduct(models.Model):
@@ -907,3 +953,24 @@ class InboundOderDocs(models.Model):
         string='Inbound Order',
         required=True
     )
+
+
+class InboundOrderProductDetails(models.Model):
+    _name = 'world.depot.inbound.order.product.details'
+    _description = 'Inbound Order Product Details'
+
+    inbound_order_id = fields.Many2one('world.depot.inbound.order', string='Inbound Order', required=True)
+    bl_no = fields.Char(string='Bill of Lading', readonly=True)
+    cntr_no = fields.Char(string='Container No', readonly=True)
+    pallet_id = fields.Many2one('world.depot.inbound.order.product', string='Pallet', readonly=True)
+    pallets = fields.Float(string='Pallets', readonly=True)
+    mixed = fields.Boolean(string='Mixed', readonly=True)
+    product_id = fields.Many2one(
+        'product.product',
+        string='Product'
+    )
+    product_name = fields.Char(string='Product Name', readonly=True)
+    barcode = fields.Char(string='Barcode', readonly=True)
+    default_code = fields.Char(string='Internal Reference', readonly=True)
+    quantity = fields.Float(string='Pcs/Pallet', readonly=True)
+    qty_subtotal = fields.Float(string='Quantity', readonly=True)

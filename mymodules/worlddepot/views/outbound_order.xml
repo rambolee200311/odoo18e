@@ -47,10 +47,14 @@
                             type="object"
                             string="Cal Charges"
                             class="oe_stat_button" icon="fa-calculator"/>-->
-                        <button name="action_create_picking_PICK"
+                         <button name="view_outbound_order_product_details"
+                                type="object"
+                                string="Product Detail"
+                                class="oe_stat_button" icon="fa-tasks"/>
+                         <button name="action_create_picking_PICK"
                             type="object"
                             string="Create Picking"
-                            class="oe_stat_button" icon="fa-bus"/>
+                            class="oe_stat_button" icon="fa-file-text"/>
                          <button name="action_create_cmr"
                             type="object"
                             string="Create CMR"
@@ -73,12 +77,14 @@
                            <!-- <field name="pallet_prefix_code"/>-->
                             <field name="is_auto_moves"/>
                             <field name="remark"/>
+                            <field name="remark1"/>
                             <field name="confirm_user_id" readonly="1"/>
                             <field name="confirm_time_user_tz" readonly="1"/>
                             <field name="confirm_time_server" readonly="1"/>
                             <field name="picking_PICK" readonly="1"/>
                             <field name="picking_PICK_date" readonly="1"/>
                             <field name="picking_Out" readonly="1"/>
+                             <field name="picking_Out_date" readonly="1"/>
                             <field name="status" readonly="1"/>
                         </group>
                     </group>
@@ -88,17 +94,26 @@
                                 <group col="2">
                                     <field name="delivery_method"/>
                                     <field name="unload_company"/>
-                                    <field name="receiver_sign_back_date"/>
-                                    <field name="load_ref"/>
-                                    <field name="load_date"/>
+                                    <field name="delivery_street"/>
+                                    <field name="delivery_city"/>
+                                    <field name="delivery_zip"/>
+                                    <field name="delivery_country_id"/>
+                                    <field name="delivery_phone"/>
+                                    <field name="delivery_mobile"/>
+                                    <field name="delivery_email"/>
+                                    <field name="delivery_remark"/>
                                 </group>
                                 <group col="2">
+                                    <field name="load_ref"/>
+                                    <field name="load_date"/>
                                     <field name="delivery_company"/>
                                     <field name="delivery_number"/>
                                     <field name="plate_number"/>
+                                    <field name="receiver_sign_back_date"/>
                                     <field name="pod_file" widget="binary" filename="pod_filename"/>
                                     <field name="pod_filename" invisible="1"/>
-                                    <field name="delivery_remark"/>
+                                    <field name="delivery_issuance_time" invisible="project.name!='HOYMILES'"/>
+                                    <field name="delivery_issuance_remark" invisible="project.name!='HOYMILES'"/>
                                 </group>
                             </group>
                         </page>
@@ -113,6 +128,8 @@
                                     <field name="serial_numbers"/>
                                     <field name="pallet_prefix_code"/>
                                     <field name="remark"/>
+                                    <field name="weight" optional="show"/>
+                                    <field name="weight_subtotal" optional="show"/>
                                     <!--<field name="is_outbound_handling"/>
                                     <field name="outbound_handling_price"/>
                                     <field name="outbound_handling_unit"/>
@@ -120,6 +137,46 @@
                                     <field name="is_scanning"/>
                                     <field name="outbound_scanning_price"/>
                                     <field name="outbound_scanning_charge"/>-->
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Pack Info">
+                            <group col="2">
+                                <group col="2">
+                                    <field name="pallets_of_pick"/>
+                                    <field name="pallets_of_packed"/>
+                                </group>
+                                 <group col="2">
+                                    <field name="pack_type" />
+                                    <field name="pallet_type"/>
+                                 </group>
+                            </group>
+                            <field name="outbound_order_pack_ids" readonly="state=='cancel'">
+                                <list>
+                                    <field name="pack_number"/>
+                                    <field name="pack_owner"/>
+                                    <field name="product_description"/>
+                                    <field name="remark"/>
+                                    <field name="length"/>
+                                    <field name="width"/>
+                                    <field name="height"/>
+                                    <field name="volume"/>
+                                    <field name="gross_weight"/>
+                                    <field name="net_weight"/>
+                                    <field name="tare_weight"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Charges">
+                            <field name="outbound_order_charge_ids" readonly="state=='cancel'">
+                                <list>
+                                    <field name="charge_item_id"/>
+                                    <field name="quantity" sum="Total Quantity"/>
+                                    <field name="charge_unit_name"/>
+                                    <field name="charge_unit_id"/>
+                                    <field name="unit_price"/>
+                                    <field name="amount" sum="Total Amount"/>
+                                    <field name="currency_id"/>
                                 </list>
                             </field>
                         </page>
@@ -132,7 +189,30 @@
                                     <field name="filename" invisible="1"/>
                                 </list>
                             </field>
-
+                        </page>
+                         <page string="Hoymiles APIs" groups="stock.group_stock_manager">
+                            <div class="oe_button_box" name="button_box">
+                                <button name="action_set_status_to_confirmed"
+                                    type="object"
+                                    string="Start Operatoin"
+                                    class="oe_stat_button" icon="fa-film"/>
+                                 <button name="action_set_status_to_pick_finished"
+                                    type="object"
+                                    string="Pick Finished"
+                                    class="oe_stat_button" icon="fa-film"/>
+                                 <button name="action_set_outbound_pack_sync"
+                                    type="object"
+                                    string="Outbound Pack"
+                                    class="oe_stat_button" icon="fa-film"/>
+                                 <button name="action_set_logistics_info_sync"
+                                    type="object"
+                                    string="Logistics Info"
+                                    class="oe_stat_button" icon="fa-film"/>
+                                 <button name="action_set_outbound_result_sync"
+                                    type="object"
+                                    string="Outbound Result"
+                                    class="oe_stat_button" icon="fa-film"/>
+                            </div>
                         </page>
                        <!-- <page string="Charges">
                             <group col="2">
@@ -194,5 +274,27 @@
         <field name="view_id" ref="view_outbound_order_tree"/>
         <field name="context">{'search_default_state_not_cancel': 1}</field>
         <field name="domain">[]</field>
+    </record>
+
+    <!-- outbound product lines tree view -->
+    <record id="view_outbound_order_product_tree" model="ir.ui.view">
+        <field name="name">outbound.order.product.tree</field>
+        <field name="model">world.depot.outbound.order.product</field>
+        <field name="arch" type="xml">
+            <list string="Outbound Order Products">
+                <field name="product_id" optional="show"/>
+                <field name="barcode" optional="show"/>
+                <field name="default_code" optional="show"/>
+                <field name="adr" optional="show"/>
+                <field name="un_number" optional="show"/>
+                <field name="pallets" optional="show"/>
+                <field name="quantity" optional="show"/>
+                <field name="weight" optional="show"/>
+                <field name="weight_subtotal" optional="show"/>
+                <field name="serial_numbers" optional="show"/>
+                <field name="pallet_prefix_code" optional="show"/>
+                <field name="remark" optional="show"/>
+            </list>
+        </field>
     </record>
 </odoo>

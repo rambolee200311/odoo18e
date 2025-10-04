@@ -2,12 +2,7 @@
 <odoo>
     <data>
         <!-- menu -->
-        <menuitem id="world_depot_logi_menu" name="WorldDepot" sequence="10"/>
-
-        <menuitem id="waybill_logi_menu" name="Waybill" parent="world_depot_logi_menu" sequence="100"/>
-        <menuitem id="waybill_menu" name="Waybills" parent="waybill_logi_menu" action="action_world_depot_waybill" sequence="101"/>
-        <menuitem id="container_menu" name="Containers" parent="waybill_logi_menu" action="action_waybill_container" sequence="102"/>
-        <menuitem id="packing_list_menu" name="Packing Lists" parent="waybill_logi_menu" action="action_waybill_packing_list" sequence="103"/>
+        <menuitem id="world_depot_logi_menu" name="WorldDepot" sequence="10" action="action_world_depot_dashboard"/>
 
         <menuitem id="inbound_logi_menu" name="Inbound" parent="world_depot_logi_menu" sequence="200" />
         <menuitem id="inbound_order_menu" name="Orders" parent="inbound_logi_menu" sequence="201" action="action_inbound_order"/>
@@ -20,16 +15,32 @@
         <menuitem id="outbound_order_summary_menu" name="Orders Summary" parent="outbound_logi_menu" sequence="303" action="action_outbound_order_summary"/>
         <menuitem id="outbound_order_sn_detail_menu" name="Orders SN Detail" parent="outbound_logi_menu" sequence="304" action="action_outbound_order_sn_detail"/>
 
+        <menuitem id="waybill_logi_menu" name="Waybill" parent="world_depot_logi_menu" sequence="800"/>
+        <menuitem id="waybill_menu" name="Waybills" parent="waybill_logi_menu" action="action_world_depot_waybill" sequence="801"/>
+        <menuitem id="container_menu" name="Containers" parent="waybill_logi_menu" action="action_waybill_container" sequence="802"/>
+        <menuitem id="packing_list_menu" name="Packing Lists" parent="waybill_logi_menu" action="action_waybill_packing_list" sequence="803"/>
+
         <menuitem id="menu_world_depot_configuration" parent="world_depot_logi_menu" name="Configuration" sequence="900"/>
         <menuitem id="menu_world_depot_products" name="Products" parent="menu_world_depot_configuration" action="product.product_template_action_all" sequence="901"/>
         <menuitem id="menu_world_depot_product" name="Product Template" parent="menu_world_depot_configuration" action="action_product_import" sequence="910"/>
-        <menuitem id="menu_world_depot_api_user" name="API Users" parent="menu_world_depot_configuration" action="action_world_depot_api_user" sequence="911"/>
+
         <menuitem id="menu_linglong_product_temp" name="Linglong Product Temp" parent="menu_world_depot_configuration" action="action_linglong_product_temp" sequence="912"/>
-        <menuitem id="menu_api_log_root" name="API Logs" sequence="990" parent="menu_world_depot_configuration" action="action_api_log"/>
+
+        <menuitem id="menu_product_duplicate" name="Product Duplicate" sequence="991" parent="menu_world_depot_configuration" action="action_product_duplicate"/>
+
+        <menuitem id="menu_world_depot_charge_unit"  name="Charge Units" parent="menu_world_depot_configuration" action="action_world_depot_charge_unit" sequence="913"/>
+        <menuitem id="menu_world_depot_charge_item"  name="Charge Items" parent="menu_world_depot_configuration" action="action_world_depot_charge_item" sequence="914"/>
         <!--<menuitem id="menu_world_depot_excel_template"
           name="Excel Templates"
           parent="menu_world_depot_configuration"
           action="action_world_depot_excel_template"
           sequence="920"/>-->
+
+        <menuitem id="menu_hoymiles_api_configuration" parent="world_depot_logi_menu" name="Hoymiles APIs" sequence="1100"/>
+        <menuitem id="menu_api_log_root" name="API Logs" parent="menu_hoymiles_api_configuration" action="action_api_log" sequence="1101"/>
+        <menuitem id="menu_world_depot_api_user" name="API Users" parent="menu_hoymiles_api_configuration" action="action_world_depot_api_user" sequence="1102"/>
+        <menuitem id="menu_hoymiles_api_urls" name="Hoymiles API URLs" parent="menu_hoymiles_api_configuration" action="action_hoymiles_api_urls" sequence="1103"/>
+        <menuitem id="menu_hoymiles_api_logs" name="Hoymiles API Logs" parent="menu_hoymiles_api_configuration" action="action_hoymiles_api_logs" sequence="1104"/>
+
     </data>
 </odoo>

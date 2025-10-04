@@ -1,0 +1,97 @@
+<odoo>
+    <!-- Tree View for OutboundOrderPackInfo -->
+    <record id="view_outbound_order_pack_info_tree" model="ir.ui.view">
+        <field name="name">outbound.order.pack.info.tree</field>
+        <field name="model">world.depot.outbound.order.pack.info</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="pack_number"/>
+               <!-- <field name="pack_type"/>
+                <field name="pallet_type"/>-->
+                <field name="pack_owner"/>
+                <field name="length"/>
+                <field name="width"/>
+                <field name="height"/>
+                <field name="volume"/>
+                <field name="gross_weight"/>
+                <field name="net_weight"/>
+                <field name="tare_weight"/>
+                <field name="product_description"/>
+                <field name="remark"/>
+               <!-- <field name="product_count"/>
+                <field name="total_quantity"/>
+                <field name="is_loaded"/>
+                <field name="loading_date"/>-->
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View for OutboundOrderPackInfo -->
+    <record id="view_outbound_order_pack_info_form" model="ir.ui.view">
+        <field name="name">outbound.order.pack.info.form</field>
+        <field name="model">world.depot.outbound.order.pack.info</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            Outbound Order Pack Information
+                        </h1>
+                        <h2>
+                            <field name="pack_number" readonly="1"/>
+                        </h2>
+                    </div>
+                    <group col="2">
+                        <group col="2">
+                            <field name="pack_number"/>
+                           <!-- <field name="pack_type"/>
+                            <field name="pallet_type" invisible="pack_type!='pallet'"/>-->
+                            <field name="pack_owner"/>
+                            <field name="outbound_order_id" invisible="1" readonly="1"/>
+                        </group>
+                        <group col="2">
+                            <field name="product_description"/>
+                            <field name="remark"/>
+                        </group>
+                    </group>
+                    <group col="2">
+                        <group col="2" string="Dimensions">
+                            <field name="length"/>
+                            <field name="width"/>
+                            <field name="height"/>
+                            <field name="volume" readonly="1"/>
+                        </group>
+                        <group col="2" string="Weights">
+                            <field name="gross_weight"/>
+                            <field name="net_weight"/>
+                            <field name="tare_weight" readonly="1"/>
+                        </group>
+                    </group>
+                   <!-- <group>
+                        <field name="product_count" readonly="1"/>
+                        <field name="total_quantity" readonly="1"/>
+                        <field name="is_loaded"/>
+                        <field name="loading_date" attrs="{'readonly': [('is_loaded', '=', False)]}"/>
+                    </group>
+                    <notebook>
+                        <page string="Products">
+                            <field name="pack_product_ids">
+                                <tree>
+                                    <field name="product_id"/>
+                                    <field name="quantity"/>
+                                    <field name="lot_id"/>
+                                    <field name="uom_id" readonly="1"/>
+                                    <field name="weight" readonly="1"/>
+                                    <field name="total_weight" readonly="1"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Remarks">
+                            <field name="remark"/>
+                        </page>
+                    </notebook>-->
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

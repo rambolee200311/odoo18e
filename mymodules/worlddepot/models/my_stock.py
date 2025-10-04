@@ -40,7 +40,7 @@ class StockPicking(models.Model):
                 for move in picking.move_ids:
                     if move.state in ('done', 'cancel'):
                         continue
-                    if not float_is_zero(move.product_uom_qty, precision_rounding=move.product_uom.rounding):
+                    # if not float_is_zero(move.product_uom_qty, precision_rounding=move.product_uom.rounding):
                         # Use move.quantity instead of quantity_done
                         if float_compare(move.quantity, move.product_uom_qty,
                                          precision_rounding=move.product_uom.rounding) != 0:

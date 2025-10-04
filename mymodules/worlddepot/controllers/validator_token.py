@@ -14,15 +14,21 @@ def validate_token(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         # Get token from headers
-        token = request.httprequest.headers.get('Authorization')
+        auth_header = request.httprequest.headers.get('Authorization')
 
-        if not token:
+        if not auth_header:
             _logger.warning("API request missing authentication token")
             return http.Response(
                 json.dumps({'error': 'Missing authentication token'}),
                 status=401,
                 mimetype='application/json'
             )
+
+        # Handle both "Bearer token" and plain token formats
+        if auth_header.startswith('Bearer '):
+            token = auth_header[7:]  # Remove "Bearer " prefix (7 characters)
+        else:
+            token = auth_header  # Use as-is if no Bearer prefix
 
         # Validate token
         token_rec = request.env['world.depot.api.token'].sudo().search([
@@ -48,6 +54,14 @@ def validate_token(func):
 
         # Update environment with authenticated user
         request.update_env(user=token_rec.user_id.id)
+
+        # Find the API user record associated with this user
+        api_user = request.env['world.depot.api.user'].sudo().search([
+            ('user_id', '=', token_rec.user_id.id)
+        ], limit=1)
+
+        # Store the API user record in the request for later use in endpoints
+        request.api_user = api_user
 
         # Proceed to the endpoint function
         return func(*args, **kwargs)

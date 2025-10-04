@@ -11,7 +11,7 @@
                 <field name="reference" optional="show"/>
                 <field name="type" optional="show"/>
                 <field name="a_date" optional="show"/>
-                <field name="i_date" optional="show"/>
+                <field name="i_datetime" optional="show"/>
                 <field name="cntr_no" optional="show"/>
                 <field name="bl_no" optional="show"/>
                 <field name="pallets" optional="show"/>
@@ -35,14 +35,17 @@
                 <field name="reference"/>
                 <field name="type"/>
                 <field name="a_date"/>
+                <field name="i_datetime"/>
                 <field name="pallets"/>
                 <field name="cntr_no"/>
                 <field name="bl_no"/>
-                <field name="pallets"/>
+                <field name="product_id"/>
                 <field name="mixed"/>
                 <field name="barcode"/>
                 <field name="default_code"/>
                 <field name="quantity"/>
+                <field name="state"/>
+                <filter string="Confirmed Orders" name="confirmed_orders" domain="[('order_id.state', '=', 'confirm')]"/>
             </search>
         </field>
     </record>
@@ -51,5 +54,7 @@
         <field name="name">Inbound Order Summary</field>
         <field name="res_model">world.depot.inbound.order.summary</field>
         <field name="view_mode">list,search</field>
+        <field name="view_id" ref="view_inbound_order_summary_tree"/>
+        <field name="search_view_id" ref="view_inbound_order_summary_search"/>
     </record>
 </odoo>

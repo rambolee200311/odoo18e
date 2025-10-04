@@ -20,3 +20,11 @@ from . import inbound_order_summary
 from . import outbound_order_summary
 from . import outbound_order_sn_detail
 from . import linglong_inbound_temp
+from . import product_duplicate
+from . import inbound_order_status
+from . import outbound_order_status
+from . import charge_item
+from . import inbound_order_charge
+from . import outbound_order_pack_info
+from . import outbound_order_charge
+from . import my_dashboard

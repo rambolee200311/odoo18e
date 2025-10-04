@@ -1,4 +1,7 @@
 from odoo import models, fields
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 class OutboundOrderSummary(models.Model):
@@ -8,6 +11,7 @@ class OutboundOrderSummary(models.Model):
 
     order_id = fields.Many2one('world.depot.outbound.order', string='Outbound Order', readonly=True)
     type = fields.Char(string='Type', readonly=True)
+    state = fields.Selection(related='order_id.state', string='State', readonly=True)
     reference = fields.Char(string='Outbound Reference', readonly=True)
     p_date = fields.Date(string='Date', readonly=True)
     project = fields.Many2one('project.project', string='Project', readonly=True)
@@ -22,30 +26,42 @@ class OutboundOrderSummary(models.Model):
     pallet_prefix_code = fields.Char(string="Pallet Prefix", readonly=True)
 
     def init(self):
-        # Clear existing data
-        self.env.cr.execute(f"DELETE FROM {self._table}")
+        """Initialize the summary table with data from outbound orders."""
+        try:
+            # Clear existing data
+            self.env.cr.execute(f"DELETE FROM {self._table}")
 
-        # Fetch confirmed outbound orders with stock picking
-        outbound_orders = self.env['world.depot.outbound.order'].search([
-            ('state', '=', 'confirm'),
-            ('picking_PICK', '!=', False)
-        ])
+            # Fetch confirmed outbound orders
+            outbound_orders = self.env['world.depot.outbound.order'].search([('state', '!=', 'cancel')])
 
-        # Populate the summary table
-        for order in outbound_orders:
-            for pallet in order.outbound_order_product_ids:
-                self.create({
-                    'order_id': order.id,
-                    'type': order.type,
-                    'reference': order.reference,
-                    'p_date': order.p_date,
-                    'project': order.project.id,
-                    'unload_company': order.unload_company.id,
-                    'delivery_method': order.delivery_method,
-                    'load_ref': order.load_ref,
-                    'product_detail_id': pallet.id,
-                    'product_id': pallet.product_id.id,
-                    'product_name': pallet.product_id.name,
-                    'quantity': pallet.quantity,
-                    'pallet_prefix_code': pallet.pallet_prefix_code,
-                })
+            # Prepare data for bulk insertion
+            summary_data = []
+            for order in outbound_orders:
+                pallets = self.env['world.depot.outbound.order.product'].search([('outbound_order_id', '=', order.id)])
+                for pallet in pallets:
+                    if not pallet.product_id:
+                        _logger.warning(f"Product missing for pallet line ID {pallet.id} in order ID {order.id}")
+                        continue
+                    summary_data.append({
+                        'order_id': order.id,
+                        'type': order.type or '',
+                        'state': order.state or '',
+                        'reference': order.reference or '',
+                        'p_date': order.p_date or False,
+                        'project': order.project.id,
+                        'unload_company': order.unload_company.id or False,
+                        'delivery_method': order.delivery_method or '',
+                        'load_ref': order.load_ref or '',
+                        'product_detail_id': pallet.id or False,
+                        'product_id': pallet.product_id.id or False,
+                        'product_name': pallet.product_id.name or '',
+                        'quantity': pallet.quantity or 0,
+                        'pallet_prefix_code': pallet.pallet_prefix_code or '',
+                    })
+
+            # Bulk create records
+            if summary_data:
+                self.env['world.depot.outbound.order.summary'].create(summary_data)
+
+        except Exception as e:
+            _logger.error(f"Error initializing OutboundOrderSummary: {e}")

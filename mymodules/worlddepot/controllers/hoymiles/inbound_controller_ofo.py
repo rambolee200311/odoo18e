@@ -9,9 +9,9 @@ from ..api_logs import api_logger
 _logger = logging.getLogger(__name__)
 
 
-class InboundOrderAPI(http.Controller):
+class InboundOrderAPIOFO(http.Controller):
     # Create new inbound order
-    @http.route('/world_depot/hoymiles/api/inbound/order/create', type='json', auth='none', methods=['POST'],
+    @http.route('/world_depot/ofoundation/api/inbound/order/create', type='json', auth='none', methods=['POST'],
                 csrf=False)
     @validate_token
     @api_logger
@@ -103,7 +103,7 @@ class InboundOrderAPI(http.Controller):
             return {'success': False, 'error': str(e)}
 
     # Get inbound order details
-    @http.route('/world_depot/hoymiles/api/inbound_order/get', type='json', auth='none', methods=['POST'], csrf=False)
+    @http.route('/world_depot/ofoundation/api/inbound_order/get', type='json', auth='none', methods=['POST'], csrf=False)
     @validate_token
     def get_inbound_order(self, **params):
         try:
@@ -161,7 +161,7 @@ class InboundOrderAPI(http.Controller):
             return {'error': str(e)}
 
     # Update inbound order
-    @http.route('/world_depot/hoymiles/api/inbound_order/update', type='json', auth='none', methods=['POST'],
+    @http.route('/world_depot/ofoundation/api/inbound_order/update', type='json', auth='none', methods=['POST'],
                 csrf=False)
     @validate_token
     def update_inbound_order(self, **params):
@@ -226,7 +226,7 @@ class InboundOrderAPI(http.Controller):
             return {'error': str(e)}
 
     # Cancel inbound order (unchanged)
-    @http.route('/world_depot/hoymiles/api/inbound/order/cancel', type='json', auth='none', methods=['POST'],
+    @http.route('/world_depot/ofoundation/api/inbound/order/cancel', type='json', auth='none', methods=['POST'],
                 csrf=False)
     @validate_token
     @api_logger

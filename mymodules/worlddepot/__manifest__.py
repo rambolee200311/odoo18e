@@ -22,7 +22,7 @@
 
     # always loaded
     'data': [
-        # 'security/ir.model.access.csv',
+        'security/ir.model.access.csv',
         #'views/views.xml',
         #'views/templates.xml',
         #'vies/my_partner.xml',
@@ -43,6 +43,14 @@
         'views/outbound_order_summary.xml',
         'views/outbound_order_sn_detail.xml',
         'views/linglong_inbound_temp.xml',
+        'views/product_duplicate.xml',
+        'views/hoymiles/hoymiles_api_logs.xml',
+        'views/hoymiles/hoymiles_api_urls.xml',
+        'views/charge_item.xml',
+        'views/inbound_order_charge.xml',
+        'views/outbound_order_pack_info.xml',
+        'views/outbound_order_charge.xml',
+        'views/my_dashboard.xml',
         #'views/my_excel_template.xml',
         #'views/pallet_barcode_assets.xml',
         #'views/sequence.xml',

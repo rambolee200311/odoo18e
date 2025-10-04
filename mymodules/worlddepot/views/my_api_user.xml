@@ -8,6 +8,7 @@
                 <field name="user_id"/>
                 <field name="api_key"/>
                 <field name="active"/>
+                <field name="project"/>
             </list>
         </field>
     </record>
@@ -27,6 +28,7 @@
                         <field name="api_key"/>
                         <field name="secret" password="True"/>
                         <field name="active"/>
+                        <field name="project"/>
                     </group>
                 </sheet>
             </form>

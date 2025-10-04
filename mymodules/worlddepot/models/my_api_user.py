@@ -37,6 +37,9 @@ class DepotAPIUser(models.Model):
         help="Set new API secret (write-only field)"
     )
 
+    project = fields.Many2one('project.project', string='Project')
+
+
     _sql_constraints = [
         ('api_key_uniq', 'unique(api_key)', 'API Key must be unique!'),
     ]

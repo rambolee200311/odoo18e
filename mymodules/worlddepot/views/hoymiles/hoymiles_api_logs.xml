@@ -1,0 +1,38 @@
+<odoo>
+    <!-- List View for Hoymiles API Logs -->
+    <record id="view_hoymiles_api_logs_tree" model="ir.ui.view">
+        <field name="name">hoymiles.api.logs.tree</field>
+        <field name="model">hoymiles.api.logs</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="request_source"/>
+                <field name="request_time"/>
+                <field name="request_path"/>
+                <field name="request_data"/>
+                <field name="response_data"/>
+                <field name="exception_details"/>
+            </list>
+        </field>
+    </record>
+    <!-- Search View for Hoymiles API Logs -->
+    <record id="view_hoymiles_api_logs_search" model="ir.ui.view">
+        <field name="name">hoymiles.api.logs.search</field>
+        <field name="model">hoymiles.api.logs</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="request_source"/>
+                <field name="request_time"/>
+                <field name="request_path"/>
+                <field name="request_data"/>
+                <field name="response_data"/>
+                <field name="exception_details"/>
+            </search>
+        </field>
+    </record>
+    <!--action to open hoymiles api logs list-->
+    <record id="action_hoymiles_api_logs" model="ir.actions.act_window">
+        <field name="name">Hoymiles API Logs</field>
+        <field name="res_model">hoymiles.api.logs</field>
+        <field name="view_mode">list</field>
+    </record>
+</odoo>
