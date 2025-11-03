@@ -58,6 +58,17 @@
             action = records.action_import_inbound_order()
         </field>
     </record>
+
+    <!-- Action -->
+    <record id="action_update_nine_digit_linglong_code" model="ir.actions.server">
+        <field name="name">Update 9-Digit Linglong Code</field>
+        <field name="model_id" ref="model_world_depot_linglong_product_temp"/>
+        <field name="binding_model_id" ref="model_world_depot_linglong_product_temp"/>
+        <field name="state">code</field>
+        <field name="code">
+            action = records.action_update_nine_digit_linglong_code()
+        </field>
+    </record>
     <!-- Add Server Action to Action Menu
     action = env['world.depot.linglong.product.temp'].browse(context.get('active_ids')).action_import_inbound_order()
     <record id="action_import_inbound_order_server_action" model="ir.ui.action">

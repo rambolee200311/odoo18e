@@ -13,6 +13,13 @@ class ProductTemplate(models.Model):
     brand = fields.Char(string="Brand")
     nine_digit_linglong_code = fields.Char(string="9-Digit Linglong Code")
 
+    def cron_update_nine_digit_linglong_code(self):
+        # Update all product.product records with the value from product.template
+        products = self.env['product.product'].search([])
+        for product in products:
+            if not product.nine_digit_linglong_code:
+                product.nine_digit_linglong_code = product.product_tmpl_id.nine_digit_linglong_code
+
 
 class ProductProduct(models.Model):
     _inherit = 'product.product'

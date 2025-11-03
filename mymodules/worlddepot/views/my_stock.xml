@@ -15,6 +15,7 @@
                         <field name="ref_1"/>
                         <field name="ref_2"/>
                         <field name="planning_date"/>
+                        <field name="load_ref" invisible="picking_type_code=='incoming'"/>
                     </group>
                 </group>
             </xpath>
@@ -36,6 +37,17 @@
                     <field name="cntrno"/>
                 </group>
             </xpath>
+        </field>
+    </record>
+    <!-- Stock Move Tree View -->
+    <record id="view_stock_move_tree_inherit" model="ir.ui.view">
+        <field name="name">stock.move.tree.inherit</field>
+        <field name="model">stock.move</field>
+        <field name="inherit_id" ref="stock.view_move_tree"/>
+        <field name="arch" type="xml">
+            <field name="product_uom_qty" position="after">
+                <field name="nine_digit_linglong_code"/>
+            </field>
         </field>
     </record>
 </odoo>

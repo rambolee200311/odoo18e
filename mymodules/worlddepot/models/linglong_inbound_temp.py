@@ -161,3 +161,24 @@ class LinglongProductTemp(models.Model):
             record.state = 'error'
             record.error_message = str(e)
             return False
+
+    def action_update_nine_digit_linglong_code(self):
+        # Define the domain to find products with missing nine_digit_linglong_code
+        domain = [('categ_id', '=', 11), ('nine_digit_linglong_code', '=', False)]
+        ProductTemplate = self.env['product.template'].search(domain)
+
+        # Fetch barcodes in bulk to avoid redundant searches
+        barcodes = ProductTemplate.read(['id', 'barcode'])
+
+        # Prepare updates
+        updates = {}
+        for product in barcodes:
+            if product['barcode']:
+                # Search for the corresponding nine_digit_linglong_code
+                temp_record = self.search([('barcode', '=', product['barcode'])], limit=1)
+                if temp_record and temp_record.nine_digit_linglong_code:
+                    updates[product['id']] = temp_record.nine_digit_linglong_code
+
+        # Perform batch updates
+        for product_id, nine_digit_code in updates.items():
+            self.env['product.template'].browse(product_id).write({'nine_digit_linglong_code': nine_digit_code})

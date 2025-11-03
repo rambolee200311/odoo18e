@@ -31,7 +31,7 @@ class InboundOrderSummary(models.Model):
     qty_subtotal = fields.Float(string='Quantity Subtotal', readonly=True)
     stock_picking_id = fields.Many2one('stock.picking', string='Stock Picking', readonly=True)
 
-    def init(self):
+    def init_old(self):
         """Initialize the summary table with data from inbound orders."""
         try:
             # Clear existing data
@@ -84,3 +84,87 @@ class InboundOrderSummary(models.Model):
 
         except Exception as e:
             _logger.error(f"Error initializing InboundOrderSummary: {e}")
+
+    def init(self):
+        """Initialize the summary table with data from inbound orders."""
+        try:
+            # Clear existing data
+            self.env.cr.execute(f"DELETE FROM {self._table}")
+
+            # Include ALL orders (remove state filter)
+            inbound_orders = self.env['world.depot.inbound.order'].search([])
+
+            _logger.info(f"Processing {len(inbound_orders)} inbound orders")
+
+            summary_data = []
+            orders_processed = 0
+            orders_with_issues = 0
+
+            for order in inbound_orders:
+                orders_processed += 1
+                pallets = self.env['world.depot.inbound.order.product'].search([
+                    ('inbound_order_id', '=', order.id)
+                ])
+
+                if not pallets:
+                    _logger.warning(f"Order {order.id} ({order.reference}) has no pallets")
+                    orders_with_issues += 1
+                    # You might still want to create a summary record for empty orders
+                    continue
+
+                for pallet in pallets:
+                    mixed = len(pallet.inbound_order_product_pallet_ids) > 1
+                    products = self.env['world.depot.inbound.order.products.pallet'].search([
+                        ('inbound_order_product_id', '=', pallet.id)
+                    ])
+
+                    if not products:
+                        _logger.warning(f"Pallet {pallet.id} in order {order.id} has no products")
+                        orders_with_issues += 1
+                        continue
+
+                    for i, product in enumerate(products, start=1):
+                        if not product.product_id:
+                            _logger.warning(
+                                f"Product missing for pallet line ID {product.id} in order ID {order.id}"
+                            )
+                            orders_with_issues += 1
+                            continue
+
+                        summary_data.append({
+                            'order_id': order.id,
+                            'state': order.state,
+                            'stock_picking_id': order.stock_picking_id.id,
+                            'a_date': order.a_date,
+                            'i_date': order.i_date,
+                            'i_datetime': order.i_datetime,
+                            'type': order.type,
+                            'project': order.project.id,
+                            'reference': order.reference,
+                            'cntr_no': order.cntr_no or '',
+                            'bl_no': order.bl_no or '',
+                            'pallet_id': pallet.id,
+                            'pallets': pallet.pallets if i == 1 else 0,
+                            'mixed': mixed,
+                            'product_id': product.product_id.id,
+                            'product_name': product.product_id.name,
+                            'barcode': product.product_id.barcode or '',
+                            'default_code': product.product_id.default_code or '',
+                            'quantity': product.quantity or 1,
+                            'qty_subtotal': (pallet.pallets or 1) * (product.quantity or 1),
+                        })
+
+            _logger.info(f"Processed {orders_processed} orders, {orders_with_issues} had issues")
+            _logger.info(f"Creating {len(summary_data)} summary records")
+
+            # Bulk create in batches to avoid memory issues
+            batch_size = 1000
+            for i in range(0, len(summary_data), batch_size):
+                batch = summary_data[i:i + batch_size]
+                self.env['world.depot.inbound.order.summary'].create(batch)
+
+            _logger.info("Summary initialization completed successfully")
+
+        except Exception as e:
+            _logger.error(f"Error initializing InboundOrderSummary: {e}")
+            _logger.error("Full traceback:", exc_info=True)

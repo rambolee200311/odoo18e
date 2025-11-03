@@ -23,6 +23,8 @@ class StockPicking(models.Model):
         help='Reference to the related Outbound Order',
         readonly=True
     )
+    load_ref = fields.Char(string='Loading Reference', required=False, help='Reference for the Delivery', )
+
     '''
     @api.constrains('bill_of_lading', 'cntrno', 'picking_type_id', 'origin_returned_picking_id')
     def _check_receipt_fields(self):
@@ -136,6 +138,11 @@ class StockMove(models.Model):
 
     # InboundOrderProductsOfPallet's ID
     inbound_order_product_pallet_id = fields.Integer('Inbound Order Product Pallet ID', )
+    nine_digit_linglong_code = fields.Char(
+        string="Nine Digit Linglong Code",
+        related='product_id.nine_digit_linglong_code',
+        store=True
+    )
 
     def _prepare_merge_moves_distinct_fields(self):
         distinct_fields = super()._prepare_merge_moves_distinct_fields()

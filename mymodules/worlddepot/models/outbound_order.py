@@ -361,6 +361,7 @@ class OutboundOrder(models.Model):
                 'outbound_order_id': record.id,
                 'planning_date': record.p_date,
                 'ref_1': record.reference,
+                'load_ref': record.load_ref,
             })
 
             # Create stock moves
