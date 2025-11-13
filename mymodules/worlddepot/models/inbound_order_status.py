@@ -57,6 +57,9 @@ class InboundOrderStatus(models.Model):
         return local_time
 
     # 禾迈-入库状态
+    set_status_to_confirmed=fields.Boolean(string="Set Status to Confirmed", default=False)
+    set_status_to_confirmed_time=fields.Datetime(string="Status to Confirmed Time", readonly=True)
+    status_to_confirmed_error_msg=fields.Text(string="Status to Confirmed Error Msg", readonly=True)
     def action_set_status_to_confirmed(self):
         for order in self:
             if order.project and order.project.name.lower() == 'hoymiles':
@@ -114,6 +117,19 @@ class InboundOrderStatus(models.Model):
                             'request_data': json.dumps(payload),
                             'response_data': response.text
                         })
+                        if not failed:
+                            order.write({
+                                'set_status_to_confirmed': True,    
+                                'set_status_to_confirmed_time': datetime.now(),
+                                'status_to_confirmed_error_msg': False,
+                            })
+                        else:
+                            if not order.set_status_to_confirmed:
+                                order.write({
+                                    'set_status_to_confirmed': False,    
+                                    'set_status_to_confirmed_time': datetime.now(),
+                                    'status_to_confirmed_error_msg': response.text
+                            })   
                         return failed
                     else:
                         _logger.error("Token fetch failed: HTTP %s - %s", response.status_code, response.text)
@@ -126,6 +142,12 @@ class InboundOrderStatus(models.Model):
                             'response_data': response.text,
                             'exception_details': f"HTTP {response.status_code}"
                         })
+                        if not order.set_status_to_confirmed:
+                                order.write({
+                                    'set_status_to_confirmed': False,    
+                                    'set_status_to_confirmed_time': datetime.now(),
+                                    'status_to_confirmed_error_msg': response.text
+                            })   
                         return False
 
                 except requests.exceptions.RequestException as e:
@@ -140,6 +162,12 @@ class InboundOrderStatus(models.Model):
                         'response_data': False,
                         'exception_details': str(e)
                     })
+                    if not order.set_status_to_confirmed:
+                                order.write({
+                                    'set_status_to_confirmed': False,    
+                                    'set_status_to_confirmed_time': datetime.now(),
+                                    'status_to_confirmed_error_msg': str(e)
+                            })   
                     return False
                 except json.JSONDecodeError as e:
                     _logger.error("JSON decode error in token response: %s", str(e))
@@ -152,10 +180,19 @@ class InboundOrderStatus(models.Model):
                         'response_data': False,
                         'exception_details': str(e)
                     })
+                    if not order.set_status_to_confirmed:
+                                order.write({
+                                    'set_status_to_confirmed': False,    
+                                    'set_status_to_confirmed_time': datetime.now(),
+                                    'status_to_confirmed_error_msg': str(e)
+                            })   
                     return False
             return True
 
     # 禾迈-入库结果
+    set_inbound_result_sync=fields.Boolean(string="Set Inbound Result Sync", default=False)
+    set_inbound_result_sync_time=fields.Datetime(string="Inbound Result Sync Time", readonly=True)
+    inbound_result_sync_error_msg=fields.Text(string="Inbound Result Sync Error Msg", readonly=True)
     def action_set_inbound_result_sync(self):
         for order in self:
             if order.project and order.project.name.lower() == 'hoymiles':
@@ -233,6 +270,19 @@ class InboundOrderStatus(models.Model):
                             'request_data': json.dumps(payload),
                             'response_data': response.text
                         })
+                        if not failed:
+                            order.write({
+                                'set_inbound_result_sync': True,    
+                                'set_inbound_result_sync_time': datetime.now(),
+                                'inbound_result_sync_error_msg': False,
+                            })
+                        else:
+                            if not order.set_inbound_result_sync:
+                                order.write({
+                                    'set_inbound_result_sync': False,    
+                                    'set_inbound_result_sync_time': datetime.now(),
+                                    'inbound_result_sync_error_msg': response.text
+                            })
                         return failed
                     else:
                         _logger.error("Token fetch failed: HTTP %s - %s", response.status_code, response.text)
@@ -259,6 +309,12 @@ class InboundOrderStatus(models.Model):
                         'response_data': False,
                         'exception_details': str(e)
                     })
+                    if not order.set_inbound_result_sync:
+                                order.write({
+                                    'set_inbound_result_sync': False,    
+                                    'set_inbound_result_sync_time': datetime.now(),
+                                    'inbound_result_sync_error_msg': str(e)
+                            })
                     return False
                 except json.JSONDecodeError as e:
                     _logger.error("JSON decode error in token response: %s", str(e))
@@ -271,5 +327,11 @@ class InboundOrderStatus(models.Model):
                         'response_data': False,
                         'exception_details': str(e)
                     })
+                    if not order.set_inbound_result_sync:
+                                order.write({
+                                    'set_inbound_result_sync': False,    
+                                    'set_inbound_result_sync_time': datetime.now(),
+                                    'inbound_result_sync_error_msg': str(e)
+                            })
                     return False
             return True

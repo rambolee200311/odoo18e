@@ -44,7 +44,7 @@ class OutboundOrderPackInfo(models.Model):
     pack_number = fields.Char(string='Pack Number', required=True, index=True)
 
 
-
+    count = fields.Integer(string='Pack Count', default=1, help='Number of identical packs with this information')
     # Ownership
     pack_owner = fields.Selection(
         [('client', 'Client'), ('warehouse', 'Warehouse'), ('carrier', 'Carrier')],

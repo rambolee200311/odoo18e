@@ -224,16 +224,36 @@
                             </group>
                         </page>-->
                         <page string="Hoymiles APIs" groups="stock.group_stock_manager">
-                            <div class="oe_button_box" name="button_box">
-                                <button name="action_set_status_to_confirmed"
-                                        type="object"
-                                        string="Confirm Status"
-                                        class="oe_stat_button" icon="fa-file-pdf"/>
-                                <button name="action_set_inbound_result_sync"
-                                        type="object"
-                                        string="Inbound Result"
-                                        class="oe_stat_button" icon="fa-file-pdf"/>
-                            </div>
+                            <group string="Confirm Status" col="2">
+                                <group col="2">
+                                    <div class="oe_button_box" name="button_box">
+                                        <button name="action_set_status_to_confirmed"
+                                                type="object"
+                                                string="Confirm Status"
+                                                class="oe_stat_button" icon="fa-film"/>
+                                    </div>
+                                    <field name="set_status_to_confirmed" string="success" readonly="1"/>
+                                </group>
+                                <group col="2"> 
+                                    <field name="set_status_to_confirmed_time" string="time" readonly="1"/>
+                                    <field name="status_to_confirmed_error_msg" string="error" readonly="1" widget="text"/>
+                                </group>
+                            </group>
+                            <group string="Inbound Result" col="2">
+                                <group col="2">
+                                    <div class="oe_button_box" name="button_box">
+                                        <button name="action_set_inbound_result_sync"
+                                                type="object"
+                                                string="Inbound Result"
+                                                class="oe_stat_button" icon="fa-film"/>
+                                    </div>
+                                    <field name="set_inbound_result_sync" string="success" readonly="1"/>
+                                </group>
+                                <group col="2"> 
+                                    <field name="set_inbound_result_sync_time" string="time" readonly="1"/>
+                                    <field name="inbound_result_sync_error_msg" string="error" readonly="1" widget="text"/>  
+                                </group>  
+                            </group>
                         </page>
                     </notebook>
                 </sheet>

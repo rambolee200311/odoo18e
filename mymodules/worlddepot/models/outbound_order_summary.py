@@ -1,4 +1,4 @@
-from odoo import models, fields
+from odoo import models, fields,api
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -74,7 +74,8 @@ class OutboundOrderSummary(models.Model):
             self.env.cr.execute(f"DELETE FROM {self._table}")
 
             # Fetch ALL outbound orders (including cancelled if needed)
-            outbound_orders = self.env['world.depot.outbound.order'].search([])
+            domain = [('state', '!=', 'cancel')]
+            outbound_orders = self.env['world.depot.outbound.order'].search(domain)
             _logger.info(f"Found {len(outbound_orders)} outbound orders to process")
 
             summary_data = []
@@ -172,3 +173,21 @@ class OutboundOrderSummary(models.Model):
         except Exception as e:
             _logger.error(f"Error initializing OutboundOrderSummary: {e}")
             _logger.error("Full traceback:", exc_info=True)
+    
+        
+    @api.model
+    def action_manual_refresh(self, *args, **kwargs):
+        """Manual entry point to refresh the outbound order summary.
+
+        This can be called from an automated action or server action in Odoo UI.
+        It simply rebuilds the summary table by calling the `init` method.
+        """
+        _logger.info("Manual refresh of OutboundOrderSummary requested")
+        try:
+            # Rebuild the summary
+            self.init()
+            _logger.info("Manual refresh completed successfully")
+            return True
+        except Exception as e:
+            _logger.error("Manual refresh failed: %s", e, exc_info=True)
+            return False

@@ -17,7 +17,7 @@ class ChargeItem(models.Model):
 
     item_name = fields.Char(string='Item Name', required=True)
     parent_id = fields.Many2one('world.depot.charge.item', string='Parent Item')
-    full_item_name = fields.Char(string='Full Item Name', compute='_compute_full_item_name', store=True)
+    full_item_name = fields.Char(string='Full Item Name', compute='_compute_full_item_name', store=True, recursive=True)
     unit_id = fields.Many2one('world.depot.charge.unit', string='Unit')
     description = fields.Text(string='Description')
 

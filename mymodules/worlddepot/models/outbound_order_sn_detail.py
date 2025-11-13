@@ -1,4 +1,4 @@
-from odoo import models, fields
+from odoo import models, fields, api
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -67,3 +67,20 @@ class OutboundOrderSNDetail(models.Model):
 
         except Exception as e:
             _logger.error(f"Error initializing OutboundOrderSNDetail: {e}")
+            
+    @api.model
+    def action_manual_refresh(self, *args, **kwargs):
+        """Manual entry point to refresh the outbound order SN Detail.
+
+        This can be called from an automated action or server action in Odoo UI.
+        It simply rebuilds the summary table by calling the `init` method.
+        """
+        _logger.info("Manual refresh of OutboundOrderSNDetail requested")
+        try:
+            # Rebuild the summary
+            self.init()
+            _logger.info("Manual refresh completed successfully")
+            return True
+        except Exception as e:
+            _logger.error("Manual refresh failed: %s", e, exc_info=True)
+            return False        

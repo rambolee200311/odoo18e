@@ -8,6 +8,7 @@
                 <field name="pack_number"/>
                <!-- <field name="pack_type"/>
                 <field name="pallet_type"/>-->
+                <field name="count"/>
                 <field name="pack_owner"/>
                 <field name="length"/>
                 <field name="width"/>
@@ -44,6 +45,7 @@
                     <group col="2">
                         <group col="2">
                             <field name="pack_number"/>
+                            <field name="count"/>
                            <!-- <field name="pack_type"/>
                             <field name="pallet_type" invisible="pack_type!='pallet'"/>-->
                             <field name="pack_owner"/>

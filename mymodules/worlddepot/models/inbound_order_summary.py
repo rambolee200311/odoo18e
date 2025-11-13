@@ -44,17 +44,73 @@ class InboundOrderSummary(models.Model):
             summary_data = []
             for order in inbound_orders:
                 pallets = self.env['world.depot.inbound.order.product'].search([('inbound_order_id', '=', order.id)])
+                # If no pallets, create a placeholder row so the order is represented
+                if not pallets:
+                    _logger.warning(f"Order {order.id} ({order.reference}) has no pallets (init_old)")
+                    summary_data.append({
+                        'order_id': order.id,
+                        'state': order.state,
+                        'stock_picking_id': order.stock_picking_id.id or False,
+                        'a_date': order.a_date,
+                        'i_date': order.i_date,
+                        'i_datetime': order.i_datetime,
+                        'type': order.type,
+                        'project': order.project.id if order.project else False,
+                        'reference': order.reference,
+                        'cntr_no': order.cntr_no or '',
+                        'bl_no': order.bl_no or '',
+                        'pallet_id': False,
+                        'pallets': 0,
+                        'mixed': False,
+                        'product_id': False,
+                        'product_name': 'No pallets',
+                        'barcode': '',
+                        'default_code': '',
+                        'quantity': 0,
+                        'qty_subtotal': 0,
+                    })
+                    continue
+
                 for pallet in pallets:
                     mixed = len(pallet.inbound_order_product_pallet_ids) > 1
                     products = self.env['world.depot.inbound.order.products.pallet'].search(
                         [('inbound_order_product_id', '=', pallet.id)]
                     )
+
+                    # If a pallet has no products, add a placeholder row for the pallet
+                    if not products:
+                        _logger.warning(f"Pallet {pallet.id} in order {order.id} has no products (init_old)")
+                        summary_data.append({
+                            'order_id': order.id,
+                            'state': order.state,
+                            'stock_picking_id': order.stock_picking_id.id or False,
+                            'a_date': order.a_date,
+                            'i_date': order.i_date,
+                            'i_datetime': order.i_datetime,
+                            'type': order.type,
+                            'project': order.project.id if order.project else False,
+                            'reference': order.reference,
+                            'cntr_no': order.cntr_no or '',
+                            'bl_no': order.bl_no or '',
+                            'pallet_id': pallet.id,
+                            'pallets': pallet.pallets or 0,
+                            'mixed': mixed,
+                            'product_id': False,
+                            'product_name': 'No products',
+                            'barcode': '',
+                            'default_code': '',
+                            'quantity': 0,
+                            'qty_subtotal': 0,
+                        })
+                        continue
+
                     for i, product in enumerate(products, start=1):
                         if not product.product_id:
                             _logger.warning(
                                 f"Product missing for pallet line ID {product.id} in order ID {order.id}"
                             )
                             continue
+                        qty = product.quantity if product.quantity is not None else 0
                         summary_data.append({
                             'order_id': order.id,
                             'state': order.state,
@@ -74,8 +130,8 @@ class InboundOrderSummary(models.Model):
                             'product_name': product.product_id.name,
                             'barcode': product.product_id.barcode or '',
                             'default_code': product.product_id.default_code or '',
-                            'quantity': product.quantity or 1,
-                            'qty_subtotal': (pallet.pallets or 1) * (product.quantity or 1),
+                            'quantity': qty,
+                            'qty_subtotal': (pallet.pallets or 1) * qty,
                         })
 
             # Bulk create records
@@ -90,9 +146,10 @@ class InboundOrderSummary(models.Model):
         try:
             # Clear existing data
             self.env.cr.execute(f"DELETE FROM {self._table}")
+            domain = [('state', '!=', 'cancel')]
 
             # Include ALL orders (remove state filter)
-            inbound_orders = self.env['world.depot.inbound.order'].search([])
+            inbound_orders = self.env['world.depot.inbound.order'].search(domain)
 
             _logger.info(f"Processing {len(inbound_orders)} inbound orders")
 
@@ -109,7 +166,29 @@ class InboundOrderSummary(models.Model):
                 if not pallets:
                     _logger.warning(f"Order {order.id} ({order.reference}) has no pallets")
                     orders_with_issues += 1
-                    # You might still want to create a summary record for empty orders
+                    # create placeholder for orders without pallets
+                    summary_data.append({
+                        'order_id': order.id,
+                        'state': order.state,
+                        'stock_picking_id': order.stock_picking_id.id or False,
+                        'a_date': order.a_date,
+                        'i_date': order.i_date,
+                        'i_datetime': order.i_datetime,
+                        'type': order.type,
+                        'project': order.project.id if order.project else False,
+                        'reference': order.reference,
+                        'cntr_no': order.cntr_no or '',
+                        'bl_no': order.bl_no or '',
+                        'pallet_id': False,
+                        'pallets': 0,
+                        'mixed': False,
+                        'product_id': False,
+                        'product_name': 'No pallets',
+                        'barcode': '',
+                        'default_code': '',
+                        'quantity': 0,
+                        'qty_subtotal': 0,
+                    })
                     continue
 
                 for pallet in pallets:
@@ -121,6 +200,29 @@ class InboundOrderSummary(models.Model):
                     if not products:
                         _logger.warning(f"Pallet {pallet.id} in order {order.id} has no products")
                         orders_with_issues += 1
+                        # add placeholder for the pallet without products
+                        summary_data.append({
+                            'order_id': order.id,
+                            'state': order.state,
+                            'stock_picking_id': order.stock_picking_id.id or False,
+                            'a_date': order.a_date,
+                            'i_date': order.i_date,
+                            'i_datetime': order.i_datetime,
+                            'type': order.type,
+                            'project': order.project.id if order.project else False,
+                            'reference': order.reference,
+                            'cntr_no': order.cntr_no or '',
+                            'bl_no': order.bl_no or '',
+                            'pallet_id': pallet.id,
+                            'pallets': pallet.pallets or 0,
+                            'mixed': mixed,
+                            'product_id': False,
+                            'product_name': 'No products',
+                            'barcode': '',
+                            'default_code': '',
+                            'quantity': 0,
+                            'qty_subtotal': 0,
+                        })
                         continue
 
                     for i, product in enumerate(products, start=1):
@@ -130,6 +232,8 @@ class InboundOrderSummary(models.Model):
                             )
                             orders_with_issues += 1
                             continue
+
+                        qty = product.quantity if product.quantity is not None else 0
 
                         summary_data.append({
                             'order_id': order.id,
@@ -150,8 +254,8 @@ class InboundOrderSummary(models.Model):
                             'product_name': product.product_id.name,
                             'barcode': product.product_id.barcode or '',
                             'default_code': product.product_id.default_code or '',
-                            'quantity': product.quantity or 1,
-                            'qty_subtotal': (pallet.pallets or 1) * (product.quantity or 1),
+                            'quantity': qty,
+                            'qty_subtotal': (pallet.pallets or 1) * qty,
                         })
 
             _logger.info(f"Processed {orders_processed} orders, {orders_with_issues} had issues")
@@ -168,3 +272,20 @@ class InboundOrderSummary(models.Model):
         except Exception as e:
             _logger.error(f"Error initializing InboundOrderSummary: {e}")
             _logger.error("Full traceback:", exc_info=True)
+
+    @api.model
+    def action_manual_refresh(self, *args, **kwargs):
+        """Manual entry point to refresh the inbound order summary.
+
+        This can be called from an automated action or server action in Odoo UI.
+        It simply rebuilds the summary table by calling the `init` method.
+        """
+        _logger.info("Manual refresh of InboundOrderSummary requested")
+        try:
+            # Rebuild the summary
+            self.init()
+            _logger.info("Manual refresh completed successfully")
+            return True
+        except Exception as e:
+            _logger.error("Manual refresh failed: %s", e, exc_info=True)
+            return False

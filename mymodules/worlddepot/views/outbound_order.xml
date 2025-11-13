@@ -47,6 +47,10 @@
                             type="object"
                             string="Cal Charges"
                             class="oe_stat_button" icon="fa-calculator"/>-->
+                         <button name="action_check_avaliable"
+                                type="object"
+                                string="Check Available"
+                                class="oe_stat_button" icon="fa-check-square"/> 
                          <button name="view_outbound_order_product_details"
                                 type="object"
                                 string="Product Detail"
@@ -58,6 +62,10 @@
                          <button name="action_create_cmr"
                             type="object"
                             string="Create CMR"
+                            class="oe_stat_button" icon="fa-film"/>
+                         <button name="view_outbound_order_sn_details"
+                            type="object"
+                            string="View SN"
                             class="oe_stat_button" icon="fa-film"/>
                     </div>
                     <group col="2">
@@ -128,6 +136,7 @@
                                     <field name="serial_numbers"/>
                                     <field name="pallet_prefix_code"/>
                                     <field name="remark"/>
+                                    <field name="locations" readonly="1" optional="show"/>
                                     <field name="weight" optional="show"/>
                                     <field name="weight_subtotal" optional="show"/>
                                     <!--<field name="is_outbound_handling"/>
@@ -154,9 +163,9 @@
                             <field name="outbound_order_pack_ids" readonly="state=='cancel'">
                                 <list>
                                     <field name="pack_number"/>
+                                    <field name="count"/>
                                     <field name="pack_owner"/>
                                     <field name="product_description"/>
-                                    <field name="remark"/>
                                     <field name="length"/>
                                     <field name="width"/>
                                     <field name="height"/>
@@ -164,6 +173,7 @@
                                     <field name="gross_weight"/>
                                     <field name="net_weight"/>
                                     <field name="tare_weight"/>
+                                    <field name="remark"/>
                                 </list>
                             </field>
                         </page>
@@ -190,29 +200,88 @@
                                 </list>
                             </field>
                         </page>
-                         <page string="Hoymiles APIs" groups="stock.group_stock_manager">
-                            <div class="oe_button_box" name="button_box">
-                                <button name="action_set_status_to_confirmed"
-                                    type="object"
-                                    string="Start Operatoin"
-                                    class="oe_stat_button" icon="fa-film"/>
-                                 <button name="action_set_status_to_pick_finished"
-                                    type="object"
-                                    string="Pick Finished"
-                                    class="oe_stat_button" icon="fa-film"/>
-                                 <button name="action_set_outbound_pack_sync"
-                                    type="object"
-                                    string="Outbound Pack"
-                                    class="oe_stat_button" icon="fa-film"/>
-                                 <button name="action_set_logistics_info_sync"
-                                    type="object"
-                                    string="Logistics Info"
-                                    class="oe_stat_button" icon="fa-film"/>
-                                 <button name="action_set_outbound_result_sync"
-                                    type="object"
-                                    string="Outbound Result"
-                                    class="oe_stat_button" icon="fa-film"/>
-                            </div>
+                         <page string="Hoymiles APIs" groups="account.group_project_hoymiles">
+                            <group string="Start Operatoin" col="2">
+                                <group col="2">
+                                    <div class="oe_button_box" name="button_box">
+                                        <button name="action_set_status_to_confirmed"
+                                            type="object"
+                                            string="Start Operatoin"
+                                            class="oe_stat_button" icon="fa-film"/>
+                                        </div>
+                                    <field name="set_status_to_confirmed" string="success" readonly="1"/>  
+                                </group>    
+                                <group col="2">                          
+                                    <field name="status_to_confirmed_time_user" string="time user"/>
+                                    <field name="set_status_to_confirmed_time" string="time" readonly="1"/>
+                                    <field name="status_to_confirmed_error_msg" string="error" readonly="1"/>
+                                </group>
+                            </group>  
+                            <group string="Pick Finished" col="2"> 
+                                <group col="2">
+                                    <div class="oe_button_box" name="button_box">
+                                        <button name="action_set_status_to_pick_finished"
+                                            type="object"
+                                            string="Pick Finished"
+                                            class="oe_stat_button" icon="fa-film"/>
+                                    </div>
+                                    <field name="set_status_to_pick_finished" string="success" readonly="1"/>
+                                </group>
+                                <group col="2">
+                                    <field name="status_to_pick_finished_time_user" string="time user"/>
+                                    <field name="set_status_to_pick_finished_time" string="time" readonly="1"/>
+                                    <field name="status_to_pick_finished_error_msg" string="error" readonly="1"/>
+                                </group>    
+                            </group>    
+                            <group string="Outbound Pack" col="2">
+                                <group col="2">
+                                    <div class="oe_button_box" name="button_box">
+                                        <button name="action_set_outbound_pack_sync"
+                                            type="object"
+                                            string="Outbound Pack"
+                                            class="oe_stat_button" icon="fa-film"/>
+                                    </div>
+                                    <field name="set_outbound_pack_sync" string="success" readonly="1"/>
+                                </group>    
+                                <group col="2">
+                                    <field name="outbound_pack_sync_time_user" string="time user"/>
+                                    <field name="set_outbound_pack_sync_time" string="time" readonly="1"/>
+                                    <field name="outbound_pack_sync_error_msg" string="error" readonly="1"/>
+                                </group>    
+                            </group>
+                            <group string="Logistics Info" col="2">
+                                <group col="2">
+                                    <div class="oe_button_box" name="button_box">
+                                        <button name="action_set_logistics_info_sync"
+                                            type="object"
+                                            string="Logistics Info"
+                                            class="oe_stat_button" icon="fa-film"/>
+                                    </div>
+                                    <field name="set_logistics_info_sync" string="success" readonly="1"/>
+                                </group>    
+                                <group col="2">
+                                    <field name="logistics_info_sync_time_user" string="time user"/>
+                                    <field name="set_logistics_info_sync_time" string="time" readonly="1"/>
+                                    <field name="logistics_info_sync_error_msg" string="error" readonly="1"/>
+                                </group>    
+                            </group>
+                            <group string="Outbound Result" col="2">
+                                <group col="2">
+                                    <div class="oe_button_box" name="button_box">
+                                        <button name="action_set_outbound_result_sync"
+                                            type="object"
+                                            string="Outbound Result"
+                                            class="oe_stat_button" icon="fa-film"/>
+                                    </div>
+                                    <field name="set_outbound_result_sync" string="success" readonly="1"/>
+                                </group>    
+                                <group col="2">
+                                    <field name="outbound_result_sync_time_user" string="time user"/>
+                                    <field name="set_outbound_result_sync_time" string="time" readonly="1"/>
+                                    <field name="outbound_result_sync_error_msg" string="error" readonly="1"/>
+                                </group>    
+
+                            </group>                            
                         </page>
                        <!-- <page string="Charges">
                             <group col="2">

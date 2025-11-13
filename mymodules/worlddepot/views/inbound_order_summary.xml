@@ -4,6 +4,12 @@
         <field name="model">world.depot.inbound.order.summary</field>
         <field name="arch" type="xml">
             <list string="Inbound Order Summary">
+                <header>
+                    <button name="action_manual_refresh" 
+                            string="Refresh Summary" 
+                            type="object" 
+                            class="btn-primary"/>
+                </header>
                 <field name="order_id" widget="many2one" optional="show"/>
                 <field name="state" optional="show"/>
                 <field name="project" optional="show"/>
@@ -26,6 +32,9 @@
             </list>
         </field>
     </record>
+
+    
+
     <record id="view_inbound_order_summary_search" model="ir.ui.view">
         <field name="name">inbound.order.summary.search</field>
         <field name="model">world.depot.inbound.order.summary</field>
@@ -49,7 +58,7 @@
             </search>
         </field>
     </record>
-
+    <!-- Action -->
     <record id="action_inbound_order_summary" model="ir.actions.act_window">
         <field name="name">Inbound Order Summary</field>
         <field name="res_model">world.depot.inbound.order.summary</field>
@@ -57,4 +66,12 @@
         <field name="view_id" ref="view_inbound_order_summary_tree"/>
         <field name="search_view_id" ref="view_inbound_order_summary_search"/>
     </record>
+
+    <!-- Server action to manually refresh the inbound order summary
+    <record id="server_action_refresh_inbound_order_summary" model="ir.actions.server">
+        <field name="name">Refresh Inbound Order Summary</field>
+        <field name="model_id" ref="model_world_depot_inbound_order_summary"/>
+        <field name="state">code</field>
+        <field name="code">model.action_manual_refresh()</field> 
+    </record> -->
 </odoo>

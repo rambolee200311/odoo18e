@@ -5,6 +5,12 @@
         <field name="model">world.depot.outbound.order.summary</field>
         <field name="arch" type="xml">
             <list string="Outbound Order Summary">
+                <header>
+                    <button name="action_manual_refresh" 
+                            string="Refresh Summary" 
+                            type="object" 
+                            class="btn-primary"/>
+                </header>
                 <field name="order_id" widget="many2one" optional="show"/>
                 <field name="type" optional="show"/>
                 <field name="p_date" optional="show"/>
@@ -50,4 +56,12 @@
         <field name="view_id" ref="view_outbound_order_summary_tree"/>
         <field name="search_view_id" ref="view_outbound_order_summary_search"/>
     </record>
+
+    <!-- Server action to manually refresh the outbound order summary (callable from Technical > Actions > Server Actions)
+    <record id="server_action_refresh_outbound_order_summary" model="ir.actions.server">
+        <field name="name">Refresh Outbound Order Summary</field>
+        <field name="model_id" ref="model_world_depot_outbound_order_summary"/>
+        <field name="state">code</field>
+        <field name="code">model.action_manual_refresh()</field>
+    </record> -->
 </odoo>

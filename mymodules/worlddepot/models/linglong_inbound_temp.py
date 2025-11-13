@@ -164,7 +164,8 @@ class LinglongProductTemp(models.Model):
 
     def action_update_nine_digit_linglong_code(self):
         # Define the domain to find products with missing nine_digit_linglong_code
-        domain = [('categ_id', '=', 11), ('nine_digit_linglong_code', '=', False)]
+        # domain = [('categ_id', '=', 11), ('nine_digit_linglong_code', '=', False)]
+        domain = [('categ_id', '=', 11)]
         ProductTemplate = self.env['product.template'].search(domain)
 
         # Fetch barcodes in bulk to avoid redundant searches
@@ -182,3 +183,4 @@ class LinglongProductTemp(models.Model):
         # Perform batch updates
         for product_id, nine_digit_code in updates.items():
             self.env['product.template'].browse(product_id).write({'nine_digit_linglong_code': nine_digit_code})
+            self.env['product.product'].search([('product_tmpl_id', '=', product_id)]).write({'nine_digit_linglong_code': nine_digit_code})

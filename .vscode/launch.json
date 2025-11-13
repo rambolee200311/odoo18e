@@ -1,0 +1,29 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Odoo 18 Debug",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/odoo-bin",
+            "args": [
+                "-c",
+                "${workspaceFolder}/odoo.conf",
+                "--dev",
+                "all",
+                "--addons-path",
+                "${workspaceFolder}/odoo/addons,${workspaceFolder}/mymodules",
+                "-d",
+                "odoo186",
+                "-u",
+                "worlddepot"
+            ],
+            "console": "integratedTerminal",
+            "python": "${workspaceFolder}/venv/Scripts/python.exe",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "justMyCode": false
+        }
+    ]
+}

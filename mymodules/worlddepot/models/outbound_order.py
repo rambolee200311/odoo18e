@@ -220,6 +220,8 @@ class OutboundOrder(models.Model):
                                              help='Time when the order can be delivered')
     delivery_issuance_remark = fields.Text(string='Delivery Issue Description',
                                            help='Description of the delivery instruction')
+    
+    outbound_order_product_serial_numbers = fields.One2many('world.depot.outbound.order.product.serial.number','outbound_order_id')
 
     '''
     @api.model
@@ -374,62 +376,92 @@ class OutboundOrder(models.Model):
                     'picking_id': picking.id,
                     'location_id': picking.location_id.id,
                     'location_dest_id': picking.location_dest_id.id,
+                    'outbound_order_product_id': product.id,
                 })
                 if record.is_auto_moves:
                     # Find pallets matching prefix with available stock
                     prefix = product.pallet_prefix_code or ''
+                    # Build ilike pattern: when prefix is empty, match all packages; otherwise match containing the prefix
+                    like_prefix = '%'
                     if prefix:
-                        pallets = self.env['stock.quant.package'].search([
-                            ('name', '=ilike', f'%-{prefix}-%'),
-                            ('quant_ids.quantity', '>', 0),  # Directly filter on related quant fields
-                            ('quant_ids.product_id', '=', product.product_id.id)
-                            # Ensure pallets have stock for the specific product
-                        ], order='create_date,name')  # Prioritize oldest pallets first
-                        moves = []
-                        remaining_qty = product.quantity
-                        for pallet in pallets:
-                            # Get total on-hand qty for the pallet
-                            pallet_qty = sum(pallet.quant_ids.mapped('quantity'))
-                            alloc_qty = min(pallet_qty, remaining_qty)
+                        like_prefix = f'%-{prefix}-%'
+                    pallets = self.env['stock.quant.package'].search([
+                        ('name', '=ilike', like_prefix),
+                        ('quant_ids.quantity', '>', 0),  # Directly filter on related quant fields
+                        ('quant_ids.product_id', '=', product.product_id.id),
+                        ('quant_ids.location_id.usage', '=', 'internal'), 
+                        ('quant_ids.location_id.name', '!=', 'Output'), 
+                        # Ensure pallets have stock for the specific product
+                    ], order='create_date,name')  # Prioritize oldest pallets first
+                    moves = []
+                    remaining_qty = product.quantity
+                    pallet_locations = []  # collect used pallet location names for this product
+                    for pallet in pallets:
+                        # Get total on-hand qty for the pallet
+                        pallet_qty = sum(pallet.quant_ids.mapped('quantity'))
+                        alloc_qty = min(pallet_qty, remaining_qty)
 
-                            if alloc_qty <= 0:
-                                continue
+                        if alloc_qty <= 0:
+                            continue
 
-                            # Create move line for full/partial pallet
-                            if product.product_id.tracking == 'serial':
-                                for i_index in range(1, int(alloc_qty) + 1):
-                                    moves.append({
-                                        'move_id': stock_move.id,
-                                        'picking_id': picking.id,
-                                        'product_id': product.product_id.id,
-                                        'product_uom_id': product.product_id.uom_id.id,
-                                        'quantity': 1,  # Serial numbers are tracked one by one
-                                        'location_id': pallet.location_id.id,
-                                        'location_dest_id': picking.location_dest_id.id,
-                                        'package_id': pallet.id,
-                                        'owner_id': pallet.owner_id.id,
-                                    })
-                            else:
+                        # record the location name for later writing into product.locations
+                        loc_name = False
+                        if pallet.location_id:
+                            loc_name = pallet.location_id.complete_name
+                        if loc_name:
+                            # keep order and uniqueness
+                            if loc_name not in pallet_locations:
+                                pallet_locations.append(loc_name)
+
+                        # Create move line for full/partial pallet
+                        if product.product_id.tracking == 'serial':
+                            for i_index in range(1, int(alloc_qty) + 1):
                                 moves.append({
                                     'move_id': stock_move.id,
                                     'picking_id': picking.id,
                                     'product_id': product.product_id.id,
                                     'product_uom_id': product.product_id.uom_id.id,
-                                    'quantity': alloc_qty,  # Planned quantity
+                                    'quantity': 1,  # Serial numbers are tracked one by one
                                     'location_id': pallet.location_id.id,
                                     'location_dest_id': picking.location_dest_id.id,
                                     'package_id': pallet.id,
                                     'owner_id': pallet.owner_id.id,
                                 })
-                            remaining_qty -= alloc_qty
+                        else:
+                            moves.append({
+                                'move_id': stock_move.id,
+                                'picking_id': picking.id,
+                                'product_id': product.product_id.id,
+                                'product_uom_id': product.product_id.uom_id.id,
+                                'quantity': alloc_qty,  # Planned quantity
+                                'location_id': pallet.location_id.id,
+                                'location_dest_id': picking.location_dest_id.id,
+                                'package_id': pallet.id,
+                                'owner_id': pallet.owner_id.id,
+                            })
+                        remaining_qty -= alloc_qty
 
-                            if remaining_qty <= 0:
-                                break  # Exit when requirement met
-                        # Handle insufficient stock
-                        if remaining_qty > 0:
-                            raise UserError(f"Insufficient stock! Shortfall: {remaining_qty} units")
+                        if remaining_qty <= 0:
+                            break  # Exit when requirement met
+                    # Handle insufficient stock
+                    if remaining_qty > 0:
+                        # Compose a helpful error message including product name and pallet prefix
+                        prod_name = ''
+                        try:
+                            prod_name = product.product_id.name if getattr(product, 'product_id', False) else (getattr(product, 'product_name', '') or '')
+                        except Exception:
+                            prod_name = ''
+                        raise UserError(f"Insufficient stock for {prod_name} (prefix: {prefix})! Shortfall: {remaining_qty} units")
 
-                        self.env['stock.move.line'].create(moves)
+                    # write collected pallet locations into the product.locations field
+                    try:
+                        if pallet_locations:
+                            product.locations = ', '.join(pallet_locations)
+                    except Exception:
+                        # fallback: do not interrupt picking creation for writable issues
+                        _logger.exception('Failed to write pallet locations for product %s', product.id)
+
+                    self.env['stock.move.line'].create(moves)
 
             # Update the stock picking reference in the outbound order
             record.picking_PICK = picking.id
@@ -444,6 +476,82 @@ class OutboundOrder(models.Model):
                     'sticky': False,
                 }
             }
+            
+    # New method to check stock availability without creating pickings
+    def action_check_avaliable(self):
+        """
+        Check whether pallets exist to allocate all outbound order products.
+        This performs the same allocation checks as `action_create_picking_PICK`
+        but does not create pickings or move lines. It raises a UserError
+        with a helpful message when allocation is impossible or partial.
+        Returns True when all products can be fully allocated from matching pallets.
+        """
+        all_errors = []
+        for record in self:
+            # Only check products when auto allocation by pallets is enabled
+            for product in record.outbound_order_product_ids:
+                if not record.is_auto_moves:
+                    continue
+                prefix = product.pallet_prefix_code or ''
+                # Build ilike pattern: when prefix is empty, match all packages; otherwise match containing the prefix
+                like_prefix = '%'
+                if prefix:
+                    like_prefix = f'%-{prefix}-%'
+                pallets = self.env['stock.quant.package'].search([
+                    ('name', '=ilike', like_prefix),
+                    ('quant_ids.quantity', '>', 0),
+                    ('quant_ids.product_id', '=', product.product_id.id),
+                    ('quant_ids.location_id.usage', '=', 'internal'), 
+                    ('quant_ids.location_id.name', '!=', 'Output'), 
+                ], order='create_date,name')
+
+                remaining_qty = float(product.quantity or 0)
+                allocated_any = False
+                for pallet in pallets:
+                    try:
+                        pallet_qty = float(sum(pallet.quant_ids.mapped('quantity')) or 0)
+                    except Exception:
+                        pallet_qty = 0.0
+                    alloc_qty = min(pallet_qty, remaining_qty)
+                    if alloc_qty <= 0:
+                        continue
+                    allocated_any = True
+                    remaining_qty -= alloc_qty
+                    if remaining_qty <= 0:
+                        break
+
+                # build per-product error messages (do not raise immediately so we can report all)
+                if not allocated_any:
+                    prod_name = ''
+                    try:
+                        prod_name = product.product_id.name or ''
+                    except Exception:
+                        prod_name = ''
+                    all_errors.append(f"Insufficient stock for {prod_name} (prefix: {prefix})! No allocatable pallets found.")
+                elif remaining_qty > 0:
+                    prod_name = ''
+                    try:
+                        prod_name = product.product_id.name or ''
+                    except Exception:
+                        prod_name = ''
+                    all_errors.append(f"Insufficient stock for {prod_name} (prefix: {prefix})! Shortfall: {int(remaining_qty)} units")
+
+        if all_errors:
+            # raise a single aggregated error to show all shortages at once
+            raise UserError('\n'.join(all_errors))
+
+        # If single record call from UI, return a client notification for UX; otherwise just True
+        if len(self) == 1:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('Stock Availability Check Passed'),
+                    'message': _('All products can be fully allocated from matching pallets.'),
+                    'sticky': False,
+                }
+            }
+        return True
 
     @api.depends('Outbound_order_product_ids')
     def _onchange_sum(self):
@@ -652,6 +760,92 @@ class OutboundOrder(models.Model):
             'context': {'create': False},
         }
 
+    # View Outbound Order Serial Number Details
+    @api.model
+    def view_outbound_order_sn_details(self, order_id=None):
+        """
+        Prepare and open a list view of serial/lot details for an outbound order.
+        This method accepts an optional positional order_id because the web client
+        may call it with the record id as a positional argument when invoking RPC.
+        """
+        sn_model = self.env['world.depot.outbound.order.product.serial.number']
+        try:
+            # Resolve the record whether we're called on a model or with an id
+            if order_id:
+                rec = self.browse(order_id)
+            else:
+                # If called on a recordset, use the first record
+                rec = self
+            if not rec:
+                # Return an empty list view if no record is available
+                return {
+                    'name': _('Outbound Order Product Details'),
+                    'type': 'ir.actions.act_window',
+                    'res_model': 'world.depot.outbound.order.product.serial.number',
+                    'view_mode': 'list',
+                    'domain': [('outbound_order_id', '=', order_id or False)],
+                    'context': {'create': False},
+                }
+
+            # Prepare data for bulk insertion
+            sn_details = []
+
+            picking = rec.picking_PICK
+            if not picking:
+                # No picking associated; return an empty list view
+                return {
+                    'name': _('Outbound Order Product Details'),
+                    'type': 'ir.actions.act_window',
+                    'res_model': 'world.depot.outbound.order.product.serial.number',
+                    'view_mode': 'list',
+                    'domain': [('outbound_order_id', '=', rec.id)],
+                    'context': {'create': False},
+                }
+
+            if getattr(picking, 'state', '') == 'done':
+                # Iterate move lines directly to avoid extra searches
+                moves=self.env['stock.move'].search([('picking_id', '=', picking.id)])
+                for move in moves:
+                    move_lines = self.env['stock.move.line'].search([('move_id', '=', move.id)])
+                    for move_line in move_lines:
+                        if not move_line.product_id:
+                            _logger.warning("Product missing for move line ID %s in order ID %s", move_line.id, self.id)
+                            continue
+                        sn_details.append({
+                            'outbound_order_id': rec.id,
+                            'type': rec.type or '',
+                            'reference': rec.reference or '',
+                            'p_date': picking.date_done or False,
+                            'project': rec.project.id or False,
+                            'picking_PICK': picking.id or False,
+                            'product_id': move_line.product_id.id or False,
+                            'product_name': move_line.product_id.name or '',
+                            'lot_id': move_line.lot_id.id or False,
+                            'lot_name': move_line.lot_id.name or '',
+                            'quantity': move_line.quantity or 0,
+                        })
+
+            # Perform delete/create in a savepoint so failures don't leave data half-updated
+            with self.env.cr.savepoint():
+                existing = sn_model.search([('outbound_order_id', '=', rec.id)])
+                if existing:
+                    existing.unlink()
+                if sn_details:
+                    sn_model.create(sn_details)
+
+            return {
+                'name': _('Outbound Order Product Details'),
+                'type': 'ir.actions.act_window',
+                'res_model': 'world.depot.outbound.order.product.serial.number',
+                'view_mode': 'list',
+                'domain': [('outbound_order_id', '=', rec.id)],
+                'context': {'create': False},
+            }
+
+        except Exception as e:
+            _logger.exception('Error initializing OutboundOrderSNDetail for order %s: %s', getattr(rec, 'id', order_id), e)
+            raise UserError(_('Failed to initialize SN details: %s') % e)
+        
 
 class OutboundOrderProduct(models.Model):
     _name = 'world.depot.outbound.order.product'
@@ -689,8 +883,8 @@ class OutboundOrderProduct(models.Model):
     is_scanning = fields.Boolean(string='is Scanning', default=True, tracking=True)
     outbound_scanning_price = fields.Float(string='Scanning Price', default=0.0, tracking=True)
     outbound_scanning_charge = fields.Float(string='Scanning Charge', default=0.0, tracking=True)
-    product_serial_number_ids = fields.One2many('world.depot.outbound.order.product.serial.number',
-                                                'inbound_order_product_id', string='Product Serial Numbers')
+    #product_serial_number_ids = fields.One2many('world.depot.outbound.order.product.serial.number',
+    #                                            'inbound_order_product_id', string='Product Serial Numbers')
     pallet_prefix_code = fields.Char(
 
         string="Pallet Prefix",
@@ -705,6 +899,10 @@ class OutboundOrderProduct(models.Model):
     default_code = fields.Char(string='Default Code', related='product_id.default_code', store=True, readonly=True)
     weight = fields.Float(string='Weight', related='product_id.weight', store=True, readonly=True)
     weight_subtotal = fields.Float(string='Weight Subtotal', compute='_compute_weight_subtotal', store=True)
+    
+    locations=fields.Char(string='Locations', help='Storage locations of the product in the warehouse')
+    
+    outbound_order_product_serial_numbers = fields.One2many('world.depot.outbound.order.product.serial.number','outbound_order_product_id')
 
     @api.depends('product_id')
     def _compute_is_serial_tracked(self):
@@ -757,16 +955,6 @@ class OutboundOrderProduct(models.Model):
             record.weight_subtotal = (record.product_id.weight or 0.0) * (record.quantity or 0.0)
 
 
-class OutboundOrderProductSerialNumber(models.Model):
-    _description = 'Outbound Order Product Serial Number'
-    _name = 'world.depot.outbound.order.product.serial.number'
-
-    inbound_order_product_id = fields.Many2one('world.depot.outbound.order.product', string='Outbound Order Product',
-                                               required=True)
-    serial_number = fields.Char(string='Serial Number', required=True, help='Serial number of the product')
-    quantity = fields.Float(string='Quantity', required=True, default=1.0,
-                            help='Quantity of the product with this serial number', readonly=True)
-
 
 # 其他附件
 class OutboundOderDocs(models.Model):
@@ -789,4 +977,26 @@ class OutboundOderDocs(models.Model):
     outbound_order_id = fields.Many2one('world.depot.outbound.order', string='Outbound Order', required=True)
 
 
+class OutboundOrderProductSerialNumber(models.Model):
+    _description = 'Outbound Order Product Serial Number'
+    _name = 'world.depot.outbound.order.product.serial.number'
 
+    # Support linking either to an outbound order product record (for
+    # per-product serial details) or directly to an outbound order (the
+    # aggregated SN detail listing). Both fields are optional so the same
+    # model can be used by both flows.
+    outbound_order_product_id = fields.Many2one('world.depot.outbound.order.product', string='Outbound Order Product')
+    outbound_order_id = fields.Many2one('world.depot.outbound.order', string='Outbound Order', readonly=True)
+    type = fields.Char(string='Type', readonly=True)
+    reference = fields.Char(string='Outbound Reference', readonly=True)
+    p_date = fields.Date(string='Date', readonly=True)
+    project = fields.Many2one('project.project', string='Project', readonly=True)
+    project_name = fields.Char(string='Project Name', readonly=True, related='project.name')
+    picking_PICK = fields.Many2one('stock.picking', string='Picking', readonly=True)
+    product_id = fields.Many2one('product.product', string='Product')
+    product_name = fields.Char(string='Product Name', readonly=True)
+    lot_id = fields.Many2one('stock.lot', string='Serial/Lot ID', readonly=True)
+    lot_name = fields.Char(string='Serial/Lot Name', readonly=True)
+    quantity = fields.Float(string='Quantity', readonly=True)
+
+    
