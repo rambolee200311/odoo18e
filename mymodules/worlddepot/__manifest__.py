@@ -51,6 +51,7 @@
         'views/outbound_order_pack_info.xml',
         'views/outbound_order_charge.xml',
         'views/my_dashboard.xml',
+        'views/my_route.xml',
         #'views/my_excel_template.xml',
         #'views/pallet_barcode_assets.xml',
         #'views/sequence.xml',
