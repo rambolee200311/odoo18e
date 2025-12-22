@@ -27,7 +27,7 @@ class OutboundOrderSNDetail(models.Model):
         try:
             # Clear existing data
             self.env.cr.execute(f"DELETE FROM {self._table}")
-
+            self.env.cr.flush()
             # Fetch confirmed outbound orders with stock picking
             outbound_orders = self.env['world.depot.outbound.order'].search([
                 ('state', '=', 'confirm'),
@@ -64,6 +64,7 @@ class OutboundOrderSNDetail(models.Model):
             # Bulk create records
             if sn_details:
                 self.env['world.depot.outbound.order.sn.detail'].create(sn_details)
+            self.env.cr.flush()    
 
         except Exception as e:
             _logger.error(f"Error initializing OutboundOrderSNDetail: {e}")

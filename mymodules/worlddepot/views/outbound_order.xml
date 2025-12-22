@@ -47,7 +47,7 @@
                             type="object"
                             string="Cal Charges"
                             class="oe_stat_button" icon="fa-calculator"/>-->
-                         <button name="action_check_avaliable"
+                         <button name="action_check_available"
                                 type="object"
                                 string="Check Available"
                                 class="oe_stat_button" icon="fa-check-square"/> 
@@ -120,8 +120,8 @@
                                     <field name="receiver_sign_back_date"/>
                                     <field name="pod_file" widget="binary" filename="pod_filename"/>
                                     <field name="pod_filename" invisible="1"/>
-                                    <field name="delivery_issuance_time" invisible="project.name!='HOYMILES'"/>
-                                    <field name="delivery_issuance_remark" invisible="project.name!='HOYMILES'"/>
+                                    <field name="delivery_issuance_time" invisible="project!=1"/>
+                                    <field name="delivery_issuance_remark" invisible="project!=1"/>
                                 </group>
                             </group>
                         </page>

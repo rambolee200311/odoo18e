@@ -152,6 +152,9 @@ class InboundOrder(models.Model):
     inbound_order_charge_ids = fields.One2many('world.depot.inbound.order.charge',
                                                'inbound_order_id',
                                                string='Inbound Order Charges')
+    
+    #是否入保税仓
+    is_bonded = fields.Boolean(string='Bonded Warehouse', default=False, tracking=True)
 
     # Compute adr dgd charge
     @api.depends('is_adr')
@@ -207,6 +210,14 @@ class InboundOrder(models.Model):
             # Ensure Container No are filled
             if not record.cntr_no:
                 raise UserError(_("Container No is required to confirm the order."))
+            if not record.inbound_order_doc_ids:
+                raise UserError(_("At least one document is required to confirm the order."))
+            else:
+                # check at least one orgin document
+                has_origin_doc = any(doc.doc_type == 'origin' for doc in record.inbound_order_doc_ids)
+                if not has_origin_doc:
+                    raise UserError(_("At least one Origin Document is required to confirm the order."))
+            
             if record.type == 'inbound':
                 # Ensure arrival date  is filled
                 if not record.a_date:
@@ -217,32 +228,7 @@ class InboundOrder(models.Model):
                 for pallet in record.inbound_order_product_ids:
                     if not pallet.inbound_order_product_pallet_ids or len(
                             pallet.inbound_order_product_pallet_ids) == 0:
-                        raise UserError(_("At least one product is required for each pallet to confirm the order."))
-                '''
-                for product in record.inbound_order_product_ids:
-                    # Ensure quantity and pallets are greater than zero and quantity is divisible by pallets
-                    if product.quantity == 0 or not product.quantity:
-                        raise UserError(
-                            _("The quantity of product '%s' must be greater than zero to confirm the order.") % product.product_id.name
-                        )
-                    if product.pallets == 0 or not product.pallets:
-                        raise UserError(
-                            _("The pallets of product '%s' must be greater than zero to confirm the order.") % product.product_id.name
-                        )
-                    if product.quantity % product.pallets != 0:
-                        raise UserError(
-                            _("The quantity of product '%s' cannot be evenly divided by the number of pallets.") % product.product_id.name
-                        )
-                # check if serial number's quantity is equal to product's quantity
-                for product in record.inbound_order_product_ids:
-                    if product.is_serial_tracked:
-                        if product.product_serial_number_ids:
-                            total_quantity = sum(sn.quantity for sn in product.product_serial_number_ids)
-                            if total_quantity != product.quantity:
-                                raise UserError(
-                                    _("The total quantity of serial numbers for product '%s' must match the product quantity.") % product.product_id.name
-                                )        
-                '''
+                        raise UserError(_("At least one product is required for each pallet to confirm the order."))                
 
             if record.state != 'new':
                 raise UserError(_("Only new orders can be confirmed."))
@@ -263,15 +249,7 @@ class InboundOrder(models.Model):
                 valid_users = (inventory_admin_group.users | inventory_user_group.users).filtered('active')
                 partner_ids = valid_users.partner_id.ids
                 record.message_subscribe(partner_ids=partner_ids)
-                record.message_post(
-                    body=Markup(
-                        "Inbound Order <a href='#' data-oe-model='world.depot.inbound.order' data-oe-id='%d'>%s</a> has been confirmed, please check it."
-                    ) % (record.id, record.billno),
-                    partner_ids=partner_ids,
-                    subtype_id=self.env.ref('mail.mt_comment').id,  # Ensures HTML rendering
-                    message_type='comment',  # Explicitly set the message type
-                    notify=False  # Disable email notifications
-                )
+                _logger.info("Inbound Order %s confirmed; followers notified: %s", record.billno, partner_ids)
 
             except Exception as e:
                 _logger.error("入库单关注者通知失败: %s | 单据: %s", str(e), record.billno)
@@ -322,123 +300,6 @@ class InboundOrder(models.Model):
             record.confirm_time_user_tz = False
             record.confirm_time_server = False
 
-    '''
-    def action_create_stock_picking_old(self):
-        """Create the related stock picking with packages and move lines."""
-        for record in self:
-            # Ensure the order is confirmed
-            if record.state != 'confirm':
-                raise UserError(_("Stock picking can only be created from confirmed orders."))
-            if not self.reference:
-                raise UserError(_("Reference must be set before creating a stock picking."))
-            if not record.pick_type:
-                raise UserError(_("Picking Type is required to create a stock picking."))
-
-            if not record.cntr_no:
-                raise UserError(_("Container No is required to create packages."))
-
-            if record.stock_picking_id:
-                raise UserError(_("Stock picking already exists for this order."))
-
-            # Check if stock picking already exists
-
-            existing_picking = self.env['stock.picking'].search(
-                [('inbound_order_id', '=', record.id),
-                 ('state', '!=', 'cancel')],
-                limit=1)
-            if existing_picking:
-                raise UserError(_("A stock picking already exists for this Inbound Order."))
-
-            picking = self.env['stock.picking'].create({
-                'picking_type_id': record.pick_type.id,
-                'location_id': record.pick_type.default_location_src_id.id,
-                'location_dest_id': record.pick_type.default_location_dest_id.id,
-                'origin': record.billno,
-                'partner_id': record.owner.id,
-                'inbound_order_id': record.id,
-                'owner_id': record.owner.id,
-                'bill_of_lading': record.bl_no,
-                'cntrno': record.cntr_no,
-                'ref_1': record.reference,
-                'planning_date': record.a_date,
-                'inbound_order_id': record.id,
-            })
-            pallet_index = 1
-
-            # Create packages and stock move lines
-            for product in record.inbound_order_product_ids:
-                if product.pallets <= 0 or product.quantity <= 0:
-                    raise UserError(_("Invalid pallets or quantity for product '%s'.") % product.product_id.name)
-
-                # Calculate the quantity per package
-                quantity_per_package = product.quantity / product.pallets
-                if not quantity_per_package.is_integer():
-                    raise UserError(
-                        _("Quantity must be evenly divisible by pallets for product '%s'.") % product.product_id.name)
-                stock_move = self.env['stock.move'].create({
-                    'name': product.product_id.name,
-                    'product_id': product.product_id.id,
-                    'product_uom_qty': product.quantity,
-                    'product_uom': product.product_id.uom_id.id,
-                    'picking_id': picking.id,
-                    'location_id': picking.location_id.id,
-                    'location_dest_id': picking.location_dest_id.id,
-                })
-
-                quantity_per_package = int(quantity_per_package)
-
-                for p_index in range(1, int(product.pallets) + 1):
-                    package_name = f"{record.reference}-{record.cntr_no}-{str(pallet_index).zfill(4)}"
-
-                    package = self.env['stock.quant.package'].search([('name', '=', package_name)])
-                    if not package:
-                        self.env['stock.quant.package'].create({
-                            'name': package_name,
-                            'package_use': 'disposable',
-                        })
-                    package = self.env['stock.quant.package'].search([('name', '=', package_name)])
-                    pallet_index += 1
-                    if product.product_id.tracking == 'serial' and record.is_scan_sn:
-                        # Create `quantity_per_package` lines for serial-tracked products
-                        for unit_index in range(1, quantity_per_package + 1):
-                            self.env['stock.move.line'].create({
-                                'move_id': stock_move.id,
-                                'picking_id': picking.id,
-                                'product_id': product.product_id.id,
-                                'product_uom_id': product.product_id.uom_id.id,
-                                'quantity': 1.00,  # Planned quantity
-                                'location_id': picking.location_id.id,
-                                'location_dest_id': picking.location_dest_id.id,
-                                'result_package_id': package.id,
-                            })
-                    else:
-                        # Create a single line for non-serial-tracked products
-                        self.env['stock.move.line'].create({
-                            'move_id': stock_move.id,
-                            'picking_id': picking.id,
-                            'product_id': product.product_id.id,
-                            'product_uom_id': product.product_id.uom_id.id,
-                            'quantity': quantity_per_package,  # Planned quantity
-                            'location_id': picking.location_id.id,
-                            'location_dest_id': picking.location_dest_id.id,
-                            'result_package_id': package.id,
-                        })
-
-            record.stock_picking_id = picking.id
-
-        # Return a success message
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'title': _('Stock Picking Created'),
-                'message': _('Stock picking with packages has been created successfully.'),
-                'sticky': False,
-            }
-        }
-        
-    '''
-
     def unlink(self):
         for record in self:
             # Check state
@@ -462,7 +323,7 @@ class InboundOrder(models.Model):
 
         return super(InboundOrder, self).unlink()
 
-    def action_create_stock_picking(self):
+    def action_create_stock_picking_old(self):
         """Create the related stock picking with packages and move lines."""
         for record in self:
             # Ensure the order is confirmed
@@ -673,6 +534,7 @@ class InboundOrder(models.Model):
         """Open a window to view inbound order product details."""
         self.ensure_one()
         self.env['world.depot.inbound.order.product.details'].search([('inbound_order_id', '=', self.id)]).unlink()
+        self.env.cr.flush()
         for pallet in self.inbound_order_product_ids:
             mixed = False
             if len(pallet.inbound_order_product_pallet_ids) > 1:
@@ -697,6 +559,7 @@ class InboundOrder(models.Model):
                     'qty_subtotal': pallet.pallets * product.quantity,
                 })
                 i += 1
+        self.env.cr.flush()        
         return {
             'name': _('Inbound Order Product Details'),
             'type': 'ir.actions.act_window',
@@ -937,6 +800,7 @@ class InboundOderDocs(models.Model):
 
     doc_type = fields.Selection(
         selection=[
+            ('origin', 'Origin Document'),  # Fixed typo: 'orgin' → 'origin'
             ('cmr', 'CMR'),
             ('sn_details', 'SN Details'),
             ('other', 'Other Document'),
@@ -946,13 +810,133 @@ class InboundOderDocs(models.Model):
         tracking=True
     )
     description = fields.Text(string='Description')
-    file = fields.Binary(string='File')
-    filename = fields.Char(string='File name')
+    file = fields.Binary(string='File', required=True)  # Added required=True
+    filename = fields.Char(string='File name', required=True)  # Added required=True
     inbound_order_id = fields.Many2one(
         comodel_name='world.depot.inbound.order',
         string='Inbound Order',
         required=True
     )
+    
+    @api.model
+    def create(self, vals):
+        """Override create method to automatically create attachments for origin documents"""
+        record = super(InboundOderDocs, self).create(vals)
+        
+        # Create attachment only for origin documents
+        if record.doc_type == 'origin' and record.file and record.filename:
+            record._create_origin_attachment()
+            
+        return record
+    
+    def write(self, vals):
+        """Override write method to handle attachment creation on updates"""
+        result = super(InboundOderDocs, self).write(vals)
+        
+        # Check if this became an origin document or file was updated
+        for record in self:
+            if (record.doc_type == 'origin' and record.file and record.filename and 
+                (vals.get('doc_type') == 'origin' or vals.get('file') or vals.get('filename'))):
+                # Delete existing attachments for this origin document to avoid duplicates
+                existing_attachments = self.env['ir.attachment'].search([
+                    ('res_model', '=', 'world.depot.inbound.order'),
+                    ('res_id', '=', record.inbound_order_id.id),
+                    ('name', '=', record.filename)
+                ])
+                existing_attachments.unlink()
+                
+                # Create new attachment
+                record._create_origin_attachment()
+                
+        return result
+    
+    def _create_origin_attachment(self):
+        """Helper method to create attachment for origin documents"""
+        try:
+            self.env['ir.attachment'].create({
+                'name': self.filename,
+                'type': 'binary',
+                'datas': self.file,
+                'res_model': 'world.depot.inbound.order',
+                'res_id': self.inbound_order_id.id,
+                'res_name': self.inbound_order_id.billno or 'Inbound Order',
+                'mimetype': self._get_mimetype(self.filename),
+            })
+            _logger.info("Origin document attachment created for inbound order %s", 
+                        self.inbound_order_id.billno)
+        except Exception as e:
+            _logger.error("Failed to create origin document attachment: %s", str(e))
+            raise UserError(_("Failed to create attachment for origin document: %s") % str(e))
+    
+    def _get_mimetype(self, filename):
+        """Determine mimetype based on file extension"""
+        if not filename:
+            return 'application/octet-stream'
+        
+        extension = filename.lower().split('.')[-1] if '.' in filename else ''
+        mimetypes = {
+            'pdf': 'application/pdf',
+            'jpg': 'image/jpeg',
+            'jpeg': 'image/jpeg',
+            'png': 'image/png',
+            'doc': 'application/msword',
+            'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'xls': 'application/vnd.ms-excel',
+            'xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        }
+        return mimetypes.get(extension, 'application/octet-stream')
+    
+    def unlink(self):
+        """Override unlink to also remove associated attachments"""
+        # Store information before deletion
+        origin_docs_to_clean = []
+        for record in self:
+            if record.doc_type == 'origin':
+                origin_docs_to_clean.append({
+                    'order_id': record.inbound_order_id.id,
+                    'filename': record.filename
+                })
+        
+        result = super(InboundOderDocs, self).unlink()
+        
+        # Clean up attachments after successful deletion
+        for doc_info in origin_docs_to_clean:
+            attachments = self.env['ir.attachment'].search([
+                ('res_model', '=', 'world.depot.inbound.order'),
+                ('res_id', '=', doc_info['order_id']),
+                ('name', '=', doc_info['filename'])
+            ])
+            attachments.unlink()
+            
+        return result
+    
+    def action_create_attachment(self):
+        """Manual action to create attachment - call this from a button"""
+        for record in self:
+            if record.doc_type == 'origin' and record.file and record.filename:
+                try:
+                    self.env['ir.attachment'].create({
+                        'name': record.filename,
+                        'type': 'binary',
+                        'datas': record.file,
+                        'res_model': 'world.depot.inbound.order',
+                        'res_id': record.inbound_order_id.id,
+                        'res_name': record.inbound_order_id.billno or 'Inbound Order',
+                    })
+                    # Show success message
+                    return {
+                        'type': 'ir.actions.client',
+                        'tag': 'display_notification',
+                        'params': {
+                            'title': _('Success'),
+                            'message': _('Attachment created successfully.'),
+                            'sticky': False,
+                        }
+                    }
+                except Exception as e:
+                    raise UserError(_("Failed to create attachment: %s") % str(e))
+            else:
+                raise UserError(_("Please ensure document type is 'Origin Document' and file is uploaded."))
 
 
 class InboundOrderProductDetails(models.Model):

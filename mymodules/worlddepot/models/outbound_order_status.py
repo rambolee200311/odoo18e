@@ -458,7 +458,9 @@ class OutboundOrderStatus(models.Model):
                 if order.picking_PICK:
                     # Group moves by outbound_order_product_id when available, otherwise by product
                     groups = {}
-                    for move in order.picking_PICK.move_ids:
+                    moves=self.env['stock.move'].search([('picking_id.outbound_order_id','=',order.id),('picking_id.state','=','done')])
+                    
+                    for move in moves: #order.picking_PICK.move_ids:
                         try:
                             prod = getattr(move, 'product_id', None)
                             oop = getattr(move, 'outbound_order_product_id', None)
@@ -774,21 +776,11 @@ class OutboundOrderStatus(models.Model):
     # 禾迈 -出库结果
     def action_set_outbound_result_sync(self):
         for order in self:
+            
             if order.project and order.project.name.lower() == 'hoymiles':
-                if order.picking_PICK:
-                    outbound = self.env['stock.picking'].search(
-                        [('origin', '=', order.picking_PICK.name), ('picking_type_code', '=', 'outgoing')], limit=1)
-                    local_time = self.get_local_time('NL', outbound.date_done)
-                    if order.outbound_result_sync_time_user:
-                        local_time = order.outbound_result_sync_time_user
-                        
-                    if outbound:
-                        payload = {
+                payload = payload = {
                             "thirdPartyWsCode": "WD",
-                            "thirdPartyWsName": "WD warehouse",
-                            "wsOpOrderNo": outbound.name if outbound else "",
-                            "reference": order.reference,
-                            "outboundTime": local_time.strftime("%Y-%m-%d %H:%M:%S"),
+                            "thirdPartyWsName": "WD warehouse",                            
                             "attribute1": "",
                             "attribute2": "",
                             "attribute3": "",
@@ -802,128 +794,173 @@ class OutboundOrderStatus(models.Model):
                             "lines": [],
                             "serials": []
                         }
+                picks=self.env['stock.picking'].search([('outbound_order_id','=',order.id),('state','=','done')])
+                for pick in picks:
+                    outbounds = self.env['stock.picking'].search(
+                        [('origin', '=', pick.name), ('picking_type_code', '=', 'outgoing')])
+                    local_time = self.get_local_time('NL', outbounds[0].date_done if outbounds else None)
+                    if order.outbound_result_sync_time_user:
+                        local_time = order.outbound_result_sync_time_user
+                        
+                    if outbounds:
+                        payload.update({
+                            "wsOpOrderNo": outbounds[0].name if outbounds else "",
+                            "reference": order.reference,
+                            "operationTime": local_time.strftime("%Y-%m-%d %H:%M:%S"),
+                        })  
+                        # Aggregate shipped quantities grouped by product barcode
+                        groups = {}
+                        for outbound in outbounds:
+                            for move in outbound.move_ids:
+                                try:
+                                    prod = getattr(move, 'product_id', None)
+                                    # prefer barcode, fallback to default_code or empty string
+                                    barcode = ''
+                                    if prod:
+                                        barcode = (getattr(prod, 'barcode', None) or getattr(prod, 'default_code', '') or '')
 
-                        for line in outbound.move_ids:
-                            line_data = {
-                                "itemNum": line.product_id.barcode if line.product_id else "",
-                                "shipQuantity": line.quantity if line.quantity else 0,
-                                "shipTime": local_time.strftime("%Y-%m-%d %H:%M:%S"),
-                            }
-                            payload['lines'].append(line_data)
-                            '''
-                            for move_line in line.move_line_ids:
-                                if move_line.lot_id:
-                                    serial_data = {
-                                        "serialNumber": move_line.lot_id.name if move_line.lot_id else "",
-                                    }
-                                    payload['serials'].append(serial_data)
-                            '''
+                                    # quantity field may be named differently; try common names
+                                    qty = getattr(move, 'quantity', None)
+                                    if qty is None:
+                                        qty = getattr(move, 'product_uom_qty', None)
+                                    if qty is None:
+                                        qty = getattr(move, 'product_qty', None)
+                                    if qty is None:
+                                        qty = 0
+                                    try:
+                                        qty_val = float(qty)
+                                    except Exception:
+                                        qty_val = 0.0
 
-                        token = order.env['hoymiles.token.utils'].get_oauth_token()
+                                    key = barcode or '__UNKNOWN__'
+                                    if key not in groups:
+                                        groups[key] = {
+                                            'itemNum': barcode,
+                                            'shipQuantity': 0.0,
+                                        }
+                                    groups[key]['shipQuantity'] += qty_val
+                                except Exception:
+                                    _logger.exception('Failed to aggregate move %s for outbound result', getattr(move, 'id', False))
 
-                        if not token:
-                            raise UserError("Failed to retrieve OAuth token.")
-
-                        url = self.env['hoymiles.api.urls'].search([('name', '=', 'outbound-result-sync')], limit=1)
-                        if not url or not url.url:
-                            raise UserError("API URL configuration is missing.")
-
-                        headers = {
-                            'Content-Type': 'application/json',
-                            'Authorization': f'Bearer {token}'
-                        }
-                        _source = 'Outbound Result'
-                        try:
-                            response = requests.post(
-                                url.url,
-                                headers=headers,
-                                data=json.dumps(payload),
-                                timeout=10
-                            )
-
-                            if response.status_code == 200:
-                                response_data = response.json()
-                                failed = response_data.get('failed')
-
-                                # write api log
-                                self.env['hoymiles.api.logs'].sudo().create({
-                                    'request_source': _source,
-                                    'request_time': datetime.now(),
-                                    'request_path': url.url,
-                                    'request_data': json.dumps(payload),
-                                    'response_data': response.text
-                                })
-                                if failed is False:
-                                    order.write({
-                                        'set_outbound_result_sync': True,
-                                        'set_outbound_result_sync_time': self._ensure_naive_datetime_or_false(local_time),
-                                        'outbound_result_sync_error_msg': False,
-                                    })
-                                else:
-                                    if not order.set_outbound_result_sync:
-                                        order.write({
-                                            'set_outbound_result_sync': False,
-                                            'set_outbound_result_sync_time': False,
-                                            'outbound_result_sync_error_msg': response.text,
-                                        })
-                                return failed is False
-                            else:
-                                _logger.error("Token fetch failed: HTTP %s - %s", response.status_code, response.text)
-                                # write api log
-                                self.env['hoymiles.api.logs'].sudo().create({
-                                    'request_source': _source,
-                                    'request_time': datetime.now(),
-                                    'request_path': url.url,
-                                    'request_data': json.dumps(payload),
-                                    'response_data': response.text,
-                                    'exception_details': f"HTTP {response.status_code}"
-                                })
-                                if not order.set_outbound_result_sync:
-                                    order.write({
-                                        'set_outbound_result_sync': False,
-                                        'set_outbound_result_sync_time': False,
-                                        'outbound_result_sync_error_msg': response.text,
-                                    })
-                                return False
-
-                        except requests.exceptions.RequestException as e:
-
-                            _logger.error("Network error during token fetch: %s", str(e))
-                            # write api log
-                            self.env['hoymiles.api.logs'].sudo().create({
-                                'request_source': _source,
-                                'request_time': datetime.now(),
-                                'request_path': url.url,
-                                'request_data': json.dumps(payload),
-                                'response_data': False,
-                                'exception_details': str(e)
+                        # Build payload lines from aggregated groups
+                        for g in groups.values():
+                            try:
+                                ship_qty = int(g.get('shipQuantity') or 0)
+                            except Exception:
+                                ship_qty = 0
+                            payload['lines'].append({
+                                'itemNum': g.get('itemNum', ''),
+                                'shipQuantity': ship_qty,
+                                'shipTime': local_time.strftime("%Y-%m-%d %H:%M:%S"),
                             })
+                            
+                            
+
+                token = order.env['hoymiles.token.utils'].get_oauth_token()
+
+                if not token:
+                    raise UserError("Failed to retrieve OAuth token.")
+
+                url = self.env['hoymiles.api.urls'].search([('name', '=', 'outbound-result-sync')], limit=1)
+                if not url or not url.url:
+                    raise UserError("API URL configuration is missing.")
+
+                headers = {
+                    'Content-Type': 'application/json',
+                    'Authorization': f'Bearer {token}'
+                }
+                _source = 'Outbound Result'
+                try:
+                    response = requests.post(
+                        url.url,
+                        headers=headers,
+                        data=json.dumps(payload),
+                        timeout=10
+                    )
+
+                    if response.status_code == 200:
+                        response_data = response.json()
+                        failed = response_data.get('failed')
+
+                        # write api log
+                        self.env['hoymiles.api.logs'].sudo().create({
+                            'request_source': _source,
+                            'request_time': datetime.now(),
+                            'request_path': url.url,
+                            'request_data': json.dumps(payload),
+                            'response_data': response.text
+                        })
+                        if failed is False:
+                            order.write({
+                                'set_outbound_result_sync': True,
+                                'set_outbound_result_sync_time': self._ensure_naive_datetime_or_false(local_time),
+                                'outbound_result_sync_error_msg': False,
+                            })
+                        else:
                             if not order.set_outbound_result_sync:
                                 order.write({
                                     'set_outbound_result_sync': False,
                                     'set_outbound_result_sync_time': False,
-                                    'outbound_result_sync_error_msg': str(e),
+                                    'outbound_result_sync_error_msg': response.text,
                                 })
-                            return False
-                        except json.JSONDecodeError as e:
-                            _logger.error("JSON decode error in token response: %s", str(e))
-                            # write api log
-                            self.env['hoymiles.api.logs'].sudo().create({
-                                'request_source': _source,
-                                'request_time': datetime.now(),
-                                'request_path': url.url,
-                                'request_data': json.dumps(payload),
-                                'response_data': False,
-                                'exception_details': str(e)
+                        return failed is False
+                    else:
+                        _logger.error("Token fetch failed: HTTP %s - %s", response.status_code, response.text)
+                        # write api log
+                        self.env['hoymiles.api.logs'].sudo().create({
+                            'request_source': _source,
+                            'request_time': datetime.now(),
+                            'request_path': url.url,
+                            'request_data': json.dumps(payload),
+                            'response_data': response.text,
+                            'exception_details': f"HTTP {response.status_code}"
+                        })
+                        if not order.set_outbound_result_sync:
+                            order.write({
+                                'set_outbound_result_sync': False,
+                                'set_outbound_result_sync_time': False,
+                                'outbound_result_sync_error_msg': response.text,
                             })
-                            if not order.set_outbound_result_sync:
-                                order.write({
-                                    'set_outbound_result_sync': False,
-                                    'set_outbound_result_sync_time': False,
-                                    'outbound_result_sync_error_msg': str(e),
-                                })
-                            return False
-                    return True
+                        return False
+
+                except requests.exceptions.RequestException as e:
+
+                    _logger.error("Network error during token fetch: %s", str(e))
+                    # write api log
+                    self.env['hoymiles.api.logs'].sudo().create({
+                        'request_source': _source,
+                        'request_time': datetime.now(),
+                        'request_path': url.url,
+                        'request_data': json.dumps(payload),
+                        'response_data': False,
+                        'exception_details': str(e)
+                    })
+                    if not order.set_outbound_result_sync:
+                        order.write({
+                            'set_outbound_result_sync': False,
+                            'set_outbound_result_sync_time': False,
+                            'outbound_result_sync_error_msg': str(e),
+                        })
+                    return False
+                except json.JSONDecodeError as e:
+                    _logger.error("JSON decode error in token response: %s", str(e))
+                    # write api log
+                    self.env['hoymiles.api.logs'].sudo().create({
+                        'request_source': _source,
+                        'request_time': datetime.now(),
+                        'request_path': url.url,
+                        'request_data': json.dumps(payload),
+                        'response_data': False,
+                        'exception_details': str(e)
+                    })
+                    if not order.set_outbound_result_sync:
+                        order.write({
+                            'set_outbound_result_sync': False,
+                            'set_outbound_result_sync_time': False,
+                            'outbound_result_sync_error_msg': str(e),
+                        })
+                    return False
+            return True
 
 
 

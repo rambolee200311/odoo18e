@@ -141,11 +141,12 @@ class InboundOrderSummary(models.Model):
         except Exception as e:
             _logger.error(f"Error initializing InboundOrderSummary: {e}")
 
-    def init(self):
+    def init_new(self):
         """Initialize the summary table with data from inbound orders."""
         try:
             # Clear existing data
             self.env.cr.execute(f"DELETE FROM {self._table}")
+            self.env.cr.flush()
             domain = [('state', '!=', 'cancel')]
 
             # Include ALL orders (remove state filter)
@@ -266,6 +267,8 @@ class InboundOrderSummary(models.Model):
             for i in range(0, len(summary_data), batch_size):
                 batch = summary_data[i:i + batch_size]
                 self.env['world.depot.inbound.order.summary'].create(batch)
+            
+            self.env.cr.flush()    
 
             _logger.info("Summary initialization completed successfully")
 
@@ -283,7 +286,7 @@ class InboundOrderSummary(models.Model):
         _logger.info("Manual refresh of InboundOrderSummary requested")
         try:
             # Rebuild the summary
-            self.init()
+            self.init_new()
             _logger.info("Manual refresh completed successfully")
             return True
         except Exception as e:

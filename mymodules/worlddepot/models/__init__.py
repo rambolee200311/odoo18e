@@ -2,8 +2,16 @@
 
 from . import models
 from . import inbound_order
+from . import inbound_order_create_piking
 from . import outbound_order
+from . import outbound_order_create_picking
+from . import location_type
 from . import my_stock
+#from . import my_stock_picking_validate
+from . import my_stock_reverse_validate
+from . import my_stock_force_validate
+#from . import my_stock_move_validate
+#from . import my_stock_move_line_validate
 from . import my_project
 from . import my_product
 #from . import my_report
@@ -28,3 +36,10 @@ from . import inbound_order_charge
 from . import outbound_order_pack_info
 from . import outbound_order_charge
 from . import my_dashboard
+#from . import my_stock_report
+from . import my_stock_report_linglong
+from . import transfer_order
+from . import deepseek_checker
+from . import deepseek_utils
+from . import inbound_order_deepseek_checker
+from . import outbound_order_deepseek_checker

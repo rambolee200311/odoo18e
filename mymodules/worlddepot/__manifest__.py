@@ -22,10 +22,10 @@
 
     # always loaded
     'data': [
-        'security/ir.model.access.csv',
         #'views/views.xml',
         #'views/templates.xml',
-        #'vies/my_partner.xml',
+        #'vies/my_partner.xml',        
+        'views/location_type.xml',
         'views/my_project.xml',
         'views/my_stock.xml',
         'views/my_product.xml',
@@ -41,6 +41,7 @@
         'views/my_product_template.xml',
         'views/inbound_order_summary.xml',
         'views/outbound_order_summary.xml',
+        'views/transfer_order_views.xml',
         'views/outbound_order_sn_detail.xml',
         'views/linglong_inbound_temp.xml',
         'views/product_duplicate.xml',
@@ -52,12 +53,17 @@
         'views/outbound_order_charge.xml',
         'views/my_dashboard.xml',
         'views/my_route.xml',
+        'views/my_stock_report_linglong_views.xml',
         #'views/my_excel_template.xml',
         #'views/pallet_barcode_assets.xml',
         #'views/sequence.xml',
         'views/my_sequence.xml',
         'views/menus.xml',
+        #'views/report_wd_picking_templates.xml',
+        #'views/report_wd_picking_action.xml',
         #'views/pallet_barcode_action.xml',
+        'views/inbound_order_deepseek_checker.xml',
+        'views/outbound_order_deepseek_checker.xml',
     ],
     # only loaded in demonstration mode
     'demo': [
@@ -68,7 +74,6 @@
             # Load our components after stock_barcode
             #'web/static/src/**/*',
             #'stock_barcode/static/src/**/*',
-
             #'worlddepot/static/src/js/pallet_barcode.js',
             #'worlddepot/static/src/xml/pallet_barcode_assets.xml',
             #'stock_barcode/static/src/components/main.js',

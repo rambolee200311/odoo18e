@@ -153,6 +153,7 @@
                             <field name="bl_no" readonly="state!='new'"/>
                             <field name="cntr_no" readonly="state!='new'"/>
                             <field name="is_adr" readonly="state!='new'"/>
+                            <field name="is_bonded" readonly="state!='new'"/>
                         </group>
                         <group col="2" string="Info">
                             <field name="pick_type"/>
@@ -223,7 +224,7 @@
                                 </group>
                             </group>
                         </page>-->
-                        <page string="Hoymiles APIs" groups="stock.group_stock_manager">
+                        <page string="Hoymiles APIs" groups="account.group_project_hoymiles">
                             <group string="Confirm Status" col="2">
                                 <group col="2">
                                     <div class="oe_button_box" name="button_box">
@@ -282,6 +283,7 @@
                 <field name="cntr_no" optional="show"/>
                 <field name="project" optional="show"/>
                 <field name="warehouse" optional="show"/>
+                <field name="is_bonded" optional="show"/>
                 <field name="state" optional="show"/>
                 <field name="remark" optional="show"/>
             </list>

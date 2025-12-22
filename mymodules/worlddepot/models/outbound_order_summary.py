@@ -67,12 +67,12 @@ class OutboundOrderSummary(models.Model):
         except Exception as e:
             _logger.error(f"Error initializing OutboundOrderSummary: {e}")
 
-    def init(self):
+    def init_new(self):
         """Initialize the summary table with data from outbound orders."""
         try:
             # Clear existing data
             self.env.cr.execute(f"DELETE FROM {self._table}")
-
+            self.env.cr.flush()
             # Fetch ALL outbound orders (including cancelled if needed)
             domain = [('state', '!=', 'cancel')]
             outbound_orders = self.env['world.depot.outbound.order'].search(domain)
@@ -169,7 +169,7 @@ class OutboundOrderSummary(models.Model):
                             self.env['world.depot.outbound.order.summary'].create([record_data])
                         except Exception as single_error:
                             _logger.error(f"Failed to create record: {record_data}. Error: {single_error}")
-
+            self.env.cr.flush()
         except Exception as e:
             _logger.error(f"Error initializing OutboundOrderSummary: {e}")
             _logger.error("Full traceback:", exc_info=True)
@@ -185,7 +185,7 @@ class OutboundOrderSummary(models.Model):
         _logger.info("Manual refresh of OutboundOrderSummary requested")
         try:
             # Rebuild the summary
-            self.init()
+            self.init_new()
             _logger.info("Manual refresh completed successfully")
             return True
         except Exception as e:

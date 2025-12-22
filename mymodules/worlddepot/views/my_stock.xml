@@ -8,6 +8,7 @@
             <!-- Add Reverse Validate button in header when picking is done -->
             <xpath expr="//header" position="inside">
                 <button name="button_reverse_validate" type="object" string="Reverse Validate" class="btn-secondary" invisible="state!='done'" groups="stock.group_stock_manager,base.group_system"/>
+                <button name="action_force_validate" type="object" string="Force Validate" class="btn-secondary" invisible="state=='done'" groups="stock.group_stock_manager,base.group_system"/>          
             </xpath>
             <xpath expr="//sheet/group" position="inside">
                 <group col="2">
@@ -52,6 +53,33 @@
             <field name="product_uom_qty" position="after">
                 <field name="nine_digit_linglong_code"/>
             </field>
+        </field>
+    </record>
+
+    <!-- Inherit stock.location form to show 'is_bonded' -->
+    <record id="view_stock_location_form_inherit_worlddepot" model="ir.ui.view">
+        <field name="name">stock.location.form.worlddepot.inherit</field>
+        <field name="model">stock.location</field>
+        <field name="inherit_id" ref="stock.view_location_form"/>
+        <field name="arch" type="xml">
+            <!-- Insert a small group with the is_bonded checkbox near the top of the sheet -->
+            <xpath expr="//sheet" position="inside">
+                <group>
+                    <field name="is_bonded"/>
+                    <field name="location_type" string="Type"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+    <!-- Inherit stock.location tree to show 'is_bonded' in list/tree view -->
+    <record id="view_stock_location_tree_inherit_worlddepot" model="ir.ui.view">
+        <field name="name">stock.location.tree.worlddepot.inherit</field>
+        <field name="model">stock.location</field>
+        <field name="inherit_id" ref="stock.view_location_tree2"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="inside">
+                <field name="is_bonded"/>
+            </xpath>
         </field>
     </record>
 </odoo>

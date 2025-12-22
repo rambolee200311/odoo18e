@@ -8,6 +8,9 @@ class StockLocation(models.Model):
 
     class StockLocation(models.Model):
         _inherit = "stock.location"
+        
+        #是否入保税仓
+        is_bonded = fields.Boolean(string='Bonded Warehouse', default=False, tracking=True)
 
         @api.model
         def cron_auto_generate_locations(self):

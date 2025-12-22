@@ -43,4 +43,15 @@
             <field name="use_date_range" eval="True"/>
         </record>
     </data>
+    <data noupdate="1">
+        <record id="seq_transfer_order" model="ir.sequence">
+            <field name="name">Transfer Order No</field>
+            <field name="code">seq.transfer.order</field>
+            <field name="prefix">TO%(year)s%(month)s%(day)s</field>
+            <field name="padding">4</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="use_date_range" eval="True"/>
+        </record>
+    </data>
 </odoo>
