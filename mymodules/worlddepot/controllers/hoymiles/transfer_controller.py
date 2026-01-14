@@ -20,7 +20,7 @@ class TransferOrderAPI(http.Controller):
             data = json.loads(request.httprequest.data)
 
             # Check mandatory fields
-            mandatory_fields = ['date', 'reference', 'products']
+            mandatory_fields = ['date', 'reference', 'products','from_location_type','to_location_type']
             for field in mandatory_fields:
                 if field not in data:
                     return {'success': False, 'error': f'Missing mandatory field: {field}'}
@@ -47,6 +47,10 @@ class TransferOrderAPI(http.Controller):
             ], limit=1)
             if existing_order:
                 return {'success': False, 'error': f'Duplicate reference: {data["reference"]}'}
+            
+            #check location types
+            if data['from_location_type'] == data['to_location_type']:
+                return {'success': False, 'error': 'From Location Type and To Location Type cannot be the same.'}
 
             api_user = request.api_user
             if not api_user:
@@ -65,6 +69,8 @@ class TransferOrderAPI(http.Controller):
                 'remark': data.get('remark', False),
                 'remark1': data.get('remark1', False),
                 'project': odoo_project.id,
+                'from_location_type': data.get('from_location_type'),
+                'to_location_type': data.get('to_location_type'),
                 'line_ids': [],
             }
 
@@ -79,23 +85,8 @@ class TransferOrderAPI(http.Controller):
                     'product_id': odoo_product.id,
                     'quantity': product['quantity'],
                     'remark': product.get('remark', ''),
-                }
+                }              
                 
-                # Add location information if provided
-                if 'location_from' in product:
-                    location_from = request.env['stock.location'].sudo().search([
-                        ('complete_name', 'ilike', f'%{product["location_from"]}%')
-                    ], limit=1)
-                    if location_from:
-                        line_vals['location_from'] = location_from.id
-                
-                if 'location_to' in product:
-                    location_to = request.env['stock.location'].sudo().search([
-                        ('complete_name', 'ilike', f'%{product["location_to"]}%')
-                    ], limit=1)
-                    if location_to:
-                        line_vals['location_to'] = location_to.id
-
                 order_vals['line_ids'].append((0, 0, line_vals))
 
             # Create order

@@ -5,7 +5,7 @@
     'summary': "Logistics and Supply Chain Management System",
 
     'description': """
- Logistics and Supply Chain Management System for World Depot
+    Logistics and Supply Chain Management System for World Depot
     """,
 
     'author': "World Depot B.V.",
@@ -48,12 +48,17 @@
         'views/hoymiles/hoymiles_api_logs.xml',
         'views/hoymiles/hoymiles_api_urls.xml',
         'views/charge_item.xml',
+        'views/charge_module.xml',
+        'views/charge_module_wizard.xml',
+        'views/charge_summary.xml',
         'views/inbound_order_charge.xml',
         'views/outbound_order_pack_info.xml',
         'views/outbound_order_charge.xml',
         'views/my_dashboard.xml',
         'views/my_route.xml',
-        'views/my_stock_report_linglong_views.xml',
+        'views/my_stock_report_linglong_views.xml',        
+        'views/inbound_order_deepseek_checker.xml',
+        'views/outbound_order_deepseek_checker.xml',
         #'views/my_excel_template.xml',
         #'views/pallet_barcode_assets.xml',
         #'views/sequence.xml',
@@ -62,8 +67,6 @@
         #'views/report_wd_picking_templates.xml',
         #'views/report_wd_picking_action.xml',
         #'views/pallet_barcode_action.xml',
-        'views/inbound_order_deepseek_checker.xml',
-        'views/outbound_order_deepseek_checker.xml',
     ],
     # only loaded in demonstration mode
     'demo': [

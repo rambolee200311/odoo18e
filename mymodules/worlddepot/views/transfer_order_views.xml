@@ -44,7 +44,13 @@
                 <h1>
                     <field name="billno" readonly="1"/>
                 </h1>
-            </div>        
+            </div>   
+            <div class="oe_button_box" name="button_box">
+                <button name="action_create_stock_picking"
+                        type="object"
+                        string="Create Picking"
+                        class="oe_stat_button" icon="fa-file-text"/>
+            </div>     
             <group col="2">
               <group col="2">
                 <field name="from_location_type"/>

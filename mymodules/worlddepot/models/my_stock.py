@@ -40,7 +40,7 @@ class StockLocation(models.Model):
     # 新增库位类型
     location_type=fields.Many2one(
         comodel_name='stock.location.type',
-        string='Location Type',
+        string='Extra Type',
         help='Type of the stock location'
     )
 
@@ -60,6 +60,7 @@ class StockMove(models.Model):
         store=True
     )
     outbound_order_product_id = fields.Integer('Outbound Order ProductID')
+    transfer_order_line_id = fields.Integer('Transfer Order Line ID')
     
 
 class StockPicking(models.Model):
@@ -82,6 +83,12 @@ class StockPicking(models.Model):
         help='Reference to the related Outbound Order',
         readonly=True
     )
+    transfer_order_id = fields.Many2one(
+        comodel_name='world.depot.transfer.order',
+        string='Transfer Order',
+        help='Reference to the related Transfer Order',
+        readonly=True
+    )   
     load_ref = fields.Char(string='Loading Reference', required=False, help='Reference for the Delivery')
 
     # Override button_validate to add post-validation processing

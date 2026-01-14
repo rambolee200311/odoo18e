@@ -40,7 +40,7 @@ class TransferOrder(models.Model):
         readonly=True
     )
     pick_type = fields.Many2one('stock.picking.type', string='Picking Type', tracking=True,
-                                domain=[('code', '=', 'incoming')])
+                                domain=[('code', '=', 'internal')])
     owner = fields.Many2one('res.partner', string='Owner', related='project.owner', tracking=True)
     warehouse = fields.Many2one('stock.warehouse', string='Warehouse', tracking=True,
                                 stored=True)
@@ -95,9 +95,10 @@ class TransferOrder(models.Model):
                 raise UserError(_('Only new orders can be confirmed.'))
             record.state = 'confirm'
             record.confirm_user_id = self.env.user.id
-            record.confirm_time_user_tz = fields.Datetime.context_timestamp(
-                self.env.user, fields.Datetime.now())
-            record.confirm_time_server = fields.Datetime.now()
+            now_utc = fields.Datetime.now()
+            user_aware_dt = fields.Datetime.context_timestamp(record, now_utc)
+            record.confirm_time_user_tz = user_aware_dt.strftime("%Y-%m-%d %H:%M:%S")
+            record.confirm_time_server = now_utc
         return True
     def action_cancel(self):
         """Cancel the transfer order."""
@@ -117,12 +118,38 @@ class TransferOrder(models.Model):
             record.confirm_time_server = False
         return True
     
+    # Constraints for location types
+    @api.constrains('from_location_type', 'to_location_type')
+    def _check_location_types(self):
+        """Ensure from and to location types are not the same."""
+        for record in self:
+            if record.from_location_type == record.to_location_type:
+                raise ValidationError(_('From Location Type and To Location Type cannot be the same.'))
+    
+    # Constraint for unique reference within the same project        
+    @api.constrains('reference')
+    def _check_reference_unique(self):
+        """Ensure the reference is unique within the same project."""
+        for record in self:
+            existing_orders = self.search([
+                ('project', '=', record.project.id),
+                ('reference', '=', record.reference),
+                ('id', '!=', record.id),
+                ('state', '!=', 'cancel')
+            ])
+            if existing_orders:
+                raise ValidationError(_('The reference "%s" already exists for this project.') % record.reference)        
+    
 class TransferOrderLine(models.Model):
     _name = 'world.depot.transfer.order.line'
     _description = 'Transfer Order Line'
-
+    
     transfer_order_id = fields.Many2one('world.depot.transfer.order', string='Transfer Order', required=True, ondelete='cascade')
-    product = fields.Many2one('product.product', string='Product', required=True)
+    project = fields.Many2one(related='transfer_order_id.project', string='Project', store=True, readonly=True)
+    project_category_id = fields.Many2one(related='project.category', string='Project Category', store=True,
+                                          readonly=True)
+    product = fields.Many2one('product.product', string='Product', required=True, tracking=True,
+                                 domain="[('categ_id', '=', project_category_id)]")
     quantity = fields.Float(string='Quantity', required=True, default=1.0)
     location_from = fields.Many2one('stock.location', string='Source Location')
     location_to = fields.Many2one('stock.location', string='Destination Location')

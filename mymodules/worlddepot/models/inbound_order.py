@@ -149,9 +149,7 @@ class InboundOrder(models.Model):
                                             'inbound_order_id',
                                             string='Inbound Order Documents')
 
-    inbound_order_charge_ids = fields.One2many('world.depot.inbound.order.charge',
-                                               'inbound_order_id',
-                                               string='Inbound Order Charges')
+    
     
     #是否入保税仓
     is_bonded = fields.Boolean(string='Bonded Warehouse', default=False, tracking=True)
