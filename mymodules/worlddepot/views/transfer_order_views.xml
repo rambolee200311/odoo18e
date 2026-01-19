@@ -64,8 +64,10 @@
                             </group>
                             <group col="2">
                                 <field name="reference"/>
-                                <field name="warehouse"/>
-                                <field name="pick_type"/>
+                                <field name="state" invisible="1"/>
+                                <field name="warehouse"  readonly="state in ['cancel', 'confirm']" required="1"/>
+
+                                <field name="pick_type" readonly="state in ['cancel', 'confirm']"  required="1"/>
                                 <field name="stock_picking_id" readonly="1"/>
                             </group>
                         </group>
