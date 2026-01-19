@@ -1,0 +1,9 @@
+# ignore everything
+*
+
+# keep gitignore itself
+!.gitignore
+
+# only track mymodules
+!mymodules/
+!mymodules/**
