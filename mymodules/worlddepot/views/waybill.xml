@@ -1,0 +1,301 @@
+<odoo>
+    <!-- Waybill Views tree-->
+    <record id="view_world_depot_waybill_tree" model="ir.ui.view">
+        <field name="name">world.depot.waybill.tree</field>
+        <field name="model">world.depot.waybill</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="billno"/>
+                <field name="project"/>
+                <field name="bl_number"/>
+                <field name="hbl_number"/>
+                <field name="eta"/>
+                <field name="document_number"/>
+                <field name="reference_number"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+    <!-- Waybill Views form-->
+    <record id="view_world_depot_waybill_form" model="ir.ui.view">
+        <field name="name">world.depot.waybill.form</field>
+        <field name="model">world.depot.waybill</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                     <button name="save_record"
+                            type="object"
+                            string="Save"
+                            class="btn-primary"
+                            invisible="state == 'confirm' or state == 'cancel'"/>
+                     <button name="action_confirm_order"
+                            type="object"
+                            string="Confirm"
+                            invisible="state == 'confirm' or state == 'cancel'"
+                            class="btn-danger"/>
+                     <button name="action_unconfirm_order"
+                            type="object"
+                            string="Unconfirm"
+                            invisible="state == 'new' or state == 'cancel'"
+                            class="btn-primary"/>
+                     <button name="action_cancel_order"
+                            type="object"
+                            string="Cancel"
+                            invisible="state == 'confirm' or state == 'cancel'"
+                            class="btn-warning"/>
+                     <field
+                            name="state"
+                            widget="statusbar"
+                            statusbar_visible="new,confirm"/>
+                     <widget name="web_ribbon" title="CANCEL" bg_color="bg-danger" invisible="state!='cancel'"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            Waybill
+                        </h1>
+                        <h2>
+                            <field name="billno"/>
+                        </h2>
+                    </div>
+                    <group col="2">
+                        <group col="2" string="MAIN">
+                            <field name="project" readonly="state!='new'"/>
+                            <field name="bl_number"/>
+                            <field name="hbl_number" readonly="state!='new'"/>
+                            <field name="document_number" readonly="state!='new'"/>
+                            <field name="reference_number" readonly="state!='new'"/>
+                            <field name="shipping" readonly="state!='new'"/>
+                            <field name="shipper" readonly="state!='new'"/>
+                            <field name="consignee" readonly="state!='new'"/>
+                            <field name="notify_party" readonly="state!='new'"/>
+                        </group>
+                        <group col="2" string="INFO">
+                            <field name="eta"/>
+                            <field name="ata"/>
+                            <field name="terminal_a"/>
+                            <field name="release_received"/>
+                            <field name="custom_clearance"/>
+                            <field name="remark"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Documents">
+                            <field name="other_docs_ids" widget="one2many_list" context="{'default_waybill_id': id}"/>
+                        </page>
+                        <page string="Containers">
+                            <field name="container_ids" widget="one2many_list" context="{'default_waybill_id': id}"  readonly="state!='new'"/>
+                        </page>
+                    </notebook>
+                </sheet>
+
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <!-- Waybill Views search-->
+    <record id="view_world_depot_waybill_search" model="ir.ui.view">
+        <field name="name">world.depot.waybill.search</field>
+        <field name="model">world.depot.waybill</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="billno"/>
+                <field name="bl_number"/>
+                <field name="eta"/>
+                <field name="document_number"/>
+                <field name="reference_number"/>
+                <field name="state"/>
+            </search>
+        </field>
+    </record>
+    <!-- Waybill Views action-->
+    <record id="action_world_depot_waybill" model="ir.actions.act_window">
+        <field name="name">Waybills</field>
+        <field name="res_model">world.depot.waybill</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_world_depot_waybill_search"/>
+    </record>
+    <!-- Waybill other documents tree -->
+    <record id="view_waybill_other_docs_tree" model="ir.ui.view">
+        <field name="name">waybill.other.docs.tree</field>
+        <field name="model">world.depot.waybill.other.docs</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="file" string="File" widget="binary" filename="filename"/>
+                <field name="filename" string="Document Name" invisible="True"/>
+                <field name="description" string="Description"/>
+            </list>
+        </field>
+    </record>
+    <!--Waybill Packing List List View -->
+    <record id="view_waybill_packing_list_list" model="ir.ui.view">
+        <field name="name">waybill.packing.list.list</field>
+        <field name="model">world.depot.waybill.packing.list</field>
+        <field name="arch" type="xml">
+            <list>
+                <!--<field name="container_number"/>-->
+                <field name="product_id"/>
+                <field name="adr"/>
+                <field name="un_number"/>
+                <field name="pallets"/>
+                <field name="quantity"/>
+                <field name="uom_id"/>
+                <field name="total_weight"/>
+                <field name="total_volume"/>
+                <field name="total_packages"/>
+               <!-- <field name="waybill_id"/>
+                <field name="container_id"/>-->
+                 <field name="remark"/>
+            </list>
+        </field>
+    </record>
+    <!--Waybill Packing List Form View -->
+    <record id="view_waybill_packing_list_form" model="ir.ui.view">
+        <field name="name">waybill.packing.list.form</field>
+        <field name="model">world.depot.waybill.packing.list</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <!--<group col="2" string="MAIN">
+                        <group col="2">
+                            <field name="waybill_id"/>
+                        </group>
+                        <group col="2">
+                            <field name="container_id"/>
+                            <field name="container_number"/>
+                        </group>
+                    </group>-->
+                    <group col="2">
+                        <group col="2">
+                            <field name="product_id"/>
+                            <field name="adr"/>
+                            <field name="un_number"/>
+                            <field name="pallets"/>
+                            <field name="quantity"/>
+                            <field name="uom_id"/>
+                        </group>
+                        <group col="2">
+                            <field name="total_weight"/>
+                            <field name="total_volume"/>
+                            <field name="total_packages"/>
+                           <!-- <field name="container_id" readonly="1"/>-->
+                        </group>
+                    </group>
+                    <field name="remark"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <!--Waybill Packing List Search View -->
+    <record id="view_waybill_packing_list_search" model="ir.ui.view">
+        <field name="name">waybill.packing.list.search</field>
+        <field name="model">world.depot.waybill.packing.list</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="container_number"/>
+                <field name="product_id"/>
+                <field name="waybill_id"/>
+                <field name="container_id"/>
+                <field name="pallets"/>
+                <field name="quantity"/>
+            </search>
+        </field>
+    </record>
+    <!--Waybill Packing List Action -->
+    <record id="action_waybill_packing_list" model="ir.actions.act_window">
+        <field name="name">Packing Lists</field>
+        <field name="res_model">world.depot.waybill.packing.list</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_waybill_packing_list_search"/>
+    </record>
+
+    <!--Waybill Container Tree View -->
+    <record id="view_waybill_container_tree" model="ir.ui.view">
+        <field name="name">waybill.container.tree</field>
+        <field name="model">world.depot.waybill.container</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="container_number"/>
+                <field name="container_type"/>
+                <field name="seal_number"/>
+                <field name="weight"/>
+                <field name="volume"/>
+                <field name="pallets"/>
+                <field name="quantity"/>
+                <field name="loading_date"/>
+                <field name="drop_off_date"/>
+            </list>
+        </field>
+    </record>
+
+    <!--Waybill Container Form View -->
+    <record id="view_waybill_container_form" model="ir.ui.view">
+        <field name="name">waybill.container.form</field>
+        <field name="model">world.depot.waybill.container</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group string="Waybill">
+                        <field name="waybill_id"/>
+                    </group>
+                    <group col="2" string="Information">
+                        <group col="2">
+                            <field name="container_number"/>
+                            <field name="container_type"/>
+                            <field name="seal_number"/>
+                            <field name="weight"/>
+                            <field name="volume"/>
+                        </group>
+                        <group col="2">
+                            <field name="pallets"/>
+                            <field name="quantity"/>
+                            <field name="mode"/>
+                            <field name="temperature"/>
+                            <field name="humidity"/>
+                        </group>
+                    </group>
+                    <group col="2" string="Transport Information">
+                        <group col="2" string="Loading">
+                            <field name="loading_reference"/>
+                            <field name="loading_date"/>
+                        </group>
+                        <group col="2" string="Unloading">
+                            <field name="unloading_date"/>
+                            <field name="unloading_location"/>
+                            <field name="drop_off_date"/>
+                            <field name="drop_off_location"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Packing Lists">
+                            <field name="packing_list_ids"  widget="one2many_list" context="{'default_container_id': id}"/>
+                        </page>
+                    </notebook>
+                    <field name="remark"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+     <!--Waybill Container Search View -->
+    <record id="view_waybill_container_search" model="ir.ui.view">
+        <field name="name">waybill.container.search</field>
+        <field name="model">world.depot.waybill.container</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="container_number"/>
+                <field name="container_type"/>
+                <field name="seal_number"/>
+                <field name="loading_date"/>
+                <field name="drop_off_date"/>
+            </search>
+        </field>
+    </record>
+
+    <!--Waybill Container Action -->
+    <record id="action_waybill_container" model="ir.actions.act_window">
+        <field name="name">Waybill Containers</field>
+        <field name="res_model">world.depot.waybill.container</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_waybill_container_search"/>
+    </record>
+</odoo>

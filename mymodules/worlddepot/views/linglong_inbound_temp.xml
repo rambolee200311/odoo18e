@@ -1,0 +1,71 @@
+<odoo>
+    <!-- Tree View -->
+    <record id="view_linglong_product_temp_tree" model="ir.ui.view">
+        <field name="name">world.depot.linglong.product.temp.tree</field>
+        <field name="model">world.depot.linglong.product.temp</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="departure_date"/>
+                <field name="barcode"/>
+                <field name="nine_digit_linglong_code"/>
+                <field name="product_name"/>
+                <field name="quantity"/>
+                <field name="hs_code"/>
+                <field name="invoice_no"/>
+                <field name="bill_of_lading"/>
+                <field name="brand"/>
+                <field name="category"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_linglong_product_temp_search" model="ir.ui.view">
+        <field name="name">world.depot.linglong.product.temp.search</field>
+        <field name="model">world.depot.linglong.product.temp</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="departure_date"/>
+                <field name="nine_digit_linglong_code"/>
+                <field name="barcode"/>
+                <field name="product_name"/>
+                <field name="bill_of_lading"/>
+                <field name="state"/>
+                <filter name="draft" string="Draft" domain="['|',('state', '=', 'draft'),('state', '=', 'error')]"/>
+                <filter name="imported" string="Imported" domain="[('state', '=', 'imported')]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_linglong_product_temp" model="ir.actions.act_window">
+        <field name="name">Linglong Inbound Temp</field>
+        <field name="res_model">world.depot.linglong.product.temp</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_linglong_product_temp_tree"/>
+        <field name="search_view_id" ref="view_linglong_product_temp_search"/>
+        <field name="context">{'search_default_draft': 1}</field>
+    </record>
+
+    <!-- Server Action -->
+    <record id="action_import_inbound_order_server" model="ir.actions.server">
+        <field name="name">Import Inbound Order</field>
+        <field name="model_id" ref="model_world_depot_linglong_product_temp"/>
+        <field name="binding_model_id" ref="model_world_depot_linglong_product_temp"/>
+        <field name="state">code</field>
+        <field name="code">
+            action = records.action_import_inbound_order()
+        </field>
+    </record>
+    <!-- Add Server Action to Action Menu
+    action = env['world.depot.linglong.product.temp'].browse(context.get('active_ids')).action_import_inbound_order()
+    <record id="action_import_inbound_order_server_action" model="ir.ui.action">
+        <field name="name">Import Inbound Order</field>
+        <field name="type">ir.actions.server</field>
+        <field name="binding_model_id" ref="model_world_depot_linglong_product_temp"/>
+        <field name="binding_type">action</field>
+        <field name="server_action_ids" eval="[(4, ref('action_import_inbound_order_server'))]"/>
+    </record>
+     -->
+</odoo>
