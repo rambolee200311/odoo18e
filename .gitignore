@@ -7,3 +7,11 @@
 # only track mymodules
 !mymodules/
 !mymodules/**
+# =========================
+# Python bytecode / cache
+# =========================
+__pycache__/
+__pycache__/**
+*.pyc
+*.pyo
+*.pyd
