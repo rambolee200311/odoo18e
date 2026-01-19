@@ -10,35 +10,67 @@ _logger = logging.getLogger(__name__)
 
 
 class TransferOrderAPI(http.Controller):
-    
+    def get_transfer_product_info(self, products):
+        line_commands = []
+        mandatory_product_fields = ['product_id', 'quantity']
+        for product in products:
+            for field in mandatory_product_fields:
+                if field not in product:
+                    raise ValueError(f'Missing mandatory field in product: {field}')
+            odoo_product = request.env['product.product'].sudo().search([
+                '|',
+                ('barcode', '=', product['product_id']),
+                ('default_code', '=', product['product_id'])
+            ], limit=1)
+
+            if not odoo_product:
+                raise ValueError(f'Product not found: {product["product_id"]}')
+            line_vals = {
+                'product': odoo_product.id,
+                'quantity': product['quantity'],
+                'remark': product.get('remark', ''),
+            }
+
+            line_commands.append((0, 0, line_vals))
+        return line_commands
+
+    def get_or_create_location_type(self, code):
+        if not code:
+            return False
+        locationType = request.env['stock.location.type'].sudo()
+
+        location_type = locationType.search(
+            [('code', '=', code)],
+            limit=1
+        )
+        if location_type:
+            return location_type.id
+
+        location_type = locationType.create({
+            'code': code,
+            'name': code
+        })
+        return location_type.id
     # Create new transfer order
     @http.route('/world_depot/hoymiles/api/transfer/order/create', type='json', auth='none', methods=['POST'], csrf=False)
     @validate_token
+
     @api_logger
     def create_transfer_order(self, **params):
         try:
             data = json.loads(request.httprequest.data)
 
             # Check mandatory fields
-            mandatory_fields = ['date', 'reference', 'products','from_location_type','to_location_type']
+            mandatory_fields = ['date', 't_date', 'reference', 'location_from', 'location_to']
             for field in mandatory_fields:
                 if field not in data:
                     return {'success': False, 'error': f'Missing mandatory field: {field}'}
 
             # Validate products
-            mandatory_product_fields = ['product_id', 'quantity']
-            for product in data.get('products', []):
-                for field in mandatory_product_fields:
-                    if field not in product:
-                        return {'error': f'Missing mandatory field in product: {field}'}
-                
-                # Check if product exists
-                odoo_product = request.env['product.product'].sudo().search([
-                    '|', ('barcode', '=', product['product_id']),
-                    ('default_code', '=', product['product_id'])
-                ], limit=1)
-                if not odoo_product:
-                    return {'success': False, 'error': f'Product not found: {product["product_id"]}'}
+            try:
+                line_ids = self.get_transfer_product_info(data.get('products', []))
+            except ValueError as e:
+                return {'success': False, 'error': str(e)}
 
             # Check duplicate reference
             existing_order = request.env['world.depot.transfer.order'].sudo().search([
@@ -49,7 +81,8 @@ class TransferOrderAPI(http.Controller):
                 return {'success': False, 'error': f'Duplicate reference: {data["reference"]}'}
             
             #check location types
-            if data['from_location_type'] == data['to_location_type']:
+            #库位类型
+            if data['location_from'] == data['location_to']:
                 return {'success': False, 'error': 'From Location Type and To Location Type cannot be the same.'}
 
             api_user = request.api_user
@@ -60,6 +93,13 @@ class TransferOrderAPI(http.Controller):
             if not odoo_project:
                 return {'success': False, 'error': 'Project not found for API user'}
 
+            from_location_type_id = self.get_or_create_location_type(
+                data.get('location_from')
+            )
+            to_location_type_id = self.get_or_create_location_type(
+                data.get('location_to')
+            )
+
             # Prepare order values
             order_vals = {
                 'type': data.get('type', 'type1'),
@@ -69,25 +109,11 @@ class TransferOrderAPI(http.Controller):
                 'remark': data.get('remark', False),
                 'remark1': data.get('remark1', False),
                 'project': odoo_project.id,
-                'from_location_type': data.get('from_location_type'),
-                'to_location_type': data.get('to_location_type'),
-                'line_ids': [],
+                'from_location_type': from_location_type_id,
+                'to_location_type': to_location_type_id,
+                'line_ids': line_ids,
             }
 
-            # Create transfer order lines
-            for product in data.get('products', []):
-                odoo_product = request.env['product.product'].sudo().search([
-                    '|', ('barcode', '=', product['product_id']),
-                    ('default_code', '=', product['product_id'])
-                ], limit=1)
-                
-                line_vals = {
-                    'product_id': odoo_product.id,
-                    'quantity': product['quantity'],
-                    'remark': product.get('remark', ''),
-                }              
-                
-                order_vals['line_ids'].append((0, 0, line_vals))
 
             # Create order
             order = request.env['world.depot.transfer.order'].sudo().create(order_vals)
@@ -295,7 +321,7 @@ class TransferOrderAPI(http.Controller):
                 return {'success': False, 'error': f'Transfer order {data["reference"]} not found'}
 
             # Use the existing confirm method
-            order.action_confirm()
+            order.action_cancel_api()
             
             return {
                 'success': True,

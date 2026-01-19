@@ -100,6 +100,32 @@ class TransferOrder(models.Model):
             record.confirm_time_user_tz = user_aware_dt.strftime("%Y-%m-%d %H:%M:%S")
             record.confirm_time_server = now_utc
         return True
+
+    def action_cancel_api(self):
+        """Cancel the order of api."""
+        for record in self:
+            if record.state == 'cancel':
+                raise UserError(_("This order %s has already been canceled.") % record.reference)
+            if record.state == 'new':
+                raise UserError(_("Only new orders can be cancelled.") % record.reference)
+            if record.state == 'confirm':
+                if record.stock_picking_id:
+                    if record.stock_picking_id.state == 'done':
+                        raise UserError(
+                            _("Cannot cancel the order %s with an active stock picking that is done.") % record.reference)
+                    # If the stock picking is not done, delete it
+                    try:
+                        record.stock_picking_id.unlink()
+                    except Exception as e:
+                        raise UserError(
+                            _("Failed to delete stock picking for order %s: %s") % (record.reference, str(e)))
+
+            record.state = 'cancel'
+            now_utc = fields.Datetime.now()
+            user_aware_dt = fields.Datetime.context_timestamp(record, now_utc)
+            record.confirm_time_user_tz = user_aware_dt.strftime("%Y-%m-%d %H:%M:%S")
+            record.confirm_time_server = now_utc
+
     def action_cancel(self):
         """Cancel the transfer order."""
         for record in self:
