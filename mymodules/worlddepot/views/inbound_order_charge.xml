@@ -1,0 +1,53 @@
+<odoo>
+    <!-- Tree View for InboundOrderCharge -->
+    <record id="view_inbound_order_charge_tree" model="ir.ui.view">
+        <field name="name">inbound.order.charge.tree</field>
+        <field name="model">world.depot.inbound.order.charge</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="charge_item_id"/>
+                <field name="quantity"/>
+                <field name="charge_unit_name"/>
+                <field name="charge_unit_id"/>
+                <field name="unit_price"/>
+                <field name="amount"/>
+                <field name="currency_id"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View for InboundOrderCharge -->
+    <record id="view_inbound_order_charge_form" model="ir.ui.view">
+        <field name="name">inbound.order.charge.form</field>
+        <field name="model">world.depot.inbound.order.charge</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div>
+                        <h1>
+                            Inbound Order Charge Details
+                        </h1>
+                        <h2>
+                            <field name="charge_item_id" readonly="1"/>
+                        </h2>
+                    </div>
+                    <group col="2">
+                        <group col="2">
+                            <field name="charge_item_id"/>
+                            <field name="quantity"/>
+                            <field name="charge_unit_name" readonly="1"/>
+                            <field name="charge_unit_id"/>
+                            <field name="unit_price"/>
+                            <field name="amount" readonly="1"/>
+                        </group>
+                        <group col="2">
+                            <field name="description"/>
+                            <field name="currency_id"/>
+                            <field name="inbound_order_id" invisible="1" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

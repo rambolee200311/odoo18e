@@ -1,0 +1,181 @@
+<odoo>
+    <data>
+        <!-- Views for world.depot.charge.summary.line -->
+        <record id="view_charge_summary_line_list" model="ir.ui.view">
+            <field name="name">world.depot.charge.summary.line.list</field>
+            <field name="model">world.depot.charge.summary.line</field>
+            <field name="arch" type="xml">
+                <list string="Charge Summary Lines">
+                    <field name="order_reference" string="Order Reference"/>
+                    <field name="charge_item_id" string="Charge Item"/>
+                    <field name="quantity" string="Quantity"/>
+                    <field name="charge_unit_id" string="Unit"/>
+                    <field name="unit_price" string="Unit Price"/>
+                    <field name="amount" string="Amount"/>
+                    <field name="currency_id" string="Currency"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_charge_summary_line_form" model="ir.ui.view">
+            <field name="name">world.depot.charge.summary.line.form</field>
+            <field name="model">world.depot.charge.summary.line</field>
+            <field name="arch" type="xml">
+                <form string="Charge Summary Line">
+                    <sheet>
+                        <group>
+                            <group string="Basic Information">
+                                <field name="summary_id" string="Summary Reference"/>
+                                <field name="order_reference" string="Order Reference"/>
+                                <field name="charge_item_id" string="Charge Item"/>
+                                <field name="source_charge_id" string="Source Charge ID"/>
+                            </group>
+                            <group string="Charge Details">
+                                <field name="quantity" string="Quantity"/>
+                                <field name="charge_unit_id" string="Unit"/>
+                                <field name="unit_price" string="Unit Price"/>
+                                <field name="amount" string="Amount"/>
+                                <field name="currency_id" string="Currency"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_charge_summary_line_search" model="ir.ui.view">
+            <field name="name">world.depot.charge.summary.line.search</field>
+            <field name="model">world.depot.charge.summary.line</field>
+            <field name="arch" type="xml">
+                <search string="Search Charge Summary Lines">
+                    <field name="order_reference" string="Order Reference"/>
+                    <field name="charge_item_id" string="Charge Item"/>
+                    <field name="currency_id" string="Currency"/>
+                    <filter name="filter_by_summary" string="By Summary" 
+                            domain="[('summary_id', '!=', False)]"/>
+                    <group expand="0" string="Group By">
+                        <filter name="group_by_charge_item" string="Charge Item" 
+                                context="{'group_by': 'charge_item_id'}"/>
+                        <filter name="group_by_currency" string="Currency" 
+                                context="{'group_by': 'currency_id'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <!-- Views for world.depot.charge.summary -->
+        <record id="view_charge_summary_list" model="ir.ui.view">
+            <field name="name">world.depot.charge.summary.list</field>
+            <field name="model">world.depot.charge.summary</field>
+            <field name="arch" type="xml">
+                <list string="Charge Summaries">
+                    <field name="type" string="Order Type"/>
+                    <field name="charge_year" string="Year"/>
+                    <field name="charge_month" string="Month"/>
+                    <field name="total_amount" string="Total Amount"/>
+                    <field name="currency_id" string="Currency"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_charge_summary_form" model="ir.ui.view">
+            <field name="name">world.depot.charge.summary.form</field>
+            <field name="model">world.depot.charge.summary</field>
+            <field name="arch" type="xml">
+                <form string="Charge Summary">    
+                    <header>
+                        <button name="action_generate_summary_lines" string="Generate Summary Lines" 
+                                type="object" class="btn-primary"/>
+                        <button name="view_charge_summary_lines" string="View Summary Lines" 
+                                type="object" class="btn-secondary"/>
+                    </header>                    
+                    <sheet>
+                        <h1>
+                            Charge Summary
+                        </h1>
+                        <group col="2">
+                            <group col="2">
+                                <field name="type" string="Order Type"/>
+                                <field name="project" string="Project"/>
+                                <field name="charge_year" string="Year"/>
+                                <field name="charge_month" string="Month"/>
+                            </group>
+                            <group col="2">    
+                                <field name="total_amount" string="Total Amount"/>
+                                <field name="currency_id" string="Currency"/>
+                            </group>
+                        </group>                        
+                        <field name="charge_summary_line_ids" string="Charge Lines">
+                            <list>
+                                <field name="order_reference" string="Order Reference"/>
+                                <field name="charge_item_id" string="Charge Item"/>
+                                <field name="quantity" string="Quantity"/>
+                                <field name="unit_price" string="Unit Price"/>
+                                <field name="amount" string="Amount"/>
+                                <field name="currency_id" string="Currency"/>
+                            </list>
+                            <form>
+                                <field name="order_reference" string="Order Reference"/>
+                                <field name="charge_item_id" string="Charge Item"/>
+                                <field name="quantity" string="Quantity"/>
+                                <field name="charge_unit_id" string="Unit"/>
+                                <field name="unit_price" string="Unit Price"/>
+                                <field name="amount" string="Amount"/>
+                                <field name="currency_id" string="Currency"/>
+                                <field name="source_charge_id" string="Source Charge ID"/>
+                            </form>
+                        </field>
+                    </sheet>
+                    
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_charge_summary_search" model="ir.ui.view">
+            <field name="name">world.depot.charge.summary.search</field>
+            <field name="model">world.depot.charge.summary</field>
+            <field name="arch" type="xml">
+                <search string="Search Charge Summaries">
+                    <field name="type" string="Order Type"/>
+                    <field name="charge_year" string="Year"/>
+                    <field name="charge_month" string="Month"/>
+                    <field name="currency_id" string="Currency"/>
+                    <filter name="filter_inbound" string="Inbound Orders" 
+                            domain="[('type', '=', 'inbound')]"/>
+                    <filter name="filter_outbound" string="Outbound Orders" 
+                            domain="[('type', '=', 'outbound')]"/>
+                    <group expand="0" string="Group By">
+                        <filter name="group_by_type" string="Order Type" 
+                                context="{'group_by': 'type'}"/>
+                        <filter name="group_by_year" string="Year" 
+                                context="{'group_by': 'charge_year'}"/>
+                        <filter name="group_by_currency" string="Currency" 
+                                context="{'group_by': 'currency_id'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <!-- Actions for world.depot.charge.summary -->
+        <record id="action_charge_summary_list" model="ir.actions.act_window">
+            <field name="name">Charge Summaries</field>
+            <field name="res_model">world.depot.charge.summary</field>
+            <field name="view_mode">list,form</field>
+            <field name="context">{'search_default_filter_inbound': 1}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Create a new charge summary to track and analyze your order charges.
+                </p>
+            </field>
+        </record>
+
+        <record id="action_charge_summary_line_list" model="ir.actions.act_window">
+            <field name="name">Charge Summary Lines</field>
+            <field name="res_model">world.depot.charge.summary.line</field>
+            <field name="view_mode">list,form</field>
+            <field name="context">{'search_default_filter_by_summary': 1}</field>
+        </record>
+
+    </data>
+</odoo>

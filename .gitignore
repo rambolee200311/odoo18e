@@ -1,0 +1,9 @@
+# ignore everything by default
+*
+
+# allow root-level files needed for repo
+!.gitignore
+
+# allow mymodules directory
+!mymodules/
+!mymodules/**

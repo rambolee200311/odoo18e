@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Register WD Picking report as a qweb-pdf report for stock.picking -->
+    <record id="report_wd_picking_action" model="ir.actions.report">
+        <field name="name">WD Picking Report</field>
+        <field name="model">stock.picking</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">worlddepot.wd_picking_report</field>
+        <field name="report_file">worlddepot.wd_picking_report</field>
+        <field name="binding_model_id" ref="stock.model_stock_picking"/>
+        <field name="binding_type">report</field>
+    </record>
+</odoo>

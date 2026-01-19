@@ -1,0 +1,23 @@
+<odoo>
+    <!-- List View for Hoymiles API URLs -->
+    <record id="view_hoymiles_api_urls_tree" model="ir.ui.view">
+        <field name="name">hoymiles.api.urls.tree</field>
+        <field name="model">hoymiles.api.urls</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="url"/>
+                <field name="parameters_form"/>
+                <field name="parameters_json"/>
+                <field name="description"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- action to open hoymiles api urls list -->
+    <record id="action_hoymiles_api_urls" model="ir.actions.act_window">
+        <field name="name">Hoymiles API URLs</field>
+        <field name="res_model">hoymiles.api.urls</field>
+        <field name="view_mode">list</field>
+    </record>
+</odoo>

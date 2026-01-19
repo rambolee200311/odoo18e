@@ -1,0 +1,48 @@
+<odoo>
+    <record id="view_inbound_order_form_inherit" model="ir.ui.view">
+        <field name="name">inbound.order.form.verification</field>
+        <field name="model">world.depot.inbound.order</field>
+        <field name="inherit_id" ref="view_inbound_order_form"/>
+        <field name="arch" type="xml">
+            <!-- Add DeepSeek Verification page to the existing notebook -->
+            <xpath expr="//notebook" position="inside">
+                <page string="AI Verification" name="deepseek_verification_page">
+                    <group>
+                        <button name="action_verify_with_deepseek" type="object" string="Verify with AI" class="btn-primary"/>    
+                    </group>
+                    <group string="Verification Controls" col="2"> 
+                        <field name="check_status" widget="selection_badge" options="{'classes': {
+                            'not_checked': 'secondary',
+                            'checking': 'warning', 
+                            'pass': 'success',
+                            'warning': 'warning',
+                            'error': 'danger',
+                            'unknown': 'secondary'
+                        }}"/>
+                        <field name="risk_level" widget="selection_badge" options="{'classes': {
+                            'none': 'success',
+                            'low': 'success', 
+                            'medium': 'warning',
+                            'high': 'danger',
+                            'unknown': 'secondary'
+                        }}"/>
+                        <field name="last_check_date" readonly="1"/>
+                        <field name="checked_by" readonly="1"/>
+                        <field name="check_time_begin" readonly="1"/>
+                        <field name="check_duration" readonly="1"/>
+                        <field name="total_files_processed" readonly="1"/>
+                        <field name="successfully_analyzed" readonly="1"/>                        
+                    </group>
+                    
+                    <group string="Verification Results" col="1">
+                        <field name="check_result" nolabel="1" readonly="1" style="height: 300px;" widget="text"/>
+                    </group>
+                    <!-- Use invisible attribute instead of attrs for Odoo 18 -->
+                    <group string="File Analysis Metrics" col="2" invisible="total_files_processed == 0">
+                        <field name="file_analysis_metrics" nolabel="1" readonly="1" style="height: 200px;" widget="text"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>
