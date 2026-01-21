@@ -9,3 +9,7 @@ world.depot.transfer.order.charge_rule,world.depot.transfer.order.charge_name,mo
 access_hoymiles_api_logs_user,hoymiles.api.logs user,model_hoymiles_api_logs,,1,1,1,1
 access_hoymiles_api_urls_admin,hoymiles.api.urls admin,model_hoymiles_api_urls,,1,1,1,1
 access_hoymiles_token_utils_admin,hoymiles.token.utils admin,model_hoymiles_token_utils,,1,1,1,1
+
+access_world_depot_charge_module,world.depot.charge.module,model_world_depot_charge_module,,1,1,1,1
+access_world_depot_charge_module_item,world.depot.charge.module.item,model_world_depot_charge_module_item,,1,1,1,1
+access_worlddepot_charge_module_selector,worlddepot.charge.module.selector,model_worlddepot_charge_module_selector,,1,1,1,1

@@ -290,7 +290,7 @@ class TransferOrderAPI(http.Controller):
                 return {'success': False, 'error': f'Transfer order {data["reference"]} not found'}
 
             # Use the existing cancel method
-            order.action_cancel()
+            order.action_cancel_api()()
             
             return {
                 'success': True,
