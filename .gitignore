@@ -1,9 +1,46 @@
-# ignore everything by default
+############################
+# 1. Python runtime
+############################
+__pycache__/
+*.py[cod]
+*.pyo
+
+############################
+# 2. Odoo runtime / cache
+############################
+*.log
+*.sqlite
+*.db
+.odoo/
+filestore/
+session/
+
+############################
+# 3. Virtual env
+############################
+venv/
+.env/
+
+############################
+# 4. IDE / OS
+############################
+.idea/
+.vscode/
+.DS_Store
+
+############################
+# 5. Default ignore
+############################
 *
 
-# allow root-level files needed for repo
+############################
+# 6. Allow repo essentials
+############################
 !.gitignore
+!README.md
 
-# allow mymodules directory
+############################
+# 7. Allow custom modules
+############################
 !mymodules/
 !mymodules/**
