@@ -281,8 +281,10 @@ class TransferOrderAPI(http.Controller):
     @validate_token
     @api_logger
     def cancel_transfer_order(self, **params):
+        _logger.info(">>> ENTER cancel_transfer_order")
         try:
             data = json.loads(request.httprequest.data)
+            _logger.info(">>> Request data: %s", data)
             domain = [('reference', '=', data['reference'])]
 
             order = request.env['world.depot.transfer.order'].sudo().search(domain, limit=1)
@@ -290,7 +292,7 @@ class TransferOrderAPI(http.Controller):
                 return {'success': False, 'error': f'Transfer order {data["reference"]} not found'}
 
             # Use the existing cancel method
-            order.action_cancel_api()()
+            order.action_cancel_api()
             
             return {
                 'success': True,
@@ -304,8 +306,9 @@ class TransferOrderAPI(http.Controller):
             return {'success': False, 'error': str(ue)}
 
         except Exception as e:
+            _logger.exception(">>> CANCEL API REAL TRACEBACK")
             _logger.error("Unexpected error during cancellation: %s", str(e))
-            return {'success': False, 'error': 'An unexpected error occurred'}
+            return {'success': False, 'error': str(e)}
 
     # Confirm transfer order
     @http.route('/world_depot/hoymiles/api/transfer/order/confirm', type='json', auth='none', methods=['POST'], csrf=False)
