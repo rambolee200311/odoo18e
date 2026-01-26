@@ -305,7 +305,7 @@ class TransferOrderAPI(http.Controller):
 
         except Exception as e:
             _logger.error("Unexpected error during cancellation: %s", str(e))
-            return {'success': False, 'error': 'An unexpected error occurred'}
+            return {'success': False, 'error': str(e)}
 
     # Confirm transfer order
     @http.route('/world_depot/hoymiles/api/transfer/order/confirm', type='json', auth='none', methods=['POST'], csrf=False)

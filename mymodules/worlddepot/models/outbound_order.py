@@ -251,7 +251,7 @@ class OutboundOrder(models.Model):
                 raise UserError(_("At least one Origin Document is required to confirm the order."))
             else:
                 # check at least one orgin document
-                has_origin_doc = any(doc.doc_type == 'orgin' for doc in record.outbound_order_docs_ids)
+                has_origin_doc = any(doc.doc_type == 'origin' for doc in record.outbound_order_docs_ids)
                 if not has_origin_doc:
                     raise UserError(_("At least one Origin Document is required to confirm the order."))
             
