@@ -106,8 +106,8 @@ class TransferOrder(models.Model):
         for record in self:
             if record.state == 'cancel':
                 raise UserError(_("This order %s has already been canceled.") % record.reference)
-            if record.state == 'new':
-                raise UserError(_("Only new orders can be cancelled.") % record.reference)
+            if record.state != 'new':
+                raise UserError(_("Only new orders can be cancelled. (%s)") % record.reference)
             if record.state == 'confirm':
                 if record.stock_picking_id:
                     if record.stock_picking_id.state == 'done':

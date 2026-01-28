@@ -44,3 +44,5 @@ venv/
 ############################
 !mymodules/
 !mymodules/**
+__pycache__/
+*.py[cod]
