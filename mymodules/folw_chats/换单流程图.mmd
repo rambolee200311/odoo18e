@@ -1,0 +1,23 @@
+flowchart TD
+    A[开始<br/>创建 Handover 作业] --> B[open<br/>上传 POA / 关联 BL]
+
+    B -->|提交换单申请| C[apply<br/>提交船司/船代<br/>上传/发送申请邮件]
+
+    C --> D{是否存在<br/>公司垫付票据?}
+
+    D -->|是| E[paying<br/>录入船司发票<br/>payment_mode=advance]
+    D -->|否| H[releasing<br/>可直接申请放行]
+
+    E --> F{是否全部<br/>公司垫付票据<br/>已付款?}
+    F -->|否| E
+    F -->|是| G[paid]
+
+    G --> H[releasing<br/>申请放行]
+
+    H --> I{是否收到<br/>放行文件?}
+    I -->|否| H
+    I -->|是| J[released<br/>上传 DO / 电放单]
+
+    J --> K[生成费用<br/>服务费应收<br/>垫付生成代收代缴]
+
+    K --> L[close<br/>换单作业完成]
