@@ -1,0 +1,4 @@
+<odoo>
+    <menuitem id="wms_waybill_menu" name="Waybills" parent="worlddepot_charge_pricing.menu_wd_charge_root"
+              action="worlddepot.action_world_depot_waybill" sequence="45"/>
+</odoo>

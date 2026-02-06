@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="operation_order_handover_view_list" model="ir.ui.view">
+        <field name="name">operation.order.handover.view.list</field>
+        <field name="model">operation.order.handover</field>
+        <field name="arch" type="xml">
+            <list string="Handover Orders">
+                <field name="name"/>
+                <field name="waybill_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="project_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="shipping_line_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="state"/>
+                <field name="settle_state"/>
+                <field name="voyage_no"/>
+                <field name="eta"/>
+                <field name="create_date"/>
+            </list>
+        </field>
+    </record>
+
+
+    <record id="operation_order_handover_view_form" model="ir.ui.view">
+        <field name="name">operation.order.handover.view.form</field>
+        <field name="model">operation.order.handover</field>
+        <field name="arch" type="xml">
+            <form string="Handover Order" duplicate="false">
+                <header>
+                    <button name="action_apply" type="object" string="Apply" class="btn-primary"
+                            invisible="state != 'open'"/>
+                    <button name="action_releasing" type="object" string="Releasing" class="btn-secondary"
+                            invisible="state not in ('apply','paying','paid')"/>
+                    <button name="action_released" type="object" string="Released" class="btn-secondary"
+                            invisible="state != 'releasing'"/>
+                    <button name="action_close" type="object" string="Close" class="btn-success"
+                            invisible="state != 'released'"/>
+                    <button name="action_recompute_state" type="object" string="Recompute State"
+                            groups="base.group_system"
+                            invisible="state in ('releasing','released','close','cancelled')"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="open,apply,paying,paid,releasing,released,close,cancelled"/>
+                </header>
+
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group string="Base Info">
+                            <field name="waybill_id" required="1"
+                                   readonly="state != 'open'"/>
+                            <field name="project_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="order_source" readonly="state != 'open'"/>
+                            <field name="currency_id" required="1" readonly="state != 'open'"
+                                   options="{'no_create': True, 'no_open': True}"/>
+                            <field name="container_qty"/>
+                            <!--                            <field name="charge_quotation_id" readonly="1"-->
+                            <!--                                   options="{'no_create': True, 'no_open': True}"/>-->
+                        </group>
+
+                        <group string="External System">
+                            <field name="external_system_type" readonly="state != 'open'"/>
+                            <field name="external_system_no" readonly="state != 'open'"/>
+                            <field name="sync_time" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <group string="B/L  Voyage">
+                        <group>
+                            <field name="bl_type" required="1" readonly="state != 'open'"/>
+                            <field name="bl_issue_datetime" readonly="state != 'open'"/>
+                            <field name="shipping_line_id" options="{'no_create': True, 'no_open': True}"
+                                   readonly="1"/>
+                            <field name="voyage_no" readonly="state != 'open'"/>
+                            <field name="eta" readonly="1"/>
+                            <field name="ata" readonly="state != 'open'"/>
+                        </group>
+                        <group>
+                            <field name="shipper" options="{'no_create': True, 'no_open': True}"
+                                   readonly="1"/>
+                            <field name="consignee" options="{'no_create': True, 'no_open': True}"
+                                   readonly="1"/>
+                            <field name="terminal_a" options="{'no_create': True, 'no_open': True}"
+                                   readonly="1"/>
+                        </group>
+                    </group>
+
+                    <group string="D/O">
+                        <group>
+                            <field name="do_no" readonly="state not in ('releasing','released','close')"/>
+                            <field name="do_issue_datetime" readonly="state not in ('releasing','released','close')"/>
+                        </group>
+                        <group>
+                            <field name="expected_pickup_datetime"
+                                   readonly="state not in ('releasing','released','close')"/>
+                            <field name="actual_pickup_datetime" readonly="1"/>
+                            <field name="handover_datetime" readonly="1"/>
+
+                        </group>
+                    </group>
+                    <group>
+                        <field name="remark" placeholder="Remark..." readonly="state == 'close'"/>
+                    </group>
+
+                    <notebook>
+                        <!-- Containers (readonly) -->
+                        <page string="Containers">
+                            <field name="container_line_ids" readonly="1">
+                                <list>
+                                    <field name="container_number"/>
+                                    <field name="container_type"/>
+                                    <field name="seal_number"/>
+                                    <field name="pallets"/>
+                                    <field name="weight"/>
+                                    <field name="volume"/>
+                                    <field name="quantity"/>
+                                    <field name="remark"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Charges">
+                            <field name="charge_line_ids" readonly="state in ('close','cancelled')">
+                                <list editable="bottom">
+                                    <field name="charge_item_id"/>
+                                    <field name="rule_id"/>
+                                    <field name="quantity_rule_id"/>
+                                    <field name="qty"/>
+                                    <field name="unit_id"/>
+                                    <field name="price_unit"/>
+                                    <field name="amount_total"/>
+                                    <field name="is_manual_amount"/>
+                                    <field name="remark"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Costs">
+                            <field name="cost_line_ids" readonly="state in ('close','cancelled')">
+                                <list editable="bottom">
+                                    <field name="charge_item_id"/>
+                                    <field name="rule_id"/>
+                                    <field name="quantity_rule_id"/>
+                                    <field name="qty"/>
+                                    <field name="unit_id"/>
+                                    <field name="price_unit"/>
+                                    <field name="amount_total"/>
+                                    <field name="is_manual_amount"/>
+                                    <field name="remark"/>
+                                </list>
+                            </field>
+
+                        </page>
+
+                        <page string="Agency">
+                            <field name="agency_line_ids" readonly="state in ('close','cancelled')">
+                                <list editable="bottom">
+                                    <field name="charge_item_id"/>
+                                    <field name="rule_id"/>
+                                    <field name="quantity_rule_id"/>
+                                    <field name="qty"/>
+                                    <field name="unit_id"/>
+                                    <field name="price_unit"/>
+                                    <field name="amount_total"/>
+                                    <field name="invoice_line_id"/>
+                                    <field name="is_manual_amount"/>
+                                    <field name="remark"/>
+                                </list>
+                            </field>
+
+                        </page>
+
+                        <!-- Documents -->
+                        <page string="Documents">
+                            <field name="attachment_line_ids" context="{'default_handover_id': id}"
+                                   readonly="state == 'close'">
+                                <list editable="bottom">
+                                    <field name="doc_type" required="1"/>
+                                    <field name="name"/>
+                                    <field name="attachment_ids" widget="many2many_binary"/>
+                                    <!--                                    <field name="upload_user_id" readonly="1"/>-->
+                                    <!--                                    <field name="upload_time" readonly="1"/>-->
+                                    <field name="remark"/>
+                                </list>
+                            </field>
+
+                        </page>
+
+                        <!-- Vendor Invoices -->
+                        <page string="Vendor Invoices">
+                            <field name="invoice_line_ids" context="{'default_handover_id': id}"
+                                   readonly="state in ('paid','releasing','released','close')">
+                                <list editable="bottom">
+                                    <field name="invoice_date"/>
+                                    <field name="payment_mode" required="1"/>
+                                    <field name="payment_state" readonly="1"/>
+                                    <field name="vendor_invoice_attachment_ids" widget="many2many_binary"
+                                           readonly="payment_state != 'draft'"
+                                           invisible="payment_mode != 'advance'" width="150px"/>
+                                    <field name="bank_proof_attachment_ids" widget="many2many_binary"
+                                           invisible="payment_mode != 'advance'" readonly="1" width="150px"/>
+                                    <field name="amount_total"/>
+                                    <field name="vendor_invoice_id" options="{'no_create': True, 'no_open': True}"
+                                           readonly="1"/>
+                                    <field name="remark"/>
+                                    <button name="action_request_payment"
+                                            type="object"
+                                            string="Request Payment"
+                                            class="btn-primary"
+                                            invisible="payment_mode != 'advance' or payment_state != 'draft'"/>
+                                </list>
+                            </field>
+                            <group>
+                                <field name="has_advance_invoice" readonly="1"/>
+                                <field name="all_advance_paid" readonly="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+
+    <record id="operation_order_handover_action" model="ir.actions.act_window">
+        <field name="name">Handover Orders</field>
+        <field name="res_model">operation.order.handover</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create your first handover order</p>
+        </field>
+    </record>
+
+
+    <menuitem id="menu_operation_handover_root" name="Operations" parent="worlddepot_charge_pricing.menu_wd_charge_root"
+              sequence="20"/>
+    <menuitem id="menu_operation_handover" name="Handover" parent="menu_operation_handover_root"
+              action="operation_order_handover_action" sequence="10"/>
+
+
+</odoo>

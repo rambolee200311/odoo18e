@@ -1,0 +1,25 @@
+<odoo>
+        <record id="account_move_form_inherit_bank_proof" model="ir.ui.view">
+    <field name="name">account.move.form.inherit.bank.proof</field>
+    <field name="model">account.move</field>
+    <field name="inherit_id" ref="account.view_move_form"/>
+    <field name="arch" type="xml">
+        <xpath expr="//field[@name='ref']" position="after">
+            <field name="bank_proof_attachment_ids"
+                   widget="many2many_binary"
+                   string="Bank Proof (Water Slip)"/>
+        </xpath>
+
+        <xpath expr="//header//button[@name='button_draft']" position="after">
+            <button name="action_confirm_paid_sync_handover"
+                    type="object"
+                    string="Confirm Paid"
+                    class="btn-success"
+                    invisible="move_type != 'in_invoice'
+                               or payment_state != 'paid'
+                               or not bank_proof_attachment_ids"/>
+        </xpath>
+    </field>
+</record>
+
+</odoo>
