@@ -46,6 +46,7 @@
         <field name="arch" type="xml">
             <list string="Charge Items">
                 <field name="full_item_name" optional="show"/>
+                <field name="tab_category" required="1"/>
                 <field name="item_name" optional="show"/>
                 <field name="parent_id" optional="show"/>
                 <field name="unit_id" optional="show"/>
@@ -71,6 +72,9 @@
                     </div>
                     <group>
                         <field name="item_name"/>
+                        <field name="tab_category" required="1"/>
+                        <field name="is_leaf"/>
+                        <field name="operation_type"/>
                         <field name="parent_id"/>
                         <field name="unit_id"/>
                         <field name="description"/>
