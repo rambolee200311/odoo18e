@@ -1,0 +1,9 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_charge_quotation,charge.quotation,model_charge_quotation,,1,1,1,1
+access_charge_quotation_line,charge.quotation.line,model_charge_quotation_line,,1,1,1,1
+access_operation_order_handover,operation.order.handover,model_operation_order_handover,,1,1,1,1
+access_operation_order_handover_attachment_line,operation.order.handover.attachment.line,model_operation_order_handover_attachment_line,,1,1,1,1
+access_operation_order_handover_charge_line,operation.order.handover.charge.line,model_operation_order_handover_charge_line,,1,1,1,1
+access_operation_order_handover_cost_line,operation.order.handover.cost.line,model_operation_order_handover_cost_line,,1,1,1,1
+access_charge_quotation_add_wizard,charge.quotation.add.wizard,model_charge_quotation_add_wizard,,1,1,1,1
+access_charge_quotation_add_wizard_line,charge.quotation.add.wizard.line,model_charge_quotation_add_wizard_line,,1,1,1,1

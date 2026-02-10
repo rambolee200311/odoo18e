@@ -1,0 +1,19 @@
+<odoo>
+    <record id="view_waybill_form_inherit_add_view_sn_button" model="ir.ui.view">
+        <field name="name">waybill.form.inherit.add.view.create.handover.button</field>
+        <field name="model">world.depot.waybill</field>
+        <field name="inherit_id" ref="worlddepot.view_world_depot_waybill_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@class='oe_title']" position="after">
+                <div class="oe_button_box" name="button_box">
+                    <button name="action_create_handover"
+                            type="object"
+                            string="Create Handover"
+                            class="oe_stat_button"
+                            icon="fa-film"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

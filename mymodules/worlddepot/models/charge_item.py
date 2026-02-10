@@ -12,6 +12,11 @@ TAB_CATEGORY_LIST = [
     ("wh_monthly", "Warehousing - Monthly fixed"),
     ("wh_other", "Warehousing - Other"),
 ]
+OPERATION_TYPE = [
+    ('handover', 'Handover'),
+    ('clearance', 'Clearance'),
+
+]
 class ChargeUnit(models.Model):
     _name = 'world.depot.charge.unit'
     _description = 'Charge Unit'
@@ -41,11 +46,7 @@ class ChargeItem(models.Model):
         string='Child Items'
     )
     operation_type = fields.Selection(
-        [
-            ('inbound', 'Inbound'),
-            ('outbound', 'Outbound'),
-            ('transfer', 'Transfer'),
-        ],
+        OPERATION_TYPE,
         string='Operation Type',
         required=True,
     )

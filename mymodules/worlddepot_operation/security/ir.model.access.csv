@@ -1,8 +1,0 @@
-id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_operation_order_handover_user,operation.order.handover user,model_operation_order_handover,,1,1,1,1
-access_operation_order_attachment_line_user,operation.order.attachment.line access,model_operation_order_attachment_line,,1,1,1,1
-access_operation_order_handover_invoice_line_user,operation.order.handover.invoice.line access,model_operation_order_handover_invoice_line,,1,1,1,1
-access_operation_order_charge_line,operation.order.charge.line,model_operation_order_charge_line,,1,1,1,1
-access_operation_order_cost_line,operation.order.cost.line,model_operation_order_cost_line,,1,1,1,1
-access_operation_order_agency_line,operation.order.agency.line,model_operation_order_agency_line,,1,1,1,1
-,,

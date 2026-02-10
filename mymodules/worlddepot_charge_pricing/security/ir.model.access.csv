@@ -1,7 +1,0 @@
-id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_charge_rule,access_charge_rule,model_charge_rule,,1,1,1,1
-access_charge_quantity_rule,access_charge_quantity_rule,model_charge_quantity_rule,,1,1,1,1
-access_charge_quotation,access_charge_quotation,model_charge_quotation,,1,1,1,1
-access_charge_quotation_line,access_charge_quotation_line,model_charge_quotation_line,,1,1,1,1
-access_charge_quotation_add_wizard,access_charge_quotation_add_wizard,model_charge_quotation_add_wizard,,1,1,1,1
-access_charge_quotation_add_wizard_line,access_charge_quotation_add_wizard_line,model_charge_quotation_add_wizard_line,,1,1,1,1

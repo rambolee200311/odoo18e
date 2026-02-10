@@ -19,11 +19,13 @@ class Waybill(models.Model):
     project = fields.Many2one('project.project', string='Project', required=True, ondelete='cascade', )
 
     # ========== 基础信息 ==========
-    bl_number = fields.Char(string='Bill of Lading')  # NKGA84065
-    hbl_number = fields.Char(string='House Bill of Lading')  # HBL123456789
+    bl_number = fields.Char(string='Bill of Lading',index=True)  # NKGA84065
+    hbl_number = fields.Char(string='House Bill of Lading',index=True)  # HBL123456789
+    search_bl_hbl = fields.Char(string="BL / HBL No", store=False)
+
     document_number = fields.Char(string='Document No')  # S2502461054/C2501146242
     reference_number = fields.Char(string='Reference No')  # SHPR REF: AB20250404336
-
+    hs_code_qty = fields.Integer(string='HS Code Qty',required= True)
     # ========== 参与方信息 ==========
     shipping = fields.Many2one('res.partner', string='Shipping Line',
                                tracking=True)
@@ -63,6 +65,41 @@ class Waybill(models.Model):
     # 关联运单箱单
     packing_list_ids = fields.One2many('world.depot.waybill.packing.list', 'waybill_id', string='Packing Lists',
                                        help='Packing lists associated with this container')
+
+
+
+
+
+    @api.constrains('other_docs_ids')
+    def constrain_required_documents(self):
+        for rec in self:
+            bl_count = rec.other_docs_ids.filtered(lambda l: l.bill_doc_type == 'bl' and l.file).count()
+            if bl_count == 0:
+                raise ValidationError(_("BL file is required."))
+
+
+    def name_get(self):
+        res = []
+        for rec in self:
+            parts = []
+            if rec.bl_number:
+                parts.append(f"BL:{rec.bl_number}")
+            if rec.hbl_number:
+                parts.append(f"HBL:{rec.hbl_number}")
+            res.append((rec.id, " / ".join(parts)))
+        return res
+
+    @api.model
+    def name_search(self, name="", args=None, operator="ilike", limit=100):
+        args = args or []
+        domain = args
+        if name:
+            domain = ["|",
+                      ("bl_number", operator, name),
+                      ("hbl_number", operator, name)
+                      ] + args
+        records = self.search(domain, limit=limit)
+        return records.name_get()
 
     def save_record(self):
         """Custom save method to handle record saving."""
@@ -137,7 +174,19 @@ class WaybillOtherDocs(models.Model):
     file = fields.Binary(string='File')
     filename = fields.Char(string='File name')
     waybill_id = fields.Many2one('world.depot.waybill', string='Waybill BillNo', ondelete='cascade')
+    bill_doc_type = fields.Selection([("bl", "BL"), ("other", "Other")], string="Document Type",
+                                required=True, index=True, default="bl")
 
+
+    @api.constrains('file', 'bill_doc_type', 'waybill_id')
+    def constrain_waybill_bl_required(self):
+        for rec in self:
+            if not rec.waybill_id:
+                continue
+            waybill = rec.waybill_id
+            bl_count = len(waybill.other_docs_ids.filtered(lambda l: l.bill_doc_type == 'bl' and l.file))
+            if bl_count == 0:
+                raise ValidationError(_("BL file is required."))
 
 # 集装箱号
 class WaybillContainer(models.Model):
@@ -160,8 +209,13 @@ class WaybillContainer(models.Model):
         string='Container Type',
         required=True,
     )
+    weight = fields.Float(string='Weight (kg)', required=True)
+
+
+
+
     seal_number = fields.Char(string='Seal Number')
-    weight = fields.Float(string='Weight (kg)', default=0.0)
+
     volume = fields.Float(string='Volume (m³)', default=0.0)
     pallets = fields.Float(string='Pallets', default=0)
     quantity = fields.Float(string='Packages', default=0)
