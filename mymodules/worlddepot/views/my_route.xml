@@ -1,0 +1,37 @@
+<odoo>
+    <record id="view_route_rule_form_inherit" model="ir.ui.view">
+        <field name="name">stock.route.rule.form.inherit</field>
+        <field name="model">stock.rule</field>
+        <field name="inherit_id" ref="stock.view_stock_rule_form"/>
+        <field name="arch" type="xml">
+            <!-- 修正xpath表达式 -->
+            <field name="route_id" position="after">
+                <field name="disable_auto_merge" readonly="1"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_stock_rule_tree_inherit" model="ir.ui.view">
+        <field name="name">stock.route.rule.tree.inherit</field>
+        <field name="model">stock.rule</field>
+        <field name="inherit_id" ref="stock.view_stock_rule_tree"/>
+        <field name="arch" type="xml">
+            <field name="name" position="after">
+                <field name="disable_auto_merge" readonly="1"/>
+            </field>
+        </field>
+    </record>
+    
+    <record id="view_stock_route_form_inherit_worlddepot" model="ir.ui.view">
+        <field name="name">stock.route.form.inherit.worlddepot</field>
+        <field name="model">stock.route</field>
+        <field name="inherit_id" ref="stock.stock_location_route_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='route_selector']" position="inside">
+                <group>
+                    <field name="disable_auto_merge"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

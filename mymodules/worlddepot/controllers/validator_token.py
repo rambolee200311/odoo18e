@@ -1,0 +1,69 @@
+# controllers/tools.py
+import json
+import logging
+from odoo import http, fields
+from odoo.http import request
+from functools import wraps
+
+_logger = logging.getLogger(__name__)
+
+
+def validate_token(func):
+    """Decorator to validate API access tokens"""
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        # Get token from headers
+        auth_header = request.httprequest.headers.get('Authorization')
+
+        if not auth_header:
+            _logger.warning("API request missing authentication token")
+            return http.Response(
+                json.dumps({'error': 'Missing authentication token'}),
+                status=401,
+                mimetype='application/json'
+            )
+
+        # Handle both "Bearer token" and plain token formats
+        if auth_header.startswith('Bearer '):
+            token = auth_header[7:]  # Remove "Bearer " prefix (7 characters)
+        else:
+            token = auth_header  # Use as-is if no Bearer prefix
+
+        # Validate token
+        token_rec = request.env['world.depot.api.token'].sudo().search([
+            ('token', '=', token)
+        ], limit=1)
+
+        if not token_rec:
+            _logger.warning("Invalid API token: %s", token)
+            return http.Response(
+                json.dumps({'error': 'Invalid token'}),
+                status=401,
+                mimetype='application/json'
+            )
+
+        if token_rec.expires < fields.Datetime.now():
+            token_rec.unlink()
+            _logger.info("Expired token deleted: %s", token)
+            return http.Response(
+                json.dumps({'error': 'Token expired'}),
+                status=401,
+                mimetype='application/json'
+            )
+
+        # Update environment with authenticated user
+        request.update_env(user=token_rec.user_id.id)
+
+        # Find the API user record associated with this user
+        api_user = request.env['world.depot.api.user'].sudo().search([
+            ('user_id', '=', token_rec.user_id.id)
+        ], limit=1)
+
+        # Store the API user record in the request for later use in endpoints
+        request.api_user = api_user
+
+        # Proceed to the endpoint function
+        return func(*args, **kwargs)
+
+    return wrapper

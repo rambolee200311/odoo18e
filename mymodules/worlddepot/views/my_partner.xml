@@ -1,0 +1,20 @@
+<odoo>
+    <record model="ir.ui.view" id="view_partner_form_inherit_options">
+        <field name="name">res.partner.form.inherit.options</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <notebook position="inside">
+                <page string="Options">
+                    <group col="2">
+                        <field name="shipping_line"/>
+                        <field name="truck"/>
+                        <field name="agency"/>
+                        <field name="warehouse"/>
+                        <field name="terminal"/>
+                    </group>
+                </page>
+            </notebook>
+        </field>
+    </record>
+</odoo>

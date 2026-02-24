@@ -1,0 +1,9 @@
+<odoo>
+    <record id="action_pallet_scan" model="ir.actions.client">
+        <field name="name">Pallet Scan</field>
+        <field name="tag">worlddepot.pallet_scan</field>
+        <field name="target">new</field>  <!-- Open in dialog -->
+        <!-- Optional: Pass parameters to JS -->
+        <field name="params" eval="{'scan_mode': 'barcode'}"/>
+    </record>
+</odoo>

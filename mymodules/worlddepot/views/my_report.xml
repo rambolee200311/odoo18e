@@ -1,0 +1,102 @@
+<odoo>
+    <template id="template_stock_report" name="Stock Report">
+        <t t-call="portal.portal_layout">
+            <div class="container">
+                <h1>Inventory Report</h1>
+                <!-- Filter Form -->
+                <form action="/my/stock_report" method="get" class="mb-4">
+                    <div class="form-group">
+                        <label for="warehouse_id">Warehouse</label>
+                        <select name="warehouse_id" id="warehouse_id" class="form-control">
+                            <option value="">All</option>
+                            <t t-foreach="warehouses" t-as="warehouse">
+                                <option t-att-value="warehouse.id" t-att-selected="warehouse.id == selected_warehouse">
+                                    <t t-esc="warehouse.name"/>
+                                </option>
+                            </t>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="location_id">Location</label>
+                        <select name="location_id" id="location_id" class="form-control">
+                            <option value="">All</option>
+                            <t t-foreach="locations" t-as="location">
+                                <option t-att-value="location.id" t-att-selected="location.id == selected_location">
+                                    <t t-esc="location.complete_name"/>
+                                </option>
+                            </t>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="product_id">Product</label>
+                        <select name="product_id" id="product_id" class="form-control">
+                            <option value="">All</option>
+                            <t t-foreach="products" t-as="product">
+                                <option t-att-value="product.id" t-att-selected="product.id == selected_product">
+                                    <t t-esc="product.name"/>[<t t-esc="product.default_code"/>]
+                                </option>
+                            </t>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Filter</button>
+                </form>
+
+                <!-- Report Table -->
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Location</th>
+                            <th>Quantity</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="stock_quants" t-as="quant">
+                            <tr>
+                                <td>
+                                    <t t-esc="quant.product_id.name"/>[<t t-esc="quant.product_id.default_code"/>]
+                                </td>
+                                <td><t t-esc="quant.location_id.complete_name"/></td>
+                                <td><t t-esc="quant.quantity"/></td>
+                            </tr>
+                        </t>
+                    </tbody>
+                </table>
+            </div>
+        </t>
+    </template>
+
+    <!-- Tree View -->
+    <record id="view_stock_quant_tree_my" model="ir.ui.view">
+        <field name="name">stock.quant.tree.my</field>
+        <field name="model">stock.quant</field>
+        <field name="arch" type="xml">
+            <list string="Stock Quantities">
+                <field name="product_id"/>
+                <field name="location_id"/>
+                <field name="quantity"/>
+            </list>
+        </field>
+    </record>
+    <!-- Search View -->
+    <record id="view_stock_quant_search_my" model="ir.ui.view">
+        <field name="name">stock.quant.search.my</field>
+        <field name="model">stock.quant</field>
+        <field name="arch" type="xml">
+            <search string="Stock Quantities">
+                <field name="product_id"/>
+                <field name="location_id"/>
+                <field name="quantity"/>
+            </search>
+        </field>
+    </record>
+     <!-- Action -->
+    <record id="action_stock_quant_my" model="ir.actions.act_window">
+        <field name="name">Stock Quantities</field>
+        <field name="res_model">stock.quant</field>
+        <field name="view_mode">tree,search</field>
+        <field name="view_id" ref="view_stock_quant_tree_my"/>
+        <field name="search_view_id" ref="view_stock_quant_search_my"/>
+    </record>
+
+</odoo>

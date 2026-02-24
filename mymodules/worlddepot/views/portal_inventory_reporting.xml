@@ -1,0 +1,14 @@
+<odoo>
+    <template id="portal_my_home" inherit_id="portal.portal_my_home">
+        <xpath expr="//div[@class='o_portal_docs row g-2']" position="inside">
+            <div class="col-12 col-md-6">
+                <a href="/my/stock_report" class="d-flex gap-2 py-3 px-3 h-100 rounded text-decoration-none bg-light">
+                    <div>
+                        <h5 class="mb-1">Stock Report</h5>
+                        <p class="text-muted mb-0">View and filter inventory data.</p>
+                    </div>
+                </a>
+            </div>
+        </xpath>
+    </template>
+</odoo>

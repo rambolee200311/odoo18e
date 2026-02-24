@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Dashboard Form View -->
+    <record id="view_world_depot_dashboard_form" model="ir.ui.view">
+        <field name="name">world.depot.dashboard.form</field>
+        <field name="model">world.deport.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="World Depot Dashboard" create="false" edit="false" delete="false">
+                <sheet>
+                    <div class="dashboard" style="padding: 16px; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;">
+                        <!--Inbound Shortcut -->
+                        <div class="card o_kanban_record" style="padding: 16px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center; background: #f8f9fa;">
+                            <h3>Inbound Orders</h3>
+                            <p>Total: <field name="inbound_count" readonly="true"/></p>
+                            <button name="action_open_inbound" type="object" string="Open" class="btn btn-primary"/>
+                        </div>
+                         <!--Outbound Shortcut -->
+                        <div class="card o_kanban_record" style="padding: 16px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center; background: #f8f9fa;">
+                            <h3>Outbound Orders</h3>
+                            <p>Total: <field name="outbound_count" readonly="true"/></p>
+                            <button name="action_open_outbound" type="object" string="Open" class="btn btn-primary"/>
+                        </div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Dashboard Action -->
+    <record id="action_world_depot_dashboard" model="ir.actions.act_window">
+        <field name="name">World Depot Dashboard</field>
+        <field name="res_model">world.deport.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="view_id" ref="view_world_depot_dashboard_form"/>
+    </record>
+</odoo>
