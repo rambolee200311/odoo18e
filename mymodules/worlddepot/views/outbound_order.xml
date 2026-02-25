@@ -50,15 +50,32 @@
                          <button name="action_check_available"
                                 type="object"
                                 string="Check Available"
-                                class="oe_stat_button" icon="fa-check-square"/> 
+                                class="oe_stat_button" icon="fa-check-square"
+                                invisible="project_name =='LINGLONG'"/>
+
+                         <button name="action_check_available_linglong"
+                                type="object"
+                                string="Check Available"
+                                class="oe_stat_button" icon="fa-check-square"
+                                invisible="project_name !='LINGLONG'"/>
+
                          <button name="view_outbound_order_product_details"
                                 type="object"
                                 string="Product Detail"
                                 class="oe_stat_button" icon="fa-tasks"/>
+
                          <button name="action_create_picking_PICK"
                             type="object"
                             string="Create Picking"
-                            class="oe_stat_button" icon="fa-file-text"/>
+                            class="oe_stat_button" icon="fa-file-text"
+                            invisible="project_name =='LINGLONG'"/>
+
+                          <button name="action_create_picking_PICK_linglong"
+                            type="object"
+                            string="Create Picking"
+                            class="oe_stat_button" icon="fa-file-text"
+                            invisible="project_name !='LINGLONG'"/>
+
                          <button name="action_create_cmr"
                             type="object"
                             string="Create CMR"
@@ -187,12 +204,12 @@
                                             string="Charge Module"
                                             class="oe_stat_button" icon="fa-calculator"
                                             invisible="state=='cancel'"/>
-                                    </div> 
+                                    </div>
                                 </header>
                                 <sheet>
-                                    <group col="4">                           
+                                    <group col="4">
                                         <field name="charge_year" string="Charge Year" widget="integer" options="{'format': 0}"/>
-                                        <field name="charge_month" string="Charge Month" widget="integer" options="{'format': 0}"/>                                
+                                        <field name="charge_month" string="Charge Month" widget="integer" options="{'format': 0}"/>
                                     </group>
                                     <group col="2">
                                         <field name="total_amount" readonly="1"/>
@@ -208,7 +225,7 @@
                                             <field name="currency_id"/>
                                         </list>
                                     </field>
-                                </sheet>   
+                                </sheet>
                             </form>
                         </page>
                         <page string="Documents">

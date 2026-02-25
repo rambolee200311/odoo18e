@@ -14,7 +14,7 @@ class OutboundOrderNew(models.Model):
         string='Charge Module',
         help='Selected charge module for this outbound order',
     )
-    
+
     charge_year = fields.Integer(
         string='Charge Year',default=lambda self: fields.Date.context_today(self).year,
         help='Year for which the charge is applicable.'
@@ -54,13 +54,13 @@ class OutboundOrderNew(models.Model):
                 'child_model': 'world.depot.outbound.order.charge',
             },
         }
-    
+
     @api.depends('outbound_order_charge_ids.amount')
     def _compute_amount(self):
         """Compute the total amount for all charges."""
         for record in self:
             total = sum(charge.amount for charge in record.outbound_order_charge_ids)
-            record.total_amount = total    
+            record.total_amount = total
 
 
 class OutboundOrderCharge(models.Model):
@@ -69,7 +69,7 @@ class OutboundOrderCharge(models.Model):
 
     outbound_order_id = fields.Many2one(
         'world.depot.outbound.order',
-        string='Outbound Order',
+        string='Inbound Order',
         required=True,
         help='Reference to the related outbound order.'
     )

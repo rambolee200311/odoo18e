@@ -49,6 +49,7 @@ class StockLocation(models.Model):
             return 'date, id'
         return super(StockLocation, self)._get_removal_strategy_order(removal_strategy)
 
+
 class StockMove(models.Model):
     _inherit = 'stock.move'
 
@@ -61,7 +62,7 @@ class StockMove(models.Model):
     )
     outbound_order_product_id = fields.Integer('Outbound Order ProductID')
     transfer_order_line_id = fields.Integer('Transfer Order Line ID')
-    
+
 
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
@@ -88,7 +89,7 @@ class StockPicking(models.Model):
         string='Transfer Order',
         help='Reference to the related Transfer Order',
         readonly=True
-    )   
+    )
     load_ref = fields.Char(string='Loading Reference', required=False, help='Reference for the Delivery')
 
     # Override button_validate to add post-validation processing

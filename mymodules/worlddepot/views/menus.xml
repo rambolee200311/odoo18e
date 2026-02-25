@@ -18,7 +18,7 @@
         <menuitem id="transfer_order_logi_menu" name="Transfer" parent="world_depot_logi_menu" sequence="400" />
         <menuitem id="transfer_order_menu" name="Orders" parent="transfer_order_logi_menu" sequence="401" action="action_transfer_order"/>
 
-        <menuitem id="stock_report_menu" name="Stock Report" parent="world_depot_logi_menu" sequence="500" />  
+        <menuitem id="stock_report_menu" name="Stock Report" parent="world_depot_logi_menu" sequence="500" />
         <menuitem id="stock_report_linglong_menu" name="Stock Report for Linglong" parent="stock_report_menu" sequence="501" action="action_world_depot_linglong_report"/>
 
         <menuitem id="charge_management_logi_menu" name="Charge Management" parent="world_depot_logi_menu" sequence="600" />
@@ -40,6 +40,9 @@
 
         <menuitem id="menu_product_duplicate" name="Product Duplicate" sequence="991" parent="menu_world_depot_configuration" action="action_product_duplicate"/>
         <menuitem id="menu_location_type" name="Location Types" parent="menu_world_depot_configuration" action="action_stock_location_type" sequence="915"/>
+
+        <menuitem id="menu_world_depot_charge_unit"  name="Charge Units" parent="menu_world_depot_configuration" action="action_world_depot_charge_unit" sequence="913"/>
+        <menuitem id="menu_world_depot_charge_item"  name="Charge Items" parent="menu_world_depot_configuration" action="action_world_depot_charge_item" sequence="914"/>
         <!--<menuitem id="menu_world_depot_excel_template"
           name="Excel Templates"
           parent="menu_world_depot_configuration"
@@ -52,6 +55,5 @@
         <menuitem id="menu_hoymiles_api_urls" name="Hoymiles API URLs" parent="menu_hoymiles_api_configuration" action="action_hoymiles_api_urls" sequence="1103"/>
         <menuitem id="menu_hoymiles_api_logs" name="Hoymiles API Logs" parent="menu_hoymiles_api_configuration" action="action_hoymiles_api_logs" sequence="1104"/>
         
-
     </data>
 </odoo>

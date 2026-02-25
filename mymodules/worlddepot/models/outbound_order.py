@@ -39,6 +39,7 @@ class OutboundOrder(models.Model):
     p_date = fields.Date(string='Planning Date', required=False, tracking=True)
     o_date = fields.Date(string='Outbound Date', required=False, tracking=True)
     project = fields.Many2one('project.project', string='Project', required=True)
+    project_name = fields.Char(string='Project Name', related='project.name', stored=True, tracking=True)
     owner = fields.Many2one('res.partner', string='Owner', related='project.owner', stored=True, tracking=True)
     warehouse = fields.Many2one('stock.warehouse', string='Warehouse', tracking=True,
                                 stored=True)
