@@ -9,33 +9,47 @@
                 <field name="url"/>
                 <field name="parameters_form"/>
                 <field name="parameters_json"/>
+                <field name="response_example"/>
                 <field name="description"/>
             </list>
         </field>
     </record>
-<record id="view_hoymiles_api_urls_form" model="ir.ui.view">
-    <field name="name">hoymiles.api.urls.form</field>
-    <field name="model">hoymiles.api.urls</field>
-    <field name="arch" type="xml">
-        <form string="Hoymiles API URL" duplicate="false">
-            <sheet>
-                <group col="2">
-                    <field name="name" required="1"/>
-                    <field name="url" required="1"/>
-                </group>
+    <!-- Form View for Hoymiles API URLs -->
+    <record id="view_hoymiles_api_urls_form" model="ir.ui.view">
+        <field name="name">hoymiles.api.urls.form</field>
+        <field name="model">hoymiles.api.urls</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="url"/>
+                    </group>
+                    <group>
+                        <field name="parameters_form"/>
+                        <field name="parameters_json"/>
+                    </group>
+                    <group>
+                        <field name="response_example"/>
+                        <field name="description"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
 
-                <group col="2">
-                    <field name="parameters_form"/>
-                    <field name="parameters_json"/>
-                </group>
-
-                <group>
-                    <field name="description" colspan="2"/>
-                </group>
-            </sheet>
-        </form>
-    </field>
-</record>
+    <!-- Search View for Hoymiles API URLs -->
+    <record id="view_hoymiles_api_urls_search" model="ir.ui.view">
+        <field name="name">hoymiles.api.urls.search</field>
+        <field name="model">hoymiles.api.urls</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name" string="API Name"/>
+                <field name="url" string="API URL"/>
+                <field name="description" string="Description"/>
+            </search>
+        </field>
+    </record>
 
     <!-- action to open hoymiles api urls list -->
     <record id="action_hoymiles_api_urls" model="ir.actions.act_window">

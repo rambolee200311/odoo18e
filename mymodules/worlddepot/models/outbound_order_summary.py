@@ -67,7 +67,7 @@ class OutboundOrderSummary(models.Model):
         except Exception as e:
             _logger.error(f"Error initializing OutboundOrderSummary: {e}")
 
-    def init_new(self):
+    def init(self):
         """Initialize the summary table with data from outbound orders."""
         try:
             # Clear existing data
@@ -185,7 +185,7 @@ class OutboundOrderSummary(models.Model):
         _logger.info("Manual refresh of OutboundOrderSummary requested")
         try:
             # Rebuild the summary
-            self.init_new()
+            self.init()
             _logger.info("Manual refresh completed successfully")
             return True
         except Exception as e:

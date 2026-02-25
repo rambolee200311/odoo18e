@@ -9,13 +9,13 @@ class InboundOrderNew(models.Model):
         'inbound_order_id',
         string='Inbound Order Charges'
     )
-    
+
     charge_module_id = fields.Many2one(
         'world.depot.charge.module',
         string='Charge Module',
         help='Selected charge module for this inbound order',
     )
-    
+
     charge_year = fields.Integer(
         string='Charge Year',default=lambda self: fields.Date.context_today(self).year,
         help='Year for which the charge is applicable.'
@@ -55,14 +55,14 @@ class InboundOrderNew(models.Model):
                 'child_model': 'world.depot.inbound.order.charge',
             },
         }
-        
+
     @api.depends('inbound_order_charge_ids.amount')
     def _compute_amount(self):
         """Compute the total amount for all charges."""
         for record in self:
             total = sum(charge.amount for charge in record.inbound_order_charge_ids)
-            record.total_amount = total    
-    
+            record.total_amount = total
+
 
 
 class InboundOrderCharge(models.Model):
