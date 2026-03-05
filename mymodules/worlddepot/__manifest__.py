@@ -58,6 +58,7 @@
         'views/my_sequence.xml',
         'views/menus.xml',
         #'views/pallet_barcode_action.xml',
+        'views/product_category_view.xml',
     ],
     # only loaded in demonstration mode
     'demo': [
