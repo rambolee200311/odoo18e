@@ -76,7 +76,7 @@
             #'web/static/src/core/barcode/barcode_dialog.js',
             #'worlddepot/static/src/js/pallet_scan.js',
             #'worlddepot/static/src/js/pallet_barcode_patch.js',
-            'worlddepot/static/src/models/barcode_picking_model_patch.js',
+            #'worlddepot/static/src/models/barcode_picking_model_patch.js',
         ],
     },
     'license': 'LGPL-3',
