@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <menuitem id="menu_transportation_root"
+                  name="运输计划"
+                  sequence="100"/>
+        
+        <menuitem id="menu_transport_plan_schedule"
+                  name="排期管理"
+                  parent="menu_transportation_root"
+                  action="action_transport_plan_schedule"
+                  sequence="10"/>
+
+        <menuitem id="menu_transport_plan_records"
+                  name="排期记录"
+                  parent="menu_transportation_root"
+                  action="action_container_transport_plan"
+                  sequence="20"/>
+    </data>
+</odoo>
