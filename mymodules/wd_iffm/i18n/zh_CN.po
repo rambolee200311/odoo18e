@@ -1,0 +1,2038 @@
+# Chinese (China) translations for Odoo.
+# Copyright (C) 2026 Odoo, Inc.
+# This file is distributed under the same license as the Odoo project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 16.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-11 10:00+0000\n"
+"PO-Revision-Date: 2026-02-11 10:00+0800\n"
+"Last-Translator: \n"
+"Language-Team: Chinese (China) (https://www.transifex.com/odoo/)\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#. module: wd_iffm
+#: model:ir.ui.menu,name:wd_iffm.menu_wd_charge_root
+msgid "IMMGs"
+msgstr "进口货代"
+
+#. module: wd_iffm
+#: model:ir.ui.menu,name:wd_iffm.menu_wd_charge_quotation
+msgid "Quotations"
+msgstr "报价单"
+
+#. module: wd_iffm
+#: model:ir.ui.menu,name:wd_iffm.menu_operation_handover_root
+msgid "Operations"
+msgstr "作业"
+
+#. module: wd_iffm
+#: model:ir.ui.menu,name:wd_iffm.menu_operation_handover
+msgid "Handover"
+msgstr "换单"
+
+#. module: wd_iffm
+#: model:ir.ui.menu,name:wd_iffm.wms_waybill_menu
+msgid "Waybills"
+msgstr "运单"
+
+#. module: wd_iffm
+#: model:ir.ui.menu,name:wd_iffm.charge_item_menu
+msgid "Charge Management"
+msgstr "费用项目"
+
+#. module: wd_iffm
+#: model:ir.model,name:wd_iffm.model_charge_quotation
+msgid "Charge Quotation"
+msgstr "费用报价单"
+
+#. module: wd_iffm
+#: model:ir.model,name:wd_iffm.model_charge_quotation_line
+msgid "Charge Quotation Line"
+msgstr "费用报价单明细行"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation__name
+msgid "Quotation No."
+msgstr "报价单编号"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation__project_id
+msgid "Project"
+msgstr "项目"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation__is_active
+msgid "Active"
+msgstr "激活"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation__date
+msgid "Quotation Date"
+msgstr "报价日期"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation__effective_from
+msgid "Effective From"
+msgstr "生效开始日期"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation__effective_to
+msgid "Effective To"
+msgstr "生效结束日期"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation__currency_id
+msgid "Currency"
+msgstr "货币"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation__remark
+msgid "Remark"
+msgstr "备注"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation__state
+msgid "Status"
+msgstr "状态"
+
+#. module: wd_iffm
+#: model:ir.model.fields.selection,name:wd_iffm.selection__charge_quotation__state__draft
+msgid "Draft"
+msgstr "草稿"
+
+#. module: wd_iffm
+#: model:ir.model.fields.selection,name:wd_iffm.selection__charge_quotation__state__active
+msgid "Active"
+msgstr "激活"
+
+#. module: wd_iffm
+#: model:ir.model.fields.selection,name:wd_iffm.selection__charge_quotation__state__expired
+msgid "Expired"
+msgstr "已过期"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation__quotation_lines
+msgid "Quotation Lines"
+msgstr "报价单明细"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation__quotation_thc_lines
+msgid "THC Lines"
+msgstr "码头操作费明细"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation__quotation_customs_lines
+msgid "Customs Lines"
+msgstr "报关费明细"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation__quotation_trucking_lines
+msgid "Trucking Lines"
+msgstr "运输费明细"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation__quotation_wh_in_lines
+msgid "WH Inbound Lines"
+msgstr "仓库进库费明细"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation__quotation_storage_lines
+msgid "Storage Lines"
+msgstr "仓储费明细"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation__quotation_wh_out_lines
+msgid "WH Outbound Lines"
+msgstr "仓库出库费明细"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation__quotation_wh_extra_lines
+msgid "WH Extra Lines"
+msgstr "仓库额外服务费明细"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation__quotation_wh_pack_lines
+msgid "WH Packaging Lines"
+msgstr "仓库包装费明细"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation__quotation_wh_monthly_lines
+msgid "WH Monthly Lines"
+msgstr "仓库月度费用明细"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation__quotation_wh_other_lines
+msgid "WH Other Lines"
+msgstr "仓库其他费用明细"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation_line__quotation_id
+msgid "Quotation"
+msgstr "报价单"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation_line__charge_item_id
+msgid "Charge Item"
+msgstr "费用项目"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation_line__tab_category
+msgid "Tab Category"
+msgstr "分类标签"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation_line__is_fixed_fee
+msgid "Fixed Fee"
+msgstr "固定费用"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation_line__unit_price
+msgid "Unit Price"
+msgstr "单价"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation_line__unit_id
+msgid "Unit"
+msgstr "单位"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation_line__currency_id
+msgid "Currency"
+msgstr "货币"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation_line__remark
+msgid "Remark"
+msgstr "备注"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation_line__active
+msgid "Active"
+msgstr "激活"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/models/charge_pricing_models/charge_quotation.py:0
+msgid "Quotation must have at least one line."
+msgstr "报价单必须至少有一条明细。"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/models/charge_pricing_models/charge_quotation.py:0
+msgid "Effective To must be >= Effective From."
+msgstr "生效结束日期必须大于等于生效开始日期。"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/models/charge_pricing_models/charge_quotation.py:0
+msgid "Only one active quotation is allowed for the same project."
+msgstr "同一项目只允许有一个激活的报价单。"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/models/charge_pricing_models/charge_quotation.py:0
+msgid "No quotation lines to export."
+msgstr "没有报价单明细可导出。"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/models/charge_pricing_models/charge_quotation.py:0
+msgid "xlsxwriter not installed: %s"
+msgstr "xlsxwriter 未安装：%s"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/models/charge_pricing_models/charge_quotation.py:0
+msgid "Charge item already exists in this quotation."
+msgstr "费用项目已在此报价单中存在。"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/models/charge_pricing_models/charge_quotation.py:0
+msgid "This expense item already exists in this classification tab of the current quotation and cannot be added repeatedly."
+msgstr "此费用项目已存在于当前报价单的此分类标签中，不能重复添加。"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.view_charge_quotation_form
+msgid "Activate"
+msgstr "激活"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.view_charge_quotation_form
+msgid "Expire"
+msgstr "过期"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.view_charge_quotation_form
+msgid "Set Draft"
+msgstr "设为草稿"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.view_charge_quotation_form
+msgid "Batch Add"
+msgstr "批量添加"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.view_charge_quotation_form
+msgid "THC Handling"
+msgstr "码头操作费"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.view_charge_quotation_form
+msgid "Customs Formalities"
+msgstr "报关手续"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.view_charge_quotation_form
+msgid "Trucking"
+msgstr "拖车运输"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.view_charge_quotation_form
+msgid "WH Inbound"
+msgstr "仓库进仓"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.view_charge_quotation_form
+msgid "WH Storage"
+msgstr "仓储费"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.view_charge_quotation_form
+msgid "WH Outbound"
+msgstr "仓库出仓"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.view_charge_quotation_form
+msgid "WH Extra Handling"
+msgstr "仓库额外操作"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.view_charge_quotation_form
+msgid "WH Packaging"
+msgstr "仓库包装"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.view_charge_quotation_form
+msgid "WH Monthly Fixed"
+msgstr "仓库月结固定费"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.view_charge_quotation_form
+msgid "WH Other"
+msgstr "仓库其他"
+
+#. module: wd_iffm
+#: model:ir.actions.act_window,help:wd_iffm.action_charge_quotation
+msgid "Create your first quotation."
+msgstr "创建您的第一个报价单。"
+
+#. module: wd_iffm
+#: model:ir.actions.act_window,name:wd_iffm.action_charge_quotation
+msgid "Quotations"
+msgstr "报价单"
+
+
+
+#. module: wd_iffm
+#: model:ir.model,name:wd_iffm.model_operation_order_handover_charge_line
+msgid "Charge Line (AR)"
+msgstr "费用明细 (应收)"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_charge_line__amount_total
+msgid "Total Amount"
+msgstr "总金额"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_charge_line__handover_id
+msgid "Handover"
+msgstr "换单作业"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_charge_line__container_qty
+msgid "Container Qty"
+msgstr "集装箱数量"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_charge_line__charge_origin_type
+msgid "Charge Source"
+msgstr "费用来源"
+
+#. module: wd_iffm
+#: model:ir.model.fields.selection,name:wd_iffm.selection__operation_order_handover_charge_line__charge_origin_type__quotation
+msgid "Quotation"
+msgstr "报价单"
+
+#. module: wd_iffm
+#: model:ir.model.fields.selection,name:wd_iffm.selection__operation_order_handover_charge_line__charge_origin_type__manual
+msgid "Manual"
+msgstr "手动"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_charge_line__quotation_id
+msgid "Quotation"
+msgstr "报价单"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_charge_line__project_id
+msgid "Project/Customer"
+msgstr "项目/客户"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_charge_line__currency_id
+msgid "Currency"
+msgstr "币种"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_charge_line__charge_item_id
+msgid "Charge Item"
+msgstr "费用项目"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_charge_line__quotation_tab_category
+msgid "Tab Category"
+msgstr "标签类别"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_charge_line__charge_item_operation_type
+msgid "Operation Type"
+msgstr "操作类型"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_charge_line__qty
+msgid "Qty"
+msgstr "数量"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_charge_line__unit_price
+msgid "Unit Price"
+msgstr "单价"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_charge_line__unit_id
+msgid "Unit"
+msgstr "单位"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_charge_line__manual_amount_total
+msgid "Manual Total Amount"
+msgstr "手动总金额"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_charge_line__remark
+msgid "Remark"
+msgstr "备注"
+
+#. module: wd_iffm
+#: model:ir.model,name:wd_iffm.model_operation_order_handover_cost_line
+msgid "Handover Cost Line (AP Cost)"
+msgstr "交接成本明细 (应付成本)"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_cost_line__handover_id
+msgid "Handover"
+msgstr "交接单"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_cost_line__invoice_line_id
+msgid "Related Vendor Ticket"
+msgstr "相关供应商票据"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_cost_line__charge_type
+msgid "Charge Source"
+msgstr "费用来源"
+
+#. module: wd_iffm
+#: model:ir.model.fields.selection,name:wd_iffm.selection__operation_order_handover_cost_line__charge_type__quotation
+msgid "Quotation"
+msgstr "报价单"
+
+#. module: wd_iffm
+#: model:ir.model.fields.selection,name:wd_iffm.selection__operation_order_handover_cost_line__charge_type__manual
+msgid "Manual"
+msgstr "手动"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_cost_line__project_id
+msgid "Project/Customer"
+msgstr "项目/客户"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_cost_line__currency_id
+msgid "Currency"
+msgstr "币种"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_cost_line__charge_item_id
+msgid "Charge Item"
+msgstr "费用项目"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_cost_line__unit_price
+msgid "Unit Price"
+msgstr "单价"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_cost_line__qty
+msgid "Qty"
+msgstr "数量"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_cost_line__unit_id
+msgid "Unit"
+msgstr "单位"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_cost_line__amount_total
+msgid "Total Amount"
+msgstr "总金额"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_cost_line__is_manual_amount
+msgid "Manual Override"
+msgstr "手动覆盖"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_cost_line__rule_snapshot
+msgid "Rule Snapshot"
+msgstr "规则快照"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_cost_line__source_snapshot
+msgid "Source Snapshot"
+msgstr "来源快照"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_cost_line__remark
+msgid "Remark"
+msgstr "备注"
+
+#. module: wd_iffm
+#: model:ir.model,name:wd_iffm.model_operation_order_handover
+msgid "Handover Operation"
+msgstr "交接操作"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__name
+msgid "Handover No."
+msgstr "交接单号"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__waybill_id
+msgid "Waybill"
+msgstr "运单"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__order_source
+msgid "Order Source"
+msgstr "订单来源"
+
+#. module: wd_iffm
+#: model:ir.model.fields.selection,name:wd_iffm.selection__operation_order_handover__order_source__manual
+msgid "Manual"
+msgstr "手动"
+
+#. module: wd_iffm
+#: model:ir.model.fields.selection,name:wd_iffm.selection__operation_order_handover__order_source__external
+msgid "External"
+msgstr "外部"
+
+#. module: wd_iffm
+#: model:ir.model.fields.selection,name:wd_iffm.selection__operation_order_handover__order_source__import
+msgid "Import"
+msgstr "导入"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__external_system_type
+msgid "External System Type"
+msgstr "外部系统类型"
+
+#. module: wd_iffm
+#: model:ir.model.fields.selection,name:wd_iffm.selection__operation_order_handover__external_system_type__tms
+msgid "TMS"
+msgstr "运输管理系统"
+
+#. module: wd_iffm
+#: model:ir.model.fields.selection,name:wd_iffm.selection__operation_order_handover__external_system_type__oms
+msgid "OMS"
+msgstr "订单管理系统"
+
+#. module: wd_iffm
+#: model:ir.model.fields.selection,name:wd_iffm.selection__operation_order_handover__external_system_type__other
+msgid "Other"
+msgstr "其他"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__external_system_no
+msgid "External Order No."
+msgstr "外部订单号"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__sync_time
+msgid "Sync Time"
+msgstr "同步时间"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__project_id
+msgid "Project"
+msgstr "项目"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__charge_quotation_id
+msgid "Charge Quotation"
+msgstr "费用报价单"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__currency_id
+msgid "Currency"
+msgstr "币种"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__state
+msgid "Status"
+msgstr "状态"
+
+#. module: wd_iffm
+#: model:ir.model.fields.selection,name:wd_iffm.selection__operation_order_handover__state__open
+msgid "Open"
+msgstr "待处理"
+
+#. module: wd_iffm
+#: model:ir.model.fields.selection,name:wd_iffm.selection__operation_order_handover__state__apply
+msgid "Apply"
+msgstr "申请中"
+
+#. module: wd_iffm
+#: model:ir.model.fields.selection,name:wd_iffm.selection__operation_order_handover__state__paying
+msgid "Paying"
+msgstr "付款中"
+
+#. module: wd_iffm
+#: model:ir.model.fields.selection,name:wd_iffm.selection__operation_order_handover__state__paid
+msgid "Paid"
+msgstr "已付款"
+
+#. module: wd_iffm
+#: model:ir.model.fields.selection,name:wd_iffm.selection__operation_order_handover__state__releasing
+msgid "Releasing"
+msgstr "放货中"
+
+#. module: wd_iffm
+#: model:ir.model.fields.selection,name:wd_iffm.selection__operation_order_handover__state__released
+msgid "Released"
+msgstr "已放货"
+
+#. module: wd_iffm
+#: model:ir.model.fields.selection,name:wd_iffm.selection__operation_order_handover__state__close
+msgid "Close"
+msgstr "已完成"
+
+#. module: wd_iffm
+#: model:ir.model.fields.selection,name:wd_iffm.selection__operation_order_handover__state__cancelled
+msgid "Cancelled"
+msgstr "已取消"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__confirm_user_id
+msgid "Confirmed By"
+msgstr "确认人"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__confirm_time
+msgid "Confirmed On"
+msgstr "确认时间"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__settle_user_id
+msgid "Settled By"
+msgstr "结算人"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__settle_time
+msgid "Settled On"
+msgstr "结算时间"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__bl_type
+msgid "B/L Type"
+msgstr "提单类型"
+
+#. module: wd_iffm
+#: model:ir.model.fields.selection,name:wd_iffm.selection__operation_order_handover__bl_type__original
+msgid "Original"
+msgstr "正本"
+
+#. module: wd_iffm
+#: model:ir.model.fields.selection,name:wd_iffm.selection__operation_order_handover__bl_type__telex
+msgid "Telex Release"
+msgstr "电放"
+
+#. module: wd_iffm
+#: model:ir.model.fields.selection,name:wd_iffm.selection__operation_order_handover__bl_type__sea_waybill
+msgid "Sea Waybill"
+msgstr "海运单"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__bl_issue_datetime
+msgid "B/L Issue Date"
+msgstr "提单签发日期"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__shipping_line_id
+msgid "Shipping Line"
+msgstr "船公司"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__voyage_no
+msgid "Voyage No."
+msgstr "航次"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__shipper
+msgid "Shipper/Exporter"
+msgstr "发货人/出口商"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__consignee
+msgid "Consignee/Importer"
+msgstr "收货人/进口商"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__terminal_a
+msgid "Terminal of Arrival"
+msgstr "目的港码头"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__eta
+msgid "ETA"
+msgstr "预计到港时间"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__ata
+msgid "ATA"
+msgstr "实际到港时间"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__do_no
+msgid "Delivery Order No."
+msgstr "提货单号"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__do_issue_datetime
+msgid "DO Issue Date"
+msgstr "提货单签发日期"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__expected_pickup_datetime
+msgid "Expected Pickup Date"
+msgstr "预计提货日期"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__actual_pickup_datetime
+msgid "Actual Pickup Date"
+msgstr "实际提货日期"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__handover_datetime
+msgid "Handover Completed On"
+msgstr "交接完成时间"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__remark
+msgid "Remark"
+msgstr "备注"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__container_line_ids
+msgid "Containers"
+msgstr "集装箱"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__container_qty
+msgid "Container Qty"
+msgstr "集装箱数量"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__invoice_line_ids
+msgid "Vendor Invoice Lines"
+msgstr "供应商发票明细"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__attachment_line_ids
+msgid "Document Lines"
+msgstr "单据明细"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__has_advance_invoice
+msgid "Has Advance Invoice"
+msgstr "有预付款发票"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__has_unpaid_advance_invoice
+msgid "Has Unpaid Advance Invoice"
+msgstr "有未付预付款发票"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__all_advance_paid
+msgid "All Advance Paid"
+msgstr "所有预付款已付"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__charge_line_ids
+msgid "Charges"
+msgstr "费用"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__cost_line_ids
+msgid "Costs"
+msgstr "成本"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__amount_charge_total
+msgid "AR Total"
+msgstr "应收总额"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__amount_cost_total
+msgid "Cost Total"
+msgstr "成本总额"
+
+#. module: wd_iffm
+#: code:addons/wd_iffm/models/operation_order_handover.py:0
+#, python-format
+msgid "This waybill is already used by another active handover order."
+msgstr "此运单已被其他有效交接单使用。"
+
+#. module: wd_iffm
+#: code:addons/wd_iffm/models/operation_order_handover.py:0
+#, python-format
+msgid "POA file is required."
+msgstr "需要POA文件。"
+
+#. module: wd_iffm
+#: code:addons/wd_iffm/models/operation_order_handover.py:0
+#, python-format
+msgid "BL file is required."
+msgstr "需要提单文件。"
+
+#. module: wd_iffm
+#: code:addons/wd_iffm/models/operation_order_handover.py:0
+#, python-format
+msgid "BL is required (BL file or BL number)."
+msgstr "需要提单（提单文件或提单号）。"
+
+#. module: wd_iffm
+#: code:addons/wd_iffm/models/operation_order_handover.py:0
+#, python-format
+msgid "Apply email evidence is required before Apply."
+msgstr "申请前需要申请邮件凭证。"
+
+#. module: wd_iffm
+#: code:addons/wd_iffm/models/operation_order_handover.py:0
+#, python-format
+msgid "Only Apply/Paying/Paid can go to Releasing."
+msgstr "只有申请中/付款中/已付款状态可以进入放货中。"
+
+#. module: wd_iffm
+#: code:addons/wd_iffm/models/operation_order_handover.py:0
+#, python-format
+msgid "All advance invoices must be paid before Releasing."
+msgstr "放货前必须付清所有预付款发票。"
+
+#. module: wd_iffm
+#: code:addons/wd_iffm/models/operation_order_handover.py:0
+#, python-format
+msgid "Release request evidence is required before Releasing.(Release File)"
+msgstr "放货前需要放货申请凭证（放货文件）。"
+
+#. module: wd_iffm
+#: code:addons/wd_iffm/models/operation_order_handover.py:0
+#, python-format
+msgid "Only Releasing can be set to Released."
+msgstr "只有放货中状态可以设置为已放货。"
+
+#. module: wd_iffm
+#: code:addons/wd_iffm/models/operation_order_handover.py:0
+#, python-format
+msgid "DO / Telex Release document is required before Released."
+msgstr "放货前需要提货单/电放文件。"
+
+#. module: wd_iffm
+#: code:addons/wd_iffm/models/operation_order_handover.py:0
+#, python-format
+msgid "Only Released can be closed."
+msgstr "只有已放货状态可以完成。"
+
+#. module: wd_iffm
+#: code:addons/wd_iffm/models/operation_order_handover.py:0
+#, python-format
+msgid "DO / Telex Release document is required before Close."
+msgstr "完成前需要提货单/电放文件。"
+
+#. module: wd_iffm
+#: model:ir.model,name:wd_iffm.model_operation_order_handover_invoice_line
+msgid "Handover Vendor Invoice Line"
+msgstr "交接供应商发票明细"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_invoice_line__handover_id
+msgid "Handover"
+msgstr "交接单"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_invoice_line__vendor_partner_id
+msgid "Vendor (Shipping Line / Agent)"
+msgstr "供应商（船公司/代理）"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_invoice_line__vendor_invoice_id
+msgid "Vendor Invoice (Optional)"
+msgstr "供应商发票（可选）"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_invoice_line__invoice_date
+msgid "Invoice Date"
+msgstr "发票日期"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_invoice_line__currency_id
+msgid "Currency"
+msgstr "币种"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_invoice_line__amount_total
+msgid "Amount"
+msgstr "金额"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.operation_order_handover_view_list
+msgid "Handover Orders"
+msgstr "交接单"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.operation_order_handover_view_list
+msgid "create_date"
+msgstr "创建日期"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.operation_order_handover_view_form
+msgid "Handover Order"
+msgstr "交接单"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.operation_order_handover_view_form
+msgid "Apply"
+msgstr "申请"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.operation_order_handover_view_form
+msgid "Releasing"
+msgstr "放货中"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.operation_order_handover_view_form
+msgid "Released"
+msgstr "已放货"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.operation_order_handover_view_form
+msgid "Close"
+msgstr "完成"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.operation_order_handover_view_form
+msgid "Recompute State"
+msgstr "重新计算状态"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.operation_order_handover_view_form
+msgid "Base Info"
+msgstr "基本信息"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.operation_order_handover_view_form
+msgid "External System"
+msgstr "外部系统"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.operation_order_handover_view_form
+msgid "B/L  Voyage"
+msgstr "提单/航次"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.operation_order_handover_view_form
+msgid "D/O"
+msgstr "提货单"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.operation_order_handover_view_form
+msgid "Containers"
+msgstr "集装箱"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.operation_order_handover_view_form
+msgid "container_number"
+msgstr "箱号"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.operation_order_handover_view_form
+msgid "container_type"
+msgstr "箱型"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.operation_order_handover_view_form
+msgid "seal_number"
+msgstr "封条号"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.operation_order_handover_view_form
+msgid "pallets"
+msgstr "托盘数"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.operation_order_handover_view_form
+msgid "weight"
+msgstr "重量"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.operation_order_handover_view_form
+msgid "volume"
+msgstr "体积"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.operation_order_handover_view_form
+msgid "quantity"
+msgstr "数量"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.operation_order_handover_view_form
+msgid "Charges"
+msgstr "应收费用"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.operation_order_handover_view_form
+msgid "Costs"
+msgstr "应付成本"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.operation_order_handover_view_form
+msgid "Documents"
+msgstr "单据"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.operation_order_handover_view_form
+msgid "doc_type"
+msgstr "单据类型"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.operation_order_handover_view_form
+msgid "Document Name"
+msgstr "单据名称"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.operation_order_handover_view_form
+msgid "Attachments"
+msgstr "附件"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.operation_order_handover_view_form
+msgid "Vendor Invoices"
+msgstr "供应商发票"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.operation_order_handover_view_form
+msgid "invoice_date"
+msgstr "发票日期"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.operation_order_handover_view_form
+msgid "payment_mode"
+msgstr "付款方式"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.operation_order_handover_view_form
+msgid "payment_state"
+msgstr "付款状态"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.operation_order_handover_view_form
+msgid "vendor_invoice_attachment_ids"
+msgstr "供应商发票附件"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.operation_order_handover_view_form
+msgid "bank_proof_attachment_ids"
+msgstr "银行凭证附件"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.operation_order_handover_view_form
+msgid "vendor_invoice_id"
+msgstr "供应商发票"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.operation_order_handover_view_form
+msgid "Request Payment"
+msgstr "申请付款"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.operation_order_handover_view_form
+msgid "has_advance_invoice"
+msgstr "有预付款发票"
+
+#. module: wd_iffm
+#: model:ir.ui.view,arch_db:wd_iffm.operation_order_handover_view_form
+msgid "all_advance_paid"
+msgstr "所有预付款已付"
+
+#. module: wd_iffm
+#: model:ir.actions.act_window,name:wd_iffm.operation_order_handover_action
+msgid "Handover Orders"
+msgstr "交接单"
+
+#. module: wd_iffm
+#: model:ir.actions.act_window,help:wd_iffm.operation_order_handover_action
+msgid "Create your first handover order"
+msgstr "创建您的第一个交接单"
+
+#. module: worlddepot
+#: model:ir.ui.menu,name:worlddepot.waybill_logi_menu
+msgid "Waybill"
+msgstr "运单管理"
+
+#. module: worlddepot
+#: model:ir.ui.menu,name:worlddepot.waybill_menu
+msgid "Waybills"
+msgstr "运单"
+
+
+#. module: worlddepot
+#: model:ir.actions.act_window,name:worlddepot.action_world_depot_waybill
+msgid "Waybills"
+msgstr "运单"
+
+#. module: worlddepot
+#: model:ir.actions.act_window,name:worlddepot.action_waybill_container
+msgid "Waybill Containers"
+msgstr "运单集装箱"
+
+#. module: worlddepot
+#: model:ir.actions.act_window,name:worlddepot.action_waybill_packing_list
+msgid "Packing Lists"
+msgstr "装箱单"
+
+#. module: worlddepot
+#: model:ir.actions.act_window,name:worlddepot.product.product_template_action_all
+msgid "Products"
+msgstr "产品"
+
+#. module: worlddepot
+#: model:ir.actions.act_window,name:worlddepot.action_product_import
+msgid "Product Template"
+msgstr "产品模板"
+
+#. module: worlddepot
+#: model:ir.actions.act_window,name:worlddepot.action_linglong_product_temp
+msgid "Linglong Product Temp"
+msgstr "玲珑产品临时表"
+
+#. module: worlddepot
+#: model:ir.actions.act_window,name:worlddepot.action_product_duplicate
+msgid "Product Duplicate"
+msgstr "产品去重"
+
+#. module: worlddepot
+#: model:ir.actions.act_window,name:worlddepot.action_stock_location_type
+msgid "Location Types"
+msgstr "库位类型"
+
+#. module: worlddepot
+#: model:ir.actions.act_window,name:worlddepot.action_api_log
+msgid "API Logs"
+msgstr "API日志"
+
+#. module: worlddepot
+#: model:ir.actions.act_window,name:worlddepot.action_world_depot_api_user
+msgid "API Users"
+msgstr "API用户"
+
+#. module: worlddepot
+#: model:ir.actions.act_window,name:worlddepot.action_hoymiles_api_urls
+msgid "Hoymiles API URLs"
+msgstr "Hoymiles API地址"
+
+#. module: worlddepot
+#: model:ir.actions.act_window,name:worlddepot.action_hoymiles_api_logs
+msgid "Hoymiles API Logs"
+msgstr "Hoymiles API日志"
+
+#. module: worlddepot
+#: model:ir.model,name:worlddepot.model_worlddepot_waybill
+msgid "Waybill"
+msgstr "运单"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill__billno
+msgid "BillNo"
+msgstr "运单号"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill__project
+msgid "Project"
+msgstr "项目"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill__bl_number
+msgid "Bill of Lading"
+msgstr "提单号"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill__hbl_number
+msgid "House Bill of Lading"
+msgstr "分提单号"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill__document_number
+msgid "Document No"
+msgstr "文件编号"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill__reference_number
+msgid "Reference No"
+msgstr "参考编号"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill__shipping
+msgid "Shipping Line"
+msgstr "船公司"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill__shipper
+msgid "Shipper/Exporter"
+msgstr "发货人/出口商"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill__consignee
+msgid "Consignee/Importer"
+msgstr "收货人/进口商"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill__notify_party
+msgid "Notify"
+msgstr "通知方"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill__state
+msgid "State"
+msgstr "状态"
+
+#. module: worlddepot
+#: model:ir.model.fields.selection,name:worlddepot.selection__world_depot_waybill__state__new
+msgid "New"
+msgstr "新建"
+
+#. module: worlddepot
+#: model:ir.model.fields.selection,name:worlddepot.selection__world_depot_waybill__state__confirm
+msgid "Confirm"
+msgstr "确认"
+
+#. module: worlddepot
+#: model:ir.model.fields.selection,name:worlddepot.selection__world_depot_waybill__state__cancel
+msgid "Cancel"
+msgstr "取消"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill__remark
+msgid "Remark"
+msgstr "备注"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill__eta
+msgid "ETA"
+msgstr "预计到港时间"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill__ata
+msgid "ATA"
+msgstr "实际到港时间"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill__terminal_a
+msgid "Terminal of Arrival"
+msgstr "到港码头"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill__release_received
+msgid "Release Received"
+msgstr "放行单已收到"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill__custom_clearance
+msgid "Custom Clearance"
+msgstr "海关清关"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill__other_docs_ids
+msgid "Other Documents"
+msgstr "其他文件"
+
+#. module: worlddepot
+#: model:ir.model.fields,help:worlddepot.field_world_depot_waybill__other_docs_ids
+msgid "Other documents related to the waybill, such as invoices, packing lists, etc."
+msgstr "与运单相关的其他文件，如发票、装箱单等。"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill__container_ids
+msgid "Containers"
+msgstr "集装箱"
+
+#. module: worlddepot
+#: model:ir.model.fields,help:worlddepot.field_world_depot_waybill__container_ids
+msgid "Containers associated with this waybill"
+msgstr "与此运单关联的集装箱"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill__packing_list_ids
+msgid "Packing Lists"
+msgstr "装箱单"
+
+#. module: worlddepot
+#: model:ir.model.fields,help:worlddepot.field_world_depot_waybill__packing_list_ids
+msgid "Packing lists associated with this container"
+msgstr "与此集装箱关联的装箱单"
+
+#. module: worlddepot
+#: model:ir.model,name:worlddepot.model_worlddepot_waybill_other_docs
+msgid "worlddepot.waybill.other.docs"
+msgstr "运单其他文件"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill_other_docs__description
+msgid "Description"
+msgstr "描述"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill_other_docs__file
+msgid "File"
+msgstr "文件"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill_other_docs__filename
+msgid "File name"
+msgstr "文件名"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill_other_docs__waybill_id
+msgid "Waybill BillNo"
+msgstr "运单号"
+
+#. module: worlddepot
+#: model:ir.model,name:worlddepot.model_worlddepot_waybill_container
+msgid "worlddepot.waybill.container"
+msgstr "运单集装箱"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill_container__container_number
+msgid "Container Number"
+msgstr "集装箱号"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill_container__container_type
+msgid "Container Type"
+msgstr "集装箱类型"
+
+#. module: worlddepot
+#: model:ir.model.fields.selection,name:worlddepot.selection__world_depot_waybill_container__container_type__20GP
+msgid "20GP"
+msgstr "20GP"
+
+#. module: worlddepot
+#: model:ir.model.fields.selection,name:worlddepot.selection__world_depot_waybill_container__container_type__40GP
+msgid "40GP"
+msgstr "40GP"
+
+#. module: worlddepot
+#: model:ir.model.fields.selection,name:worlddepot.selection__world_depot_waybill_container__container_type__40HQ
+msgid "40HQ"
+msgstr "40HQ"
+
+#. module: worlddepot
+#: model:ir.model.fields.selection,name:worlddepot.selection__world_depot_waybill_container__container_type__40HC
+msgid "40HC"
+msgstr "40HC"
+
+#. module: worlddepot
+#: model:ir.model.fields.selection,name:worlddepot.selection__world_depot_waybill_container__container_type__45HQ
+msgid "45HQ"
+msgstr "45HQ"
+
+#. module: worlddepot
+#: model:ir.model.fields.selection,name:worlddepot.selection__world_depot_waybill_container__container_type__OT
+msgid "OT"
+msgstr "其他"
+
+#. module: worlddepot
+#: model:ir.model.fields.selection,name:worlddepot.selection__world_depot_waybill_container__container_type__FR
+msgid "FR"
+msgstr "框架箱"
+
+#. module: worlddepot
+#: model:ir.model.fields.selection,name:worlddepot.selection__world_depot_waybill_container__container_type__RF
+msgid "RF"
+msgstr "冷藏箱"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill_container__seal_number
+msgid "Seal Number"
+msgstr "铅封号"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill_container__weight
+msgid "Weight (kg)"
+msgstr "重量(公斤)"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill_container__volume
+msgid "Volume (m³)"
+msgstr "体积(立方米)"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill_container__pallets
+msgid "Pallets"
+msgstr "托盘数"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill_container__quantity
+msgid "Packages"
+msgstr "件数"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill_container__mode
+msgid "Model"
+msgstr "运输模式"
+
+#. module: worlddepot
+#: model:ir.model.fields,help:worlddepot.field_world_depot_waybill_container__mode
+msgid "Container mode, e.g., CY/CY, etc."
+msgstr "集装箱运输模式，例如：CY/CY等"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill_container__temperature
+msgid "Temperature"
+msgstr "温度"
+
+#. module: worlddepot
+#: model:ir.model.fields,help:worlddepot.field_world_depot_waybill_container__temperature
+msgid "Temperature control for refrigerated containers"
+msgstr "冷藏箱温度控制"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill_container__humidity
+msgid "Humidity"
+msgstr "湿度"
+
+#. module: worlddepot
+#: model:ir.model.fields,help:worlddepot.field_world_depot_waybill_container__humidity
+msgid "Humidity control for refrigerated containers"
+msgstr "冷藏箱湿度控制"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill_container__remark
+msgid "Remark"
+msgstr "备注"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill_container__loading_reference
+msgid "Loading Reference"
+msgstr "装货参考"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill_container__loading_date
+msgid "Loading Date"
+msgstr "装货日期"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill_container__unloading_date
+msgid "Unloading Date"
+msgstr "卸货日期"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill_container__unloading_location
+msgid "Unloading Location"
+msgstr "卸货地点"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill_container__drop_off_date
+msgid "Drop Off Date"
+msgstr "还箱日期"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill_container__drop_off_location
+msgid "Dropoff Location"
+msgstr "还箱地点"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill_container__waybill_id
+msgid "Waybill BillNo"
+msgstr "运单号"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill_container__packing_list_ids
+msgid "Packing Lists"
+msgstr "装箱单"
+
+#. module: worlddepot
+#: model:ir.model.fields,help:worlddepot.field_world_depot_waybill_container__packing_list_ids
+msgid "Packing lists associated with this container"
+msgstr "与此集装箱关联的装箱单"
+
+#. module: worlddepot
+#: model:ir.model,name:worlddepot.model_worlddepot_waybill_packing_list
+msgid "worlddepot.waybill.packing.list"
+msgstr "运单装箱单"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill_packing_list__container_number
+msgid "Container Number"
+msgstr "集装箱号"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill_packing_list__product_id
+msgid "Product"
+msgstr "产品"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill_packing_list__adr
+msgid "ADR"
+msgstr "危险品"
+
+#. module: worlddepot
+#: model:ir.model.fields,help:worlddepot.field_world_depot_waybill_packing_list__adr
+msgid "Indicates if the product is classified as ADR (dangerous goods)"
+msgstr "指示产品是否归类为危险品"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill_packing_list__un_number
+msgid "UN Number"
+msgstr "联合国编号"
+
+#. module: worlddepot
+#: model:ir.model.fields,help:worlddepot.field_world_depot_waybill_packing_list__un_number
+msgid "United Nations number for dangerous goods classification"
+msgstr "危险品分类的联合国编号"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill_packing_list__pallets
+msgid "Pallets"
+msgstr "托盘数"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill_packing_list__quantity
+msgid "Quantity"
+msgstr "数量"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill_packing_list__uom_id
+msgid "Unit of Measure"
+msgstr "计量单位"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill_packing_list__description
+msgid "Description"
+msgstr "描述"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill_packing_list__total_weight
+msgid "Total Weight (kg)"
+msgstr "总重量(公斤)"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill_packing_list__total_volume
+msgid "Total Volume (m³)"
+msgstr "总体积(立方米)"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill_packing_list__total_packages
+msgid "Total Packages"
+msgstr "总件数"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill_packing_list__remark
+msgid "Remark"
+msgstr "备注"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill_packing_list__waybill_id
+msgid "Waybill BillNo"
+msgstr "运单号"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_waybill_packing_list__container_id
+msgid "Container"
+msgstr "集装箱"
+
+#. module: worlddepot
+#: code:addons/worlddepot/models/waybill.py:123
+#, python-format
+msgid "You only can confirm New Order"
+msgstr "只能确认新建订单"
+
+#. module: worlddepot
+#: code:addons/worlddepot/models/waybill.py:130
+#, python-format
+msgid "You only can unconfirm Confirmed Order"
+msgstr "只能取消确认已确认订单"
+
+#. module: worlddepot
+#: code:addons/worlddepot/models/waybill.py:137
+#, python-format
+msgid "You only can cancel New Order"
+msgstr "只能取消新建订单"
+
+#. module: worlddepot
+#: code:addons/worlddepot/models/waybill.py:148
+#, python-format
+msgid "Bill of Lading must be unique per Waybill"
+msgstr "每个运单的提单号必须唯一"
+
+#. module: worlddepot
+#: code:addons/worlddepot/models/waybill.py:155
+#, python-format
+msgid "Either Bill of Lading or House Bill of Lading must be provided."
+msgstr "必须提供提单号或分提单号。"
+
+#. module: worlddepot
+#: code:addons/worlddepot/models/waybill.py:203
+#, python-format
+msgid "UN Number must be provided when ADR is selected."
+msgstr "选择危险品时必须提供联合国编号。"
+
+#. module: worlddepot
+#: code:addons/worlddepot/models/waybill.py:213
+#, python-format
+msgid "Container with number %s not found."
+msgstr "未找到编号为 %s 的集装箱。"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_world_depot_waybill_tree
+msgid "world.depot.waybill.tree"
+msgstr "运单列表视图"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_world_depot_waybill_tree
+msgid "billno"
+msgstr "运单号"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_world_depot_waybill_tree
+msgid "project"
+msgstr "项目"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_world_depot_waybill_tree
+msgid "bl_number"
+msgstr "提单号"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_world_depot_waybill_tree
+msgid "hbl_number"
+msgstr "分提单号"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_world_depot_waybill_tree
+msgid "eta"
+msgstr "预计到港时间"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_world_depot_waybill_tree
+msgid "document_number"
+msgstr "文件编号"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_world_depot_waybill_tree
+msgid "reference_number"
+msgstr "参考编号"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_world_depot_waybill_tree
+msgid "state"
+msgstr "状态"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_world_depot_waybill_form
+msgid "world.depot.waybill.form"
+msgstr "运单表单视图"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_world_depot_waybill_form
+msgid "Save"
+msgstr "保存"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_world_depot_waybill_form
+msgid "Confirm"
+msgstr "确认"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_world_depot_waybill_form
+msgid "Unconfirm"
+msgstr "取消确认"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_world_depot_waybill_form
+msgid "Cancel"
+msgstr "取消"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_world_depot_waybill_form
+msgid "CANCEL"
+msgstr "已取消"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_world_depot_waybill_form
+msgid "Waybill"
+msgstr "运单"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_world_depot_waybill_form
+msgid "MAIN"
+msgstr "主要信息"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_world_depot_waybill_form
+msgid "INFO"
+msgstr "信息"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_world_depot_waybill_form
+msgid "Documents"
+msgstr "文件"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_world_depot_waybill_form
+msgid "Containers"
+msgstr "集装箱"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_world_depot_waybill_search
+msgid "world.depot.waybill.search"
+msgstr "运单搜索视图"
+
+#. module: worlddepot
+#: model:ir.actions.act_window,name:worlddepot.action_world_depot_waybill
+msgid "Waybills"
+msgstr "运单"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_other_docs_tree
+msgid "waybill.other.docs.tree"
+msgstr "运单其他文件列表"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_other_docs_tree
+msgid "File"
+msgstr "文件"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_other_docs_tree
+msgid "Document Name"
+msgstr "文件名称"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_other_docs_tree
+msgid "Description"
+msgstr "描述"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_packing_list_list
+msgid "waybill.packing.list.list"
+msgstr "装箱单列表"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_packing_list_list
+msgid "product_id"
+msgstr "产品"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_packing_list_list
+msgid "adr"
+msgstr "危险品"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_packing_list_list
+msgid "un_number"
+msgstr "联合国编号"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_packing_list_list
+msgid "pallets"
+msgstr "托盘数"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_packing_list_list
+msgid "quantity"
+msgstr "数量"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_packing_list_list
+msgid "uom_id"
+msgstr "计量单位"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_packing_list_list
+msgid "total_weight"
+msgstr "总重量"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_packing_list_list
+msgid "total_volume"
+msgstr "总体积"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_packing_list_list
+msgid "total_packages"
+msgstr "总件数"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_packing_list_list
+msgid "remark"
+msgstr "备注"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_packing_list_form
+msgid "waybill.packing.list.form"
+msgstr "装箱单表单"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_packing_list_search
+msgid "waybill.packing.list.search"
+msgstr "装箱单搜索"
+
+#. module: worlddepot
+#: model:ir.actions.act_window,name:worlddepot.action_waybill_packing_list
+msgid "Packing Lists"
+msgstr "装箱单"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_container_tree
+msgid "waybill.container.tree"
+msgstr "集装箱列表"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_container_tree
+msgid "container_number"
+msgstr "集装箱号"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_container_tree
+msgid "container_type"
+msgstr "集装箱类型"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_container_tree
+msgid "seal_number"
+msgstr "铅封号"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_container_tree
+msgid "weight"
+msgstr "重量"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_container_tree
+msgid "volume"
+msgstr "体积"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_container_tree
+msgid "loading_date"
+msgstr "装货日期"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_container_tree
+msgid "drop_off_date"
+msgstr "还箱日期"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_container_form
+msgid "waybill.container.form"
+msgstr "集装箱表单"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_container_form
+msgid "Waybill"
+msgstr "运单"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_container_form
+msgid "Information"
+msgstr "信息"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_container_form
+msgid "Transport Information"
+msgstr "运输信息"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_container_form
+msgid "Loading"
+msgstr "装货"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_container_form
+msgid "Unloading"
+msgstr "卸货"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_container_form
+msgid "Packing Lists"
+msgstr "装箱单"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_container_search
+msgid "waybill.container.search"
+msgstr "集装箱搜索"
+
+#. module: worlddepot
+#: model:ir.actions.act_window,name:worlddepot.action_waybill_container
+msgid "Waybill Containers"
+msgstr "运单集装箱"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_world_depot_waybill_form
+msgid "ata"
+msgstr "实际到港时间"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_world_depot_waybill_form
+msgid "terminal_a"
+msgstr "到港码头"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_world_depot_waybill_form
+msgid "release_received"
+msgstr "放行单已收到"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_world_depot_waybill_form
+msgid "custom_clearance"
+msgstr "海关清关"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_world_depot_waybill_form
+msgid "remark"
+msgstr "备注"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_world_depot_waybill_form
+msgid "shipping"
+msgstr "船公司"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_world_depot_waybill_form
+msgid "shipper"
+msgstr "发货人"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_world_depot_waybill_form
+msgid "consignee"
+msgstr "收货人"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_world_depot_waybill_form
+msgid "notify_party"
+msgstr "通知方"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_world_depot_waybill_search
+msgid "billno"
+msgstr "运单号"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_world_depot_waybill_search
+msgid "bl_number"
+msgstr "提单号"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_world_depot_waybill_search
+msgid "eta"
+msgstr "预计到港时间"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_world_depot_waybill_search
+msgid "document_number"
+msgstr "文件编号"
+
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_world_depot_waybill_search
+msgid "reference_number"
+msgstr "参考编号"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_world_depot_waybill_search
+msgid "state"
+msgstr "状态"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_packing_list_search
+msgid "container_number"
+msgstr "集装箱号"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_packing_list_search
+msgid "product_id"
+msgstr "产品"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_packing_list_search
+msgid "waybill_id"
+msgstr "运单"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_packing_list_search
+msgid "container_id"
+msgstr "集装箱"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_packing_list_search
+msgid "pallets"
+msgstr "托盘数"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_packing_list_search
+msgid "quantity"
+msgstr "数量"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_container_search
+msgid "container_number"
+msgstr "集装箱号"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_container_search
+msgid "container_type"
+msgstr "集装箱类型"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_container_search
+msgid "seal_number"
+msgstr "铅封号"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_container_search
+msgid "loading_date"
+msgstr "装货日期"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_waybill_container_search
+msgid "drop_off_date"
+msgstr "还箱日期"

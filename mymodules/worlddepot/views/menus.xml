@@ -27,10 +27,6 @@
         <menuitem id="charge_module_menu" name="Charge Modules" parent="charge_management_logi_menu" sequence="603" action="action_world_depot_charge_module"/>
         <menuitem id="charge_summary_menu" name="Charge Summaries" parent="charge_management_logi_menu" sequence="604" action="action_charge_summary_list"/>
 
-        <menuitem id="waybill_logi_menu" name="Waybill" parent="world_depot_logi_menu" sequence="800"/>
-        <menuitem id="waybill_menu" name="Waybills" parent="waybill_logi_menu" action="action_world_depot_waybill" sequence="801"/>
-        <menuitem id="container_menu" name="Containers" parent="waybill_logi_menu" action="action_waybill_container" sequence="802"/>
-        <menuitem id="packing_list_menu" name="Packing Lists" parent="waybill_logi_menu" action="action_waybill_packing_list" sequence="803"/>
 
         <menuitem id="menu_world_depot_configuration" parent="world_depot_logi_menu" name="Configuration" sequence="900"/>
         <menuitem id="menu_world_depot_products" name="Products" parent="menu_world_depot_configuration" action="product.product_template_action_all" sequence="901"/>
