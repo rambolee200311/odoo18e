@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_bl_container_user,bl.container.user,model_bl_container,base.group_user,1,1,1,1
+access_container_transport_plan_user,container.transport.plan.user,model_container_transport_plan,base.group_user,1,1,1,1
