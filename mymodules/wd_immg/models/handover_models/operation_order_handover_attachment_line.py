@@ -13,9 +13,7 @@ class OperationOrderHandoverAttachmentLine(models.Model):
                                  ("do", "DO/Telex Release"),
                                 ("other", "Other")], string="Document Type", required=True, index=True)
     name = fields.Char(string="Document Name")
-    attachment_ids = fields.Many2many("ir.attachment", "handover_attachment_line_rel", "line_id", "attachment_id", string="Attachments", copy=False)
-    # is_required = fields.Boolean(string="Required", default=False)
-    # is_verified = fields.Boolean(string="Verified", default=False)
+    file = fields.Binary(string='File')
     remark = fields.Text(string="Remark")
     upload_user_id = fields.Many2one("res.users", string="Uploaded By", readonly=True)
     upload_time = fields.Datetime(string="Uploaded At", readonly=True)

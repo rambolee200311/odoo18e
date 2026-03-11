@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
-from odoo.addons.worlddepot.models.charge_item import TAB_CATEGORY_LIST
+from odoo.addons.wd_immg.models.charge_item_inherit  import TAB_CATEGORY_LIST
 
 class ChargeQuotationAddWizard(models.TransientModel):
     _name = "charge.quotation.add.wizard"

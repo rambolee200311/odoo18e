@@ -11,19 +11,30 @@ class OperationOrderHandover(models.Model):
 
     name = fields.Char(string="Handover No.", required=True, copy=False, default=lambda self: _("New"), index=True)
     waybill_id = fields.Many2one("world.depot.waybill", string="Waybill", required=True, ondelete="restrict", index=True)
-    order_source = fields.Selection([("manual", "Manual"), ("external", "External"), ("import", "Import")],
-                                    string="Order Source", default="manual", required=True, index=True)
+    bl_number = fields.Char(string='Bill of Lading',related='waybill_id.bl_number', index=True)  # NKGA84065  mbl
+    hbl_number = fields.Char(string='House Bill of Lading',related='waybill_id.hbl_number', index=True)  # HBL123456789
+    obl_number = fields.Char(string="OBL No",related='waybill_id.obl_number', index=True)
+    bl_release_type = fields.Selection([
+         ('original', 'Original BL'),
+         ('telex', 'Telex Release'),
+         ('seawaybill', 'Sea Waybill'),
+         ('destination', 'Destination Release'),
+         ('third_party', 'Third Party Release')], string="BL Release Type",
+        default='original', required=True)
+
+
+
     #外部系统
     external_system_type = fields.Selection([("tms", "TMS"), ("oms", "OMS"), ("other", "Other")], string="External System Type")
     external_system_no = fields.Char(string="External Order No.", index=True)
     sync_time = fields.Datetime(string="Sync Time")
 
     project_id = fields.Many2one("project.project", string="Project", related="waybill_id.project", store=True, readonly=True, index=True)
-    charge_quotation_id = fields.Many2one("charge.quotation", string="Charge Quotation", readonly=True)
-    currency_id = fields.Many2one("res.currency", string="Currency")
+    # charge_quotation_id = fields.Many2one("charge.quotation", string="Charge Quotation", readonly=True)
+    # currency_id = fields.Many2one("res.currency", string="Currency", related="waybill_id.currency_id", store=True)
 
     state = fields.Selection(
-        [("open", "Open"), ("apply", "Apply"),
+        [("open", "Open"),
          ("paying", "Paying"), ("paid", "Paid"), ("releasing", "Releasing"),
          ("released", "Released"), ("close", "Close"),
          ("cancelled", "Cancelled")],
@@ -34,10 +45,10 @@ class OperationOrderHandover(models.Model):
     confirm_time = fields.Datetime(string="Confirmed On", readonly=True)
     settle_user_id = fields.Many2one("res.users", string="Settled By", readonly=True)
     settle_time = fields.Datetime(string="Settled On", readonly=True)
+    statement_period_id = fields.Many2one("statement.period", string="Statement Period",ondelete='set null')
 
 
-    bl_type = fields.Selection([("original", "Original"), ("telex", "Telex Release"), ("sea_waybill", "Sea Waybill")], string="B/L Type", default="original", required=True, index=True)
-    bl_issue_datetime = fields.Datetime(string="B/L Issue Date")
+
     shipping_line_id = fields.Many2one("res.partner",related="waybill_id.shipping", string="Shipping Line")
     voyage_no = fields.Char(string="Voyage No.", index=True)
     shipper = fields.Many2one("res.partner", related='waybill_id.shipper', string="Shipper/Exporter")#装
@@ -50,13 +61,12 @@ class OperationOrderHandover(models.Model):
     do_no = fields.Char(string="Delivery Order No.", index=True)
     do_issue_datetime = fields.Datetime(string="DO Issue Date")
     expected_pickup_datetime = fields.Datetime(string="Expected Pickup Date")
-    actual_pickup_datetime = fields.Datetime(string="Actual Pickup Date", readonly=True)
-    handover_datetime = fields.Datetime(string="Handover Completed On", readonly=True)
+    actual_pickup_datetime = fields.Datetime(string="Actual Pickup Date")
     remark = fields.Text(string="Remark")
 
     container_line_ids = fields.One2many("world.depot.waybill.container", "waybill_id", string="Containers", related="waybill_id.container_ids", readonly=True)
 
-    container_qty = fields.Integer(string="Container Qty",required= True)
+    container_qty = fields.Integer(string="Container Qty",related='waybill_id.container_qty', required= True)
 
     invoice_line_ids = fields.One2many("operation.order.handover.invoice.line", "handover_id", string="Vendor Invoice Lines", copy=False)
 
@@ -70,46 +80,150 @@ class OperationOrderHandover(models.Model):
     # 费用明细
     charge_line_ids = fields.One2many("operation.order.handover.charge.line", "handover_id", string="Charges", copy=False)
     cost_line_ids = fields.One2many("operation.order.handover.cost.line", "handover_id", string="Costs", copy=False)
-    amount_charge_total = fields.Monetary(string="AR Total", currency_field="currency_id", compute="_compute_totals",
-                                         store=True)
-    amount_cost_total = fields.Monetary(string="Cost Total", currency_field="currency_id", compute="_compute_totals",
-                                        store=True)
+    currency_id = fields.Many2one("res.currency", string="Currency", related="waybill_id.quotation_id.currency_id", store=True)
 
-    @api.depends("charge_line_ids.amount_total", "cost_line_ids.amount_total")
-    def _compute_totals(self):
+    container_nums = fields.Char(string="Container Nums", compute="_compute_container_nums")
+    amount_total_change = fields.Monetary(string="Total Amount", currency_field="currency_id", compute="_compute_amount_total_change")
+
+    manual_amount_total_change = fields.Monetary(string="Manual Total Amount", currency_field="currency_id", default=0.0,
+                                          tracking=True)
+    statement_period_id_state = fields.Selection([], string="Statement Period State",
+                                                 related="statement_period_id.state", store=True)
+    parent_id = fields.Many2one("operation.order.handover", string=" Partner Operation", index=True)
+    child_ids = fields.One2many('operation.order.handover', 'parent_id', string="Child Handover")
+    extra_reason = fields.Selection([('customs_inspection', 'Customs Inspection'),
+                                     ('detention', 'Detention'),
+                                     ('split_container', 'Split Container'),
+                                     ('clearance_exception', 'Clearance Exception'),
+                                     ('service_add', 'Additional Service'),
+                                     ('other', 'Other')],
+                                    string="Additional Reason")
+
+    actual_datetime = fields.Datetime(string="Actual Date")
+    extra_remark = fields.Char(string="Additional Remark")
+
+
+    def action_create_child_handover(self):
+        self.ensure_one()
+        if self.state != 'close':
+            raise ValidationError(_("Handover must be close before creating child clearance."))
+        vals = self.copy_data()[0]
+
+        child_count = self.env['operation.order.handover'].search_count([
+            ('parent_id', '=', self.id)
+        ]) + 1
+
+        vals.update({
+            "parent_id": self.id,
+            "name": f"{self.name}-{child_count}",
+        })
+
+        vals.pop("charge_line_ids", None)
+        vals.pop("invoice_line_ids", None)
+
+        child = self.sudo().create(vals)
+
+        return {
+            "type": "ir.actions.act_window",
+            "name": "Child Handover",
+            "res_model": "operation.order.handover",
+            "view_mode": "form",
+            "views": [(self.env.ref("wd_immg.view_operation_order_handover_child_form").id, "form")],
+            "res_id": child.id,
+        }
+
+    @api.constrains('extra_reason', 'extra_remark')
+    def check_extra_remark(self):
         for rec in self:
-            rec.amount_charge_total = sum(rec.charge_line_ids.mapped("amount_total"))
-            rec.amount_cost_total = sum(rec.cost_line_ids.mapped("amount_total"))
+            if rec.extra_reason == 'other' and not rec.extra_remark:
+                raise ValidationError(_("Remark is required when reason is Other."))
+
+
+    def action_handover_remove_from_statement_period(self):
+        for record in self:
+            if not record.statement_period_id:
+                continue
+        self.write({'statement_period_id': False})
+        return True
+
+
+    @api.depends('charge_line_ids')
+    def _compute_amount_total_change(self):
+        for record in self:
+            total_amount = 0.0
+            for charge_line in record.charge_line_ids:
+                amount = charge_line.manual_amount_total if charge_line.manual_amount_total > 0 else charge_line.amount_total
+                total_amount += amount
+            record.amount_total_change = total_amount
+
+    @api.depends('container_line_ids')
+    def _compute_container_nums(self):
+        for record in self:
+            container_numbers = [line.container_number for line in record.container_line_ids]
+            record.container_nums = ', '.join(container_numbers)
+
+    @api.onchange("waybill_id")
+    def _onchange_waybill_id(self):
+        for rec in self:
+            if rec.waybill_id:
+                rec.attachment_line_ids = [(5, 0, 0)]
+                rec.charge_line_ids = [(5, 0, 0)]
+                attachment_lines = [(0, 0, {
+                    "doc_type": ln.bill_doc_type,
+                    "remark": ln.description,
+                    "file": ln.file,
+                    "name": ln.filename,
+                }) for ln in rec.waybill_id.other_docs_ids]
+
+                charge_lines = [(0, 0, {
+                    "charge_item_id": ln.charge_item_id.id,
+                    "charge_origin_type": 'quotation',
+                    "unit_price": ln.unit_price,
+                }) for ln in rec.waybill_id.project.quotation_id.quotation_thc_lines]
+
+                rec.project_id = rec.waybill_id.project
+                rec.container_qty = rec.waybill_id.container_qty
+                rec.attachment_line_ids =  attachment_lines
+                rec.charge_line_ids = charge_lines
+            else:
+                rec.project_id = False
+                rec.container_qty = False
+                rec.attachment_line_ids = [(5, 0, 0)]
+                rec.charge_line_ids = [(5, 0, 0)]
 
     @api.constrains("waybill_id", "state")
     def _constrain_unique_waybill(self):
+        env_model = self.env["operation.order.handover"]
         for rec in self:
+            if rec.parent_id:
+                continue
             if not rec.waybill_id:
                 continue
-
             domain = [
-                ("id", "!=", rec.id),
                 ("waybill_id", "=", rec.waybill_id.id),
+                ("parent_id", "=", False),
                 ("state", "!=", "cancelled"),
             ]
-            if self.search_count(domain):
+            if rec.id:
+                domain.append(("id", "!=", rec.id))
+
+            count = env_model.sudo().search_count(domain)
+            if count:
                 raise ValidationError(
                     _("This waybill is already used by another active handover order.")
                 )
 
-    @api.depends("invoice_line_ids.payment_mode", "invoice_line_ids.payment_state")
+    @api.depends("invoice_line_ids.handover_cost_line_ids.cost_nature", "invoice_line_ids.payment_state")
     def _compute_payment_summary(self):
         for rec in self:
-            advance_lines = rec.invoice_line_ids.filtered(lambda l: l.payment_mode == "advance")
+            advance_lines = rec.invoice_line_ids.filtered(
+                lambda l: any(c.cost_nature == "at cost" for c in l.handover_cost_line_ids)
+            )
             rec.has_advance_invoice = bool(advance_lines)
             rec.has_unpaid_advance_invoice = bool(advance_lines.filtered(lambda l: l.payment_state != "paid"))
             rec.all_advance_paid = bool(advance_lines) and not rec.has_unpaid_advance_invoice
 
 
-    def action_apply(self):
-        for rec in self:
-            rec.check_apply_ready()
-            rec.write({"state": "apply"})
 
     def action_recompute_state(self):
         for rec in self:
@@ -126,51 +240,47 @@ class OperationOrderHandover(models.Model):
     def action_released(self):
         for rec in self:
             rec.check_released_ready()
-            rec.write({"state": "released"})
+            rec.write({"state": "released",
+                       })
+            rec.waybill_id.write({
+                "release_received": True
+            })
 
     def action_close(self):
         for rec in self:
-            rec.check_close_ready()
-            rec.write({"state": "close"})
+            if rec.parent_id:
+                if not rec.charge_line_ids:
+                    raise ValidationError(_("Charges are required before Close."))
+                unpaid = rec.invoice_line_ids.filtered(
+                    lambda l: l.payment_state != "paid")
+                if unpaid:
+                    raise ValidationError(_("All advance invoices must be paid before Close."))
+            else:
+                rec.check_close_ready()
+            rec.write({
+                "state": "close"
+            })
+
+
     # 暂不用
     def action_cancelled(self):
         for rec in self:
             rec.write({"state": "cancelled"})
 
-    # ---------------- Document helpers ----------------
-    @api.constrains("waybill_id", "attachment_line_ids")
-    def constrain_required_documents(self):
-        for rec in self:
-            if rec.get_required_doc_count("poa") == 0:
-                raise ValidationError(_("POA file is required."))
-            if rec.get_required_doc_count("bl") == 0 and not getattr(rec.waybill_id, "bl_number", False):
-                raise ValidationError(_("BL file is required."))
+
 
     def get_required_doc_count(self, doc_type):
         self.ensure_one()
-        lines = self.attachment_line_ids.filtered(lambda l: l.doc_type == doc_type and l.attachment_ids)
+        lines = self.attachment_line_ids.filtered(lambda l: l.doc_type == doc_type and l.file)
         return len(lines)
 
-    def check_apply_ready(self):
-        for rec in self:
-            if not rec.waybill_id:
-                raise ValidationError(_("Waybill is required."))
-            if rec.get_required_doc_count("poa") == 0:
-                raise ValidationError(_("POA file is required before Apply."))
-            if rec.get_required_doc_count("bl") == 0 and not getattr(rec.waybill_id, "bl_number", False):
-                raise ValidationError(_("BL is required (BL file or BL number)."))
-            if rec.get_required_doc_count("apply_mail") == 0:
-                raise ValidationError(_("Apply email evidence is required before Apply."))
 
     def check_releasing_ready(self):
         for rec in self:
-            if rec.state not in ("apply", "paying", "paid"):
+            if rec.state not in ("paying", "paid"):
                 raise ValidationError(_("Only Apply/Paying/Paid can go to Releasing."))
             if rec.has_advance_invoice and not rec.all_advance_paid:
                 raise ValidationError(_("All advance invoices must be paid before Releasing."))
-            #在系统里上传申请邮件或系统里发邮件
-            if rec.get_required_doc_count("release_mail") == 0:
-                raise ValidationError(_("Release request evidence is required before Releasing.(Release File)"))
 
     def check_released_ready(self):
         for rec in self:
@@ -178,6 +288,12 @@ class OperationOrderHandover(models.Model):
                 raise ValidationError(_("Only Releasing can be set to Released."))
             if rec.get_required_doc_count("do") == 0:
                 raise ValidationError(_("DO / Telex Release document is required before Released."))
+            if not rec.waybill_id.ata or not rec.waybill_id.terminal_a:
+                raise ValidationError(_("Waybill ETA and Terminal of Arrival is required before Released."))
+            if not rec.do_issue_datetime:
+                raise ValidationError(_("Do issue date is required."))
+            if not rec.bl_release_type:
+                raise ValidationError(_("BL Release type is required."))
 
     def check_close_ready(self):
         for rec in self:
@@ -185,6 +301,8 @@ class OperationOrderHandover(models.Model):
                 raise ValidationError(_("Only Released can be closed."))
             if rec.get_required_doc_count("do") == 0:
                 raise ValidationError(_("DO / Telex Release document is required before Close."))
+            if len(rec.charge_line_ids) == 0:
+                raise ValidationError(_("Charges are required before Close."))
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -199,16 +317,15 @@ class OperationOrderHandoverInvoiceLine(models.Model):
     _description = "Handover Vendor Invoice Line"
     _order = "id desc"
 
-    handover_id = fields.Many2one("operation.order.handover", string="Handover", required=True, ondelete="cascade", index=True)
-    vendor_partner_id = fields.Many2one("res.partner", string="Vendor (Shipping Line / Agent)", related='handover_id.shipping_line_id', ondelete="restrict", index=True)
+    handover_id = fields.Many2one("operation.order.handover", string="Handover", index=True)
+    shipping_line_id = fields.Many2one("res.partner", string="Vendor (Shipping Line / Agent)", related='handover_id.shipping_line_id', store=True,index=True)
     vendor_invoice_id = fields.Many2one("account.move", string="Vendor Invoice (Optional)", ondelete="set null", index=True)
-    invoice_date = fields.Date(string="Invoice Date",required= True)
-    currency_id = fields.Many2one("res.currency", string="Currency", related="handover_id.currency_id", store=True, readonly=True)
+    invoice_date = fields.Date(string="Invoice Date",required=True, default=fields.Date.context_today)
+    currency_id = fields.Many2one("res.currency", string="Currency", related="handover_id.waybill_id.quotation_id.currency_id", store=True, readonly=True)
     amount_total = fields.Monetary(string="Amount", currency_field="currency_id")
 
-    payment_mode = fields.Selection([("advance", "Advance by Company"), ("customer_pay", "Paid by Customer")],
-                                    string="Payment Mode", default="advance", required=True, index=True)
     payment_state = fields.Selection([("draft", "Draft"), ("paying", "Paying"), ("paid", "Paid"), ("customer_paid", "Customer Paid")], string="Payment State", default="draft", required=True, index=True)
+    vendor_invoice_num = fields.Char(string="Vendor Invoice No")
     vendor_invoice_attachment_ids = fields.Many2many(
         "ir.attachment", "handover_invoice_vendor_attachment_rel",
         "invoice_line_id", "attachment_id",
@@ -219,6 +336,7 @@ class OperationOrderHandoverInvoiceLine(models.Model):
         "invoice_line_id", "attachment_id", string="Bank Proof Attachments", copy=False)
     paid_user_id = fields.Many2one("res.users", string="Paid Confirmed By", readonly=True)
     paid_time = fields.Datetime(string="Paid Confirmed On", readonly=True)
+    handover_cost_line_ids = fields.One2many("operation.order.handover.cost.line", "handover_invoice_line_id", string="Cost Lines")
     remark = fields.Text(string="Remark")
 
     #会计对账
@@ -226,17 +344,28 @@ class OperationOrderHandoverInvoiceLine(models.Model):
     payment_journal_id = fields.Many2one("account.journal", string="Payment Journal",
                                          domain=[("type", "in", ("bank", "cash"))])
     payment_id = fields.Many2one("account.payment", string="Payment", readonly=True)
+
+    @api.constrains("vendor_invoice_num")
+    def check_vendor_invoice_num(self):
+        for rec in self:
+            if rec.vendor_invoice_num and self.search_count([("vendor_invoice_num", "=", rec.vendor_invoice_num), ("id", "!=", rec.id)]):
+                raise ValidationError(_("Vendor Invoice No must be unique."))
+
+    @api.constrains("vendor_invoice_attachment_ids", "amount_total")
+    def check_vendor_invoice_attachment(self):
+        for rec in self:
+            if rec.vendor_invoice_attachment_ids and rec.amount_total <= 0:
+                raise ValidationError(_("Invoice Amount must be greater than 0."))
+
+
     def action_request_payment(self):
         move_model = self.env["account.move"]
         for rec in self:
-            if rec.handover_id != "apply":
-                raise ValidationError(_("Only apply invoice can request payment."))
-            if rec.payment_mode != "advance":
-                raise ValidationError(_("Only advance invoices can request payment."))
-            if not rec.amount_total and not rec.vendor_invoice_attachment_ids:
+            if not rec.handover_cost_line_ids:
+               raise ValidationError(_("Cost lines are required before requesting payment."))
+
+            if rec.amount_total <= 0 and not rec.vendor_invoice_attachment_ids:
                 raise ValidationError(_("Amount or vendor invoice is required before requesting payment."))
-            if not rec.handover_id.shipping_line_id:
-                raise ValidationError(_("Shipping Line/Vendor is required."))
 
             if not rec.currency_id:
                 raise ValidationError(_("Currency is required."))
@@ -255,28 +384,44 @@ class OperationOrderHandoverInvoiceLine(models.Model):
             if not journal:
                 raise ValidationError(_("Purchase journal not found. Please configure a Purchase Journal."))
 
-            expense_account = self.env["account.account"].sudo().search(
-                [("account_type", "=", "expense"), ("company_ids", 'in', rec.env.company.id),('code','=','600100')], limit=1
-            )
-            if not expense_account:
-                raise ValidationError(_("No expense account found. Please configure an expense account."))
+            if not rec.handover_cost_line_ids:
+                expense_account = (self.env["account.account"].sudo().search
+                                   ([("account_type", "=", "expense"), ("company_ids", 'in', rec.env.company.id),
+                                     ('code', '=', 'WDP400001')], limit=1))
+                if not expense_account:
+                    raise ValidationError(
+                        _("Fallback account not found. Please configure it (code=WDP400001)."))
+                line_name = _("Handover Bill - %s") % (rec.handover_id.name,)
+                invoice_lines = [(0, 0, {
+                    "name": line_name,
+                    "quantity": 1.0,
+                    "price_unit": rec.amount_total or 0.0,
+                    "account_id": expense_account.id,
+                })]
 
-            line_name = _("Handover Bill - %s") % (rec.handover_id.name,)
+            else:
+                invoice_lines = []
+                for cost in rec.handover_cost_line_ids:
+                    account = cost.charge_item_id.account_account_id
+                    if not account:
+                        raise ValidationError(_("Account not found for charge item %s.") % (cost.charge_item_id.item_name,))
+                    price = cost.manual_amount_total if cost.manual_amount_total>0 else cost.amount_total
+                    name= _("Handover Bill - %s") % (cost.charge_item_id.item_name,)
+                    invoice_lines.append((0, 0, {
+                        "name": name,
+                        "quantity": cost.qty or 1.0,
+                        "price_unit": price or 0.0,
+                        "account_id": account.id,
+                    }))
+
             move_vals = {
                 "move_type": "in_invoice",
                 "partner_id": rec.handover_id.shipping_line_id.id,
                 "invoice_date": rec.invoice_date or fields.Date.context_today(rec),
                 "currency_id": rec.currency_id.id,
                 "journal_id": journal.id,
-                "ref": rec.handover_id.name,
-                "invoice_line_ids": [
-                    (0, 0, {
-                        "name": line_name,
-                        "quantity": 1.0,
-                        "price_unit": rec.amount_total or 0.0,
-                        "account_id": expense_account.id,
-                    })
-                ],
+                "ref": f"{rec.handover_id.name}/{rec.id}",
+                "invoice_line_ids": invoice_lines,
             }
             move = move_model.create(move_vals)
 
@@ -306,7 +451,7 @@ class OperationOrderHandoverInvoiceLine(models.Model):
 
     def unlink(self):
         for rec in self:
-            if rec.payment_state in ("paid", "customer_paid"):
+            if rec.payment_state in ("paying", "paid", "customer_paid"):
                 raise ValidationError(_("Cannot delete invoice line that is already paid."))
 
             if rec.vendor_invoice_id:

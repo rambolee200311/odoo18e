@@ -4,7 +4,7 @@ import io
 
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError, UserError
-from odoo.addons.worlddepot.models.charge_item import TAB_CATEGORY_LIST
+from odoo.addons.wd_immg.models.charge_item_inherit  import TAB_CATEGORY_LIST
 
 class ChargeQuotation(models.Model):
     _name = "charge.quotation"
@@ -13,13 +13,6 @@ class ChargeQuotation(models.Model):
     _order = "id desc"
 
     name = fields.Char(string="Quotation No.", readonly=True, copy=False, default="", index=True)
-    project_id = fields.Many2one(
-        "project.project",
-        string="Project",
-        required=True,
-        index=True,
-        tracking=True,
-    )
     is_active = fields.Boolean(string="Active", default=False, index=True, tracking=True)
     date = fields.Date(string="Quotation Date", required=True, default=fields.Date.context_today, tracking=True)
     effective_from = fields.Date(string="Effective From", required=True, index=True, tracking=True)
@@ -123,7 +116,6 @@ class ChargeQuotation(models.Model):
 
     def action_set_active(self):
         for rec in self:
-            rec._check_single_active_in_period()
             if  not rec.quotation_lines:
                 raise ValidationError(_("Quotation must have at least one line."))
             rec.write({"state": "active", "is_active": True})
@@ -142,21 +134,6 @@ class ChargeQuotation(models.Model):
             if rec.effective_to and rec.effective_from and rec.effective_to < rec.effective_from:
                 raise ValidationError(_("Effective To must be >= Effective From."))
 
-    def _check_single_active_in_period(self):
-
-        for rec in self:
-            if not rec.project_id or not rec.effective_from:
-                continue
-
-            domain = [
-                ("id", "!=", rec.id),
-                ("project_id", "=", rec.project_id.id),
-                ("state", "=", "active"),
-                ("is_active", "=", True),
-            ]
-            others = self.env["charge.quotation"].sudo().search(domain, limit=1)
-            if others:
-                raise ValidationError(_("Only one active quotation is allowed for the same project."))
 
     def action_export_by_category(self):
         self.ensure_one()
@@ -238,7 +215,6 @@ class ChargeQuotation(models.Model):
         # 主信息
         main_info = [
             ("Quotation No.", self.name or ""),
-            ("Project", self.project_id.display_name or ""),
             ("Currency", self.currency_id.name or ""),
             ("Quotation Date", str(self.date) if self.date else ""),
             ("Effective From", str(self.effective_from) if self.effective_from else ""),

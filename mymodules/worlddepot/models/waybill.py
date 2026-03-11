@@ -67,40 +67,6 @@ class Waybill(models.Model):
                                        help='Packing lists associated with this container')
 
 
-
-
-
-    @api.constrains('other_docs_ids')
-    def constrain_required_documents(self):
-        for rec in self:
-            bl_count = rec.other_docs_ids.filtered(lambda l: l.bill_doc_type == 'bl' and l.file).count()
-            if bl_count == 0:
-                raise ValidationError(_("BL file is required."))
-
-
-    def name_get(self):
-        res = []
-        for rec in self:
-            parts = []
-            if rec.bl_number:
-                parts.append(f"BL:{rec.bl_number}")
-            if rec.hbl_number:
-                parts.append(f"HBL:{rec.hbl_number}")
-            res.append((rec.id, " / ".join(parts)))
-        return res
-
-    @api.model
-    def name_search(self, name="", args=None, operator="ilike", limit=100):
-        args = args or []
-        domain = args
-        if name:
-            domain = ["|",
-                      ("bl_number", operator, name),
-                      ("hbl_number", operator, name)
-                      ] + args
-        records = self.search(domain, limit=limit)
-        return records.name_get()
-
     def save_record(self):
         """Custom save method to handle record saving."""
         for record in self:

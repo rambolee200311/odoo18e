@@ -23,17 +23,43 @@ Long description of module's purpose
     # always loaded
     'data': [
         'security/ir.model.access.csv',
+        'security/security.xml',
+        'report/statement_period_report.xml',
+        'report/statement_period_templates.xml',
         'data/sequence_operation.xml',
         'data/ir_sequence_quotation.xml',
+        'data/account_account_data.xml',
         'wizard/charge_quotation_add_wizard_views.xml',
-        'views/charge_priceing_views/charge_quotation_views.xml',
+        'wizard/waybill_arrival_wizard_views.xml',
+
+        'views/charge_pricing_views/charge_quotation_views.xml',
+        'views/charge_pricing_views/project_project_inherit_views.xml',
+
         'views/handover_views/operation_order_handover_views.xml',
+        'views/handover_views/handover_invoice_line_views.xml',
+        'views/handover_views/handover_statement_period_views.xml',
+
+        'views/clearance_views/operation_order_clearance_views.xml',
+        'views/clearance_views/clearance_invoice_line_views.xml',
+        'views/clearance_views/clearance_statement_period_views.xml',
+
+        'views/settlement_account_views/statement_period_views.xml',
+
         'views/waybill_inherit_views.xml',
 
+
         'views/settlement_account_views/account_move_inherit_views.xml',
+        'views/settlement_account_views/account_account_inherit_views.xml',
+        'data/ir_sequence_quotation.xml',
+
+        'views/charge_item_inherit_views.xml',
         'views/all_menu.xml',
 
+
+        'views/transportation_views/import_pickup_requirement_views.xml',
+
     ],
+
     'application': True,
 
 }

@@ -20,6 +20,40 @@ class AccountMoveInherit(models.Model):
         tracking=True,
     )
 
+    def action_push_customer_invoice_files_to_period(self):
+        for rec in self:
+            if rec.move_type != "out_invoice":
+                raise ValidationError(_("Only customer invoices can push files to statement period."))
+
+            statement_period_id = self.env["statement.period"].search([
+                ("customer_invoice_id", "=", rec.id),
+
+            ], limit=1)
+            if not statement_period_id:
+                raise ValidationError(_("No statement period found for this invoice."))
+            attachments = self.env["ir.attachment"].sudo().search([
+                ("res_model", "=", "account.move"),
+                ("res_id", "=", rec.id),
+            ])
+            if not attachments:
+                raise ValidationError(_("No attachments found on this invoice."))
+
+            period = statement_period_id
+            add_ids = [att_id for att_id in attachments.ids]
+            period.write({"customer_invoice_attachment_ids": [(4, att_id) for att_id in add_ids]})
+
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Success"),
+                "message": _("Invoice files have been pushed to statement period."),
+                "type": "success",
+                "sticky": False,
+            },
+        }
+
+
     def action_confirm_paid_sync_handover(self):
         for move in self:
             if move.move_type != "in_invoice":

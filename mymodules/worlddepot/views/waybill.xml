@@ -65,7 +65,6 @@
                             <field name="hbl_number" readonly="state!='new'"/>
                             <field name="document_number" readonly="state!='new'"/>
                             <field name="reference_number" readonly="state!='new'"/>
-                            <field name="hs_code_qty" readonly="state!='new'"/>
                             <field name="shipping" readonly="state!='new'"/>
                             <field name="shipper" readonly="state!='new'"/>
                             <field name="consignee" readonly="state!='new'"/>

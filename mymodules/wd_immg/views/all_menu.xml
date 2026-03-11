@@ -1,9 +1,11 @@
 <odoo>
+    <menuitem id="menu_wd_charge_root" name="WMS" sequence="10" action="action_statement_period" web_icon="wd_iffm,static/src/img/img.png"/>
+
     <menuitem id="wms_waybill_menu" name="Waybills" parent="menu_wd_charge_root"
-              action="worlddepot.action_world_depot_waybill" sequence="45"/>
+              action="worlddepot.action_world_depot_waybill" sequence="40"/>
 
 
     <menuitem id="charge_item_menu" name="Charge Management" parent="menu_wd_charge_root"
-              action="worlddepot.action_world_depot_charge_item" sequence="50"/>
+              action="worlddepot.action_world_depot_charge_item" sequence="60"/>
 
 </odoo>

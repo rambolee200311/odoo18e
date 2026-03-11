@@ -2,8 +2,7 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
 import json
-from odoo.addons.worlddepot.models.charge_item import TAB_CATEGORY_LIST
-from odoo.addons.worlddepot.models.charge_item import OPERATION_TYPE
+from odoo.addons.wd_immg.models.charge_item_inherit import TAB_CATEGORY_LIST,OPERATION_TYPE
 
 
 class OperationOrderHandoverChargeLine(models.Model):
@@ -23,8 +22,8 @@ class OperationOrderHandoverChargeLine(models.Model):
     charge_origin_type = fields.Selection([("quotation", "Quotation"), ("manual", "Manual")], string="Charge Source", default="manual", required=True)
     quotation_id = fields.Many2one("charge.quotation", string="Quotation",related="handover_id.waybill_id.quotation_id", store=True,
                                    readonly=True, index=True)
-    project_id = fields.Many2one("res.partner", string="Project/Customer",related="handover_id.project_id", store=True, readonly=True)
-    currency_id = fields.Many2one("res.currency", string="Currency", related="handover_id.currency_id", store=True, readonly=True)
+    project_id = fields.Many2one("project.project", string="Project/Customer",related="handover_id.project_id", store=True, readonly=True)
+    currency_id = fields.Many2one("res.currency", string="Currency", related="handover_id.waybill_id.quotation_id.currency_id", store=True, readonly=True)
 
     charge_item_id = fields.Many2one("world.depot.charge.item", string="Charge Item",tracking= True)
     quotation_tab_category = fields.Selection(TAB_CATEGORY_LIST,related="charge_item_id.tab_category", string="Tab Category",tracking= True)
@@ -40,12 +39,32 @@ class OperationOrderHandoverChargeLine(models.Model):
     # rule_snapshot = fields.Text(string="Rule Snapshot")
     # source_snapshot = fields.Text(string="Source Snapshot")
     remark = fields.Char(string="Remark")
+
+
+
+
     @api.depends("qty", "unit_price")
     def compute_amount_total(self):
         for rec in self:
-            if rec.handover_id.state == 'close':
-                continue
             rec.amount_total = rec.qty * rec.unit_price
+
+    @api.onchange("charge_item_id")
+    def onchange_charge_item_id(self):
+        for rec in self:
+            if not rec.charge_item_id or not rec.handover_id:
+                continue
+            all_lines = rec.handover_id.charge_line_ids
+            other_lines = []
+            for line in all_lines:
+                if rec.id and line.id:
+                    if line.id != rec.id:
+                        other_lines.append(line)
+                else:
+                    if line != rec:
+                        other_lines.append(line)
+            for line in other_lines:
+                if line.charge_item_id and line.charge_item_id.id == rec.charge_item_id.id:
+                    raise ValidationError(_("Charge item already exists in this handover."))
 
     # SOURCE_FIELDS = ("handover_id",)
     #
