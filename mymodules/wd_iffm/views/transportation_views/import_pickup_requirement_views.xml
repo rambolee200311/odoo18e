@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="view_import_pickup_requirement_list" model="ir.ui.view">
+            <field name="name">import.pickup.requirement.list</field>
+            <field name="model">import.pickup.requirement</field>
+            <field name="arch" type="xml">
+                <list string="Pickup Requirement" default_order="id desc">
+                    <field name="name"/>
+                    <field name="waybill_id"/>
+                    <field name="terminal_a"/>
+                    <field name="pickup_end_type"/>
+                    <field name="warehouse_id" optional="show"/>
+                    <field name="pickup_deadline"/>
+                    <field name="customer_id"/>
+                    <field name="state"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_import_pickup_requirement_form" model="ir.ui.view">
+            <field name="name">import.pickup.requirement.form</field>
+            <field name="model">import.pickup.requirement</field>
+            <field name="arch" type="xml">
+                <form string="Pickup Requirement" duplicate="false">
+                    <header>
+                        <button name="action_submit" string="Submit" type="object" class="btn-primary"
+                                invisible="state != 'draft'"/>
+                        <button name="action_set_planned" string="Set Planned" type="object"
+                                invisible="state != 'submitted'"/>
+                        <button name="action_set_completed" string="Set Completed" type="object"
+                                invisible="state != 'planned'"/>
+                        <button name="action_cancel" string="Cancel" type="object"
+                                invisible="state not in ('draft', 'submitted')"/>
+                        <field name="state" widget="statusbar"
+                               statusbar_visible="draft,submitted,planned,completed,cancelled"/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <group>
+                                <field name="name" readonly="1"/>
+                                <field name="waybill_id" required="1" readonly="state != 'draft'"
+                                       options="{'no_create': True, 'no_open': True}"/>
+                                <field name="terminal_a" required="1" readonly="1"/>
+                                <field name="pickup_deadline" required="1" readonly="state != 'draft'"/>
+                            </group>
+                            <group>
+                                <field name="customer_id" required="1" readonly="state != 'draft'"
+                                       options="{'no_create': True, 'no_open': True}"/>
+                                <!--                                <field name="customer_name" readonly="1"/>-->
+                                <field name="pickup_end_type" required="1" readonly="state != 'draft'"/>
+                                <field name="warehouse_id" readonly="state != 'draft'"
+                                       invisible="pickup_end_type != 'warehouse'"
+                                       options="{'no_create': True, 'no_open': True}"/>
+                                <field name="other_address" readonly="state != 'draft'"
+                                       invisible="pickup_end_type != 'other'"/>
+                                <field name="pickup_requirements" readonly="state != 'draft'"/>
+                                <field name="contact_info" readonly="state != 'draft'"/>
+                                <field name="cancel_reason" readonly="state not in ('draft', 'submitted')"
+                                       invisible="state != 'cancelled'"/>
+                            </group>
+                        </group>
+
+                        <notebook>
+                            <page string="Container Lines">
+                                <field name="container_lines" readonly="state != 'draft'">
+                                    <list editable="bottom">
+                                        <field name="waybill_container_id"
+                                               options="{'no_create': True, 'no_open': True}"
+                                       />
+                                        <field name="container_number"/>
+                                        <field name="container_type"/>
+                                        <field name="weight"/>
+                                        <field name="state" readonly="1"/>
+                                    </list>
+                                    <!--                                    <form string="Pickup Container Line">-->
+                                    <!--                                        <group>-->
+                                    <!--                                            <group>-->
+                                    <!--                                                <field name="waybill_container_id" options="{'no_create': True, 'no_open': True}"/>-->
+                                    <!--                                                <field name="container_number" required="1"/>-->
+                                    <!--                                            </group>-->
+                                    <!--                                            <group>-->
+                                    <!--                                                <field name="container_type" required="1"/>-->
+                                    <!--                                                <field name="weight" required="1"/>-->
+                                    <!--                                            </group>-->
+                                    <!--                                        </group>-->
+                                    <!--                                    </form>-->
+                                </field>
+                            </page>
+
+                        </notebook>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_import_pickup_requirement_search" model="ir.ui.view">
+            <field name="name">import.pickup.requirement.search</field>
+            <field name="model">import.pickup.requirement</field>
+            <field name="arch" type="xml">
+                <search string="Pickup Requirement">
+                    <field name="name"/>
+                    <field name="waybill_id"/>
+                    <field name="customer_id"/>
+                    <field name="terminal_a"/>
+                    <field name="state"/>
+                    <filter string="Draft" name="filter_draft" domain="[('state', '=', 'draft')]"/>
+                    <filter string="Submitted" name="filter_submitted" domain="[('state', '=', 'submitted')]"/>
+                    <filter string="Planned" name="filter_planned" domain="[('state', '=', 'planned')]"/>
+                    <filter string="Completed" name="filter_completed" domain="[('state', '=', 'completed')]"/>
+                    <filter string="Cancelled" name="filter_cancelled" domain="[('state', '=', 'cancelled')]"/>
+                    <group expand="0" string="Group By">
+                        <filter string="State" name="group_state" context="{'group_by': 'state'}"/>
+                        <filter string="Customer" name="group_customer" context="{'group_by': 'customer_id'}"/>
+                        <filter string="End Type" name="group_pickup_end_type"
+                                context="{'group_by': 'pickup_end_type'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="action_import_pickup_requirement" model="ir.actions.act_window">
+            <field name="name">Pickup Requirement</field>
+            <field name="res_model">import.pickup.requirement</field>
+            <field name="view_mode">list,form</field>
+            <field name="search_view_id" ref="view_import_pickup_requirement_search"/>
+        </record>
+
+        <menuitem id="menu_import_pickup_requirement_root"
+                  name="Pickup Requirement"
+                  parent="menu_wd_charge_root"
+                  sequence="60"/>
+
+        <menuitem id="menu_import_pickup_requirement"
+                  name="Pickup Requirement"
+                  parent="menu_import_pickup_requirement_root"
+                  action="action_import_pickup_requirement"
+                  sequence="10"/>
+
+    </data>
+</odoo>

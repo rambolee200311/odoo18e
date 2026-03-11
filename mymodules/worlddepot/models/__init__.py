@@ -16,7 +16,6 @@ from . import my_project
 from . import my_product
 #from . import my_report
 #from . import my_user
-from . import waybill
 #from . import my_partner
 from . import my_picking_type
 from . import my_package_barcode

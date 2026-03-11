@@ -194,12 +194,12 @@
                                             string="Charge Module"
                                             class="oe_stat_button" icon="fa-calculator"
                                             invisible="state=='cancel'"/>
-                                    </div> 
+                                    </div>
                                 </header>
                                 <sheet>
-                                    <group col="4">                           
+                                    <group col="4">
                                         <field name="charge_year" string="Charge Year" widget="integer" options="{'format': 0}"/>
-                                        <field name="charge_month" string="Charge Month" widget="integer" options="{'format': 0}"/>                                
+                                        <field name="charge_month" string="Charge Month" widget="integer" options="{'format': 0}"/>
                                     </group>
                                     <group col="2">
                                         <field name="total_amount" readonly="1"/>

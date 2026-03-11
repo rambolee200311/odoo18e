@@ -3,10 +3,13 @@ from datetime import datetime, timedelta
 from odoo import http
 from odoo.http import request
 import json
+from .api_logs import api_logger
+
 
 class AuthController(http.Controller):
 
     @http.route('/world_depot/api/auth/token', type='json', auth='none', methods=['POST'], csrf=False)
+    @api_logger
     def generate_token(self, **params):
         data = json.loads(request.httprequest.data)
         api_key = data.get('api_key')
@@ -41,4 +44,3 @@ class AuthController(http.Controller):
             'expires_in': 3600,
             'expires_at': expires.strftime('%Y-%m-%d %H:%M:%S')
         }
-

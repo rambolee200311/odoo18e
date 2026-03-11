@@ -302,6 +302,7 @@ class TransferOrderAPI(http.Controller):
             }
 
         except UserError as ue:
+            _logger.exception(">>> CANCEL API REAL TRACEBACK")
             _logger.error("UserError during cancellation: %s", str(ue))
             return {'success': False, 'error': str(ue)}
 

@@ -1,0 +1,32 @@
+<!-- data/sequence.xml -->
+<odoo>
+    <data noupdate="1">
+        <record id="seq_operation_order_handover" model="ir.sequence">
+            <field name="name">换单作业单号</field>
+            <field name="code">operation.order.handover</field>
+            <field name="prefix">HD%(y)s%(month)s%(day)s</field>
+            <field name="padding">5</field>
+            <field name="number_next">1</field>
+            <field name="use_date_range">True</field>
+        </record>
+
+                <record id="seq_operation_order_clearance" model="ir.sequence">
+            <field name="name">清关作业单号</field>
+            <field name="code">operation.order.clearance</field>
+            <field name="prefix">CA%(y)s%(month)s%(day)s</field>
+            <field name="padding">5</field>
+            <field name="number_next">1</field>
+            <field name="use_date_range">True</field>
+        </record>
+
+
+        <record id="seq_statement_period" model="ir.sequence">
+            <field name="name">期间账单序列号</field>
+            <field name="code">statement.period</field>
+            <field name="prefix">SP%(y)s%(month)s%(day)s</field>
+            <field name="padding">5</field>
+            <field name="number_next">1</field>
+            <field name="use_date_range">True</field>
+        </record>
+    </data>
+</odoo>

@@ -372,12 +372,10 @@ class OutboundOrderStatus(models.Model):
                 # generate boxPalletSpec (use safe getattr with defaults to avoid errors if fields are missing)                
                 boxPalletSpecs = []
                 boxPalletSpec = ""
-
-                picks = self.env['stock.picking'].search([('outbound_order_id', '=', order.id), ('state', '=', 'done')])
-                if picks:
+                if order.outbound_order_pack_ids:
                     _logger.debug('Outbound order %s has %d pack(s)', order.id, len(order.outbound_order_pack_ids))
                     irow=1
-                    for pack in picks:
+                    for pack in order.outbound_order_pack_ids:
                         try:
                             # total_quantity is computed on pack; fallback to summing product quantities
                             #total_qty = getattr(pack, 'total_quantity', None)

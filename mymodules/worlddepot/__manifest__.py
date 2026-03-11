@@ -37,7 +37,7 @@
         'views/outbound_order.xml',
         #'views/portal_inventory_reporting.xml',
         'views/api_logs.xml',
-        'views/waybill.xml',
+
         'views/my_api_user.xml',
         'views/my_product_template.xml',
         'views/inbound_order_summary.xml',

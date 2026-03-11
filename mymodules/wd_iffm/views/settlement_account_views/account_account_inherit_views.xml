@@ -1,0 +1,23 @@
+<odoo>
+    <record id="account_account_view_form_inherit_logistics_category" model="ir.ui.view">
+        <field name="name">account.account.view.form.inherit.logistics.category</field>
+        <field name="model">account.account</field>
+        <field name="inherit_id" ref="account.view_account_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='code']" position="after">
+                <field name="account_category"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="account_account_view_list_inherit_logistics_category" model="ir.ui.view">
+        <field name="name">account.account.view.list.inherit.logistics.category</field>
+        <field name="model">account.account</field>
+        <field name="inherit_id" ref="account.view_account_list"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='code']" position="after">
+                <field name="account_category"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

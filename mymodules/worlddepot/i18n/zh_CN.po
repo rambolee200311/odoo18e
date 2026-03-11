@@ -1,0 +1,1869 @@
+# Chinese (Simplified, China) translations for Odoo
+# Odoo 物流供应链管理模块中文翻译
+# Copyright (C) 2026 World Depot B.V.
+# This file is distributed under the same license as the Odoo project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-02-12 10:00+0000\n"
+"PO-Revision-Date: 2026-02-12 10:00+0800\n"
+"Last-Translator: \n"
+"Language-Team: Chinese (Simplified, China) https://www.transifex.com/odoo/teams/41243/zh_CN/\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#. module: worlddepot
+#: model:ir.ui.menu,name:worlddepot.world_depot_logi_menu
+msgid "WorldDepot"
+msgstr "仓储订单管理"
+
+#. module: worlddepot
+#: model:ir.ui.menu,name:worlddepot.inbound_logi_menu
+msgid "Inbound"
+msgstr "入库管理"
+
+#. module: worlddepot
+#: model:ir.ui.menu,name:worlddepot.inbound_order_menu
+msgid "Orders"
+msgstr "入库订单"
+
+#. module: worlddepot
+#: model:ir.ui.menu,name:worlddepot.inbound_order_product_pallet_menu
+msgid "Pallet Products"
+msgstr "托盘产品"
+
+#. module: worlddepot
+#: model:ir.ui.menu,name:worlddepot.inbound_order_summary_menu
+msgid "Orders Summary"
+msgstr "订单汇总"
+
+#. module: worlddepot
+#: model:ir.ui.menu,name:worlddepot.outbound_logi_menu
+msgid "Outbound"
+msgstr "出库管理"
+
+#. module: worlddepot
+#: model:ir.ui.menu,name:worlddepot.outbound_order_menu
+msgid "Orders"
+msgstr "出库订单"
+
+#. module: worlddepot
+#: model:ir.ui.menu,name:worlddepot.outbound_order_summary_menu
+msgid "Orders Summary"
+msgstr "订单汇总"
+
+#. module: worlddepot
+#: model:ir.ui.menu,name:worlddepot.outbound_order_sn_detail_menu
+msgid "Orders SN Detail"
+msgstr "订单序列号详情"
+
+#. module: worlddepot
+#: model:ir.ui.menu,name:worlddepot.transfer_order_logi_menu
+msgid "Transfer"
+msgstr "调拨管理"
+
+#. module: worlddepot
+#: model:ir.ui.menu,name:worlddepot.transfer_order_menu
+msgid "Orders"
+msgstr "调拨订单"
+
+#. module: worlddepot
+#: model:ir.ui.menu,name:worlddepot.stock_report_menu
+msgid "Stock Report"
+msgstr "库存报表"
+
+#. module: worlddepot
+#: model:ir.ui.menu,name:worlddepot.stock_report_linglong_menu
+msgid "Stock Report for Linglong"
+msgstr "玲珑库存报表"
+
+#. module: worlddepot
+#: model:ir.ui.menu,name:worlddepot.charge_management_logi_menu
+msgid "Charge Management"
+msgstr "费用管理"
+
+#. module: worlddepot
+#: model:ir.ui.menu,name:worlddepot.charge_unit_menu
+msgid "Charge Units"
+msgstr "计费单位"
+
+#. module: worlddepot
+#: model:ir.ui.menu,name:worlddepot.charge_item_menu
+msgid "Charge Items"
+msgstr "费用项目"
+
+#. module: worlddepot
+#: model:ir.ui.menu,name:worlddepot.charge_module_menu
+msgid "Charge Modules"
+msgstr "计费模块"
+
+#. module: worlddepot
+#: model:ir.ui.menu,name:worlddepot.charge_summary_menu
+msgid "Charge Summaries"
+msgstr "费用汇总"
+
+
+#. module: worlddepot
+#: model:ir.ui.menu,name:worlddepot.container_menu
+msgid "Containers"
+msgstr "集装箱"
+
+#. module: worlddepot
+#: model:ir.ui.menu,name:worlddepot.packing_list_menu
+msgid "Packing Lists"
+msgstr "装箱单"
+
+#. module: worlddepot
+#: model:ir.ui.menu,name:worlddepot.menu_world_depot_configuration
+msgid "Configuration"
+msgstr "系统配置"
+
+#. module: worlddepot
+#: model:ir.ui.menu,name:worlddepot.menu_world_depot_products
+msgid "Products"
+msgstr "产品管理"
+
+#. module: worlddepot
+#: model:ir.ui.menu,name:worlddepot.menu_world_depot_product
+msgid "Product Template"
+msgstr "产品模板"
+
+#. module: worlddepot
+#: model:ir.ui.menu,name:worlddepot.menu_linglong_product_temp
+msgid "Linglong Product Temp"
+msgstr "玲珑产品临时表"
+
+#. module: worlddepot
+#: model:ir.ui.menu,name:worlddepot.menu_product_duplicate
+msgid "Product Duplicate"
+msgstr "产品去重"
+
+#. module: worlddepot
+#: model:ir.ui.menu,name:worlddepot.menu_location_type
+msgid "Location Types"
+msgstr "库位类型"
+
+#. module: worlddepot
+#: model:ir.ui.menu,name:worlddepot.menu_hoymiles_api_configuration
+msgid "Hoymiles APIs"
+msgstr "Hoymiles API接口"
+
+#. module: worlddepot
+#: model:ir.ui.menu,name:worlddepot.menu_api_log_root
+msgid "API Logs"
+msgstr "API日志"
+
+#. module: worlddepot
+#: model:ir.ui.menu,name:worlddepot.menu_world_depot_api_user
+msgid "API Users"
+msgstr "API用户"
+
+#. module: worlddepot
+#: model:ir.ui.menu,name:worlddepot.menu_hoymiles_api_urls
+msgid "Hoymiles API URLs"
+msgstr "Hoymiles API地址"
+
+#. module: worlddepot
+#: model:ir.ui.menu,name:worlddepot.menu_hoymiles_api_logs
+msgid "Hoymiles API Logs"
+msgstr "Hoymiles API日志"
+
+#. module: worlddepot
+#: model:ir.actions.act_window,name:worlddepot.action_world_depot_dashboard
+msgid "WorldDepot Dashboard"
+msgstr "世界仓库仪表板"
+
+#. module: worlddepot
+#: model:ir.actions.act_window,name:worlddepot.action_inbound_order
+msgid "Inbound Orders"
+msgstr "入库订单"
+
+#. module: worlddepot
+#: model:ir.actions.act_window,name:worlddepot.action_inbound_order_products_pallet
+msgid "Inbound Pallet Products"
+msgstr "入库托盘产品"
+
+#. module: worlddepot
+#: model:ir.actions.act_window,name:worlddepot.action_inbound_order_summary
+msgid "Inbound Orders Summary"
+msgstr "入库订单汇总"
+
+#. module: worlddepot
+#: model:ir.actions.act_window,name:worlddepot.action_outbound_order
+msgid "Outbound Orders"
+msgstr "出库订单"
+
+#. module: worlddepot
+#: model:ir.actions.act_window,name:worlddepot.action_outbound_order_summary
+msgid "Outbound Orders Summary"
+msgstr "出库订单汇总"
+
+#. module: worlddepot
+#: model:ir.actions.act_window,name:worlddepot.action_outbound_order_sn_detail
+msgid "Outbound Orders SN Detail"
+msgstr "出库订单序列号详情"
+
+#. module: worlddepot
+#: model:ir.actions.act_window,name:worlddepot.action_transfer_order
+msgid "Transfer Orders"
+msgstr "调拨订单"
+
+#. module: worlddepot
+#: model:ir.actions.act_window,name:worlddepot.action_world_depot_linglong_report
+msgid "Linglong Stock Report"
+msgstr "玲珑库存报表"
+
+#. module: worlddepot
+#: model:ir.actions.act_window,name:worlddepot.action_world_depot_charge_unit
+msgid "Charge Units"
+msgstr "计费单位"
+
+#. module: worlddepot
+#: model:ir.actions.act_window,name:worlddepot.action_world_depot_charge_item
+msgid "Charge Items"
+msgstr "费用项目"
+
+#. module: worlddepot
+#: model:ir.actions.act_window,name:worlddepot.action_world_depot_charge_module
+msgid "Charge Modules"
+msgstr "计费模块"
+
+#. module: worlddepot
+#: model:ir.actions.act_window,name:worlddepot.action_charge_summary_list
+msgid "Charge Summaries"
+msgstr "费用汇总"
+
+#. module: worlddepot
+#: model:ir.model,name:worlddepot.model_world_depot_inbound_order
+msgid "Inbound Order"
+msgstr "入库单"
+
+#. module: worlddepot
+#: model:ir.model,name:worlddepot.model_world_depot_inbound_order_product
+msgid "Inbound Order Product"
+msgstr "入库单产品"
+
+#. module: worlddepot
+#: model:ir.model,name:worlddepot.model_world_depot_inbound_order_products_pallet
+msgid "Inbound Order Products of Pallet"
+msgstr "入库单托盘产品"
+
+#. module: worlddepot
+#: model:ir.model,name:worlddepot.model_world_depot_inbound_order_product_serial_number
+msgid "Inbound Order Product Serial Number"
+msgstr "入库单产品序列号"
+
+#. module: worlddepot
+#: model:ir.model,name:worlddepot.model_world_depot_inbound_order_docs
+msgid "world.depot.inbound.order.docs"
+msgstr "入库单文档"
+
+#. module: worlddepot
+#: model:ir.model,name:worlddepot.model_world_depot_inbound_order_summary
+msgid "Inbound Order Summary"
+msgstr "入库单汇总"
+
+#. module: worlddepot
+#: model:ir.model,name:worlddepot.model_world_depot_inbound_order_charge
+msgid "Inbound Order Charge"
+msgstr "入库单费用"
+
+#. module: worlddepot
+#: model:ir.model,name:worlddepot.model_world_depot_inbound_order_product_details
+msgid "Inbound Order Product Details"
+msgstr "入库单产品详情"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__type
+msgid "Order Type"
+msgstr "订单类型"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__billno
+msgid "Bill No"
+msgstr "单据编号"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__date
+msgid "Order Date"
+msgstr "订单日期"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__a_date
+msgid "Arrival Date"
+msgstr "到货日期"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__i_date
+msgid "Inbound Date"
+msgstr "入库日期"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__i_datetime
+msgid "Inbound Date"
+msgstr "入库日期"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__project
+msgid "Project"
+msgstr "项目"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__project_category_id
+msgid "Project Category"
+msgstr "项目类别"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__pick_type
+msgid "Picking Type"
+msgstr "拣货类型"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__owner
+msgid "Owner"
+msgstr "货主"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__warehouse
+msgid "Warehouse"
+msgstr "仓库"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__remark
+msgid "Remark"
+msgstr "备注"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__remark1
+msgid "Remark 1"
+msgstr "备注1"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__reference
+msgid "Reference"
+msgstr "参考号"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__bl_no
+msgid "Bill of Lading"
+msgstr "提单号"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__invoice_no
+msgid "Invoice No"
+msgstr "发票号"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__cntr_no
+msgid "Container No"
+msgstr "集装箱号"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__pallets
+msgid "Pallets"
+msgstr "托盘数"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__scanning_quantity
+msgid "Scanning Quantity"
+msgstr "扫描数量"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__is_adr
+msgid "ADR"
+msgstr "危险品"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__weight_total
+msgid "Total Weight (kg)"
+msgstr "总重量(kg)"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__weight_total_input
+msgid "Total Weight Input (kg)"
+msgstr "总重量输入(kg)"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__confirm_user_id
+msgid "Confirmed By"
+msgstr "确认人"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__confirm_time_user_tz
+msgid "Confirm Time (User Timezone)"
+msgstr "确认时间(用户时区)"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__confirm_time_server
+msgid "Confirm Time (Server)"
+msgstr "确认时间(服务器)"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__state
+msgid "State"
+msgstr "状态"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__status
+msgid "Status"
+msgstr "状态"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__is_scan_sn
+msgid "Scan Serial Number one by one"
+msgstr "逐个扫描序列号"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__inbound_order_product_ids
+msgid "Pallets of Inbound Order"
+msgstr "入库单托盘"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__stock_picking_id
+msgid "Stock Picking"
+msgstr "库存调拨"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__inbound_trucking_charge
+msgid "Trucking Charge"
+msgstr "运输费用"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__inbound_terminal_surcharge
+msgid "Terminal Surcharge"
+msgstr "码头附加费"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__inbound_terminal_surcharge_remark
+msgid "Terminal Surcharge Remark"
+msgstr "码头附加费备注"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__inbound_handling_charge
+msgid "Inbound Handling"
+msgstr "入库操作费"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__inbound_system_file_charge
+msgid "System File and Document Admin Fee"
+msgstr "系统文件和文档管理费"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__inbound_DGD_charge
+msgid "Dangerous Goods Declaration Charge"
+msgstr "危险品申报费"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__inbound_scanning_charge
+msgid "Scanning Charge"
+msgstr "扫描费用"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__inbound_order_doc_ids
+msgid "Inbound Order Documents"
+msgstr "入库单文档"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__is_bonded
+msgid "Bonded Warehouse"
+msgstr "保税仓库"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__inbound_order_charge_ids
+msgid "Inbound Order Charges"
+msgstr "入库单费用"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__charge_module_id
+msgid "Charge Module"
+msgstr "费用模块"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__charge_year
+msgid "Charge Year"
+msgstr "费用年份"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__charge_month
+msgid "Charge Month"
+msgstr "费用月份"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__total_amount
+msgid "Amount Total"
+msgstr "总金额"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__currency_id
+msgid "Currency"
+msgstr "货币"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order_charge__charge_item_id
+msgid "Charge Item"
+msgstr "费用项目"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order_charge__quantity
+msgid "Quantity"
+msgstr "数量"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order_charge__charge_unit_name
+msgid "Charge Unit"
+msgstr "费用单位"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order_charge__charge_unit_id
+msgid "Charge Unit Input"
+msgstr "费用单位输入"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order_charge__unit_price
+msgid "Unit Price"
+msgstr "单价"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order_charge__amount
+msgid "Amount"
+msgstr "金额"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order_charge__description
+msgid "Description"
+msgstr "描述"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order_product__pallet_type
+msgid "Pallet Type"
+msgstr "托盘类型"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order_product__pallet_no
+msgid "Pallet No"
+msgstr "托盘编号"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order_product__adr
+msgid "ADR"
+msgstr "危险品"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order_product__un_number
+msgid "UN Number"
+msgstr "UN编号"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order_product__quantity
+msgid "Quantity"
+msgstr "数量"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order_product__weight_total
+msgid "Total Weight (kg)"
+msgstr "总重量(kg)"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order_product__is_serial_tracked
+msgid "Tracked by Serial"
+msgstr "序列号跟踪"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order_product__is_inbound_handling
+msgid "is Handling"
+msgstr "是否操作"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order_product__inbound_handling_price
+msgid "Handling Price"
+msgstr "操作价格"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order_product__inbound_handling_unit
+msgid "Unit"
+msgstr "单位"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order_product__inbound_handling_charge
+msgid "Handling Charge"
+msgstr "操作费用"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order_product__is_scanning
+msgid "is Scanning"
+msgstr "是否扫描"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order_product__inbound_scanning_price
+msgid "Scanning Price"
+msgstr "扫描价格"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order_product__inbound_scanning_charge
+msgid "Scanning Charge"
+msgstr "扫描费用"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order_product__product_description
+msgid "Product Description"
+msgstr "产品描述"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order_products_pallet__weight
+msgid "Weight (kg)"
+msgstr "重量(kg)"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order_products_pallet__weight_subtotal
+msgid "Subtotal Weight (kg)"
+msgstr "重量小计(kg)"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order_docs__doc_type
+msgid "Document Type"
+msgstr "文档类型"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order_docs__file
+msgid "File"
+msgstr "文件"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order_docs__filename
+msgid "File name"
+msgstr "文件名"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order_summary__type
+msgid "Type"
+msgstr "类型"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order_summary__a_date
+msgid "Date"
+msgstr "日期"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order_summary__project_name
+msgid "Project Name"
+msgstr "项目名称"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order_summary__reference
+msgid "Inbound Reference"
+msgstr "入库参考号"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order_summary__cntr_no
+msgid "Container No"
+msgstr "集装箱号"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order_summary__mixed
+msgid "Mixed"
+msgstr "混合"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order_summary__product_name
+msgid "Product Name"
+msgstr "产品名称"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order_summary__barcode
+msgid "Barcode"
+msgstr "条码"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order_summary__default_code
+msgid "Internal Reference"
+msgstr "内部参考"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order_summary__quantity
+msgid "Pcs/Pallet"
+msgstr "件/托盘"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order_summary__qty_subtotal
+msgid "Quantity Subtotal"
+msgstr "数量小计"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_inbound_order_form
+msgid "Save"
+msgstr "保存"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_inbound_order_form
+msgid "Confirm"
+msgstr "确认"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_inbound_order_form
+msgid "UnConfirm"
+msgstr "取消确认"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_inbound_order_form
+msgid "Cancel"
+msgstr "取消"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_inbound_order_form
+msgid "Product Detail"
+msgstr "产品详情"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_inbound_order_form
+msgid "Create Receipt"
+msgstr "创建收货单"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_inbound_order_summary_tree
+msgid "Refresh Summary"
+msgstr "刷新汇总"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_inbound_order_form
+msgid "Charge Module"
+msgstr "费用模块"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_inbound_order_form
+msgid "Charges Details"
+msgstr "费用详情"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_inbound_order_form
+msgid "Info"
+msgstr "信息"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_inbound_order_product_form
+msgid "Products of A Pallet"
+msgstr "托盘产品"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_inbound_order_form
+msgid "Products"
+msgstr "产品"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_inbound_order_form
+msgid "Charges"
+msgstr "费用"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_inbound_order_form
+msgid "Documents"
+msgstr "文档"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_inbound_order_form
+msgid "Hoymiles APIs"
+msgstr "Hoymiles API"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_inbound_order_form
+msgid "Confirm Status"
+msgstr "确认状态"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_inbound_order_form
+msgid "Inbound Result"
+msgstr "入库结果"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_inbound_order_product_form
+msgid "Inbound Order Pallets"
+msgstr "入库单托盘"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_inbound_order_charge_form
+msgid "Inbound Order Charge Details"
+msgstr "入库单费用详情"
+
+#. module: worlddepot
+#: model:ir.actions.act_window,name:worlddepot.action_inbound_order
+msgid "Inbound Orders"
+msgstr "入库单"
+
+#. module: worlddepot
+#: model:ir.actions.act_window,name:worlddepot.action_inbound_order_summary
+msgid "Inbound Order Summary"
+msgstr "入库单汇总"
+
+#. module: worlddepot
+#: model:ir.actions.act_window,name:worlddepot.action_inbound_order_products_pallet
+msgid "Inbound Pallet Products"
+msgstr "入库托盘产品"
+
+#. module: worlddepot
+#: model:ir.model.fields.selection,name:worlddepot.selection__world_depot_inbound_order__type__inbound
+msgid "Inbound"
+msgstr "入库"
+
+#. module: worlddepot
+#: model:ir.model.fields.selection,name:worlddepot.selection__world_depot_inbound_order__type__service
+msgid "Service"
+msgstr "服务"
+
+#. module: worlddepot
+#: model:ir.model.fields.selection,name:worlddepot.selection__world_depot_inbound_order__type__transfer
+msgid "Transfer"
+msgstr "调拨"
+
+#. module: worlddepot
+#: model:ir.model.fields.selection,name:worlddepot.selection__world_depot_inbound_order__state__new
+msgid "New"
+msgstr "新建"
+
+#. module: worlddepot
+#: model:ir.model.fields.selection,name:worlddepot.selection__world_depot_inbound_order__state__confirm
+msgid "Confirmed"
+msgstr "已确认"
+
+#. module: worlddepot
+#: model:ir.model.fields.selection,name:worlddepot.selection__world_depot_inbound_order__state__cancel
+msgid "Cancelled"
+msgstr "已取消"
+
+#. module: worlddepot
+#: model:ir.model.fields.selection,name:worlddepot.selection__world_depot_inbound_order__status__planning
+msgid "Planning"
+msgstr "计划中"
+
+#. module: worlddepot
+#: model:ir.model.fields.selection,name:worlddepot.selection__world_depot_inbound_order__status__arrive
+msgid "Arrived"
+msgstr "已到达"
+
+
+
+
+#. module: worlddepot
+#: model:ir.actions.act_window,name:worlddepot.action_outbound_order
+msgid "Outbound Orders"
+msgstr "出库订单"
+
+#. module: worlddepot
+#: model:ir.actions.act_window,name:worlddepot.action_outbound_order_summary
+msgid "Outbound Order Summary"
+msgstr "出库订单汇总"
+
+#. module: worlddepot
+#: model:ir.actions.act_window,name:worlddepot.action_outbound_order_sn_detail
+msgid "Outbound Order SN Detail"
+msgstr "出库订单序列号明细"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_outbound_order_tree
+msgid "Outbound Orders"
+msgstr "出库订单"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_outbound_order_form
+msgid "Outbound Order"
+msgstr "出库订单"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_outbound_order_sn_detail_tree
+msgid "Outbound Order SN Detail"
+msgstr "出库订单序列号明细"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_outbound_order_summary_tree
+msgid "Outbound Order Summary"
+msgstr "出库订单汇总"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_outbound_order_product_tree
+msgid "Outbound Order Products"
+msgstr "出库订单产品"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_outbound_order_sn_detail_search
+msgid "Outbound Order SN Detail"
+msgstr "出库订单序列号明细"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_outbound_order_summary_search
+msgid "Outbound Order Summary"
+msgstr "出库订单汇总"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_outbound_order_search
+msgid "Outbound Orders"
+msgstr "出库订单"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__billno
+msgid "BillNo"
+msgstr "单据编号"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__date
+msgid "Order Date"
+msgstr "订单日期"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__p_date
+msgid "Planning Date"
+msgstr "计划日期"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__o_date
+msgid "Outbound Date"
+msgstr "出库日期"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__project
+msgid "Project"
+msgstr "项目"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__owner
+msgid "Owner"
+msgstr "货主"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__warehouse
+msgid "Warehouse"
+msgstr "仓库"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__pick_type
+msgid "Picking Type"
+msgstr "拣货类型"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__unload_company
+msgid "Unload Company/Person"
+msgstr "卸货公司/人员"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__remark
+msgid "Remark"
+msgstr "备注"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__remark1
+msgid "Remark 1"
+msgstr "备注1"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__reference
+msgid "Reference"
+msgstr "参考号"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__load_ref
+msgid "Loading Reference"
+msgstr "装车参考"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__load_date
+msgid "Loading Date"
+msgstr "装车日期"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__delivery_method
+msgid "Delivery Method"
+msgstr "配送方式"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__delivery_company
+msgid "Delivery Company"
+msgstr "配送公司"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__delivery_number
+msgid "Delivery Number"
+msgstr "配送单号"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__delivery_street
+msgid "Delivery Street"
+msgstr "配送街道"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__delivery_city
+msgid "Delivery City"
+msgstr "配送城市"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__delivery_zip
+msgid "Delivery Zip"
+msgstr "配送邮编"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__delivery_country_id
+msgid "Delivery Country"
+msgstr "配送国家"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__delivery_phone
+msgid "Delivery Phone"
+msgstr "配送电话"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__delivery_mobile
+msgid "Delivery Mobile"
+msgstr "配送手机"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__delivery_email
+msgid "Delivery Email"
+msgstr "配送邮箱"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__receiver_sign_back_date
+msgid "Receiver Sign Back Date"
+msgstr "收货人签回日期"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__driver_sign_date
+msgid "Driver Sign Date"
+msgstr "司机签收日期"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__plate_number
+msgid "Plate Number"
+msgstr "车牌号"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__delivery_remark
+msgid "Delivery Remark"
+msgstr "配送备注"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__pod_file
+msgid "POD File"
+msgstr "POD文件"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__pod_filename
+msgid "POD Filename"
+msgstr "POD文件名"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__state
+msgid "State"
+msgstr "状态"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__outbound_order_product_ids
+msgid "Products of Outbound Order"
+msgstr "出库订单产品"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__outbound_order_docs_ids
+msgid "Other Documents"
+msgstr "其他文档"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__picking_PICK
+msgid "Picking"
+msgstr "拣货"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__picking_PICK_date
+msgid "Picking Date"
+msgstr "拣货日期"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__picking_Out
+msgid "Outbound"
+msgstr "出库"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__picking_Out_date
+msgid "Outbound Date"
+msgstr "出库日期"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__status
+msgid "Status"
+msgstr "状态"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__pallets
+msgid "Pallets"
+msgstr "托盘数"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__scanning_quantity
+msgid "Scanning Quantity"
+msgstr "扫描数量"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__is_adr
+msgid "ADR"
+msgstr "危险品"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__outbound_delivery_charge
+msgid "Delivery Charge"
+msgstr "配送费用"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__outbound_system_file_charge
+msgid "System File and Document Admin Fee"
+msgstr "系统文件及文档管理费"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__outbound_DGD_charge
+msgid "Dangerous Goods Declaration Charge"
+msgstr "危险品申报费"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__outbound_handling_charge
+msgid "Outbound Handling"
+msgstr "出库操作费"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__outbound_scanning_charge
+msgid "Scanning Charge"
+msgstr "扫描费用"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__outbound_pallet_type
+msgid "Pallet Type"
+msgstr "托盘类型"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__outbound_pallet_fee
+msgid "Outbound Pallet Fee"
+msgstr "出库托盘费"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__outbound_palletizing_qty
+msgid "Palletizing Qty"
+msgstr "打托数量"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__outbound_palletizing_charge
+msgid "Palletizing Charge"
+msgstr "打托费用"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__confirm_user_id
+msgid "Confirmed By"
+msgstr "确认人"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__confirm_time_user_tz
+msgid "Confirm Time (User Timezone)"
+msgstr "确认时间（用户时区）"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__confirm_time_server
+msgid "Confirm Time (Server)"
+msgstr "确认时间（服务器）"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__pallet_prefix_code
+msgid "Pallet Prefix"
+msgstr "托盘前缀"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__is_auto_moves
+msgid "Auto Create Move Lines"
+msgstr "自动创建移动明细"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__delivery_issuance_time
+msgid "Delivery Issue Time"
+msgstr "配送发出时间"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__delivery_issuance_remark
+msgid "Delivery Issue Description"
+msgstr "配送发出说明"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__outbound_order_product_serial_numbers
+msgid "Outbound Order Product Serial Numbers"
+msgstr "出库订单产品序列号"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__outbound_order_charge_ids
+msgid "Outbound Order Charges"
+msgstr "出库订单费用"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__charge_module_id
+msgid "Charge Module"
+msgstr "费用模块"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__charge_year
+msgid "Charge Year"
+msgstr "费用年份"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__charge_month
+msgid "Charge Month"
+msgstr "费用月份"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__total_amount
+msgid "Amount Total"
+msgstr "总金额"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__currency_id
+msgid "Currency"
+msgstr "货币"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_charge__charge_item_id
+msgid "Charge Item"
+msgstr "费用项目"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_charge__quantity
+msgid "Quantity"
+msgstr "数量"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_charge__charge_unit_name
+msgid "Charge Unit"
+msgstr "费用单位"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_charge__charge_unit_id
+msgid "Charge Unit Input"
+msgstr "费用单位输入"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_charge__unit_price
+msgid "Unit Price"
+msgstr "单价"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_charge__amount
+msgid "Amount"
+msgstr "金额"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_charge__description
+msgid "Description"
+msgstr "描述"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_pack_info__pack_number
+msgid "Pack Number"
+msgstr "包装编号"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_pack_info__count
+msgid "Pack Count"
+msgstr "包装数量"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_pack_info__pack_owner
+msgid "Pack Owner"
+msgstr "包装所有者"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_pack_info__length
+msgid "Length (cm)"
+msgstr "长度（厘米）"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_pack_info__width
+msgid "Width (cm)"
+msgstr "宽度（厘米）"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_pack_info__height
+msgid "Height (cm)"
+msgstr "高度（厘米）"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_pack_info__volume
+msgid "Volume (m³)"
+msgstr "体积（立方米）"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_pack_info__gross_weight
+msgid "Gross Weight (kg)"
+msgstr "毛重（千克）"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_pack_info__net_weight
+msgid "Net Weight (kg)"
+msgstr "净重（千克）"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_pack_info__tare_weight
+msgid "Tare Weight (kg)"
+msgstr "皮重（千克）"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_pack_info__remark
+msgid "Remark"
+msgstr "备注"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_pack_info__product_description
+msgid "Product Description"
+msgstr "产品描述"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_pack_info__is_loaded
+msgid "Loaded"
+msgstr "已装车"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_pack_info__loading_date
+msgid "Loading Date"
+msgstr "装车日期"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_pack_info__product_count
+msgid "Product Varieties"
+msgstr "产品种类"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_pack_info__total_quantity
+msgid "Total Quantity"
+msgstr "总数量"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_pack_product__product_id
+msgid "Product"
+msgstr "产品"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_pack_product__quantity
+msgid "Quantity"
+msgstr "数量"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_pack_product__lot_id
+msgid "Lot/Serial Number"
+msgstr "批次/序列号"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_pack_product__uom_id
+msgid "Unit of Measure"
+msgstr "计量单位"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_pack_product__weight
+msgid "Unit Weight"
+msgstr "单位重量"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_pack_product__total_weight
+msgid "Total Weight"
+msgstr "总重量"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_sn_detail__order_id
+msgid "Outbound Order"
+msgstr "出库订单"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_sn_detail__type
+msgid "Type"
+msgstr "类型"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_sn_detail__reference
+msgid "Outbound Reference"
+msgstr "出库参考"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_sn_detail__p_date
+msgid "Date"
+msgstr "日期"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_sn_detail__project
+msgid "Project"
+msgstr "项目"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_sn_detail__project_name
+msgid "Project Name"
+msgstr "项目名称"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_sn_detail__picking_PICK
+msgid "Picking"
+msgstr "拣货"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_sn_detail__product_id
+msgid "Product"
+msgstr "产品"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_sn_detail__product_name
+msgid "Product Name"
+msgstr "产品名称"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_sn_detail__lot_id
+msgid "Serial/Lot ID"
+msgstr "序列/批次ID"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_sn_detail__lot_name
+msgid "Serial/Lot Name"
+msgstr "序列/批次名称"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_sn_detail__quantity
+msgid "Quantity"
+msgstr "数量"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_summary__order_id
+msgid "Outbound Order"
+msgstr "出库订单"
+
+#. module: worlddepot
+#: model:ir.model,name:worlddepot.model_world_depot_transfer_order
+msgid "Transfer Order"
+msgstr "调拨单"
+
+#. module: worlddepot
+#: model:ir.model,name:worlddepot.model_world_depot_transfer_order_line
+msgid "Transfer Order Line"
+msgstr "调拨单明细"
+
+#. module: worlddepot
+#: model:ir.model,name:worlddepot.model_world_depot_transfer_order_docs
+msgid "Transfer Order Documents"
+msgstr "调拨单文档"
+
+#. module: worlddepot
+#: model:ir.model,name:worlddepot.model_world_depot_transfer_order_charge
+msgid "Transfer Order Charge"
+msgstr "调拨单费用"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_transfer_order__type
+msgid "Order Type"
+msgstr "单据类型"
+
+#. module: worlddepot
+#: model:ir.model.fields.selection,name:worlddepot.selection__world_depot_transfer_order__type__type1
+msgid "Type 1"
+msgstr "类型1"
+
+#. module: worlddepot
+#: model:ir.model.fields.selection,name:worlddepot.selection__world_depot_transfer_order__type__type2
+msgid "Type 2"
+msgstr "类型2"
+
+#. module: worlddepot
+#: model:ir.model.fields.selection,name:worlddepot.selection__world_depot_transfer_order__type__type3
+msgid "Type 3"
+msgstr "类型3"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_transfer_order__from_location_type
+msgid "From Type"
+msgstr "来源类型"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_transfer_order__to_location_type
+msgid "To Type"
+msgstr "目标类型"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_transfer_order__billno
+msgid "Bill No"
+msgstr "单据编号"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_transfer_order__date
+msgid "Order Date"
+msgstr "单据日期"
+
+#. module: worlddepot
+#: model:ir.model.fields,help:worlddepot.field_world_depot_transfer_order__date
+msgid "Planned date"
+msgstr "计划日期"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_transfer_order__t_date
+msgid "Transfer Date"
+msgstr "调拨日期"
+
+#. module: worlddepot
+#: model:ir.model.fields,help:worlddepot.field_world_depot_transfer_order__t_date
+msgid "Date of transfer"
+msgstr "调拨执行日期"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_transfer_order__project
+msgid "Project"
+msgstr "项目"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_transfer_order__project_category_id
+msgid "Project Category"
+msgstr "项目类别"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_transfer_order__pick_type
+msgid "Picking Type"
+msgstr "拣货类型"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_transfer_order__owner
+msgid "Owner"
+msgstr "负责人"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_transfer_order__warehouse
+msgid "Warehouse"
+msgstr "仓库"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_transfer_order__remark
+msgid "Remark"
+msgstr "备注"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_transfer_order__remark1
+msgid "Remark 1"
+msgstr "备注1"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_transfer_order__reference
+msgid "Reference"
+msgstr "参考编号"
+
+#. module: worlddepot
+#: model:ir.model.fields,help:worlddepot.field_world_depot_transfer_order__reference
+msgid "Reference for the Order No of Owner"
+msgstr "负责人订单编号参考"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_transfer_order__confirm_user_id
+msgid "Confirmed By"
+msgstr "确认人"
+
+#. module: worlddepot
+#: model:ir.model.fields,help:worlddepot.field_world_depot_transfer_order__confirm_user_id
+msgid "User who confirmed the order."
+msgstr "确认该订单的用户"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_transfer_order__confirm_time_user_tz
+msgid "Confirm Time (User Timezone)"
+msgstr "确认时间（用户时区）"
+
+#. module: worlddepot
+#: model:ir.model.fields,help:worlddepot.field_world_depot_transfer_order__confirm_time_user_tz
+msgid "Confirmation time in the user's timezone."
+msgstr "用户所在时区的确认时间"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_transfer_order__confirm_time_server
+msgid "Confirm Time (Server)"
+msgstr "确认时间（服务器）"
+
+#. module: worlddepot
+#: model:ir.model.fields,help:worlddepot.field_world_depot_transfer_order__confirm_time_server
+msgid "Confirmation time in the server's timezone."
+msgstr "服务器所在时区的确认时间"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_transfer_order__state
+msgid "State"
+msgstr "状态"
+
+#. module: worlddepot
+#: model:ir.model.fields.selection,name:worlddepot.selection__world_depot_transfer_order__state__new
+msgid "New"
+msgstr "新建"
+
+#. module: worlddepot
+#: model:ir.model.fields.selection,name:worlddepot.selection__world_depot_transfer_order__state__confirm
+msgid "Confirmed"
+msgstr "已确认"
+
+#. module: worlddepot
+#: model:ir.model.fields.selection,name:worlddepot.selection__world_depot_transfer_order__state__cancel
+msgid "Cancelled"
+msgstr "已取消"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_transfer_order__stock_picking_id
+msgid "Related Picking"
+msgstr "相关拣货单"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_transfer_order__line_ids
+msgid "Transfer Order Lines"
+msgstr "调拨单明细行"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_transfer_order__doc_ids
+msgid "Transfer Order Documents"
+msgstr "调拨单文档"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_transfer_order__charge_ids
+msgid "Transfer Order Charges"
+msgstr "调拨单费用"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_transfer_order_tree
+msgid "Transfer Orders"
+msgstr "调拨单"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_transfer_order_form
+msgid "Transfer Order"
+msgstr "调拨单"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_transfer_order_search
+msgid "Search Transfer Orders"
+msgstr "搜索调拨单"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_transfer_order_form
+#: code:addons/worlddepot/models/transfer_order.py:0
+#, python-format
+msgid "Confirm"
+msgstr "确认"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_transfer_order_form
+#: code:addons/worlddepot/models/transfer_order.py:0
+#, python-format
+msgid "Unconfirm"
+msgstr "取消确认"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_transfer_order_form
+#: code:addons/worlddepot/models/transfer_order.py:0
+#, python-format
+msgid "Cancel"
+msgstr "取消"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_transfer_order_form
+msgid "Save"
+msgstr "保存"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_transfer_order_form
+msgid "Close"
+msgstr "关闭"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_transfer_order_form
+msgid "CANCEL"
+msgstr "已取消"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_transfer_order_form
+msgid "Create Picking"
+msgstr "创建拣货单"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_transfer_order_form
+msgid "Lines"
+msgstr "明细行"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_transfer_order_form
+msgid "Documents"
+msgstr "文档"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_transfer_order_form
+msgid "Charges"
+msgstr "费用"
+
+#. module: worlddepot
+#: model:ir.ui.view,arch_db:worlddepot.view_transfer_order_form
+msgid "Notes"
+msgstr "备注"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_transfer_order_line__product
+msgid "Product"
+msgstr "产品"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_transfer_order_line__quantity
+msgid "Quantity"
+msgstr "数量"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_transfer_order_line__location_from
+msgid "Source Location"
+msgstr "源位置"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_transfer_order_line__location_to
+msgid "Destination Location"
+msgstr "目标位置"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_transfer_order_line__remark
+msgid "Remark"
+msgstr "备注"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_transfer_order_docs__doc_type
+msgid "Document Type"
+msgstr "文档类型"
+
+#. module: worlddepot
+#: model:ir.model.fields.selection,name:worlddepot.selection__world_depot_transfer_order_docs__doc_type__cmr
+msgid "CMR"
+msgstr "CMR"
+
+#. module: worlddepot
+#: model:ir.model.fields.selection,name:worlddepot.selection__world_depot_transfer_order_docs__doc_type__sn_details
+msgid "SN Details"
+msgstr "序列号详情"
+
+#. module: worlddepot
+#: model:ir.model.fields.selection,name:worlddepot.selection__world_depot_transfer_order_docs__doc_type__other
+msgid "Other Document"
+msgstr "其他文档"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_transfer_order_docs__description
+msgid "Description"
+msgstr "描述"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_transfer_order_docs__file
+msgid "File"
+msgstr "文件"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_transfer_order_docs__filename
+msgid "File name"
+msgstr "文件名"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_transfer_order_charge__charge_item_id
+msgid "Charge Item"
+msgstr "费用项目"
+
+#. module: worlddepot
+#: model:ir.model.fields,help:worlddepot.field_world_depot_transfer_order_charge__charge_item_id
+msgid "The charge item associated with this order."
+msgstr "与此订单关联的费用项目"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_transfer_order_charge__quantity
+msgid "Quantity"
+msgstr "数量"
+
+#. module: worlddepot
+#: model:ir.model.fields,help:worlddepot.field_world_depot_transfer_order_charge__quantity
+msgid "The quantity of the charge item."
+msgstr "费用项目的数量"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_transfer_order_charge__charge_unit_name
+msgid "Charge Unit"
+msgstr "费用单位"
+
+#. module: worlddepot
+#: model:ir.model.fields,help:worlddepot.field_world_depot_transfer_order_charge__charge_unit_name
+msgid "The name of the charge unit, fetched from the related charge item."
+msgstr "费用单位名称，从相关费用项目获取"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_transfer_order_charge__charge_unit_id
+msgid "Charge Unit Input"
+msgstr "费用单位输入"
+
+#. module: worlddepot
+#: model:ir.model.fields,help:worlddepot.field_world_depot_transfer_order_charge__charge_unit_id
+msgid "The charge unit selected for this order."
+msgstr "为此订单选择的费用单位"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_transfer_order_charge__unit_price
+msgid "Unit Price"
+msgstr "单价"
+
+#. module: worlddepot
+#: model:ir.model.fields,help:worlddepot.field_world_depot_transfer_order_charge__unit_price
+msgid "The price per unit for the charge item."
+msgstr "费用项目的每单位价格"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_transfer_order_charge__amount
+msgid "Amount"
+msgstr "金额"
+
+#. module: worlddepot
+#: model:ir.model.fields,help:worlddepot.field_world_depot_transfer_order_charge__amount
+msgid "The total amount calculated as Quantity x Unit Price."
+msgstr "总金额，计算方式为数量 × 单价"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_transfer_order_charge__currency_id
+msgid "Currency"
+msgstr "货币"
+
+#. module: worlddepot
+#: model:ir.model.fields,help:worlddepot.field_world_depot_transfer_order_charge__currency_id
+msgid "The currency used for this charge."
+msgstr "此费用使用的货币"
+
+#. module: worlddepot
+#: model:ir.model.fields,field_description:worlddepot.field_world_depot_transfer_order_charge__description
+msgid "Description"
+msgstr "描述"
+
+#. module: worlddepot
+#: model:ir.model.fields,help:worlddepot.field_world_depot_transfer_order_charge__description
+msgid "Additional details or notes about the charge."
+msgstr "关于此费用的额外详情或备注"
+
+#. module: worlddepot
+#: code:addons/worlddepot/models/transfer_order.py:0
+#, python-format
+msgid "Only new orders can be confirmed."
+msgstr "只有新建状态的订单才能确认。"
+
+#. module: worlddepot
+#: code:addons/worlddepot/models/transfer_order.py:0
+#, python-format
+msgid "Only new orders can be cancelled."
+msgstr "只有新建状态的订单才能取消。"
+
+#. module: worlddepot
+#: code:addons/worlddepot/models/transfer_order.py:0
+#, python-format
+msgid "Only confirmed orders can be unconfirmed."
+msgstr "只有已确认状态的订单才能取消确认。"
+
+#. module: worlddepot
+#: code:addons/worlddepot/models/transfer_order.py:0
+#, python-format
+msgid "From Location Type and To Location Type cannot be the same."
+msgstr "来源位置类型和目标位置类型不能相同。"
+
+#. module: worlddepot
+#: code:addons/worlddepot/models/transfer_order.py:0
+#, python-format
+msgid "The reference \"%s\" already exists for this project."
+msgstr "参考编号\"%s\"在此项目中已存在。"

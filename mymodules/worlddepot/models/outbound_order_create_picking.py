@@ -2,7 +2,7 @@ import logging
 from odoo import api, fields, models
 from odoo.exceptions import UserError
 from odoo import _
-
+from odoo.tools.float_utils import float_compare, float_is_zero
 _logger = logging.getLogger(__name__)
 
 
@@ -549,4 +549,415 @@ class OutboundOrder(models.Model):
                 }
             }
         
+        return True
+
+
+
+    #LINGLONG 专用创建出库调拨单
+    def action_create_picking_PICK_linglong(self):
+        """
+        LINGLONG: Create picking, merge same products (by product+uom+src/dest+prefix),
+        confirm moves, then reserve by FIFO pool.
+        """
+        for record in self:
+            if not record.project or record.project.name != "LINGLONG":
+                raise UserError(_("Only LINGLONG can create PICK type stock picking."))
+
+            if record.state != "confirm":
+                raise UserError(_("Outbound order must be confirmed before creating a stock picking."))
+            if not record.pick_type:
+                raise UserError(_("Picking type must be set before creating a stock picking."))
+            if not record.p_date:
+                raise UserError(_("Planning date must be set before creating a stock picking."))
+            if not record.reference:
+                raise UserError(_("Reference must be set before creating a stock picking."))
+
+            existing_picking = self.env["stock.picking"].sudo().search([
+                ("outbound_order_id", "=", record.id),
+                ("picking_type_id", "=", record.pick_type.id),
+                ("state", "!=", "cancel"),
+            ], limit=1)
+            if existing_picking:
+                raise UserError(_("A stock picking already exists for this Outbound Order."))
+
+            group = self.env["procurement.group"].sudo().search([("name", "=", record.billno)], limit=1)
+            if not group:
+                group = self.env["procurement.group"].create({"name": record.billno})
+
+            picking = self.env["stock.picking"].create({
+                "picking_type_id": record.pick_type.id,
+                "location_id": record.pick_type.default_location_src_id.id,
+                "location_dest_id": record.pick_type.default_location_dest_id.id,
+                "origin": record.billno,
+                "partner_id": record.unload_company.id,
+                "outbound_order_id": record.id,
+                "planning_date": record.p_date,
+                "ref_1": record.reference,
+                "load_ref": record.load_ref,
+                "group_id": group.id,
+            })
+
+            # -----------------------------
+            # 1) 先把 outbound 行按 key 聚合（相同产品合并）
+            # key 里建议包含 prefix：prefix 不同不能合并，否则会破坏“只从某前缀包号出”
+            # -----------------------------
+            aggregated = {}
+            for line in record.outbound_order_product_ids:
+                product = line.product_id
+                if not product:
+                    continue
+                qty = float(line.quantity or 0.0)
+                if qty <= 0:
+                    continue
+
+                prefix = (line.pallet_prefix_code or "").strip()
+                key = (
+                    product.id,
+                    product.uom_id.id,
+                    picking.location_id.id,
+                    picking.location_dest_id.id,
+                    prefix,
+                )
+                if key not in aggregated:
+                    aggregated[key] = {
+                        "product": product,
+                        "uom": product.uom_id,
+                        "qty": 0.0,
+                        "prefix": prefix,
+                        "line_ids": [],
+                    }
+                aggregated[key]["qty"] += qty
+                aggregated[key]["line_ids"].append(line.id)
+
+            # -----------------------------
+            # 2) 创建 move：一组一条
+            # -----------------------------
+            created_moves = self.env["stock.move"]
+            for _key, data in aggregated.items():
+                move_vals = {
+                    "name": data["product"].display_name,
+                    "product_id": data["product"].id,
+                    "product_uom_qty": data["qty"],
+                    "product_uom": data["uom"].id,
+                    "picking_id": picking.id,
+                    "location_id": picking.location_id.id,
+                    "location_dest_id": picking.location_dest_id.id,
+                    "group_id": group.id,
+                    # 不写 outbound_order_product_id#stock.move的outbound_order_product_id,可能是多条
+                }
+                created_moves |= self.env["stock.move"].create(move_vals)
+
+            if record.is_auto_moves:
+                record.actionReserveByPoolFifo_linglong(picking)
+            if created_moves:
+                created_moves._action_confirm(merge=True)
+
+            record.picking_PICK = picking.id
+
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Stock Picking Created"),
+                "message": _("Stock picking has been created and reserved successfully."),
+                "sticky": False,
+            }
+        }
+
+    def actionReserveByPoolFifo_linglong(self, picking):
+        """
+        Reserve stock by:
+        - Build a quant availability pool once (key = (product_id, prefix))
+        - Consume pool line-by-line to avoid double spending
+        - Use official-style reservation: move._update_reserved_quantity()
+          (so Odoo creates/updates stock.move.line itself)
+        """
+        for rec in self:
+            # 1) 汇总需求：按 (product_id, prefix)
+            demand_map = {}
+            for line in rec.outbound_order_product_ids:
+                if not line.product_id:
+                    continue
+                qty = float(line.quantity or 0.0)
+                if qty <= 0:
+                    continue
+                prefix = (line.pallet_prefix_code or "").strip()
+                key = (line.product_id.id, prefix)
+                demand_map[key] = demand_map.get(key, 0.0) + qty
+
+            # 2) 构建库存池：按 (product_id, prefix) 获取 quants，按 in_date FIFO 排序
+            pool_map = {}
+            for (product_id, prefix), total_demand in demand_map.items():
+                domain = [
+                    ("product_id", "=", product_id),
+                    ("quantity", ">", 0),
+                    ("location_id.usage", "=", "internal"),
+                ]
+                if prefix:
+                    domain.append(("package_id.name", "ilike", f"%{prefix}%"))
+
+                # search must sudo
+                quants = self.env["stock.quant"].sudo().search(domain, order="in_date asc, id asc")
+
+                buckets = []
+                total_available = 0.0
+                product = self.env["product.product"].browse(product_id)
+                rounding = product.uom_id.rounding
+
+                for q in quants:
+                    avail = q.quantity - q.reserved_quantity
+                    if float_compare(avail, 0, precision_rounding=rounding) > 0:
+                        buckets.append({
+                            "location_id": q.location_id,
+                            "lot_id": q.lot_id,
+                            "package_id": q.package_id,
+                            "owner_id": q.owner_id,
+                            "remaining": avail,
+                        })
+                        total_available += avail
+
+                if float_compare(total_available, total_demand, precision_rounding=rounding) < 0:
+                    raise UserError(_(
+                        "Insufficient available stock for %s%s! Required: %s, Available: %s, Shortfall: %s"
+                    ) % (
+                                        product.display_name,
+                                        f" (prefix: {prefix})" if prefix else "",
+                                        total_demand,
+                                        total_available,
+                                        (total_demand - total_available),
+                                    ))
+
+                pool_map[(product_id, prefix)] = buckets
+
+            # 3) 找到每条 outbound 行对应的 move（因为我们 confirm 时 merge=False，所以一行一个 move 可稳定映射）
+            moves = picking.move_ids_without_package.filtered(
+                lambda m: m.state in ("confirmed", "waiting", "partially_available")
+            )
+            move_by_line = {m.outbound_order_product_id.id: m for m in moves if m.outbound_order_product_id}
+
+            # 4) 逐行预留：从 pool 消费 remaining，用 _update_reserved_quantity 让系统生成 move line
+            for line in rec.outbound_order_product_ids:
+                move = move_by_line.get(line.id)
+                if not move:
+                    continue
+
+                prefix = (line.pallet_prefix_code or "").strip()
+                key = (line.product_id.id, prefix)
+                buckets = pool_map.get(key, [])
+
+                # move.reserved_availability 是已预留量（uom 视版本为 product_uom 或 product uom）
+                # 这里按官方逻辑：缺口 = move.product_uom_qty - move.reserved_availability
+                need_uom = move.product_uom_qty - move.reserved_availability
+                if float_compare(need_uom, 0, precision_rounding=move.product_uom.rounding) <= 0:
+                    continue
+
+                # 转到 product.uom（quant 单位）
+                need = move.product_uom._compute_quantity(
+                    need_uom, move.product_id.uom_id, rounding_method="HALF-UP"
+                )
+                rounding = move.product_id.uom_id.rounding
+
+                allocated_locations = []
+                for b in buckets:
+                    if float_compare(need, 0, precision_rounding=rounding) <= 0:
+                        break
+                    if float_compare(b["remaining"], 0, precision_rounding=rounding) <= 0:
+                        continue
+
+                    take = min(b["remaining"], need)
+
+                    # 严格按 location/lot/package/owner 预留（系统负责创建/更新 move line）
+                    taken = move._update_reserved_quantity(
+                        take,
+                        b["location_id"],
+                        lot_id=b["lot_id"],
+                        package_id=b["package_id"],
+                        owner_id=b["owner_id"],
+                        strict=True,
+                    )
+                    if float_is_zero(taken, precision_rounding=rounding):
+                        continue
+
+                    b["remaining"] -= taken
+                    need -= taken
+
+                    loc_name = b["location_id"].complete_name
+                    if loc_name not in allocated_locations:
+                        allocated_locations.append(loc_name)
+
+                # 并发兜底：极端情况下库存被别人抢走，taken 可能小于需要
+                if float_compare(need, 0, precision_rounding=rounding) > 0:
+                    raise UserError(
+                        _("Stock changed during reservation for %s. Please retry.") % move.product_id.display_name)
+
+                # 你原来写 locations，这里仍保留（write 不 sudo）
+                if allocated_locations:
+                    line.locations = ", ".join(allocated_locations)
+
+            # 5) 刷 move 状态（官方最后会把 assigned/partially_available 写回）
+            assigned_moves = self.env["stock.move"]
+            partial_moves = self.env["stock.move"]
+            for m in picking.move_ids_without_package:
+                if m.state not in ("confirmed", "waiting", "partially_available"):
+                    continue
+                if float_compare(m.reserved_availability, m.product_uom_qty,
+                                 precision_rounding=m.product_uom.rounding) >= 0:
+                    assigned_moves |= m
+                elif float_compare(m.reserved_availability, 0, precision_rounding=m.product_uom.rounding) > 0:
+                    partial_moves |= m
+
+            if partial_moves:
+                partial_moves.write({"state": "partially_available"})
+            if assigned_moves:
+                assigned_moves.write({"state": "assigned"})
+
+            if not self.env.context.get("bypass_entire_pack"):
+                picking._check_entire_pack()
+
+    def action_check_available_linglong(self):
+        """
+        Check whether sufficient available stock exists to allocate all outbound order products.
+        - 汇总需求 -> 构建可用库存池 -> 按行消费池
+        - 解决：同产品多行“各自都满足，但合计不满足”的问题
+        """
+        all_errors = []
+
+        for record in self:
+            if record.project.name != 'LINGLONG':
+                raise UserError(_("Only LINGLONG can create PICK type stock picking."))
+            if not record.is_auto_moves:
+                continue
+
+            # 1) 汇总需求：key = (product_id, prefix)
+            demand_map = {}
+            line_list = record.outbound_order_product_ids
+            for line in line_list:
+                product = line.product_id
+                if not product:
+                    continue
+                required_qty = float(line.quantity or 0.0)
+                if required_qty <= 0:
+                    continue
+                prefix = (line.pallet_prefix_code or "").strip()
+                key = (product.id, prefix)
+                demand_map[key] = demand_map.get(key, 0.0) + required_qty
+
+            # 2) 构建库存池：key -> buckets(每个 bucket 记录 remaining)，并做总量校验
+            #    这里用 in_date asc 做“类 FIFO”排序（更接近你想要的先入先出思路）
+            pool_map = {}
+            for (product_id, prefix), total_demand in demand_map.items():
+                quant_domain = [
+                    ("product_id", "=", product_id),
+                    ("quantity", ">", 0),
+                    ("location_id.usage", "=", "internal"),
+                ]
+                if prefix:
+                    quant_domain.append(("package_id.name", "ilike", f"%{prefix}%"))
+
+                quants = self.env["stock.quant"].sudo().search(quant_domain, order="in_date asc, id asc")
+
+                total_onhand_qty = 0.0
+                total_reserved_qty = 0.0
+                total_available_qty = 0.0
+                buckets = []
+
+                for q in quants:
+                    total_onhand_qty += q.quantity
+                    total_reserved_qty += q.reserved_quantity
+                    avail = q.quantity - q.reserved_quantity
+                    if avail > 0:
+                        buckets.append({
+                            "location_id": q.location_id,
+                            "package_id": q.package_id,
+                            "owner_id": q.owner_id,
+                            "lot_id": q.lot_id,
+                            "remaining": avail,
+                        })
+                        total_available_qty += avail
+
+                # 日志（按 key 记录一次，避免每行刷屏）
+                prod = self.env["product.product"].browse(product_id)
+                _logger.info(
+                    "Stock Check(Pool) - Product: %s%s, Demand: %s, On-hand: %s, Reserved: %s, Available: %s",
+                    prod.display_name,
+                    f" (prefix: {prefix})" if prefix else "",
+                    total_demand,
+                    total_onhand_qty,
+                    total_reserved_qty,
+                    total_available_qty,
+                )
+
+                if total_available_qty <= 0 and total_demand > 0:
+                    all_errors.append(_(
+                        "Insufficient available stock for %s%s! No available stock found. %s",
+                        prod.display_name,
+                        f" (prefix: {prefix})" if prefix else "",
+                        f"Total on-hand: {total_onhand_qty}, Reserved: {total_reserved_qty}",
+                    ))
+                    continue
+
+                if total_available_qty < total_demand:
+                    shortfall = total_demand - total_available_qty
+                    all_errors.append(_(
+                        "Insufficient available stock for %s%s! Required: %s, Available: %s, Shortfall: %s units",
+                        prod.display_name,
+                        f" (prefix: {prefix})" if prefix else "",
+                        total_demand,
+                        total_available_qty,
+                        shortfall,
+                    ))
+                    continue
+
+                pool_map[(product_id, prefix)] = buckets
+
+            # 3) 按行消费库存池：防止同产品多行双花
+            #    这里不再报错（报错已在总量校验阶段完成）；这一步主要用于“验证逻辑一致”
+            for line in line_list:
+                product = line.product_id
+                if not product:
+                    continue
+                required_qty = float(line.quantity or 0.0)
+                if required_qty <= 0:
+                    continue
+
+                prefix = (line.pallet_prefix_code or "").strip()
+                key = (product.id, prefix)
+                buckets = pool_map.get(key, [])
+
+                remaining_need = required_qty
+                for b in buckets:
+                    if remaining_need <= 0:
+                        break
+                    if b["remaining"] <= 0:
+                        continue
+                    take = min(b["remaining"], remaining_need)
+                    b["remaining"] -= take
+                    remaining_need -= take
+
+
+                if remaining_need > 1e-9:
+                    all_errors.append(_(
+                        "Insufficient available stock for %s%s! Required: %s, Available: %s, Shortfall: %s units",
+                        product.display_name,
+                        f" (prefix: {prefix})" if prefix else "",
+                        required_qty,
+                        required_qty - remaining_need,
+                        remaining_need,
+                    ))
+
+        if all_errors:
+            raise UserError("\n".join(all_errors))
+
+        # UX：单条记录返回通知
+        if len(self) == 1:
+            return {
+                "type": "ir.actions.client",
+                "tag": "display_notification",
+                "params": {
+                    "title": _("Stock Availability Check Passed"),
+                    "message": _("All products can be fully allocated based on pooled availability."),
+                    "sticky": False,
+                }
+            }
+
         return True

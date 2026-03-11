@@ -1,0 +1,11 @@
+<odoo>
+
+    <menuitem id="menu_wd_charge_root" name="WMS" sequence="10" web_icon="wd_iffm,static/src/img/img.png"/>
+
+
+
+
+    <menuitem id="charge_item_menu" name="Charge Management" parent="menu_wd_charge_root"
+              action="worlddepot.action_world_depot_charge_item" sequence="60"/>
+
+</odoo>
