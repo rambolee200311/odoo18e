@@ -4,7 +4,7 @@ import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 
 export class TransportPlan extends Component {
-    static template = "transplan.TransportPlanTemplate";
+    static template = "transport.TransportPlanTemplate";
 
     setup() {
         this.orm = useService("orm");
@@ -46,8 +46,8 @@ export class TransportPlan extends Component {
         // 打开集装箱标准表单/列表视图
         this.openContainerForm = () => {
             // TODO: 将下面的 external ID 替换为你实际的 bl.container action 外部 ID
-            // 例如： "transplan.action_bl_container" 或 其他模块中定义的 action
-            this.action.doAction("transplan.action_bl_container");
+            // 例如： "transport.action_bl_container" 或 其他模块中定义的 action
+            this.action.doAction("transport.action_bl_container");
         };
 
         // 拖拽事件处理

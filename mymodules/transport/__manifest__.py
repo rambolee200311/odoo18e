@@ -20,9 +20,9 @@
     ],
     'assets': {
         'web.assets_backend': [
-            'transplan/static/src/scss/transport_plan.scss',
-            'transplan/static/src/js/transport_plan/transport_plan.js',
-            'transplan/static/src/xml/transport_plan/transport_plan.xml',
+            'transport/static/src/scss/transport_plan.scss',
+            'transport/static/src/js/transport_plan/transport_plan.js',
+            'transport/static/src/xml/transport_plan/transport_plan.xml',
         ],
     },
     'installable': True,
