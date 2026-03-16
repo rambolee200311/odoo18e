@@ -11,11 +11,11 @@
                         <field name="container_nums"/>
 
                         <field name="amount_total_change"/>
-                        <field name="manual_amount_total_change"/>
+                        <field name="manual_amount_total_change" readonly="statement_period_id_state =='expense_confirmed'"/>
                     </group>
                     <group string="Charges">
                         <field name="charge_line_ids" readonly="1"
-                               context="{'action': 'action_operation_order_handover_charge_line_list'}">
+                               context="{'tree_view_ref': 'wd_iffm.view_operation_order_handover_charge_line_list'}" mode="list">
                         </field>
                     </group>
                 </sheet>
@@ -38,22 +38,22 @@
         </field>
     </record>
 <!---->
-    <record id="action_operation_order_handover_charge_line_list" model="ir.actions.act_window">
-        <field name="name">Handover Charge Lines</field>
-        <field name="res_model">operation.order.handover.charge.line</field>
-        <field name="view_mode">list</field>
-        <field name="view_id" ref="view_operation_order_handover_charge_line_list"/>
-        <field name="target">current</field>
-        <field name="context">{'active_id': active_id}</field>
-    </record>
+<!--    <record id="action_operation_order_handover_charge_line_list" model="ir.actions.act_window">-->
+<!--        <field name="name">Handover Charge Lines</field>-->
+<!--        <field name="res_model">operation.order.handover.charge.line</field>-->
+<!--        <field name="view_mode">list</field>-->
+<!--        <field name="view_id" ref="view_operation_order_handover_charge_line_list"/>-->
+<!--        <field name="target">current</field>-->
+<!--        <field name="context">{'active_id': active_id}</field>-->
+<!--    </record>-->
 
 
-    <record id="action_handover_statement_period_form" model="ir.actions.act_window">
-        <field name="name">Handover Charge Details</field>
-        <field name="res_model">operation.order.handover</field>
-        <field name="view_mode">form</field>
-        <field name="view_id" ref="view_handover_statement_period_form"/>
-        <field name="target">current</field>
-        <field name="context">{'active_id': active_id}</field>
-    </record>
+<!--    <record id="action_handover_statement_period_form" model="ir.actions.act_window">-->
+<!--        <field name="name">Handover Charge Details</field>-->
+<!--        <field name="res_model">operation.order.handover</field>-->
+<!--        <field name="view_mode">form</field>-->
+<!--        <field name="view_id" ref="view_handover_statement_period_form"/>-->
+<!--        <field name="target">current</field>-->
+<!--        <field name="context">{'active_id': active_id}</field>-->
+<!--    </record>-->
 </odoo>

@@ -88,7 +88,7 @@
                     <notebook>
                         <page string="Handover Orders">
                             <field name="handover_order_lines"
-                                   context="{'action': 'action_handover_statement_period_form'}">
+                                  context="{'form_view_ref': 'wd_iffm.view_handover_statement_period_form'}" mode="list,form">
                                 <list delete="false" create="false">
                                     <field name="waybill_id"/>
                                     <field name="name"/>
@@ -99,13 +99,14 @@
                                             name="action_handover_remove_from_statement_period"
                                             type="object"
                                             icon="fa-trash"
+                                            title="Remove"
                                             class="btn-link" invisible="statement_period_id_state != 'draft'"/>
                                 </list>
                             </field>
                         </page>
                         <page string="Clearance Orders">
                             <field name="clearance_order_lines"
-                                   context="{'action': 'action_clearance_statement_period_form'}">
+                                   context="{'form_view_ref': 'wd_iffm.view_clearance_statement_period_form'}" mode="list,form">
                                 <list delete="false" create="false">
                                     <field name="waybill_id"/>
                                     <field name="name"/>
@@ -118,6 +119,7 @@
                                             type="object"
                                             icon="fa-trash"
                                             class="btn-link"
+                                            title="Remove"
                                             invisible="statement_period_id_state != 'draft'"/>
                                 </list>
                             </field>

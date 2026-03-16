@@ -10,10 +10,8 @@
                     <field name="name"/>
                     <field name="waybill_id"/>
                     <field name="terminal_a"/>
-                    <field name="pickup_end_type"/>
-                    <field name="warehouse_id" optional="show"/>
-                    <field name="pickup_deadline"/>
-                    <field name="customer_id"/>
+                    <field name="pickup_scene"/>
+                    <field name="pickup_request_datetime"/>
                     <field name="state"/>
                 </list>
             </field>
@@ -38,28 +36,58 @@
                     </header>
                     <sheet>
                         <group>
-                            <group>
+                            <group string="Base Info">
                                 <field name="name" readonly="1"/>
                                 <field name="waybill_id" required="1" readonly="state != 'draft'"
                                        options="{'no_create': True, 'no_open': True}"/>
-                                <field name="terminal_a" required="1" readonly="1"/>
-                                <field name="pickup_deadline" required="1" readonly="state != 'draft'"/>
+                                <field name="terminal_a" readonly="1"/>
+                                <field name="pickup_request_datetime" required="1" readonly="state != 'draft'"/>
+                                <field name="pickup_scene" required="1" readonly="state != 'draft'"/>
                             </group>
-                            <group>
-                                <field name="customer_id" required="1" readonly="state != 'draft'"
+
+                            <group string="General">
+                                <field name="warehouse_contact_id" readonly="state != 'draft'"
+                                       invisible="pickup_scene != 'to_our_warehouse'"
                                        options="{'no_create': True, 'no_open': True}"/>
-                                <!--                                <field name="customer_name" readonly="1"/>-->
-                                <field name="pickup_end_type" required="1" readonly="state != 'draft'"/>
-                                <field name="warehouse_id" readonly="state != 'draft'"
-                                       invisible="pickup_end_type != 'warehouse'"
-                                       options="{'no_create': True, 'no_open': True}"/>
-                                <field name="other_address" readonly="state != 'draft'"
-                                       invisible="pickup_end_type != 'other'"/>
+
+                                <field name="contact_info" readonly="state != 'draft'"
+                                 invisible="pickup_scene != 'to_our_warehouse'"/>
                                 <field name="pickup_requirements" readonly="state != 'draft'"/>
-                                <field name="contact_info" readonly="state != 'draft'"/>
                                 <field name="cancel_reason" readonly="state not in ('draft', 'submitted')"
                                        invisible="state != 'cancelled'"/>
                             </group>
+                        </group>
+
+                        <group string="Scene Details">
+                            <!-- Scene 1 -->
+                            <field name="warehouse_id" readonly="state != 'draft'"
+                                   invisible="pickup_scene != 'to_our_warehouse'"
+                                   options="{'no_create': True, 'no_open': True}"/>
+
+                            <!-- Scene 2 -->
+                            <field name="delivery_country_id" readonly="state != 'draft'"
+                                   invisible="pickup_scene != 'to_customer_address'"
+                                   options="{'no_create': True, 'no_open': True}"/>
+                            <field name="delivery_city" readonly="state != 'draft'"
+                                   invisible="pickup_scene != 'to_customer_address'"/>
+                            <field name="delivery_zip" readonly="state != 'draft'"
+                                   invisible="pickup_scene != 'to_customer_address'"/>
+                            <field name="delivery_street" readonly="state != 'draft'"
+                                   invisible="pickup_scene != 'to_customer_address'"/>
+                            <field name="delivery_contact_id" readonly="state != 'draft'"
+                                   invisible="pickup_scene != 'to_customer_address'"/>
+                            <field name="delivery_phone" readonly="state != 'draft'"
+                                   invisible="pickup_scene != 'to_customer_address'"/>
+                            <field name="delivery_requirement" readonly="state != 'draft'"
+                                   invisible="pickup_scene != 'to_customer_address'"/>
+
+                            <!-- Scene 3 -->
+                            <field name="self_pickup_contact_id" readonly="state != 'draft'"
+                                   invisible="pickup_scene != 'customer_self_pickup'"/>
+                            <field name="self_pickup_phone" readonly="state != 'draft'"
+                                   invisible="pickup_scene != 'customer_self_pickup'"/>
+                            <field name="self_pickup_remark" readonly="state != 'draft'"
+                                   invisible="pickup_scene != 'customer_self_pickup'"/>
                         </group>
 
                         <notebook>
@@ -68,24 +96,12 @@
                                     <list editable="bottom">
                                         <field name="waybill_container_id"
                                                options="{'no_create': True, 'no_open': True}"
-                                       />
+                                        />
                                         <field name="container_number"/>
                                         <field name="container_type"/>
                                         <field name="weight"/>
                                         <field name="state" readonly="1"/>
                                     </list>
-                                    <!--                                    <form string="Pickup Container Line">-->
-                                    <!--                                        <group>-->
-                                    <!--                                            <group>-->
-                                    <!--                                                <field name="waybill_container_id" options="{'no_create': True, 'no_open': True}"/>-->
-                                    <!--                                                <field name="container_number" required="1"/>-->
-                                    <!--                                            </group>-->
-                                    <!--                                            <group>-->
-                                    <!--                                                <field name="container_type" required="1"/>-->
-                                    <!--                                                <field name="weight" required="1"/>-->
-                                    <!--                                            </group>-->
-                                    <!--                                        </group>-->
-                                    <!--                                    </form>-->
                                 </field>
                             </page>
 
@@ -103,8 +119,8 @@
                 <search string="Pickup Requirement">
                     <field name="name"/>
                     <field name="waybill_id"/>
-                    <field name="customer_id"/>
                     <field name="terminal_a"/>
+                    <field name="pickup_scene"/>
                     <field name="state"/>
                     <filter string="Draft" name="filter_draft" domain="[('state', '=', 'draft')]"/>
                     <filter string="Submitted" name="filter_submitted" domain="[('state', '=', 'submitted')]"/>
@@ -113,9 +129,7 @@
                     <filter string="Cancelled" name="filter_cancelled" domain="[('state', '=', 'cancelled')]"/>
                     <group expand="0" string="Group By">
                         <filter string="State" name="group_state" context="{'group_by': 'state'}"/>
-                        <filter string="Customer" name="group_customer" context="{'group_by': 'customer_id'}"/>
-                        <filter string="End Type" name="group_pickup_end_type"
-                                context="{'group_by': 'pickup_end_type'}"/>
+                        <filter string="Pickup Scene" name="group_pickup_scene" context="{'group_by': 'pickup_scene'}"/>
                     </group>
                 </search>
             </field>

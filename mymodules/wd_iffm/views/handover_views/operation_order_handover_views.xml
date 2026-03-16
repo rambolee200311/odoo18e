@@ -25,6 +25,7 @@
     <record id="view_operation_order_handover_form" model="ir.ui.view">
         <field name="name">operation.order.handover.form</field>
         <field name="model">operation.order.handover</field>
+        <field name="priority">10</field>
         <field name="arch" type="xml">
             <form string="Handover" duplicate="false">
                 <header>
@@ -75,7 +76,7 @@
                         </group>
                         <group>
                             <field name="bl_release_type" readonly="state in ('close','released')"/>
-                            <field name="do_issue_datetime" readonly="state == 'close'"
+                            <field name="do_issue_datetime" readonly="state in ('released','close')"
                                    required="state == 'releasing'"/>
                         </group>
 
@@ -103,7 +104,7 @@
                             </field>
 
                             <!-- Charges -->
-                            <group string="Charges">
+                            <group string="Charges" invisible="state not in ('close','released')">
                                 <field name="charge_line_ids" readonly="state == 'close'">
                                     <list editable="bottom">
                                         <field name="charge_item_id" options="{'no_create': True, 'no_open': True}"
@@ -141,16 +142,6 @@
                                 </list>
                             </field>
                         </page>
-                        <page string="Child Handover">
-                            <field name="child_ids">
-                                <list>
-                                    <field name="name"/>
-                                    <field name="waybill_id"/>
-                                    <field name="extra_reason"/>
-                                    1qqqqqqqqqqqqqqqqqqq
-                                </list>
-                            </field>
-                        </page>
 
                     </notebook>
 
@@ -164,6 +155,7 @@
     <record id="view_operation_order_handover_child_form" model="ir.ui.view">
         <field name="name">operation.order.handover.child.form</field>
         <field name="model">operation.order.handover</field>
+        <field name="priority">20</field>
         <field name="arch" type="xml">
             <form string="Child Handover" duplicate="false">
                 <header>

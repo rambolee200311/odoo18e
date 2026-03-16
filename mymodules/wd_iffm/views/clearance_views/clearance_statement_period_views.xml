@@ -11,11 +11,10 @@
                         <field name="container_nums"/>
 <!--                        <field name="clearance_datetime" readonly="1"/>-->
                         <field name="amount_total_change"/>
-                        <field name="manual_amount_total_change"/>
+                        <field name="manual_amount_total_change" readonly="statement_period_id_state =='expense_confirmed'"/>
                     </group>
                     <group string="Charges">
-                        <field name="charge_line_ids" readonly="1"
-                        context="{'action': 'action_operation_order_handover_charge_line_list'}">
+                        <field name="charge_line_ids" readonly="1">
                         </field>
                     </group>
                 </sheet>
@@ -39,22 +38,22 @@
         </field>
     </record>
     
-<record id="action_clearance_charge_line_list" model="ir.actions.act_window">
-    <field name="name">Clearance Charge Lines</field>
-    <field name="res_model">operation.order.clearance.charge.line</field>
-    <field name="view_mode">list</field>
-    <field name="view_id" ref="view_period_clearance_charge_line_list"/>
-    <field name="target">current</field>
-    <field name="context">{'active_id': active_id}</field>
-</record>
+<!--<record id="action_clearance_charge_line_list" model="ir.actions.act_window">-->
+<!--    <field name="name">Clearance Charge Lines</field>-->
+<!--    <field name="res_model">operation.order.clearance.charge.line</field>-->
+<!--    <field name="view_mode">list</field>-->
+<!--    <field name="view_id" ref="view_period_clearance_charge_line_list"/>-->
+<!--    <field name="target">current</field>-->
+<!--    <field name="context">{'active_id': active_id}</field>-->
+<!--</record>-->
 
 
-    <record id="action_clearance_statement_period_form" model="ir.actions.act_window">
-        <field name="name">Clearance Charge Details</field>
-        <field name="res_model">operation.order.clearance</field>
-        <field name="view_mode">form</field>
-        <field name="view_id" ref="view_clearance_statement_period_form"/>
-        <field name="target">current</field>
-        <field name="context">{'active_id': active_id}</field>
-    </record>
+<!--    <record id="action_clearance_statement_period_form" model="ir.actions.act_window">-->
+<!--        <field name="name">Clearance Charge Details</field>-->
+<!--        <field name="res_model">operation.order.clearance</field>-->
+<!--        <field name="view_mode">form</field>-->
+<!--        <field name="view_id" ref="view_clearance_statement_period_form"/>-->
+<!--        <field name="target">current</field>-->
+<!--        <field name="context">{'active_id': active_id}</field>-->
+<!--    </record>-->
 </odoo>

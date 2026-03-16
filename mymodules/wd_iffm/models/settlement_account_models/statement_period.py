@@ -62,15 +62,6 @@ class StatementPeriod(models.Model):
 
     def action_confirm_expense(self):
         for period in self:
-            # overlapping_periods = self.env['statement.period'].sudo().search([
-            #     ('id', '!=', period.id),
-            #     ('project_id', '=', period.project_id.id),
-            #     ('date_start', '<=', period.date_end),
-            #     ('date_end', '>=', period.date_start),
-            # ])
-            #
-            # if overlapping_periods:
-            #     raise ValidationError(_("The date range of this statement period overlaps with an existing one."))
             period.write({'state': 'expense_confirmed',
                           'expense_confirmed_datetime': fields.Datetime.now(),})
 

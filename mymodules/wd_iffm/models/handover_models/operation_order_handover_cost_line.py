@@ -15,7 +15,7 @@ class OperationOrderHandoverCostLine(models.Model):
     charge_type = fields.Selection([("quotation", "Quotation"), ("manual", "Manual")], string="Charge Source",
                                    default="manual", required=True)
 
-    currency_id = fields.Many2one("res.currency", string="Currency", related="handover_id.waybill_id.quotation_id.currency_id", readonly=True,store= True)
+    currency_id = fields.Many2one("res.currency", string="Currency",related="handover_id.currency_id", store=True)
     cost_nature = fields.Selection(
         [('at cost', 'At Cost'), ('real cost', 'Real Cost')],
         string='Cost Nature',
@@ -32,6 +32,11 @@ class OperationOrderHandoverCostLine(models.Model):
     manual_amount_total = fields.Monetary(string="Manual Total Amount", currency_field="currency_id", default=0.0,tracking=True)
 
     remark = fields.Char(string="Remark")
+
+    @api.onchange("handover_invoice_line_id")
+    def onchange_cost_invoice(self):
+        if self.handover_invoice_line_id:
+            self.currency_id = self.handover_invoice_line_id.currency_id
 
     @api.depends("qty", "unit_price", "is_manual_amount", "manual_amount_total", "handover_id.state")
     def compute_amount_total(self):

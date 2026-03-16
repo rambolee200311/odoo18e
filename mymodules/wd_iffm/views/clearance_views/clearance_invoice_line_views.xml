@@ -18,7 +18,8 @@
                     <group>
                         <group>
                             <field name="clearance_id" readonly="1"/>
-                            <field name="currency_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="customs_broker_id" required="1" readonly="payment_state!='draft'" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="currency_id" options="{'no_create': True, 'no_open': True}"/>
                             <field name="vendor_invoice_id" readonly="1"
                                    options="{'no_create': True, 'no_open': True}"/>
                             <field name="bank_proof_attachment_ids" widget="many2many_binary" readonly="1"/>
@@ -27,7 +28,7 @@
                         <group>
                             <field name="vendor_invoice_num" required="1"/>
                             <field name="invoice_date" required="1"/>
-                            <field name="amount_total" readonly="payment_state != 'draft'" required="1"/>
+                            <field name="amount_total" readonly="1" required="1"/>
                             <field name="vendor_invoice_attachment_ids" widget="many2many_binary" required="1"
                                    readonly="payment_state != 'draft'"/>
 
@@ -43,9 +44,10 @@
                                 <list editable="bottom">
                                     <field name="charge_item_id" options="{'no_create': True, 'no_open': True}"
                                            domain="[('operation_type', '=','clearance'),('is_leaf','=',True)]"/>
-                                    <field name="unit_price"/>
+
                                     <field name="qty"/>
-                                    <field name="unit_id"/>
+                                    <field name="unit_price"/>
+                                    <field name="currency_id" required="1" options="{'no_create': True, 'no_open': True}"/>
                                     <field name="cost_nature" required="1"/>
                                     <field name="amount_total"/>
                                     <field name="manual_amount_total"/>

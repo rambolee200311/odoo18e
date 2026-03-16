@@ -32,10 +32,14 @@ Long description of module's purpose
         'data/account_account_data.xml',
         'wizard/charge_quotation_add_wizard_views.xml',
         'wizard/waybill_arrival_wizard_views.xml',
+        'wizard/waybill_create_clearance_wizard_views.xml',
+        'wizard/clearance/clearance_reclearance_wizard_views.xml',
+
 
         'views/charge_pricing_views/charge_quotation_views.xml',
         'views/charge_pricing_views/project_project_inherit_views.xml',
         'views/charge_pricing_views/waybill.xml',
+        'views/charge_pricing_views/res_partner_inherit_views.xml',
 
         'views/handover_views/operation_order_handover_views.xml',
         'views/handover_views/handover_invoice_line_views.xml',
