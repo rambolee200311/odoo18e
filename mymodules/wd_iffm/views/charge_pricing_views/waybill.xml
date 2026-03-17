@@ -64,8 +64,7 @@
                                 type="object"
                                 class="oe_stat_button"
                                 icon="fa-film"
-                                invisible="is_arrived == True"
-                                groups="wd_iffm.group_customs_specialist"/>
+                                invisible="is_arrived == True"/>
                         <button name="action_create_handover"
                                 type="object"
                                 string="Create Handover"
