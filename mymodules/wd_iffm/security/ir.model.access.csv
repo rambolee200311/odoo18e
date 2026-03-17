@@ -1,6 +1,13 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_charge_quotation,charge.quotation,model_charge_quotation,,1,1,1,1
 access_charge_quotation_line,charge.quotation.line,model_charge_quotation_line,,1,1,1,1
+access_world_depot_waybill_user,world.depot.waybill user,model_world_depot_waybill,,1,1,1,1
+
+access_world_depot_waybill_other_docs_manager,world.depot.waybill.other.docs manager,model_world_depot_waybill_other_docs,,1,1,1,1
+
+access_world_depot_waybill_container_manager,world.depot.waybill.container manager,model_world_depot_waybill_container,,1,1,1,1
+
+access_world_depot_waybill_packing_list_manager,world.depot.waybill.packing.list manager,model_world_depot_waybill_packing.list,,1,1,1,1
 
 access_operation_order_handover,operation.order.handover,model_operation_order_handover,,1,1,0,1
 access_operation_order_handover_invoice_line,access_operation_order_handover_invoice_line,model_operation_order_handover_invoice_line,,1,1,1,1
