@@ -37,7 +37,7 @@
 
                     <notebook>
                         <page string="Cost">
-                            <field name="handover_cost_line_ids">
+                            <field name="handover_cost_line_ids" readonly="payment_state !='draft'">
                                 <list editable="bottom">
                                     <field name="charge_item_id" options="{'no_create': True, 'no_open': True}"
                                            domain="[('operation_type', '=','handover'),('is_leaf','=',True)]"/>

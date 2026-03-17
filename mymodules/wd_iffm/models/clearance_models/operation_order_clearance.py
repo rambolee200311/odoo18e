@@ -48,7 +48,7 @@ class OperationOrderClearance(models.Model):
 
     state = fields.Selection(
         [("open", "Open"),
-         ("paying", "Paying"), ("paid", "Paid"), ("clearancing", "Clearance"),
+         ("paying", "Paying"), ("paid", "Paid"), ("clearancing", "Clearancing"),
          ("clearanced", "Clearanced"), ("close", "Close"),
          ("cancelled", "Cancelled")],
         string="Status", default="open", required=True, tracking=True, index=True)
@@ -229,6 +229,8 @@ class OperationOrderClearance(models.Model):
                 raise ValidationError(_("All advance invoices must be paid before Clearancing."))
             if not rec.customs_declaration_datetime:
                 raise ValidationError(_("Customs declaration date is required."))
+            if not rec.eu_eori_no and not rec.vat_tax_no:
+                raise ValidationError(_("EU EORI No or VAT Tax No is required."))
             rec.write({"state": "clearancing"})
 
     @api.depends("clearance_type", "customs_release_datetime", "inbound_release_datetime",
@@ -411,7 +413,7 @@ class OperationOrderClearanceInvoiceLine(models.Model):
     payment_mode = fields.Selection([("advance", "Advance by Company"), ("customer_pay", "Paid by Customer")],
                                     string="Payment Mode", default="advance", required=True, index=True)
     payment_state = fields.Selection(
-        [("draft", "Draft"), ("confirmed", "Confirmed"), ("paying", "Paying"), ("paid", "Paid")],
+        [("draft", "Draft"), ("paying", "Paying"), ("paid", "Paid")],
         string="Payment State", default="draft", required=True, index=True)
     vendor_invoice_num = fields.Char(string="Vendor Invoice No")
     vendor_invoice_attachment_ids = fields.Many2many(

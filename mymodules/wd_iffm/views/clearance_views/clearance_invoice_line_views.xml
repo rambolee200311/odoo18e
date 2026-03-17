@@ -7,7 +7,7 @@
             <form string="Invoice Line">
                 <header>
                     <field name="payment_state" widget="statusbar"
-                           statusbar_visible="draft,confirmed,paying,paid"/>
+                           statusbar_visible="draft,paying,paid"/>
                     <button name="action_request_clearance_payment"
                             type="object"
                             string="Request Payment"
@@ -40,7 +40,7 @@
                     </group>
                     <notebook>
                         <page string="Cost">
-                            <field name="cost_line_ids">
+                            <field name="cost_line_ids" readonly="payment_state !='draft'">
                                 <list editable="bottom">
                                     <field name="charge_item_id" options="{'no_create': True, 'no_open': True}"
                                            domain="[('operation_type', '=','clearance'),('is_leaf','=',True)]"/>
