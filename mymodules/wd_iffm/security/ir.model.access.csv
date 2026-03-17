@@ -7,7 +7,7 @@ access_world_depot_waybill_other_docs_manager,world.depot.waybill.other.docs man
 
 access_world_depot_waybill_container_manager,world.depot.waybill.container manager,model_world_depot_waybill_container,,1,1,1,1
 
-access_world_depot_waybill_packing_list_manager,world.depot.waybill.packing.list manager,model_world_depot_waybill_packing.list,,1,1,1,1
+access_world_depot_waybill_packing_list_manager,world.depot.waybill.packing.list manager,model_world_depot_waybill_packing_list,,1,1,1,1
 
 access_operation_order_handover,operation.order.handover,model_operation_order_handover,,1,1,0,1
 access_operation_order_handover_invoice_line,access_operation_order_handover_invoice_line,model_operation_order_handover_invoice_line,,1,1,1,1

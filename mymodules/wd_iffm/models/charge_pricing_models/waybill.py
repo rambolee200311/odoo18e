@@ -25,7 +25,7 @@ class Waybill(models.Model):
 
     document_number = fields.Char(string='Document No')  # S2502461054/C2501146242
     reference_number = fields.Char(string='Reference No')  # SHPR REF: AB20250404336
-    hs_code_qty = fields.Integer(string='HS Code Qty',required= True)
+    hs_code_qty = fields.Integer(string='HS Code Qty')
     # ========== 参与方信息 ==========
     shipping = fields.Many2one('res.partner', string='Shipping Line',
                                tracking=True)
@@ -278,8 +278,8 @@ class Waybill(models.Model):
         for rec in self:
             if rec.state != 'confirm':
                 raise UserError(_("You only can unconfirm Confirmed Order"))
-            elif not rec.container_ids:
-                raise UserError(_("Please create container first"))
+            # elif not rec.container_ids:
+            #     raise UserError(_("Please create container first"))
             else:
                 rec.state = 'new'
                 return True

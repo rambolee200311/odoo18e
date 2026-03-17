@@ -105,7 +105,7 @@
                             <field name="eta"/>
                             <field name="ata" readonly="1"/>
                             <field name="terminal_port" required="1"/>
-                            <field name="terminal_a"/>
+                            <field name="terminal_a" readonly="1"/>
                             <field name="is_arrived" readonly="1"/>
                             <field name="release_received" readonly="1"/>
                             <field name="custom_clearance" readonly="1"/>

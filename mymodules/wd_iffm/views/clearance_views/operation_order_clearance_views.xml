@@ -129,7 +129,7 @@
                             </group>
                         </page>
                         <page string="Containers">
-                            <field name="clearance_container_ids" readonly="state in ('clearancing','clearanced','close')">
+                            <field name="clearance_container_ids" create="False" delete="False" readonly="state in ('clearancing','clearanced','close')">
                                 <list editable="bottom" create="False"  delete="False">
                                     <field name="container_number"/>
                                     <field name="container_type"/>

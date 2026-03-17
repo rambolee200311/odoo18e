@@ -3,6 +3,7 @@
         <field name="name">Expense Payable Account</field>
         <field name="code">WDP400001</field>
         <field name="account_type">expense</field>
+        <field name="account_category">expense</field>
         <field name="reconcile">1</field>
 
     </record>
@@ -12,6 +13,7 @@
         <field name="name">THC Handling / THC</field>
         <field name="code">WD400001</field>
         <field name="account_type">expense</field>
+        <field name="account_category">expense</field>
         <field name="reconcile">1</field>
 
     </record>
@@ -20,6 +22,7 @@
         <field name="name">THC Handling / Shipping lines hand over</field>
         <field name="code">WD400002</field>
         <field name="account_type">expense</field>
+        <field name="account_category">expense</field>
         <field name="reconcile">1</field>
 
     </record>
@@ -28,6 +31,7 @@
         <field name="name">THC Handling / Custom inspection</field>
         <field name="code">WD400003</field>
         <field name="account_type">expense</field>
+        <field name="account_category">expense</field>
         <field name="reconcile">1</field>
 
     </record>
@@ -36,6 +40,7 @@
         <field name="name">THC Handling / Gas inspection</field>
         <field name="code">WD400004</field>
         <field name="account_type">expense</field>
+        <field name="account_category">expense</field>
         <field name="reconcile">1</field>
 
     </record>
@@ -44,6 +49,7 @@
         <field name="name">THC Handling / Handover from logistics agency</field>
         <field name="code">WD400005</field>
         <field name="account_type">expense</field>
+        <field name="account_category">expense</field>
         <field name="reconcile">1</field>
 
     </record>
@@ -53,6 +59,7 @@
         <field name="name">Customs Formalities / Processing authorisation</field>
         <field name="code">WD400006</field>
         <field name="account_type">expense</field>
+        <field name="account_category">expense</field>
         <field name="reconcile">1</field>
 
     </record>
@@ -61,6 +68,7 @@
         <field name="name">Customs Formalities / T1 Document</field>
         <field name="code">WD400007</field>
         <field name="account_type">expense</field>
+        <field name="account_category">expense</field>
         <field name="reconcile">1</field>
 
     </record>
@@ -69,6 +77,7 @@
         <field name="name">Customs Formalities / Normal Customs Clearance</field>
         <field name="code">WD400008</field>
         <field name="account_type">expense</field>
+        <field name="account_category">expense</field>
         <field name="reconcile">1</field>
 
     </record>
@@ -77,6 +86,7 @@
         <field name="name">Customs Formalities / Exportdocument (incl. 1 HS Code)</field>
         <field name="code">WD400009</field>
         <field name="account_type">expense</field>
+        <field name="account_category">expense</field>
         <field name="reconcile">1</field>
 
     </record>
@@ -85,6 +95,7 @@
         <field name="name">Customs Formalities / Extra article &amp; container</field>
         <field name="code">WD400010</field>
         <field name="account_type">expense</field>
+        <field name="account_category">expense</field>
         <field name="reconcile">1</field>
 
     </record>
@@ -93,6 +104,7 @@
         <field name="name">Customs Formalities / Termination T1</field>
         <field name="code">WD400011</field>
         <field name="account_type">expense</field>
+        <field name="account_category">expense</field>
         <field name="reconcile">1</field>
 
     </record>
@@ -101,6 +113,7 @@
         <field name="name">Customs Formalities / Tariff</field>
         <field name="code">WD400012</field>
         <field name="account_type">expense</field>
+        <field name="account_category">expense</field>
         <field name="reconcile">1</field>
     </record>
 
@@ -109,6 +122,7 @@
         <field name="name">Customer Clearance Expense Account</field>
         <field name="code">WDA5002</field>
         <field name="account_type">expense</field>
+        <field name="account_category">expense</field>
         <field name="reconcile">1</field>
     </record>
 
@@ -116,6 +130,7 @@
         <field name="name">Customer Handover Expense Account</field>
         <field name="code">WDA5001</field>
         <field name="account_type">expense</field>
+        <field name="account_category">expense</field>
         <field name="reconcile">1</field>
     </record>
 
