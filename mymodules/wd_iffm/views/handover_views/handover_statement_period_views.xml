@@ -9,7 +9,7 @@
                         <field name="name" readonly="1"/>
                         <field name="waybill_id" readonly="1"/>
                         <field name="container_nums"/>
-
+                        <field name="currency_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                         <field name="amount_total_change"/>
                         <field name="manual_amount_total_change" readonly="statement_period_id_state =='expense_confirmed'"/>
                     </group>

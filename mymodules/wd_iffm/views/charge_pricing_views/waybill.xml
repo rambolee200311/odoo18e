@@ -104,7 +104,7 @@
 <!--                            <field name="clearance_id" readonly="1"-->
 <!--                                   context="{'form_view_ref': 'wd_iffm.operation_order_clearance_form_view'}"/>-->
                             <field name="eta"/>
-                            <field name="ata"/>
+                            <field name="ata" readonly="1"/>
                             <field name="terminal_port" required="1"/>
                             <field name="terminal_a"/>
                             <field name="is_arrived" readonly="1"/>
