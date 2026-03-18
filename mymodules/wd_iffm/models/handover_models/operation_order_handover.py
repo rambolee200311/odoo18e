@@ -457,7 +457,7 @@ class OperationOrderHandoverInvoiceLine(models.Model):
                 "ref": f"{rec.handover_id.name}/{rec.id}",
                 "invoice_line_ids": invoice_lines,
             }
-            move = move_model.create(move_vals)
+            move = move_model.sudo().create(move_vals)
 
             if rec.vendor_invoice_attachment_ids:
                 rec.vendor_invoice_attachment_ids.copy({

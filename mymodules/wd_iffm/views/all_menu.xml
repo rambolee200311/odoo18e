@@ -1,6 +1,6 @@
 <odoo>
 
-    <menuitem id="menu_wd_charge_root" name="WMS" sequence="10" web_icon="wd_iffm,static/src/img/img.png"/>
+    <menuitem id="menu_wd_charge_root" name="Import Freight Forwarder Management" sequence="10" web_icon="wd_iffm,static/src/img/img.png"/>
 
 
 

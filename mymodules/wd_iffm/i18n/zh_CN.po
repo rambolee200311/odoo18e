@@ -1000,14 +1000,14 @@ msgstr "创建清关"
 #. module: wd_iffm
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_world_depot_waybill_form
 msgid "Create Handover"
-msgstr "创建交接"
+msgstr "创建换单"
 
 #. module: wd_iffm
 #. odoo-python
 #: code:addons/wd_iffm/models/charge_pricing_models/waybill.py:0
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_world_depot_waybill_form
 msgid "Create Pickup Requirement"
-msgstr "创建提货要求"
+msgstr "创建提货需求单"
 
 #. module: wd_iffm
 #: model_terms:ir.actions.act_window,help:wd_iffm.action_charge_quotation
@@ -2441,7 +2441,7 @@ msgstr "仅预付款发票可以申请付款。"
 #. odoo-python
 #: code:addons/wd_iffm/models/charge_pricing_models/waybill.py:0
 msgid "Only arrived waybill can create pickup requirement."
-msgstr "仅已到港的运单可以创建提货要求。"
+msgstr "仅已到港的运单可以创建提货需求单。"
 
 #. module: wd_iffm
 #. odoo-python
@@ -2734,17 +2734,17 @@ msgstr "提货申请日期"
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_import_pickup_requirement_list
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_import_pickup_requirement_search
 msgid "Pickup Requirement"
-msgstr "提货要求"
+msgstr "提货提货需求单"
 
 #. module: wd_iffm
 #: model:ir.model,name:wd_iffm.model_import_pickup_requirement
 msgid "Pickup Requirement Form"
-msgstr "提货要求表单"
+msgstr "提货需求单表单"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_import_pickup_requirement__pickup_requirements
 msgid "Pickup Requirements"
-msgstr "提货要求"
+msgstr "提货需求单"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_import_pickup_requirement__pickup_scene
@@ -3018,17 +3018,17 @@ msgstr "申请付款"
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_pickup_container_line__state
 msgid "Requirement Container Status"
-msgstr "提货要求集装箱状态"
+msgstr "提货需求单集装箱状态"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_import_pickup_requirement__name
 msgid "Requirement No"
-msgstr "提货要求编号"
+msgstr "提货需求单编号"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_import_pickup_requirement__state
 msgid "Requirement Status"
-msgstr "提货要求状态"
+msgstr "提货需求单状态"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation__activity_user_id
@@ -3390,7 +3390,7 @@ msgstr "目的港码头"
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_world_depot_waybill__terminal_port
 msgid "Terminal of Port"
-msgstr "港口码头"
+msgstr "目的港口"
 
 #. module: wd_iffm
 #. odoo-python
@@ -3718,7 +3718,7 @@ msgstr "仓库包装费明细"
 
 #. module: wd_iffm
 #: model:ir.ui.menu,name:wd_iffm.menu_wd_charge_root
-msgid "WMS"
+msgid "Import Freight Forwarder Management"
 msgstr "进口货代"
 
 #. module: wd_iffm
