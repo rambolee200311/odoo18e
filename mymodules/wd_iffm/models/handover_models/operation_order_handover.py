@@ -364,7 +364,8 @@ class OperationOrderHandoverInvoiceLine(models.Model):
     paid_time = fields.Datetime(string="Paid Confirmed On", readonly=True)
     handover_cost_line_ids = fields.One2many("operation.order.handover.cost.line", "handover_invoice_line_id", string="Cost Lines")
     remark = fields.Text(string="Remark")
-
+    apply_user_id = fields.Many2one("res.users", string="Apply User", readonly=True, copy=False, index=True)
+    apply_datetime = fields.Datetime(string="Apply Datetime", readonly=True, copy=False)
     #会计对账
 
     payment_journal_id = fields.Many2one("account.journal", string="Payment Journal",
@@ -395,6 +396,7 @@ class OperationOrderHandoverInvoiceLine(models.Model):
     def action_request_payment(self):
         move_model = self.env["account.move"]
         for rec in self:
+            operator = self.env.ref("base.user_admin")
             if not rec.handover_cost_line_ids:
                raise ValidationError(_("Cost lines are required before requesting payment."))
 
@@ -457,7 +459,12 @@ class OperationOrderHandoverInvoiceLine(models.Model):
                 "ref": f"{rec.handover_id.name}/{rec.id}",
                 "invoice_line_ids": invoice_lines,
             }
-            move = move_model.sudo().create(move_vals)
+            move = move_model.with_user(operator).create(move_vals)
+
+            rec.write({
+                "apply_user_id": self.env.user.id,
+                "apply_datetime": fields.Datetime.now(),
+            })
 
             if rec.vendor_invoice_attachment_ids:
                 rec.vendor_invoice_attachment_ids.copy({
@@ -466,7 +473,7 @@ class OperationOrderHandoverInvoiceLine(models.Model):
                 })
 
             # 过账（posted）
-            move.action_post()
+            move.with_user(operator).action_post()
             rec.write({
                 "vendor_invoice_id": move.id,
                 "payment_state": "paying",

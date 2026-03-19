@@ -21,6 +21,8 @@
                             <field name="vendor_invoice_id" readonly="1"
                                    options="{'no_create': True, 'no_open': True}"/>
                             <field name="bank_proof_attachment_ids" widget="many2many_binary" readonly="1"/>
+                            <field name="apply_user_id"/>
+                            <field name="apply_datetime"/>
 
                         </group>
 
@@ -42,7 +44,8 @@
                                     <field name="charge_item_id" options="{'no_create': True, 'no_open': True}"
                                            domain="[('operation_type', '=','handover'),('is_leaf','=',True)]"/>
                                     <field name="qty"/>
-                                    <field name="currency_id" required="1" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="currency_id" required="1"
+                                           options="{'no_create': True, 'no_open': True}"/>
                                     <field name="unit_price"/>
                                     <field name="cost_nature" required="1"/>
                                     <field name="amount_total"/>

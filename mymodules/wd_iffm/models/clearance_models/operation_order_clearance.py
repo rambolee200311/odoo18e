@@ -261,18 +261,23 @@ class OperationOrderClearance(models.Model):
                 rec.clearance_finish_datetime = rec.t1_inbound_release_datetime
 
     def sync_waybill_custom_clearance(self):
-
-        waybills = self.mapped("waybill_id")
+        done_states = ("clearanced", "close")
         env_clearance = self.env["operation.order.clearance"]
 
-        done_states = ("clearanced", "close")
-        for waybill in waybills:
-            clearances = env_clearance.search([
+        for waybill in self.mapped("waybill_id"):
+            clearances = env_clearance.sudo().search([
                 ("waybill_id", "=", waybill.id),
                 ("state", "!=", "cancelled"),
+                ("parent_id", "=", False),
             ])
-            is_done = bool(clearances) and all(c.state in done_states for c in clearances)
-            waybill.write({"custom_clearance": is_done})
+
+            clearance_container_ids = clearances.mapped("clearance_container_ids").ids
+            all_orders_done = bool(clearances) and all(rec.state in done_states for rec in clearances)
+            all_containers_covered = bool(waybill.container_ids) and all(
+                container.id in clearance_container_ids for container in waybill.container_ids
+            )
+
+            waybill.write({"custom_clearance": all_orders_done and all_containers_covered})
 
     def action_clearanced(self):
         for rec in self:
@@ -428,7 +433,8 @@ class OperationOrderClearanceInvoiceLine(models.Model):
     paid_time = fields.Datetime(string="Paid Confirmed On", readonly=True)
     cost_line_ids = fields.One2many("operation.order.clearance.cost.line", "invoice_line_id", string="Cost Lines")
     remark = fields.Text(string="Remark")
-
+    apply_user_id = fields.Many2one("res.users", string="Apply User", readonly=True, copy=False, index=True)
+    apply_datetime = fields.Datetime(string="Apply Datetime", readonly=True, copy=False)
     # 会计对账
 
     payment_journal_id = fields.Many2one("account.journal", string="Payment Journal",
@@ -460,6 +466,7 @@ class OperationOrderClearanceInvoiceLine(models.Model):
     def action_request_clearance_payment(self):
         move_model = self.env["account.move"]
         for rec in self:
+            operator = self.env.ref("base.user_admin")
             if not rec.cost_line_ids:
                 raise ValidationError(_("Cost lines are required before requesting payment."))
             if rec.payment_mode != "advance":
@@ -524,7 +531,12 @@ class OperationOrderClearanceInvoiceLine(models.Model):
                 "ref": f"{rec.clearance_id.name}/{rec.id}",
                 "invoice_line_ids": invoice_lines,
             }
-            move = move_model.sudo().create(move_vals)
+            move = move_model.with_user(operator).create(move_vals)
+
+            rec.write({
+                "apply_user_id": self.env.user.id,
+                "apply_datetime": fields.Datetime.now(),
+            })
 
             if rec.vendor_invoice_attachment_ids:
                 rec.vendor_invoice_attachment_ids.copy({
@@ -533,7 +545,7 @@ class OperationOrderClearanceInvoiceLine(models.Model):
                 })
 
 
-            move.action_post()
+            move.with_user(operator).action_post()
             rec.write({
                 "vendor_invoice_id": move.id,
                 "payment_state": "paying",
