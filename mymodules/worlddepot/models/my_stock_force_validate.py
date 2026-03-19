@@ -14,6 +14,7 @@ class StockPicking(models.Model):
         Returns:
             bool: True if validation was successful
         """
+        self.check_strict_scan_before_validate()
         self._check_quantity()
         for picking in self:
             try:
@@ -128,6 +129,7 @@ class StockPicking(models.Model):
         """
         Simplified force validation - just validate moves then picking
         """
+        self.check_strict_scan_before_validate()
         for picking in self:
             try:
                 # Validate all moves

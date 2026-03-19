@@ -218,6 +218,73 @@ class StockPicking(models.Model):
                     continue
                     
                 self._validate_move_quantity(move, picking.picking_type_id)
+                self.check_strict_scan_before_validate()
+
+    def check_strict_scan_before_validate(self):
+        for picking in self:
+            if not picking.picking_type_id.strict_quantity_control:
+                continue
+
+            for move in picking.move_ids.filtered(lambda m: m.state not in ('done', 'cancel')):
+                demand_qty = move.product_uom_qty or 0.0
+                if float_compare(demand_qty, 0.0, precision_rounding=move.product_uom.rounding) <= 0:
+                    continue
+
+                picked_lines = move.move_line_ids.filtered(lambda ml: ml.state != 'cancel' and ml.picked)
+                if not picked_lines:
+                    raise UserError(
+                        _("Product %s has not been scanned. Validation is not allowed.") % move.product_id.display_name)
+
+                done_qty = sum(
+                    ml.product_uom_id._compute_quantity(ml.quantity, move.product_uom)
+                    for ml in picked_lines
+                )
+                if float_compare(done_qty, demand_qty, precision_rounding=move.product_uom.rounding) != 0:
+                    raise UserError(_(
+                        "Scanned quantity does not match demand for product %(product)s.\n"
+                        "Demand: %(demand)s %(uom)s, Scanned: %(done)s %(uom)s"
+                    ) % {
+                                        'product': move.product_id.display_name,
+                                        'demand': demand_qty,
+                                        'done': done_qty,
+                                        'uom': move.product_uom.name,
+                                    })
+
+                self.check_serial_scan_before_validate(move, picked_lines)
+
+    def check_serial_scan_before_validate(self, move, picked_lines):
+        if move.product_id.tracking != 'serial':
+            return
+
+        serial_names = []
+        for ml in picked_lines:
+            serial_name = ml.lot_id.name if ml.lot_id else ml.lot_name
+            if not serial_name:
+                raise UserError(
+                    _("Product %s has a scanned line without a serial number.") % move.product_id.display_name)
+
+            qty_in_product_uom = ml.product_uom_id._compute_quantity(ml.quantity, move.product_id.uom_id)
+            if float_compare(qty_in_product_uom, 1.0, precision_rounding=move.product_id.uom_id.rounding) != 0:
+                raise UserError(
+                    _("Each serial-number line for product %s must have quantity 1.") % move.product_id.display_name)
+
+            serial_names.append(serial_name)
+
+        if len(serial_names) != len(set(serial_names)):
+            raise UserError(
+                _("Duplicate serial numbers found for product %s. Validation is not allowed.") % move.product_id.display_name)
+
+        demand_in_product_uom = move.product_uom._compute_quantity(move.product_uom_qty, move.product_id.uom_id)
+        if float_compare(float(len(serial_names)), demand_in_product_uom,
+                         precision_rounding=move.product_id.uom_id.rounding) != 0:
+            raise UserError(_(
+                "Serial number count does not match demand for product %(product)s.\n"
+                "Demand: %(demand)s, Scanned Serials: %(done)s"
+            ) % {
+                                'product': move.product_id.display_name,
+                                'demand': demand_in_product_uom,
+                                'done': len(serial_names),
+                            })
 
     # validate move quantity against demand and actual done quantity
     def _validate_move_quantity(self, move, picking_type):
