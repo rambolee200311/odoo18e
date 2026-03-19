@@ -24,6 +24,7 @@ class Project(models.Model):
         help='The name of the uploaded template file.'
     )
     charge_of_pallet = fields.Boolean(string='Charge of Pallet', default=True, tracking=True, help='Whether to charge for pallets.')
+    is_check_origin_doc = fields.Boolean(string='Check Origin Doc', default=True, tracking=True, help='Whether to check the origin document.')
 '''
     # 港至仓 (Trucking Charge)
     inbound_trucking_charge = fields.Float(

@@ -210,13 +210,14 @@ class InboundOrder(models.Model):
             # Ensure Container No are filled
             if not record.cntr_no:
                 raise UserError(_("Container No is required to confirm the order."))
-            if not record.inbound_order_doc_ids:
-                raise UserError(_("At least one document is required to confirm the order."))
-            else:
-                # check at least one orgin document
-                has_origin_doc = any(doc.doc_type == 'origin' for doc in record.inbound_order_doc_ids)
-                if not has_origin_doc:
-                    raise UserError(_("At least one Origin Document is required to confirm the order."))
+            if record.project.is_check_origin_doc:
+                if not record.inbound_order_doc_ids:
+                    raise UserError(_("At least one document is required to confirm the order."))
+                else:
+                    # check at least one orgin document
+                    has_origin_doc = any(doc.doc_type == 'origin' for doc in record.inbound_order_doc_ids)
+                    if not has_origin_doc:
+                        raise UserError(_("At least one Origin Document is required to confirm the order."))
             
             if record.type == 'inbound':
                 # Ensure arrival date  is filled

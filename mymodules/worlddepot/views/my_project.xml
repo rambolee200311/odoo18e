@@ -6,6 +6,7 @@
         <field name="arch" type="xml">
             <xpath expr="//sheet" position="inside">
                 <group string="Info">
+                    <field name="is_check_origin_doc"/>
                     <field name="category"/>
                     <field name="owner"/>
                     <field name="charge_of_pallet"/>
