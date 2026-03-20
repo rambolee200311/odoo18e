@@ -248,13 +248,14 @@ class OutboundOrder(models.Model):
         for record in self:
             if record.state != 'new':
                 raise UserError(_("Outbound order can only be confirmed from 'New' state."))
-            if not record.outbound_order_docs_ids:
-                raise UserError(_("At least one Origin Document is required to confirm the order."))
-            else:
-                # check at least one orgin document
-                has_origin_doc = any(doc.doc_type == 'origin' for doc in record.outbound_order_docs_ids)
-                if not has_origin_doc:
+            if record.project.is_check_origin_doc:
+                if not record.outbound_order_docs_ids:
                     raise UserError(_("At least one Origin Document is required to confirm the order."))
+                else:
+                    # check at least one orgin document
+                    has_origin_doc = any(doc.doc_type == 'origin' for doc in record.outbound_order_docs_ids)
+                    if not has_origin_doc:
+                        raise UserError(_("At least one Origin Document is required to confirm the order."))
             
             record.state = 'confirm'
             # Record the user who confirmed
