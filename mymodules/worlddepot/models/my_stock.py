@@ -222,6 +222,8 @@ class StockPicking(models.Model):
 
     def check_strict_scan_before_validate(self):
         for picking in self:
+            if picking.picking_type_id.restrict_scan_tracking_number != 'mandatory':
+                continue
             if not picking.picking_type_id.strict_quantity_control:
                 continue
 
