@@ -13,7 +13,7 @@
                            options="{'no_create': True, 'no_open': True}"/>
                 </group>
                 <footer>
-                    <button name="action_confirm" type="object" string="Generate Clearance" class="btn-primary"/>
+                    <button name="action_confirm" type="object" string="Generate Clearance" class="btn-primary" invisible="from_workbench == True"/>
                     <button name="action_confirm_workbench"
                             type="object"
                             string="Create Main Clearance"
