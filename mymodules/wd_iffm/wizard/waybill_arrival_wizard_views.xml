@@ -11,7 +11,8 @@
                         <group>
                             <field name="ata" required="1"/>
 <!--                            <field name="terminal_port" required="1" options="{'no_create': True, 'no_open': True}"/>-->
-                            <field name="terminal_a" required="1" options="{'no_create': True, 'no_open': True}"/>
+<!--                            <field name="terminal_a" required="1" options="{'no_create': True, 'no_open': True}"/>-->
+                            <field name="terminal_id" required="1" options="{'no_create': True, 'no_open': True}" domain="[('node_type', '=', 'terminal')]"/>
                         </group>
                     </sheet>
                     <footer>

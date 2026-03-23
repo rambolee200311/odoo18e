@@ -41,6 +41,7 @@ class Waybill(models.Model):
         selection=[
             ('new', 'New'),
             ('confirm', 'Confirm'),
+            ('done', 'Done'),
             ('cancel', 'Cancel'),
         ],
         default='new',
@@ -76,10 +77,21 @@ class Waybill(models.Model):
     clearance_id = fields.Many2one("operation.order.clearance", string="Clearance")
 
     # 货到港码头信息
+    port_id = fields.Many2one("world.depot.port.node", string="Port", tracking=True)
+    terminal_id = fields.Many2one("world.depot.port.node", string="Terminal", tracking=True)
     arrival_confirm_user_id = fields.Many2one("res.users", string="Arrival Confirm User", tracking=True, copy=False,
                                               readonly=True, index=True)
     arrival_confirm_time = fields.Datetime(string="Arrival Confirm Time", tracking=True, copy=False, readonly=True)
     is_arrived = fields.Boolean(string="Is Arrived")
+
+    def action_done_order(self):
+        for rec in self:
+            if rec.state != "confirm":
+                raise UserError(_("Only confirmed waybill can be done."))
+            if not rec.release_received or not rec.custom_clearance:
+                raise UserError(_("Release Received and Custom Clearance must both be completed before Done."))
+            rec.write({"state": "done"})
+        return True
 
     def action_open_arrival_wizard(self):
         for rec in self:
@@ -136,6 +148,8 @@ class Waybill(models.Model):
 
     def action_create_handover(self):
         for rec in self:
+            if rec.state == "done":
+                raise UserError(_("This waybill has been done. Formal order replacement operations cannot be created."))
             if rec.state != "confirm":
                 raise UserError(_("Please change the status to confirm"))
 
@@ -172,6 +186,8 @@ class Waybill(models.Model):
             }
     def action_create_clearance(self):
         self.ensure_one()
+        if self.state == "done":
+            raise UserError(_("This waybill has been done. Formal order replacement operations cannot be created."))
         if self.state != "confirm":
             raise UserError(_("Please change the status to confirm"))
         if not self.container_ids:

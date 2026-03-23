@@ -990,7 +990,7 @@ msgstr "创建子清关单"
 #. module: wd_iffm
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_operation_order_handover_form
 msgid "Create Child Handover"
-msgstr "创建子交接单"
+msgstr "创建子换单"
 
 #. module: wd_iffm
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_world_depot_waybill_form
