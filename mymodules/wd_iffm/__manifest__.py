@@ -40,6 +40,7 @@ Long description of module's purpose
         'views/charge_pricing_views/project_project_inherit_views.xml',
         'views/charge_pricing_views/waybill.xml',
         'views/charge_pricing_views/res_partner_inherit_views.xml',
+        'views/charge_pricing_views/port_node_views.xml',
 
         'views/handover_views/operation_order_handover_views.xml',
         'views/handover_views/handover_invoice_line_views.xml',
@@ -66,6 +67,14 @@ Long description of module's purpose
     ],
 
     'application': True,
+
+    "assets": {
+        "web.assets_backend": [
+            "wd_iffm/static/src/js/waybill_workbench.js",
+            "wd_iffm/static/src/xml/waybill_workbench.xml",
+            "wd_iffm/static/src/scss/waybill_workbench.scss",
+        ],
+    },
 
 }
 

@@ -563,6 +563,46 @@ class OperationOrderClearanceInvoiceLine(models.Model):
             },
         }
 
+    def action_revoke_payment_request(self):
+        for rec in self:
+            operator = self.env.ref("base.user_admin")
+            if rec.payment_state != "paying":
+                raise ValidationError(_("Only paying invoice line can be revoked."))
+            if not rec.vendor_invoice_id:
+                raise ValidationError(_("No linked vendor invoice found."))
+
+            move = rec.vendor_invoice_id
+            if move.payment_state != "not_paid":
+                raise ValidationError(_("Linked vendor invoice already has payment, revoke is not allowed."))
+
+            if move.state == "posted":
+                move.button_draft()
+            if move.state == "draft":
+                move.with_user( operator).button_cancel()
+
+            rec.write({
+                "payment_state": "draft",
+                "vendor_invoice_id": False,
+                "payment_id": False,
+                "paid_user_id": False,
+                "paid_time": False,
+                "apply_user_id": False,
+                "apply_datetime": False,
+                "bank_proof_attachment_ids": [(5, 0, 0)],
+            })
+
+        self.mapped("clearance_id").action_recompute_state()
+        view_xmlid = "wd_iffm.operation_order_clearance_invoice_line_form_view"
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Invoice Line"),
+            "res_model": self._name,
+            "view_mode": "form",
+            "views": [(self.env.ref(view_xmlid).id, "form")],
+            "res_id": self.id,
+            "target": "new",
+        }
+
     def unlink(self):
         for rec in self:
             if rec.payment_state in ("paid"):

@@ -11,12 +11,13 @@ class WaybillArrivalWizard(models.TransientModel):
     ata = fields.Date(string='ATA', tracking=True,required=True)
     #terminal_port = fields.Many2one('res.partner', string='Terminal of Port', tracking=True)
     terminal_a = fields.Many2one('res.partner', string='Terminal of Arrival', tracking=True)
+    terminal_id = fields.Many2one("world.depot.port.node", string="Terminal", tracking=True)
 
     def action_confirm(self):
         for rec in self:
             if not rec.ata:
                 raise ValidationError(_("Actual arrival date is required"))
-            if not rec.terminal_a:
+            if not rec.terminal_id:
                 raise ValidationError(_("Arrival port is required"))
             # if not rec.terminal_port:
             #     raise ValidationError(_("Port of loading is required"))
@@ -26,7 +27,7 @@ class WaybillArrivalWizard(models.TransientModel):
             rec.waybill_id.write({
                 "ata": rec.ata,
                 #"terminal_port": rec.terminal_port.id,
-                "terminal_a": rec.terminal_a.id,
+                "terminal_id": rec.terminal_id.id,
                 "arrival_confirm_user_id": self.env.user.id,
                 "arrival_confirm_time": fields.Datetime.now(),
                 "is_arrived": True,

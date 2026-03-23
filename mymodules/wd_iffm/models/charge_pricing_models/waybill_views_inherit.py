@@ -1,5 +1,5 @@
 from odoo import api, fields, models, _
-from odoo.exceptions import ValidationError
+from odoo.exceptions import ValidationError, UserError
 
 
 class WaybillViewsInherit(models.Model):
@@ -12,6 +12,21 @@ class WaybillViewsInherit(models.Model):
             "tag": "waybill_workbench",
             "name": "Waybill Workbench",
             "params": {"waybill_id": self.id},
+        }
+
+
+    def action_model_form_views(self):
+        self.ensure_one()
+        model_name = self.env.context.get("open_model") or self._name
+        res_id = self.env.context.get("open_res_id") or self.id
+        view_id = self.env.context.get("open_view_id")
+        return {
+            "type": "ir.actions.act_window",
+            "res_model": model_name,
+            "res_id": res_id,
+            "view_mode": "form",
+            "views": [(view_id, "form")] if view_id else [(False, "form")],
+            "target": "current",
         }
 
 
@@ -89,7 +104,7 @@ class WaybillViewsInherit(models.Model):
         if not waybill:
             raise ValidationError(_("Waybill not found."))
 
-        # 换单：只允许 1 张主卡（取最新一张；多张时回传冲突信息）
+
         handover_roots = handover_model.sudo().search(
             [("waybill_id", "=", waybill.id), ("parent_id", "=", False), ("state", "!=", "cancelled")],
             order="id desc",
@@ -100,7 +115,6 @@ class WaybillViewsInherit(models.Model):
             order="id desc",
         ) if handover_master else handover_model.browse()
 
-        # 清关：允许多张主卡（每张主卡各自带子卡）
         clearance_roots = clearance_model.sudo().search(
             [("waybill_id", "=", waybill.id), ("parent_id", "=", False), ("state", "!=", "cancelled")],
             order="id desc",
@@ -156,3 +170,110 @@ class WaybillViewsInherit(models.Model):
                 "can_create_master": waybill.state == "confirm" and waybill.is_arrived and has_unassigned_container,
             },
         }
+
+
+    def action_workbench_create_handover(self):
+        env_handover = self.env["operation.order.handover"]
+        result = []
+
+        for rec in self:
+            if rec.state == "done":
+                raise UserError(_("This waybill has been done. Formal order replacement operations cannot be created."))
+            if rec.state != "confirm":
+                raise ValidationError(_("Only confirmed waybills can create handover orders."))
+            if not env_handover.check_access_rights("create", raise_exception=False):
+                raise ValidationError(_("You do not have permission to create handover orders."))
+
+            main_count = env_handover.sudo().search_count([
+                ("waybill_id", "=", rec.id),
+                ("parent_id", "=", False),
+                ("state", "!=", "cancelled"),
+            ])
+            if main_count:
+                raise ValidationError(_("Main handover already exists."))
+
+            attachment_lines = [(0, 0, {
+                "doc_type": line.bill_doc_type,
+                "remark": line.description,
+                "file": line.file,
+                "name": line.filename,
+            }) for line in rec.other_docs_ids]
+
+            charge_lines = [(0, 0, {
+                "charge_item_id": line.charge_item_id.id,
+                "charge_origin_type": "quotation",
+                "unit_price": line.unit_price,
+            }) for line in rec.project.quotation_id.quotation_thc_lines] if rec.project and rec.project.quotation_id else []
+
+            handover = env_handover.create({
+                "waybill_id": rec.id,
+                "project_id": rec.project.id if rec.project else False,
+                "shipping_line_id": rec.shipping.id if rec.shipping else False,
+                "container_qty": rec.container_qty,
+                "attachment_line_ids": attachment_lines,
+                "charge_line_ids": charge_lines,
+            })
+            rec.write({"handover_id": handover.id})
+
+            result.append({
+                "waybill_id": rec.id,
+                "handover_id": handover.id,
+                "handover_name": handover.name,
+                "message": _("Handover order created successfully."),
+            })
+
+        return result[0] if len(result) == 1 else result
+
+    def action_workbench_create_clearance(self):
+        env_clearance = self.env["operation.order.clearance"]
+        result = []
+
+        for rec in self:
+            if rec.state == "done":
+                raise UserError(_("This waybill has been done. Formal order replacement operations cannot be created."))
+            if rec.state != "confirm":
+                raise ValidationError(_("Only confirmed waybills can create clearance orders."))
+            if not env_clearance.check_access_rights("create", raise_exception=False):
+                raise ValidationError(_("You do not have permission to create clearance orders."))
+
+            main_count = env_clearance.sudo().search_count([
+                ("waybill_id", "=", rec.id),
+                ("parent_id", "=", False),
+                ("state", "!=", "cancelled"),
+            ])
+            if main_count:
+                raise ValidationError(_("Main clearance already exists."))
+
+            attachment_lines = [(0, 0, {
+                "doc_type": line.bill_doc_type,
+                "remark": line.description,
+                "file": line.file,
+                "name": line.filename,
+            }) for line in rec.other_docs_ids]
+
+            charge_lines = [(0, 0, {
+                "charge_item_id": line.charge_item_id.id,
+                "charge_origin_type": "quotation",
+                "unit_price": line.unit_price,
+            }) for line in rec.project.quotation_id.quotation_customs_lines] if rec.project and rec.project.quotation_id else []
+
+            clearance = env_clearance.create({
+                "waybill_id": rec.id,
+                "project_id": rec.project.id if rec.project else False,
+                "shipping_line_id": rec.shipping.id if rec.shipping else False,
+                "handover_id": rec.handover_id.id if rec.handover_id else False,
+                "container_qty": rec.container_qty,
+                "clearance_container_ids": [(6, 0, rec.container_ids.ids)],
+                "attachment_line_ids": attachment_lines,
+                "charge_line_ids": charge_lines,
+            })
+            rec.write({"clearance_id": clearance.id})
+
+            result.append({
+                "waybill_id": rec.id,
+                "clearance_id": clearance.id,
+                "clearance_name": clearance.name,
+                "message": _("Clearance order created successfully."),
+            })
+
+        return result[0] if len(result) == 1 else result

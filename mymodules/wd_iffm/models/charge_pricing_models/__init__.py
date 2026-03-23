@@ -4,3 +4,5 @@ from . import project_project_inherit
 from . import waybill
 from . import res_partner_inherit
 from . import waybill_views_inherit
+from . import port_node
+
