@@ -34,6 +34,7 @@ class WaybillCreateClearanceWizard(models.TransientModel):
             clearances = env_clearance.sudo().search([
                 ("waybill_id", "=", wizard.waybill_id.id),
                 ("state", "!=", "cancelled"),
+                ("parent_id", "=", False),
             ])
             used_ids = clearances.mapped("clearance_container_ids").ids
             available = wizard.waybill_id.container_ids.filtered(lambda rec: rec.id not in used_ids)
@@ -55,6 +56,7 @@ class WaybillCreateClearanceWizard(models.TransientModel):
         res["waybill_id"] = waybill.id
         clearances = self.env["operation.order.clearance"].sudo().search([
             ("waybill_id", "=", waybill.id),
+            ("parent_id", "=", False),
             ("state", "!=", "cancelled"),
         ])
         used_ids = clearances.mapped("clearance_container_ids").ids
