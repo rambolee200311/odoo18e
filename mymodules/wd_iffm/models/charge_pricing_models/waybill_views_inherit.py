@@ -224,6 +224,29 @@ class WaybillViewsInherit(models.Model):
 
         return result[0] if len(result) == 1 else result
 
+    def action_open_clearance_wizard_workbench(self):
+        self.ensure_one()
+        if self.state == "done":
+            raise UserError(_("This waybill has been done. Formal order replacement operations cannot be created."))
+        if self.state != "confirm":
+            raise UserError(_("Please change the waybill status to confirm first."))
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Select Containers"),
+            "res_model": "waybill.create.clearance.wizard",
+            "view_mode": "form",
+            "views": [(self.env.ref("wd_iffm.view_waybill_create_clearance_wizard_form").id, "form")],
+            "target": "new",
+            "context": {
+                "active_model": "world.depot.waybill",
+                "active_id": self.id,
+                "default_waybill_id": self.id,
+                "from_workbench": True,
+            },
+        }
+
+
+
     def action_workbench_create_clearance(self):
         env_clearance = self.env["operation.order.clearance"]
         result = []
