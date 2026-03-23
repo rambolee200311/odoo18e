@@ -138,6 +138,54 @@ class OperationOrderHandover(models.Model):
             "res_id": child.id,
         }
 
+    def action_create_child_handover_workbench(self):
+        env_handover = self.env["operation.order.handover"]
+        for rec in self:
+            if rec.parent_id:
+                raise ValidationError(_("仅主换单可创建子换单。"))
+
+            child_count = env_handover.sudo().search_count([("parent_id", "=", rec.id)]) + 1
+
+            vals = {
+                "waybill_id": rec.waybill_id.id,
+                "parent_id": rec.id,
+                "name": f"{rec.name}-{child_count}",
+                "external_system_type": rec.external_system_type,
+                "external_system_no": rec.external_system_no,
+                "voyage_no": rec.voyage_no,
+                "do_no": rec.do_no,
+                "do_issue_datetime": rec.do_issue_datetime,
+                "expected_pickup_datetime": rec.expected_pickup_datetime,
+                "actual_pickup_datetime": rec.actual_pickup_datetime,
+                "actual_datetime": rec.actual_datetime,
+                "extra_reason": rec.extra_reason,
+                "extra_remark": rec.extra_remark,
+                "remark": rec.remark,
+                "state": "open",
+                "attachment_line_ids": [
+                    (0, 0, {"doc_type": line.doc_type, "remark": line.remark, "file": line.file, "name": line.name}) for
+                    line in rec.attachment_line_ids],
+                "charge_line_ids": [(0, 0, {"charge_item_id": line.charge_item_id.id,
+                                            "charge_origin_type": line.charge_origin_type, "qty": line.qty,
+                                            "unit_price": line.unit_price,
+                                            "manual_amount_total": line.manual_amount_total, "remark": line.remark}) for
+                                    line in rec.charge_line_ids],
+            }
+            child = env_handover.create(vals)
+
+            return {
+                "ok": True,
+                "message": _("Child handover created successfully."),
+                "child": {
+                    "id": child.id,
+                    "name": child.name,
+                    "state": child.state,
+                    "parent_id": child.parent_id.id,
+                },
+            }
+
+
+
     @api.constrains('extra_reason', 'extra_remark')
     def check_extra_remark(self):
         for rec in self:

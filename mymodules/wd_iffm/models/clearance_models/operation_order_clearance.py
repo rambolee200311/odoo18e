@@ -167,7 +167,50 @@ class OperationOrderClearance(models.Model):
             "res_id": child.id,
         }
 
+    def action_create_child_clearance_workbench(self):
+        env_clearance = self.env["operation.order.clearance"]
+        for rec in self:
+            if rec.parent_id:
+                raise ValidationError(_("仅主清关可创建子清关。"))
 
+            child_count = env_clearance.sudo().search_count([("parent_id", "=", rec.id)]) + 1
+
+            vals = {
+                "waybill_id": rec.waybill_id.id,
+                "parent_id": rec.id,
+                "name": f"{rec.name}-{child_count}",
+                "clearance_type": rec.clearance_type,
+                "external_system_type": rec.external_system_type,
+                "external_system_no": rec.external_system_no,
+                "voyage_no": rec.voyage_no,
+                "customs_declaration_datetime": rec.customs_declaration_datetime,
+                "actual_datetime": rec.actual_datetime,
+                "extra_reason": rec.extra_reason,
+                "extra_remark": rec.extra_remark,
+                "remark": rec.remark,
+                "state": "open",
+                "clearance_container_ids": [(6, 0, rec.clearance_container_ids.ids)],
+                "attachment_line_ids": [
+                    (0, 0, {"doc_type": line.doc_type, "remark": line.remark, "file": line.file, "name": line.name}) for
+                    line in rec.attachment_line_ids],
+                "charge_line_ids": [(0, 0, {"charge_item_id": line.charge_item_id.id,
+                                            "charge_origin_type": line.charge_origin_type, "qty": line.qty,
+                                            "unit_price": line.unit_price,
+                                            "manual_amount_total": line.manual_amount_total, "remark": line.remark}) for
+                                    line in rec.charge_line_ids],
+            }
+            child = env_clearance.create(vals)
+
+            return {
+                "ok": True,
+                "message": _("Child clearance created successfully."),
+                "child": {
+                    "id": child.id,
+                    "name": child.name,
+                    "state": child.state,
+                    "parent_id": child.parent_id.id,
+                },
+            }
 
 
     @api.constrains('extra_reason', 'extra_remark')
