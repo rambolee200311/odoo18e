@@ -19,7 +19,7 @@ class OperationOrderClearanceCostLine(models.Model):
     )
     charge_type = fields.Selection([("quotation", "Quotation"), ("manual", "Manual")], string="Charge Source", default="manual", required=True, index=True)
 
-    currency_id = fields.Many2one("res.currency", string="Currency", related="clearance_id.waybill_id.quotation_id.currency_id", store=True, readonly=True, index=True)
+    currency_id = fields.Many2one("res.currency", string="Currency",related='invoice_line_id.currency_id')
 
     charge_item_id = fields.Many2one("world.depot.charge.item", string="Charge Item", tracking=True, index=True)
     unit_price = fields.Monetary(string="Unit Price", currency_field="currency_id", default=0.0, tracking=True)
@@ -34,6 +34,11 @@ class OperationOrderClearanceCostLine(models.Model):
     rule_snapshot = fields.Text(string="Rule Snapshot")
     source_snapshot = fields.Text(string="Source Snapshot")
     remark = fields.Char(string="Remark")
+
+    @api.onchange("invoice_line_id")
+    def onchange_cost_invoice(self):
+        if self.invoice_line_id:
+            self.currency_id = self.invoice_line_id.currency_id
 
     @api.depends("qty", "unit_price", "is_manual_amount", "manual_amount_total", "clearance_id.state")
     def compute_amount_total(self):

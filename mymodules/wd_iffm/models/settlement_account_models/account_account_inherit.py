@@ -7,4 +7,4 @@ class AccountAccount(models.Model):
     account_category = fields.Selection([
         ("expense", "Expense"),
         ("other", "Other"),
-    ], string="Account Category", default= 'expense',index=True)
+    ], string="Account Category",index=True)

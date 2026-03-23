@@ -21,9 +21,12 @@ class OperationOrderClearance(models.Model):
          ('t1_transit', 'T1 Transit'),
          ('t1_bonded', 'T1 Bonded')], string="Clearance Type", default='general',
         required=True)
-    #外部系统
 
+    eu_eori_no = fields.Char(string="EORI No", related="waybill_id.consignee.eu_eori_no", store=True, readonly=True)
+    vat_tax_no = fields.Char(string="VAT No", related="waybill_id.consignee.vat_tax_no", store=True, readonly=True)
+    clearance_receipt_no = fields.Char(string="Customs Clearance Receipt No.", index=True, copy=False, tracking=True)
 
+    customs_declaration_datetime = fields.Datetime(string="Customs Declaration Date",default=fields.Datetime.now, tracking=True)
 
     customs_release_datetime = fields.Datetime(string="Customs Release Date")
     inbound_release_datetime = fields.Datetime(string="Inbound Bonded Release Date")
@@ -45,11 +48,13 @@ class OperationOrderClearance(models.Model):
 
     state = fields.Selection(
         [("open", "Open"),
-         ("paying", "Paying"), ("paid", "Paid"), ("clearancing", "Clearance"),
+         ("paying", "Paying"), ("paid", "Paid"), ("clearancing", "Clearancing"),
          ("clearanced", "Clearanced"), ("close", "Close"),
          ("cancelled", "Cancelled")],
         string="Status", default="open", required=True, tracking=True, index=True)
     statement_period_id = fields.Many2one("statement.period", string="Statement Period")
+    statement_period_id_state = fields.Selection([], string="Statement Period State",
+                                                 related="statement_period_id.state", store=True)
     handover_id = fields.Many2one("operation.order.handover", string="Handover")
 
     shipping_line_id = fields.Many2one("res.partner",related="waybill_id.shipping", string="Shipping Line")
@@ -67,12 +72,19 @@ class OperationOrderClearance(models.Model):
 
     container_qty = fields.Integer(string="Container Qty")
     hs_code_qty = fields.Integer(string='HS Code Qty')
-    #container_line_ids = fields.One2many("operation.order.clearance.container.line", "clearance_id", string="Containers", copy=False)
+    clearance_container_line_ids = fields.One2many("operation.order.clearance.container.line", "clearance_id", string="Containers", copy=False)
     container_line_ids = fields.One2many("world.depot.waybill.container", "waybill_id", string="Containers",
                                          related="waybill_id.container_ids", readonly=True)
+    clearance_container_ids = fields.Many2many(
+        "world.depot.waybill.container",
+        "operation_order_clearance_container_rel",
+        "clearance_id",
+        "container_id",
+        string="Clearance Containers",
+    )
     invoice_line_ids = fields.One2many("operation.order.clearance.invoice.line", "clearance_id", string="Vendor Invoice Lines", copy=False)
 
-    attachment_line_ids = fields.One2many("operation.order.clearance.attachment.line", "clearance_id", string="Document Lines", copy=False)
+    attachment_line_ids = fields.One2many("operation.order.clearance.attachment.line", "clearance_id", string="Document Lines")
 
 
     has_advance_invoice = fields.Boolean(string="Has Advance Invoice", compute="_compute_payment_summary", store=True)
@@ -93,7 +105,7 @@ class OperationOrderClearance(models.Model):
     manual_amount_total_change = fields.Monetary(string="Manual Total Amount", currency_field="currency_id",
                                                  default=0.0,
                                                  tracking=True)
-    statement_period_id_state = fields.Selection([], string="Statement Period State", related="statement_period_id.state", store=True)
+
     parent_id = fields.Many2one("operation.order.clearance", string=" Partner Operation", index=True)
     extra_reason = fields.Selection([('customs_inspection', 'Customs Inspection'),
                                      ('detention', 'Detention'),
@@ -105,6 +117,20 @@ class OperationOrderClearance(models.Model):
 
     actual_datetime = fields.Datetime(string="Actual Date")
     extra_remark = fields.Char(string="Additional Remark")
+
+    reclearance_count = fields.Integer(string="Re-Clearance Count", default=0, copy=False, tracking=True)
+    reclearance_reason = fields.Text(string="Last Re-Clearance Reason", copy=False, tracking=True)
+    reclearance_user_id = fields.Many2one("res.users", string="Last Re-Clearance User", copy=False, readonly=True)
+    reclearance_time = fields.Datetime(string="Last Re-Clearance Time", copy=False, readonly=True)
+
+    @api.constrains('parent_id', 'extra_reason', 'remark')
+    def check_remark(self):
+        for rec in self:
+            if rec.parent_id and rec.extra_reason:
+                if not rec.remark or len(rec.remark) < 10:
+                    raise ValidationError(_("The remark for a sub-record must be at least 10 characters."))
+
+
 
     def action_create_child_clearance(self):
         self.ensure_one()
@@ -119,6 +145,12 @@ class OperationOrderClearance(models.Model):
         vals.update({
             "parent_id": self.id,
             "name": f"{self.name}-{child_count}",
+            "attachment_line_ids": [(0, 0, {
+                "doc_type": line.doc_type,
+                "remark": line.remark,
+                "file": line.file,
+                "name": line.name,
+            }) for line in self.attachment_line_ids],
         })
 
         vals.pop("charge_line_ids", None)
@@ -160,34 +192,34 @@ class OperationOrderClearance(models.Model):
             record.amount_total_change = total_amount
 
 
-    @api.depends('container_line_ids')
+    @api.depends('clearance_container_ids')
     def _compute_container_nums(self):
         for record in self:
             container_numbers = [line.container_number for line in record.container_line_ids]
             record.container_nums = ', '.join(container_numbers)
 
 
-    @api.constrains("waybill_id", "state")
-    def _constrain_unique_waybill(self):
-        env_model = self.env["operation.order.clearance"]
-        for rec in self:
-            if rec.parent_id:
-                continue
-            if not rec.waybill_id:
-                continue
-            domain = [
-                ("waybill_id", "=", rec.waybill_id.id),
-                ("parent_id", "=", False),
-                ("state", "!=", "cancelled"),
-            ]
-            if rec.id:
-                domain.append(("id", "!=", rec.id))
-
-            count = env_model.sudo().search_count(domain)
-            if count:
-                raise ValidationError(
-                    _("This waybill is already used by another active clearance order.")
-                )
+    # @api.constrains("waybill_id", "state")
+    # def _constrain_unique_waybill(self):
+    #     env_model = self.env["operation.order.clearance"]
+    #     for rec in self:
+    #         if rec.parent_id:
+    #             continue
+    #         if not rec.waybill_id:
+    #             continue
+    #         domain = [
+    #             ("waybill_id", "=", rec.waybill_id.id),
+    #             ("parent_id", "=", False),
+    #             ("state", "!=", "cancelled"),
+    #         ]
+    #         if rec.id:
+    #             domain.append(("id", "!=", rec.id))
+    #
+    #         count = env_model.sudo().search_count(domain)
+    #         if count:
+    #             raise ValidationError(
+    #                 _("This waybill is already used by another active clearance order.")
+    #             )
 
     def action_clearancing(self):
         for rec in self:
@@ -195,6 +227,10 @@ class OperationOrderClearance(models.Model):
                 raise ValidationError(_("Only Apply/Paying/Paid can go to Clearancing."))
             if rec.has_advance_invoice and not rec.all_advance_paid:
                 raise ValidationError(_("All advance invoices must be paid before Clearancing."))
+            if not rec.customs_declaration_datetime:
+                raise ValidationError(_("Customs declaration date is required."))
+            if not rec.eu_eori_no and not rec.vat_tax_no:
+                raise ValidationError(_("EU EORI No or VAT Tax No is required."))
             rec.write({"state": "clearancing"})
 
     @api.depends("clearance_type", "customs_release_datetime", "inbound_release_datetime",
@@ -203,7 +239,7 @@ class OperationOrderClearance(models.Model):
         for rec in self:
 
             rec.can_complete = False
-
+            rec.clearance_finish_datetime = False
             if rec.clearance_type == 'general' and rec.customs_release_datetime:
                 rec.can_complete = True
                 rec.clearance_finish_datetime = rec.customs_release_datetime
@@ -224,18 +260,54 @@ class OperationOrderClearance(models.Model):
                 rec.can_complete = True
                 rec.clearance_finish_datetime = rec.t1_inbound_release_datetime
 
+    def sync_waybill_custom_clearance(self):
+        done_states = ("clearanced", "close")
+        env_clearance = self.env["operation.order.clearance"]
+
+        for waybill in self.mapped("waybill_id"):
+            clearances = env_clearance.sudo().search([
+                ("waybill_id", "=", waybill.id),
+                ("state", "!=", "cancelled"),
+                ("parent_id", "=", False),
+            ])
+
+            clearance_container_ids = clearances.mapped("clearance_container_ids").ids
+            all_orders_done = bool(clearances) and all(rec.state in done_states for rec in clearances)
+            all_containers_covered = bool(waybill.container_ids) and all(
+                container.id in clearance_container_ids for container in waybill.container_ids
+            )
+
+            waybill.write({"custom_clearance": all_orders_done and all_containers_covered})
+
     def action_clearanced(self):
         for rec in self:
             if rec.state != "clearancing":
                 raise ValidationError(_("Only Clearancing can be set to Clearanced."))
             if not rec.waybill_id.ata or not rec.waybill_id.terminal_a:
                 raise ValidationError(_("Waybill ETA and Terminal of Arrival is required before Released."))
-            # if rec.get_required_doc_count("do") == 0:
-            #     raise ValidationError(_("DO / Telex Release document is required before Released."))
+            if not rec.vat_tax_no and not rec.clearance_receipt_no and not rec.eu_eori_no:
+                raise ValidationError(_("VAT Tax No, Clearance Receipt No, EU EORI No is required before Released."))
+            if not rec.clearance_finish_datetime:
+                raise ValidationError(_("Clearance Finish Date is required before Released."))
+
             rec.write({"state": "clearanced",})
-            rec.waybill_id.write({
-                "custom_clearance": True
-            })
+            rec.sync_waybill_custom_clearance()
+
+    def action_open_reclearance_wizard(self):
+        self.ensure_one()
+        if self.state != "clearancing":
+            raise ValidationError(_("Only clearancing order can return to paid for re-clearance."))
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Re-Clearance"),
+            "res_model": "clearance.reclearance.wizard",
+            "view_mode": "form",
+            "target": "new",
+            "context": {
+                "default_clearance_id": self.id,
+            },
+        }
+
     def action_close(self):
         for rec in self:
             if rec.parent_id:
@@ -268,6 +340,7 @@ class OperationOrderClearance(models.Model):
     def _onchange_waybill_id(self):
         for rec in self:
             if rec.waybill_id:
+                rec.clearance_container_ids = [(6, 0, rec.waybill_id.container_ids.ids)]
                 rec.attachment_line_ids = [(5, 0, 0)]
                 rec.charge_line_ids = [(5, 0, 0)]
                 attachment_lines = [(0, 0, {
@@ -294,18 +367,28 @@ class OperationOrderClearance(models.Model):
         for rec in self:
             if rec.state in ("clearancing", "clearanced", "close", "cancelled"):
                 continue
-            if rec.has_advance_invoice:
-                rec.write({"state": "paid" if rec.all_advance_paid else "paying"})
+            lines = rec.invoice_line_ids
+            if not lines:
+                rec.write({"state": "open"})
+                continue
 
-    @api.depends("invoice_line_ids.payment_mode", "invoice_line_ids.payment_state")
+            states = set(lines.mapped("payment_state"))
+            if states == {"draft"}:
+                rec.write({"state": "open"})
+            elif states == {"paid"}:
+                rec.write({"state": "paid"})
+            else:
+                rec.write({"state": "paying"})
+
+    @api.depends("invoice_line_ids", "invoice_line_ids.payment_state")
     def _compute_payment_summary(self):
         for rec in self:
-            advance_lines = rec.invoice_line_ids.filtered(
-                lambda l: any(c.cost_nature == "at cost" for c in l.cost_line_ids)
-            )
-            rec.has_advance_invoice = bool(advance_lines)
-            rec.has_unpaid_advance_invoice = bool(advance_lines.filtered(lambda l: l.payment_state != "paid"))
-            rec.all_advance_paid = bool(advance_lines) and not rec.has_unpaid_advance_invoice
+            lines = rec.invoice_line_ids
+            states = set(lines.mapped("payment_state"))
+
+            rec.has_advance_invoice = bool(lines)
+            rec.has_unpaid_advance_invoice = bool(lines.filtered(lambda l: l.payment_state != "paid"))
+            rec.all_advance_paid = bool(lines) and states == {"paid"}
 
 class OperationOrderClearanceInvoiceLine(models.Model):
     _name = "operation.order.clearance.invoice.line"
@@ -313,20 +396,29 @@ class OperationOrderClearanceInvoiceLine(models.Model):
     _order = "id desc"
 
     clearance_id = fields.Many2one("operation.order.clearance", string="Clearance", index=True)
+    customs_broker_id = fields.Many2one("res.partner", string="Clearance broker", index=True)
     vendor_partner_id = fields.Many2one("res.partner", string="Vendor (Shipping Line / Agent)",
                                         related='clearance_id.shipping_line_id', ondelete="restrict", store=True, index=True)
     vendor_invoice_id = fields.Many2one("account.move", string="Vendor Invoice (Optional)", ondelete="set null",
                                         index=True)
     invoice_date = fields.Date(string="Invoice Date", required=True, default=fields.Date.context_today)
-    currency_id = fields.Many2one("res.currency", string="Currency", related="clearance_id.waybill_id.project.quotation_id.currency_id", store=True,
-                                  readonly=True)
+    currency_id = fields.Many2one("res.currency", string="Currency", required=True, index=True,
+                                  default=lambda self: self.default_currency_id())
 
-    amount_total = fields.Monetary(string="Amount", currency_field="currency_id")
+    @api.model
+    def default_currency_id(self):
+        clearance_id = self.env.context.get("default_clearance_id")
+        if clearance_id:
+            clearance = self.env["operation.order.clearance"].sudo().browse(clearance_id)
+            return clearance.currency_id.id
+        return self.env.company.currency_id.id
+
+    amount_total = fields.Monetary(string="Amount", currency_field="currency_id", compute="_compute_amount_total", store=True)
 
     payment_mode = fields.Selection([("advance", "Advance by Company"), ("customer_pay", "Paid by Customer")],
                                     string="Payment Mode", default="advance", required=True, index=True)
     payment_state = fields.Selection(
-        [("draft", "Draft"), ("confirmed", "Confirmed"), ("paying", "Paying"), ("paid", "Paid")],
+        [("draft", "Draft"), ("paying", "Paying"), ("paid", "Paid")],
         string="Payment State", default="draft", required=True, index=True)
     vendor_invoice_num = fields.Char(string="Vendor Invoice No")
     vendor_invoice_attachment_ids = fields.Many2many(
@@ -341,12 +433,15 @@ class OperationOrderClearanceInvoiceLine(models.Model):
     paid_time = fields.Datetime(string="Paid Confirmed On", readonly=True)
     cost_line_ids = fields.One2many("operation.order.clearance.cost.line", "invoice_line_id", string="Cost Lines")
     remark = fields.Text(string="Remark")
-
+    apply_user_id = fields.Many2one("res.users", string="Apply User", readonly=True, copy=False, index=True)
+    apply_datetime = fields.Datetime(string="Apply Datetime", readonly=True, copy=False)
     # 会计对账
 
     payment_journal_id = fields.Many2one("account.journal", string="Payment Journal",
                                          domain=[("type", "in", ("bank", "cash"))])
     payment_id = fields.Many2one("account.payment", string="Payment", readonly=True)
+
+
 
     @api.constrains("vendor_invoice_num")
     def check_vendor_invoice_num(self):
@@ -361,9 +456,17 @@ class OperationOrderClearanceInvoiceLine(models.Model):
             if rec.vendor_invoice_attachment_ids and rec.amount_total <= 0:
                 raise ValidationError(_("Amount must be greater than 0."))
 
+    @api.depends("cost_line_ids.amount_total", "cost_line_ids.manual_amount_total")
+    def _compute_amount_total(self):
+        for rec in self:
+            rec.amount_total = sum(
+                (line.manual_amount_total if (line.manual_amount_total or 0.0) > 0 else (line.amount_total or 0.0))
+                for line in rec.cost_line_ids
+            )
     def action_request_clearance_payment(self):
         move_model = self.env["account.move"]
         for rec in self:
+            operator = self.env.ref("base.user_admin")
             if not rec.cost_line_ids:
                 raise ValidationError(_("Cost lines are required before requesting payment."))
             if rec.payment_mode != "advance":
@@ -411,7 +514,7 @@ class OperationOrderClearanceInvoiceLine(models.Model):
                         raise ValidationError(
                             _("Account not found for charge item %s.") % (cost.charge_item_id.item_name,))
                     price = cost.manual_amount_total if cost.manual_amount_total>0 else cost.amount_total
-                    name = _("Handover Bill - %s") % (cost.charge_item_id.item_name,)
+                    name = _("Clearance Bill - %s") % (cost.charge_item_id.item_name,)
                     invoice_lines.append((0, 0, {
                         "name": name,
                         "quantity": cost.qty or 1.0,
@@ -428,7 +531,12 @@ class OperationOrderClearanceInvoiceLine(models.Model):
                 "ref": f"{rec.clearance_id.name}/{rec.id}",
                 "invoice_line_ids": invoice_lines,
             }
-            move = move_model.create(move_vals)
+            move = move_model.with_user(operator).create(move_vals)
+
+            rec.write({
+                "apply_user_id": self.env.user.id,
+                "apply_datetime": fields.Datetime.now(),
+            })
 
             if rec.vendor_invoice_attachment_ids:
                 rec.vendor_invoice_attachment_ids.copy({
@@ -436,8 +544,8 @@ class OperationOrderClearanceInvoiceLine(models.Model):
                     "res_id": move.id,
                 })
 
-            # 过账（posted）
-            move.action_post()
+
+            move.with_user(operator).action_post()
             rec.write({
                 "vendor_invoice_id": move.id,
                 "payment_state": "paying",
@@ -451,6 +559,7 @@ class OperationOrderClearanceInvoiceLine(models.Model):
                 "message": _("Payment request has been submitted successfully."),
                 "type": "success",
                 "sticky": False,
+                "next": {"type": "ir.actions.client", "tag": "reload"},
             },
         }
 
@@ -468,4 +577,5 @@ class OperationOrderClearanceInvoiceLine(models.Model):
                 )
 
         return super().unlink()
+
 

@@ -11,7 +11,8 @@
                 <field name="project_id"/>
                 <field name="shipping_line_id"/>
                 <field name="container_qty"/>
-                <field name="state"/>
+                <field name="state" widget="badge" decoration-success="state == 'close'"
+                       decoration-primary="state == 'cancelled'"/>
                 <field name="eta"/>
                 <field name="create_date"/>
             </list>
@@ -21,6 +22,7 @@
     <record id="operation_order_clearance_form_view" model="ir.ui.view">
         <field name="name">operation.order.clearance.form</field>
         <field name="model">operation.order.clearance</field>
+        <field name="priority">10</field>
         <field name="arch" type="xml">
             <form string="Clearance">
                 <header>
@@ -30,6 +32,11 @@
                             invisible="state != 'clearancing'"/>
                     <button name="action_close" type="object" string="Close" class="btn-success"
                             invisible="state != 'clearanced'"/>
+                    <button name="action_open_reclearance_wizard"
+                            type="object"
+                            string="Back To Paid"
+                            class="btn-warning"
+                            invisible="(state != 'clearancing') and (parent_id == False)"/>
                     <button name="action_recompute_state" type="object" string="Recompute State"
                             invisible="state in ('clearancing','clearanced','close','cancelled')"/>
 
@@ -58,29 +65,34 @@
                                    readonly="1"/>
                             <!--                            <field name="project_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>-->
                             <field name="container_qty" readonly="state != 'open'"/>
-                            <field name="hs_code_qty" required="1"/>
-                            <field name="clearance_type" readonly="state != 'open'" required="1"/>
+                            <field name="hs_code_qty" required="1" readonly="state in ('clearanced','close')"/>
+                            <field name="eu_eori_no" readonly="1"/>
+                            <field name="vat_tax_no" readonly="1"/>
+                            <field name="clearance_receipt_no" readonly="state in ('clearanced','close')"/>
+                            <field name="customs_declaration_datetime" readonly="state in ('clearancing','clearanced','close')"/>
+                            <field name="remark" readonly="state in ('close')"/>
 
+
+                            <field name="clearance_type" readonly="state != 'open'" required="1"/>
                             <field name="customs_release_datetime"
-                                   invisible="clearance_type != 'general'" readonly="state != 'open'"
-                            required="clearance_type == 'general'"/>
+                                   invisible="clearance_type != 'general'" readonly="state in ('clearanced','close')"
+                            />
 
 
                             <field name="inbound_release_datetime"
-                                   invisible="clearance_type !='bonded_in'" readonly="state != 'open'"
-                            required="clearance_type == 'bonded_in'"/>
-
+                                   invisible="clearance_type !='bonded_in'" readonly="state in ('clearanced','close')"
+                            />
                             <field name="outbound_release_datetime"
-                                   invisible="clearance_type != 'bonded_out'" readonly="state != 'open'"
+                                   invisible="clearance_type != 'bonded_out'" readonly="state in ('clearanced','close')"
 
-                            required="clearance_type == 'bonded_out'"/>
+                            />
 
                             <field name="t1_closed_datetime"
-                                   invisible="clearance_type != 't1_transit'" readonly="state != 'open'"
-                            required="clearance_type == 't1_transit'"/>
+                                   invisible="clearance_type != 't1_transit'" readonly="state in ('clearanced','close')"
+                            />
                             <field name="t1_inbound_release_datetime"
-                                   invisible="clearance_type != 't1_bonded'" readonly="state != 'open'"
-                            required="clearance_type == 't1_bonded'"/>
+                                   invisible="clearance_type != 't1_bonded'" readonly="state in ('clearanced','close')"
+                            />
                         </group>
                     </group>
                     <notebook>
@@ -88,7 +100,7 @@
                         <page string="Charge / Cost">
 
                             <field name="invoice_line_ids" context="{'default_clearance_id': id}"
-                                   readonly="state == 'close'">
+                                   readonly="state in ('clearancing','clearanced','close')">
                                 <list>
 
                                     <field name="vendor_invoice_id"/>
@@ -100,7 +112,7 @@
 
 
                             <!-- Charge Lines -->
-                            <group string="Charges">
+                            <group string="Charges" invisible="state not in ('close','clearanced')">
                                 <field name="charge_line_ids" readonly="state == 'close'">
                                     <list editable="bottom">
                                         <field name="charge_qty"/>
@@ -117,8 +129,8 @@
                             </group>
                         </page>
                         <page string="Containers">
-                            <field name="container_line_ids">
-                                <list>
+                            <field name="clearance_container_ids" create="False" delete="False" readonly="state in ('clearancing','clearanced','close')">
+                                <list editable="bottom" create="False"  delete="False">
                                     <field name="container_number"/>
                                     <field name="container_type"/>
                                     <field name="weight"/>
@@ -127,7 +139,7 @@
                         </page>
                         <!-- Tab 2: Documents -->
                         <page string="Documents">
-                            <field name="attachment_line_ids">
+                            <field name="attachment_line_ids" readonly="state in ('clearancing','clearanced','close')">
                                 <list editable="bottom">
                                     <field name="file"/>
                                     <field name="doc_type"/>
@@ -146,6 +158,7 @@
     <record id="view_operation_order_clearance_child_form" model="ir.ui.view">
         <field name="name">operation.order.clearance.child.form</field>
         <field name="model">operation.order.clearance</field>
+        <field name="priority">20</field>
         <field name="arch" type="xml">
             <form string="Child Clearance" duplicate="false">
                 <header>
@@ -171,11 +184,14 @@
                         <group string="Base Info">
                             <field name="waybill_id" required="1"
                                    readonly="1"/>
-                            <field name="parent_id" readonly="1" context="{'form_view_ref': 'wd_iffm.operation_order_clearance_form_view'}"/>
+                            <field name="parent_id" readonly="1"
+                                   context="{'form_view_ref': 'wd_iffm.operation_order_clearance_form_view'}"/>
                             <!--                            <field name="project_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>-->
                             <field name="container_qty" readonly="1"/>
                             <field name="hs_code_qty" required="1" readonly="1"/>
                             <field name="clearance_type" readonly="1"/>
+                            <field name="eu_eori_no" readonly="1"/>
+                            <field name="vat_tax_no" readonly="1"/>
 
                             <field name="customs_release_datetime"
                                    invisible="clearance_type != 'general'" readonly="1"/>
@@ -202,6 +218,7 @@
                             <field name="extra_remark"
                                    invisible="extra_reason != 'other'"
                                    required="extra_reason == 'other'"/>
+                            <field name="remark" readonly="state=='close'"/>
                         </group>
                     </group>
 
@@ -239,7 +256,7 @@
                             </group>
                         </page>
                         <page string="Containers">
-                            <field name="container_line_ids">
+                            <field name="clearance_container_ids" readonly="1">
                                 <list>
                                     <field name="container_number"/>
                                     <field name="container_type"/>
@@ -249,7 +266,7 @@
                         </page>
                         <!-- Tab 2: Documents -->
                         <page string="Documents">
-                            <field name="attachment_line_ids">
+                            <field name="attachment_line_ids" readonly="1">
                                 <list editable="bottom">
                                     <field name="file"/>
                                     <field name="doc_type"/>
@@ -267,22 +284,22 @@
     </record>
 
 
-
     <record id="view_operation_order_child_clearance_search" model="ir.ui.view">
-    <field name="name">operation.order.child.clearance.search</field>
-    <field name="model">operation.order.clearance</field>
-    <field name="arch" type="xml">
-        <search>
-            <filter string="Group By Parent"
-                    name="group_by_parent"
-                    context="{'group_by': 'parent_id'}"/>
-        </search>
-    </field>
-</record>
+        <field name="name">operation.order.child.clearance.search</field>
+        <field name="model">operation.order.clearance</field>
+        <field name="arch" type="xml">
+            <search>
+                <filter string="Group By Parent"
+                        name="group_by_parent"
+                        context="{'group_by': 'parent_id'}"/>
+            </search>
+        </field>
+    </record>
     <record id="action_operation_order_clearance" model="ir.actions.act_window">
         <field name="name">Clearance Orders</field>
         <field name="res_model">operation.order.clearance</field>
         <field name="view_mode">list,form</field>
+        <field name="domain">[('parent_id', '=', False)]</field>
         <field name="view_ids" eval="[
         (5, 0, 0),
         (0, 0, {'view_mode': 'list', 'view_id': ref('view_operation_order_clearance_tree')}),
@@ -295,7 +312,7 @@
         <field name="name">Child Clearance Orders</field>
         <field name="res_model">operation.order.clearance</field>
         <field name="view_mode">list,form</field>
-          <field name="search_view_id" ref="view_operation_order_child_clearance_search"/>
+        <field name="search_view_id" ref="view_operation_order_child_clearance_search"/>
         <field name="context">{'search_default_group_by_parent': 1}</field>
         <field name="domain">[('parent_id', '!=', False)]</field>
         <field name="view_ids" eval="[
@@ -310,3 +327,5 @@
     <menuitem id="menu_operation_order_clearance_child_invoices" name="Child Clearance"
               parent="menu_operation_handover_root" action="operation_order_child_clearance_action" sequence="21"/>
 </odoo>
+
+

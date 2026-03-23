@@ -13,7 +13,7 @@ class Waybill(models.Model):
     _description = "Waybill"
     _inherit = ["mail.thread", "mail.activity.mixin"]
     _rec_name = 'billno'
-    _order = "billno"
+    _order = "id DESC"
 
     billno = fields.Char(string='BillNo', readonly=True)
     project = fields.Many2one('project.project', string='Project', required=True, ondelete='cascade', )
@@ -25,12 +25,13 @@ class Waybill(models.Model):
 
     document_number = fields.Char(string='Document No')  # S2502461054/C2501146242
     reference_number = fields.Char(string='Reference No')  # SHPR REF: AB20250404336
-    hs_code_qty = fields.Integer(string='HS Code Qty',required= True)
+    hs_code_qty = fields.Integer(string='HS Code Qty')
     # ========== 参与方信息 ==========
     shipping = fields.Many2one('res.partner', string='Shipping Line',
                                tracking=True)
     shipper = fields.Many2one('res.partner', string='Shipper/Exporter',
                               tracking=True)
+    voyage_no = fields.Char(string="Voyage No.", index=True)
     consignee = fields.Many2one('res.partner', string='Consignee/Importer',
                                 tracking=True)
     notify_party = fields.Many2one('res.partner', string='Notify',
@@ -50,6 +51,7 @@ class Waybill(models.Model):
 
     eta = fields.Date(string='ETA', tracking=True)
     ata = fields.Date(string='ATA', tracking=True)
+    terminal_port = fields.Many2one('res.partner', string='Terminal of Port', tracking=True)
     terminal_a = fields.Many2one('res.partner', string='Terminal of Arrival', tracking=True)
 
     release_received = fields.Boolean(string='Release Received', default=False, tracking=True)
@@ -68,12 +70,12 @@ class Waybill(models.Model):
     obl_number = fields.Char(string="OBL No")
     quotation_id = fields.Many2one("charge.quotation", related='project.quotation_id', store=True, string="Quotation",
                                    index=True, tracking=True)
-    container_qty = fields.Integer(string="Container Qty", tracking=True)
+    container_qty = fields.Integer(string="Container Qty",compute="_compute_container_ids", tracking=True)
 
     handover_id = fields.Many2one("operation.order.handover", string="Handover")
     clearance_id = fields.Many2one("operation.order.clearance", string="Clearance")
 
-    # 货到港信息
+    # 货到港码头信息
     arrival_confirm_user_id = fields.Many2one("res.users", string="Arrival Confirm User", tracking=True, copy=False,
                                               readonly=True, index=True)
     arrival_confirm_time = fields.Datetime(string="Arrival Confirm Time", tracking=True, copy=False, readonly=True)
@@ -127,8 +129,8 @@ class Waybill(models.Model):
         records = self.search(domain, limit=limit)
         return records.name_get()
 
-    @api.onchange("container_ids")
-    def onchange_container_ids(self):
+    @api.depends("container_ids")
+    def _compute_container_ids(self):
         for rec in self:
             rec.container_qty = len(rec.container_ids)
 
@@ -168,8 +170,45 @@ class Waybill(models.Model):
                 "res_id": handover_id.id,
                 "target": "current",
             }
-
     def action_create_clearance(self):
+        self.ensure_one()
+        if self.state != "confirm":
+            raise UserError(_("Please change the status to confirm"))
+        if not self.container_ids:
+            raise UserError(_("No container found on this waybill."))
+
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Select Containers"),
+            "res_model": "waybill.create.clearance.wizard",
+            "view_mode": "form",
+            "views": [(self.env.ref("wd_iffm.view_waybill_create_clearance_wizard_form").id, "form")],
+            "target": "new",
+            "context": {
+                "active_model": "world.depot.waybill",
+                "active_id": self.id,
+            },
+        }
+
+    def action_create_pickup_requirement(self):
+        self.ensure_one()
+        if not self.is_arrived:
+            raise UserError(_("Only arrived waybill can create pickup requirement."))
+        if not self.release_received and not self.custom_clearance:
+            raise UserError(_("Please receive release and clearance first."))
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Create Pickup Requirement"),
+            "res_model": "import.pickup.requirement",
+            "view_mode": "form",
+            "views": [(self.env.ref("wd_iffm.view_import_pickup_requirement_form").id, "form")],
+            "target": "current",
+            "context": {
+                "default_waybill_id": self.id,
+            },
+        }
+
+    def action_create_clearance_create_clearance(self):
         for rec in self:
             if rec.state != "confirm":
                 raise UserError(_("Please change the status to confirm"))
@@ -230,6 +269,8 @@ class Waybill(models.Model):
             if rec.state != 'new':
                 raise UserError(_("You only can confirm New Order"))
             else:
+                if not rec.project.quotation_id:
+                    raise UserError(_("Please create quotation first"))
                 rec.state = 'confirm'
                 return True
 
@@ -237,6 +278,8 @@ class Waybill(models.Model):
         for rec in self:
             if rec.state != 'confirm':
                 raise UserError(_("You only can unconfirm Confirmed Order"))
+            # elif not rec.container_ids:
+            #     raise UserError(_("Please create container first"))
             else:
                 rec.state = 'new'
                 return True

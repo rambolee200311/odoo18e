@@ -116,6 +116,12 @@ class OperationOrderHandover(models.Model):
         vals.update({
             "parent_id": self.id,
             "name": f"{self.name}-{child_count}",
+            "attachment_line_ids": [(0, 0, {
+                "doc_type": line.doc_type,
+                "remark": line.remark,
+                "file": line.file,
+                "name": line.name,
+            }) for line in self.attachment_line_ids],
         })
 
         vals.pop("charge_line_ids", None)
@@ -216,12 +222,12 @@ class OperationOrderHandover(models.Model):
     @api.depends("invoice_line_ids.handover_cost_line_ids.cost_nature", "invoice_line_ids.payment_state")
     def _compute_payment_summary(self):
         for rec in self:
-            advance_lines = rec.invoice_line_ids.filtered(
-                lambda l: any(c.cost_nature == "at cost" for c in l.handover_cost_line_ids)
-            )
-            rec.has_advance_invoice = bool(advance_lines)
-            rec.has_unpaid_advance_invoice = bool(advance_lines.filtered(lambda l: l.payment_state != "paid"))
-            rec.all_advance_paid = bool(advance_lines) and not rec.has_unpaid_advance_invoice
+            lines = rec.invoice_line_ids
+            states = set(lines.mapped("payment_state"))
+
+            rec.has_advance_invoice = bool(lines)
+            rec.has_unpaid_advance_invoice = bool(lines.filtered(lambda l: l.payment_state != "paid"))
+            rec.all_advance_paid = bool(lines) and states == {"paid"}
 
 
 
@@ -229,8 +235,18 @@ class OperationOrderHandover(models.Model):
         for rec in self:
             if rec.state in ("releasing", "released", "close", "cancelled"):
                 continue
-            if rec.has_advance_invoice:
-                rec.write({"state": "paid" if rec.all_advance_paid else "paying"})
+            lines = rec.invoice_line_ids
+            if not lines:
+                rec.write({"state": "open"})
+                continue
+
+            states = set(lines.mapped("payment_state"))
+            if states == {"draft"}:
+                rec.write({"state": "open"})
+            elif states == {"paid"}:
+                rec.write({"state": "paid"})
+            else:
+                rec.write({"state": "paying"})
 
     def action_releasing(self):
         for rec in self:
@@ -321,8 +337,18 @@ class OperationOrderHandoverInvoiceLine(models.Model):
     shipping_line_id = fields.Many2one("res.partner", string="Vendor (Shipping Line / Agent)", related='handover_id.shipping_line_id', store=True,index=True)
     vendor_invoice_id = fields.Many2one("account.move", string="Vendor Invoice (Optional)", ondelete="set null", index=True)
     invoice_date = fields.Date(string="Invoice Date",required=True, default=fields.Date.context_today)
-    currency_id = fields.Many2one("res.currency", string="Currency", related="handover_id.waybill_id.quotation_id.currency_id", store=True, readonly=True)
-    amount_total = fields.Monetary(string="Amount", currency_field="currency_id")
+    currency_id = fields.Many2one("res.currency", string="Currency", required=True, index=True,
+                                  default=lambda self: self.default_currency_id())
+
+    @api.model
+    def default_currency_id(self):
+        handover_id = self.env.context.get("default_handover_id")
+        if handover_id:
+            handover = self.env["operation.order.handover"].sudo().browse(handover_id)
+            return handover.currency_id.id
+        return self.env.company.currency_id.id
+
+    amount_total = fields.Monetary(string="Amount", currency_field="currency_id", compute="_compute_amount_total", store=True)
 
     payment_state = fields.Selection([("draft", "Draft"), ("paying", "Paying"), ("paid", "Paid"), ("customer_paid", "Customer Paid")], string="Payment State", default="draft", required=True, index=True)
     vendor_invoice_num = fields.Char(string="Vendor Invoice No")
@@ -338,7 +364,8 @@ class OperationOrderHandoverInvoiceLine(models.Model):
     paid_time = fields.Datetime(string="Paid Confirmed On", readonly=True)
     handover_cost_line_ids = fields.One2many("operation.order.handover.cost.line", "handover_invoice_line_id", string="Cost Lines")
     remark = fields.Text(string="Remark")
-
+    apply_user_id = fields.Many2one("res.users", string="Apply User", readonly=True, copy=False, index=True)
+    apply_datetime = fields.Datetime(string="Apply Datetime", readonly=True, copy=False)
     #会计对账
 
     payment_journal_id = fields.Many2one("account.journal", string="Payment Journal",
@@ -357,10 +384,19 @@ class OperationOrderHandoverInvoiceLine(models.Model):
             if rec.vendor_invoice_attachment_ids and rec.amount_total <= 0:
                 raise ValidationError(_("Invoice Amount must be greater than 0."))
 
+    @api.depends("handover_cost_line_ids.amount_total", "handover_cost_line_ids.manual_amount_total")
+    def _compute_amount_total(self):
+        for rec in self:
+            rec.amount_total = sum(
+                (line.manual_amount_total if (line.manual_amount_total or 0.0) > 0 else (line.amount_total or 0.0))
+                for line in rec.handover_cost_line_ids
+            )
+
 
     def action_request_payment(self):
         move_model = self.env["account.move"]
         for rec in self:
+            operator = self.env.ref("base.user_admin")
             if not rec.handover_cost_line_ids:
                raise ValidationError(_("Cost lines are required before requesting payment."))
 
@@ -423,7 +459,12 @@ class OperationOrderHandoverInvoiceLine(models.Model):
                 "ref": f"{rec.handover_id.name}/{rec.id}",
                 "invoice_line_ids": invoice_lines,
             }
-            move = move_model.create(move_vals)
+            move = move_model.with_user(operator).create(move_vals)
+
+            rec.write({
+                "apply_user_id": self.env.user.id,
+                "apply_datetime": fields.Datetime.now(),
+            })
 
             if rec.vendor_invoice_attachment_ids:
                 rec.vendor_invoice_attachment_ids.copy({
@@ -432,7 +473,7 @@ class OperationOrderHandoverInvoiceLine(models.Model):
                 })
 
             # 过账（posted）
-            move.action_post()
+            move.with_user(operator).action_post()
             rec.write({
                 "vendor_invoice_id": move.id,
                 "payment_state": "paying",
@@ -446,6 +487,7 @@ class OperationOrderHandoverInvoiceLine(models.Model):
                 "message": _("Payment request has been submitted successfully."),
                 "type": "success",
                 "sticky": False,
+                "next": {"type": "ir.actions.client", "tag": "reload"},
             },
         }
 

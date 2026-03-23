@@ -12,7 +12,7 @@
         </xpath>
 
         <xpath expr="//header//button[@name='button_draft']" position="after">
-            <button name="action_confirm_paid_sync_handover"
+            <button name="action_confirm_paid_sync_operation"
                     type="object"
                     string="Confirm Paid"
                     class="btn-success"
