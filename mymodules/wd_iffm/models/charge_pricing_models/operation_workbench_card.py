@@ -231,3 +231,26 @@ class OperationWorkbenchCard(models.Model):
 
         self.action_sync_cards_by_waybill(self.waybill_id.id)
         return result
+
+    #打开详情页
+    def action_model_form_views(self):
+        self.ensure_one()
+        model_name = self.env.context.get("open_model") or self.source_model
+        res_id = self.env.context.get("open_res_id") or self.source_id
+        open_view_ref = self.env.context.get("open_view_ref")
+        view_id = self.env.context.get("open_view_id")
+
+        if open_view_ref:
+            view = self.env.ref(open_view_ref, raise_if_not_found=False)
+            view_id = view.id if view else False
+        if not model_name or not res_id:
+            raise ValidationError(_("Source record is missing."))
+
+        return {
+            "type": "ir.actions.act_window",
+            "res_model": model_name,
+            "res_id": res_id,
+            "view_mode": "form",
+            "views": [(view_id, "form")] if view_id else [(False, "form")],
+            "target": "current",
+        }
