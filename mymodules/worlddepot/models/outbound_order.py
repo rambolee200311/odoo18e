@@ -1602,6 +1602,19 @@ class OutboundOrderProduct(models.Model):
     outbound_order_product_serial_numbers = fields.One2many('world.depot.outbound.order.product.serial.number','outbound_order_product_id', tracking=True)
     outbound_order_state = fields.Selection(related="outbound_order_id.state", string="Outbound State", store=True,
                                             index=True, readonly=True)
+
+    def action_open_line_form(self):
+        for rec in self:
+            return {
+                "type": "ir.actions.act_window",
+                "name": _("Outbound Order Product"),
+                "res_model": "world.depot.outbound.order.product",
+                "view_mode": "form",
+                "res_id": rec.id,
+                "view_id": rec.env.ref("worlddepot.view_outbound_order_product_standalone_form").id,
+                "target": "current",
+            }
+
     @api.depends('product_id')
     def _compute_is_serial_tracked(self):
         for record in self:
