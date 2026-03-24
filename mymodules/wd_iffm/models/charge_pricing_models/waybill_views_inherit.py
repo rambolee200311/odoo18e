@@ -5,6 +5,24 @@ from odoo.exceptions import ValidationError, UserError
 class WaybillViewsInherit(models.Model):
     _inherit = 'world.depot.waybill'
 
+
+    #一个模型看板打开动作
+    def action_open_workbench_board_card(self):
+        self.ensure_one()
+        self.env["operation.workbench.card"].action_sync_cards_by_waybill(self.id)
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Waybill Workbench"),
+            "res_model": "operation.workbench.card",
+            "view_mode": "kanban",
+            "domain": [("waybill_id", "=", self.id), ("active", "=", True)],
+            "context": {
+                "default_waybill_id": self.id,
+                "group_by": "lane_code",
+            },
+            "target": "current",
+        }
+
     def action_open_workbench(self):
         self.ensure_one()
         return {
