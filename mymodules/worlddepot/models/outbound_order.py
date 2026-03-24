@@ -1544,27 +1544,28 @@ class OutboundOrder(models.Model):
 
 class OutboundOrderProduct(models.Model):
     _name = 'world.depot.outbound.order.product'
+    _inherit = ["mail.thread", "mail.activity.mixin"]
     _description = 'Outbound Order Product'
 
     outbound_order_id = fields.Many2one('world.depot.outbound.order', string='Outbound Order', required=True)
     project = fields.Many2one(related='outbound_order_id.project', string='Project', store=True, readonly=True)
     project_category_id = fields.Many2one(related='project.category', string='Project Category', store=True,
                                           readonly=True)
-    cntr_no = fields.Char(string='Container No', required=False)
+    cntr_no = fields.Char(string='Container No', required=False, tracking=True)
     product_id = fields.Many2one('product.product', string='Product', required=True, tracking=True,
                                  domain="[('categ_id', '=', project_category_id)]")
     adr = fields.Boolean(string='ADR', help='Indicates if the product is classified as ADR (dangerous goods)',
-                         related='product_id.is_dg', stock=True)
+                         related='product_id.is_dg', stock=True, tracking= True)
     un_number = fields.Char(string='UN Number', help='United Nations number for dangerous goods classification',
-                            related='product_id.un_code', store=True)
-    pallets = fields.Float(string='Pallets', required=True)
-    pallet_type = fields.Char(string='Pallet Type', help='How many quantity on a pallet', default='')
-    pallet_no = fields.Char(string='Pallet No', help='Pallet number for tracking', default='')
+                            related='product_id.un_code', store=True, tracking= True)
+    pallets = fields.Float(string='Pallets', required=True, tracking=True)
+    pallet_type = fields.Char(string='Pallet Type', help='How many quantity on a pallet', default='', tracking=True)
+    pallet_no = fields.Char(string='Pallet No', help='Pallet number for tracking', default='', tracking=True)
     quantity = fields.Float(string='Quantity', default=1.0, required=True, tracking=True, )
-    remark = fields.Text(string='Remark')
+    remark = fields.Text(string='Remark', tracking=True)
     is_serial_tracked = fields.Boolean(string='Tracked by Serial', compute='_compute_is_serial_tracked', store=True)
     serial_numbers = fields.Text(string='Serial Numbers',
-                                 help="Comma-separated list of serial numbers for the product.")
+                                 help="Comma-separated list of serial numbers for the product.", tracking=True)
     is_outbound_handling = fields.Boolean(string='is Handling', default=True, tracking=True)
     outbound_handling_price = fields.Float(string='Handling Price', default=True, tracking=True)
     outbound_handling_unit = fields.Selection(
@@ -1572,7 +1573,8 @@ class OutboundOrderProduct(models.Model):
         selection=[
             ('pallet', 'Per Pallet'),
             ('piece', 'Per Piece')],
-        readonly=True,
+        readonly=True, tracking=True
+
     )
     outbound_handling_charge = fields.Float(string='Handling Charge', default=0.0, tracking=True)
     is_scanning = fields.Boolean(string='is Scanning', default=True, tracking=True)
@@ -1586,19 +1588,20 @@ class OutboundOrderProduct(models.Model):
 
         index=True,  # Optimize prefix searches [4](@ref)
 
-        help="Client-specific pallet grouping identifier (e.g., AX20250404335)"
+        help="Client-specific pallet grouping identifier (e.g., AX20250404335)", tracking=True
 
     )
 
     barcode = fields.Char(string='Barcode', related='product_id.barcode', store=True, readonly=True)
     default_code = fields.Char(string='Default Code', related='product_id.default_code', store=True, readonly=True)
-    weight = fields.Float(string='Weight', related='product_id.weight', store=True, readonly=True)
-    weight_subtotal = fields.Float(string='Weight Subtotal', compute='_compute_weight_subtotal', store=True)
+    weight = fields.Float(string='Weight', related='product_id.weight', store=True, readonly=True, tracking=True)
+    weight_subtotal = fields.Float(string='Weight Subtotal', compute='_compute_weight_subtotal', store=True, tracking=True)
     
-    locations=fields.Char(string='Locations', help='Storage locations of the product in the warehouse')
+    locations=fields.Char(string='Locations', help='Storage locations of the product in the warehouse', tracking=True)
     
-    outbound_order_product_serial_numbers = fields.One2many('world.depot.outbound.order.product.serial.number','outbound_order_product_id')
-
+    outbound_order_product_serial_numbers = fields.One2many('world.depot.outbound.order.product.serial.number','outbound_order_product_id', tracking=True)
+    outbound_order_state = fields.Selection(related="outbound_order_id.state", string="Outbound State", store=True,
+                                            index=True, readonly=True)
     @api.depends('product_id')
     def _compute_is_serial_tracked(self):
         for record in self:
