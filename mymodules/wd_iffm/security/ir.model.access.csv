@@ -24,7 +24,7 @@ access_waybill_create_clearance_wizard,access_waybill_create_clearance_wizard,mo
 access_clearance_reclearance_wizard,access.clearance.reclearance.wizard,model_clearance_reclearance_wizard,,1,1,1,1
 
 
-access_operation_order_clearance,operation.order.clearance,model_operation_order_clearance,,1,1,0,1
+access_operation_order_clearance,operation.order.clearance,model_operation_order_clearance,,1,1,1,1
 access_operation_order_clearance_invoice_line,operation.order.clearance.invoice.line,model_operation_order_clearance_invoice_line,,1,1,1,1
 access_operation_order_clearance_attachment_line,operation.order.clearance.attachment.line,model_operation_order_clearance_attachment_line,,1,1,1,1
 access_operation_order_clearance_charge_line,operation.order.clearance.charge.line,model_operation_order_clearance_charge_line,,1,1,1,1
