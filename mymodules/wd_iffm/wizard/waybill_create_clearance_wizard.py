@@ -34,7 +34,7 @@ class WaybillCreateClearanceWizard(models.TransientModel):
             clearances = env_clearance.sudo().search([
                 ("waybill_id", "=", wizard.waybill_id.id),
                 ("state", "!=", "cancelled"),
-                ("parent_id", "=", False),
+
             ])
             used_ids = clearances.mapped("clearance_container_ids").ids
             available = wizard.waybill_id.container_ids.filtered(lambda rec: rec.id not in used_ids)
@@ -56,7 +56,7 @@ class WaybillCreateClearanceWizard(models.TransientModel):
         res["waybill_id"] = waybill.id
         clearances = self.env["operation.order.clearance"].sudo().search([
             ("waybill_id", "=", waybill.id),
-            ("parent_id", "=", False),
+
             ("state", "!=", "cancelled"),
         ])
         used_ids = clearances.mapped("clearance_container_ids").ids
@@ -118,6 +118,7 @@ class WaybillCreateClearanceWizard(models.TransientModel):
     def action_confirm(self):
         self.ensure_one()
         clearance = self.create_main_clearance_record()
+        self.env["operation.workbench.card"].action_sync_cards_by_waybill(self.waybill_id.id)
         return {
             "type": "ir.actions.act_window",
             "name": "Clearance",
@@ -131,6 +132,7 @@ class WaybillCreateClearanceWizard(models.TransientModel):
     def action_confirm_workbench(self):
         self.ensure_one()
         self.create_main_clearance_record()
+        self.env["operation.workbench.card"].action_sync_cards_by_waybill(self.waybill_id.id)
         return {
             "type": "ir.actions.client",
             "tag": "display_notification",

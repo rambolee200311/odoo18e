@@ -142,7 +142,7 @@ class OperationOrderHandover(models.Model):
         env_handover = self.env["operation.order.handover"]
         for rec in self:
             if rec.parent_id:
-                raise ValidationError(_("仅主换单可创建子换单。"))
+                raise ValidationError(_("Only the main switch bill can create a sub-switch bill."))
 
             child_count = env_handover.sudo().search_count([("parent_id", "=", rec.id)]) + 1
 

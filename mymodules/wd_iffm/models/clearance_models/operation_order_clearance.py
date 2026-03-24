@@ -171,7 +171,7 @@ class OperationOrderClearance(models.Model):
         env_clearance = self.env["operation.order.clearance"]
         for rec in self:
             if rec.parent_id:
-                raise ValidationError(_("仅主清关可创建子清关。"))
+                raise ValidationError(_("Only the main customs clearance can create sub-customs clearances."))
 
             child_count = env_clearance.sudo().search_count([("parent_id", "=", rec.id)]) + 1
 

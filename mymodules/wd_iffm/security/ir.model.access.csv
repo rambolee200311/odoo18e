@@ -9,7 +9,7 @@ access_world_depot_waybill_container_manager,world.depot.waybill.container manag
 
 access_world_depot_waybill_packing_list_manager,world.depot.waybill.packing.list manager,model_world_depot_waybill_packing_list,,1,1,1,1
 access_world_depot_port_node,access.world.depot.port.node,model_world_depot_port_node,,1,1,1,1
-
+access_operation_workbench_card_user,operation.workbench.card user,model_operation_workbench_card,,1,1,1,1
 
 
 access_operation_order_handover,operation.order.handover,model_operation_order_handover,,1,1,0,1
@@ -24,7 +24,7 @@ access_waybill_create_clearance_wizard,access_waybill_create_clearance_wizard,mo
 access_clearance_reclearance_wizard,access.clearance.reclearance.wizard,model_clearance_reclearance_wizard,,1,1,1,1
 
 
-access_operation_order_clearance,operation.order.clearance,model_operation_order_clearance,,1,1,0,1
+access_operation_order_clearance,operation.order.clearance,model_operation_order_clearance,,1,1,1,1
 access_operation_order_clearance_invoice_line,operation.order.clearance.invoice.line,model_operation_order_clearance_invoice_line,,1,1,1,1
 access_operation_order_clearance_attachment_line,operation.order.clearance.attachment.line,model_operation_order_clearance_attachment_line,,1,1,1,1
 access_operation_order_clearance_charge_line,operation.order.clearance.charge.line,model_operation_order_clearance_charge_line,,1,1,1,1
