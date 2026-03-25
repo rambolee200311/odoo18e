@@ -9,7 +9,7 @@ class OperationWorkbenchCard(models.Model):
 
     name = fields.Char(string="Card Name", required=True, index=True, copy=False)
     waybill_id = fields.Many2one("world.depot.waybill", string="Waybill", required=True, index=True, ondelete="cascade")
-    lane_code = fields.Selection([("waybill", "Waybill"), ("handover", "Handover"), ("clearance", "Clearance"), ("lane4", "Lane 4")], string="Lane", required=True, index=True)
+    lane_code = fields.Selection([("waybill", "Waybill"), ("handover", "Handover"), ("clearance", "Clearance")], string="Lane", required=True, index=True)
     source_model = fields.Char(string="Source Model", required=True, index=True)
     source_id = fields.Integer(string="Source ID", required=True, index=True)
     is_main = fields.Boolean(string="Is Main", default=False, index=True)
