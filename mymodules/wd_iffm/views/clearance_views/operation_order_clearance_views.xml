@@ -73,7 +73,7 @@
                             <field name="remark" readonly="state in ('close')"/>
 
 
-                            <field name="clearance_type" readonly="state != 'open'" required="1"/>
+                            <field name="clearance_type" readonly="state in ('clearanced','close')" required="1"/>
                             <field name="customs_release_datetime"
                                    invisible="clearance_type != 'general'" readonly="state in ('clearanced','close')"
                             />

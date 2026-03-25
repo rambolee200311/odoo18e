@@ -239,7 +239,8 @@ class OperationWorkbenchCard(models.Model):
         res_id = self.env.context.get("open_res_id") or self.source_id
         open_view_ref = self.env.context.get("open_view_ref")
         view_id = self.env.context.get("open_view_id")
-
+        if not open_view_ref and not view_id:
+            raise ValidationError(_("Open view ref or view id is missing."))
         if open_view_ref:
             view = self.env.ref(open_view_ref, raise_if_not_found=False)
             view_id = view.id if view else False
