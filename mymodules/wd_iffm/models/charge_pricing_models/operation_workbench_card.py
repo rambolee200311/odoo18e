@@ -5,7 +5,7 @@ from odoo.exceptions import ValidationError
 class OperationWorkbenchCard(models.Model):
     _name = "operation.workbench.card"
     _description = "Operation Workbench Card"
-    _order = "id desc"
+    _order = "id asc"
 
     name = fields.Char(string="Card Name", required=True, index=True, copy=False)
     waybill_id = fields.Many2one("world.depot.waybill", string="Waybill", required=True, index=True, ondelete="cascade")
