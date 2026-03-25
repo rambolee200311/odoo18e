@@ -343,7 +343,7 @@ msgstr "必须提供到港港口"
 #: model:ir.model.fields.selection,name:wd_iffm.selection__operation_order_clearance_cost_line__cost_nature__at_cost
 #: model:ir.model.fields.selection,name:wd_iffm.selection__operation_order_handover_cost_line__cost_nature__at_cost
 msgid "At Cost"
-msgstr "成本价"
+msgstr "实报实销"
 
 #. module: wd_iffm
 #. odoo-python

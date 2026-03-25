@@ -130,11 +130,11 @@
                             <field name="obl_number" readonly="state!='new'"/>
                             <field name="document_number" readonly="state!='new'"/>
                             <field name="reference_number" readonly="state!='new'"/>
-                            <field name="shipping" readonly="state!='new'" required="1"/>
-                            <field name="shipper" readonly="state!='new'"/>
+                            <field name="shipping" readonly="state!='new'" required="1" domain="[('is_shipping_line','=',True)]"/>
+                            <field name="shipper" readonly="state!='new'" domain="[('is_exporter','=',True)]"/>
                             <field name="voyage_no" readonly="state!='new'"/>
-                            <field name="consignee" readonly="state!='new'" required="1"/>
-                            <field name="notify_party" readonly="state!='new'"/>
+                            <field name="consignee" readonly="state!='new'" required="1" domain="[('is_importer','=',True)]"/>
+                            <field name="notify_party" readonly="state!='new'" domain="[('is_notify_party','=',True)]"/>
                         </group>
                         <group col="2" string="INFO">
                             <field name="handover_id" readonly="1"
