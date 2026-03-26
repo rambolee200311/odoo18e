@@ -9,14 +9,14 @@ class StockPicking(models.Model):
     cmr_sign_time = fields.Datetime(string="CMR Sign Time", tracking=True, copy=False, index=True)
 
     cmr_sign_file = fields.Binary(
-        string='Signed CMR Original',
+        string='Signed CMR File',
         attachment=True,
         tracking=True
     )
     cmr_sign_filename = fields.Char(
         string='CMR Filename')
     unique_identifier = fields.Char(string='Unique Identifier', tracking=True, copy=False, index=True, readonly=True)
-    file_identifier = fields.Char(string='File Identifier', tracking=True, copy=False, index=True)
+    file_identifier = fields.Char(string='File Identifier', tracking=True, copy=False, index=True, readonly=True)
 
 
     mrn_code = fields.Char(string="MRN Code", tracking=True, copy=False, index=True)

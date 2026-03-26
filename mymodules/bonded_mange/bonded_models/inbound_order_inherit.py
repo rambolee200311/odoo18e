@@ -28,6 +28,10 @@ def get_bonded_missing_fields(line):
 class InboundOrderInherit(models.Model):
     _inherit = "world.depot.inbound.order"
 
+    _sql_constraints = [
+        ("unique_identifier_unique", "unique(unique_identifier)", "Unique Identifier must be unique!"),
+        ("file_identifier_unique", "unique(file_identifier)", "File Identifier must be unique!")
+    ]
     pick_type = fields.Many2one("stock.picking.type", string="Picking Type", tracking=True,
                                 domain="[('code', '=', 'incoming'), ('warehouse_id', '=', warehouse), ('warehouse_id', '!=', False)]")
     unique_identifier = fields.Char(string='Unique Identifier', tracking=True, copy=False, index=True, readonly=True)

@@ -12,3 +12,4 @@ from . import bonded_customs_mrn_audit_log
 from . import inbound_mrn
 from . import stock_picking_mrn
 from . import stock_quant_mrn
+from . import mrn_regulatory_report

@@ -23,7 +23,7 @@ class StockQuant(models.Model):
     weight = fields.Float(string="Weight", tracking=True)
     customs_code = fields.Char(string="Customs Code", tracking=True, readonly=True, index=True)
     unique_identifier = fields.Char(string='Unique Identifier', copy=False, index=True)
-    file_identifier = fields.Char(string='File Identifier', copy=False, index=True)
+    file_identifier = fields.Char(string='File Identifier', copy=False, index=True, readonly=True)
     currency_id = fields.Many2one(
         'res.currency',
         string='Currency',
@@ -37,7 +37,7 @@ class StockQuant(models.Model):
         ("ivv", "Import/Export/Transit"),
         ("bonded", "Bonded"),
         ("non_bonded", "Free / Non-bonded"),
-    ], string="Customs Status", index=True, tracking=True,required=True,default="non_bonded")
+    ], string="Customs Status", index=True, tracking=True,required=True,default="vrij")
     mrn_code = fields.Char(string="MRN Code", tracking=True, copy=False, index=True)
     mrn_status = fields.Selection([
     ("pending_declaration", "Pending Declaration"),

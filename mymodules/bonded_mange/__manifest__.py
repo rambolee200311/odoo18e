@@ -33,6 +33,11 @@ Long description of module's purpose
         'bonded_views/product_product_inherit_views.xml',
         'bonded_views/bonded_customs_mrn_audit_log_views.xml',
 
+
+
+        'report/mrn_regulatory_report_action.xml',
+        'report/mrn_regulatory_report_templates.xml',
+        'bonded_views/mrn_regulatory_report_views.xml',
     ],
     # only loaded in demonstration mode
     'application': True,

@@ -31,7 +31,7 @@ class StockMoveLine(models.Model):
 
     unique_identifier = fields.Char(string='Unique Identifier', related='move_id.unique_identifier', store=True,
                                     readonly=True, index=True)
-    file_identifier = fields.Char(string='File Identifier', tracking=True, copy=False, index=True)
+    file_identifier = fields.Char(string='File Identifier', tracking=True, copy=False, index=True, readonly=True)
 
     io_picking_id = fields.Many2one("stock.picking", string="IO", compute="_compute_io_oo_picking_id", store=True,
                                     readonly=True, index=True)

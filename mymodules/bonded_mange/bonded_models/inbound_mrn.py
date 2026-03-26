@@ -13,7 +13,7 @@ class InboundOrderInherit(models.Model):
         ("mrn_code_unique", "unique(mrn_code)", "MRN Code must be unique."),
     ]
 
-    mrn_code = fields.Char(string="MRN Code", tracking=True, copy=False, index=True)
+    mrn_code = fields.Char(string="MRN Code", size=18, tracking=True, copy=False, index=True)
     mrn_status = fields.Selection([
         ("pending_declaration", "Pending Declaration"),
         ("declared", "Declared"),
@@ -21,6 +21,14 @@ class InboundOrderInherit(models.Model):
         ("status_changed", "Status Changed"),
         ("exception", "Exception"),
     ], string="MRN Status", default="pending_declaration", tracking=True, copy=False, index=True)
+
+    t1_document_number = fields.Char(string="T1 Document Number", index=True, copy=False)
+    t1_status = fields.Selection([
+        ("open", "Open"),
+        ("closed", "Closed"),
+    ], string="T1 Status", default="open", tracking=True, index=True)
+
+    t1_closed_date = fields.Date(string="T1 Closed Date", tracking=True)
 
     @api.onchange("mrn_code")
     def onchangeMrnCodeUpper(self):

@@ -36,9 +36,10 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='pick_type']" position="after">
                 <field name="unique_identifier" readonly="1"/>
-                <field name="file_identifier"/>
-                <field name="mrn_code"/>
-                <field name="mrn_status"/>
+                <field name="file_identifier" readonly="state != 'new'"/>
+                <field name="mrn_code" readonly="state != 'new'"/>
+                <field name="mrn_status" readonly="1"/>
+                <button name="action_open_mrn_detail" type="object" string="MRN Detail" class="btn-link" icon="fa-external-link" invisible="not mrn_code"/>
             </xpath>
         </field>
     </record>
@@ -53,7 +54,7 @@
             <xpath expr="//search/field[@name='billno']" position="after">
                 <field name="unique_identifier"/>
                 <field name="file_identifier"/>
-                <field name="mrn_code"/>
+                <field name="mrn_code" readonly="1"/>
                 <field name="mrn_status"/>
             </xpath>
             <xpath expr="//search/filter[@name='state_not_cancel']" position="before">
@@ -61,6 +62,10 @@
                         domain="[('unique_identifier', '!=', False)]"/>
                 <filter name="has_file_identifier" string="Has File Identifier"
                         domain="[('file_identifier', '!=', False)]"/>
+
+                <filter name="mrn_status_pending" string="MRN Pending" domain="[('mrn_status', '=', 'pending_declaration')]"/>
+                <filter name="mrn_status_declared" string="MRN Declared" domain="[('mrn_status', '=', 'declared')]"/>
+                <filter name="mrn_status_cleared" string="MRN Cleared" domain="[('mrn_status', '=', 'cleared')]"/>
             </xpath>
         </field>
     </record>
