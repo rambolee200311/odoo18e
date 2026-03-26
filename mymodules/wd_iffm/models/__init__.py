@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from . import workbench_lane
 from . import clearance_models
 from . import handover_models
 from . import charge_pricing_models
