@@ -147,7 +147,7 @@
                         </page>
                         <page string="Products">
                             <field name="outbound_order_product_ids"
-                                   context="{'default_outbound_order_id': id}" readonly="1" options="{'no_open': True}">>
+                                   context="{'default_outbound_order_id': id}" readonly="0" options="{'no_open': True}">>
                                 <list editable="bottom" open_form_view="0">
                                     <button name="action_open_line_form" type="object" string="open" class="oe_stat_button"/>
                                     <field name="product_id" width="400"/>
