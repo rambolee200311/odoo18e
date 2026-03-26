@@ -1,0 +1,16 @@
+<odoo>
+        <record id="view_product_product_form_trade_ref_inherit" model="ir.ui.view">
+        <field name="name">product.product.form.trade.ref.inherit</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_normal_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='group_lots_and_weight']/div[@name='weight']" position="after">
+                <field name="origin_country"/>
+                <field name="goods_value"/>
+                <field name="hs_code"/>
+                <field name="customs_code" />
+                 <field name="customs_status" required="1"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

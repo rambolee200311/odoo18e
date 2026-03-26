@@ -1,0 +1,67 @@
+<odoo>
+    <record id="view_inbound_order_product_form_trade_ref_inherit" model="ir.ui.view">
+        <field name="name">inbound.order.product.form.trade.ref.inherit</field>
+        <field name="model">world.depot.inbound.order.product</field>
+        <field name="inherit_id" ref="worlddepot.view_inbound_order_product_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='inbound_order_product_pallet_ids']/list/field[@name='product_id']"
+                   position="before">
+                <field name="is_bonded" column_invisible="True"/>
+            </xpath>
+
+            <xpath expr="//field[@name='inbound_order_product_pallet_ids']/list/field[@name='product_id']"
+                   position="after">
+                <field name="origin_country" required="is_bonded" options="{'no_create': True, 'no_open': True}"/>
+                <field name="goods_value" required="is_bonded"/>
+                <field name="hs_code" readonly="1" required="is_bonded"/>
+                <field name="weight" required="is_bonded"/>
+                <field name="customs_code" readonly="1" required="is_bonded"/>
+            </xpath>
+        </field>
+    </record>
+
+
+
+
+
+
+
+
+
+
+    <record id="view_inbound_order_form_identifier_inherit" model="ir.ui.view">
+        <field name="name">inbound.order.form.identifier.inherit</field>
+        <field name="model">world.depot.inbound.order</field>
+        <field name="inherit_id" ref="worlddepot.view_inbound_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='pick_type']" position="after">
+                <field name="unique_identifier" readonly="1"/>
+                <field name="file_identifier"/>
+                <field name="mrn_code"/>
+                <field name="mrn_status"/>
+            </xpath>
+        </field>
+    </record>
+
+
+
+    <record id="view_inbound_order_search_identifier_inherit" model="ir.ui.view">
+        <field name="name">inbound.order.search.identifier.inherit</field>
+        <field name="model">world.depot.inbound.order</field>
+        <field name="inherit_id" ref="worlddepot.view_inbound_order_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search/field[@name='billno']" position="after">
+                <field name="unique_identifier"/>
+                <field name="file_identifier"/>
+                <field name="mrn_code"/>
+                <field name="mrn_status"/>
+            </xpath>
+            <xpath expr="//search/filter[@name='state_not_cancel']" position="before">
+                <filter name="has_unique_identifier" string="Has Unique Identifier"
+                        domain="[('unique_identifier', '!=', False)]"/>
+                <filter name="has_file_identifier" string="Has File Identifier"
+                        domain="[('file_identifier', '!=', False)]"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

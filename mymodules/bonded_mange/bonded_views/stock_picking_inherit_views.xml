@@ -1,0 +1,37 @@
+<odoo>
+    <record id="view_stock_picking_form_inherit_warehouse_filter_picking_type" model="ir.ui.view">
+        <field name="name">stock.picking.form.inherit.warehouse.filter.picking.type</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='origin']" position="after">
+                <field name="cmr_sign_time"
+                       invisible="picking_type_code not in ('outgoing')"
+                       readonly="state == 'done'"
+                       required="picking_type_code in ('outgoing') and state not in ('done', 'cancel')"/>
+                <field name="unique_identifier" readonly="1"/>
+                <field name="file_identifier"/>
+            </xpath>
+        </field>
+    </record>
+
+
+    <record id="view_picking_search_identifier_inherit" model="ir.ui.view">
+        <field name="name">stock.picking.search.identifier.inherit</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_internal_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search/field[@name='origin']" position="after">
+                <field name="unique_identifier"/>
+                <field name="file_identifier"/>
+            </xpath>
+            <xpath expr="//search/group[@expand='0']" position="before">
+                <filter name="has_unique_identifier" string="Has Unique Identifier"
+                        domain="[('unique_identifier', '!=', False)]"/>
+                <filter name="has_file_identifier" string="Has File Identifier"
+                        domain="[('file_identifier', '!=', False)]"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
