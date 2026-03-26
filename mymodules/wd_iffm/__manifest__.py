@@ -68,13 +68,13 @@ Long description of module's purpose
 
     'application': True,
 
-    "assets": {
-        "web.assets_backend": [
-            "wd_iffm/static/src/js/waybill_workbench.js",
-            "wd_iffm/static/src/xml/waybill_workbench.xml",
-            "wd_iffm/static/src/scss/waybill_workbench.scss",
-        ],
-    },
+    # "assets": {
+    #     "web.assets_backend": [
+    #         "wd_iffm/static/src/js/waybill_workbench.js",
+    #         "wd_iffm/static/src/xml/waybill_workbench.xml",
+    #         "wd_iffm/static/src/scss/waybill_workbench.scss",
+    #     ],
+    # },
 
 }
 
