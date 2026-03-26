@@ -199,11 +199,7 @@ class StockMoveLine(models.Model):
             #     raise ValidationError(_("OO must be an outgoing picking."))
 
 
-    @api.constrains("state", "unique_identifier", "file_identifier")
-    def check_identifier_required_when_done(self):
-        for rec in self:
-            if rec.state == "done" and (not rec.unique_identifier or not rec.file_identifier):
-                raise ValidationError(_("Unique Identifier and File Identifier are required when stock move line is Done."))
+
 
     def unlink(self):
         for rec in self:
