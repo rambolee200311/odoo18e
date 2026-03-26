@@ -1,0 +1,61 @@
+<odoo>
+     <!-- stock.move list -->
+    <record id="view_move_tree_trade_ref_inherit" model="ir.ui.view">
+        <field name="name">stock.move.list.trade.ref.inherit</field>
+        <field name="model">stock.move</field>
+        <field name="inherit_id" ref="stock.view_move_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list/field[@name='product_id']" position="after">
+                <field name="origin_country" optional="hide"/>
+                <field name="goods_value" optional="hide"/>
+                <field name="hs_code" readonly="1" optional="hide"/>
+                <field name="weight" optional="hide"/>
+                <field name="customs_code" readonly="1" optional="hide"/>
+            </xpath>
+            <xpath expr="//list/field[@name='reference']" position="after">
+                <field name="unique_identifier" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- stock.move form -->
+    <record id="view_move_form_trade_ref_inherit" model="ir.ui.view">
+        <field name="name">stock.move.form.trade.ref.inherit</field>
+        <field name="model">stock.move</field>
+        <field name="inherit_id" ref="stock.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='main_grp_col2']/field[@name='product_id']" position="after">
+                <field name="origin_country"/>
+                <field name="goods_value"/>
+                <field name="hs_code" readonly="1"/>
+                <field name="weight"/>
+                <field name="customs_code" readonly="1"/>
+            </xpath>
+              <xpath expr="//field[@name='reference']" position="after">
+                <field name="unique_identifier" readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_move_search_identifier_inherit" model="ir.ui.view">
+        <field name="name">stock.move.search.identifier.inherit</field>
+        <field name="model">stock.move</field>
+        <field name="inherit_id" ref="stock.view_move_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search/field[@name='origin']" position="after">
+                <field name="unique_identifier"/>
+            </xpath>
+            <xpath expr="//search/group[@expand='0']" position="before">
+                <filter name="has_unique_identifier" string="Has Unique Identifier" domain="[('unique_identifier', '!=', False)]"/>
+            </xpath>
+        </field>
+    </record>
+
+
+
+
+
+
+
+
+</odoo>

@@ -1,0 +1,122 @@
+<odoo>
+    <!-- stock.quant editable list -->
+    <record id="view_stock_quant_tree_editable_trade_ref_inherit" model="ir.ui.view">
+        <field name="name">stock.quant.list.editable.trade.ref.inherit</field>
+        <field name="model">stock.quant</field>
+        <field name="inherit_id" ref="stock.view_stock_quant_tree_editable"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list/field[@name='product_id']" position="after">
+                <field name="origin_country" optional="hide"/>
+                <field name="goods_value" optional="hide"/>
+                <field name="hs_code" readonly="1" optional="hide"/>
+                <field name="weight" optional="hide"/>
+                <field name="customs_code" readonly="1" optional="hide"/>
+                 <field name="unique_identifier" optional="show"/>
+                <field name="file_identifier" optional="show"/>
+                     <field name="customs_status" optional="show"/>
+                <field name="mrn_code" optional="show"/>
+                <field name="mrn_status" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- stock.quant simple list -->
+    <record id="view_stock_quant_tree_simple_trade_ref_inherit" model="ir.ui.view">
+        <field name="name">stock.quant.list.simple.trade.ref.inherit</field>
+        <field name="model">stock.quant</field>
+        <field name="inherit_id" ref="stock.view_stock_quant_tree_simple"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list/field[@name='product_id']" position="after">
+                <field name="origin_country" optional="hide"/>
+                <field name="goods_value" optional="hide"/>
+                <field name="hs_code" readonly="1" optional="hide"/>
+                <field name="weight" optional="hide"/>
+                <field name="customs_code" readonly="1" optional="hide"/>
+                <field name="unique_identifier" optional="show"/>
+                <field name="file_identifier" optional="show"/>
+                     <field name="customs_status" optional="show"/>
+                <field name="mrn_code" optional="show"/>
+                <field name="mrn_status" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_stock_quant_form_identifier_inherit" model="ir.ui.view">
+        <field name="name">stock.quant.form.identifier.inherit</field>
+        <field name="model">stock.quant</field>
+        <field name="inherit_id" ref="stock.view_stock_quant_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='lot_id']" position="after">
+                          <field name="origin_country" optional="hide"/>
+                <field name="goods_value" optional="hide"/>
+                <field name="hs_code" readonly="1" optional="hide"/>
+                <field name="weight" optional="hide"/>
+                <field name="customs_code" readonly="1" optional="hide"/>
+                <field name="unique_identifier"/>
+                <field name="file_identifier"/>
+                     <field name="customs_status" optional="show"/>
+                <field name="mrn_code" optional="show"/>
+                <field name="mrn_status" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_stock_quant_tree_inventory_identifier_inherit" model="ir.ui.view">
+        <field name="name">stock.quant.list.inventory.identifier.inherit</field>
+        <field name="model">stock.quant</field>
+        <field name="inherit_id" ref="stock.view_stock_quant_tree_inventory_editable"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list/field[@name='product_id']" position="after">
+                          <field name="origin_country" optional="hide"/>
+                <field name="goods_value" optional="hide"/>
+                <field name="hs_code" readonly="1" optional="hide"/>
+                <field name="weight" optional="hide"/>
+                <field name="customs_code" readonly="1" optional="hide"/>
+                <field name="unique_identifier" optional="show"/>
+                <field name="file_identifier" optional="show"/>
+                     <field name="customs_status" optional="show"/>
+                <field name="mrn_code" optional="show"/>
+                <field name="mrn_status" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+    <!-- stock.quant form -->
+    <record id="view_stock_quant_form_editable_trade_ref_inherit" model="ir.ui.view">
+        <field name="name">stock.quant.form.trade.ref.inherit</field>
+        <field name="model">stock.quant</field>
+        <field name="inherit_id" ref="stock.view_stock_quant_form_editable"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='product_id']" position="after">
+                <field name="origin_country"/>
+                <field name="goods_value"/>
+                <field name="hs_code" readonly="1"/>
+                <field name="weight"/>
+                <field name="customs_code" readonly="1"/>
+                     <field name="customs_status" optional="show"/>
+                <field name="mrn_code" optional="show"/>
+                <field name="mrn_status" optional="show"/>
+            </xpath>
+            <xpath expr="//field[@name='lot_id']" position="after">
+                <field name="unique_identifier"/>
+                <field name="file_identifier"/>
+            </xpath>
+        </field>
+    </record>
+
+        <record id="quant_search_identifier_inherit" model="ir.ui.view">
+        <field name="name">stock.quant.search.identifier.inherit</field>
+        <field name="model">stock.quant</field>
+        <field name="inherit_id" ref="stock.quant_search_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search/field[@name='lot_id']" position="after">
+                <field name="unique_identifier"/>
+                <field name="file_identifier"/>
+                         <field name="customs_status"/>
+                <field name="mrn_code"/>
+                <field name="mrn_status"/>
+            </xpath>
+            <xpath expr="//search/group[@expand='0']" position="before">
+                <filter name="has_unique_identifier" string="Has Unique Identifier" domain="[('unique_identifier', '!=', False)]"/>
+                <filter name="has_file_identifier" string="Has File Identifier" domain="[('file_identifier', '!=', False)]"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
