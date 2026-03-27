@@ -1,0 +1,10 @@
+// WorldDepot: highlight overdone lines in stock barcode
+.o_barcode_line.o_overdone_line {
+    background-color: rgba(220, 53, 69, 0.08) !important;
+
+    .qty-done,
+    [class*="qty-done"] {
+        color: #dc3545 !important;
+        font-weight: bold !important;
+    }
+}

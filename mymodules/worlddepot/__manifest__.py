@@ -69,14 +69,14 @@
             # Load our components after stock_barcode
             #'web/static/src/**/*',
             #'stock_barcode/static/src/**/*',
-
             #'worlddepot/static/src/js/pallet_barcode.js',
             #'worlddepot/static/src/xml/pallet_barcode_assets.xml',
             #'stock_barcode/static/src/components/main.js',
             #'web/static/src/core/barcode/barcode_dialog.js',
             #'worlddepot/static/src/js/pallet_scan.js',
             #'worlddepot/static/src/js/pallet_barcode_patch.js',
-            #'worlddepot/static/src/models/barcode_picking_model_patch.js',
+            'worlddepot/static/src/models/barcode_picking_model_patch.js',
+            'worlddepot/static/src/scss/barcode_overdone.scss',
         ],
     },
     'license': 'LGPL-3',
