@@ -8,7 +8,14 @@ class BondedCustomsMrnAuditLog(models.Model):
 
     model_name = fields.Char(string="Model", required=True, index=True, copy=False)
     res_id = fields.Integer(string="Record ID", required=True, index=True, copy=False)
-    field_name = fields.Selection([("customs_status", "Customs Status"), ("mrn_code", "MRN Code"), ("mrn_status", "MRN Status")], string="Field", required=True, index=True, copy=False)
+    field_name = fields.Selection([("customs_status", "Customs Status"),
+                                   ("origin_country", "Country of Origin"),
+                                   ("goods_value", "Goods Value"),
+                                   ("hs_code", "HS Code"),
+                                   ("customs_code", "Customs Code"),
+                                   ("mrn_code", "MRN Code"),
+                                   ("mrn_status", "MRN Status")], string="Field", required=True, index=True, copy=False)
+
     old_value = fields.Char(string="Old Value", copy=False)
     new_value = fields.Char(string="New Value", copy=False)
     customs_status_old = fields.Selection([

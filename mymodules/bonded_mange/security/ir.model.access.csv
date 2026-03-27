@@ -1,2 +1,3 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_bonded_customs_mrn_audit_log_user,bonded.customs.mrn.audit.log user,model_bonded_customs_mrn_audit_log,,1,1,1,0
+access_bonded_mrn_regulatory_report_user,bonded.mrn.regulatory.report user,model_bonded_mrn_regulatory_report,,1,1,1,1

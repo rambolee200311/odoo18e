@@ -1,0 +1,62 @@
+<!-- E:\code\main-e-test\main-e-test-roger26.1.19\odoo18e\mymodules\bonded_mange\bonded_views\mrn_regulatory_report_templates.xml -->
+<odoo>
+    <template id="report_mrn_regulatory_eu_pdf">
+        <t t-call="web.html_container">
+            <t t-call="web.external_layout">
+                <style>
+                    .eu-title { font-size: 18px; font-weight: 700; text-align: center; margin-bottom: 8px; }
+                    .eu-sub { font-size: 12px; text-align: center; margin-bottom: 12px; }
+                    .eu-table { width: 100%; border-collapse: collapse; font-size: 10px; }
+                    .eu-table th, .eu-table td { border: 1px solid #222; padding: 4px 6px; vertical-align: middle; }
+                    .eu-table th { background: #f2f2f2; font-weight: 700; }
+                    .key { font-weight: 700; } /* 关键字段加粗 */
+                    .sign-row { margin-top: 12px; font-size: 10px; display: flex; justify-content: space-between; }
+                </style>
+
+                <div class="page">
+                    <div class="eu-title">MRN Customs Supervision Report</div>
+                    <div class="eu-sub">EU Customs Check Format / 欧盟海关核查格式</div>
+
+                    <table class="eu-table">
+                        <thead>
+                            <tr>
+                                <th>MRN</th>
+                                <th>Product Code</th>
+                                <th>Product Name</th>
+                                <th>Customs Status</th>
+                                <th>MRN Status</th>
+                                <th>IN</th>
+                                <th>OO</th>
+                                <th>Stock Qty</th>
+                                <th>Operator</th>
+                                <th>Change Time</th>
+                                <th>Remark</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="docs" t-as="doc">
+                                <td><span class="key" t-esc="doc.mrn_code or ''"/></td>
+                                <td><span t-esc="doc.product_code or ''"/></td>
+                                <td><span t-esc="doc.product_name or ''"/></td>
+                                <td><span class="key" t-esc="dict(doc._fields['customs_status'].selection).get(doc.customs_status, '')"/></td>
+                                <td><span class="key" t-esc="dict(doc._fields['mrn_status'].selection).get(doc.mrn_status, '')"/></td>
+                                <td><span class="key" t-esc="doc.inbound_no or ''"/></td>
+                                <td><span class="key" t-esc="doc.outbound_no or ''"/></td>
+                                <td><span class="key" t-esc="doc.stock_qty or 0.0"/></td>
+                                <td><span t-esc="doc.user_id.name if doc.user_id else ''"/></td>
+                                <td><span t-field="doc.change_time" t-options="{'widget': 'datetime'}"/></td>
+                                <td><span t-esc="doc.remark or ''"/></td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="sign-row">
+                        <div>Generated Time: <span t-esc="time.strftime('%Y-%m-%d %H:%M:%S')"/></div>
+                        <div>Checked By: __________________</div>
+                        <div>Signature: __________________</div>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

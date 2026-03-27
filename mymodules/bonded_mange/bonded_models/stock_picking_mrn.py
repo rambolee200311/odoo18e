@@ -5,6 +5,14 @@ from odoo.exceptions import UserError, ValidationError
 class StockPicking(models.Model):
     _inherit = "stock.picking"
 
+    t1_document_number = fields.Char(string="T1 Document Number", index=True, copy=False)
+    t1_status = fields.Selection([
+        ("open", "Open"),
+        ("closed", "Closed"),
+    ], string="T1 Status", default="open", tracking=True, index=True)
+
+    t1_closed_date = fields.Date(string="T1 Closed Date", tracking=True)
+
     def getMrnStatusByCustomsStatus(self, customs_status):
         if customs_status in ("bonded", "entrepot"):
             return "pending_declaration"
@@ -76,13 +84,13 @@ class StockPicking(models.Model):
 
 
     def button_validate(self):
-
+        for rec in self:
+            if rec.picking_type_code == "incoming" and rec.inbound_order_id and rec.inbound_order_id.is_bonded and rec.t1_status != "closed":
+                raise ValidationError(_("Bonded goods can only be stored after T1 is closed."))
         res = super().button_validate()
         for rec in self:
-            if rec.state == "done":
-                if rec.inbound_order_id.is_bonded:
-                    rec.actionSyncInboundCustomsMrnToQuant()
-
+            if rec.state == "done" and rec.picking_type_code == "incoming" and rec.inbound_order_id:
+                rec.actionSyncInboundCustomsMrnToQuant()
         return res
 
     @api.model_create_multi
