@@ -317,44 +317,21 @@ class OperationWorkbenchCard(models.Model):
         if stale_ids:
             env_card.browse(stale_ids).write({"active": False})
 
-    # @api.model
-    # def action_create_handover_from_waybill_lane(self, waybill_id):
-    #     waybill = self.env["world.depot.waybill"].sudo().browse(waybill_id).exists()
-    #     if not waybill:
-    #         raise ValidationError(_("Waybill not found."))
-    #     result = self.env["world.depot.waybill"].browse(waybill.id).action_workbench_create_handover()
-    #     self.action_sync_cards_by_waybill(waybill.id)
-    #     return result
-    #
-    # @api.model
-    # def action_open_clearance_wizard_from_waybill_lane(self, waybill_id):
-    #     waybill = self.env["world.depot.waybill"].sudo().browse(waybill_id).exists()
-    #     if not waybill:
-    #         raise ValidationError(_("Waybill not found."))
-    #     return self.env["world.depot.waybill"].browse(waybill.id).action_open_clearance_wizard_workbench()
-
     @api.model
     def action_create_handover_from_waybill_lane(self, waybill_id):
-        # world.depot.waybill 主键为字符串，通过 name（billno）定位记录
-        if isinstance(waybill_id, str):
-            waybill = self.env["world.depot.waybill"].sudo().search([("billno", "=", waybill_id)], limit=1)
-        else:
-            waybill = self.env["world.depot.waybill"].sudo().browse(waybill_id).exists()
+        waybill = self.env["world.depot.waybill"].sudo().browse(waybill_id).exists()
         if not waybill:
             raise ValidationError(_("Waybill not found."))
-        result = waybill.action_workbench_create_handover()
+        result = self.env["world.depot.waybill"].browse(waybill.id).action_workbench_create_handover()
         self.action_sync_cards_by_waybill(waybill.id)
         return result
 
     @api.model
     def action_open_clearance_wizard_from_waybill_lane(self, waybill_id):
-        if isinstance(waybill_id, str):
-            waybill = self.env["world.depot.waybill"].sudo().search([("billno", "=", waybill_id)], limit=1)
-        else:
-            waybill = self.env["world.depot.waybill"].sudo().browse(waybill_id).exists()
+        waybill = self.env["world.depot.waybill"].sudo().browse(waybill_id).exists()
         if not waybill:
             raise ValidationError(_("Waybill not found."))
-        return waybill.action_open_clearance_wizard_workbench()
+        return self.env["world.depot.waybill"].browse(waybill.id).action_open_clearance_wizard_workbench()
 
     def action_card_create_child(self):
         self.ensure_one()

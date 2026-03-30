@@ -201,12 +201,13 @@ export class WorkbenchKanbanRenderer extends KanbanRenderer {
                     (r) => String(r.id) === String(recordId)
                 );
                 if (record) {
-                    const waybillData = record.data.waybill_id;
-                    // many2one 字段：直接取 res_id（数据库 ID，类型取决于模型主键）
-                    if (waybillData && waybillData.res_id !== undefined) {
-                        return waybillData.res_id;
+                    // Odoo many2one 字段，id 是数字主键
+                    const waybill = record.data.waybill_id;
+                    // waybill_id 格式：[id, name]  例如 [31, 'WB202507300031']
+                    if (Array.isArray(waybill)) {
+                        return waybill[0];
                     }
-                    return waybillData ?? null;
+                    return waybill;
                 }
             }
         }
@@ -232,7 +233,10 @@ export class WorkbenchKanbanRenderer extends KanbanRenderer {
                 type: 'success',
                 title: '成功',
             });
-            this.action.doAction(this.props.action, { clearBreadcrumbs: false });
+//            刷新当前看板
+            this.props.list.load();
+//            重新打开整个页面（×）
+//            this.action.doAction(this.props.action, { clearBreadcrumbs: false });
         } catch (err) {
             this.notification.add('操作失败：' + (err.message || '未知错误'), {
                 type: 'danger',
@@ -260,7 +264,8 @@ export class WorkbenchKanbanRenderer extends KanbanRenderer {
             if (result && typeof result === 'object') {
                 await this.action.doAction(result, {
                     onClose: () => {
-                        this.action.doAction(this.props.action, { clearBreadcrumbs: false });
+//                        this.action.doAction(this.props.action, { clearBreadcrumbs: false });
+                        this.props.list.load();
                     },
                 });
             }
