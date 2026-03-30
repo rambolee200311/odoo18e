@@ -67,17 +67,17 @@ class BondedMrnRegulatoryReport(models.Model):
         tools.drop_view_if_exists(self.env.cr, self._table)
         self.env.cr.execute(f"""
             CREATE OR REPLACE VIEW {self._table} AS (
-                WITH quant_summary AS (
-                    SELECT sq.mrn_id, sq.product_id, SUM(sq.quantity) AS stock_qty, MIN(sq.customs_status) AS customs_status
-                    FROM stock_quant sq
-                    WHERE sq.mrn_id IS NOT NULL
-                    GROUP BY sq.mrn_id, sq.product_id
+                WITH ledger_summary AS (
+                    SELECT l.mrn_id, l.product_id, SUM(l.qty_on_hand) AS stock_qty
+                    FROM bonded_identifier_stock_ledger l
+                    WHERE l.mrn_id IS NOT NULL
+                    GROUP BY l.mrn_id, l.product_id
                 ),
-                quant_total AS (
-                    SELECT sq.mrn_id, SUM(sq.quantity) AS stock_qty
-                    FROM stock_quant sq
-                    WHERE sq.mrn_id IS NOT NULL
-                    GROUP BY sq.mrn_id
+                ledger_total AS (
+                    SELECT l.mrn_id, SUM(l.qty_on_hand) AS stock_qty
+                    FROM bonded_identifier_stock_ledger l
+                    WHERE l.mrn_id IS NOT NULL
+                    GROUP BY l.mrn_id
                 )
                 SELECT
                     sml.id AS id,
@@ -85,11 +85,11 @@ class BondedMrnRegulatoryReport(models.Model):
                     COALESCE(sml.mrn_id, sp.mrn_id, io.mrn_id, oo.mrn_id) AS mrn_id,
                     sml.product_id AS product_id,
                     pp.default_code AS product_code,
-                    COALESCE(sml.customs_status, qs.customs_status, pp.customs_status) AS customs_status,
+                    COALESCE(sml.customs_status, pp.customs_status) AS customs_status,
                     COALESCE(sml.mrn_status, sp.mrn_status, io.mrn_status, oo.mrn_status) AS mrn_status,
                     io.billno AS inbound_no,
                     oo.billno AS outbound_no,
-                    COALESCE(qs.stock_qty, 0.0) AS stock_qty,
+                    COALESCE(ls.stock_qty, 0.0) AS stock_qty,
                     COALESCE(sml.create_uid, sp.create_uid) AS user_id,
                     COALESCE(sml.date, sp.date_done, sp.create_date) AS change_time,
                     COALESCE(sp.origin, sml.reference, '') AS remark,
@@ -103,7 +103,7 @@ class BondedMrnRegulatoryReport(models.Model):
                 LEFT JOIN world_depot_inbound_order io ON io.id = sp.inbound_order_id
                 LEFT JOIN world_depot_outbound_order oo ON oo.id = sp.outbound_order_id
                 LEFT JOIN product_product pp ON pp.id = sml.product_id
-                LEFT JOIN quant_summary qs ON qs.mrn_id = COALESCE(sml.mrn_id, sp.mrn_id, io.mrn_id, oo.mrn_id) AND qs.product_id = sml.product_id
+                LEFT JOIN ledger_summary ls ON ls.mrn_id = COALESCE(sml.mrn_id, sp.mrn_id, io.mrn_id, oo.mrn_id) AND ls.product_id = sml.product_id
                 WHERE COALESCE(sml.mrn_id, sp.mrn_id, io.mrn_id, oo.mrn_id) IS NOT NULL
 
                 UNION ALL
@@ -118,7 +118,7 @@ class BondedMrnRegulatoryReport(models.Model):
                     log.mrn_status_new AS mrn_status,
                     io.billno AS inbound_no,
                     oo.billno AS outbound_no,
-                    COALESCE(qt.stock_qty, 0.0) AS stock_qty,
+                    COALESCE(lt.stock_qty, 0.0) AS stock_qty,
                     log.user_id AS user_id,
                     log.operation_time AS change_time,
                     COALESCE(log.operation_remark, log.change_reason, '') AS remark,
@@ -132,7 +132,7 @@ class BondedMrnRegulatoryReport(models.Model):
                 LEFT JOIN world_depot_inbound_order io ON io.id = sp.inbound_order_id
                 LEFT JOIN world_depot_outbound_order oo ON oo.id = sp.outbound_order_id
                 LEFT JOIN product_product pp ON pp.id = log.product_id
-                LEFT JOIN quant_total qt ON qt.mrn_id = COALESCE(log.mrn_id, sp.mrn_id, io.mrn_id, oo.mrn_id)
+                LEFT JOIN ledger_total lt ON lt.mrn_id = COALESCE(log.mrn_id, sp.mrn_id, io.mrn_id, oo.mrn_id)
                 WHERE COALESCE(log.mrn_id, sp.mrn_id, io.mrn_id, oo.mrn_id) IS NOT NULL
             )
         """)
