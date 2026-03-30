@@ -43,6 +43,8 @@ Long description of module's purpose
         'report/mrn_stock_query_report_templates.xml',
         'bonded_views/mrn_regulatory_report_views.xml',
         'bonded_views/mrn_master_bridge.xml',
+    'bonded_views/identifier_stock_ledger_views.xml',
+
     ],
     # only loaded in demonstration mode
     'application': True,

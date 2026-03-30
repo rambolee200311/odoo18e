@@ -5,3 +5,5 @@ access_bonded_mrn_regulatory_report_user,bonded.mrn.regulatory.report user,model
 access_bonded_mrn_stock_query_user,bonded.mrn.stock.query user,model_bonded_mrn_stock_query,,1,1,1,1
 access_bonded_mrn_stock_query_line_user,bonded.mrn.stock.query.line user,model_bonded_mrn_stock_query_line,,1,1,1,1
 access_bonded_mrn_master_user,access.bonded.mrn.master.user,model_bonded_mrn_master,,1,1,1,1
+
+access_bonded_identifier_stock_ledger_user,access.bonded.identifier.stock.ledger.user,model_bonded_identifier_stock_ledger,,1,1,1,1

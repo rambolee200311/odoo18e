@@ -24,6 +24,8 @@ class StockMove(models.Model):
     customs_code = fields.Char(string="Customs Code", tracking=True, readonly=True, index=True)
     unique_identifier = fields.Char(string='Unique Identifier', related='picking_id.unique_identifier', store=True,
                                     readonly=True, index=True)
+    file_identifier = fields.Char(string="File Identifier", related="picking_id.file_identifier", store=True,
+                                  readonly=True, index=True)
     currency_id = fields.Many2one(
         'res.currency',
         string='Currency',
