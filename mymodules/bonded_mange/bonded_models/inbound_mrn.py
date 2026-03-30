@@ -8,12 +8,8 @@ from odoo.exceptions import ValidationError
 class InboundOrderInherit(models.Model):
     _inherit = "world.depot.inbound.order"
 
-
-    _sql_constraints = [
-        ("mrn_code_unique", "unique(mrn_code)", "MRN Code must be unique."),
-    ]
-
-    mrn_code = fields.Char(string="MRN Code", size=18, tracking=True, copy=False, index=True)
+    mrn_id = fields.Many2one("bonded.mrn.master", string="MRN", index=True, copy=False, tracking=True)
+    # mrn_code = fields.Char(string="MRN Code", size=18, tracking=True, copy=False, index=True)
     mrn_status = fields.Selection([
         ("pending_declaration", "Pending Declaration"),
         ("declared", "Declared"),
@@ -30,23 +26,29 @@ class InboundOrderInherit(models.Model):
 
     t1_closed_date = fields.Date(string="T1 Closed Date", tracking=True)
 
-    @api.onchange("mrn_code")
-    def onchangeMrnCodeUpper(self):
+    def actionGetMrnMirrorVals(self, mrn):
+        return {
+            "mrn_status": mrn.mrn_status or False,
+            "t1_document_number": mrn.t1_document_number or False,
+            "t1_status": mrn.t1_status or "open",
+            "t1_closed_date": mrn.t1_closed_date or False,
+        }
+    @api.onchange("mrn_id")
+    def onchangeMrnId(self):
         for rec in self:
-            rec.mrn_code = (rec.mrn_code or "").strip().upper() or False
+            if rec.mrn_id:
+                vals = rec.actionGetMrnMirrorVals(rec.mrn_id)
+                rec.mrn_status = vals["mrn_status"]
+                rec.t1_document_number = vals["t1_document_number"]
+                rec.t1_status = vals["t1_status"]
+                rec.t1_closed_date = vals["t1_closed_date"]
 
-    def getMrnRegexPattern(self):
-        return r"^[A-Z]{2}[A-Z0-9]{16}$"
-
-    @api.constrains("mrn_code")
-    def checkMrnCodeFormat(self):
-        pattern = self.getMrnRegexPattern()
-        regex = re.compile(pattern)
+    @api.onchange("t1_status")
+    def onchangeT1Status(self):
         for rec in self:
-            if rec.mrn_code and not regex.fullmatch((rec.mrn_code or "").strip().upper()):
-                raise ValidationError(
-                    _("MRN format invalid. It must be 18 chars: 2-letter country code + 16 uppercase alphanumeric chars.")
-                )
+            rec.t1_closed_date = fields.Date.context_today(rec) if rec.t1_status == "closed" else False
+
+
     #改产品海关状态
     def getCustomsStatusByBonded(self, is_bonded):
         return "bonded" if is_bonded else "vrij"
@@ -56,7 +58,7 @@ class InboundOrderInherit(models.Model):
             return "pending_declaration"
         if customs_status in ("vrij", "non_bonded"):
             return "cleared"
-        if customs_status in ("rto", "ivv", "ivv_equivalent"):
+        if customs_status in ("rto", "ivv"):
             return "declared"
         if customs_status == "accijns":
             return "exception"
@@ -65,9 +67,13 @@ class InboundOrderInherit(models.Model):
     def actionApplyBondedCustomsMrnMappingOnConfirm(self):
         for rec in self:
             customs_status = rec.getCustomsStatusByBonded(rec.is_bonded)
-            mrn_status = rec.getMrnStatusByCustomsStatus(customs_status)
-            if rec.mrn_status != mrn_status:
-                rec.write({"mrn_status": mrn_status})
+            target_mrn_status = (
+                "declared"
+                if rec.is_bonded and rec.t1_status == "closed"
+                else rec.getMrnStatusByCustomsStatus(customs_status)
+            )
+            if rec.mrn_status != target_mrn_status:
+                rec.write({"mrn_status": target_mrn_status})
 
             product_records = rec.inbound_order_product_ids.mapped(
                 "inbound_order_product_pallet_ids.product_id").filtered(lambda x: x)
@@ -79,18 +85,3 @@ class InboundOrderInherit(models.Model):
         res = super().action_confirm()
         self.actionApplyBondedCustomsMrnMappingOnConfirm()
         return res
-
-
-
-
-    @api.constrains("mrn_code")
-    def checkMrnCodeUnique(self):
-        for rec in self:
-            if not rec.mrn_code:
-                continue
-            existed = self.env["world.depot.inbound.order"].sudo().search(
-                [("mrn_code", "=", rec.mrn_code), ("id", "!=", rec.id)],
-                limit=1
-            )
-            if existed:
-                raise ValidationError(_("MRN Code must be unique."))

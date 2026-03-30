@@ -25,7 +25,7 @@ class ProductProduct(models.Model):
         ("rto", "Return to Origin"),
         ("entrepot", "Bonded Warehouse"),
         ("accijns", "Excise Goods"),
-        ("ivv", "Import/Export/Transit"),
+        ("ivv", "Import/Export/Transit & Equivalent"),
         ("bonded", "Bonded"),
         ("non_bonded", "Free / Non-bonded"),
     ], string="Customs Status", index=True, tracking=True,required=True,default="vrij")

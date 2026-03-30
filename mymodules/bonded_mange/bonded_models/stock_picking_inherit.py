@@ -19,7 +19,7 @@ class StockPicking(models.Model):
     file_identifier = fields.Char(string='File Identifier', tracking=True, copy=False, index=True, readonly=True)
 
 
-    mrn_code = fields.Char(string="MRN Code", tracking=True, copy=False, index=True)
+
     mrn_status = fields.Selection([
         ("pending_declaration", "Pending Declaration"),
         ("declared", "Declared"),
@@ -31,7 +31,7 @@ class StockPicking(models.Model):
 
     def check_cmr_sign_time_before_done(self):
         for rec in self:
-            if rec.picking_type_code in ("outgoing") and not rec.cmr_sign_time and not rec.cmr_sign_file:
+            if rec.picking_type_code in ("outgoing") and (not rec.cmr_sign_time or not rec.cmr_sign_file):
                 raise UserError(_("CMR sign time and signed CMR file are required when transfer is Done (outgoing)."))
 
 

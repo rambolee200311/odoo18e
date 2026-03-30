@@ -40,7 +40,7 @@ class StockMoveLine(models.Model):
     in_no = fields.Char(string="IN No", related="io_picking_id.name", store=True, readonly=True, index=True)
     pick_no = fields.Char(string="PICK No", related="picking_id.name", store=True, readonly=True, index=True)
 
-    mrn_code = fields.Char(string="MRN Code", tracking=True, copy=False, index=True)
+    mrn_id = fields.Many2one("bonded.mrn.master", string="MRN", related="move_id.mrn_id", store=True, readonly=True, index=True)
     mrn_status = fields.Selection([
         ("pending_declaration", "Pending Declaration"),
         ("declared", "Declared"),
@@ -48,6 +48,16 @@ class StockMoveLine(models.Model):
         ("status_changed", "Status Changed"),
         ("exception", "Exception"),
     ], string="MRN Status", default="pending_declaration", tracking=True, copy=False, index=True)
+
+    t1_document_number = fields.Char(string="T1 Document Number", related="picking_id.t1_document_number",
+                                     store=True, index=True, copy=False)
+    t1_status = fields.Selection([
+        ("open", "Open"),
+        ("closed", "Closed"),
+    ], string="T1 Status", default="open", related="picking_id.t1_status", store=True, tracking=True, index=True)
+
+    t1_closed_date = fields.Date(string="T1 Closed Date", related="picking_id.t1_closed_date", store=True,
+                                 tracking=True)
 
     @api.depends(
         "picking_id",

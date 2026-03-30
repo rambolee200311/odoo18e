@@ -7,8 +7,7 @@ CUSTOMS_STATUS_SELECTION = [
     ("rto", "Return to Origin"),
     ("entrepot", "Bonded Warehouse"),
     ("accijns", "Excise Goods"),
-    ("ivv", "Import/Export/Transit"),
-    ("ivv_equivalent", "IVV en equivalentieverkeer"),
+    ("ivv", "Import/Export/Transit & Equivalent"),
     ("bonded", "Bonded"),
     ("non_bonded", "Free / Non-bonded"),
 ]
@@ -24,13 +23,12 @@ MRN_STATUS_SELECTION = [
 
 def build_mrn_detail_action(rec):
     rec.ensure_one()
-    mrn_code = (rec.mrn_code or "").strip().upper()
-    if not mrn_code:
-        raise UserError(_("MRN Code is empty."))
+    if not rec.mrn_id:
+        raise UserError(_("MRN is empty."))
     action = rec.env["ir.actions.actions"]._for_xml_id("bonded_mange.action_bonded_mrn_regulatory_report")
-    action["name"] = _("MRN Detail: %s") % mrn_code
-    action["domain"] = [("mrn_code", "=", mrn_code)]
-    action["context"] = {"search_default_mrn_code": mrn_code}
+    action["name"] = _("MRN Detail: %s") % (rec.mrn_id.code or "")
+    action["domain"] = [("mrn_id", "=", rec.mrn_id.id)]
+    action["context"] = {"search_default_mrn_id": rec.mrn_id.id}
     return action
 
 
@@ -41,7 +39,7 @@ class BondedMrnRegulatoryReport(models.Model):
     _order = "id desc"
 
     record_type = fields.Selection([("flow", "Flow"), ("log", "Log")], string="Record Type", index=True, readonly=True)
-    mrn_code = fields.Char(string="MRN Code", index=True, readonly=True)
+    mrn_id = fields.Many2one("bonded.mrn.master", string="MRN", store=True, readonly=True, index=True)
     product_id = fields.Many2one("product.product", string="Product", index=True, readonly=True)
     product_name = fields.Char(string="Product Name", related="product_id.name", readonly=True)
     product_code = fields.Char(string="Product Code", index=True, readonly=True)
@@ -55,6 +53,9 @@ class BondedMrnRegulatoryReport(models.Model):
     remark = fields.Char(string="Remark", readonly=True)
     source_model = fields.Char(string="Source Model", index=True, readonly=True)
     source_res_id = fields.Integer(string="Source Record ID", index=True, readonly=True)
+    t1_document_number = fields.Char(string="T1 Document Number", index=True, readonly=True)
+    t1_status = fields.Selection([("open", "Open"), ("closed", "Closed")], string="T1 Status", index=True, readonly=True)
+    t1_closed_date = fields.Date(string="T1 Closed Date", index=True, readonly=True)
 
     def action_open_source(self):
         self.ensure_one()
@@ -67,25 +68,25 @@ class BondedMrnRegulatoryReport(models.Model):
         self.env.cr.execute(f"""
             CREATE OR REPLACE VIEW {self._table} AS (
                 WITH quant_summary AS (
-                    SELECT sq.mrn_code, sq.product_id, SUM(sq.quantity) AS stock_qty, MIN(sq.customs_status) AS customs_status
+                    SELECT sq.mrn_id, sq.product_id, SUM(sq.quantity) AS stock_qty, MIN(sq.customs_status) AS customs_status
                     FROM stock_quant sq
-                    WHERE sq.mrn_code IS NOT NULL AND sq.mrn_code <> ''
-                    GROUP BY sq.mrn_code, sq.product_id
+                    WHERE sq.mrn_id IS NOT NULL
+                    GROUP BY sq.mrn_id, sq.product_id
                 ),
                 quant_total AS (
-                    SELECT sq.mrn_code, SUM(sq.quantity) AS stock_qty
+                    SELECT sq.mrn_id, SUM(sq.quantity) AS stock_qty
                     FROM stock_quant sq
-                    WHERE sq.mrn_code IS NOT NULL AND sq.mrn_code <> ''
-                    GROUP BY sq.mrn_code
+                    WHERE sq.mrn_id IS NOT NULL
+                    GROUP BY sq.mrn_id
                 )
                 SELECT
                     sml.id AS id,
                     'flow'::varchar AS record_type,
-                    sml.mrn_code AS mrn_code,
+                    COALESCE(sml.mrn_id, sp.mrn_id, io.mrn_id, oo.mrn_id) AS mrn_id,
                     sml.product_id AS product_id,
                     pp.default_code AS product_code,
-                    COALESCE(qs.customs_status, pp.customs_status) AS customs_status,
-                    COALESCE(sml.mrn_status, sp.mrn_status, io.mrn_status) AS mrn_status,
+                    COALESCE(sml.customs_status, qs.customs_status, pp.customs_status) AS customs_status,
+                    COALESCE(sml.mrn_status, sp.mrn_status, io.mrn_status, oo.mrn_status) AS mrn_status,
                     io.billno AS inbound_no,
                     oo.billno AS outbound_no,
                     COALESCE(qs.stock_qty, 0.0) AS stock_qty,
@@ -93,21 +94,24 @@ class BondedMrnRegulatoryReport(models.Model):
                     COALESCE(sml.date, sp.date_done, sp.create_date) AS change_time,
                     COALESCE(sp.origin, sml.reference, '') AS remark,
                     'stock.move.line'::varchar AS source_model,
-                    sml.id AS source_res_id
+                    sml.id AS source_res_id,
+                    COALESCE(sp.t1_document_number, io.t1_document_number, oo.t1_document_number) AS t1_document_number,
+                    COALESCE(sp.t1_status, io.t1_status, oo.t1_status) AS t1_status,
+                    COALESCE(sp.t1_closed_date, io.t1_closed_date, oo.t1_closed_date) AS t1_closed_date
                 FROM stock_move_line sml
                 LEFT JOIN stock_picking sp ON sp.id = sml.picking_id
                 LEFT JOIN world_depot_inbound_order io ON io.id = sp.inbound_order_id
                 LEFT JOIN world_depot_outbound_order oo ON oo.id = sp.outbound_order_id
                 LEFT JOIN product_product pp ON pp.id = sml.product_id
-                LEFT JOIN quant_summary qs ON qs.mrn_code = sml.mrn_code AND qs.product_id = sml.product_id
-                WHERE sml.mrn_code IS NOT NULL AND sml.mrn_code <> ''
+                LEFT JOIN quant_summary qs ON qs.mrn_id = COALESCE(sml.mrn_id, sp.mrn_id, io.mrn_id, oo.mrn_id) AND qs.product_id = sml.product_id
+                WHERE COALESCE(sml.mrn_id, sp.mrn_id, io.mrn_id, oo.mrn_id) IS NOT NULL
 
                 UNION ALL
 
                 SELECT
                     -log.id AS id,
                     'log'::varchar AS record_type,
-                    log.mrn_code AS mrn_code,
+                    COALESCE(log.mrn_id, sp.mrn_id, io.mrn_id, oo.mrn_id) AS mrn_id,
                     log.product_id AS product_id,
                     pp.default_code AS product_code,
                     log.customs_status_new AS customs_status,
@@ -119,17 +123,19 @@ class BondedMrnRegulatoryReport(models.Model):
                     log.operation_time AS change_time,
                     COALESCE(log.operation_remark, log.change_reason, '') AS remark,
                     log.model_name AS source_model,
-                    log.res_id AS source_res_id
+                    log.res_id AS source_res_id,
+                    COALESCE(sp.t1_document_number, io.t1_document_number, oo.t1_document_number) AS t1_document_number,
+                    COALESCE(sp.t1_status, io.t1_status, oo.t1_status) AS t1_status,
+                    COALESCE(sp.t1_closed_date, io.t1_closed_date, oo.t1_closed_date) AS t1_closed_date
                 FROM bonded_customs_mrn_audit_log log
                 LEFT JOIN stock_picking sp ON sp.id = log.picking_id
                 LEFT JOIN world_depot_inbound_order io ON io.id = sp.inbound_order_id
                 LEFT JOIN world_depot_outbound_order oo ON oo.id = sp.outbound_order_id
                 LEFT JOIN product_product pp ON pp.id = log.product_id
-                LEFT JOIN quant_total qt ON qt.mrn_code = log.mrn_code
-                WHERE log.mrn_code IS NOT NULL AND log.mrn_code <> ''
+                LEFT JOIN quant_total qt ON qt.mrn_id = COALESCE(log.mrn_id, sp.mrn_id, io.mrn_id, oo.mrn_id)
+                WHERE COALESCE(log.mrn_id, sp.mrn_id, io.mrn_id, oo.mrn_id) IS NOT NULL
             )
         """)
-
 
 class InboundOrderMrnDetailAction(models.Model):
     _inherit = "world.depot.inbound.order"
