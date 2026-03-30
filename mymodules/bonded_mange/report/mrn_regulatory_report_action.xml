@@ -1,0 +1,27 @@
+<!-- E:\code\main-e-test\main-e-test-roger26.1.19\odoo18e\mymodules\bonded_mange\bonded_views\mrn_regulatory_report_action.xml -->
+<odoo>
+    <data noupdate="1">
+        <record id="paperformat_mrn_eu_a4" model="report.paperformat">
+            <field name="name">MRN EU A4</field>
+            <field name="default" eval="False"/>
+            <field name="format">A4</field>
+            <field name="orientation">Landscape</field>
+            <field name="margin_top">15</field>
+            <field name="margin_bottom">12</field>
+            <field name="margin_left">8</field>
+            <field name="margin_right">8</field>
+            <field name="dpi">90</field>
+        </record>
+
+        <record id="action_report_mrn_regulatory_eu_pdf" model="ir.actions.report">
+            <field name="name">MRN Customs Regulatory Report</field>
+            <field name="model">bonded.mrn.regulatory.report</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">bonded_mange.report_mrn_regulatory_eu_pdf</field>
+            <field name="report_file">bonded_mange.report_mrn_regulatory_eu_pdf</field>
+            <field name="binding_model_id" ref="bonded_mange.model_bonded_mrn_regulatory_report"/>
+            <field name="binding_type">report</field>
+            <field name="paperformat_id" ref="bonded_mange.paperformat_mrn_eu_a4"/>
+        </record>
+    </data>
+</odoo>
