@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- operation.workbench.card 看板视图 -->
+    <record id="view_operation_workbench_card_kanban" model="ir.ui.view">
+        <field name="name">operation.workbench.card.kanban</field>
+        <field name="model">operation.workbench.card</field>
+        <field name="arch" type="xml">
+                <kanban default_group_by="lane_id" js_class="workbench_kanban" class="wd_iffm_kanban"
+                        records_draggable="1" quick_create="0"
+                        group_create="1" group_edit="1" group_delete="1" groups_draggable="1">
+                <field name="name"/>
+                <field name="waybill_id"/>
+                <field name="lane_code"/>
+                <field name="lane_id"/>
+                <field name="source_model"/>
+                <field name="source_id"/>
+                <field name="is_main"/>
+                <field name="display_state"/>
+                <field name="extra_data"/>
+                <templates>
+                    <!-- 卡片主体 -->
+                    <t t-name="card">
+                        <div class="oe_kanban_card"
+                             t-att-data-id="record.id.raw_value"
+                             t-att-data-waybill-id="record.waybill_id.raw_value"
+                             t-att-data-lane="record.lane_code.raw_value">
+                            <!-- 卡片头部 -->
+                            <div class="o_kanban_card_header d-flex align-items-start gap-1">
+                                <div class="o_kanban_card_header_title flex-grow-1 min-w-0">
+                                    <field name="name"/>
+                                </div>
+                                <div class="o_kanban_card_header_tags">
+                                    <span class="o_kanban_tag_pill" t-att-class="'o_tag_' + (record.display_state.raw_value || 'open')">
+                                        <field name="display_state"/>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- 卡片内容 -->
+                            <div class="o_kanban_card_content">
+                                <!-- 预报卡片内容 -->
+                                <div t-if="record.lane_code.raw_value == 'waybill'">
+                                    <div class="o_kanban_card_content_row">
+                                        <span class="text-muted">提单号：</span>
+                                        <span t-esc="record.extra_data.raw_value.billno or record.extra_data.raw_value.bl_number or record.extra_data.raw_value.hbl_number or 'N/A'"/>
+                                    </div>
+                                    <div class="o_kanban_card_content_row">
+                                        <span class="text-muted">箱号：</span>
+                                        <span t-esc="record.extra_data.raw_value.container_number or '未绑定'"/>
+                                    </div>
+                                </div>
+                                <!-- 换单卡片内容 -->
+                                <div t-if="record.lane_code.raw_value == 'handover'">
+                                    <div class="o_kanban_card_content_row">
+                                        <span class="text-muted">提单号：</span>
+                                        <span t-esc="record.extra_data.raw_value.bill_no or 'N/A'"/>
+                                    </div>
+                                    <div class="o_kanban_card_content_row">
+                                        <span class="text-muted">箱数：</span>
+                                        <span t-esc="record.extra_data.raw_value.container_nums or '0'"/>
+                                    </div>
+                                    <div class="o_kanban_card_content_row" t-if="record.extra_data.raw_value.do_issue_datetime">
+                                        <span class="text-muted">DO签发：</span>
+                                        <span t-esc="record.extra_data.raw_value.do_issue_datetime"/>
+                                    </div>
+                                </div>
+                                <!-- 清关卡片内容 -->
+                                <div t-if="record.lane_code.raw_value == 'clearance'">
+                                    <div class="o_kanban_card_content_row">
+                                        <span class="text-muted">提单号：</span>
+                                        <span t-esc="record.extra_data.raw_value.bill_no or 'N/A'"/>
+                                    </div>
+                                    <div class="o_kanban_card_content_row">
+                                        <span class="text-muted">箱数：</span>
+                                        <span t-esc="record.extra_data.raw_value.container_nums or '0'"/>
+                                    </div>
+                                    <div class="o_kanban_card_content_row" t-if="record.extra_data.raw_value.clearance_finish_datetime">
+                                        <span class="text-muted">清关完成：</span>
+                                        <span t-esc="record.extra_data.raw_value.clearance_finish_datetime"/>
+                                    </div>
+                                </div>
+                                <!-- 备注 -->
+                                <div class="text-muted small" t-if="record.extra_data.raw_value.extra_remark">
+                                    <i class="fa fa-comment-o"/> <t t-esc="record.extra_data.raw_value.extra_remark"/>
+                                </div>
+                            </div>
+
+                            <!-- 卡片底部 -->
+                            <div class="o_kanban_card_footer">
+                                <button type="object" name="action_model_form_views" class="btn btn-sm btn-secondary">
+                                    详情
+                                </button>
+                                <button t-if="record.is_main.raw_value and record.lane_code.raw_value != 'waybill'" type="object" name="action_card_create_child" class="btn btn-sm btn-light border">
+                                    + 子单
+                                </button>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+</odoo>

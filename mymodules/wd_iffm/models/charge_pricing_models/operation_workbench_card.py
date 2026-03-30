@@ -2,6 +2,62 @@ from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
 
+def _safe_process_ondelete_patch():
+    """
+    Patch IrModelFieldsSelection._process_ondelete to safely skip fields
+    that don't have an 'ondelete' attribute (e.g., Char, Text fields).
+    This fixes AttributeError when stale ir_model_fields_selection rows
+    exist in the database for non-relational fields.
+    """
+    from odoo.addons.base.models.ir_model import IrModelSelection
+    original = IrModelSelection._process_ondelete
+
+    def safe_process_ondelete(self):
+        def safe_write(records, fname, value):
+            if not records:
+                return
+            try:
+                with self.env.cr.savepoint():
+                    records.write({fname: value})
+            except Exception:
+                pass
+
+        for selection in self:
+            Model = self.env.get(selection.field_id.model)
+            if Model is None:
+                continue
+            field = Model._fields.get(selection.field_id.name)
+            if not field or not field.store or not Model._auto:
+                continue
+
+            # Fields without 'ondelete' (Char, Text, etc.) cannot have selection
+            # ondelete policies; skip them to avoid AttributeError
+            if not hasattr(field, 'ondelete'):
+                continue
+
+            ondelete = (field.ondelete or {}).get(selection.value)
+            if ondelete is None and field.manual and not field.required:
+                ondelete = 'set null'
+            if ondelete is None:
+                continue
+            elif callable(ondelete):
+                ondelete(selection._get_records())
+            elif ondelete == 'set null':
+                safe_write(selection._get_records(), field.name, False)
+            elif ondelete == 'set default':
+                value = field.convert_to_write(field.default(Model), Model)
+                safe_write(selection._get_records(), field.name, value)
+            elif ondelete.startswith('set '):
+                safe_write(selection._get_records(), field.name, ondelete[4:])
+            elif ondelete == 'cascade':
+                selection._get_records().unlink()
+
+    IrModelSelection._process_ondelete = safe_process_ondelete
+
+
+_safe_process_ondelete_patch()
+
+
 class OperationWorkbenchCard(models.Model):
     _name = "operation.workbench.card"
     _description = "Operation Workbench Card"
@@ -9,7 +65,15 @@ class OperationWorkbenchCard(models.Model):
 
     name = fields.Char(string="Card Name", required=True, index=True, copy=False)
     waybill_id = fields.Many2one("world.depot.waybill", string="Waybill", required=True, index=True, ondelete="cascade")
-    lane_code = fields.Selection([("waybill", "Waybill"), ("handover", "Handover"), ("clearance", "Clearance")], string="Lane", required=True, index=True)
+    lane_id = fields.Many2one(
+        "operation.workbench.lane",
+        string="Lane",
+        required=True,
+        ondelete="restrict",
+        index=True,
+        group_expand="_read_group_lane_ids",
+    )
+    lane_code = fields.Char(string="Lane Code", related="lane_id.code", store=True, readonly=True)
     source_model = fields.Char(string="Source Model", required=True, index=True)
     source_id = fields.Integer(string="Source ID", required=True, index=True)
     is_main = fields.Boolean(string="Is Main", default=False, index=True)
@@ -24,7 +88,12 @@ class OperationWorkbenchCard(models.Model):
         ("uniq_workbench_source", "unique(source_model,source_id)", "Source model and source id must be unique."),
     ]
 
-    @api.constrains("waybill_id", "lane_code", "is_main", "active")
+    @api.model
+    def _read_group_lane_ids(self, lanes, domain):
+        """Always show every active lane (like project.task stage group_expand)."""
+        return lanes.search([("active", "=", True)], order="sequence asc, id asc")
+
+    @api.constrains("waybill_id", "lane_id", "lane_code", "is_main", "active")
     def check_unique_main_card(self):
         env_card = self.env["operation.workbench.card"]
         single_main_lanes = {"waybill", "handover"}  # clearance 不在这里
@@ -46,6 +115,13 @@ class OperationWorkbenchCard(models.Model):
                 raise ValidationError(_("Main card already exists in lane %s.") % rec.lane_code)
 
     @api.model
+    def _lane_by_code(self, code):
+        lane = self.env["operation.workbench.lane"].sudo().search([("code", "=", code)], limit=1)
+        if not lane:
+            raise ValidationError(_("Workbench lane with code %s is missing. Update module or create the lane.") % code)
+        return lane
+
+    @api.model
     def action_sync_cards_by_waybill(self, waybill_id):
         env_card = self.env["operation.workbench.card"]
         env_waybill = self.env["world.depot.waybill"]
@@ -56,11 +132,15 @@ class OperationWorkbenchCard(models.Model):
         if not waybill:
             raise ValidationError(_("Waybill not found."))
 
-        waybill_card = env_card.sudo().search([("waybill_id", "=", waybill.id), ("lane_code", "=", "waybill"), ("active", "=", True)], limit=1)
+        lane_waybill = self._lane_by_code("waybill")
+
+        waybill_card = env_card.sudo().search(
+            [("waybill_id", "=", waybill.id), ("lane_code", "=", "waybill"), ("active", "=", True)], limit=1
+        )
         waybill_vals = {
             "name": waybill.billno or waybill.bl_number or waybill.hbl_number or str(waybill.id),
             "waybill_id": waybill.id,
-            "lane_code": "waybill",
+            "lane_id": lane_waybill.id,
             "source_model": "world.depot.waybill",
             "source_id": waybill.id,
             "is_main": True,
@@ -79,18 +159,31 @@ class OperationWorkbenchCard(models.Model):
         else:
             env_card.create(waybill_vals)
 
-        handover_roots = env_handover.sudo().search([("waybill_id", "=", waybill.id), ("parent_id", "=", False), ("state", "!=", "cancelled")], order="id desc")
-        handover_children = env_handover.sudo().search([("parent_id", "in", handover_roots.ids), ("state", "!=", "cancelled")], order="id desc") if handover_roots else env_handover.browse()
+        handover_roots = env_handover.sudo().search(
+            [("waybill_id", "=", waybill.id), ("parent_id", "=", False), ("state", "!=", "cancelled")], order="id desc"
+        )
+        handover_children = (
+            env_handover.sudo().search([("parent_id", "in", handover_roots.ids), ("state", "!=", "cancelled")], order="id desc")
+            if handover_roots
+            else env_handover.browse()
+        )
         self.action_sync_handover_cards(waybill, handover_roots, handover_children)
 
-        clearance_roots = env_clearance.sudo().search([("waybill_id", "=", waybill.id), ("parent_id", "=", False), ("state", "!=", "cancelled")], order="id desc")
-        clearance_children = env_clearance.sudo().search([("parent_id", "in", clearance_roots.ids), ("state", "!=", "cancelled")], order="id desc") if clearance_roots else env_clearance.browse()
+        clearance_roots = env_clearance.sudo().search(
+            [("waybill_id", "=", waybill.id), ("parent_id", "=", False), ("state", "!=", "cancelled")], order="id desc"
+        )
+        clearance_children = (
+            env_clearance.sudo().search([("parent_id", "in", clearance_roots.ids), ("state", "!=", "cancelled")], order="id desc")
+            if clearance_roots
+            else env_clearance.browse()
+        )
         self.action_sync_clearance_cards(waybill, clearance_roots, clearance_children)
         return True
 
     @api.model
     def action_sync_handover_cards(self, waybill, root_lines, child_lines):
         env_card = self.env["operation.workbench.card"]
+        lane_handover = self._lane_by_code("handover")
         existing = env_card.sudo().search([("waybill_id", "=", waybill.id), ("lane_code", "=", "handover"), ("active", "=", True)])
         source_map = {(rec.source_model, rec.source_id): rec.id for rec in existing}
         main_card_map = {}
@@ -101,14 +194,18 @@ class OperationWorkbenchCard(models.Model):
             vals = {
                 "name": rec.name,
                 "waybill_id": waybill.id,
-                "lane_code": "handover",
+                "lane_id": lane_handover.id,
                 "source_model": "operation.order.handover",
                 "source_id": rec.id,
                 "is_main": True,
                 "parent_card_id": False,
                 "display_state": rec.state or "",
                 "sequence": 10,
-                "extra_data": {"bill_no": rec.bl_number or rec.hbl_number or rec.obl_number, "container_nums": rec.container_nums, "do_issue_datetime": fields.Datetime.to_string(rec.do_issue_datetime) if rec.do_issue_datetime else False},
+                "extra_data": {
+                    "bill_no": rec.bl_number or rec.hbl_number or rec.obl_number,
+                    "container_nums": rec.container_nums,
+                    "do_issue_datetime": fields.Datetime.to_string(rec.do_issue_datetime) if rec.do_issue_datetime else False,
+                },
                 "active": True,
             }
             if key in source_map:
@@ -124,14 +221,19 @@ class OperationWorkbenchCard(models.Model):
             vals = {
                 "name": rec.name,
                 "waybill_id": waybill.id,
-                "lane_code": "handover",
+                "lane_id": lane_handover.id,
                 "source_model": "operation.order.handover",
                 "source_id": rec.id,
                 "is_main": False,
                 "parent_card_id": main_card_map.get(rec.parent_id.id),
                 "display_state": rec.state or "",
                 "sequence": 20,
-                "extra_data": {"bill_no": rec.bl_number or rec.hbl_number or rec.obl_number, "container_nums": rec.container_nums, "extra_reason": rec.extra_reason, "extra_remark": rec.extra_remark},
+                "extra_data": {
+                    "bill_no": rec.bl_number or rec.hbl_number or rec.obl_number,
+                    "container_nums": rec.container_nums,
+                    "extra_reason": rec.extra_reason,
+                    "extra_remark": rec.extra_remark,
+                },
                 "active": True,
             }
             if key in source_map:
@@ -147,6 +249,7 @@ class OperationWorkbenchCard(models.Model):
     @api.model
     def action_sync_clearance_cards(self, waybill, root_lines, child_lines):
         env_card = self.env["operation.workbench.card"]
+        lane_clearance = self._lane_by_code("clearance")
         existing = env_card.sudo().search([("waybill_id", "=", waybill.id), ("lane_code", "=", "clearance"), ("active", "=", True)])
         source_map = {(rec.source_model, rec.source_id): rec.id for rec in existing}
         main_card_map = {}
@@ -157,14 +260,20 @@ class OperationWorkbenchCard(models.Model):
             vals = {
                 "name": rec.name,
                 "waybill_id": waybill.id,
-                "lane_code": "clearance",
+                "lane_id": lane_clearance.id,
                 "source_model": "operation.order.clearance",
                 "source_id": rec.id,
                 "is_main": True,
                 "parent_card_id": False,
                 "display_state": rec.state or "",
                 "sequence": 10,
-                "extra_data": {"bill_no": rec.waybill_id.bl_number or rec.waybill_id.hbl_number or rec.waybill_id.obl_number, "container_nums": rec.container_nums, "clearance_finish_datetime": fields.Datetime.to_string(rec.clearance_finish_datetime) if rec.clearance_finish_datetime else False},
+                "extra_data": {
+                    "bill_no": rec.waybill_id.bl_number or rec.waybill_id.hbl_number or rec.waybill_id.obl_number,
+                    "container_nums": rec.container_nums,
+                    "clearance_finish_datetime": fields.Datetime.to_string(rec.clearance_finish_datetime)
+                    if rec.clearance_finish_datetime
+                    else False,
+                },
                 "active": True,
             }
             if key in source_map:
@@ -180,14 +289,22 @@ class OperationWorkbenchCard(models.Model):
             vals = {
                 "name": rec.name,
                 "waybill_id": waybill.id,
-                "lane_code": "clearance",
+                "lane_id": lane_clearance.id,
                 "source_model": "operation.order.clearance",
                 "source_id": rec.id,
                 "is_main": False,
                 "parent_card_id": main_card_map.get(rec.parent_id.id),
                 "display_state": rec.state or "",
                 "sequence": 20,
-                "extra_data": {"bill_no": rec.waybill_id.bl_number or rec.waybill_id.hbl_number or rec.waybill_id.obl_number, "container_nums": rec.container_nums, "extra_reason": rec.extra_reason, "extra_remark": rec.extra_remark, "clearance_finish_datetime": fields.Datetime.to_string(rec.clearance_finish_datetime) if rec.clearance_finish_datetime else False},
+                "extra_data": {
+                    "bill_no": rec.waybill_id.bl_number or rec.waybill_id.hbl_number or rec.waybill_id.obl_number,
+                    "container_nums": rec.container_nums,
+                    "extra_reason": rec.extra_reason,
+                    "extra_remark": rec.extra_remark,
+                    "clearance_finish_datetime": fields.Datetime.to_string(rec.clearance_finish_datetime)
+                    if rec.clearance_finish_datetime
+                    else False,
+                },
                 "active": True,
             }
             if key in source_map:
@@ -221,26 +338,22 @@ class OperationWorkbenchCard(models.Model):
         if not self.is_main:
             raise ValidationError(_("Only main card can create child."))
         if self.lane_code == "handover" and self.source_model == "operation.order.handover":
-            result = self.env["operation.order.handover"].browse(
-                self.source_id).action_create_child_handover_workbench()
+            result = self.env["operation.order.handover"].browse(self.source_id).action_create_child_handover_workbench()
         elif self.lane_code == "clearance" and self.source_model == "operation.order.clearance":
-            result = self.env["operation.order.clearance"].browse(
-                self.source_id).action_create_child_clearance_workbench()
+            result = self.env["operation.order.clearance"].browse(self.source_id).action_create_child_clearance_workbench()
         else:
             raise ValidationError(_("This lane does not support child creation."))
 
         self.action_sync_cards_by_waybill(self.waybill_id.id)
         return result
 
-    #打开详情页
+    # 打开详情页
     def action_model_form_views(self):
         self.ensure_one()
         model_name = self.env.context.get("open_model") or self.source_model
         res_id = self.env.context.get("open_res_id") or self.source_id
         open_view_ref = self.env.context.get("open_view_ref")
-        view_id = self.env.context.get("open_view_id")
-        if not open_view_ref and not view_id:
-            raise ValidationError(_("Open view ref or view id is missing."))
+        view_id = None
         if open_view_ref:
             view = self.env.ref(open_view_ref, raise_if_not_found=False)
             view_id = view.id if view else False

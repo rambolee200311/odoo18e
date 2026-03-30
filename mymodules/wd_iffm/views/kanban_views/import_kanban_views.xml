@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- 一级看板：提单列表 - 按状态分组 -->
+    <record id="view_waybill_kanban_level1" model="ir.ui.view">
+        <field name="name">waybill.kanban.level1</field>
+        <field name="model">world.depot.waybill</field>
+        <field name="arch" type="xml">
+<!--            can_open_records="True"-->
+        <kanban default_group_by="state" can_open_records="True" class="wd_iffm_kanban">
+            <field name="billno"/>
+            <field name="project"/>
+            <field name="state"/>
+            <templates>
+                <t t-name="card">
+                    <a type="object" name="action_open_workbench_board_card" class="d-block text-decoration-none text-reset">
+                        <div class="oe_kanban_card p-2">
+                            <div><strong><field name="billno"/></strong></div>
+                            <div>Project: <field name="project"/></div>
+                            <div>Status: <field name="state"/></div>
+                            <button type="object" name="action_open_form" class="btn btn-sm btn-secondary" context="{'form_view_ref': 'wd_iffm.view_world_depot_waybill_form'}">
+                                详情
+                            </button>
+                        </div>
+                    </a>
+                </t>
+            </templates>
+        </kanban>
+<!--            can_open_records-->
+<!--            <kanban>-->
+<!--&lt;!&ndash;            <kanban default_group_by="state" class="o_kanban_view o_kanban_large_column" js_class="wd_iffm_import_kanban" can_open_records="True" disable_click="false">&ndash;&gt;-->
+<!--                <field name="id"/>-->
+<!--                <field name="bl_number"/>-->
+<!--                <field name="hbl_number"/>-->
+<!--                <field name="state"/>-->
+<!--                <field name="create_date"/>-->
+<!--                <field name="shipping"/>-->
+<!--                <field name="container_qty"/>-->
+<!--                <field name="eta"/>-->
+<!--                <field name="project"/>-->
+<!--                <field name="color"/>-->
+<!--                <progressbar field="state" colors='{"draft": "info", "forecast": "primary", "handover": "success", "clearance": "warning", "done": "purple", "cancel": "danger"}'/>-->
+
+<!--                <templates>-->
+<!--                    <t t-name="card">-->
+
+<!--&lt;!&ndash;                                <div t-attf-id="waybill_#{record.id}"&ndash;&gt;-->
+<!--&lt;!&ndash;                                     class="o_kanban_record o_kanban_card o_kanban_global_click" style="min-height: 150px;">&ndash;&gt;-->
+<!--&lt;!&ndash;                                    &ndash;&gt;-->
+<!--&lt;!&ndash;                                <div t-attf-id="waybill_#{record.id}"&ndash;&gt;-->
+<!--&lt;!&ndash;                                     class="o_kanban_record o_kanban_card position-relative" style="min-height: 150px;">&ndash;&gt;-->
+
+<!--                                    <a type="object"-->
+<!--                                       name="action_open_job_kanban"-->
+<!--                                       class="stretched-link"-->
+<!--                                       style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; opacity: 0;"-->
+<!--                                    >-->
+
+<!--                                    <div class="o_kanban_card_header">-->
+<!--                                        <div class="o_kanban_card_header_title">-->
+<!--                                            <strong>-->
+<!--                                                <field name="bl_number" placeholder="无提单号"/>-->
+<!--                                            </strong>-->
+<!--                                        </div>-->
+<!--                                        <div class="o_kanban_card_header_tags">-->
+<!--                                            <span class="o_kanban_card_header_tag o_kanban_tag_pill" t-att-class="'o_tag_' + (record.state.raw_value || record.state)">-->
+<!--                                                <field name="state"/>-->
+<!--                                            </span>-->
+<!--                                            <span class="o_kanban_status_dot ms-1" t-att-class="'o_dot_' + (record.state.raw_value || record.state)" t-att-title="record.state.value || record.state"/>-->
+<!--                                        </div>-->
+<!--                                    </div>-->
+<!--                                    <div class="o_kanban_card_content">-->
+<!--                                        <div class="card-content">-->
+<!--                                            <div class="field">-->
+<!--                                                <span class="field-label">项目：</span>-->
+<!--                                                <span class="field-value">-->
+<!--                                                    <field name="project" placeholder="未设置"/>-->
+<!--                                                </span>-->
+<!--                                            </div>-->
+<!--                                            <div class="field">-->
+<!--                                                <span class="field-label">船公司：</span>-->
+<!--                                                <span class="field-value">-->
+<!--                                                    <field name="shipping" placeholder="未设置"/>-->
+<!--                                                </span>-->
+<!--                                            </div>-->
+<!--                                            <div class="field">-->
+<!--                                                <span class="field-label">集装箱数：</span>-->
+<!--                                                <span class="field-value">-->
+<!--                                                    <field name="container_qty" placeholder="0"/>-->
+<!--                                                </span>-->
+<!--                                            </div>-->
+<!--                                            <div class="field">-->
+<!--                                                <span class="field-label">预计到港：</span>-->
+<!--                                                <span class="field-value">-->
+<!--                                                    <field name="eta" placeholder="未设置"/>-->
+<!--                                                </span>-->
+<!--                                            </div>-->
+<!--                                        </div>-->
+<!--                                    </div>-->
+<!--                                    <div class="o_kanban_card_footer d-flex align-items-center justify-content-between">-->
+<!--                                        <div class="d-flex ms-auto align-items-center">-->
+<!--                                            &lt;!&ndash; 状态小圆点 &ndash;&gt;-->
+<!--                                            <span t-if="record.state.value &amp;&amp; !widget.editable" t-att-class="'o_status_bubble mx-0 o_color_bubble_' + record.state.value" t-att-title="record.state.value"></span>-->
+<!--                                        </div>-->
+<!--                                        <div class="d-flex gap-1">-->
+<!--                                            <button type="object" name="action_open_form" class="btn btn-sm btn-outline-primary" context="{'form_view_ref': 'wd_iffm.view_world_depot_waybill_form'}">-->
+<!--                                                详情-->
+<!--                                            </button>-->
+<!--                                        </div>-->
+<!--                                    </div>-->
+<!--                                    </a>-->
+<!--&lt;!&ndash;                                </div>&ndash;&gt;-->
+<!--                            </t>-->
+<!--                </templates>-->
+<!--            </kanban>-->
+        </field>
+    </record>
+</odoo>

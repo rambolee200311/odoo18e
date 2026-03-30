@@ -10,9 +10,10 @@ access_world_depot_waybill_container_manager,world.depot.waybill.container manag
 access_world_depot_waybill_packing_list_manager,world.depot.waybill.packing.list manager,model_world_depot_waybill_packing_list,,1,1,1,1
 access_world_depot_port_node,access.world.depot.port.node,model_world_depot_port_node,,1,1,1,1
 access_operation_workbench_card_user,operation.workbench.card user,model_operation_workbench_card,,1,1,1,1
+access_operation_workbench_lane_user,operation.workbench.lane user,model_operation_workbench_lane,,1,1,1,1
 
 
-access_operation_order_handover,operation.order.handover,model_operation_order_handover,,1,1,0,1
+access_operation_order_handover,operation.order.handover,model_operation_order_handover,,1,1,1,1
 access_operation_order_handover_invoice_line,access_operation_order_handover_invoice_line,model_operation_order_handover_invoice_line,,1,1,1,1
 access_operation_order_handover_attachment_line,operation.order.handover.attachment.line,model_operation_order_handover_attachment_line,,1,1,1,1
 access_operation_order_handover_charge_line,operation.order.handover.charge.line,model_operation_order_handover_charge_line,,1,1,1,1
