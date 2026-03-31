@@ -10,27 +10,26 @@ class WaybillViewsInherit(models.Model):
     def action_open_workbench_board_card(self):
         self.ensure_one()
         self.env["operation.workbench.card"].action_sync_cards_by_waybill(self.id)
+        lane_waybill = self.env["operation.workbench.lane"].search([("code", "=", "waybill")], limit=1)
+        ctx = {
+            "default_waybill_id": self.id,
+            "group_by": "lane_id",
+        }
+        if lane_waybill:
+            ctx["default_lane_id"] = lane_waybill.id
         return {
             "type": "ir.actions.act_window",
             "name": _("Waybill Workbench"),
             "res_model": "operation.workbench.card",
             "view_mode": "kanban",
             "domain": [("waybill_id", "=", self.id), ("active", "=", True)],
-            "context": {
-                "default_waybill_id": self.id,
-                "group_by": "lane_code",
-            },
+            "context": ctx,
             "target": "current",
         }
 
     def action_open_workbench(self):
         self.ensure_one()
-        return {
-            "type": "ir.actions.client",
-            "tag": "waybill_workbench",
-            "name": "Waybill Workbench",
-            "params": {"waybill_id": self.id},
-        }
+        return self.action_open_workbench_board_card()
 
 
     def action_model_form_views(self):
@@ -187,6 +186,24 @@ class WaybillViewsInherit(models.Model):
                 "master_count": len(clearance_roots),
                 "can_create_master": waybill.state == "confirm" and waybill.is_arrived and has_unassigned_container,
             },
+        }
+
+
+    def action_open_form(self):
+        self.ensure_one()
+        form_view_ref = self.env.context.get('form_view_ref', False)
+        views = [[False, 'form']]
+        if form_view_ref:
+            view_id = self.env.ref(form_view_ref).id
+            views = [[view_id, 'form']]
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Waybill Form',
+            'res_model': 'world.depot.waybill',
+            'res_id': self.id,
+            'view_mode': 'form',
+            'views': views,
+            'target': 'current',
         }
 
 

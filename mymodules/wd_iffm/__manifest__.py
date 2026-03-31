@@ -15,10 +15,13 @@ Long description of module's purpose
     # Check https://github.com/odoo/odoo/blob/15.0/odoo/addons/base/data/ir_module_category_data.xml
     # for the full list
     'category': '进口/进口',
-    'version': '0.1',
+    'version': '0.2',
 
     # any module necessary for this one to work correctly
     'depends': ['base','account','worlddepot'],
+
+    # hooks
+    'post_init_hook': '_init_workbench_lanes',
 
     # always loaded
     'data': [
@@ -56,13 +59,17 @@ Long description of module's purpose
 
         'views/settlement_account_views/account_move_inherit_views.xml',
         'views/settlement_account_views/account_account_inherit_views.xml',
-        'data/ir_sequence_quotation.xml',
 
         'views/charge_item_inherit_views.xml',
 
 
 
         'views/transportation_views/import_pickup_requirement_views.xml',
+        'views/kanban_views/import_kanban_views.xml',
+        'views/kanban_views/operation_workbench_card_kanban.xml',
+        'views/kanban_views/workbench_lane_views.xml',
+        'views/kanban_views/import_actions.xml',
+        'views/kanban_views/import_menu.xml',
 
     ],
 
@@ -75,6 +82,13 @@ Long description of module's purpose
     #         "wd_iffm/static/src/scss/waybill_workbench.scss",
     #     ],
     # },
+    'assets': {
+        'web.assets_backend': [
+            'wd_iffm/static/src/css/workbench_kanban.css',
+            'wd_iffm/static/src/js/workbench_kanban_record.js',
+            'wd_iffm/static/src/js/workbench_kanban_registry.js',
+        ],
+    },
 
 }
 
