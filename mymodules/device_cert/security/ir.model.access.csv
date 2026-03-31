@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_device_cert_bind_admin,device_cert_bind_admin,model_device_cert_bind,base.group_system,1,1,1,1
+access_device_cert_mail_log_admin,device_cert_mail_log_admin,model_device_cert_mail_log,base.group_system,1,1,1,1
+access_device_cert_status_log_admin,device_cert_status_log_admin,model_device_cert_status_log,base.group_system,1,1,1,1
+access_device_api_log_admin,device_api_log_admin,model_device_api_log,base.group_system,1,1,1,1
