@@ -8,7 +8,12 @@ from odoo.exceptions import ValidationError
 class InboundOrderInherit(models.Model):
     _inherit = "world.depot.inbound.order"
 
-    mrn_id = fields.Many2one("bonded.mrn.master", string="MRN", index=True, copy=False, tracking=True)
+    mrn_id = fields.Many2one("bonded.mrn.master", string="MRN", index=True, copy=False, tracking=True,
+                             domain="[('id', 'not in', used_mrn_ids)]")
+    used_mrn_ids = fields.Many2many(
+        "bonded.mrn.master",
+        compute="_compute_used_mrn_ids"
+    )
     # mrn_code = fields.Char(string="MRN Code", size=18, tracking=True, copy=False, index=True)
     mrn_status = fields.Selection([
         ("pending_declaration", "Pending Declaration"),
@@ -26,27 +31,23 @@ class InboundOrderInherit(models.Model):
 
     t1_closed_date = fields.Date(string="T1 Closed Date", tracking=True)
 
-    def actionGetMrnMirrorVals(self, mrn):
-        return {
-            "mrn_status": mrn.mrn_status or False,
-            "t1_document_number": mrn.t1_document_number or False,
-            "t1_status": mrn.t1_status or "open",
-            "t1_closed_date": mrn.t1_closed_date or False,
-        }
-    @api.onchange("mrn_id")
-    def onchangeMrnId(self):
+    @api.depends("mrn_id", "state")
+    def _compute_used_mrn_ids(self):
+        env = self.env
+        inbound_model = env["world.depot.inbound.order"]
+        used = inbound_model.sudo().search([("mrn_id", "!=", False)]).mapped("mrn_id").ids
         for rec in self:
-            if rec.mrn_id:
-                vals = rec.actionGetMrnMirrorVals(rec.mrn_id)
-                rec.mrn_status = vals["mrn_status"]
-                rec.t1_document_number = vals["t1_document_number"]
-                rec.t1_status = vals["t1_status"]
-                rec.t1_closed_date = vals["t1_closed_date"]
+            rec.used_mrn_ids = [(6, 0, used)]
 
-    @api.onchange("t1_status")
-    def onchangeT1Status(self):
+
+
+
+    @api.depends('t1_status')
+    def _compute_t1_status_color(self):
         for rec in self:
-            rec.t1_closed_date = fields.Date.context_today(rec) if rec.t1_status == "closed" else False
+            if rec.t1_status == "closed":
+                rec.t1_closed_date = fields.Date.context_today(rec)
+
 
 
     #改产品海关状态
@@ -81,7 +82,19 @@ class InboundOrderInherit(models.Model):
                 if product.customs_status != customs_status:
                     product.write({"customs_status": customs_status})
 
+    def actionSyncInboundSnapshotToMrn(self):
+        for rec in self:
+
+            vals = {
+                "mrn_status": rec.mrn_status or False,
+                "t1_document_number": rec.t1_document_number or False,
+                "t1_status": rec.t1_status or "open",
+                "t1_closed_date": rec.t1_closed_date or False,
+            }
+            rec.mrn_id.write(vals)
+
     def action_confirm(self):
-        res = super().action_confirm()
         self.actionApplyBondedCustomsMrnMappingOnConfirm()
+        res = super().action_confirm()
+        self.actionSyncInboundSnapshotToMrn()
         return res

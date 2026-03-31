@@ -68,7 +68,7 @@ class StockPicking(models.Model):
                 raise ValidationError(_("Outbound picking lines miss Unique Identifier or File Identifier."))
             if len(pair_set) > 1:
                 raise ValidationError(_("Outbound picking contains multiple identifier pairs. Please split by identifier pair."))
-
+            #回写picking出库
             unique_identifier, file_identifier = list(pair_set)[0]
             vals = {}
             if unique_identifier and rec.unique_identifier != unique_identifier:

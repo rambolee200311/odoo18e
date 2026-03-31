@@ -30,7 +30,7 @@
                         <field name="start_time" required="1"/>
                         <field name="end_time" required="1"/>
                         <field name="product_id" options="{'no_create': True, 'no_open': True}"/>
-                        <field name="mrn_id"/>
+                        <field name="mrn_id" options="{'no_create': True, 'no_open': True}"/>
                     </group>
                     <group>
                         <field name="query_lines" nolabel="1" options="{'no_create': True, 'no_open': True}" readonly="1">
@@ -79,6 +79,6 @@
         <field name="search_view_id" ref="bonded_mange.view_bonded_mrn_stock_query_search"/>
     </record>
 
-<!--    <menuitem id="menu_bonded_mrn_stock_query" name="MRN Product Stock Query" -->
-<!--              parent="worlddepot.menu_world_depot_configuration" action="action_bonded_mrn_stock_query" sequence="983" groups="base.group_user"/>-->
+    <menuitem id="menu_bonded_mrn_stock_query" name="MRN Product Stock Query"
+              parent="worlddepot.menu_world_depot_configuration" action="action_bonded_mrn_stock_query" sequence="983" groups="base.group_user"/>
 </odoo>

@@ -113,6 +113,8 @@ class StockPicking(models.Model):
                 quant_ids = quant_env.sudo().search(domain).ids
                 for quant in quant_env.browse(quant_ids):
                     vals_quant = {}
+                    if rec.mrn_id and quant.mrn_id != rec.mrn_id:
+                        vals_quant["mrn_id"] = rec.mrn_id.id
                     if quant.customs_status != rec.customs_status:
                         vals_quant["customs_status"] = rec.customs_status
                     if quant.mrn_status != rec.mrn_status:

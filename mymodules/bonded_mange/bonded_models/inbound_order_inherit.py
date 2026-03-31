@@ -105,7 +105,15 @@ class InboundOrderInherit(models.Model):
         if any(field in vals_write for field in ["t1_status", "mrn_id", "customs_status"]):
             if not allowed:
                 raise AccessError(_("Only Customs Admin / Warehouse Supervisor can modify T1 Status."))
+
+        if "t1_status" in vals_write:
+            if vals_write.get("t1_status") == "closed" and not vals_write.get("t1_closed_date"):
+                vals_write["t1_closed_date"] = fields.Date.context_today(self)
+            elif vals_write.get("t1_status") != "closed":
+                vals_write["t1_closed_date"] = False
+
         res = super().write(vals_write)
+
 
         if vals_write.get("t1_status") == "closed":
             for rec in self:

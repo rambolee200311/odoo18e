@@ -47,6 +47,16 @@ class StockQuant(models.Model):
             self.actionCreateCustomsMrnAuditLog(old_status_map, action_type="manual")
         return res
 
+    def getMrnStatusByCustomsStatus(self, customs_status):
+        if customs_status in ("bonded", "entrepot"):
+            return "pending_declaration"
+        if customs_status in ("vrij", "non_bonded"):
+            return "cleared"
+        if customs_status in ("rto", "ivv"):
+            return "declared"
+        if customs_status == "accijns":
+            return "exception"
+        return "status_changed"
 
 
     def actionCreateCustomsMrnAuditLog(self, old_status_map, action_type="manual"):
