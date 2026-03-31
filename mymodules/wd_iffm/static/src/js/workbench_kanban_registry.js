@@ -237,10 +237,24 @@ export class WorkbenchKanbanRenderer extends KanbanRenderer {
             this.props.list.load();
 //            重新打开整个页面（×）
 //            this.action.doAction(this.props.action, { clearBreadcrumbs: false });
+
+//        } catch (err) {
+//            console.log('122',err)
+//            this.notification.add('操作失败：' + (err.message || '未知错误'), {
+//                type: 'danger',
+//                title: '错误',
+//            });
+//        }
         } catch (err) {
-            this.notification.add('操作失败：' + (err.message || '未知错误'), {
-                type: 'danger',
-                title: '错误',
+            const msg =
+                err?.data?.arguments?.[0] ||
+                (err?.data?.message ? err.data.message.replace(/^odoo\.exceptions\.[^:]+:\s*/, "") : "") ||
+                err?.message ||
+                "未知错误";
+
+            this.notification.add(`操作失败：${msg}`, {
+                type: "danger",
+                title: "错误",
             });
         } finally {
             this.isCreating = false;
@@ -270,9 +284,15 @@ export class WorkbenchKanbanRenderer extends KanbanRenderer {
                 });
             }
         } catch (err) {
-            this.notification.add('操作失败：' + (err.message || '未知错误'), {
-                type: 'danger',
-                title: '错误',
+            const msg =
+                err?.data?.arguments?.[0] ||
+                (err?.data?.message ? err.data.message.replace(/^odoo\.exceptions\.[^:]+:\s*/, "") : "") ||
+                err?.message ||
+                "未知错误";
+
+            this.notification.add(`操作失败：${msg}`, {
+                type: "danger",
+                title: "错误",
             });
         } finally {
             this.isCreating = false;
