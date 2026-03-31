@@ -7,7 +7,19 @@ class OutboundOrder(models.Model):
 
     pick_type = fields.Many2one("stock.picking.type", string="Picking Type", tracking=True, domain="[('code', '=', 'outgoing'), ('warehouse_id', '=', warehouse), ('warehouse_id', '!=', False)]")
     cmr_sign_time = fields.Datetime(string="CMR Sign Time", tracking=True, copy=False, index=True, readonly=True)
-    mrn_id = fields.Many2one("bonded.mrn.master", string="MRN", index=True, copy=False, tracking=True)
+    mrn_id = fields.Many2one("bonded.mrn.master", string="MRN", index=True, copy=False, tracking=True,
+                             domain="[('id', 'in', inbound_confirm_mrn_ids)]")
+    inbound_confirm_mrn_ids = fields.Many2many("bonded.mrn.master", compute="_compute_inbound_confirm_mrn_ids",
+                                               compute_sudo=True)
+
+    @api.depends("mrn_id", "state")
+    def _compute_inbound_confirm_mrn_ids(self):
+        inbound_model = self.env["world.depot.inbound.order"]
+        used_ids = inbound_model.sudo().search([("mrn_id", "!=", False), ("state", "=", "confirm"),("stock_picking_id.state", "=", "done")]).mapped(
+            "mrn_id").ids
+
+        for rec in self:
+            rec.inbound_confirm_mrn_ids = [(6, 0, used_ids)]
 
     mrn_status = fields.Selection([
     ("pending_declaration", "Pending Declaration"),
