@@ -9,27 +9,104 @@ function _moveIdRaw(moveId) {
     return moveId?.id ?? moveId;
 }
 
-// Patch BarcodePickingModel
 patch(BarcodePickingModel.prototype, {
-    beforeQuit() {
-        return super.beforeQuit();
-    },
-
+    // =====================================================================================
+    // 1. 只给【超额分组父行】隐藏分母，正常需求行永远显示 0/10 这种格式
+    // =====================================================================================
     getQtyDemand(line) {
-        const parentLine = this._getParentLine(line) || line;
-        if (line.virtual_demand_qty || parentLine.virtual_demand_qty) {
-            return line.virtual_demand_qty || parentLine.virtual_demand_qty;
+        if (line.isExcessGroup) {
+            return false;
         }
-        if (line.reserved_uom_qty) {
-            return line.reserved_uom_qty;
-        }
-        if (line.move_id) {
-            const move = this.cache.getRecord("stock.move", line.move_id);
-            return move?.product_uom_qty || 0;
-        }
-        return 0;
+        return super.getQtyDemand(...arguments);
     },
 
+    // =====================================================================================
+    // 2. 独立groupKey，不冲突
+    // =====================================================================================
+    groupKey(line) {
+        const base = super.groupKey(...arguments);
+        return line.isExcessGroup ? `${base}_ex` : base;
+    },
+
+    // =====================================================================================
+    // 3. 构建分组（绝对解决空数组报错）
+    // =====================================================================================
+    _buildSplitGroupedLine(sublines, originalDemand, isExcess, opened) {
+        if (!sublines || sublines.length === 0) return null;
+
+        const ids = sublines.map(s => s.id);
+        const virtual_ids = sublines.map(s => s.virtual_id);
+        const qtyDone = sublines.reduce((sum, s) => sum + (s.qty_done || 0), 0);
+
+        const groupedLine = this._groupSublines(sublines, ids, virtual_ids, originalDemand, qtyDone);
+        groupedLine.opened = opened;
+        groupedLine.isExcessGroup = isExcess;
+        return groupedLine;
+    },
+
+    // =====================================================================================
+    // 4. 核心分组逻辑：
+    // 不报错 + 需求行永远显示分母 + 无超额不显示超额行
+    // =====================================================================================
+    groupLines() {
+        super.groupLines();
+        if (!this.groupingLinesEnabled) {
+            this._scheduleOverdoneDomSync();
+            return this._groupedLines;
+        }
+
+        const newGrouped = [];
+
+        for (const groupLine of this._groupedLines) {
+            const sublines = groupLine.lines;
+            if (!sublines?.length) {
+                newGrouped.push(groupLine);
+                continue;
+            }
+
+            const tracking = groupLine.product_id?.tracking;
+            if (!["serial", "lot"].includes(tracking)) {
+                newGrouped.push(groupLine);
+                continue;
+            }
+
+            const totalDemand = groupLine.reserved_uom_qty || 0;
+            const totalDone = sublines.reduce((sum, l) => sum + (l.qty_done || 0), 0);
+            const hasRealExcess = totalDone > totalDemand;
+
+            const realExcessLines = [];
+            const normalDemandLines = [];
+
+            for (const sub of sublines) {
+                if (sub.reserved_uom_qty === 0 && sub.qty_done > 0 && hasRealExcess) {
+                    realExcessLines.push(sub);
+                } else {
+                    normalDemandLines.push(sub);
+                }
+            }
+
+            // 无超额 → 不拆分
+            if (realExcessLines.length === 0) {
+                newGrouped.push(groupLine);
+                continue;
+            }
+
+            // 有超额 → 拆分成两组
+            const excessGroup = this._buildSplitGroupedLine(realExcessLines, totalDemand, true, true);
+            const demandGroup = this._buildSplitGroupedLine(normalDemandLines, totalDemand, false, false);
+
+            if (excessGroup) newGrouped.push(excessGroup);
+            if (demandGroup) newGrouped.push(demandGroup);
+        }
+
+        this._groupedLines = this._sortLine(newGrouped);
+        this._scheduleOverdoneDomSync();
+        return this._groupedLines;
+    },
+
+    // =====================================================================================
+    // 原生方法，完全不动
+    // =====================================================================================
     _getMoveLineData(id) {
         const smlData = this.cache.getRecord('stock.move.line', id);
         smlData.dummy_id = smlData.dummy_id && Number(smlData.dummy_id);
@@ -51,14 +128,6 @@ patch(BarcodePickingModel.prototype, {
         if (this.reloadingMoveLines) {
             if (prevLine) {
                 smlData.sortIndex = prevLine.sortIndex;
-                const smlMoveId = _moveIdRaw(smlData.move_id);
-                const storageKey = `virtual_demand_${this.resId}_${smlMoveId}`;
-                const storedDemand = sessionStorage.getItem(storageKey);
-                if (storedDemand !== null) {
-                    smlData.virtual_demand_qty = parseFloat(storedDemand);
-                } else if (prevLine.virtual_demand_qty) {
-                    smlData.virtual_demand_qty = prevLine.virtual_demand_qty;
-                }
                 if (smlData.quantity && !smlData.qty_done) {
                     smlData.reserved_uom_qty = smlData.quantity;
                 } else {
@@ -71,26 +140,10 @@ patch(BarcodePickingModel.prototype, {
                     }
                 }
             } else {
-                const smlMoveId = _moveIdRaw(smlData.move_id);
-                const storageKey = `virtual_demand_${this.resId}_${smlMoveId}`;
-                const storedDemand = sessionStorage.getItem(storageKey);
-                if (storedDemand !== null) {
-                    smlData.virtual_demand_qty = parseFloat(storedDemand);
-                } else {
-                    smlData.virtual_demand_qty = smlData.reserved_uom_qty || smlData.quantity;
-                }
                 smlData.qty_done = smlData.quantity;
                 smlData.reserved_uom_qty = 0;
             }
         } else {
-            const smlMoveId = _moveIdRaw(smlData.move_id);
-            const storageKey = `virtual_demand_${this.resId}_${smlMoveId}`;
-            const storedDemand = sessionStorage.getItem(storageKey);
-            if (storedDemand !== null) {
-                smlData.virtual_demand_qty = parseFloat(storedDemand);
-            } else {
-                smlData.virtual_demand_qty = smlData.reserved_uom_qty || smlData.quantity;
-            }
             smlData.reserved_uom_qty = smlData.quantity;
         }
 
@@ -101,67 +154,47 @@ patch(BarcodePickingModel.prototype, {
             resultPackage.package_type_id = packageType && this.cache.getRecord('stock.package.type', packageType);
         }
 
-        // 加载 line 完成后，触发超量高亮同步
         this._scheduleOverdoneDomSync();
-
         return smlData;
     },
 
     _updateLineQty(line, args) {
-        if (!args.qty_done) return;
-
-        const lineNextQty = (line.qty_done || 0) + args.qty_done;
-
-        if (line.product_id.tracking === "serial" && lineNextQty > 1) {
-            return;
+        const tracking = line.product_id?.tracking;
+        if (args.qty_done) {
+            if (tracking === "serial") {
+                const nextQty = (line.qty_done || 0) + args.qty_done;
+                if (nextQty > 1) return;
+            }
+            line.qty_done = (line.qty_done || 0) + args.qty_done;
+            this._setUser();
         }
 
         const parentLine = this._getParentLine(line) || line;
+        const moveRaw = _moveIdRaw(parentLine.move_id);
+        const move = moveRaw && this.cache.getRecord("stock.move", moveRaw);
+        const moveDemand = move?.product_uom_qty || 0;
 
-        if (!parentLine.virtual_demand_qty) {
-            const demandQty = this.getQtyDemand(parentLine);
-            parentLine.virtual_demand_qty = demandQty;
-        }
-
-        const demandQty = this.getQtyDemand(parentLine);
-
-        if (demandQty > 0) {
-            const moveKey = _moveIdRaw(parentLine.move_id) || parentLine.id;
-            const storageKey = `virtual_demand_${this.resId}_${moveKey}`;
-            sessionStorage.setItem(storageKey, String(demandQty));
-
-            const totalDoneForMove = this.currentState.lines.reduce((sum, l) => {
-                if (l.product_id.id === parentLine.product_id.id && l.move_id === parentLine.move_id) {
-                    if (!parentLine.reserved_uom_qty || l.virtual_id === parentLine.virtual_id || !l.reserved_uom_qty) {
-                        return sum + (l.qty_done || 0);
-                    }
+        if (moveDemand > 0) {
+            const totalDone = this.currentState.lines.reduce((sum, l) => {
+                if (l.product_id?.id === parentLine.product_id?.id && l.move_id === parentLine.move_id) {
+                    return sum + (l.qty_done || 0);
                 }
                 return sum;
             }, 0);
-
-            const nextTotal = totalDoneForMove + args.qty_done;
-
-            if (nextTotal > demandQty) {
-                this.notification(_t("Caution: Total quantity exceeds demand."), { type: "warning" });
+            if (totalDone > moveDemand) {
+                this.notification(_t("Caution: Total quantity exceeds demand."), { type: "danger" });
             }
         }
 
-        line.qty_done = lineNextQty;
-
-        if (!line.reserved_uom_qty && line.move_id) {
-            line.virtual_demand_qty = demandQty;
-        }
-
-        this._setUser();
         this._scheduleOverdoneDomSync();
     },
 
     _scheduleOverdoneDomSync() {
         if (!this._overdoneDomSyncDelays) {
-            this._overdoneDomSyncDelays = [0, 50, 150, 350, 600];
+            this._overdoneDomSyncDelays = [0, 50, 150, 350, 600, 1000];
         }
         for (const ms of this._overdoneDomSyncDelays) {
-            window.setTimeout(() => this._syncOverdoneDomHighlights(), ms);
+            setTimeout(() => this._syncOverdoneDomHighlights(), ms);
         }
     },
 
@@ -170,73 +203,26 @@ patch(BarcodePickingModel.prototype, {
     },
 
     _syncOverdoneDomHighlights() {
-        const stateLines = this.currentState?.lines;
-        if (!stateLines?.length) {
-            return;
-        }
-
-        const groups = new Map();
-        for (const l of stateLines) {
-            const moveId = l.move_id;
-            const productId = l.product_id?.id;
-            if (!moveId || !productId) {
-                continue;
-            }
-            const key = `${moveId}|${productId}`;
-            if (!groups.has(key)) {
-                const parent = this._getParentLine(l) || l;
-                const demand = this._lineDemandQty(parent);
-                groups.set(key, { demand, totalDone: 0, virtualIds: new Set(), moveId, productId });
-            }
-            const g = groups.get(key);
-            g.totalDone += l.qty_done || 0;
-            if (l.virtual_id !== undefined && l.virtual_id !== null) {
-                g.virtualIds.add(String(l.virtual_id));
-            }
-        }
-
-        const overVirtualIds = new Set();
-        for (const [, g] of groups) {
-            if (g.demand > 0 && g.totalDone > g.demand) {
-                for (const vid of g.virtualIds) {
-                    overVirtualIds.add(vid);
-                }
-            }
-        }
-
-        const clearQtyStyle = (el) => {
-            el.classList.remove("text-danger", "fw-bold");
+        document.querySelectorAll(".o_barcode_line").forEach(el => {
+            el.classList.remove("o_overdone_line", "text-danger", "fw-bold");
+            el.style.removeProperty("background-color");
             el.style.removeProperty("color");
             el.style.removeProperty("font-weight");
-        };
+        });
 
-        document.querySelectorAll(".o_barcode_line").forEach((el) => {
-            const vid = el.dataset.virtualId;
-            if (vid === undefined || vid === null || vid === "") {
-                return;
-            }
-            const isOver = overVirtualIds.has(String(vid));
+        document.querySelectorAll(".o_barcode_line.o_excess_group").forEach(root => {
+            root.classList.add("o_overdone_line");
+            root.style.setProperty("background-color", "rgba(220, 53, 69, 0.12)", "important");
 
-            el.classList.toggle("o_overdone_line", isOver);
-            if (isOver) {
-                el.style.setProperty("background-color", "rgba(220, 53, 69, 0.1)", "important");
-            } else {
-                el.style.removeProperty("background-color");
-            }
+            root.querySelectorAll(".o_sublines .o_barcode_line").forEach(sub => {
+                sub.classList.add("o_overdone_line");
+                sub.style.setProperty("background-color", "rgba(220, 53, 69, 0.07)", "important");
+            });
 
-            el.querySelectorAll(".qty-done, [class*='qty']").forEach(clearQtyStyle);
-            const qtyEl =
-                el.querySelector(".qty-done") ||
-                el.querySelector("[class*='qty-done']") ||
-                [...el.querySelectorAll("span, div")].find((node) => /\d+\s*\/\s*\d+/.test((node.textContent || "").trim()));
-
-            if (isOver && qtyEl) {
-                qtyEl.classList.add("text-danger", "fw-bold");
-                qtyEl.style.setProperty("color", "#dc3545", "important");
-                qtyEl.style.setProperty("font-weight", "700", "important");
-            } else if (qtyEl) {
-                clearQtyStyle(qtyEl);
-            }
+            root.querySelectorAll(".qty-done").forEach(el => {
+                el.classList.add("text-danger", "fw-bold");
+                el.style.setProperty("color", "#dc3545", "important");
+            });
         });
     },
 });
