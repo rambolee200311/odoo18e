@@ -82,7 +82,7 @@ class BondedIdentifierStockLedger(models.Model):
         })
         self.create(create_vals)
 
-    def actionSyncMoveLineList(self, move_line_list):
+    def actionSyncMoveLineList(self, move_line_list, factor=1.0):
         for move_line in move_line_list:
             if move_line.state != "done" or not move_line.product_id or (move_line.quantity or 0.0) <= 0:
                 continue
@@ -101,14 +101,19 @@ class BondedIdentifierStockLedger(models.Model):
                 "file_identifier": id_vals.get("file_identifier") or False,
             }
 
+            qty = (move_line.quantity or 0.0) * (factor or 1.0)
+
             if move_line.location_id and move_line.location_id.usage in ("internal", "transit"):
                 src_vals = dict(common_vals)
-                src_vals.update({"location_id": move_line.location_id.id, "package_id": move_line.package_id.id or False})
-                self.actionUpsertLedgerByDelta(src_vals, 0.0, move_line.quantity, move_line)
+                src_vals.update(
+                    {"location_id": move_line.location_id.id, "package_id": move_line.package_id.id or False})
+                self.actionUpsertLedgerByDelta(src_vals, 0.0, qty, move_line)
 
             if move_line.location_dest_id and move_line.location_dest_id.usage in ("internal", "transit"):
                 dst_vals = dict(common_vals)
-                dst_vals.update({"location_id": move_line.location_dest_id.id, "package_id": move_line.result_package_id.id or False})
-                self.actionUpsertLedgerByDelta(dst_vals, move_line.quantity, 0.0, move_line)
+                dst_vals.update({"location_id": move_line.location_dest_id.id,
+                                 "package_id": move_line.result_package_id.id or False})
+                self.actionUpsertLedgerByDelta(dst_vals, qty, 0.0, move_line)
 
         return True
+

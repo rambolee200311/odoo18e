@@ -43,7 +43,6 @@ class BondedMrnStockQuery(models.Model):
 
     def actionQueryMrnStock(self):
         line_model = self.env["stock.move.line"]
-        ledger_model = self.env["bonded.identifier.stock.ledger"]
         product_model = self.env["product.product"]
         mrn_model = self.env["bonded.mrn.master"]
 
@@ -61,10 +60,10 @@ class BondedMrnStockQuery(models.Model):
             if rec.mrn_id:
                 domain_line.append(("mrn_id", "=", rec.mrn_id.id))
 
-            line_ids = line_model.sudo().search(domain_line, order="date asc,id asc").ids
+            line_list = line_model.sudo().search(domain_line, order="date asc,id asc")
             data_map = {}
 
-            for sml in line_model.sudo().browse(line_ids):
+            for sml in line_list:
                 if not sml.mrn_id or not sml.product_id:
                     continue
 
@@ -87,7 +86,6 @@ class BondedMrnStockQuery(models.Model):
                         "latest_time": False,
                         "latest_in_time": False,
                         "latest_out_time": False,
-                        "stock_qty_ledger": None,
                     }
 
                 item = data_map[key]
@@ -104,16 +102,20 @@ class BondedMrnStockQuery(models.Model):
                         item["inbound_qty"] += qty
                         if (not item["latest_in_time"]) or sml.date >= item["latest_in_time"]:
                             item["latest_in_time"] = sml.date
-                            item[
-                                "inbound_no"] = sml.picking_id.inbound_order_id.billno if sml.picking_id and sml.picking_id.inbound_order_id else (
-                                sml.picking_id.name if sml.picking_id else False)
+                            item["inbound_no"] = (
+                                sml.picking_id.inbound_order_id.billno
+                                if sml.picking_id and sml.picking_id.inbound_order_id
+                                else (sml.picking_id.name if sml.picking_id else False)
+                            )
                     elif pick_code == "outgoing":
                         item["outbound_qty"] += qty
                         if (not item["latest_out_time"]) or sml.date >= item["latest_out_time"]:
                             item["latest_out_time"] = sml.date
-                            item[
-                                "outbound_no"] = sml.picking_id.outbound_order_id.billno if sml.picking_id and sml.picking_id.outbound_order_id else (
-                                sml.picking_id.name if sml.picking_id else False)
+                            item["outbound_no"] = (
+                                sml.picking_id.outbound_order_id.billno
+                                if sml.picking_id and sml.picking_id.outbound_order_id
+                                else (sml.picking_id.name if sml.picking_id else False)
+                            )
 
                 if (not item["latest_time"]) or sml.date >= item["latest_time"]:
                     item["latest_time"] = sml.date
@@ -123,47 +125,6 @@ class BondedMrnStockQuery(models.Model):
                     item["customs_status"] = sml.customs_status or item["customs_status"]
                     item["mrn_status"] = sml.mrn_status or item["mrn_status"]
 
-            domain_ledger = [("mrn_id", "!=", False)]
-            if rec.product_id:
-                domain_ledger.append(("product_id", "=", rec.product_id.id))
-            if rec.mrn_id:
-                domain_ledger.append(("mrn_id", "=", rec.mrn_id.id))
-
-            ledger_group = ledger_model.sudo().read_group(
-                domain_ledger,
-                ["mrn_id", "product_id", "qty_on_hand:sum"],
-                ["mrn_id", "product_id"],
-                lazy=False,
-            )
-
-            for row in ledger_group:
-                if not row.get("mrn_id") or not row.get("product_id"):
-                    continue
-                mrn_id = row["mrn_id"][0]
-                product_id = row["product_id"][0]
-                key = (mrn_id, product_id)
-                if key not in data_map:
-                    data_map[key] = {
-                        "mrn_id": mrn_id,
-                        "product_id": product_id,
-                        "customs_status": False,
-                        "mrn_status": False,
-                        "inbound_no": False,
-                        "outbound_no": False,
-                        "opening_qty": 0.0,
-                        "inbound_qty": 0.0,
-                        "outbound_qty": 0.0,
-                        "stock_qty": 0.0,
-                        "operator_id": False,
-                        "change_time": False,
-                        "remark": False,
-                        "latest_time": False,
-                        "latest_in_time": False,
-                        "latest_out_time": False,
-                        "stock_qty_ledger": None,
-                    }
-                data_map[key]["stock_qty_ledger"] = float(row.get("qty_on_hand", 0.0) or 0.0)
-
             product_ids = list({x["product_id"] for x in data_map.values() if x.get("product_id")})
             mrn_ids = list({x["mrn_id"] for x in data_map.values() if x.get("mrn_id")})
             product_map = {p.id: p for p in product_model.sudo().browse(product_ids)}
@@ -171,14 +132,10 @@ class BondedMrnStockQuery(models.Model):
 
             vals_list = []
             for item in data_map.values():
-                if item["stock_qty_ledger"] is not None:
-                    item["stock_qty"] = item["stock_qty_ledger"]
-                else:
-                    item["stock_qty"] = item["opening_qty"] + item["inbound_qty"] - item["outbound_qty"]
+                item["stock_qty"] = item["opening_qty"] + item["inbound_qty"] - item["outbound_qty"]
 
                 product = product_map.get(item["product_id"])
                 mrn = mrn_map.get(item["mrn_id"])
-
                 customs_status = item["customs_status"] or (product.customs_status if product else False)
                 mrn_status = item["mrn_status"] or (mrn.mrn_status if mrn else False)
 

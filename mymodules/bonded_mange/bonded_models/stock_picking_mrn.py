@@ -1,6 +1,6 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError, ValidationError
-
+from odoo.addons.bonded_mange.bonded_models.product_product_inherit import CUSTOMS_STATUS_SELECTION
 
 class StockPicking(models.Model):
     _inherit = "stock.picking"
@@ -14,6 +14,8 @@ class StockPicking(models.Model):
 
     t1_closed_date = fields.Date(string="T1 Closed Date",store=True, tracking=True)
 
+    customs_status = fields.Selection(CUSTOMS_STATUS_SELECTION, string="Customs Status",
+                                      compute="_compute_customs_status", store=True, index=True)
     @api.depends("mrn_id", "mrn_id.customs_status", "inbound_order_id", "inbound_order_id.is_bonded")
     def _compute_customs_status(self):
         for rec in self:

@@ -37,7 +37,7 @@
             <xpath expr="//field[@name='pick_type']" position="after">
                 <field name="unique_identifier" readonly="1"/>
                 <field name="file_identifier"  readonly="state != 'new'"/>
-                 <field name="t1_document_number" required="1" readonly="state != 'new'"/>
+                 <field name="t1_document_number" required="is_bonded==True" readonly="state != 'new'"/>
                 <field name="t1_status" readonly="state != 'new'"/>
                 <field name="t1_closed_date" readonly="1"/>
                 <field name="used_mrn_ids" invisible="1"/>

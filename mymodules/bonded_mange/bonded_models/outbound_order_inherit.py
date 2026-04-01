@@ -15,11 +15,20 @@ class OutboundOrder(models.Model):
     @api.depends("mrn_id", "state")
     def _compute_inbound_confirm_mrn_ids(self):
         inbound_model = self.env["world.depot.inbound.order"]
-        used_ids = inbound_model.sudo().search([("mrn_id", "!=", False), ("state", "=", "confirm"),("stock_picking_id.state", "=", "done")]).mapped(
-            "mrn_id").ids
+        outbound_model = self.env['world.depot.outbound.order']
+
+        inbound_mrn_ids = set(inbound_model.sudo().search(
+            [('mrn_id','!=',False),('state','=','confirm'),('stock_picking_id.state','=','done')]).mapped("mrn_id").ids)
+        used_mrn_ids = set(outbound_model.sudo().search(
+            [("id", "not in", self.ids), ("state", "!=", "cancel"), ("mrn_id", "!=", False)]
+        ).mapped("mrn_id").ids)
+        available_ids = list(inbound_mrn_ids-used_mrn_ids)
 
         for rec in self:
-            rec.inbound_confirm_mrn_ids = [(6, 0, used_ids)]
+            rec_ids = list(available_ids)
+            if rec.mrn_id:
+                rec_ids.append(rec.mrn_id.id)
+            rec.inbound_confirm_mrn_ids = [(6, 0,  list(set(rec_ids)))]
 
     mrn_status = fields.Selection([
     ("pending_declaration", "Pending Declaration"),
@@ -42,11 +51,29 @@ class OutboundOrder(models.Model):
     t1_closed_date = fields.Date(string="T1 Closed Date", index=True, tracking=True)
 
     def actionGetMrnMirrorVals(self, mrn):
+        inbound = self.env["world.depot.inbound.order"].sudo().search([
+        ("mrn_id", "=", mrn.id),
+        ("state", "=", "confirm"),
+        ("stock_picking_id.state", "=", "done"),
+    ], order="id desc", limit=1)
+        if inbound:
+            return {
+                "mrn_status": inbound.mrn_status or False,
+                "customs_status": "bonded" if inbound.is_bonded else "vrij",
+                "t1_document_number": inbound.t1_document_number or False,
+                "t1_status": inbound.t1_status or "open",
+                "t1_closed_date": inbound.t1_closed_date or False,
+                "project": inbound.project.id or False,
+                "warehouse": inbound.warehouse.id or False,
+            }
         return {
             "mrn_status": mrn.mrn_status or False,
+            "customs_status": mrn.customs_status or False,
             "t1_document_number": mrn.t1_document_number or False,
             "t1_status": mrn.t1_status or "open",
             "t1_closed_date": mrn.t1_closed_date or False,
+            "project": False,
+            "warehouse": False,
         }
 
     def getMrnQuantGroupData(self):
@@ -96,6 +123,12 @@ class OutboundOrder(models.Model):
                 rec.t1_document_number = vals["t1_document_number"]
                 rec.t1_status = vals["t1_status"]
                 rec.t1_closed_date = vals["t1_closed_date"]
+                if vals.get("project"):
+                    rec.project = vals["project"]
+                if vals.get("warehouse"):
+                    rec.warehouse = vals["warehouse"]
+                if rec.pick_type and rec.warehouse and rec.pick_type.warehouse_id != rec.warehouse:
+                    rec.pick_type = False
             else:
                 rec.mrn_status = False
                 rec.t1_document_number = False

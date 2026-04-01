@@ -146,12 +146,6 @@ class InboundOrderMrnDetailAction(models.Model):
 class StockPickingMrnDetailAction(models.Model):
     _inherit = "stock.picking"
 
-    customs_status = fields.Selection(CUSTOMS_STATUS_SELECTION, string="Customs Status", compute="_compute_customs_status", store=True, index=True)
-
-    @api.depends("inbound_order_id", "inbound_order_id.is_bonded")
-    def _compute_customs_status(self):
-        for rec in self:
-            rec.customs_status = "bonded" if rec.inbound_order_id and rec.inbound_order_id.is_bonded else ("vrij" if rec.inbound_order_id else False)
 
     def action_open_mrn_detail(self):
         return build_mrn_detail_action(self)

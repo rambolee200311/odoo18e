@@ -1,6 +1,14 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
-
+CUSTOMS_STATUS_SELECTION = [
+    ("vrij", "Vrij"),
+    ("rto", "Return to Origin"),
+    ("entrepot", "Bonded Warehouse"),
+    ("accijns", "Excise Goods"),
+    ("ivv", "Import/Export/Transit & Equivalent"),
+    ("bonded", "Bonded"),
+    ("non_bonded", "Free / Non-bonded"),
+]
 
 class ProductProduct(models.Model):
     _inherit = "product.product"
@@ -20,15 +28,7 @@ class ProductProduct(models.Model):
         string='Currency',
         default=lambda self: self.env.company.currency_id)
 
-    customs_status = fields.Selection([
-        ("vrij", "Vrij"),
-        ("rto", "Return to Origin"),
-        ("entrepot", "Bonded Warehouse"),
-        ("accijns", "Excise Goods"),
-        ("ivv", "Import/Export/Transit & Equivalent"),
-        ("bonded", "Bonded"),
-        ("non_bonded", "Free / Non-bonded"),
-    ], string="Customs Status", index=True, tracking=True,required=True,default="vrij")
+    customs_status = fields.Selection(CUSTOMS_STATUS_SELECTION, string="Customs Status", index=True, tracking=True,required=True,default="vrij")
 
 
 

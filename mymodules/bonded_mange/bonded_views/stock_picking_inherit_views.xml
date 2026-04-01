@@ -19,12 +19,13 @@
         <field name="inherit_id" ref="stock.view_picking_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='origin']" position="after">
-                <field name="mrn_id" readonly="1"/>
+                <field name="mrn_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                 <field name="mrn_status" readonly="1"/>
                 <field name="customs_status" readonly="1" widget="badge"
                        decoration-danger="customs_status in ('bonded', 'entrepot')"
                        decoration-info="customs_status in ('vrij', 'non_bonded')"
-                       decoration-warning="customs_status in ('rto', 'ivv', 'accijns')"/>
+                       decoration-warning="customs_status in ('rto', 'ivv', 'accijns')"
+                       />
 
                 <button name="action_open_mrn_detail" type="object" string="MRN Detail" class="btn-link"
                         icon="fa-external-link" invisible="not mrn_id"/>
@@ -61,7 +62,7 @@
                 <field name="customs_status"/>
                 <field name="mrn_id"/>
                 <field name="mrn_status"/>
-                   <field name="t1_document_number"/>
+                <field name="t1_document_number"/>
                 <field name="t1_status"/>
             </xpath>
             <xpath expr="//search/group[@expand='0']" position="before">
@@ -83,7 +84,7 @@
             <xpath expr="//search/group[@expand='0']" position="inside">
                 <filter string="Customs Status" name="group_by_customs_status" domain="[]"
                         context="{'group_by': 'customs_status'}"/>
-                  <filter string="T1 Status" name="group_by_t1_status" domain="[]" context="{'group_by':'t1_status'}"/>
+                <filter string="T1 Status" name="group_by_t1_status" domain="[]" context="{'group_by':'t1_status'}"/>
             </xpath>
         </field>
     </record>

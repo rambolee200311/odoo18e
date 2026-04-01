@@ -75,7 +75,7 @@
                        decoration-danger="customs_status in ('bonded', 'entrepot')"
                        decoration-info="customs_status in ('vrij', 'non_bonded')"
                        decoration-warning="customs_status in ('rto', 'ivv', 'accijns')"/>
-                <field name="mrn_id" optional="show" readonly="1"/>
+                <field name="mrn_id" optional="show" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                 <field name="mrn_status" widget="badge" optional="show" readonly="1"/>
                 <button name="action_open_mrn_detail" type="object" string="MRN Detail" class="btn-link"
                         icon="fa-external-link" invisible="not mrn_id"/>

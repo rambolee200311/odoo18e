@@ -50,26 +50,51 @@ class StockMoveLine(models.Model):
     t1_status = fields.Selection([("open", "Open"), ("closed", "Closed")], string="T1 Status", default="open", related="picking_id.t1_status", store=True, tracking=True, index=True)
     t1_closed_date = fields.Date(string="T1 Closed Date", related="picking_id.t1_closed_date", store=True, tracking=True)
 
+    ledger_posted = fields.Boolean(string="Ledger Posted", default=False, copy=False, index=True, readonly=True)
+
+    def actionGetLocationAncestorIds(self):
+        self.ensure_one()
+        ancestor_ids = []
+        location = self.location_id.sudo()
+        while location:
+            if location.id in ancestor_ids:
+                break
+            ancestor_ids.append(location.id)
+            location = location.location_id
+        return ancestor_ids
+
     def actionGetIdentifierPairByLedger(self):
         self.ensure_one()
         if not self.product_id or not self.location_id:
             return []
-        domain = [
+
+        ledger_model = self.env["bonded.identifier.stock.ledger"]
+        ancestor_ids = self.actionGetLocationAncestorIds()
+
+        base_domain = [
             ("company_id", "=", self.company_id.id),
             ("product_id", "=", self.product_id.id),
-            ("location_id", "=", self.location_id.id),
-            ("lot_id", "=", self.lot_id.id or False),
-            ("package_id", "=", self.package_id.id or False),
-            ("owner_id", "=", self.owner_id.id or False),
             ("qty_on_hand", ">", 0),
         ]
         if self.mrn_id:
-            domain.append(("mrn_id", "=", self.mrn_id.id))
-        ledger_ids = self.env["bonded.identifier.stock.ledger"].sudo().search(domain, order="last_time desc,id desc", limit=5).ids
+            base_domain.append(("mrn_id", "=", self.mrn_id.id))
+        # if self.owner_id:
+        #     base_domain.append(("owner_id", "=", self.owner_id.id))
+        # if self.lot_id:
+        #     base_domain.append(("lot_id", "=", self.lot_id.id))
+        # if self.package_id:
+        #     base_domain.append(("package_id", "=", self.package_id.id))
+
         pair_list = []
-        for rec in self.env["bonded.identifier.stock.ledger"].browse(ledger_ids):
-            if rec.unique_identifier or rec.file_identifier:
-                pair_list.append((rec.unique_identifier or False, rec.file_identifier or False))
+        for location_id in ancestor_ids:
+            domain = list(base_domain) + [("location_id", "=", location_id)]
+            ledger_ids = ledger_model.sudo().search(domain, order="last_time desc,id desc", limit=10).ids
+            for rec in ledger_model.browse(ledger_ids):
+                if rec.unique_identifier or rec.file_identifier:
+                    pair_list.append((rec.unique_identifier or False, rec.file_identifier or False))
+            if pair_list:
+                break
+
         return list({x for x in pair_list})
 
     def actionFillIdentifierForOutgoingByLedger(self, raise_if_missing=False):

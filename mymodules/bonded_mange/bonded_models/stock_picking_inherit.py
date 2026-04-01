@@ -6,7 +6,7 @@ class StockPicking(models.Model):
     _inherit = "stock.picking"
 
     cmr_sign_time = fields.Datetime(string="CMR Sign Time", tracking=True, copy=False, index=True)
-    cmr_sign_file = fields.Binary(string="Signed CMR File", attachment=True, tracking=True)
+    cmr_sign_file = fields.Binary(string="Signed CMR File", attachment=True)
     cmr_sign_filename = fields.Char(string="CMR Filename")
     unique_identifier = fields.Char(string="Unique Identifier", tracking=True, copy=False, index=True, readonly=True)
     file_identifier = fields.Char(string="File Identifier", tracking=True, copy=False, index=True, readonly=True)
@@ -122,6 +122,32 @@ class StockPicking(models.Model):
         self.actionSyncIdentifierToMoveLineFromPicking()
         return res
 
+    def actionPostLedgerByPicking(self):
+        ledger_model = self.env["bonded.identifier.stock.ledger"]
+        for rec in self:
+            if rec.picking_type_code not in ("incoming", "outgoing", "internal"):
+                continue
+            line_list = rec.move_line_ids.filtered(
+                lambda x: x.state == "done" and (x.quantity or 0.0) > 0 and not x.ledger_posted)
+            if line_list:
+                ledger_model.actionSyncMoveLineList(line_list, factor=1.0)
+                line_list.write({"ledger_posted": True})
+        return True
+
+    def actionReverseLedgerByPicking(self):
+        ledger_model = self.env["bonded.identifier.stock.ledger"]
+        for rec in self:
+            line_list = rec.move_line_ids.filtered(lambda x: x.ledger_posted and (x.quantity or 0.0) > 0)
+            if line_list:
+                ledger_model.actionSyncMoveLineList(line_list, factor=-1.0)
+                line_list.write({"ledger_posted": False})
+        return True
+
+    def action_cancel(self):
+        res = super().action_cancel()
+        self.actionReverseLedgerByPicking()
+        return res
+
     def button_validate(self):
         outgoing_pickings = self.filtered(lambda x: x.picking_type_code == "outgoing")
         for rec in outgoing_pickings:
@@ -135,10 +161,7 @@ class StockPicking(models.Model):
         done_pickings = self.filtered(lambda x: x.state == "done")
         if done_pickings:
             done_pickings.action_sync_identifier_to_stock_flow()
-            ledger_model = self.env["bonded.identifier.stock.ledger"]
-            for rec in done_pickings.filtered(lambda x: x.picking_type_code in ("incoming", "outgoing", "internal")):
-                move_lines = rec.move_line_ids.filtered(lambda x: x.state == "done" and (x.quantity or 0.0) > 0)
-                ledger_model.actionSyncMoveLineList(move_lines)
+            done_pickings.actionPostLedgerByPicking()
 
             for rec in done_pickings:
                 if rec.outbound_order_id and rec.cmr_sign_time:

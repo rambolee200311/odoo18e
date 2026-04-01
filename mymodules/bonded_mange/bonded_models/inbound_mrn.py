@@ -86,6 +86,7 @@ class InboundOrderInherit(models.Model):
         for rec in self:
 
             vals = {
+                "customs_status": rec.getCustomsStatusByBonded(rec.is_bonded),
                 "mrn_status": rec.mrn_status or False,
                 "t1_document_number": rec.t1_document_number or False,
                 "t1_status": rec.t1_status or "open",
@@ -94,6 +95,11 @@ class InboundOrderInherit(models.Model):
             rec.mrn_id.write(vals)
 
     def action_confirm(self):
+        for rec in self:
+            if rec.is_bonded and not rec.mrn_id:
+                raise ValidationError(_("Please select MRN"))
+            if rec.is_bonded and rec.t1_status != "closed":
+                raise ValidationError(_("Please close T1"))
         self.actionApplyBondedCustomsMrnMappingOnConfirm()
         res = super().action_confirm()
         self.actionSyncInboundSnapshotToMrn()
