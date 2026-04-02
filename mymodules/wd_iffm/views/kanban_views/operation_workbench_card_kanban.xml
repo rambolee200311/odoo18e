@@ -30,9 +30,72 @@
                                     <field name="name"/>
                                 </div>
                                 <div class="o_kanban_card_header_tags">
-                                    <span class="o_kanban_tag_pill" t-att-class="'o_tag_' + (record.display_state.raw_value || 'open')">
-                                        <field name="display_state"/>
-                                    </span>
+                                    <!-- 根据 lane 显示对应状态流程 -->
+                                    <!-- waybill: new -> confirm -> done -->
+                                    <div t-if="record.lane_code.raw_value == 'waybill'" class="d-flex align-items-center gap-1 flex-wrap">
+                                        <span t-attf-class="{{ record.display_state.raw_value == 'new' ? 'badge text-bg-primary' : (record.display_state.raw_value == 'confirm' or record.display_state.raw_value == 'done' ? 'text-success' : 'badge text-bg-secondary') }}">
+                                            <t t-if="record.display_state.raw_value == 'confirm' or record.display_state.raw_value == 'done'"><i class="fa fa-check fw-bold me-1"/> </t>New
+                                        </span>
+                                        <span t-attf-class="{{ record.display_state.raw_value == 'confirm' ? 'badge text-bg-warning' : (record.display_state.raw_value == 'done' ? 'text-success' : 'badge text-bg-secondary') }}">
+                                            <t t-if="record.display_state.raw_value == 'done'"><i class="fa fa-check fw-bold me-1"/> </t>Confirm
+                                        </span>
+                                        <span t-attf-class="{{ record.display_state.raw_value == 'done' ? 'badge text-bg-success' : 'badge text-bg-secondary' }}">Done</span>
+                                        <span t-if="record.display_state.raw_value == 'cancel'" class="badge text-bg-danger">Cancelled</span>
+                                    </div>
+                                    <!-- handover: open -> paying -> paid -> releasing -> released -> close -->
+                                    <div t-if="record.lane_code.raw_value == 'handover'" class="d-flex align-items-center gap-1 flex-wrap">
+                                        <!-- Open -->
+                                        <span t-if="record.display_state.raw_value == 'open'" class="badge text-bg-primary">Open</span>
+                                        <span t-else="" class="text-success"><i class="fa fa-check fw-bold"/> Open</span>
+                                        <!-- Paying -->
+                                        <span t-if="record.display_state.raw_value == 'paying'" class="badge text-bg-warning">Paying</span>
+                                        <span t-elif="['paid','releasing','released','close'].includes(record.display_state.raw_value)" class="text-success"><i class="fa fa-check fw-bold"/> Paying</span>
+                                        <span t-else="" class="badge text-bg-secondary">Paying</span>
+                                        <!-- Paid -->
+                                        <span t-if="record.display_state.raw_value == 'paid'" class="badge text-bg-info">Paid</span>
+                                        <span t-elif="['releasing','released','close'].includes(record.display_state.raw_value)" class="text-success"><i class="fa fa-check fw-bold"/> Paid</span>
+                                        <span t-else="" class="badge text-bg-secondary">Paid</span>
+                                        <!-- Releasing -->
+                                        <span t-if="record.display_state.raw_value == 'releasing'" class="badge text-bg-warning">Releasing</span>
+                                        <span t-elif="['released','close'].includes(record.display_state.raw_value)" class="text-success"><i class="fa fa-check fw-bold"/> Releasing</span>
+                                        <span t-else="" class="badge text-bg-secondary">Releasing</span>
+                                        <!-- Released -->
+                                        <span t-if="record.display_state.raw_value == 'released'" class="badge text-bg-info">Released</span>
+                                        <span t-elif="record.display_state.raw_value == 'close'" class="text-success"><i class="fa fa-check fw-bold"/> Released</span>
+                                        <span t-else="" class="badge text-bg-secondary">Released</span>
+                                        <!-- Close -->
+                                        <span t-if="record.display_state.raw_value == 'close'" class="badge text-bg-success">Close</span>
+                                        <span t-else="" class="badge text-bg-secondary">Close</span>
+                                        <!-- Cancelled -->
+                                        <span t-if="record.display_state.raw_value == 'cancelled'" class="badge text-bg-danger">Cancelled</span>
+                                    </div>
+                                    <!-- clearance: open -> paying -> paid -> clearancing -> clearanced -> close -->
+                                    <div t-if="record.lane_code.raw_value == 'clearance'" class="d-flex align-items-center gap-1 flex-wrap">
+                                        <!-- Open -->
+                                        <span t-if="record.display_state.raw_value == 'open'" class="badge text-bg-primary">Open</span>
+                                        <span t-else="" class="text-success"><i class="fa fa-check fw-bold"/> Open</span>
+                                        <!-- Paying -->
+                                        <span t-if="record.display_state.raw_value == 'paying'" class="badge text-bg-warning">Paying</span>
+                                        <span t-elif="['paid','clearancing','clearanced','close'].includes(record.display_state.raw_value)" class="text-success"><i class="fa fa-check fw-bold"/> Paying</span>
+                                        <span t-else="" class="badge text-bg-secondary">Paying</span>
+                                        <!-- Paid -->
+                                        <span t-if="record.display_state.raw_value == 'paid'" class="badge text-bg-info">Paid</span>
+                                        <span t-elif="['clearancing','clearanced','close'].includes(record.display_state.raw_value)" class="text-success"><i class="fa fa-check fw-bold"/> Paid</span>
+                                        <span t-else="" class="badge text-bg-secondary">Paid</span>
+                                        <!-- Clearancing -->
+                                        <span t-if="record.display_state.raw_value == 'clearancing'" class="badge text-bg-warning">Clearancing</span>
+                                        <span t-elif="['clearanced','close'].includes(record.display_state.raw_value)" class="text-success"><i class="fa fa-check fw-bold"/> Clearancing</span>
+                                        <span t-else="" class="badge text-bg-secondary">Clearancing</span>
+                                        <!-- Clearanced -->
+                                        <span t-if="record.display_state.raw_value == 'clearanced'" class="badge text-bg-info">Clearanced</span>
+                                        <span t-elif="record.display_state.raw_value == 'close'" class="text-success"><i class="fa fa-check fw-bold"/> Clearanced</span>
+                                        <span t-else="" class="badge text-bg-secondary">Clearanced</span>
+                                        <!-- Close -->
+                                        <span t-if="record.display_state.raw_value == 'close'" class="badge text-bg-success">Close</span>
+                                        <span t-else="" class="badge text-bg-secondary">Close</span>
+                                        <!-- Cancelled -->
+                                        <span t-if="record.display_state.raw_value == 'cancelled'" class="badge text-bg-danger">Cancelled</span>
+                                    </div>
                                 </div>
                             </div>
 
@@ -41,42 +104,51 @@
                                 <!-- 预报卡片内容 -->
                                 <div t-if="record.lane_code.raw_value == 'waybill'">
                                     <div class="o_kanban_card_content_row">
-                                        <span class="text-muted">提单号：</span>
-                                        <span t-esc="record.extra_data.raw_value.billno or record.extra_data.raw_value.bl_number or record.extra_data.raw_value.hbl_number or 'N/A'"/>
+                                        <span class="text-muted">H/L：</span>
+                                        <span t-esc="record.extra_data.raw_value.hbl_number or 'N/A'"/>
                                     </div>
                                     <div class="o_kanban_card_content_row">
-                                        <span class="text-muted">箱号：</span>
+                                        <span class="text-muted">M/L：</span>
+                                        <span t-esc="record.extra_data.raw_value.mbl_number or 'N/A'"/>
+                                    </div>
+                                    <div class="o_kanban_card_content_row">
+                                        <span class="text-muted">Container Number：</span>
                                         <span t-esc="record.extra_data.raw_value.container_number or '未绑定'"/>
+                                    </div>
+                                    <div class="o_kanban_card_content_row">
+                                        <span class="text-muted">Bill No：</span>
+<!--                                        <span t-esc="record.extra_data.raw_value.billno or record.extra_data.raw_value.bl_number or record.extra_data.raw_value.hbl_number or 'N/A'"/>-->
+                                        <span t-esc="record.extra_data.raw_value.billno or 'N/A'"/>
                                     </div>
                                 </div>
                                 <!-- 换单卡片内容 -->
                                 <div t-if="record.lane_code.raw_value == 'handover'">
                                     <div class="o_kanban_card_content_row">
-                                        <span class="text-muted">提单号：</span>
-                                        <span t-esc="record.extra_data.raw_value.bill_no or 'N/A'"/>
+                                        <span class="text-muted">B/L：</span>
+                                        <span t-esc="record.extra_data.raw_value.bl_number or '0'"/>
                                     </div>
                                     <div class="o_kanban_card_content_row">
-                                        <span class="text-muted">箱数：</span>
+                                        <span class="text-muted">Container Number：</span>
                                         <span t-esc="record.extra_data.raw_value.container_nums or '0'"/>
                                     </div>
-                                    <div class="o_kanban_card_content_row" t-if="record.extra_data.raw_value.do_issue_datetime">
-                                        <span class="text-muted">DO签发：</span>
-                                        <span t-esc="record.extra_data.raw_value.do_issue_datetime"/>
+                                    <div class="o_kanban_card_content_row">
+                                        <span class="text-muted">Issue Date：</span>
+                                        <span t-esc="record.extra_data.raw_value.do_issue_datetime || ''"/>
                                     </div>
                                 </div>
                                 <!-- 清关卡片内容 -->
                                 <div t-if="record.lane_code.raw_value == 'clearance'">
                                     <div class="o_kanban_card_content_row">
-                                        <span class="text-muted">提单号：</span>
-                                        <span t-esc="record.extra_data.raw_value.bill_no or 'N/A'"/>
+                                        <span class="text-muted">B/L：</span>
+                                        <span t-esc="record.extra_data.raw_value.bl_number or 'N/A'"/>
                                     </div>
                                     <div class="o_kanban_card_content_row">
-                                        <span class="text-muted">箱数：</span>
+                                        <span class="text-muted">Container Number：</span>
                                         <span t-esc="record.extra_data.raw_value.container_nums or '0'"/>
                                     </div>
-                                    <div class="o_kanban_card_content_row" t-if="record.extra_data.raw_value.clearance_finish_datetime">
-                                        <span class="text-muted">清关完成：</span>
-                                        <span t-esc="record.extra_data.raw_value.clearance_finish_datetime"/>
+                                    <div class="o_kanban_card_content_row">
+                                        <span class="text-muted">Clearance Date：</span>
+                                        <span t-esc="record.extra_data.raw_value.clearance_finish_datetime || ''"/>
                                     </div>
                                 </div>
                                 <!-- 备注 -->

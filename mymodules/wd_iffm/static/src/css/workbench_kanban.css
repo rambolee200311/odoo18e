@@ -12,8 +12,8 @@
 
 .o_kanban_view.wd_iffm_kanban .o_column,
 .o_kanban_view.wd_iffm_kanban .o_kanban_group {
-    min-width: 300px;
-    max-width: 350px;
+    min-width: 400px;
+    max-width: 600px;
     margin: 0 8px;
     background-color: #ffffff;
     border-radius: 8px;

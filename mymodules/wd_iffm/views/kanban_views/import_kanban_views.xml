@@ -6,20 +6,105 @@
         <field name="model">world.depot.waybill</field>
         <field name="arch" type="xml">
 <!--            can_open_records="True"-->
-        <kanban default_group_by="state" can_open_records="True" class="wd_iffm_kanban">
+        <kanban default_group_by="state" can_open_records="True" class="wd_iffm_kanban" groupby_sort="state asc, id desc">
             <field name="billno"/>
             <field name="project"/>
             <field name="state"/>
+            <field name="bl_number"/>
+            <field name="hbl_number"/>
+            <field name="eta"/>
+            <field name="ata"/>
+            <field name="container_qty"/>
+            <field name="obl_number"/>
+<!--            <field name="container_number"/>-->
+
             <templates>
                 <t t-name="card">
                     <a type="object" name="action_open_workbench_board_card" class="d-block text-decoration-none text-reset">
-                        <div class="oe_kanban_card p-2">
-                            <div><strong><field name="billno"/></strong></div>
-                            <div>Project: <field name="project"/></div>
-                            <div>Status: <field name="state"/></div>
-                            <button type="object" name="action_open_form" class="btn btn-sm btn-secondary" context="{'form_view_ref': 'wd_iffm.view_world_depot_waybill_form'}">
-                                详情
-                            </button>
+                        <div class="oe_kanban_card">
+                            <!-- 卡片头部 -->
+                            <div class="o_kanban_card_header d-flex align-items-start gap-1">
+                                <div class="o_kanban_card_header_title flex-grow-1 min-w-0">
+                                    <strong><field name="bl_number"/></strong>
+                                </div>
+                                <div class="o_kanban_card_header_tags">
+                                    <!-- 原生风格状态栏：New -> Confirm -> Done，当前状态高亮，已完成状态显示对勾 -->
+<!--                                    <div class="d-flex align-items-center gap-1 flex-wrap">-->
+<!--                                        &lt;!&ndash; New &ndash;&gt;-->
+<!--                                        <span t-attf-class="{{ record.state.raw_value == 'new' ? 'badge text-bg-primary' : (record.state.raw_value == 'confirm' or record.state.raw_value == 'done' ? 'text-success' : 'badge text-bg-secondary') }}">-->
+<!--                                            <t t-if="record.state.raw_value == 'confirm' or record.state.raw_value == 'done'"><i class="fa fa-check fw-bold me-1"/> </t>New-->
+<!--                                        </span>-->
+<!--                                        &lt;!&ndash; Confirm &ndash;&gt;-->
+<!--                                        <span t-attf-class="{{ record.state.raw_value == 'confirm' ? 'badge text-bg-warning' : (record.state.raw_value == 'done' ? 'text-success' : 'badge text-bg-secondary') }}">-->
+<!--                                            <t t-if="record.state.raw_value == 'done'"><i class="fa fa-check fw-bold me-1"/> </t>Confirm-->
+<!--                                        </span>-->
+<!--                                        &lt;!&ndash; Done &ndash;&gt;-->
+<!--                                        <span t-attf-class="{{ record.state.raw_value == 'done' ? 'badge text-bg-success' : 'badge text-bg-secondary' }}">Done</span>-->
+<!--                                        &lt;!&ndash; Cancel &ndash;&gt;-->
+<!--                                        <span t-if="record.state.raw_value == 'cancel'" class="badge text-bg-danger">Cancelled</span>-->
+<!--                                    </div>-->
+                                    <div class="d-flex align-items-center gap-1 flex-wrap">
+                                        <!-- 1. 换单收到 -->
+                                        <span t-attf-class="{{ record.release_received ? 'badge text-bg-success' : 'badge text-bg-warning' }}">
+                                            <t t-if="record.release_received">
+                                                <i class="fa fa-check fw-bold me-1"/>
+                                            </t>
+                                            <t t-esc="record.release_received ? 'DO Received' : 'DO Pending'"/>
+                                        </span>
+
+                                        <!-- 2. 海关清关 -->
+                                        <span t-attf-class="{{ record.custom_clearance ? 'badge text-bg-success' : 'badge text-bg-warning' }}">
+                                            <t t-if="record.custom_clearance">
+                                                <i class="fa fa-check fw-bold me-1"/>
+                                            </t>
+                                            <t t-esc="record.custom_clearance ? 'Cleared' : 'Clearance'"/>
+                                        </span>
+
+                                        <!-- 3. 已到港 -->
+                                        <span t-attf-class="{{ record.is_arrived ? 'badge text-bg-success' : 'badge text-bg-warning' }}">
+                                            <t t-if="record.is_arrived">
+                                                <i class="fa fa-check fw-bold me-1"/>
+                                            </t>
+                                            <t t-esc="record.is_arrived ? 'Arrived' : 'In Transit'"/>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 卡片内容 -->
+                            <div class="o_kanban_card_content">
+                                <div class="o_kanban_card_content_row">
+                                    <span class="text-muted">H/L: </span>
+                                    <field name="hbl_number"/>
+                                </div>
+                                <div class="o_kanban_card_content_row">
+                                    <span class="text-muted">M/L: </span>
+                                    <field name="obl_number"/>
+                                </div>
+<!--                                <div class="o_kanban_card_content_row">-->
+<!--                                    <span class="text-muted">Container Number: </span>-->
+<!--                                    <field name="container_number"/>-->
+<!--                                </div>-->
+                                <div class="o_kanban_card_content_row">
+                                    <span class="text-muted">ETA: </span>
+                                    <field name="eta"/>
+                                </div>
+                                <div class="o_kanban_card_content_row">
+                                    <span class="text-muted">ATA: </span>
+                                    <field name="ata"/>
+                                </div>
+                                <div class="o_kanban_card_content_row">
+                                    <span class="text-muted">Bill No: </span>
+                                    <field name="billno"/>
+                                </div>
+                            </div>
+
+                            <!-- 卡片底部 -->
+                            <div class="o_kanban_card_footer">
+                                <button type="object" name="action_open_form" class="btn btn-sm btn-secondary" context="{'form_view_ref': 'wd_iffm.view_world_depot_waybill_form'}">
+                                    详情
+                                </button>
+                            </div>
                         </div>
                     </a>
                 </t>
