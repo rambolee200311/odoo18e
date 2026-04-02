@@ -10,6 +10,9 @@
                        decoration-info="customs_status in ('vrij', 'non_bonded')"
                        decoration-warning="customs_status in ('rto', 'ivv', 'accijns')"/>
             </xpath>
+            <xpath expr="//list/field[@name='name']" position="after">
+                <field name="unique_identifier" optional="show"/>
+            </xpath>
         </field>
     </record>
 
