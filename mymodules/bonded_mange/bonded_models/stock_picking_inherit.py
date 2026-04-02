@@ -73,6 +73,7 @@ class StockPicking(models.Model):
             vals = {}
             if unique_identifier and rec.unique_identifier != unique_identifier:
                 vals["unique_identifier"] = unique_identifier
+                rec.outbound_order_id.unique_identifier = unique_identifier
             if file_identifier and rec.file_identifier != file_identifier:
                 vals["file_identifier"] = file_identifier
             if vals:

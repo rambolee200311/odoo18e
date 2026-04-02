@@ -23,7 +23,16 @@
 
 
 
-
+    <record id="view_inbound_order_tree_unique_identifier_inherit" model="ir.ui.view">
+        <field name="name">world.depot.inbound.order.list.unique.identifier.inherit</field>
+        <field name="model">world.depot.inbound.order</field>
+        <field name="inherit_id" ref="worlddepot.view_inbound_order_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list/field[@name='billno']" position="after">
+                <field name="unique_identifier" optional="show"/>
+            </xpath>
+        </field>
+    </record>
 
 
 
