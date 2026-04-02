@@ -192,11 +192,13 @@ class ImportPickupRequirement(models.Model):
                 "state": "cancelled"
             })
 
-    @api.model
-    def create(self, vals):
-        if not vals.get("name"):
-            vals["name"] = self.env["ir.sequence"].sudo().next_by_code("import.pickup.requirement")
-        return super().create(vals)
+    @api.model_create_multi
+    def create(self, vals_list):
+        seq_model = self.env["ir.sequence"].sudo()
+        for vals in vals_list:
+            if not vals.get("name"):
+                vals["name"] = seq_model.next_by_code("import.pickup.requirement")
+        return super().create(vals_list)
 
     def unlink(self):
         for rec in self:

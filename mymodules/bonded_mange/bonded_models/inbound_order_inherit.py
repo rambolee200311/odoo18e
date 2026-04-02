@@ -1,7 +1,9 @@
 import re
 
 from odoo import api, fields, models, _
-from odoo.exceptions import ValidationError, UserError
+from odoo.exceptions import ValidationError, UserError, AccessError
+
+
 # 新增两套序列 ir.sequence：unique_identifier（唯一标识号）和 file_identifier（档案编号）。
 # 序列规则支持格式化（如 IO-YYYYMMDD-0001），确保连续、不回收、不重复。
 # 在 inbound order 创建时自动生成 unique_identifier，同时自动生成 file_identifier（可后续人工改）。
@@ -94,6 +96,43 @@ class InboundOrderInherit(models.Model):
             vals['file_identifier'] = self.env['ir.sequence'].next_by_code('seq.inbound.file.identifier',
                                                                            sequence_date=seq_date) or '/'
         return super().create(vals)
+
+    def write(self, vals):
+        vals_write = dict(vals)
+        user = self.env.user
+        allowed = user.has_group("bonded_mange.group_customs_admin") or user.has_group(
+            "stock.group_stock_manager") or user.has_group("base.group_system")
+        if any(field in vals_write for field in ["t1_status", "mrn_id", "customs_status"]):
+            if not allowed:
+                raise AccessError(_("Only Customs Admin / Warehouse Supervisor can modify T1 Status."))
+
+        if "t1_status" in vals_write:
+            if vals_write.get("t1_status") == "closed" and not vals_write.get("t1_closed_date"):
+                vals_write["t1_closed_date"] = fields.Date.context_today(self)
+            elif vals_write.get("t1_status") != "closed":
+                vals_write["t1_closed_date"] = False
+
+        res = super().write(vals_write)
+
+
+        if vals_write.get("t1_status") == "closed":
+            for rec in self:
+                if rec.mrn_status != "declared":
+                    rec.with_context(skip_t1_linkage=True).write({"mrn_status": "declared"})
+                product_records = rec.inbound_order_product_ids.mapped(
+                    "inbound_order_product_pallet_ids.product_id").filtered(lambda x: x)
+                for product in product_records:
+                    if product.customs_status not in ("bonded", "entrepot"):
+                        product.write({"customs_status": "bonded"})
+                picking_ids = self.env["stock.picking"].sudo().search(
+                    [("inbound_order_id", "=", rec.id), ("picking_type_code", "=", "incoming")]).ids
+                for picking in self.env["stock.picking"].browse(picking_ids):
+                    picking.actionSyncPickingMrnFields()
+
+        return res
+
+
+
     @api.onchange("warehouse")
     def onchange_warehouse_filter_pick_type(self):
         domain = [("id", "=", 0)]

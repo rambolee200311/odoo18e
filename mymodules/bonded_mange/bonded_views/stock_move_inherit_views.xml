@@ -15,7 +15,7 @@
             <xpath expr="//list/field[@name='reference']" position="after">
                 <field name="unique_identifier" optional="show"/>
 
-                <field name="mrn_code" optional="show" readonly="1"/>
+                <field name="mrn_id" optional="show" readonly="1"/>
                 <field name="mrn_status" widget="badge" optional="show"/>
             </xpath>
         </field>
@@ -37,7 +37,7 @@
             <xpath expr="//field[@name='reference']" position="after">
                 <field name="unique_identifier" readonly="1"/>
 
-                <field name="mrn_code" optional="show" readonly="1"/>
+                <field name="mrn_id" optional="show" readonly="1"/>
                 <field name="mrn_status" widget="badge" optional="show" readonly="1"/>
             </xpath>
         </field>
@@ -51,7 +51,7 @@
             <xpath expr="//search/field[@name='origin']" position="after">
                 <field name="unique_identifier"/>
 
-                <field name="mrn_code" readonly="1"/>
+                <field name="mrn_id" readonly="1"/>
                 <field name="mrn_status" readonly="1"/>
             </xpath>
             <xpath expr="//search/group[@expand='0']" position="before">

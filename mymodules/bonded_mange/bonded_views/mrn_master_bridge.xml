@@ -1,0 +1,15 @@
+<odoo>
+     <record id="view_bonded_mrn_master_form" model="ir.ui.view">
+        <field name="name">bonded.mrn.master.form</field>
+        <field name="model">bonded.mrn.master</field>
+        <field name="arch" type="xml">
+            <form string="Bonded MRN Master" duplicate="false">
+                <sheet>
+                    <group>
+                        <field name="code" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

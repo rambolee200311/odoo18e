@@ -23,6 +23,7 @@ Long description of module's purpose
     # always loaded
     'data': [
         'security/ir.model.access.csv',
+        'security/security.xml',
         'data/sequence_inbound_data.xml',
         'bonded_views/stock_picking_inherit_views.xml',
         'bonded_views/stock_move_inherit_views.xml',
@@ -32,12 +33,18 @@ Long description of module's purpose
         'bonded_views/outbound_order_inherit_views.xml',
         'bonded_views/product_product_inherit_views.xml',
         'bonded_views/bonded_customs_mrn_audit_log_views.xml',
+        'bonded_views/mrn_stock_query_views.xml',
 
 
 
         'report/mrn_regulatory_report_action.xml',
         'report/mrn_regulatory_report_templates.xml',
+        'report/mrn_stock_query_report_action.xml',
+        'report/mrn_stock_query_report_templates.xml',
         'bonded_views/mrn_regulatory_report_views.xml',
+        'bonded_views/mrn_master_bridge.xml',
+    'bonded_views/identifier_stock_ledger_views.xml',
+
     ],
     # only loaded in demonstration mode
     'application': True,

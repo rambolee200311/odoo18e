@@ -12,7 +12,7 @@
                 <field name="field_name"/>
                 <field name="old_value"/>
                 <field name="new_value"/>
-                <field name="mrn_code" readonly="1"/>
+                <field name="mrn_id" readonly="1"/>
                 <field name="inbound_order_id"/>
                 <field name="picking_id"/>
             </list>
@@ -45,7 +45,7 @@
                     </group>
                     <group>
                         <group>
-                            <field name="mrn_code" readonly="1"/>
+                            <field name="mrn_id" readonly="1"/>
                             <field name="inbound_order_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                             <field name="picking_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                         </group>
@@ -69,7 +69,7 @@
         <field name="model">bonded.customs.mrn.audit.log</field>
         <field name="arch" type="xml">
             <search>
-                <field name="mrn_code" readonly="1"/>
+                <field name="mrn_id" readonly="1"/>
                 <field name="model_name"/>
                 <field name="field_name"/>
                 <field name="user_id"/>

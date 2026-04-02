@@ -34,11 +34,11 @@ class StockQuant(models.Model):
         ("rto", "Return to Origin"),
         ("entrepot", "Bonded Warehouse"),
         ("accijns", "Excise Goods"),
-        ("ivv", "Import/Export/Transit"),
+        ("ivv", "Import/Export/Transit & Equivalent"),
         ("bonded", "Bonded"),
         ("non_bonded", "Free / Non-bonded"),
     ], string="Customs Status", index=True, tracking=True,required=True,default="vrij")
-    mrn_code = fields.Char(string="MRN Code", tracking=True, copy=False, index=True)
+    mrn_id = fields.Many2one("bonded.mrn.master", string="MRN", index=True, copy=False, tracking=True)
     mrn_status = fields.Selection([
     ("pending_declaration", "Pending Declaration"),
     ("declared", "Declared"),
@@ -46,6 +46,14 @@ class StockQuant(models.Model):
     ("status_changed", "Status Changed"),
     ("exception", "Exception"),
     ], string="MRN Status", default="pending_declaration",tracking=True, copy=False, index=True)
+
+    t1_document_number = fields.Char(string="T1 Document Number", index=True, copy=False)
+    t1_status = fields.Selection([
+        ("open", "Open"),
+        ("closed", "Closed"),
+    ], string="T1 Status", default="open", tracking=True, index=True)
+
+    t1_closed_date = fields.Date(string="T1 Closed Date", tracking=True)
 
 
 

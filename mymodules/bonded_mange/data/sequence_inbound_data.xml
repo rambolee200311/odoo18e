@@ -3,8 +3,8 @@
         <record id="seq_inbound_unique_identifier" model="ir.sequence">
             <field name="name">Inbound Unique Identifier</field>
             <field name="code">seq.inbound.unique.identifier</field>
-            <field name="prefix">IO-%(year)s%(month)s%(day)s-</field>
-            <field name="padding">4</field>
+            <field name="prefix">IO-</field>
+            <field name="padding">8</field>
             <field name="number_next">1</field>
             <field name="number_increment">1</field>
             <field name="implementation">standard</field>
@@ -14,8 +14,8 @@
         <record id="seq_inbound_file_identifier" model="ir.sequence">
             <field name="name">Inbound File Identifier</field>
             <field name="code">seq.inbound.file.identifier</field>
-            <field name="prefix">FILE-%(year)s%(month)s%(day)s-</field>
-            <field name="padding">4</field>
+            <field name="prefix">FILE</field>
+            <field name="padding">8</field>
             <field name="number_next">1</field>
             <field name="number_increment">1</field>
             <field name="implementation">standard</field>

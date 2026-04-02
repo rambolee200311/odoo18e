@@ -24,12 +24,15 @@ class StockMove(models.Model):
     customs_code = fields.Char(string="Customs Code", tracking=True, readonly=True, index=True)
     unique_identifier = fields.Char(string='Unique Identifier', related='picking_id.unique_identifier', store=True,
                                     readonly=True, index=True)
+    file_identifier = fields.Char(string="File Identifier", related="picking_id.file_identifier", store=True,
+                                  readonly=True, index=True)
     currency_id = fields.Many2one(
         'res.currency',
         string='Currency',
         default=lambda self: self.env.company.currency_id)
 
-    mrn_code = fields.Char(string="MRN Code", tracking=True, copy=False, index=True)
+    mrn_id = fields.Many2one("bonded.mrn.master", string="MRN", related="picking_id.mrn_id", store=True, readonly=True,
+                             index=True)
     mrn_status = fields.Selection([
         ("pending_declaration", "Pending Declaration"),
         ("declared", "Declared"),
@@ -37,6 +40,16 @@ class StockMove(models.Model):
         ("status_changed", "Status Changed"),
         ("exception", "Exception"),
     ], string="MRN Status", default="pending_declaration", tracking=True, copy=False, index=True)
+
+    t1_document_number = fields.Char(string="T1 Document Number", related="picking_id.t1_document_number",
+                                     store=True, index=True, copy=False)
+    t1_status = fields.Selection([
+        ("open", "Open"),
+        ("closed", "Closed"),
+    ], string="T1 Status", default="open", related="picking_id.t1_status", store=True, tracking=True, index=True)
+
+    t1_closed_date = fields.Date(string="T1 Closed Date", related="picking_id.t1_closed_date", store=True,
+                                 tracking=True)
 
 
     @api.onchange("product_id")

@@ -231,6 +231,7 @@ class OperationWorkbenchCard(models.Model):
                 "extra_data": {
                     "bill_no": rec.bl_number or rec.hbl_number or rec.obl_number,
                     "container_nums": rec.container_nums,
+                    "do_issue_datetime": fields.Datetime.to_string(rec.actual_datetime) if rec.actual_datetime else False,
                     "extra_reason": rec.extra_reason,
                     "extra_remark": rec.extra_remark,
                 },

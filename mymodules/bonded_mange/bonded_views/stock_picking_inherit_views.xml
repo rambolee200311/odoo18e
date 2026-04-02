@@ -1,5 +1,5 @@
 <odoo>
-        <record id="view_stock_picking_tree_customs_status_inherit" model="ir.ui.view">
+    <record id="view_stock_picking_tree_customs_status_inherit" model="ir.ui.view">
         <field name="name">stock.picking.list.customs.status.inherit</field>
         <field name="model">stock.picking</field>
         <field name="inherit_id" ref="stock.vpicktree"/>
@@ -8,7 +8,7 @@
                 <field name="customs_status" optional="show" widget="badge"
                        decoration-danger="customs_status in ('bonded', 'entrepot')"
                        decoration-info="customs_status in ('vrij', 'non_bonded')"
-                       decoration-warning="customs_status in ('rto', 'ivv', 'ivv_equivalent', 'accijns')"/>
+                       decoration-warning="customs_status in ('rto', 'ivv', 'accijns')"/>
             </xpath>
         </field>
     </record>
@@ -19,14 +19,16 @@
         <field name="inherit_id" ref="stock.view_picking_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='origin']" position="after">
-                <field name="mrn_code" readonly="1"/>
+                <field name="mrn_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                 <field name="mrn_status" readonly="1"/>
                 <field name="customs_status" readonly="1" widget="badge"
                        decoration-danger="customs_status in ('bonded', 'entrepot')"
                        decoration-info="customs_status in ('vrij', 'non_bonded')"
-                       decoration-warning="customs_status in ('rto', 'ivv', 'ivv_equivalent', 'accijns')"/>
+                       decoration-warning="customs_status in ('rto', 'ivv', 'accijns')"
+                       />
 
-                <button name="action_open_mrn_detail" type="object" string="MRN Detail" class="btn-link" icon="fa-external-link" invisible="not mrn_code"/>
+                <button name="action_open_mrn_detail" type="object" string="MRN Detail" class="btn-link"
+                        icon="fa-external-link" invisible="not mrn_id"/>
                 <field name="cmr_sign_time"
                        invisible="picking_type_code not in ('outgoing')"
                        readonly="state == 'done'"
@@ -41,6 +43,9 @@
                        required="picking_type_code in ('outgoing') and state not in ('done', 'cancel')"/>
                 <field name="unique_identifier" readonly="1"/>
                 <field name="file_identifier"/>
+                <field name="t1_document_number" readonly="1"/>
+                <field name="t1_status" readonly="1"/>
+                <field name="t1_closed_date" readonly="1"/>
             </xpath>
         </field>
     </record>
@@ -54,9 +59,11 @@
             <xpath expr="//search/field[@name='origin']" position="after">
                 <field name="unique_identifier"/>
                 <field name="file_identifier"/>
-<field name="customs_status"/>
-                <field name="mrn_code"/>
+                <field name="customs_status"/>
+                <field name="mrn_id"/>
                 <field name="mrn_status"/>
+                <field name="t1_document_number"/>
+                <field name="t1_status"/>
             </xpath>
             <xpath expr="//search/group[@expand='0']" position="before">
                 <filter name="has_unique_identifier" string="Has Unique Identifier"
@@ -65,15 +72,19 @@
                         domain="[('file_identifier', '!=', False)]"/>
             </xpath>
 
-             <xpath expr="//search/filter[@name='delivery']" position="after">
-                <filter name="customs_bonded" string="Bonded/Entrepot" domain="[('customs_status', 'in', ['bonded', 'entrepot'])]"/>
-                <filter name="customs_non_bonded" string="Vrij/Non-bonded" domain="[('customs_status', 'in', ['vrij', 'non_bonded'])]"/>
+            <xpath expr="//search/filter[@name='delivery']" position="after">
+                <filter name="customs_bonded" string="Bonded/Entrepot"
+                        domain="[('customs_status', 'in', ['bonded', 'entrepot'])]"/>
+                <filter name="customs_non_bonded" string="Vrij/Non-bonded"
+                        domain="[('customs_status', 'in', ['vrij', 'non_bonded'])]"/>
                 <filter name="customs_rto" string="RTO" domain="[('customs_status', '=', 'rto')]"/>
                 <filter name="customs_accijns" string="Accijns" domain="[('customs_status', '=', 'accijns')]"/>
-                <filter name="customs_ivv" string="IVV" domain="[('customs_status', 'in', ['ivv', 'ivv_equivalent'])]"/>
+                <filter name="customs_ivv" string="IVV" domain="[('customs_status', 'in', ['ivv'])]"/>
             </xpath>
             <xpath expr="//search/group[@expand='0']" position="inside">
-                <filter string="Customs Status" name="group_by_customs_status" domain="[]" context="{'group_by': 'customs_status'}"/>
+                <filter string="Customs Status" name="group_by_customs_status" domain="[]"
+                        context="{'group_by': 'customs_status'}"/>
+                <filter string="T1 Status" name="group_by_t1_status" domain="[]" context="{'group_by':'t1_status'}"/>
             </xpath>
         </field>
     </record>

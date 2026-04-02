@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- API访问日志的列表视图 -->
+    <record id="view_device_api_log_tree" model="ir.ui.view">
+        <field name="name">device.api.log.tree</field>
+        <field name="model">device.api.log</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="create_date" string="Timestamp"/>
+                <field name="device_id" string="Device Fingerprint"/>
+                <field name="cert_serial" string="Certificate Serial"/>
+                <field name="ip_address" string="IP Address"/>
+                <field name="status" string="Status" widget="badge" 
+                       decoration-success="status == 'allowed'"
+                       decoration-danger="status == 'blocked'"
+                       decoration-warning="status == 'failed'"/>
+                <field name="message" string="Message"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- API访问日志的表单视图（可选，用于查看详情） -->
+    <record id="view_device_api_log_form" model="ir.ui.view">
+        <field name="name">device.api.log.form</field>
+        <field name="model">device.api.log</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group string="Verification Details">
+                            <field name="create_date" readonly="1"/>
+                            <field name="device_id" readonly="1"/>
+                            <field name="cert_serial" readonly="1"/>
+                            <field name="ip_address" readonly="1"/>
+                        </group>
+                        <group string="Status Information">
+                            <field name="status" readonly="1"/>
+                            <field name="message" readonly="1" nolabel="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- API访问日志的搜索视图 -->
+    <record id="view_device_api_log_search" model="ir.ui.view">
+        <field name="name">device.api.log.search</field>
+        <field name="model">device.api.log</field>
+        <field name="arch" type="xml">
+            <search>
+                <!-- 基本搜索字段 -->
+                <field name="device_id"/>
+                <field name="cert_serial"/>
+                <field name="ip_address"/>
+                <field name="message"/>
+                
+                <!-- 状态过滤器 -->
+                <filter name="allowed" string="Allowed" domain="[('status','=','allowed')]"/>
+                <filter name="blocked" string="Blocked" domain="[('status','=','blocked')]"/>
+                <filter name="failed" string="Failed" domain="[('status','=','failed')]"/>
+                
+                <!-- 时间过滤器 -->
+                <!-- <filter name="today" string="Today" domain="[('create_date','>=', context_today().strftime('%Y-%m-%d 00:00:00')), ('create_date','<=', context_today().strftime('%Y-%m-%d 23:59:59'))]"/>
+                <filter name="last_7_days" string="Last 7 Days" domain="[('create_date','>=', (context_today() - datetime.timedelta(days=7)).strftime('%Y-%m-%d 00:00:00'))]"/>
+                <filter name="last_30_days" string="Last 30 Days" domain="[('create_date','>=', (context_today() - datetime.timedelta(days=30)).strftime('%Y-%m-%d 00:00:00'))]"/> -->
+                
+                <!-- 分组选项 -->
+                <!-- <group expand="0" string="Group By">
+                    <filter name="group_by_device" string="Device Fingerprint" context="{'group_by':'device_id'}"/>
+                    <filter name="group_by_status" string="Status" context="{'group_by':'status'}"/>
+                    <filter name="group_by_day" string="Day" context="{'group_by':'create_date:day'}"/>
+                </group> -->
+            </search>
+        </field>
+    </record>
+
+    <!-- API访问日志的窗口动作 -->
+    <record id="action_device_api_log" model="ir.actions.act_window">
+        <field name="name">API Verification Logs</field>
+        <field name="res_model">device.api.log</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_device_api_log_search"/>
+        <field name="context">{'search_default_last_7_days': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No verification logs found.
+            </p>
+            <p>
+                This view shows all API verification attempts for device-certificate binding.
+                Logs are automatically created when users attempt to verify their devices.
+            </p>
+        </field>
+    </record>
+
+    
+</odoo>
