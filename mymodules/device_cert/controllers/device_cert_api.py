@@ -21,25 +21,14 @@ class DeviceCertAPI(http.Controller):
         return self._get_config_param('custom_device_cert.api_auth_key', 
                                       'DEFAULT_KEY_PLEASE_CHANGE_IMMEDIATELY')
     
-    def _get_encryption_key(self):
-        """Get encryption key (ensuring it matches the one used by the model)"""
-        key_b64 = self._get_config_param('custom_device_cert.encryption_key')
-        if not key_b64:
-            new_key = Fernet.generate_key()
-            key_b64 = base64.urlsafe_b64encode(new_key).decode()
-            request.env['ir.config_parameter'].sudo().set_param(
-                'custom_device_cert.encryption_key', key_b64
-            )
-        return base64.urlsafe_b64decode(key_b64.encode())
     
     def _encrypt_password(self, plain_password):
         """Encrypt password"""
         if not plain_password:
             return None
         try:
-            key = self._get_encryption_key()
-            cipher = Fernet(key)
-            return cipher.encrypt(plain_password.encode()).decode()
+            tool = request.env['device.cert.encryption.tool'].sudo()          
+            return tool.encrypt(plain_password)
         except Exception as e:
             _logger.error(f"Password encryption failed: {e}")
             raise
