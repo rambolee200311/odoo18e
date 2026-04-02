@@ -160,10 +160,10 @@
                             <!-- 卡片底部 -->
                             <div class="o_kanban_card_footer">
                                 <button type="object" name="action_model_form_views" class="btn btn-sm btn-secondary">
-                                    详情
+                                    Details
                                 </button>
                                 <button t-if="record.is_main.raw_value and record.lane_code.raw_value != 'waybill'" type="object" name="action_card_create_child" class="btn btn-sm btn-light border">
-                                    + 子单
+                                    + Child
                                 </button>
                             </div>
                         </div>

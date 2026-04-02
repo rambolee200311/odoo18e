@@ -102,7 +102,7 @@
                             <!-- 卡片底部 -->
                             <div class="o_kanban_card_footer">
                                 <button type="object" name="action_open_form" class="btn btn-sm btn-secondary" context="{'form_view_ref': 'wd_iffm.view_world_depot_waybill_form'}">
-                                    详情
+                                    Details
                                 </button>
                             </div>
                         </div>
