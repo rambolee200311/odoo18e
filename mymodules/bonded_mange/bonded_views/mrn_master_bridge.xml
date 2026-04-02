@@ -6,7 +6,7 @@
             <form string="Bonded MRN Master" duplicate="false">
                 <sheet>
                     <group>
-                        <field name="code" readonly="1"/>
+                        <field name="code"/>
                     </group>
                 </sheet>
             </form>

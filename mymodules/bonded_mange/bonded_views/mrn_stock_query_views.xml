@@ -21,19 +21,24 @@
         <field name="arch" type="xml">
             <form duplicate="0">
                 <header>
-                    <button name="actionQueryMrnStock" type="object" string="Query" class="btn-primary"/>
+                    <button name="actionQueryMrnStock" type="object" string="Query" class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="actionBackToDraft" type="object" string="Back To Draft" class="btn-secondary"
+                            invisible="state != 'done'" groups="base.group_system"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,done"/>
                 </header>
                 <sheet>
                     <group>
-                        <field name="name"/>
-                        <field name="start_time" required="1"/>
-                        <field name="end_time" required="1"/>
-                        <field name="product_id" options="{'no_create': True, 'no_open': True}"/>
-                        <field name="mrn_id" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="name" readonly="state == 'done'"/>
+                        <field name="start_time" required="1" readonly="state == 'done'"/>
+                        <field name="end_time" required="1" readonly="state == 'done'"/>
+                        <field name="product_id" readonly="state == 'done'"
+                               options="{'no_create': True, 'no_open': True}"/>
+                        <field name="mrn_id" readonly="state == 'done'" options="{'no_create': True, 'no_open': True}"/>
                     </group>
                     <group>
-                        <field name="query_lines" nolabel="1" options="{'no_create': True, 'no_open': True}" readonly="1">
+                        <field name="query_lines" nolabel="1" readonly="1"
+                               options="{'no_create': True, 'no_open': True}">
                             <list create="0" edit="0" delete="0" default_order="id desc">
                                 <field name="mrn_id"/>
                                 <field name="product_id"/>
@@ -80,5 +85,6 @@
     </record>
 
     <menuitem id="menu_bonded_mrn_stock_query" name="MRN Product Stock Query"
-              parent="worlddepot.menu_world_depot_configuration" action="action_bonded_mrn_stock_query" sequence="983" groups="base.group_user"/>
+              parent="worlddepot.menu_world_depot_configuration" action="action_bonded_mrn_stock_query" sequence="983"
+              groups="base.group_user"/>
 </odoo>
