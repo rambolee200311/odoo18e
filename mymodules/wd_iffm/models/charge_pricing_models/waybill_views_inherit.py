@@ -254,6 +254,7 @@ class WaybillViewsInherit(models.Model):
                 "waybill_id": rec.id,
                 "handover_id": handover.id,
                 "handover_name": handover.name,
+                "container_qty": handover.container_qty,
                 "message": _("Handover order created successfully."),
             })
 
@@ -331,6 +332,8 @@ class WaybillViewsInherit(models.Model):
                 "waybill_id": rec.id,
                 "clearance_id": clearance.id,
                 "clearance_name": clearance.name,
+                "container_qty": clearance.container_qty,
+
                 "message": _("Clearance order created successfully."),
             })
 

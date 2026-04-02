@@ -181,6 +181,7 @@ class OperationOrderHandover(models.Model):
                     "name": child.name,
                     "state": child.state,
                     "parent_id": child.parent_id.id,
+                    "container_qty": child.container_qty,
                 },
             }
 
