@@ -42,9 +42,9 @@
                 <field name="t1_closed_date" readonly="1"/>
                 <field name="used_mrn_ids" invisible="1"/>
 
-                <field name="mrn_id" readonly="state != 'new'"/>
+                <field name="mrn_id" readonly="state != 'new'" options="{'no_open': True}"/>
                 <field name="mrn_status" readonly="1"/>
-                <button name="action_open_mrn_detail" type="object" string="MRN Detail" class="btn-link" icon="fa-external-link" invisible="not mrn_id"/>
+<!--                <button name="action_open_mrn_detail" type="object" string="MRN Detail" class="btn-link" icon="fa-external-link" invisible="not mrn_id"/>-->
             </xpath>
         </field>
     </record>

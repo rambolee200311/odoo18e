@@ -27,8 +27,8 @@
                        decoration-warning="customs_status in ('rto', 'ivv', 'accijns')"
                        />
 
-                <button name="action_open_mrn_detail" type="object" string="MRN Detail" class="btn-link"
-                        icon="fa-external-link" invisible="not mrn_id"/>
+<!--                <button name="action_open_mrn_detail" type="object" string="MRN Detail" class="btn-link"-->
+<!--                        icon="fa-external-link" invisible="not mrn_id"/>-->
                 <field name="cmr_sign_time"
                        invisible="picking_type_code not in ('outgoing')"
                        readonly="state == 'done'"
