@@ -41,6 +41,16 @@ class BondedMrnStockQuery(models.Model):
             if rec.start_time and rec.end_time and rec.start_time > rec.end_time:
                 raise ValidationError(_("Start Time cannot be later than End Time."))
 
+    def actionBackToDraft(self):
+        for rec in self:
+            if rec.state != "done":
+                continue
+            if not self.env.user.has_group("base.group_system"):
+                raise ValidationError(_("Only administrators can reset to Draft."))
+            rec.write({"state": "draft"})
+        return True
+
+
     def actionQueryMrnStock(self):
         line_model = self.env["stock.move.line"]
         product_model = self.env["product.product"]
