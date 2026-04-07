@@ -52,12 +52,12 @@ class StockPicking(models.Model):
     @api.depends("mrn_id", "mrn_id.customs_status", "inbound_order_id", "inbound_order_id.is_bonded", "outbound_order_id")
     def _compute_customs_status(self):
         for rec in self:
-            if rec.mrn_id and rec.mrn_id.customs_status:
-                rec.customs_status = rec.mrn_id.customs_status
-            elif rec.inbound_order_id:
+            if rec.inbound_order_id:
                 rec.customs_status = "bonded" if rec.inbound_order_id.is_bonded else "vrij"
+            elif rec.mrn_id and rec.mrn_id.customs_status:
+                rec.customs_status = rec.mrn_id.customs_status
             else:
-                rec.customs_status = False
+                rec.customs_status = "vrij"
 
     def actionGetMrnMirrorVals(self, mrn):
         return {

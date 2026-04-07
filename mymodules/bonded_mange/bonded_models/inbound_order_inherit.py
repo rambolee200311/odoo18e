@@ -105,6 +105,7 @@ class InboundOrderInherit(models.Model):
                     "t1_document_number": rec.t1_document_number or False,
                     "t1_status": rec.t1_status or "open",
                     "t1_closed_date": rec.t1_closed_date or False,
+                    "customs_status": "bonded" if rec.is_bonded else "vrij"
                 })
 
             domain = [("state", "!=", "cancel")]
@@ -137,7 +138,7 @@ class InboundOrderInherit(models.Model):
                 vals_write["t1_closed_date"] = False
 
         res = super().write(vals_write)
-
+        self.actionSyncInboundSnapshotToMrn()
         if need_sync_t1:
             self.actionSyncInboundT1ToMrnAndQuant()
         if vals_write.get("t1_status") == "closed":
