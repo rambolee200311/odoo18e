@@ -49,7 +49,7 @@ class StockPicking(models.Model):
                 rec.t1_status = "open"
                 rec.t1_closed_date = False
 
-    @api.depends("mrn_id", "mrn_id.customs_status", "inbound_order_id", "inbound_order_id.is_bonded")
+    @api.depends("mrn_id", "mrn_id.customs_status", "inbound_order_id", "inbound_order_id.is_bonded", "outbound_order_id")
     def _compute_customs_status(self):
         for rec in self:
             if rec.mrn_id and rec.mrn_id.customs_status:

@@ -97,8 +97,32 @@ class InboundOrderInherit(models.Model):
                                                                            sequence_date=seq_date) or '/'
         return super().create(vals)
 
+    def actionSyncInboundT1ToMrnAndQuant(self):
+        picking_model = self.env["stock.picking"]
+        for rec in self:
+            if rec.mrn_id:
+                rec.mrn_id.write({
+                    "t1_document_number": rec.t1_document_number or False,
+                    "t1_status": rec.t1_status or "open",
+                    "t1_closed_date": rec.t1_closed_date or False,
+                })
+
+            domain = [("state", "!=", "cancel")]
+            if rec.mrn_id:
+                domain = ["|", ("inbound_order_id", "=", rec.id), ("mrn_id", "=", rec.mrn_id.id)] + domain
+            else:
+                domain.append(("inbound_order_id", "=", rec.id))
+
+            picking_ids = picking_model.sudo().search(domain).ids
+            if picking_ids:
+                picking_model.browse(picking_ids).actionSyncPickingMrnFields()
+        return True
+
+
+
     def write(self, vals):
         vals_write = dict(vals)
+        need_sync_t1 = any(x in vals_write for x in ['t1_status','t1_closed_date','t1_document_number'])
         user = self.env.user
         allowed = user.has_group("bonded_mange.group_customs_admin") or user.has_group(
             "stock.group_stock_manager") or user.has_group("base.group_system")
@@ -114,7 +138,8 @@ class InboundOrderInherit(models.Model):
 
         res = super().write(vals_write)
 
-
+        if need_sync_t1:
+            self.actionSyncInboundT1ToMrnAndQuant()
         if vals_write.get("t1_status") == "closed":
             for rec in self:
                 if rec.mrn_status != "declared":
@@ -161,8 +186,11 @@ def get_reference_vals(product):
         "goods_value": product.goods_value or 0.0,
         "hs_code": product.hs_code or False,
         "weight": product.weight or 0.0,
-        "customs_code": product.customs_code or False,
+        #"customs_code": product.customs_code or False,
     }
+
+
+
 class InboundOrderProductsOfPallet(models.Model):
     _inherit = "world.depot.inbound.order.products.pallet"
 
@@ -212,7 +240,7 @@ class InboundOrderProductsOfPallet(models.Model):
                 rec.goods_value = vals["goods_value"]
                 rec.hs_code = vals["hs_code"]
                 rec.weight = vals["weight"]
-                rec.customs_code = vals["customs_code"]
+                #rec.customs_code = vals["customs_code"]
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -226,7 +254,7 @@ class InboundOrderProductsOfPallet(models.Model):
             vals.setdefault("goods_value", vals_ref["goods_value"])
             vals.setdefault("weight", vals_ref["weight"])
             vals["hs_code"] = vals_ref["hs_code"]
-            vals["customs_code"] = vals_ref["customs_code"]
+            #vals["customs_code"] = vals_ref["customs_code"]
         return super().create(vals_list)
 
     def write(self, vals):
@@ -237,7 +265,7 @@ class InboundOrderProductsOfPallet(models.Model):
             vals_ref = get_reference_vals(product)
             vals = dict(vals)
             vals["hs_code"] = vals_ref["hs_code"]
-            vals["customs_code"] = vals_ref["customs_code"]
+            #vals["customs_code"] = vals_ref["customs_code"]
             vals.setdefault("origin_country", vals_ref["origin_country"])
             vals.setdefault("goods_value", vals_ref["goods_value"])
             vals.setdefault("weight", vals_ref["weight"])

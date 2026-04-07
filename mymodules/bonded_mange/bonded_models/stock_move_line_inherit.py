@@ -20,6 +20,8 @@ class StockMoveLine(models.Model):
     hs_code = fields.Char(string="HS Code", tracking=True, readonly=True, index=True)
     weight = fields.Float(string="Weight", tracking=True)
     customs_code = fields.Char(string="Customs Code", tracking=True, readonly=True, index=True)
+    customs_status = fields.Selection(related="picking_id.customs_status", string="Customs Status", store=True,
+                                      readonly=True, index=True)
     currency_id = fields.Many2one("res.currency", string="Currency", default=lambda self: self.env.company.currency_id)
 
     unique_identifier = fields.Char(string="Unique Identifier", store=True, readonly=True, index=True)
