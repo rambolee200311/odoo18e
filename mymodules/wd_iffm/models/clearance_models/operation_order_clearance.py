@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
-
+CLEARANCE_STATE = [("open", "Open"),
+         ("paying", "Paying"), ("paid", "Paid"), ("clearancing", "Clearancing"),
+         ("clearanced", "Clearanced"), ("close", "Close"),
+         ("cancelled", "Cancelled")]
 
 class OperationOrderClearance(models.Model):
     _name = "operation.order.clearance"
@@ -47,10 +50,7 @@ class OperationOrderClearance(models.Model):
 
 
     state = fields.Selection(
-        [("open", "Open"),
-         ("paying", "Paying"), ("paid", "Paid"), ("clearancing", "Clearancing"),
-         ("clearanced", "Clearanced"), ("close", "Close"),
-         ("cancelled", "Cancelled")],
+        CLEARANCE_STATE,
         string="Status", default="open", required=True, tracking=True, index=True)
     statement_period_id = fields.Many2one("statement.period", string="Statement Period")
     statement_period_id_state = fields.Selection([], string="Statement Period State",

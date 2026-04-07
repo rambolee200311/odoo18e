@@ -6,7 +6,7 @@ from odoo import _, models, fields, api
 from odoo.exceptions import UserError
 from collections import defaultdict
 from odoo.exceptions import ValidationError
-
+WAYBILL_STATE = [('new', 'New'), ('confirm', 'Confirm'), ('done', 'Done'), ('cancel', 'Cancel')]
 
 class Waybill(models.Model):
     _name = "world.depot.waybill"
@@ -38,12 +38,7 @@ class Waybill(models.Model):
                                    tracking=True)
 
     state = fields.Selection(
-        selection=[
-            ('new', 'New'),
-            ('confirm', 'Confirm'),
-            ('done', 'Done'),
-            ('cancel', 'Cancel'),
-        ],
+        selection=WAYBILL_STATE,
         default='new',
         string="State",
         tracking=True

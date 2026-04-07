@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
-
+HANDOVER_STATE = [("open", "Open"),
+         ("paying", "Paying"), ("paid", "Paid"), ("releasing", "Releasing"),
+         ("released", "Released"), ("close", "Close"),
+         ("cancelled", "Cancelled")]
 
 class OperationOrderHandover(models.Model):
     _name = "operation.order.handover"
@@ -34,10 +37,7 @@ class OperationOrderHandover(models.Model):
     # currency_id = fields.Many2one("res.currency", string="Currency", related="waybill_id.currency_id", store=True)
 
     state = fields.Selection(
-        [("open", "Open"),
-         ("paying", "Paying"), ("paid", "Paid"), ("releasing", "Releasing"),
-         ("released", "Released"), ("close", "Close"),
-         ("cancelled", "Cancelled")],
+        HANDOVER_STATE,
         string="Status", default="open", required=True, tracking=True, index=True)
     #结算状态
 
