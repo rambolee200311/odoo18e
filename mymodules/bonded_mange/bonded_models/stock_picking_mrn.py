@@ -6,16 +6,49 @@ class StockPicking(models.Model):
     _inherit = "stock.picking"
 
     mrn_id = fields.Many2one("bonded.mrn.master", string="MRN", index=True, copy=False, tracking=True)
-    t1_document_number = fields.Char(string="T1 Document Number",store=True, index=True, copy=False)
+    t1_document_number = fields.Char(string="T1 Document Number", compute="_compute_t1_from_inbound",store=True, index=True, copy=False)
     t1_status = fields.Selection([
         ("open", "Open"),
         ("closed", "Closed"),
-    ], string="T1 Status", default="open",store=True, tracking=True, index=True)
+    ], string="T1 Status", default="open",store=True, compute="_compute_t1_from_inbound", tracking=True, index=True)
 
-    t1_closed_date = fields.Date(string="T1 Closed Date",store=True, tracking=True)
+    t1_closed_date = fields.Date(string="T1 Closed Date", compute="_compute_t1_from_inbound",store=True, tracking=True)
 
     customs_status = fields.Selection(CUSTOMS_STATUS_SELECTION, string="Customs Status",
                                       compute="_compute_customs_status", store=True, index=True)
+    inbound_t1_source_id = fields.Many2one("world.depot.inbound.order", string="T1 Source Inbound",
+                                           compute="_compute_inbound_t1_source_id", store=True, index=True)
+
+    #t1状态完全从入库inbound来
+    @api.depends("mrn_id", "outbound_order_id", "outbound_order_id.mrn_id", "inbound_order_id", "inbound_order_id.mrn_id")
+    def _compute_inbound_t1_source_id(self):
+        inbound_model = self.env["world.depot.inbound.order"]
+        for rec in self:
+            inbound = rec.inbound_order_id
+            if not inbound:
+                mrn = rec.mrn_id or rec.outbound_order_id.mrn_id
+                if mrn:
+                    inbound_ids = inbound_model.sudo().search([
+                        ("mrn_id", "=", mrn.id),
+                        ("state", "=", "confirm"),
+                        ("stock_picking_id.state", "=", "done"),
+                    ], order="id desc", limit=1).ids
+                    inbound = inbound_model.browse(inbound_ids[:1])
+            rec.inbound_t1_source_id = inbound.id if inbound else False
+
+    @api.depends("inbound_t1_source_id", "inbound_t1_source_id.t1_document_number", "inbound_t1_source_id.t1_status", "inbound_t1_source_id.t1_closed_date")
+    def _compute_t1_from_inbound(self):
+        for rec in self:
+            inbound = rec.inbound_t1_source_id
+            if inbound:
+                rec.t1_document_number = inbound.t1_document_number or False
+                rec.t1_status = inbound.t1_status or "open"
+                rec.t1_closed_date = inbound.t1_closed_date or False
+            else:
+                rec.t1_document_number = False
+                rec.t1_status = "open"
+                rec.t1_closed_date = False
+
     @api.depends("mrn_id", "mrn_id.customs_status", "inbound_order_id", "inbound_order_id.is_bonded")
     def _compute_customs_status(self):
         for rec in self:
@@ -132,10 +165,10 @@ class StockPicking(models.Model):
                         quant.write(vals_quant)
 
     def button_validate(self):
-        for rec in self:
-
-            if rec.picking_type_code == "incoming" and rec.inbound_order_id and rec.inbound_order_id.is_bonded and rec.t1_status != "closed":
-                raise ValidationError(_("Bonded goods can only be stored after T1 is closed."))
+        # for rec in self:
+        #
+        #     if rec.picking_type_code == "incoming" and rec.inbound_order_id and rec.inbound_order_id.is_bonded and rec.t1_status != "closed":
+        #         raise ValidationError(_("Bonded goods can only be stored after T1 is closed."))
         res = super().button_validate()
         for rec in self:
             if rec.state == "done" and rec.picking_type_code == "incoming" and rec.inbound_order_id:
