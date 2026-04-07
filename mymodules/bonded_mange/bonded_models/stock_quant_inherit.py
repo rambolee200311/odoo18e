@@ -55,6 +55,12 @@ class StockQuant(models.Model):
 
     t1_closed_date = fields.Date(string="T1 Closed Date", tracking=True)
 
+    def update_customs_status(self):
+        for rec in self:
+            if rec.mrn_id:
+                rec.customs_status = rec.mrn_id.customs_status
+            else:rec.customs_status = "vrij"
+
 
 
     @api.model_create_multi

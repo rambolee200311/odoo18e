@@ -13,7 +13,7 @@
                 <field name="customs_code" readonly="1" optional="hide"/>
                  <field name="unique_identifier" optional="show"/>
                 <field name="file_identifier" optional="show"/>
-                     <field name="customs_status" optional="show"/>
+                     <field name="customs_status" optional="show" readonly="1"/>
                 <field name="mrn_id" optional="show" readonly="1"/>
                 <field name="mrn_status" optional="show" readonly="1"/>
             </xpath>
@@ -34,7 +34,7 @@
                 <field name="customs_code" readonly="1" optional="hide"/>
                 <field name="unique_identifier" optional="show"/>
                 <field name="file_identifier" optional="show"/>
-                     <field name="customs_status" optional="show"/>
+                     <field name="customs_status" optional="show" readonly="1"/>
                 <field name="mrn_id" optional="show" readonly="1"/>
                 <field name="mrn_status" optional="show" readonly="1"/>
             </xpath>
@@ -90,7 +90,7 @@
                 <field name="hs_code" readonly="1"/>
                 <field name="weight"/>
                 <field name="customs_code" readonly="1"/>
-                     <field name="customs_status" optional="show"/>
+                     <field name="customs_status" optional="show" readonly="1"/>
                 <field name="mrn_id" optional="show" readonly="1"/>
                 <field name="mrn_status" optional="show" readonly="1"/>
             </xpath>

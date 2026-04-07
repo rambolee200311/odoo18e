@@ -18,7 +18,7 @@ class StockQuant(models.Model):
 
     def write(self, vals):
         vals_write = dict(vals)
-        mrn_model = self.env["bonded.mrn.master"]
+
         if "mrn_id" in vals_write and not vals_write["mrn_id"]:
             vals_write.update({
 

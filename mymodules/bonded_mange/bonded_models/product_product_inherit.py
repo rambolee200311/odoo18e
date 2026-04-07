@@ -45,10 +45,10 @@ class ProductProduct(models.Model):
             self.actionCreateCustomsAuditLog(old_value_map, action_type="manual")
 
         # 海关状态联动mrn状态
-        if vals.get("customs_status"):
-            quant_ids = self.env["stock.quant"].sudo().search([("product_id", "in", self.ids)]).ids
-            for quant in self.env["stock.quant"].browse(quant_ids):
-                quant.write({"customs_status": vals["customs_status"]})
+        # if vals.get("customs_status"):
+        #     quant_ids = self.env["stock.quant"].sudo().search([("product_id", "in", self.ids)]).ids
+        #     for quant in self.env["stock.quant"].browse(quant_ids):
+        #         quant.write({"customs_status": vals["customs_status"]})
         return res
 
     def getCustomsAuditFieldList(self):
