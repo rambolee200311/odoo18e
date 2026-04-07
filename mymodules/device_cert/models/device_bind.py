@@ -1,10 +1,11 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError, ValidationError
 import logging
-import base64
-from cryptography.fernet import Fernet, InvalidToken
+import re
 
 _logger = logging.getLogger(__name__)
+def is_valid_email(email):
+    return re.match(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$', email) is not None
 
 class DeviceCertBind(models.Model):
     """Master model for Device-Certificate Binding"""
@@ -153,99 +154,33 @@ class DeviceCertBind(models.Model):
 
     # ========== Key Management Methods ==========
 
-    def _get_encryption_key(self):
-        """Get the encryption key (consistent with the API controller)."""
-        config_param = self.env['ir.config_parameter'].sudo()
-        key_b64 = config_param.get_param('custom_device_cert.encryption_key')
-
-        if not key_b64:
-            # Automatically generate a new key
-            new_key = Fernet.generate_key()
-            key_b64 = base64.urlsafe_b64encode(new_key).decode()
-            config_param.set_param('custom_device_cert.encryption_key', key_b64)
-            _logger.info("New encryption key has been generated.")
-
-        return base64.urlsafe_b64decode(key_b64.encode())
-
-    # ========== Password Encryption/Decryption Methods ==========
-
     def _encrypt_password(self, plain_password):
-        """Encrypt a password (using the same logic as the API controller)."""
-        if not plain_password:
-            return None
-
-        try:
-            key = self._get_encryption_key()
-            cipher = Fernet(key)
-            encrypted = cipher.encrypt(plain_password.encode())
-            return base64.b64encode(encrypted).decode()
-        except Exception as e:
-            _logger.error(f"Password encryption failed: {e}")
-            raise UserError(_("Password encryption failed: %s") % str(e))
-
-    def _decrypt_password_old(self, encrypted_password_b64):
-        """Decrypt a password."""
-        if not encrypted_password_b64:
-            return None
-
-        try:
-            encrypted = base64.b64decode(encrypted_password_b64.encode())
-            key = self._get_encryption_key()
-            cipher = Fernet(key)
-            decrypted = cipher.decrypt(encrypted)
-            return decrypted.decode()
-        except InvalidToken:
-            _logger.error("Password decryption failed: Invalid encryption token.")
-            raise UserError(_("Password decryption failed. The encryption key may have changed or the data is corrupted."))
-        except Exception as e:
-            _logger.error(f"Password decryption failed: {e}")
-            raise UserError(_("Password decryption failed: %s") % str(e))
-        
-    # 在 device_bind.py 中修改 _decrypt_password 方法
+        """Encrypt password using API-style method"""
+        tool = self.env['device.cert.encryption.tool']
+        return tool.encrypt(plain_password)
+    
     def _decrypt_password(self, encrypted_password):
-        """解密密码 - 修复版本"""
-        if not encrypted_password:
-            return None
-        
-        try:
-            # 首先确保是有效的base64字符串
-            encrypted_password = encrypted_password.strip()
-            
-            # 如果长度不是4的倍数，添加填充字符
-            if len(encrypted_password) % 4 != 0:
-                padding = 4 - (len(encrypted_password) % 4)
-                encrypted_password += '=' * padding
-            
-            # 解码base64
-            encrypted_bytes = base64.b64decode(encrypted_password)
-            
-            # 使用Fernet解密
-            from cryptography.fernet import Fernet
-            key = self._get_encryption_key()
-            cipher = Fernet(key)
-            decrypted_bytes = cipher.decrypt(encrypted_bytes)
-            
-            return decrypted_bytes.decode('utf-8')
-        except Exception as e:
-            _logger.error(f"Password decryption failed: {e}")
-            # 返回占位符而不是抛出异常
-            return "[Password decryption error]"    
+        """Decrypt password using auto-detection"""
+        tool = self.env['device.cert.encryption.tool']
+        return tool.decrypt_auto(encrypted_password)
 
     # ========== Business Methods ==========
-
-    def action_send_certificate_old(self):
-        """Send the certificate via email (with the certificate file attached)."""
+    def action_send_certificate(self):
+        """Send certificate email with attachment and full guide."""
         self.ensure_one()
 
         if not all([self.user_email, self.cert_file]):
             raise UserError(_("Cannot send email: Missing recipient email or certificate file."))
+        
+        if not is_valid_email(self.user_email):
+            raise UserError(_("Cannot send email: Invalid recipient email."))
 
-        # Find the email template
+        # Find email template
         template = self.env.ref('custom_device_cert.email_template_cert_guide', False)
         if not template:
             raise UserError(_("Email template not found."))
 
-        # Create the certificate attachment
+        # Create certificate attachment
         attachment = self.env['ir.attachment'].create({
             'name': self.cert_filename or f'certificate_{self.cert_serial[:8]}.p12',
             'datas': self.cert_file,
@@ -254,86 +189,78 @@ class DeviceCertBind(models.Model):
             'type': 'binary',
         })
 
-        # Send the email
         try:
-            template.with_context(attachment_ids=[attachment.id]).send_mail(
+            email_values = {
+                'attachment_ids': [attachment.id],
+                'email_from': self.env.user.email,
+                'reply_to': self.env.user.email,
+                'email_to': self.user_email,
+                'auto_delete': False,
+            }
+            # Send email with attachment
+            template.send_mail(
                 self.id,
-                force_send=True
+                force_send=True,
+                raise_exception=True,
+                email_values=email_values
             )
+            
 
-            # Log the email sending
+            # Log the send
             self.env['device.cert.mail.log'].create({
                 'bind_id': self.id,
                 'email': self.user_email,
-                'sent_by': self.env.user.id,
+                'sent_by': self.env.user.id,                
             })
 
-            _logger.info(f"Certificate email has been sent to {self.user_email}.")
-
-        except Exception as e:
-            _logger.error(f"Failed to send email: {e}")
-            raise UserError(_("Failed to send email: %s") % str(e))
-
-    def action_send_certificate(self):
-        """Send the certificate via email (simplified)"""
-        self.ensure_one()
-
-        if not self.user_email:
-            raise UserError(_("Recipient email is missing."))
-
-        try:
-            # Create simple email directly
-            mail_values = {
-                'subject': 'Your Device Certificate',
-                'body_html': """<p>Dear User,</p><p>Your certificate is ready.</p>""",
-                'email_to': self.user_email,
-                'auto_delete': True,
-            }
-            mail = self.env['mail.mail'].create(mail_values)
-            mail.send()
-
-            _logger.info("Email sent successfully to %s", self.user_email)
+            _logger.info("Certificate email sent to %s (serial: %s)", self.user_email, self.cert_serial)
             return True
 
         except Exception as e:
-            _logger.error("Send email failed: %s", str(e))
+            _logger.error("Failed to send certificate email: %s", str(e))
             raise UserError(_("Failed to send email: %s", str(e)))
     def action_view_password(self):
-        """Securely view the password (requires administrator privileges)."""
+        """
+        Show decrypted certificate password in a popup
+        Restricted to admin users only
+        """
         self.ensure_one()
 
+        # Enhanced Permission check with logging
         if not self.env.user.has_group('base.group_system'):
-            raise UserError(_("Insufficient permissions. Administrator rights are required."))
+            _logger.warning(f"Unauthorized access attempt to view password for record {self.id} by user {self.env.user.id}")
+            raise UserError(_("Access Denied: Administrator privileges required to view passwords."))
+        
+        # Additional check: Ensure user is active and not a public user
+        if not self.env.user.active or self.env.user.share:
+            raise UserError(_("Access Denied: Invalid user account."))
+        
+        # Rate limiting: Prevent too many password views in short time
+        last_view_time = self.password_last_viewed
+        if last_view_time:
+            time_diff = (fields.Datetime.now() - last_view_time).total_seconds()
+            if time_diff < 30:  # Minimum 30 seconds between views
+                raise UserError(_("Too many password view attempts. Please wait before trying again."))
 
+        # Validate encrypted data
         if not self.password_encrypted:
-            raise UserError(_("This record does not have a stored certificate password."))
+            raise UserError(_("No encrypted password found for this certificate."))
 
-        # Decrypt the password
-        try:
-            password = self._decrypt_password(self.password_encrypted)
-        except UserError as e:
-            raise e
-        except Exception as e:
-            raise UserError(_("Password decryption failed."))
+        # Decrypt
+        password = self._decrypt_password(self.password_encrypted)
 
-        # Record audit log
+        # Show error if decryption failed
+        if "[Decryption Error" in password:
+            raise UserError(_("Certificate Password\n\n%s") % password)
+
+        # Audit log
         self.write({
             'password_last_viewed': fields.Datetime.now(),
             'password_viewed_by': self.env.user.id
         })
 
-        # Return a wizard for viewing the password
-        return {
-            'type': 'ir.actions.act_window',
-            'name': _('Certificate Password'),
-            'res_model': 'device.cert.bind.password.wizard',
-            'view_mode': 'form',
-            'target': 'new',
-            'context': {
-                'default_password': password,
-                'default_bind_id': self.id,
-            }
-        }
+        # Show password
+        raise UserError(_("Certificate Password\n\n%s") % password)
 
     def action_activate(self):
         """Activate the binding."""

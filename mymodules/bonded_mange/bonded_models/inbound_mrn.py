@@ -23,7 +23,7 @@ class InboundOrderInherit(models.Model):
         ("exception", "Exception"),
     ], string="MRN Status", default="pending_declaration", tracking=True, copy=False, index=True)
 
-    t1_document_number = fields.Char(string="T1 Document Number", index=True, copy=False)
+    t1_document_number = fields.Char(string="T1 Document Number", index=True, copy=False,tracking= True)
     t1_status = fields.Selection([
         ("open", "Open"),
         ("closed", "Closed"),
@@ -98,8 +98,8 @@ class InboundOrderInherit(models.Model):
         for rec in self:
             if rec.is_bonded and not rec.mrn_id:
                 raise ValidationError(_("Please select MRN"))
-            if rec.is_bonded and rec.t1_status != "closed":
-                raise ValidationError(_("Please close T1"))
+            # if rec.is_bonded and rec.t1_status != "closed":
+            #     raise ValidationError(_("Please close T1"))
         self.actionApplyBondedCustomsMrnMappingOnConfirm()
         res = super().action_confirm()
         self.actionSyncInboundSnapshotToMrn()

@@ -12,7 +12,6 @@
                         string="Send Certificate"
                         type="object"
                         class="btn-primary"
-                        invisible="(state!='draft' and state!= 'active') or not cert_file"
                     />
                     <!-- View Password Button: Visible when state is 'active' or 'inactive' AND password_encrypted exists -->
                     <button
@@ -21,6 +20,7 @@
                         type="object"
                         class="btn-warning"
                         invisible="(state!='active' and state!='inactive') or not password_encrypted"
+                        group="base.group_system"
                     />
                     <separator/>
                     <!-- Activate Button: Visible when state is NOT 'active' -->
@@ -55,12 +55,15 @@
                     <div class="oe_title">
                         <label for="cert_serial" string="Certificate Serial" invisible="not cert_serial"/>
                         <h1>
+                            Certification Management
+                        </h1>
+                        <!-- <h1>
                             <field name="cert_serial" class="oe_inline"/>
                         </h1>
                         <label for="device_id" string="Device Fingerprint" invisible="not device_id"/>
                         <h2>
                             <field name="device_id" class="oe_inline"/>
-                        </h2>
+                        </h2> -->
                     </div>
                     <group>
                         <group string="Basic Information" col="2">

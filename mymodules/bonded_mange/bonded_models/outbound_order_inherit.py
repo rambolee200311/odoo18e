@@ -11,7 +11,7 @@ class OutboundOrder(models.Model):
                              domain="[('id', 'in', inbound_confirm_mrn_ids)]")
     inbound_confirm_mrn_ids = fields.Many2many("bonded.mrn.master", compute="_compute_inbound_confirm_mrn_ids",
                                                compute_sudo=True)
-
+    unique_identifier = fields.Char(string='Unique Identifier', tracking=True, copy=False, index=True, readonly=True)
     @api.depends("mrn_id", "state")
     def _compute_inbound_confirm_mrn_ids(self):
         inbound_model = self.env["world.depot.inbound.order"]

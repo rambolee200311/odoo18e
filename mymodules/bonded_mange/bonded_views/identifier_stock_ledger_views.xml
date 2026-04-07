@@ -92,5 +92,8 @@
     </record>
 
 
-    <menuitem id="menu_bonded_identifier_stock_ledger" name="Identifier Stock Ledger" parent="worlddepot.menu_world_depot_configuration" action="action_bonded_identifier_stock_ledger" sequence="984" groups="base.group_user"/>
+    <menuitem id="menu_bonded_identifier_stock_ledger" name="Identifier Stock Ledger"
+              parent="worlddepot.menu_world_depot_configuration"
+              action="action_bonded_identifier_stock_ledger"
+              sequence="984" groups="base.group_system"/>
 </odoo>

@@ -1,6 +1,8 @@
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
-
+from odoo.addons.wd_iffm.models.charge_pricing_models.waybill import WAYBILL_STATE
+from odoo.addons.wd_iffm.models.clearance_models.operation_order_clearance import CLEARANCE_STATE
+from odoo.addons.wd_iffm.models.handover_models.operation_order_handover import HANDOVER_STATE
 
 def _safe_process_ondelete_patch():
     """
@@ -80,6 +82,11 @@ class OperationWorkbenchCard(models.Model):
     parent_card_id = fields.Many2one("operation.workbench.card", string="Parent Card", index=True, ondelete="set null")
     child_lines = fields.One2many("operation.workbench.card", "parent_card_id", string="Child Cards")
     display_state = fields.Char(string="Display State", index=True)
+
+    waybill_state = fields.Selection(string="Waybill State", selection=WAYBILL_STATE)
+    handover_state = fields.Selection(string="Handover State", selection=HANDOVER_STATE)
+    clearance_state = fields.Selection(string="Clearance State", selection=CLEARANCE_STATE)
+
     sequence = fields.Integer(string="Sequence", default=10, index=True)
     extra_data = fields.Json(string="Extra Data")
     active = fields.Boolean(string="Active", default=True, index=True)
@@ -145,6 +152,7 @@ class OperationWorkbenchCard(models.Model):
             "source_id": waybill.id,
             "is_main": True,
             "display_state": waybill.state or "",
+            "waybill_state": waybill.state or "",
             "sequence": 1,
             "extra_data": {
                 "billno": waybill.billno,
@@ -202,6 +210,7 @@ class OperationWorkbenchCard(models.Model):
                 "is_main": True,
                 "parent_card_id": False,
                 "display_state": rec.state or "",
+                "handover_state": rec.state or "",
                 "sequence": 10,
                 "extra_data": {
                     "billno": waybill.billno,
@@ -233,6 +242,7 @@ class OperationWorkbenchCard(models.Model):
                 "is_main": False,
                 "parent_card_id": main_card_map.get(rec.parent_id.id),
                 "display_state": rec.state or "",
+                "handover_state": rec.state or "",
                 "sequence": 20,
                 "extra_data": {
                     "billno": waybill.billno,
@@ -277,6 +287,7 @@ class OperationWorkbenchCard(models.Model):
                 "is_main": True,
                 "parent_card_id": False,
                 "display_state": rec.state or "",
+                "clearance_state": rec.state or "",
                 "sequence": 10,
                 "extra_data": {
                     "billno": waybill.billno,
@@ -310,6 +321,7 @@ class OperationWorkbenchCard(models.Model):
                 "is_main": False,
                 "parent_card_id": main_card_map.get(rec.parent_id.id),
                 "display_state": rec.state or "",
+                "clearance_state": rec.state or "",
                 "sequence": 20,
                 "extra_data": {
                     "billno": waybill.billno,

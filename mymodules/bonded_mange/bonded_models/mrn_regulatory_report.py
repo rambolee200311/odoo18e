@@ -163,8 +163,6 @@ class StockMoveMrnDetailAction(models.Model):
 class StockMoveLineMrnDetailAction(models.Model):
     _inherit = "stock.move.line"
 
-    customs_status = fields.Selection(related="product_id.customs_status", string="Customs Status", store=True, readonly=True, index=True)
-
     def action_open_mrn_detail(self):
         return build_mrn_detail_action(self)
 
