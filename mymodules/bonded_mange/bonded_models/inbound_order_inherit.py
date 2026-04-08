@@ -105,7 +105,8 @@ class InboundOrderInherit(models.Model):
                     "t1_document_number": rec.t1_document_number or False,
                     "t1_status": rec.t1_status or "open",
                     "t1_closed_date": rec.t1_closed_date or False,
-                    "customs_status": "bonded" if rec.is_bonded else "vrij"
+                    "customs_status": "vrij" if rec.is_bonded else  "",
+                    "bonded_flag": "true" if rec.is_bonded else "false",
                 })
 
             domain = [("state", "!=", "cancel")]
@@ -148,8 +149,8 @@ class InboundOrderInherit(models.Model):
                 product_records = rec.inbound_order_product_ids.mapped(
                     "inbound_order_product_pallet_ids.product_id").filtered(lambda x: x)
                 for product in product_records:
-                    if product.customs_status not in ("bonded", "entrepot"):
-                        product.write({"customs_status": "bonded"})
+                    if product.customs_status not in ("entrepot"):
+                        product.write({"customs_status": "vrij"})
                 picking_ids = self.env["stock.picking"].sudo().search(
                     [("inbound_order_id", "=", rec.id), ("picking_type_code", "=", "incoming")]).ids
                 for picking in self.env["stock.picking"].browse(picking_ids):

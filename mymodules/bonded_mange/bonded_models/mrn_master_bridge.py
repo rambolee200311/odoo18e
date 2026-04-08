@@ -8,8 +8,6 @@ CUSTOMS_STATUS_SELECTION = [
     ("entrepot", "Bonded Warehouse"),
     ("accijns", "Excise Goods"),
     ("ivv", "Import/Export/Transit & Equivalent"),
-    ("bonded", "Bonded"),
-    ("non_bonded", "Free / Non-bonded"),
 ]
 
 MRN_STATUS_SELECTION = [
@@ -40,6 +38,7 @@ class BondedMrnMaster(models.Model):
     remark = fields.Char(string="Remark")
     active = fields.Boolean(string="Active", default=True, index=True)
     company_id = fields.Many2one("res.company", string="Company", default=lambda self: self.env.company, index=True)
+    bonded_flag = fields.Selection([("true", "bonded"), ("false", "Non-bonded")], string="Bonded Flag", index=True, default="false", readonly=True)
 
     def actionNormalizeMrnCode(self, code):
         return (code or "").strip().upper()

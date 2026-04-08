@@ -35,8 +35,6 @@ class StockQuant(models.Model):
         ("entrepot", "Bonded Warehouse"),
         ("accijns", "Excise Goods"),
         ("ivv", "Import/Export/Transit & Equivalent"),
-        ("bonded", "Bonded"),
-        ("non_bonded", "Free / Non-bonded"),
     ], string="Customs Status", index=True, tracking=True,required=True,default="vrij")
     mrn_id = fields.Many2one("bonded.mrn.master", string="MRN", index=True, copy=False, tracking=True)
     mrn_status = fields.Selection([
@@ -54,14 +52,18 @@ class StockQuant(models.Model):
     ], string="T1 Status", default="open", tracking=True, index=True)
 
     t1_closed_date = fields.Date(string="T1 Closed Date", tracking=True)
-
+    bonded_flag = fields.Selection([("true", "bonded"), ("false", "Non-bonded")], string="Bonded Flag",compute="_compute_bonded_flag", index=True,
+                                   readonly=True)
     def update_customs_status(self):
         for rec in self:
             if rec.mrn_id:
                 rec.customs_status = rec.mrn_id.customs_status
             else:rec.customs_status = "vrij"
 
-
+    @api.depends("mrn_id", "mrn_id.bonded_flag")
+    def _compute_bonded_flag(self):
+        for rec in self:
+            rec.bonded_flag = "true" if rec.mrn_id and rec.mrn_id.bonded_flag else "false"
 
     @api.model_create_multi
     def create(self, vals_list):

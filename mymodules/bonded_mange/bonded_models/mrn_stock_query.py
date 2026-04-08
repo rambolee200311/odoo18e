@@ -7,8 +7,7 @@ CUSTOMS_STATUS_SELECTION = [("vrij", "Vrij"),
                             ("entrepot", "Bonded Warehouse"),
                             ("accijns", "Excise Goods"),
                             ("ivv", "Import/Export/Transit & Equivalent"),
-                            ("bonded", "Bonded"),
-                            ("non_bonded", "Free / Non-bonded")]
+                        ]
 MRN_STATUS_SELECTION = [("pending_declaration", "Pending Declaration"),
                         ("declared", "Declared"),
                         ("cleared", "Cleared"),

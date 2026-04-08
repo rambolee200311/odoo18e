@@ -50,7 +50,8 @@ class StockMove(models.Model):
 
     t1_closed_date = fields.Date(string="T1 Closed Date", related="picking_id.t1_closed_date", store=True,
                                  tracking=True)
-
+    bonded_flag = fields.Selection([("true", "bonded"), ("false", "Non-bonded")], string="Bonded Flag", related="picking_id.bonded_flag", store=True, index=True,
+                                   readonly=True)
 
     @api.onchange("product_id")
     def onchange_product_id_fill_reference_fields(self):

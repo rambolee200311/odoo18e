@@ -53,6 +53,8 @@ class StockMoveLine(models.Model):
     t1_closed_date = fields.Date(string="T1 Closed Date", related="picking_id.t1_closed_date", store=True, tracking=True)
 
     ledger_posted = fields.Boolean(string="Ledger Posted", default=False, copy=False, index=True, readonly=True)
+    bonded_flag = fields.Selection([("true", "bonded"), ("false", "Non-bonded")], string="Bonded Flag",related="picking_id.bonded_flag",store=True, index=True,
+                                   readonly=True)
 
     def actionGetLocationAncestorIds(self):
         self.ensure_one()

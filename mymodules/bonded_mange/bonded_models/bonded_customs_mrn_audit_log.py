@@ -29,8 +29,6 @@ class BondedCustomsMrnAuditLog(models.Model):
         ("entrepot", "Bonded Warehouse"),
         ("accijns", "Excise Goods"),
         ("ivv", "Import/Export/Transit & Equivalent"),
-        ("bonded", "Bonded"),
-        ("non_bonded", "Free / Non-bonded"),
     ], string="Old Customs Status", copy=False)
     customs_status_new = fields.Selection([
         ("vrij", "Vrij"),
@@ -38,8 +36,6 @@ class BondedCustomsMrnAuditLog(models.Model):
         ("entrepot", "Bonded Warehouse"),
         ("accijns", "Excise Goods"),
         ("ivv", "Import/Export/Transit & Equivalent"),
-        ("bonded", "Bonded"),
-        ("non_bonded", "Free / Non-bonded"),
     ], string="New Customs Status", copy=False)
     mrn_status_old = fields.Selection([
     ("pending_declaration", "Pending Declaration"),
