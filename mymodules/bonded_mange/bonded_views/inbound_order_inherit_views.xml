@@ -44,7 +44,8 @@
                 <button name="actionOpenInboundT1Wizard" type="object" string="Edit T1 Info" class="btn-secondary"
                         invisible="state == 'cancel' or not is_bonded"/>
 
-            </xpath>            <xpath expr="//field[@name='pick_type']" position="after">
+            </xpath>
+            <xpath expr="//field[@name='pick_type']" position="after">
             <field name="unique_identifier" readonly="1"/>
             <field name="file_identifier" readonly="state != 'new'"/>
             <field name="customs_status" readonly="1"/>
