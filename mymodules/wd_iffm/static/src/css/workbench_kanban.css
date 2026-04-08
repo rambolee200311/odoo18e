@@ -12,13 +12,19 @@
 
 .o_kanban_view.wd_iffm_kanban .o_column,
 .o_kanban_view.wd_iffm_kanban .o_kanban_group {
-    min-width: 400px;
-    max-width: 600px;
+    min-width: 300px;
+    max-width: 380px;
     margin: 0 8px;
     background-color: #ffffff;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.08);
     border: 1px solid #e0e0e0;
+}
+
+.o_kanban_view.wd_iffm_kanban.wd_iffm_waybill_kanban .o_column,
+.o_kanban_view.wd_iffm_kanban.wd_iffm_waybill_kanban .o_kanban_group {
+    min-width: 400px;
+    max-width: 600px;
 }
 
 .o_kanban_view.wd_iffm_kanban .o_column_header,
