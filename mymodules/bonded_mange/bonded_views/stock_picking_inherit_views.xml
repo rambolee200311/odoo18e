@@ -39,15 +39,15 @@
                 <field name="cmr_sign_time"
                        invisible="picking_type_code not in ('outgoing')"
                        readonly="state == 'done'"
-                       required="picking_type_code in ('outgoing') and state not in ('done', 'cancel')"/>
+                       />
                 <field name="cmr_sign_file"
                        invisible="picking_type_code not in ('outgoing')"
                        readonly="state == 'done'"
-                       required="picking_type_code in ('outgoing') and state not in ('done', 'cancel')"/>
+                       />
                 <field name="cmr_sign_filename"
                        invisible="picking_type_code not in ('outgoing')"
                        readonly="state == 'done'"
-                       required="picking_type_code in ('outgoing') and state not in ('done', 'cancel')"/>
+                       />
                 <field name="unique_identifier" readonly="1"/>
                 <field name="file_identifier"/>
                 <field name="bonded_flag" readonly="1" widget="badge"
