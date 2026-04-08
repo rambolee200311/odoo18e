@@ -3,7 +3,7 @@
 import re
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
-
+from odoo.addons.bonded_mange.bonded_models.product_product_inherit import CUSTOMS_STATUS_SELECTION
 
 class InboundOrderInherit(models.Model):
     _inherit = "world.depot.inbound.order"
@@ -23,6 +23,16 @@ class InboundOrderInherit(models.Model):
         ("exception", "Exception"),
     ], string="MRN Status", default="pending_declaration", tracking=True, copy=False, index=True)
 
+    customs_status = fields.Selection(CUSTOMS_STATUS_SELECTION, string="Customs Status", tracking=True,index=True)
+    customs_status_manual = fields.Boolean(string="Customs Status Manual", default=False, tracking=True, index=True,copy=False)
+
+    @api.onchange("is_bonded")
+    def onchangeIsBondedSetCustomsStatus(self):
+        for rec in self:
+            if not rec.customs_status_manual:
+                rec.customs_status = "vrij" if rec.is_bonded else False
+
+
     t1_document_number = fields.Char(string="T1 Document Number", index=True, copy=False,tracking= True)
     t1_status = fields.Selection([
         ("open", "Open"),
@@ -41,19 +51,6 @@ class InboundOrderInherit(models.Model):
 
 
 
-
-    @api.depends('t1_status')
-    def _compute_t1_status_color(self):
-        for rec in self:
-            if rec.t1_status == "closed":
-                rec.t1_closed_date = fields.Date.context_today(rec)
-
-
-
-    #改产品海关状态
-    def getCustomsStatusByBonded(self, is_bonded):
-        return "vrij" if is_bonded else ""
-
     def getMrnStatusByCustomsStatus(self, customs_status):
         if customs_status in ("entrepot"):
             return "pending_declaration"
@@ -67,7 +64,7 @@ class InboundOrderInherit(models.Model):
 
     def actionApplyBondedCustomsMrnMappingOnConfirm(self):
         for rec in self:
-            customs_status = rec.getCustomsStatusByBonded(rec.is_bonded)
+            customs_status = rec.customs_status if rec.customs_status is not False else ("vrij" if rec.is_bonded else False)
             target_mrn_status = (
                 "declared"
                 if rec.is_bonded and rec.t1_status == "closed"
@@ -86,7 +83,7 @@ class InboundOrderInherit(models.Model):
         for rec in self:
 
             vals = {
-                "customs_status": rec.getCustomsStatusByBonded(rec.is_bonded),
+                "customs_status":  rec.customs_status,
                 "mrn_status": rec.mrn_status or False,
                 "t1_document_number": rec.t1_document_number or False,
                 "t1_status": rec.t1_status or "open",

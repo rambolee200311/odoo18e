@@ -53,7 +53,7 @@ class StockPicking(models.Model):
     def _compute_customs_status(self):
         for rec in self:
             if rec.inbound_order_id:
-                rec.customs_status = "vrij" if rec.inbound_order_id.is_bonded else ""
+                rec.customs_status = rec.inbound_order_id.customs_status
             elif rec.mrn_id and rec.mrn_id.customs_status:
                 rec.customs_status = rec.mrn_id.customs_status
             else:
