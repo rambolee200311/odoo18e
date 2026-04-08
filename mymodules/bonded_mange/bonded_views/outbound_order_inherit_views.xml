@@ -7,6 +7,9 @@
         <field name="arch" type="xml">
             <xpath expr="//list/field[@name='billno']" position="after">
                 <field name="unique_identifier" optional="show"/>
+<!--                <field name="bonded_flag" readonly="1" widget="badge"-->
+<!--                       decoration-danger="bonded_flag in ('bonded')"-->
+<!--                       decoration-info="bonded_flag in ('non_bonded')"/>-->
             </xpath>
         </field>
     </record>
@@ -18,6 +21,10 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='pick_type']" position="after">
                 <field name="unique_identifier" optional="show"/>
+                <field name="bonded_flag" readonly="1" widget="badge"
+                       decoration-danger="bonded_flag in ('bonded')"
+                       decoration-info="bonded_flag in ('non_bonded')"/>
+
                 <field name="mrn_id" options="{'no_open': True , 'no_create': True}" readonly="state != 'new'"/>
                 <field name="cmr_sign_time" readonly="1"/>
             </xpath>

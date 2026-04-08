@@ -48,9 +48,9 @@ class StockQuant(models.Model):
         return res
 
     def getMrnStatusByCustomsStatus(self, customs_status):
-        if customs_status in ("bonded", "entrepot"):
+        if customs_status in ("entrepot"):
             return "pending_declaration"
-        if customs_status in ("vrij", "non_bonded"):
+        if customs_status in ("vrij"):
             return "cleared"
         if customs_status in ("rto", "ivv"):
             return "declared"

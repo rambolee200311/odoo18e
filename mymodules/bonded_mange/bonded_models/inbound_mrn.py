@@ -52,12 +52,12 @@ class InboundOrderInherit(models.Model):
 
     #改产品海关状态
     def getCustomsStatusByBonded(self, is_bonded):
-        return "bonded" if is_bonded else "vrij"
+        return "vrij" if is_bonded else ""
 
     def getMrnStatusByCustomsStatus(self, customs_status):
-        if customs_status in ("bonded", "entrepot"):
+        if customs_status in ("entrepot"):
             return "pending_declaration"
-        if customs_status in ("vrij", "non_bonded"):
+        if customs_status in ("vrij"):
             return "cleared"
         if customs_status in ("rto", "ivv"):
             return "declared"
@@ -91,6 +91,7 @@ class InboundOrderInherit(models.Model):
                 "t1_document_number": rec.t1_document_number or False,
                 "t1_status": rec.t1_status or "open",
                 "t1_closed_date": rec.t1_closed_date or False,
+                "bonded_flag": "true" if rec.is_bonded else "false",
             }
             rec.mrn_id.write(vals)
 

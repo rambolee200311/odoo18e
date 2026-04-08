@@ -25,7 +25,13 @@ class StockPicking(models.Model):
         copy=False,
         index=True,
     )
+    bonded_flag = fields.Selection([("true", "bonded"), ("false", "Non-bonded")], string="Bonded Flag", compute="_compute_bonded_flag", index=True,
+                                   readonly=True)
 
+    @api.depends("inbound_t1_source_id", "inbound_t1_source_id.is_bonded")
+    def _compute_bonded_flag(self):
+        for rec in self:
+            rec.bonded_flag = "true" if rec.inbound_t1_source_id and rec.inbound_t1_source_id.is_bonded else "false"
     def check_cmr_sign_time_before_done(self):
         for rec in self:
             if rec.picking_type_code in ("outgoing",) and (not rec.cmr_sign_time or not rec.cmr_sign_file):

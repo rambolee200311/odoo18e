@@ -53,11 +53,11 @@ class StockPicking(models.Model):
     def _compute_customs_status(self):
         for rec in self:
             if rec.inbound_order_id:
-                rec.customs_status = "bonded" if rec.inbound_order_id.is_bonded else "vrij"
+                rec.customs_status = "vrij" if rec.inbound_order_id.is_bonded else ""
             elif rec.mrn_id and rec.mrn_id.customs_status:
                 rec.customs_status = rec.mrn_id.customs_status
             else:
-                rec.customs_status = "vrij"
+                rec.customs_status = ""
 
     def actionGetMrnMirrorVals(self, mrn):
         return {
@@ -70,9 +70,9 @@ class StockPicking(models.Model):
 
 
     def getMrnStatusByCustomsStatus(self, customs_status):
-        if customs_status in ("bonded", "entrepot"):
+        if customs_status in ("entrepot"):
             return "pending_declaration"
-        if customs_status in ("vrij", "non_bonded"):
+        if customs_status in ("vrij"):
             return "cleared"
         if customs_status in ("rto", "ivv"):
             return "declared"

@@ -6,8 +6,6 @@ CUSTOMS_STATUS_SELECTION = [
     ("entrepot", "Bonded Warehouse"),
     ("accijns", "Excise Goods"),
     ("ivv", "Import/Export/Transit & Equivalent"),
-    ("bonded", "Bonded"),
-    ("non_bonded", "Free / Non-bonded"),
 ]
 
 class ProductProduct(models.Model):
@@ -28,7 +26,7 @@ class ProductProduct(models.Model):
         string='Currency',
         default=lambda self: self.env.company.currency_id)
 
-    customs_status = fields.Selection(CUSTOMS_STATUS_SELECTION, string="Customs Status", index=True, tracking=True,required=True,default="vrij")
+    customs_status = fields.Selection(CUSTOMS_STATUS_SELECTION, string="Customs Status", index=True, tracking=True,default="vrij")
 
 
 
