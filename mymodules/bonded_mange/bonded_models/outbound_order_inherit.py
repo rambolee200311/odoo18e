@@ -63,7 +63,7 @@ class OutboundOrder(models.Model):
             return {
                 "mrn_status": inbound.mrn_status or False,
                 "unique_identifier": inbound.unique_identifier or False,
-                "customs_status": "vrij" if inbound.is_bonded else "",
+                "customs_status": inbound.customs_status,
                 "t1_document_number": inbound.t1_document_number or False,
                 "t1_status": inbound.t1_status or "open",
                 "t1_closed_date": inbound.t1_closed_date or False,

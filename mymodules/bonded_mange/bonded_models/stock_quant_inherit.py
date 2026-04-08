@@ -58,7 +58,7 @@ class StockQuant(models.Model):
         for rec in self:
             if rec.mrn_id:
                 rec.customs_status = rec.mrn_id.customs_status
-            else:rec.customs_status = "vrij"
+            else:rec.customs_status = ""
 
     @api.depends("mrn_id", "mrn_id.bonded_flag")
     def _compute_bonded_flag(self):

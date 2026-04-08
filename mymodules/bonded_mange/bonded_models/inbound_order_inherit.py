@@ -99,15 +99,34 @@ class InboundOrderInherit(models.Model):
 
     def actionSyncInboundT1ToMrnAndQuant(self):
         picking_model = self.env["stock.picking"]
+        outbound_model = self.env["world.depot.outbound.order"]
         for rec in self:
             if rec.mrn_id:
                 rec.mrn_id.write({
                     "t1_document_number": rec.t1_document_number or False,
                     "t1_status": rec.t1_status or "open",
                     "t1_closed_date": rec.t1_closed_date or False,
-                    "customs_status": "vrij" if rec.is_bonded else  "",
+                    "customs_status": rec.customs_status,
                     "bonded_flag": "true" if rec.is_bonded else "false",
                 })
+                outbound_ids = outbound_model.sudo().search(
+                    [("mrn_id", "=", rec.mrn_id.id), ("state", "!=", "cancel")]).ids
+                for outbound in outbound_model.browse(outbound_ids):
+                    vals = {
+                        "customs_status": rec.customs_status,
+                        "t1_document_number": rec.t1_document_number or False,
+                        "t1_status": rec.t1_status or "open",
+                        "t1_closed_date": rec.t1_closed_date or False,
+                        "mrn_status": rec.mrn_status or False,
+                        "bonded_flag": "true" if rec.is_bonded else "false",
+                        "unique_identifier": rec.unique_identifier or False,
+                    }
+                    write_vals = {}
+                    for key, value in vals.items():
+                        if outbound[key] != value:
+                            write_vals[key] = value
+                    if write_vals:
+                        outbound.write(write_vals)
 
             domain = [("state", "!=", "cancel")]
             if rec.mrn_id:
@@ -131,12 +150,6 @@ class InboundOrderInherit(models.Model):
         if any(field in vals_write for field in ["t1_status", "mrn_id", "customs_status"]):
             if not allowed:
                 raise AccessError(_("Only Customs Admin / Warehouse Supervisor can modify T1 Status."))
-
-        if "t1_status" in vals_write:
-            if vals_write.get("t1_status") == "closed" and not vals_write.get("t1_closed_date"):
-                vals_write["t1_closed_date"] = fields.Date.context_today(self)
-            elif vals_write.get("t1_status") != "closed":
-                vals_write["t1_closed_date"] = False
 
         res = super().write(vals_write)
         self.actionSyncInboundSnapshotToMrn()
@@ -181,6 +194,40 @@ class InboundOrderInherit(models.Model):
             if rec.pick_type and rec.warehouse and rec.pick_type.warehouse_id != rec.warehouse:
                 raise ValidationError(_("The operation type [%s] of the warehouse receipt does not belong to the warehouse [%s]; cross-warehouse configuration is prohibited.") % (
                 rec.pick_type.display_name, rec.warehouse.display_name))
+
+    def actionOpenInboundCustomsWizard(self):
+        self.ensure_one()
+        view_id = self.env.ref("bonded_mange.view_world_depot_inbound_customs_wizard_form").id
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Edit Customs Status"),
+            "res_model": "world.depot.inbound.customs.wizard",
+            "view_mode": "list,form",
+            "views": [(view_id, "form")],
+            "target": "new",
+            "context": {
+                "default_inbound_order_id": self.id,
+                "default_customs_status": self.customs_status or "vrij",
+            },
+        }
+
+    def actionOpenInboundT1Wizard(self):
+        self.ensure_one()
+        view_id = self.env.ref("bonded_mange.view_world_depot_inbound_t1_wizard_form").id
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Edit T1 Info"),
+            "res_model": "world.depot.inbound.t1.wizard",
+            "view_mode": "list,form",
+            "views": [(view_id, "form")],
+            "target": "new",
+            "context": {
+                "default_inbound_order_id": self.id,
+                "default_t1_document_number": self.t1_document_number or False,
+                "default_t1_status": self.t1_status or "open",
+                "default_t1_closed_date": self.t1_closed_date or False,
+            },
+        }
 
 def get_reference_vals(product):
     return {
