@@ -27,14 +27,27 @@ class StockPicking(models.Model):
         copy=False,
         index=True,
     )
-    bonded_flag = fields.Selection([("true", "bonded"), ("false", "Non-bonded")], string="Bonded Flag", compute="_compute_bonded_flag", index=True,
+    bonded_flag = fields.Selection([("true", "bonded"), ("false", "Non-bonded")], string="Bonded Flag",
+                                   compute="_compute_bonded_flag", index=True,
                                    readonly=True)
 
-    @api.depends("inbound_order_id", "inbound_order_id.is_bonded")
+    @api.depends("inbound_order_id", "inbound_order_id.is_bonded",
+                 "outbound_order_id",
+                 "outbound_order_id.bonded_flag",
+                 "mrn_id",
+                 "mrn_id.bonded_flag", )
     def _compute_bonded_flag(self):
         for rec in self:
-            rec.bonded_flag = "true" if rec.inbound_order_id and rec.inbound_order_id.is_bonded else "false"
+            bonded_value = "false"
+            if rec.inbound_order_id:
+                bonded_value = "true" if rec.inbound_order_id.is_bonded else "false"
+            elif rec.outbound_order_id and rec.outbound_order_id.bonded_flag in ("true", "false"):
+                bonded_value = rec.outbound_order_id.bonded_flag
 
+            elif rec.mrn_id and rec.mrn_id.bonded_flag in ("true", "false"):
+                bonded_value = rec.mrn_id.bonded_flag
+
+            rec.bonded_flag = bonded_value
 
     def check_cmr_sign_time_before_done(self):
         for rec in self:
@@ -44,8 +57,10 @@ class StockPicking(models.Model):
     @api.constrains("state", "picking_type_id", "cmr_sign_time")
     def check_cmr_sign_time_when_done(self):
         for rec in self:
-            if rec.state == "done" and rec.picking_type_code in ("outgoing",) and not rec.cmr_sign_time and not rec.cmr_sign_file:
-                raise ValidationError(_("CMR sign time and signed CMR file are required when transfer is Done (outgoing)."))
+            if rec.state == "done" and rec.picking_type_code in (
+            "outgoing",) and not rec.cmr_sign_time and not rec.cmr_sign_file:
+                raise ValidationError(
+                    _("CMR sign time and signed CMR file are required when transfer is Done (outgoing)."))
 
     def action_sync_identifier_to_move_line_from_picking(self):
         for rec in self:
@@ -68,9 +83,9 @@ class StockPicking(models.Model):
             if rec.picking_type_code != "outgoing":
                 continue
             line_list = rec.move_line_ids.filtered(lambda x: (x.quantity or 0.0) > 0)
-            missing_line_list = line_list.filtered(lambda x: not x.unique_identifier or not x.file_identifier)
+            missing_line_list = line_list.filtered(lambda x: not x.unique_identifier)
             if missing_line_list:
-                raise ValidationError(_("Outbound lines still miss Unique Identifier or File Identifier."))
+                raise ValidationError(_("Outbound lines still miss Unique Identifier"))
         return True
 
     @api.model_create_multi
@@ -92,8 +107,6 @@ class StockPicking(models.Model):
         records = super().create(vals_list)
         records.action_sync_identifier_to_move_line_from_picking()
         return records
-
-
 
     def write(self, vals):
         if self.env.context.get("skip_identifier_sync"):
@@ -161,8 +174,6 @@ class StockPicking(models.Model):
                     rec.outbound_order_id.write({"cmr_sign_time": rec.cmr_sign_time})
 
         return res
-
-
 
 
 class StockLot(models.Model):

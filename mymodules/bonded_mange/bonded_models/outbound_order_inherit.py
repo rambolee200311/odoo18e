@@ -13,9 +13,16 @@ class OutboundOrder(models.Model):
     inbound_confirm_mrn_ids = fields.Many2many("bonded.mrn.master", compute="_compute_inbound_confirm_mrn_ids",
                                                compute_sudo=True)
     unique_identifier = fields.Char(string='Unique Identifier', tracking=True, copy=False, index=True, readonly=True)
-    bonded_flag = fields.Selection([("true", "bonded"), ("false", "Non-bonded")], string="Bonded Flag", index=True, default="false", readonly=True)
+    bonded_flag = fields.Selection([("true", "bonded"), ("false", "Non-bonded")], string="Bonded Flag", index=True, readonly=True)
     customs_document_id = fields.Many2one("bonded.customs.document", string="Customs Document", index=True,
                                           tracking=True, copy=False)
+
+    @api.constrains("mrn_id", "bonded_flag")
+    def check_bonded_flag_required_when_no_mrn(self):
+        for rec in self:
+            if not rec.mrn_id and not rec.bonded_flag:
+                raise ValidationError(_("When MRN is not selected, Bonded Flag is required."))
+
     def write(self, vals):
         res = super().write(vals)
         if "customs_document_id" in vals:
