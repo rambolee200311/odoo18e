@@ -39,19 +39,6 @@
 <!--            </p>-->
 <!--        </field>-->
 <!--    </record>-->
-    
-    <!-- 特殊作业动作 -->
-<!--    <record id="action_special_job" model="ir.actions.act_window">-->
-<!--        <field name="name">特殊作业管理</field>-->
-<!--        <field name="res_model">import.special.job</field>-->
-<!--        <field name="view_mode">list,form</field>-->
-<!--        <field name="domain">[]</field>-->
-<!--        <field name="help" type="html">-->
-<!--            <p class="o_view_nocontent_smiling_face">-->
-<!--                暂无特殊作业数据-->
-<!--            </p>-->
-<!--        </field>-->
-<!--    </record>-->
 
     <!-- 打开作业看板卡片视图 -->
     <record id="action_open_workbench_board_card" model="ir.actions.act_window">

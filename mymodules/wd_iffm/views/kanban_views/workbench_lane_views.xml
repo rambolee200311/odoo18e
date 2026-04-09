@@ -35,12 +35,12 @@
     </record>
 
     <record id="action_operation_workbench_lane" model="ir.actions.act_window">
-        <field name="name">工作台泳道</field>
+        <field name="name">Workbench Lane</field>
         <field name="res_model">operation.workbench.lane</field>
         <field name="view_mode">list,form</field>
     </record>
 
-    <menuitem id="menu_operation_workbench_lane" name="工作台泳道配置"
+    <menuitem id="menu_operation_workbench_lane" name="Workbench Lane Management"
               parent="menu_wd_charge_root" action="action_operation_workbench_lane"
               sequence="99" groups="base.group_user"/>
 </odoo>

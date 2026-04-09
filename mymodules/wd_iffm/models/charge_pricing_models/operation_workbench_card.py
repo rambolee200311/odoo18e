@@ -145,7 +145,7 @@ class OperationWorkbenchCard(models.Model):
             [("waybill_id", "=", waybill.id), ("lane_code", "=", "waybill"), ("active", "=", True)], limit=1
         )
         waybill_vals = {
-            "name": waybill.billno or waybill.bl_number or waybill.hbl_number or str(waybill.id),
+            "name": waybill.bl_number or waybill.hbl_number or waybill.obl_number or str(waybill.id),
             "waybill_id": waybill.id,
             "lane_id": lane_waybill.id,
             "source_model": "world.depot.waybill",

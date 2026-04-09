@@ -78,6 +78,7 @@ Long description of module's purpose
     'assets': {
         'web.assets_backend': [
             'wd_iffm/static/src/css/workbench_kanban.css',
+            'wd_iffm/static/src/css/import_kanban_lane.css',
             'wd_iffm/static/src/js/workbench_kanban_record.js',
             'wd_iffm/static/src/js/workbench_kanban_registry.js',
         ],

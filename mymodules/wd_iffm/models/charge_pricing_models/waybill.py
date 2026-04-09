@@ -41,7 +41,8 @@ class Waybill(models.Model):
         selection=WAYBILL_STATE,
         default='new',
         string="State",
-        tracking=True
+        tracking=True,
+        group_expand=True
     )
     remark = fields.Text(string='Remark', tracking=True)
 

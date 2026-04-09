@@ -13,12 +13,18 @@
 .o_kanban_view.wd_iffm_kanban .o_column,
 .o_kanban_view.wd_iffm_kanban .o_kanban_group {
     min-width: 300px;
-    max-width: 350px;
+    max-width: 380px;
     margin: 0 8px;
     background-color: #ffffff;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.08);
     border: 1px solid #e0e0e0;
+}
+
+.o_kanban_view.wd_iffm_kanban.wd_iffm_waybill_kanban .o_column,
+.o_kanban_view.wd_iffm_kanban.wd_iffm_waybill_kanban .o_kanban_group {
+    min-width: 400px;
+    max-width: 600px;
 }
 
 .o_kanban_view.wd_iffm_kanban .o_column_header,
@@ -142,6 +148,33 @@
     font-size: 11px;
     font-weight: 500;
     line-height: 1.4;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_kanban_group[data-state="done"],
+.o_kanban_view.wd_iffm_kanban .o_kanban_group[data-state="cancel"] {
+    opacity: 0.8;
+}
+
+/* 泳道折叠样式 */
+.o_kanban_view.wd_iffm_kanban .o_kanban_group.o_kanban_group_collapsed {
+    min-height: auto !important;
+    height: auto;
+    max-height: 50px;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_kanban_group.o_kanban_group_collapsed .o_kanban_group_content {
+    display: none !important;
+    visibility: hidden;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_kanban_group.o_kanban_group_collapsed .oe_kanban_card {
+    display: none !important;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_kanban_group.o_kanban_group_collapsed .o_kanban_group_header {
+    border-bottom: none;
+    background-color: #f8f9fa;
+    min-height: 40px;
 }
 
 .o_kanban_view.wd_iffm_kanban .o_tag_new {
