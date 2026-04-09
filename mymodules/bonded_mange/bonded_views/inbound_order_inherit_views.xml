@@ -11,6 +11,7 @@
 
             <xpath expr="//field[@name='inbound_order_product_pallet_ids']/list/field[@name='product_id']"
                    position="after">
+                <field name="unique_identifier" readonly="1"/>
                 <field name="origin_country" required="is_bonded" options="{'no_create': True, 'no_open': True}"/>
                 <field name="goods_value" required="is_bonded"/>
                 <field name="hs_code" readonly="1" required="is_bonded"/>
@@ -38,26 +39,21 @@
         <field name="model">world.depot.inbound.order</field>
         <field name="inherit_id" ref="worlddepot.view_inbound_order_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//form/header/button[@name='action_confirm']" position="after">
-                <button name="actionOpenInboundCustomsWizard" type="object" string="Edit Customs Status"
-                        class="btn-secondary" invisible="state == 'cancel' or not is_bonded"/>
-                <button name="actionOpenInboundT1Wizard" type="object" string="Edit T1 Info" class="btn-secondary"
-                        invisible="state == 'cancel' or not is_bonded"/>
-
-            </xpath>
             <xpath expr="//field[@name='pick_type']" position="after">
-            <field name="unique_identifier" readonly="1"/>
-            <field name="file_identifier" readonly="state != 'new'"/>
-            <field name="customs_status" readonly="1"/>
-            <field name="t1_document_number" readonly="1"/>
-            <field name="t1_status" readonly="1"/>
-            <field name="t1_closed_date" readonly="1"/>
-            <field name="used_mrn_ids" invisible="1"/>
+                <field name="unique_identifier" readonly="1"/>
+                <field name="file_identifier" readonly="state != 'new'"/>
+                <field name="customs_document_id" readonly="state != 'new'"/>
+                <field name="customs_status" readonly="1" force_save="1"/>
+                <field name="t1_document_number" readonly="1" force_save="1"/>
+                <field name="t1_status" readonly="1" force_save="1"/>
+                <field name="t1_closed_date" readonly="1" force_save="1"/>
 
-            <field name="mrn_id" readonly="state != 'new'" options="{'no_open': True}"/>
-            <field name="mrn_status" readonly="1"/>
-            <!--                <button name="action_open_mrn_detail" type="object" string="MRN Detail" class="btn-link" icon="fa-external-link" invisible="not mrn_id"/>-->
-        </xpath>
+                <field name="used_mrn_ids" invisible="1"/>
+
+                <field name="mrn_id" readonly="state != 'new'" options="{'no_open': True}"/>
+                <field name="mrn_status" readonly="1"/>
+                <!--                <button name="action_open_mrn_detail" type="object" string="MRN Detail" class="btn-link" icon="fa-external-link" invisible="not mrn_id"/>-->
+            </xpath>
         </field>
     </record>
 

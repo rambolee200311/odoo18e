@@ -35,7 +35,7 @@ class StockQuant(models.Model):
         ("entrepot", "Bonded Warehouse"),
         ("accijns", "Excise Goods"),
         ("ivv", "Import/Export/Transit & Equivalent"),
-    ], string="Customs Status", index=True, tracking=True,required=True,default="vrij")
+    ], string="Customs Status", index=True, tracking=True)
     mrn_id = fields.Many2one("bonded.mrn.master", string="MRN", index=True, copy=False, tracking=True)
     mrn_status = fields.Selection([
     ("pending_declaration", "Pending Declaration"),

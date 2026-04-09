@@ -14,6 +14,54 @@ class OutboundOrder(models.Model):
                                                compute_sudo=True)
     unique_identifier = fields.Char(string='Unique Identifier', tracking=True, copy=False, index=True, readonly=True)
     bonded_flag = fields.Selection([("true", "bonded"), ("false", "Non-bonded")], string="Bonded Flag", index=True, default="false", readonly=True)
+    customs_document_id = fields.Many2one("bonded.customs.document", string="Customs Document", index=True,
+                                          tracking=True, copy=False)
+    def write(self, vals):
+        res = super().write(vals)
+        if "customs_document_id" in vals:
+            self.actionSyncCustomsDocumentMirrorVals()
+            self.actionSyncCustomsDocumentToOutboundPicking()
+        return res
+
+    def actionSyncCustomsDocumentMirrorVals(self):
+        for rec in self:
+            doc = rec.customs_document_id
+            vals = {}
+            target_customs_status = doc.customs_status if doc else False
+            target_t1_document_number = doc.t1_document_number if doc else False
+            target_t1_status = (doc.t1_status or "open") if doc else "open"
+            target_t1_closed_date = doc.t1_closed_date if doc else False
+            if "customs_status" in rec._fields and rec.customs_status != target_customs_status:
+                vals["customs_status"] = target_customs_status
+            if "t1_document_number" in rec._fields and rec.t1_document_number != target_t1_document_number:
+                vals["t1_document_number"] = target_t1_document_number
+            if "t1_status" in rec._fields and rec.t1_status != target_t1_status:
+                vals["t1_status"] = target_t1_status
+            if "t1_closed_date" in rec._fields and rec.t1_closed_date != target_t1_closed_date:
+                vals["t1_closed_date"] = target_t1_closed_date
+            if vals:
+                rec.write(vals)
+        return True
+
+    def actionSyncCustomsDocumentToOutboundPicking(self):
+        picking_env = self.env["stock.picking"]
+        for rec in self:
+            picking_ids = picking_env.sudo().search([("outbound_order_id", "=", rec.id), ("state", "!=", "cancel")]).ids
+            target_doc_id = rec.customs_document_id.id if rec.customs_document_id else False
+            for picking in picking_env.browse(picking_ids):
+                if picking.customs_document_id.id != target_doc_id:
+                    picking.write({"customs_document_id": target_doc_id})
+        return True
+
+    def action_create_picking_PICK(self):
+        res = super().action_create_picking_PICK()
+        self.actionSyncCustomsDocumentToOutboundPicking()
+        return res
+
+    def action_create_picking_PICK_linglong(self):
+        res = super().action_create_picking_PICK_linglong()
+        self.actionSyncCustomsDocumentToOutboundPicking()
+        return res
 
     @api.depends("mrn_id", "state")
     def _compute_inbound_confirm_mrn_ids(self):
@@ -62,22 +110,12 @@ class OutboundOrder(models.Model):
         if inbound:
             return {
                 "mrn_status": inbound.mrn_status or False,
-                "unique_identifier": inbound.unique_identifier or False,
-                "customs_status": inbound.customs_status,
-                "t1_document_number": inbound.t1_document_number or False,
-                "t1_status": inbound.t1_status or "open",
-                "t1_closed_date": inbound.t1_closed_date or False,
                 "project": inbound.project.id or False,
                 "warehouse": inbound.warehouse.id or False,
                 "bonded_flag": mrn.bonded_flag or "false",
             }
         return {
             "mrn_status": mrn.mrn_status or False,
-            "unique_identifier": inbound.unique_identifier or False,
-            "customs_status": mrn.customs_status or False,
-            "t1_document_number": mrn.t1_document_number or False,
-            "t1_status": mrn.t1_status or "open",
-            "t1_closed_date": mrn.t1_closed_date or False,
             "project": False,
             "warehouse": False,
             "bonded_flag": mrn.bonded_flag or "false",
@@ -91,47 +129,15 @@ class OutboundOrder(models.Model):
             domain.append(("location_id", "child_of", self.warehouse.view_location_id.id))
         return quant_env.sudo().read_group(domain, ["product_id", "quantity:sum"], ["product_id"], lazy=False)
 
-    def getOutboundLineCommandsByMrn(self):
-        self.ensure_one()
-        line_commands = [(5, 0, 0)]
-        if not self.mrn_id or not self.warehouse or not self.warehouse.view_location_id:
-            return line_commands
-        quant_group_list = self.getMrnQuantGroupData()
-        for item in quant_group_list:
-            if not item.get("product_id"):
-                continue
-            product_id = item["product_id"][0]
-            qty = float(item.get("quantity") or 0.0)
-            if qty <= 0:
-                continue
-            line_commands.append((0, 0, {
-                "product_id": product_id,
-                "quantity": qty,
-                "pallets": 1.0,
-                "remark": _("Auto generated by MRN: %s") % (self.mrn_id.code or ""),
-            }))
-        return line_commands
 
-    def actionReloadOutboundLinesByMrn(self):
-        for rec in self:
-            if rec.state != "new":
-                raise ValidationError(_("Only draft outbound orders can reload MRN lines."))
-            if not rec.mrn_id:
-                raise ValidationError(_("Please select MRN first."))
-            if not rec.warehouse or not rec.warehouse.view_location_id:
-                raise ValidationError(_("Please select warehouse first."))
-            rec.write({"outbound_order_product_ids": rec.getOutboundLineCommandsByMrn()})
 
     @api.onchange("mrn_id")
     def onchangeMrnId(self):
         for rec in self:
             if rec.mrn_id:
                 vals = rec.actionGetMrnMirrorVals(rec.mrn_id)
-                rec.unique_identifier = vals["unique_identifier"]
+
                 rec.mrn_status = vals["mrn_status"]
-                rec.t1_document_number = vals["t1_document_number"]
-                rec.t1_status = vals["t1_status"]
-                rec.t1_closed_date = vals["t1_closed_date"]
                 rec.bonded_flag = vals["bonded_flag"]
                 if vals.get("project"):
                     rec.project = vals["project"]
@@ -141,11 +147,7 @@ class OutboundOrder(models.Model):
                     rec.pick_type = False
             else:
                 rec.mrn_status = False
-                rec.t1_document_number = False
-                rec.t1_status = "open"
-                rec.t1_closed_date = False
-            if rec.state == "new":
-                rec.outbound_order_product_ids = rec.getOutboundLineCommandsByMrn()
+
 
     @api.onchange("warehouse")
     def onchange_warehouse_filter_pick_type(self):
@@ -197,6 +199,8 @@ class OutboundOrderProduct(models.Model):
         'res.currency',
         string='Currency',
         default=lambda self: self.env.company.currency_id)
+    unique_identifier = fields.Char(string="Unique Identifier", related='outbound_order_id.customs_document_id.unique_identifier',
+                                    tracking=True)
 
     @api.onchange("product_id")
     def onchange_product_id_fill_reference_fields(self):
