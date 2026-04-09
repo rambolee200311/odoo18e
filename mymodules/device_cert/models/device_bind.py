@@ -13,8 +13,7 @@ class DeviceCertBind(models.Model):
     _description = 'Device-Certificate Binding'
     _order = 'create_date DESC'
     _sql_constraints = [
-        ('cert_serial_unique', 'UNIQUE(cert_serial)', 'Certificate serial number must be unique.'),
-        ('device_cert_unique', 'UNIQUE(device_id, cert_serial)', 'The binding between device and certificate must be unique.'),
+        ('cert_serial_unique', 'UNIQUE(cert_serial)', 'Certificate serial number must be unique.'), 
     ]
 
     # ========== Core Fields ==========
@@ -115,6 +114,33 @@ class DeviceCertBind(models.Model):
         string='Status Change Logs'
     )
     last_login=fields.Datetime(string='Last Login')
+    
+    # ========== Conditional Business Constraints ==========
+    @api.constrains('device_id', 'cert_serial', 'is_placeholder')
+    def _check_device_cert_unique(self):
+        """
+        Conditional uniqueness constraint: 
+        When is_placeholder=False, enforce uniqueness of (device_id, cert_serial) combination.
+        """
+        for record in self:
+            # Only enforce constraint for non-placeholder records
+            if not record.is_placeholder and record.device_id and record.cert_serial:
+                # Search for other non-placeholder records with the same combination
+                existing = self.search([
+                    ('device_id', '=', record.device_id),
+                    ('cert_serial', '=', record.cert_serial),
+                    ('is_placeholder', '=', False),
+                    ('id', '!=', record.id)
+                ], limit=1)
+                
+                if existing:
+                    raise ValidationError(
+                        _("Device ID '%(device)s' with Certificate Serial '%(cert)s' must be unique for active bindings.") 
+                        % {
+                            'device': record.device_id,
+                            'cert': record.cert_serial
+                        }
+                    )
 
     # ========== Computed Fields ==========
     @api.depends('device_id')
