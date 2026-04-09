@@ -1,0 +1,24 @@
+/* 看板泳道背景色样式 - 仅针对 import_kanban_views.xml 的提单看板 */
+/* 新建泳道 - 加深商务奶黄 */
+/* 确认泳道 - 加深商务绿 */
+
+/* 限定范围：只针对 import_kanban_views.xml 的看板 */
+.wd_iffm_waybill_kanban_lane .o_kanban_group:nth-child(1),
+.wd_iffm_waybill_kanban_lane .o_kanban_group[data-value="new"] {
+    background-color: #fff3cd !important;  /* 加深商务奶黄 */
+}
+
+.wd_iffm_waybill_kanban_lane .o_kanban_group:nth-child(2),
+.wd_iffm_waybill_kanban_lane .o_kanban_group[data-value="confirm"] {
+    background-color: #d4edda !important;  /* 加深商务绿 */
+}
+
+/* 备用方案：通过泳道标题文本匹配（更稳定）*/
+.wd_iffm_waybill_kanban_lane .o_kanban_group .o_kanban_header_title:first-child {
+    font-weight: bold;
+}
+
+/* 泳道内部容器背景 */
+.wd_iffm_waybill_kanban_lane .o_kanban_group .o_kanban_record_wrapper {
+    background-color: transparent !important;
+}
