@@ -110,11 +110,28 @@ class InboundOrderInherit(models.Model):
     def actionSyncCustomsDocumentToInboundPicking(self):
         picking_env = self.env["stock.picking"]
         for rec in self:
-            picking_ids = picking_env.sudo().search([("inbound_order_id", "=", rec.id), ("state", "!=", "cancel")]).ids
+            picking_ids = picking_env.sudo().search([
+                ("inbound_order_id", "=", rec.id),
+                ("state", "!=", "cancel"),
+            ]).ids
             for picking in picking_env.browse(picking_ids):
+                vals = {}
                 target_doc_id = rec.customs_document_id.id if rec.customs_document_id else False
                 if picking.customs_document_id.id != target_doc_id:
-                    picking.write({"customs_document_id": target_doc_id})
+                    vals["customs_document_id"] = target_doc_id
+
+                # 只给入库单据同步标识
+                if picking.picking_type_code == "incoming":
+                    if rec.unique_identifier and picking.unique_identifier != rec.unique_identifier:
+                        vals["unique_identifier"] = rec.unique_identifier
+                    if rec.file_identifier and picking.file_identifier != rec.file_identifier:
+                        vals["file_identifier"] = rec.file_identifier
+
+                if vals:
+                    picking.write(vals)
+
+                if picking.picking_type_code == "incoming":
+                    picking.action_sync_identifier_to_move_line_from_picking()
         return True
 
     def action_create_stock_picking(self):
@@ -323,3 +340,9 @@ class InboundOrderProductsOfPallet(models.Model):
             vals.setdefault("goods_value", vals_ref["goods_value"])
             vals.setdefault("weight", vals_ref["weight"])
         return super().write(vals)
+
+    def unlink(self):
+        for rec in self:
+            if rec.unique_identifier:
+                raise UserError(_("Inbound order with Unique Identifier cannot be deleted, even in Cancel state."))
+        return super().unlink()

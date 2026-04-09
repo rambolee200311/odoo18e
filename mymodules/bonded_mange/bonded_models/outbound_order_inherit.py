@@ -121,15 +121,6 @@ class OutboundOrder(models.Model):
             "bonded_flag": mrn.bonded_flag or "false",
         }
 
-    def getMrnQuantGroupData(self):
-        self.ensure_one()
-        quant_env = self.env["stock.quant"]
-        domain = [("mrn_id", "=", self.mrn_id.id), ("quantity", ">", 0), ("location_id.usage", "=", "internal")]
-        if self.warehouse and self.warehouse.view_location_id:
-            domain.append(("location_id", "child_of", self.warehouse.view_location_id.id))
-        return quant_env.sudo().read_group(domain, ["product_id", "quantity:sum"], ["product_id"], lazy=False)
-
-
 
     @api.onchange("mrn_id")
     def onchangeMrnId(self):
@@ -199,8 +190,35 @@ class OutboundOrderProduct(models.Model):
         'res.currency',
         string='Currency',
         default=lambda self: self.env.company.currency_id)
-    unique_identifier = fields.Char(string="Unique Identifier", related='outbound_order_id.customs_document_id.unique_identifier',
-                                    tracking=True)
+    unique_identifier = fields.Char(string="Unique Identifier", tracking=True)
+
+    @api.onchange("product_id")
+    def onchange_auto_assign_unique_identifier(self):
+        for rec in self:
+            if not rec.product_id or not rec.outbound_order_id:
+                continue
+            if rec.unique_identifier:
+                continue
+            order = rec.outbound_order_id
+            qty_map = order.action_get_ledger_qty_map_by_product_unique([rec.product_id.id])
+            if not qty_map:
+                continue
+            unique_list = sorted({k[1] for k in qty_map.keys()})
+            inbound_map = order.action_get_inbound_map_by_unique(
+                unique_list, bonded_value=order.get_is_bonded_outbound_order()
+            )
+            inbound_product_map = {
+                uid: order.action_get_inbound_product_id_set(inbound)
+                for uid, inbound in inbound_map.items()
+            }
+            candidate_list = [
+                uid for uid in unique_list
+                if rec.product_id.id in inbound_product_map.get(uid, set())
+                   and float(qty_map.get((rec.product_id.id, uid)) or 0.0) > 0
+            ]
+            if candidate_list:
+                rec.unique_identifier = candidate_list[0]
+
 
     @api.onchange("product_id")
     def onchange_product_id_fill_reference_fields(self):
@@ -216,7 +234,18 @@ class OutboundOrderProduct(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         product_env = self.env["product.product"].sudo()
+        outbound_model = self.env["world.depot.outbound.order"]
         for vals in vals_list:
+            #从海关文件取unique_identifier
+            if vals.get("unique_identifier"):
+                continue
+            order_id = vals.get("outbound_order_id")
+            if not order_id:
+                continue
+            outbound = outbound_model.sudo().browse(order_id)
+            if outbound and outbound.customs_document_id and outbound.customs_document_id.unique_identifier:
+                vals["unique_identifier"] = outbound.customs_document_id.unique_identifier
+
             product_id = vals.get("product_id")
             if not product_id:
                 continue

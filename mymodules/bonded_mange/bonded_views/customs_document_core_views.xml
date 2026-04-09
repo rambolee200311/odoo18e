@@ -4,12 +4,13 @@
         <field name="model">bonded.customs.document</field>
         <field name="arch" type="xml">
             <list>
+                <field name="customs_document_number"/>
                 <field name="unique_identifier"/>
                 <field name="customs_status"/>
                 <field name="t1_document_number"/>
                 <field name="t1_status"/>
                 <field name="t1_closed_date"/>
-                <field name="active"/>
+
             </list>
         </field>
     </record>
@@ -21,6 +22,7 @@
             <form string="Customs Document" duplicate="0">
                 <sheet>
                     <group>
+                        <field name="customs_document_number" required="1"/>
                         <field name="inbound_order_id" readonly="1"/>
                         <field name="unique_identifier" readonly="1"/>
                         <field name="inbound_reference" readonly="1"/>
@@ -40,11 +42,12 @@
         <field name="model">bonded.customs.document</field>
         <field name="arch" type="xml">
             <search>
+                <field name="customs_document_number"/>
                 <field name="unique_identifier"/>
                 <field name="inbound_order_id"/>
                 <field name="inbound_reference"/>
                 <field name="customs_status"/>
-                <field name="t1_status"/>
+                <field name="t1_document_number"/>
             </search>
         </field>
     </record>

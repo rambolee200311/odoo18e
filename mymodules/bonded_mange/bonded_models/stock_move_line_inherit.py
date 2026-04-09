@@ -104,31 +104,6 @@ class StockMoveLine(models.Model):
 
         return list({x for x in pair_list})
 
-    def actionFillIdentifierForOutgoingByLedger(self, raise_if_missing=False):
-        for rec in self:
-            if rec.picking_id.picking_type_code != "outgoing" or (rec.quantity or 0.0) <= 0:
-                continue
-            if rec.unique_identifier and rec.file_identifier:
-                continue
-            pair_list = rec.actionGetIdentifierPairByLedger()
-            if len(pair_list) == 1:
-                unique_identifier, file_identifier = pair_list[0]
-                vals = {}
-                if unique_identifier and rec.unique_identifier != unique_identifier:
-                    vals["unique_identifier"] = unique_identifier
-                if file_identifier and rec.file_identifier != file_identifier:
-                    vals["file_identifier"] = file_identifier
-                if vals:
-                    rec.write(vals)
-            elif raise_if_missing:
-                raise ValidationError(_("Cannot determine unique identifier pair from ledger for line %s.") % (rec.display_name or rec.id))
-        if raise_if_missing:
-            missing_lines = self.filtered(
-                lambda x: x.picking_id.picking_type_code == "outgoing" and (x.quantity or 0.0) > 0 and (not x.unique_identifier or not x.file_identifier)
-            )
-            if missing_lines:
-                raise ValidationError(_("Outbound lines still miss Unique Identifier or File Identifier."))
-        return True
 
     @api.depends(
         "picking_id",
@@ -197,36 +172,70 @@ class StockMoveLine(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        move_model = self.env["stock.move"]
-        picking_model = self.env["stock.picking"]
+        move_env = self.env["stock.move"].sudo()
+        picking_env = self.env["stock.picking"].sudo()
+        outbound_line_env = self.env["world.depot.outbound.order.product"].sudo()
+        product_env = self.env["product.product"].sudo()
+
+        move_ids = list({vals.get("move_id") for vals in vals_list if vals.get("move_id")})
+        picking_ids = list({vals.get("picking_id") for vals in vals_list if vals.get("picking_id")})
+
+        move_map = {rec.id: rec for rec in move_env.browse(move_ids).exists()}
+        picking_map = {rec.id: rec for rec in picking_env.browse(picking_ids).exists()}
+
+        outbound_line_ids = set()
+        for move in move_map.values():
+            if move.picking_id and move.picking_id.picking_type_code == "outgoing" and move.outbound_order_product_id:
+                try:
+                    outbound_line_ids.add(int(move.outbound_order_product_id))
+                except Exception:
+                    pass
+        outbound_line_map = {rec.id: rec for rec in outbound_line_env.browse(list(outbound_line_ids)).exists()}
+
+        product_ids = set()
+        for vals in vals_list:
+            if vals.get("product_id"):
+                product_ids.add(vals["product_id"])
+            elif vals.get("move_id") and move_map.get(vals["move_id"]):
+                product_ids.add(move_map[vals["move_id"]].product_id.id)
+        product_map = {rec.id: rec for rec in product_env.browse(list(product_ids)).exists()}
 
         for vals in vals_list:
-            picking = False
-            if vals.get("picking_id"):
-                picking = picking_model.sudo().browse(vals["picking_id"])
-            elif vals.get("move_id"):
-                picking = move_model.sudo().browse(vals["move_id"]).picking_id
+            move = move_map.get(vals.get("move_id"))
+            picking = picking_map.get(vals.get("picking_id")) or (move.picking_id if move else False)
 
-            if picking:
+            if picking and picking.picking_type_code == "outgoing":
+                line = False
+                if move and move.outbound_order_product_id:
+                    line_raw = str(move.outbound_order_product_id or "").strip()
+                    if line_raw.isdigit():
+                        line = outbound_line_map.get(int(line_raw))
+                if not vals.get("unique_identifier") and line and line.unique_identifier:
+                    vals["unique_identifier"] = line.unique_identifier
+            elif picking:
                 if not vals.get("unique_identifier") and picking.unique_identifier:
                     vals["unique_identifier"] = picking.unique_identifier
                 if not vals.get("file_identifier") and picking.file_identifier:
                     vals["file_identifier"] = picking.file_identifier
 
-        product_env = self.env["product.product"].sudo()
-        move_env = self.env["stock.move"].sudo()
-        for vals in vals_list:
-            product_id = vals.get("product_id")
-            if not product_id and vals.get("move_id"):
-                product_id = move_env.browse(vals["move_id"]).product_id.id
+            product_id = vals.get("product_id") or (move.product_id.id if move else False)
             if not product_id:
                 continue
-            vals_ref = get_reference_vals(product_env.browse(product_id))
-            vals.setdefault("origin_country", vals_ref["origin_country"])
-            vals.setdefault("goods_value", vals_ref["goods_value"])
-            vals.setdefault("weight", vals_ref["weight"])
-            vals["hs_code"] = vals_ref["hs_code"]
-            vals["customs_code"] = vals_ref["customs_code"]
+
+            product = product_map.get(product_id)
+            if not product:
+                continue
+
+            vals_ref = get_reference_vals(product)
+            if not vals.get("origin_country"):
+                vals["origin_country"] = vals_ref["origin_country"]
+            if not vals.get("goods_value"):
+                vals["goods_value"] = vals_ref["goods_value"]
+            if not vals.get("weight"):
+                vals["weight"] = vals_ref["weight"]
+
+            vals["hs_code"] = vals_ref["hs_code"] or False
+            vals["customs_code"] = vals_ref["customs_code"] or False
 
         return super().create(vals_list)
 
