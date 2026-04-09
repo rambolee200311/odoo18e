@@ -8,8 +8,6 @@ CUSTOMS_STATUS_SELECTION = [
     ("entrepot", "Bonded Warehouse"),
     ("accijns", "Excise Goods"),
     ("ivv", "Import/Export/Transit & Equivalent"),
-    ("bonded", "Bonded"),
-    ("non_bonded", "Free / Non-bonded"),
 ]
 
 MRN_STATUS_SELECTION = [
@@ -32,7 +30,7 @@ class BondedMrnMaster(models.Model):
     _sql_constraints = [("code_unique", "unique(code)", "MRN Code must be unique.")]
 
     code = fields.Char(string="MRN Code", required=True, index=True, copy=False, tracking=True)
-    customs_status = fields.Selection(CUSTOMS_STATUS_SELECTION, string="Customs Status", required=True, default="vrij", index=True, tracking=True)
+    customs_status = fields.Selection(CUSTOMS_STATUS_SELECTION, string="Customs Status", default="vrij", index=True, tracking=True)
     mrn_status = fields.Selection(MRN_STATUS_SELECTION, string="MRN Status", required=True, default="pending_declaration", index=True, tracking=True)
     t1_document_number = fields.Char(string="T1 Document Number", index=True, copy=False, tracking=True)
     t1_status = fields.Selection(T1_STATUS_SELECTION, string="T1 Status", default="open", index=True, tracking=True)
@@ -40,6 +38,7 @@ class BondedMrnMaster(models.Model):
     remark = fields.Char(string="Remark")
     active = fields.Boolean(string="Active", default=True, index=True)
     company_id = fields.Many2one("res.company", string="Company", default=lambda self: self.env.company, index=True)
+    bonded_flag = fields.Selection([("true", "bonded"), ("false", "Non-bonded")], string="Bonded Flag", index=True, default="false", readonly=True)
 
     def actionNormalizeMrnCode(self, code):
         return (code or "").strip().upper()

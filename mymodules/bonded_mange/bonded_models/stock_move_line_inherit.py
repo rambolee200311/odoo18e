@@ -53,6 +53,11 @@ class StockMoveLine(models.Model):
     t1_closed_date = fields.Date(string="T1 Closed Date", related="picking_id.t1_closed_date", store=True, tracking=True)
 
     ledger_posted = fields.Boolean(string="Ledger Posted", default=False, copy=False, index=True, readonly=True)
+    bonded_flag = fields.Selection([("true", "bonded"), ("false", "Non-bonded")], string="Bonded Flag",related="picking_id.bonded_flag",store=True, index=True,
+                                   readonly=True)
+    customs_document_id = fields.Many2one("bonded.customs.document", string="Customs Document",
+                                          related="picking_id.customs_document_id", store=True, readonly=True,
+                                          index=True)
 
     def actionGetLocationAncestorIds(self):
         self.ensure_one()
@@ -277,3 +282,27 @@ class StockMoveLine(models.Model):
             if rec.state == "done":
                 raise UserError(_("Done stock move lines are history records and cannot be deleted."))
         return super().unlink()
+
+    # def actionOpenBulkCustomsByQueryWizard(self):
+    #     view_id = self.env.ref("bonded_mange.view_stock_move_line_bulk_customs_wizard_form").id
+    #     return {
+    #         "type": "ir.actions.act_window",
+    #         "name": _("Bulk Edit Customs Status"),
+    #         "res_model": "stock.move.line.bulk.customs.wizard",
+    #         "view_mode": "list,form",
+    #         "views": [(view_id, "form")],
+    #         "target": "new",
+    #         "context": {},
+    #     }
+    #
+    # def actionOpenBulkT1ByQueryWizard(self):
+    #     view_id = self.env.ref("bonded_mange.view_stock_move_line_bulk_t1_wizard_form").id
+    #     return {
+    #         "type": "ir.actions.act_window",
+    #         "name": _("Bulk Edit T1 Info"),
+    #         "res_model": "stock.move.line.bulk.t1.wizard",
+    #         "view_mode": "list,form",
+    #         "views": [(view_id, "form")],
+    #         "target": "new",
+    #         "context": {},
+    #     }

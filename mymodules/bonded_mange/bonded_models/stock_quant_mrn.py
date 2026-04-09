@@ -18,7 +18,7 @@ class StockQuant(models.Model):
 
     def write(self, vals):
         vals_write = dict(vals)
-        mrn_model = self.env["bonded.mrn.master"]
+
         if "mrn_id" in vals_write and not vals_write["mrn_id"]:
             vals_write.update({
 
@@ -48,9 +48,9 @@ class StockQuant(models.Model):
         return res
 
     def getMrnStatusByCustomsStatus(self, customs_status):
-        if customs_status in ("bonded", "entrepot"):
+        if customs_status in ("entrepot"):
             return "pending_declaration"
-        if customs_status in ("vrij", "non_bonded"):
+        if customs_status in ("vrij"):
             return "cleared"
         if customs_status in ("rto", "ivv"):
             return "declared"

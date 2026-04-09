@@ -1,19 +1,6 @@
-import re
-
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError, UserError, AccessError
-
-
-# 新增两套序列 ir.sequence：unique_identifier（唯一标识号）和 file_identifier（档案编号）。
-# 序列规则支持格式化（如 IO-YYYYMMDD-0001），确保连续、不回收、不重复。
-# 在 inbound order 创建时自动生成 unique_identifier，同时自动生成 file_identifier（可后续人工改）。
-# 入库单取消只改 state='cancel'，编号永久保留，不重置不复用。
-# 在 stock.picking / stock.move / stock.move.line / stock.quant 增加 unique_identifier 并与入库单绑定传递。
-# 在 stock.picking / stock.quant 增加 file_identifier，默认自动带出，但允许仓管/运维手工编辑。
-# 在相关 list/form 视图加字段展示，并加筛选条件（按唯一标识号、档案编号、单号查询）。
-# 扩展库存履历（stock.quant.history 相关视图/模型）增加：unique_identifier、file_identifier、IO、OO。
-# 履历里 IO/OO 字段做可点击关联跳转到对应 stock.picking 详情。
-# 履历默认按操作时间倒序，保留全量历史记录（不做删除/覆盖）。
+from odoo.addons.bonded_mange.bonded_models.new_models.customs_document_core import CUSTOMS_STATUS_SELECTION
 def get_bonded_missing_fields(line):
     missing_fields = []
     if not line.origin_country:
@@ -38,7 +25,39 @@ class InboundOrderInherit(models.Model):
                                 domain="[('code', '=', 'incoming'), ('warehouse_id', '=', warehouse), ('warehouse_id', '!=', False)]")
     unique_identifier = fields.Char(string='Unique Identifier', tracking=True, copy=False, index=True, readonly=True)
     file_identifier = fields.Char(string='File Identifier', tracking=True, copy=False, index=True)
+    customs_document_id = fields.Many2one("bonded.customs.document", string="Customs Document", index=True,
+                                          tracking=True, copy=False)
 
+    t1_document_number = fields.Char(string="T1 Document Number", index=True, copy=False, tracking=True)
+    t1_status = fields.Selection([
+        ("open", "Open"),
+        ("closed", "Closed"),
+    ], string="T1 Status", default="open", tracking=True, index=True)
+
+    t1_closed_date = fields.Date(string="T1 Closed Date", tracking=True)
+    customs_status = fields.Selection(CUSTOMS_STATUS_SELECTION, string="Customs Status", tracking=True, index=True)
+
+    @api.constrains("customs_document_id")
+    def checkCustomsDocumentIdConstraint(self):
+        inbound_model = self.env["world.depot.inbound.order"]
+        for rec in self:
+            if not rec.customs_document_id:
+                continue
+            domain = [("id", "!=", rec.id), ("customs_document_id", "=", rec.customs_document_id.id)]
+            if inbound_model.sudo().search_count(domain):
+                raise ValidationError(
+                    _("The selected Customs Document is already used by another inbound order and cannot be reused."))
+
+    def action_confirm(self):
+        res = super().action_confirm()
+        for rec in self:
+            if rec.customs_document_id and rec.unique_identifier and rec.customs_document_id.unique_identifier != rec.unique_identifier:
+                rec.customs_document_id.write({"unique_identifier": rec.unique_identifier})
+            if rec.customs_document_id  and rec.customs_document_id.inbound_order_id != rec.id:
+                rec.customs_document_id.write({"inbound_order_id": rec.id})
+            if rec.customs_document_id and rec.customs_document_id.inbound_reference != rec.reference:
+                rec.customs_document_id.write({"inbound_reference": rec.reference})
+        return res
 
     @api.constrains(
         "is_bonded",
@@ -58,33 +77,50 @@ class InboundOrderInherit(models.Model):
                             "fields": ", ".join(missing_fields),
                         }
                     )
-
-    def action_confirm(self):
+    @api.onchange('customs_document_id')
+    def onchange_customs_document_id(self):
         for rec in self:
-            if not rec.is_bonded:
-                continue
-            error_lines = []
-            line_no = 1
-            for line in rec.inbound_order_product_ids.mapped("inbound_order_product_pallet_ids"):
-                missing_fields = get_bonded_missing_fields(line)
-                if missing_fields:
-                    error_lines.append(
-                        _("Line %(line_no)s (%(product)s): %(fields)s")
-                        % {
-                            "line_no": line_no,
-                            "product": line.product_id.display_name or _("Unknown Product"),
-                            "fields": ", ".join(missing_fields),
-                        }
-                    )
-                line_no += 1
-            if error_lines:
-                raise UserError(
-                    _("Bonded inbound cannot be confirmed. Please fill required fields first:\n%s")
-                    % "\n".join(error_lines)
-                )
-        return super().action_confirm()
+            doc = rec.customs_document_id
+            rec.customs_status = doc.customs_status if doc else False
+            rec.t1_document_number = doc.t1_document_number if doc else False
+            rec.t1_status = (doc.t1_status or "open") if doc else "open"
+            rec.t1_closed_date = doc.t1_closed_date if doc else False
 
+    #海关文件状态同步
+    def actionSyncCustomsDocumentMirrorVals(self):
+        for rec in self:
+            doc = rec.customs_document_id
+            vals = {}
+            target_customs_status = doc.customs_status if doc else False
+            target_t1_document_number = doc.t1_document_number if doc else False
+            target_t1_status = (doc.t1_status or "open") if doc else "open"
+            target_t1_closed_date = doc.t1_closed_date if doc else False
+            if rec.customs_status != target_customs_status:
+                vals["customs_status"] = target_customs_status
+            if rec.t1_document_number != target_t1_document_number:
+                vals["t1_document_number"] = target_t1_document_number
+            if rec.t1_status != target_t1_status:
+                vals["t1_status"] = target_t1_status
+            if rec.t1_closed_date != target_t1_closed_date:
+                vals["t1_closed_date"] = target_t1_closed_date
+            if vals:
+                rec.write(vals)
+        return True
 
+    def actionSyncCustomsDocumentToInboundPicking(self):
+        picking_env = self.env["stock.picking"]
+        for rec in self:
+            picking_ids = picking_env.sudo().search([("inbound_order_id", "=", rec.id), ("state", "!=", "cancel")]).ids
+            for picking in picking_env.browse(picking_ids):
+                target_doc_id = rec.customs_document_id.id if rec.customs_document_id else False
+                if picking.customs_document_id.id != target_doc_id:
+                    picking.write({"customs_document_id": target_doc_id})
+        return True
+
+    def action_create_stock_picking(self):
+        res = super().action_create_stock_picking()
+        self.actionSyncCustomsDocumentToInboundPicking()
+        return res
 
     @api.model
     def create(self, vals):
@@ -99,13 +135,34 @@ class InboundOrderInherit(models.Model):
 
     def actionSyncInboundT1ToMrnAndQuant(self):
         picking_model = self.env["stock.picking"]
+        outbound_model = self.env["world.depot.outbound.order"]
         for rec in self:
             if rec.mrn_id:
                 rec.mrn_id.write({
                     "t1_document_number": rec.t1_document_number or False,
                     "t1_status": rec.t1_status or "open",
                     "t1_closed_date": rec.t1_closed_date or False,
+                    "customs_status": rec.customs_status,
+                    "bonded_flag": "true" if rec.is_bonded else "false",
                 })
+                outbound_ids = outbound_model.sudo().search(
+                    [("mrn_id", "=", rec.mrn_id.id), ("state", "!=", "cancel")]).ids
+                for outbound in outbound_model.browse(outbound_ids):
+                    vals = {
+                        "customs_status": rec.customs_status,
+                        "t1_document_number": rec.t1_document_number or False,
+                        "t1_status": rec.t1_status or "open",
+                        "t1_closed_date": rec.t1_closed_date or False,
+                        "mrn_status": rec.mrn_status or False,
+                        "bonded_flag": "true" if rec.is_bonded else "false",
+                        "unique_identifier": rec.unique_identifier or False,
+                    }
+                    write_vals = {}
+                    for key, value in vals.items():
+                        if outbound[key] != value:
+                            write_vals[key] = value
+                    if write_vals:
+                        outbound.write(write_vals)
 
             domain = [("state", "!=", "cancel")]
             if rec.mrn_id:
@@ -126,33 +183,23 @@ class InboundOrderInherit(models.Model):
         user = self.env.user
         allowed = user.has_group("bonded_mange.group_customs_admin") or user.has_group(
             "stock.group_stock_manager") or user.has_group("base.group_system")
-        if any(field in vals_write for field in ["t1_status", "mrn_id", "customs_status"]):
+        if any(field in vals_write for field in ["t1_status","t1_closed_date" "mrn_id", "customs_status"]):
             if not allowed:
-                raise AccessError(_("Only Customs Admin / Warehouse Supervisor can modify T1 Status."))
-
-        if "t1_status" in vals_write:
-            if vals_write.get("t1_status") == "closed" and not vals_write.get("t1_closed_date"):
-                vals_write["t1_closed_date"] = fields.Date.context_today(self)
-            elif vals_write.get("t1_status") != "closed":
-                vals_write["t1_closed_date"] = False
-
+                raise AccessError(_("Only Customs Admin / Warehouse Supervisor can modify T1 Status and T1 Closed Date."))
         res = super().write(vals_write)
+        if "customs_document_id" in vals:
+            self.actionSyncCustomsDocumentToInboundPicking()
 
+        self.actionSyncInboundSnapshotToMrn()
         if need_sync_t1:
             self.actionSyncInboundT1ToMrnAndQuant()
-        if vals_write.get("t1_status") == "closed":
+            # 根据T1状态改变MRN状态
+        if "t1_status" in vals_write:
             for rec in self:
-                if rec.mrn_status != "declared":
-                    rec.with_context(skip_t1_linkage=True).write({"mrn_status": "declared"})
-                product_records = rec.inbound_order_product_ids.mapped(
-                    "inbound_order_product_pallet_ids.product_id").filtered(lambda x: x)
-                for product in product_records:
-                    if product.customs_status not in ("bonded", "entrepot"):
-                        product.write({"customs_status": "bonded"})
-                picking_ids = self.env["stock.picking"].sudo().search(
-                    [("inbound_order_id", "=", rec.id), ("picking_type_code", "=", "incoming")]).ids
-                for picking in self.env["stock.picking"].browse(picking_ids):
-                    picking.actionSyncPickingMrnFields()
+                target_mrn_status = "declared" if rec.t1_status == "closed" else rec.getMrnStatusByCustomsStatus(
+                    rec.customs_status)
+                if rec.mrn_status != target_mrn_status:
+                    rec.with_context(skip_t1_linkage=True).write({"mrn_status": target_mrn_status})
 
         return res
 
@@ -180,16 +227,21 @@ class InboundOrderInherit(models.Model):
                 raise ValidationError(_("The operation type [%s] of the warehouse receipt does not belong to the warehouse [%s]; cross-warehouse configuration is prohibited.") % (
                 rec.pick_type.display_name, rec.warehouse.display_name))
 
+
+
 def get_reference_vals(product):
     return {
         "origin_country": product.origin_country.id or False,
         "goods_value": product.goods_value or 0.0,
         "hs_code": product.hs_code or False,
         "weight": product.weight or 0.0,
-        #"customs_code": product.customs_code or False,
+        "customs_code": product.customs_code or False,
     }
 
+class InboundOrderProduct(models.Model):
+    _inherit = "world.depot.inbound.order.product"
 
+    unique_identifier = fields.Char(string="Unique Identifier",related='inbound_order_id.unique_identifier', tracking=True)
 
 class InboundOrderProductsOfPallet(models.Model):
     _inherit = "world.depot.inbound.order.products.pallet"
@@ -208,6 +260,7 @@ class InboundOrderProductsOfPallet(models.Model):
         default=lambda self: self.env.company.currency_id)
     is_bonded = fields.Boolean(string="Bonded", related="inbound_order_product_id.inbound_order_id.is_bonded",
                                readonly=True)
+    unique_identifier = fields.Char(string="Unique Identifier",related='inbound_order_product_id.unique_identifier', tracking=True)
 
     @api.constrains(
         "origin_country",
@@ -240,7 +293,7 @@ class InboundOrderProductsOfPallet(models.Model):
                 rec.goods_value = vals["goods_value"]
                 rec.hs_code = vals["hs_code"]
                 rec.weight = vals["weight"]
-                #rec.customs_code = vals["customs_code"]
+                rec.customs_code = vals["customs_code"]
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -254,7 +307,7 @@ class InboundOrderProductsOfPallet(models.Model):
             vals.setdefault("goods_value", vals_ref["goods_value"])
             vals.setdefault("weight", vals_ref["weight"])
             vals["hs_code"] = vals_ref["hs_code"]
-            #vals["customs_code"] = vals_ref["customs_code"]
+            vals["customs_code"] = vals_ref["customs_code"]
         return super().create(vals_list)
 
     def write(self, vals):
@@ -265,7 +318,7 @@ class InboundOrderProductsOfPallet(models.Model):
             vals_ref = get_reference_vals(product)
             vals = dict(vals)
             vals["hs_code"] = vals_ref["hs_code"]
-            #vals["customs_code"] = vals_ref["customs_code"]
+            vals["customs_code"] = vals_ref["customs_code"]
             vals.setdefault("origin_country", vals_ref["origin_country"])
             vals.setdefault("goods_value", vals_ref["goods_value"])
             vals.setdefault("weight", vals_ref["weight"])

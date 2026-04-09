@@ -6,8 +6,6 @@ CUSTOMS_STATUS_SELECTION = [
     ("entrepot", "Bonded Warehouse"),
     ("accijns", "Excise Goods"),
     ("ivv", "Import/Export/Transit & Equivalent"),
-    ("bonded", "Bonded"),
-    ("non_bonded", "Free / Non-bonded"),
 ]
 
 class ProductProduct(models.Model):
@@ -28,7 +26,7 @@ class ProductProduct(models.Model):
         string='Currency',
         default=lambda self: self.env.company.currency_id)
 
-    customs_status = fields.Selection(CUSTOMS_STATUS_SELECTION, string="Customs Status", index=True, tracking=True,required=True,default="vrij")
+    customs_status = fields.Selection(CUSTOMS_STATUS_SELECTION, string="Customs Status", index=True, tracking=True,default="vrij")
 
 
 
@@ -45,10 +43,10 @@ class ProductProduct(models.Model):
             self.actionCreateCustomsAuditLog(old_value_map, action_type="manual")
 
         # 海关状态联动mrn状态
-        if vals.get("customs_status"):
-            quant_ids = self.env["stock.quant"].sudo().search([("product_id", "in", self.ids)]).ids
-            for quant in self.env["stock.quant"].browse(quant_ids):
-                quant.write({"customs_status": vals["customs_status"]})
+        # if vals.get("customs_status"):
+        #     quant_ids = self.env["stock.quant"].sudo().search([("product_id", "in", self.ids)]).ids
+        #     for quant in self.env["stock.quant"].browse(quant_ids):
+        #         quant.write({"customs_status": vals["customs_status"]})
         return res
 
     def getCustomsAuditFieldList(self):

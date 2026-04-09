@@ -4,6 +4,12 @@
         <field name="model">stock.move.line</field>
         <field name="inherit_id" ref="stock.view_move_line_tree"/>
         <field name="arch" type="xml">
+<!--            <xpath expr="//list" position="inside">-->
+<!--                <header>-->
+<!--                    <button name="actionOpenBulkCustomsByQueryWizard" type="object" string="Edit Customs Status" class="btn-secondary"/>-->
+<!--                    <button name="actionOpenBulkT1ByQueryWizard" type="object" string="Edit T1 Info" class="btn-secondary"/>-->
+<!--                </header>-->
+<!--            </xpath>-->
             <xpath expr="//list" position="attributes">
                 <attribute name="default_order">date desc,id desc</attribute>
                 <attribute name="delete">0</attribute>
@@ -17,9 +23,13 @@
                        decoration-info="customs_status in ('vrij', 'non_bonded')"
                        decoration-warning="customs_status in ('rto', 'ivv', 'accijns')"/>
 
-<!--                <button name="action_open_mrn_detail" type="object" string="MRN Detail" class="btn-link"-->
-<!--                        icon="fa-external-link" invisible="not mrn_id"/>-->
+                <!--                <button name="action_open_mrn_detail" type="object" string="MRN Detail" class="btn-link"-->
+                <!--                        icon="fa-external-link" invisible="not mrn_id"/>-->
                 <field name="unique_identifier" optional="show"/>
+                <field name="bonded_flag" readonly="1" widget="badge"
+                       decoration-danger="bonded_flag in ('bonded')"
+                       decoration-info="bonded_flag in ('non_bonded')"/>
+
                 <field name="file_identifier" optional="show"/>
                 <field name="io_picking_id" optional="show"/>
                 <field name="oo_picking_id" optional="show"/>
@@ -54,9 +64,13 @@
                        decoration-danger="customs_status in ('bonded', 'entrepot')"
                        decoration-info="customs_status in ('vrij', 'non_bonded')"
                        decoration-warning="customs_status in ('rto', 'ivv', 'accijns')"/>
-<!--                <button name="action_open_mrn_detail" type="object" string="MRN Detail" class="btn-link"-->
-<!--                        icon="fa-external-link" invisible="not mrn_id"/>-->
+                <!--                <button name="action_open_mrn_detail" type="object" string="MRN Detail" class="btn-link"-->
+                <!--                        icon="fa-external-link" invisible="not mrn_id"/>-->
                 <field name="unique_identifier" optional="show"/>
+                <field name="bonded_flag" readonly="1" widget="badge"
+                       decoration-danger="bonded_flag in ('bonded')"
+                       decoration-info="bonded_flag in ('non_bonded')"/>
+
                 <field name="file_identifier" optional="show"/>
             </xpath>
         </field>
@@ -77,9 +91,13 @@
                        decoration-warning="customs_status in ('rto', 'ivv', 'accijns')"/>
                 <field name="mrn_id" optional="show" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                 <field name="mrn_status" widget="badge" optional="show" readonly="1"/>
-<!--                <button name="action_open_mrn_detail" type="object" string="MRN Detail" class="btn-link"-->
-<!--                        icon="fa-external-link" invisible="not mrn_id"/>-->
+                <!--                <button name="action_open_mrn_detail" type="object" string="MRN Detail" class="btn-link"-->
+                <!--                        icon="fa-external-link" invisible="not mrn_id"/>-->
                 <field name="unique_identifier" readonly="1"/>
+                <field name="bonded_flag" readonly="1" widget="badge"
+                       decoration-danger="bonded_flag in ('bonded')"
+                       decoration-info="bonded_flag in ('non_bonded')"/>
+
                 <field name="file_identifier" readonly="1"/>
                 <field name="io_picking_id" readonly="1"/>
                 <field name="oo_picking_id" readonly="1"/>
@@ -104,6 +122,9 @@
             </xpath>
             <xpath expr="//list/field[@name='quantity'][1]" position="after">
                 <field name="unique_identifier" optional="hide"/>
+                <field name="bonded_flag" readonly="1" widget="badge"
+                       decoration-danger="bonded_flag in ('bonded')"
+                       decoration-info="bonded_flag in ('non_bonded')"/>
 
                 <field name="mrn_id" optional="show" readonly="1"/>
                 <field name="mrn_status" widget="badge" optional="show" readonly="1"/>
@@ -118,6 +139,11 @@
         <field name="inherit_id" ref="stock.view_stock_move_line_detailed_operation_tree"/>
         <field name="arch" type="xml">
             <xpath expr="//list/field[@name='quantity']" position="after">
+                <field name="customs_status" readonly="1" widget="badge"
+                       decoration-danger="customs_status in ('bonded', 'entrepot')"
+                       decoration-info="customs_status in ('vrij', 'non_bonded')"
+                       decoration-warning="customs_status in ('rto', 'ivv', 'accijns')"/>
+
                 <field name="origin_country" optional="hide"/>
                 <field name="goods_value" optional="hide"/>
                 <field name="hs_code" readonly="1" optional="hide"/>
@@ -125,15 +151,19 @@
                 <field name="customs_code" readonly="1" optional="hide"/>
             </xpath>
             <xpath expr="//list/field[@name='quantity'][1]" position="after">
-                <field name="unique_identifier" optional="hide"/>
+                <field name="unique_identifier" optional="show"/>
+                <field name="bonded_flag" readonly="1" widget="badge"
+                       decoration-danger="bonded_flag in ('bonded')"
+                       decoration-info="bonded_flag in ('non_bonded')"/>
+
                 <field name="io_picking_id" readonly="1"/>
                 <field name="oo_picking_id" readonly="1"/>
                 <!--                <field name="in_no" readonly="1"/>-->
                 <!--                <field name="pick_no" readonly="1"/>-->
                 <field name="mrn_id" optional="show" readonly="1"/>
                 <field name="mrn_status" widget="badge" optional="show" readonly="1"/>
-<!--                <button name="action_open_mrn_detail" type="object" string="MRN Detail" class="btn-link"-->
-<!--                        icon="fa-external-link" invisible="not mrn_id"/>-->
+                <!--                <button name="action_open_mrn_detail" type="object" string="MRN Detail" class="btn-link"-->
+                <!--                        icon="fa-external-link" invisible="not mrn_id"/>-->
             </xpath>
         </field>
     </record>
@@ -147,6 +177,10 @@
             <xpath expr="//search/field[@name='reference']" position="after">
                 <field name="file_identifier"/>
                 <field name="unique_identifier"/>
+                <field name="bonded_flag" readonly="1" widget="badge"
+                       decoration-danger="bonded_flag in ('bonded')"
+                       decoration-info="bonded_flag in ('non_bonded')"/>
+
                 <field name="mrn_id"/>
                 <field name="mrn_status"/>
                 <field name="customs_status"/>

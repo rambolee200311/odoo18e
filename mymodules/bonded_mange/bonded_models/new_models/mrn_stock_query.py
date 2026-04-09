@@ -7,8 +7,7 @@ CUSTOMS_STATUS_SELECTION = [("vrij", "Vrij"),
                             ("entrepot", "Bonded Warehouse"),
                             ("accijns", "Excise Goods"),
                             ("ivv", "Import/Export/Transit & Equivalent"),
-                            ("bonded", "Bonded"),
-                            ("non_bonded", "Free / Non-bonded")]
+                        ]
 MRN_STATUS_SELECTION = [("pending_declaration", "Pending Declaration"),
                         ("declared", "Declared"),
                         ("cleared", "Cleared"),
@@ -28,6 +27,7 @@ class BondedMrnStockQuery(models.Model):
     query_lines = fields.One2many("bonded.mrn.stock.query.line", "query_id", string="Query Lines", copy=False)
     state = fields.Selection([("draft", "Draft"), ("done", "Done")], string="State", default="draft", index=True, copy=False)
     company_id = fields.Many2one("res.company", string="Company", default=lambda self: self.env.company, index=True, copy=False)
+    unique_identifier = fields.Char(string='Unique Identifier', tracking=True, copy=False, index=True)
 
     def actionPrintPdf(self):
         self.ensure_one()
@@ -178,6 +178,7 @@ class BondedMrnStockQueryLine(models.Model):
 
     query_id = fields.Many2one("bonded.mrn.stock.query", string="Query", required=True, ondelete="cascade", index=True)
     mrn_id = fields.Many2one("bonded.mrn.master", string="MRN", store=True, readonly=True, index=True)
+    unique_identifier = fields.Char(string='Unique Identifier', tracking=True, copy=False, index=True)
     product_id = fields.Many2one("product.product", string="Product", required=True, index=True, options="{'no_create': True, 'no_open': True}")
     product_barcode = fields.Char(string="Product Barcode", related="product_id.barcode", readonly=True, store=True, index=True)
     customs_status = fields.Selection(CUSTOMS_STATUS_SELECTION, string="Customs Status", index=True, readonly=True)

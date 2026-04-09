@@ -1,9 +1,7 @@
-
-
 import re
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
-
+from odoo.addons.bonded_mange.bonded_models.product_product_inherit import CUSTOMS_STATUS_SELECTION
 
 class InboundOrderInherit(models.Model):
     _inherit = "world.depot.inbound.order"
@@ -14,7 +12,6 @@ class InboundOrderInherit(models.Model):
         "bonded.mrn.master",
         compute="_compute_used_mrn_ids"
     )
-    # mrn_code = fields.Char(string="MRN Code", size=18, tracking=True, copy=False, index=True)
     mrn_status = fields.Selection([
         ("pending_declaration", "Pending Declaration"),
         ("declared", "Declared"),
@@ -22,14 +19,6 @@ class InboundOrderInherit(models.Model):
         ("status_changed", "Status Changed"),
         ("exception", "Exception"),
     ], string="MRN Status", default="pending_declaration", tracking=True, copy=False, index=True)
-
-    t1_document_number = fields.Char(string="T1 Document Number", index=True, copy=False,tracking= True)
-    t1_status = fields.Selection([
-        ("open", "Open"),
-        ("closed", "Closed"),
-    ], string="T1 Status", default="open", tracking=True, index=True)
-
-    t1_closed_date = fields.Date(string="T1 Closed Date", tracking=True)
 
     @api.depends("mrn_id", "state")
     def _compute_used_mrn_ids(self):
@@ -39,25 +28,10 @@ class InboundOrderInherit(models.Model):
         for rec in self:
             rec.used_mrn_ids = [(6, 0, used)]
 
-
-
-
-    @api.depends('t1_status')
-    def _compute_t1_status_color(self):
-        for rec in self:
-            if rec.t1_status == "closed":
-                rec.t1_closed_date = fields.Date.context_today(rec)
-
-
-
-    #改产品海关状态
-    def getCustomsStatusByBonded(self, is_bonded):
-        return "bonded" if is_bonded else "vrij"
-
     def getMrnStatusByCustomsStatus(self, customs_status):
-        if customs_status in ("bonded", "entrepot"):
+        if customs_status in ("entrepot"):
             return "pending_declaration"
-        if customs_status in ("vrij", "non_bonded"):
+        if customs_status in ("vrij"):
             return "cleared"
         if customs_status in ("rto", "ivv"):
             return "declared"
@@ -67,7 +41,7 @@ class InboundOrderInherit(models.Model):
 
     def actionApplyBondedCustomsMrnMappingOnConfirm(self):
         for rec in self:
-            customs_status = rec.getCustomsStatusByBonded(rec.is_bonded)
+            customs_status = rec.customs_status if rec.customs_status is not False else ("vrij" if rec.is_bonded else False)
             target_mrn_status = (
                 "declared"
                 if rec.is_bonded and rec.t1_status == "closed"
@@ -86,11 +60,12 @@ class InboundOrderInherit(models.Model):
         for rec in self:
 
             vals = {
-                "customs_status": rec.getCustomsStatusByBonded(rec.is_bonded),
+                "customs_status":  rec.customs_status,
                 "mrn_status": rec.mrn_status or False,
                 "t1_document_number": rec.t1_document_number or False,
                 "t1_status": rec.t1_status or "open",
                 "t1_closed_date": rec.t1_closed_date or False,
+                "bonded_flag": "true" if rec.is_bonded else "false",
             }
             rec.mrn_id.write(vals)
 
@@ -98,6 +73,8 @@ class InboundOrderInherit(models.Model):
         for rec in self:
             if rec.is_bonded and not rec.mrn_id:
                 raise ValidationError(_("Please select MRN"))
+            if rec.is_bonded and not rec.t1_document_number:
+                raise ValidationError(_("Please enter T1 document number"))
             # if rec.is_bonded and rec.t1_status != "closed":
             #     raise ValidationError(_("Please close T1"))
         self.actionApplyBondedCustomsMrnMappingOnConfirm()

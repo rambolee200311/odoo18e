@@ -8,8 +8,6 @@ CUSTOMS_STATUS_SELECTION = [
     ("entrepot", "Bonded Warehouse"),
     ("accijns", "Excise Goods"),
     ("ivv", "Import/Export/Transit & Equivalent"),
-    ("bonded", "Bonded"),
-    ("non_bonded", "Free / Non-bonded"),
 ]
 
 MRN_STATUS_SELECTION = [
@@ -154,7 +152,7 @@ class StockPickingMrnDetailAction(models.Model):
 class StockMoveMrnDetailAction(models.Model):
     _inherit = "stock.move"
 
-    customs_status = fields.Selection(related="product_id.customs_status", string="Customs Status", store=True, readonly=True, index=True)
+    customs_status = fields.Selection(related="picking_id.customs_status", string="Customs Status", store=True, readonly=True, index=True)
 
     def action_open_mrn_detail(self):
         return build_mrn_detail_action(self)
