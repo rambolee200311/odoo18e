@@ -1,5 +1,3 @@
-
-
 import re
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
@@ -14,7 +12,6 @@ class InboundOrderInherit(models.Model):
         "bonded.mrn.master",
         compute="_compute_used_mrn_ids"
     )
-    # mrn_code = fields.Char(string="MRN Code", size=18, tracking=True, copy=False, index=True)
     mrn_status = fields.Selection([
         ("pending_declaration", "Pending Declaration"),
         ("declared", "Declared"),
@@ -23,24 +20,6 @@ class InboundOrderInherit(models.Model):
         ("exception", "Exception"),
     ], string="MRN Status", default="pending_declaration", tracking=True, copy=False, index=True)
 
-    customs_status = fields.Selection(CUSTOMS_STATUS_SELECTION, string="Customs Status", tracking=True,index=True)
-    customs_status_manual = fields.Boolean(string="Customs Status Manual", default=False, tracking=True, index=True,copy=False)
-
-    @api.onchange("is_bonded")
-    def onchangeIsBondedSetCustomsStatus(self):
-        for rec in self:
-            if not rec.customs_status_manual:
-                rec.customs_status = "vrij" if rec.is_bonded else False
-
-
-    t1_document_number = fields.Char(string="T1 Document Number", index=True, copy=False,tracking= True)
-    t1_status = fields.Selection([
-        ("open", "Open"),
-        ("closed", "Closed"),
-    ], string="T1 Status", default="open", tracking=True, index=True)
-
-    t1_closed_date = fields.Date(string="T1 Closed Date", tracking=True)
-
     @api.depends("mrn_id", "state")
     def _compute_used_mrn_ids(self):
         env = self.env
@@ -48,8 +27,6 @@ class InboundOrderInherit(models.Model):
         used = inbound_model.sudo().search([("mrn_id", "!=", False)]).mapped("mrn_id").ids
         for rec in self:
             rec.used_mrn_ids = [(6, 0, used)]
-
-
 
     def getMrnStatusByCustomsStatus(self, customs_status):
         if customs_status in ("entrepot"):
@@ -96,6 +73,8 @@ class InboundOrderInherit(models.Model):
         for rec in self:
             if rec.is_bonded and not rec.mrn_id:
                 raise ValidationError(_("Please select MRN"))
+            if rec.is_bonded and not rec.t1_document_number:
+                raise ValidationError(_("Please enter T1 document number"))
             # if rec.is_bonded and rec.t1_status != "closed":
             #     raise ValidationError(_("Please close T1"))
         self.actionApplyBondedCustomsMrnMappingOnConfirm()

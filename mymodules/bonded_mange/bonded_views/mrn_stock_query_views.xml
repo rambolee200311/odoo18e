@@ -42,6 +42,7 @@
                             <list create="0" edit="0" delete="0" default_order="id desc">
                                 <field name="mrn_id"/>
                                 <field name="product_id"/>
+                                <field name="unique_identifier"/>
                                 <field name="product_barcode"/>
                                 <field name="customs_status" widget="badge"/>
                                 <field name="mrn_status" widget="badge"/>
@@ -85,6 +86,6 @@
     </record>
 
     <menuitem id="menu_bonded_mrn_stock_query" name="MRN Product Stock Query"
-              parent="worlddepot.menu_world_depot_configuration" action="action_bonded_mrn_stock_query" sequence="983"
+              parent="bonded_mange.menu_bonded_root" action="action_bonded_mrn_stock_query" sequence="983"
               groups="base.group_user"/>
 </odoo>

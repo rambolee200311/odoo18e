@@ -10,6 +10,8 @@ class StockPicking(models.Model):
     cmr_sign_filename = fields.Char(string="CMR Filename")
     unique_identifier = fields.Char(string="Unique Identifier", tracking=True, copy=False, index=True, readonly=True)
     file_identifier = fields.Char(string="File Identifier", tracking=True, copy=False, index=True, readonly=True)
+    customs_document_id = fields.Many2one("bonded.customs.document", string="Customs Document", index=True,
+                                          tracking=True, copy=False)
 
     mrn_status = fields.Selection(
         [
@@ -28,10 +30,12 @@ class StockPicking(models.Model):
     bonded_flag = fields.Selection([("true", "bonded"), ("false", "Non-bonded")], string="Bonded Flag", compute="_compute_bonded_flag", index=True,
                                    readonly=True)
 
-    @api.depends("inbound_t1_source_id", "inbound_t1_source_id.is_bonded")
+    @api.depends("inbound_order_id", "inbound_order_id.is_bonded")
     def _compute_bonded_flag(self):
         for rec in self:
-            rec.bonded_flag = "true" if rec.inbound_t1_source_id and rec.inbound_t1_source_id.is_bonded else "false"
+            rec.bonded_flag = "true" if rec.inbound_order_id and rec.inbound_order_id.is_bonded else "false"
+
+
     def check_cmr_sign_time_before_done(self):
         for rec in self:
             if rec.picking_type_code in ("outgoing",) and (not rec.cmr_sign_time or not rec.cmr_sign_file):

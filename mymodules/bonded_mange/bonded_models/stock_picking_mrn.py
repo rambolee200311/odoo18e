@@ -6,67 +6,33 @@ class StockPicking(models.Model):
     _inherit = "stock.picking"
 
     mrn_id = fields.Many2one("bonded.mrn.master", string="MRN", index=True, copy=False, tracking=True)
-    t1_document_number = fields.Char(string="T1 Document Number", compute="_compute_t1_from_inbound",store=True, index=True, copy=False)
+    t1_document_number = fields.Char(string="T1 Document Number", compute="_compute_t1_status_from_customs_document",store=True, index=True, copy=False)
     t1_status = fields.Selection([
         ("open", "Open"),
         ("closed", "Closed"),
-    ], string="T1 Status", default="open",store=True, compute="_compute_t1_from_inbound", tracking=True, index=True)
+    ], string="T1 Status", default="open",store=True, compute="_compute_t1_status_from_customs_document", tracking=True, index=True)
 
-    t1_closed_date = fields.Date(string="T1 Closed Date", compute="_compute_t1_from_inbound",store=True, tracking=True)
+    t1_closed_date = fields.Date(string="T1 Closed Date", compute="_compute_t1_status_from_customs_document",store=True, tracking=True)
 
     customs_status = fields.Selection(CUSTOMS_STATUS_SELECTION, string="Customs Status",
-                                      compute="_compute_customs_status", store=True, index=True)
-    inbound_t1_source_id = fields.Many2one("world.depot.inbound.order", string="T1 Source Inbound",
-                                           compute="_compute_inbound_t1_source_id", store=True, index=True)
+                                      compute="_compute_t1_status_from_customs_document", store=True, index=True)
 
-    #t1状态完全从入库inbound来
-    @api.depends("mrn_id", "outbound_order_id", "outbound_order_id.mrn_id", "inbound_order_id", "inbound_order_id.mrn_id")
-    def _compute_inbound_t1_source_id(self):
-        inbound_model = self.env["world.depot.inbound.order"]
-        for rec in self:
-            inbound = rec.inbound_order_id
-            if not inbound:
-                mrn = rec.mrn_id or rec.outbound_order_id.mrn_id
-                if mrn:
-                    inbound_ids = inbound_model.sudo().search([
-                        ("mrn_id", "=", mrn.id),
-                        ("state", "=", "confirm"),
-                        ("stock_picking_id.state", "=", "done"),
-                    ], order="id desc", limit=1).ids
-                    inbound = inbound_model.browse(inbound_ids[:1])
-            rec.inbound_t1_source_id = inbound.id if inbound else False
 
-    @api.depends("inbound_t1_source_id", "inbound_t1_source_id.t1_document_number", "inbound_t1_source_id.t1_status", "inbound_t1_source_id.t1_closed_date")
-    def _compute_t1_from_inbound(self):
+    @api.depends("customs_document_id", "customs_document_id.t1_document_number", "customs_document_id.t1_status", "customs_document_id.t1_closed_date")
+    def _compute_t1_status_from_customs_document(self):
         for rec in self:
-            inbound = rec.inbound_t1_source_id
-            if inbound:
-                rec.t1_document_number = inbound.t1_document_number or False
-                rec.t1_status = inbound.t1_status or "open"
-                rec.t1_closed_date = inbound.t1_closed_date or False
+            if rec.customs_document_id:
+                rec.t1_document_number = rec.customs_document_id.t1_document_number or False
+                rec.t1_status = rec.customs_document_id.t1_status or "open"
+                rec.t1_closed_date = rec.customs_document_id.t1_closed_date or False
+                rec.customs_status = rec.customs_document_id.customs_status
             else:
                 rec.t1_document_number = False
                 rec.t1_status = "open"
                 rec.t1_closed_date = False
+                rec.customs_status = False
 
-    @api.depends("mrn_id", "mrn_id.customs_status", "inbound_order_id", "inbound_order_id.is_bonded", "outbound_order_id")
-    def _compute_customs_status(self):
-        for rec in self:
-            if rec.inbound_order_id:
-                rec.customs_status = rec.inbound_order_id.customs_status
-            elif rec.mrn_id and rec.mrn_id.customs_status:
-                rec.customs_status = rec.mrn_id.customs_status
-            else:
-                rec.customs_status = ""
 
-    def actionGetMrnMirrorVals(self, mrn):
-        return {
-
-            "mrn_status": mrn.mrn_status or False,
-            "t1_document_number": mrn.t1_document_number or False,
-            "t1_status": mrn.t1_status or "open",
-            "t1_closed_date": mrn.t1_closed_date or False,
-        }
 
 
     def getMrnStatusByCustomsStatus(self, customs_status):
@@ -95,12 +61,7 @@ class StockPicking(models.Model):
             vals = {}
             if rec.mrn_id != mrn:
                 vals["mrn_id"] = mrn.id
-            mirror = rec.actionGetMrnMirrorVals(mrn)
-            for k, v in mirror.items():
-                if rec[k] != v:
-                    vals[k] = v
-            if vals:
-                rec.with_context(skip_mrn_sync=True).write(vals)
+                rec.write(vals)
 
             for move in rec.move_ids:
                 mv = {}

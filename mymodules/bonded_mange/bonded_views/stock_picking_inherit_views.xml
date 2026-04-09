@@ -6,15 +6,15 @@
         <field name="arch" type="xml">
             <xpath expr="//list/field[@name='picking_type_id']" position="after">
                 <field name="customs_status" optional="show" widget="badge"
-                       decoration-danger="customs_status in ('bonded', 'entrepot')"
-                       decoration-info="customs_status in ('vrij', 'non_bonded')"
+                       decoration-danger="customs_status in ( 'entrepot')"
+                       decoration-info="customs_status in ('vrij')"
                        decoration-warning="customs_status in ('rto', 'ivv', 'accijns')"/>
             </xpath>
             <xpath expr="//list/field[@name='name']" position="after">
                 <field name="unique_identifier" optional="show"/>
                 <field name="bonded_flag" readonly="1" widget="badge"
-                       decoration-danger="bonded_flag in ('bonded')"
-                       decoration-info="bonded_flag in ('non_bonded')"/>
+                       decoration-danger="bonded_flag in ('true')"
+                       decoration-info="bonded_flag in ('false')"/>
 
             </xpath>
         </field>
@@ -29,8 +29,8 @@
                 <field name="mrn_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                 <field name="mrn_status" readonly="1"/>
                 <field name="customs_status" readonly="1" widget="badge"
-                       decoration-danger="customs_status in ('bonded', 'entrepot')"
-                       decoration-info="customs_status in ('vrij', 'non_bonded')"
+                       decoration-danger="customs_status in ('entrepot')"
+                       decoration-info="customs_status in ('vrij')"
                        decoration-warning="customs_status in ('rto', 'ivv', 'accijns')"
                 />
 
@@ -38,22 +38,19 @@
                 <!--                        icon="fa-external-link" invisible="not mrn_id"/>-->
                 <field name="cmr_sign_time"
                        invisible="picking_type_code not in ('outgoing')"
-                       readonly="state == 'done'"
-                       />
+                       readonly="state == 'done'"/>
                 <field name="cmr_sign_file"
                        invisible="picking_type_code not in ('outgoing')"
-                       readonly="state == 'done'"
-                       />
+                       readonly="state == 'done'"/>
                 <field name="cmr_sign_filename"
                        invisible="picking_type_code not in ('outgoing')"
-                       readonly="state == 'done'"
-                       />
+                       readonly="state == 'done'"/>
                 <field name="unique_identifier" readonly="1"/>
                 <field name="file_identifier"/>
                 <field name="bonded_flag" readonly="1" widget="badge"
                        decoration-danger="bonded_flag in ('bonded')"
                        decoration-info="bonded_flag in ('non_bonded')"/>
-
+                <field name="customs_document_id" options="{'no_create': True, 'no_open': True}" readonly="1"/>
                 <field name="t1_document_number" readonly="1"/>
                 <field name="t1_status" readonly="1"/>
                 <field name="t1_closed_date" readonly="1"/>
