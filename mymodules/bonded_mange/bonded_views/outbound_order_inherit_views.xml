@@ -35,7 +35,7 @@
                 <field name="origin_country"/>
                 <field name="goods_value"/>
                 <field name="hs_code" readonly="1"/>
-                <field name="weight"/>
+<!--                <field name="weight"/>-->
                 <field name="customs_code" readonly="1"/>
             </xpath>
         </field>

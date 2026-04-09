@@ -8,10 +8,9 @@ class OutboundOrder(models.Model):
     pick_type = fields.Many2one("stock.picking.type", string="Picking Type", tracking=True,
                                 domain="[('code', '=', 'outgoing'), ('warehouse_id', '=', warehouse), ('warehouse_id', '!=', False)]")
     cmr_sign_time = fields.Datetime(string="CMR Sign Time", tracking=True, copy=False, index=True, readonly=True)
-    mrn_id = fields.Many2one("bonded.mrn.master", string="MRN", index=True, copy=False, tracking=True,
-                             domain="[('id', 'in', inbound_confirm_mrn_ids)]")
-    inbound_confirm_mrn_ids = fields.Many2many("bonded.mrn.master", compute="_compute_inbound_confirm_mrn_ids",
-                                               compute_sudo=True)
+    mrn_id = fields.Many2one("bonded.mrn.master", string="MRN", index=True, copy=False, tracking=True)
+    #inbound_confirm_mrn_ids = fields.Many2many("bonded.mrn.master", compute="_compute_inbound_confirm_mrn_ids",compute_sudo=True)
+
     unique_identifier = fields.Char(string='Unique Identifier', tracking=True, copy=False, index=True, readonly=True)
     bonded_flag = fields.Selection([("true", "bonded"), ("false", "Non-bonded")], string="Bonded Flag", index=True, readonly=True)
     customs_document_id = fields.Many2one("bonded.customs.document", string="Customs Document", index=True,
@@ -70,24 +69,24 @@ class OutboundOrder(models.Model):
         self.actionSyncCustomsDocumentToOutboundPicking()
         return res
 
-    @api.depends("mrn_id", "state")
-    def _compute_inbound_confirm_mrn_ids(self):
-        inbound_model = self.env["world.depot.inbound.order"]
-        outbound_model = self.env['world.depot.outbound.order']
-
-        inbound_mrn_ids = set(inbound_model.sudo().search(
-            [('mrn_id', '!=', False), ('state', '=', 'confirm'), ('stock_picking_id.state', '=', 'done')]).mapped(
-            "mrn_id").ids)
-        used_mrn_ids = set(outbound_model.sudo().search(
-            [("id", "not in", self.ids), ("state", "!=", "cancel"), ("mrn_id", "!=", False)]
-        ).mapped("mrn_id").ids)
-        available_ids = list(inbound_mrn_ids - used_mrn_ids)
-
-        for rec in self:
-            rec_ids = list(available_ids)
-            if rec.mrn_id:
-                rec_ids.append(rec.mrn_id.id)
-            rec.inbound_confirm_mrn_ids = [(6, 0, list(set(rec_ids)))]
+    # @api.depends("mrn_id", "state")
+    # def _compute_inbound_confirm_mrn_ids(self):
+    #     inbound_model = self.env["world.depot.inbound.order"]
+    #     outbound_model = self.env['world.depot.outbound.order']
+    #
+    #     inbound_mrn_ids = set(inbound_model.sudo().search(
+    #         [('mrn_id', '!=', False), ('state', '=', 'confirm'), ('stock_picking_id.state', '=', 'done')]).mapped(
+    #         "mrn_id").ids)
+    #     used_mrn_ids = set(outbound_model.sudo().search(
+    #         [("id", "not in", self.ids), ("state", "!=", "cancel"), ("mrn_id", "!=", False)]
+    #     ).mapped("mrn_id").ids)
+    #     available_ids = list(inbound_mrn_ids - used_mrn_ids)
+    #
+    #     for rec in self:
+    #         rec_ids = list(available_ids)
+    #         if rec.mrn_id:
+    #             rec_ids.append(rec.mrn_id.id)
+    #         rec.inbound_confirm_mrn_ids = [(6, 0, list(set(rec_ids)))]
 
     mrn_status = fields.Selection([
         ("pending_declaration", "Pending Declaration"),
