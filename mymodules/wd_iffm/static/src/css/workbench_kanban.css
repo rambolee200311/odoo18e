@@ -150,6 +150,33 @@
     line-height: 1.4;
 }
 
+.o_kanban_view.wd_iffm_kanban .o_kanban_group[data-state="done"],
+.o_kanban_view.wd_iffm_kanban .o_kanban_group[data-state="cancel"] {
+    opacity: 0.8;
+}
+
+/* 泳道折叠样式 */
+.o_kanban_view.wd_iffm_kanban .o_kanban_group.o_kanban_group_collapsed {
+    min-height: auto !important;
+    height: auto;
+    max-height: 50px;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_kanban_group.o_kanban_group_collapsed .o_kanban_group_content {
+    display: none !important;
+    visibility: hidden;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_kanban_group.o_kanban_group_collapsed .oe_kanban_card {
+    display: none !important;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_kanban_group.o_kanban_group_collapsed .o_kanban_group_header {
+    border-bottom: none;
+    background-color: #f8f9fa;
+    min-height: 40px;
+}
+
 .o_kanban_view.wd_iffm_kanban .o_tag_new {
     background-color: #e3f2fd;
     color: #1565c0;
