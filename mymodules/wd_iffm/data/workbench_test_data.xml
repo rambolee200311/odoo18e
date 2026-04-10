@@ -6,7 +6,6 @@
         <field name="near_due_count">5</field>
         <field name="overdue_count">3</field>
         <field name="record_ids_text">101,102,103,104,105,106,107,108</field>
-        <field name="active">True</field>
     </record>
 
     <record id="operation_workbench_dashboard_data_handover" model="operation.workbench.dashboard.data">
@@ -15,7 +14,6 @@
         <field name="near_due_count">2</field>
         <field name="overdue_count">2</field>
         <field name="record_ids_text">201,202,203,204</field>
-        <field name="active">True</field>
     </record>
 
     <record id="operation_workbench_dashboard_data_clearance" model="operation.workbench.dashboard.data">
@@ -24,7 +22,6 @@
         <field name="near_due_count">6</field>
         <field name="overdue_count">4</field>
         <field name="record_ids_text">301,302,303,304,305,306,307,308,309,310</field>
-        <field name="active">True</field>
     </record>
     </data>
 </odoo>
