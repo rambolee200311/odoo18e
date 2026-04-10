@@ -16,11 +16,6 @@ class OutboundOrder(models.Model):
     customs_document_id = fields.Many2one("bonded.customs.document", string="Customs Document", index=True,
                                           tracking=True, copy=False)
 
-    @api.constrains("bonded_flag")
-    def check_bonded_flag_required_when_no_mrn(self):
-        for rec in self:
-            if not rec.bonded_flag:
-                raise ValidationError(_("Bonded Flag is required."))
 
     def write(self, vals):
         res = super().write(vals)
@@ -199,7 +194,7 @@ class OutboundOrderProduct(models.Model):
 
     inbound_pallet_id = fields.Many2one(
         "world.depot.inbound.order.products.pallet",
-        string="Inbound Pallet Line",
+        string="Inbound Pallet Line(Unique Identifier)",
         tracking=True,
         copy=False,
         index=True,
