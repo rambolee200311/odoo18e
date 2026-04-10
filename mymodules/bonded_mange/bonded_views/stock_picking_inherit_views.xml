@@ -50,7 +50,7 @@
                 <field name="bonded_flag" readonly="1" widget="badge"
                        decoration-danger="bonded_flag in ('bonded')"
                        decoration-info="bonded_flag in ('non_bonded')"/>
-                <field name="customs_document_id" options="{'no_create': True, 'no_open': True}" readonly="1"/>
+                <field name="customs_document_id" options="{'no_create': True}" readonly="1"/>
                 <field name="t1_document_number" readonly="1"/>
                 <field name="t1_status" readonly="1"/>
                 <field name="t1_closed_date" readonly="1"/>

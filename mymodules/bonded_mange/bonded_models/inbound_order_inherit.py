@@ -1,6 +1,8 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError, UserError, AccessError
 from odoo.addons.bonded_mange.bonded_models.new_models.customs_document_core import CUSTOMS_STATUS_SELECTION
+
+
 def get_bonded_missing_fields(line):
     missing_fields = []
     if not line.origin_country:
@@ -277,7 +279,49 @@ class InboundOrderProductsOfPallet(models.Model):
         default=lambda self: self.env.company.currency_id)
     is_bonded = fields.Boolean(string="Bonded", related="inbound_order_product_id.inbound_order_id.is_bonded",
                                readonly=True)
-    unique_identifier = fields.Char(string="Unique Identifier",related='inbound_order_product_id.unique_identifier', tracking=True)
+    unique_identifier = fields.Char(string="Unique Identifier", related="inbound_order_product_id.unique_identifier", store=True, readonly=True, index=True, tracking=True)
+
+    def name_get(self):
+        result = []
+        for rec in self:
+            unique_text = (rec.unique_identifier or "").strip() or "-"
+            product_text = rec.product_id.display_name or "-"
+            inbound_text = rec.inbound_order_product_id.inbound_order_id.billno or "-"
+            qty_text = rec.quantity or 0.0
+            result.append((rec.id, "%s" % (unique_text)))
+        return result
+
+    @api.model
+    def name_search(self, name="", args=None, operator="ilike", limit=100):
+        domain = list(args or [])
+        domain.extend([
+            ("unique_identifier", "!=", False),
+            ("inbound_order_product_id.inbound_order_id.state", "=", "confirm"),
+            ("inbound_order_product_id.inbound_order_id.stock_picking_id.state", "=", "done"),
+        ])
+
+        bonded_flag = self.env.context.get("outbound_bonded_flag")
+        if bonded_flag in ("true", "false"):
+            domain.append(("inbound_order_product_id.inbound_order_id.is_bonded", "=", bonded_flag == "true"))
+
+        warehouse_id = self.env.context.get("outbound_warehouse_id")
+        if warehouse_id:
+            domain.append(("inbound_order_product_id.inbound_order_id.warehouse", "=", warehouse_id))
+
+        if name:
+            domain.extend([
+                "|", "|", "|", "|",
+                ("unique_identifier", operator, name),
+                ("product_id.display_name", operator, name),
+                ("product_id.default_code", operator, name),
+                ("product_id.barcode", operator, name),
+                ("inbound_order_product_id.inbound_order_id.billno", operator, name),
+            ])
+
+        pallet_model = self.env["world.depot.inbound.order.products.pallet"]
+        records = pallet_model.sudo().search(domain, order="id desc", limit=limit)
+        return records.name_get()
+
 
     @api.constrains(
         "origin_country",

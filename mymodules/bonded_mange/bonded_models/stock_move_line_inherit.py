@@ -32,6 +32,8 @@ class StockMoveLine(models.Model):
     in_no = fields.Char(string="IN No", related="io_picking_id.name", store=True, readonly=True, index=True)
     pick_no = fields.Char(string="PICK No", related="picking_id.name", store=True, readonly=True, index=True)
 
+    inbound_order_id = fields.Many2one("world.depot.inbound.order", string="Inbound Order", related="picking_id.inbound_order_id", store=True, readonly=True, index=True)
+    outbound_order_id = fields.Many2one("world.depot.outbound.order", string="Outbound Order", related="picking_id.outbound_order_id", store=True, readonly=True, index=True)
     mrn_id = fields.Many2one("bonded.mrn.master", string="MRN", related="move_id.mrn_id", store=True, readonly=True, index=True)
     mrn_status = fields.Selection(
         [
