@@ -37,3 +37,6 @@ access_statement_period_user,access.statement.period.user,model_statement_period
 
 access_import_pickup_requirement_user,access.import.pickup.requirement.user,model_import_pickup_requirement,,1,1,1,1
 access_pickup_container_line_user,access.pickup.container.line.user,model_pickup_container_line,,1,1,1,1
+
+
+access_operation_workbench_dashboard_data_user,operation.workbench.dashboard.data user,model_operation_workbench_dashboard_data,,1,1,1,1

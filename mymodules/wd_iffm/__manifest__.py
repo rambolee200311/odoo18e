@@ -33,6 +33,7 @@ Long description of module's purpose
         'data/sequence_operation.xml',
         'data/ir_sequence_quotation.xml',
         'data/account_account_data.xml',
+        'data/workbench_test_data.xml',
         'wizard/charge_quotation_add_wizard_views.xml',
         'wizard/waybill_arrival_wizard_views.xml',
         'wizard/waybill_create_clearance_wizard_views.xml',
@@ -61,6 +62,7 @@ Long description of module's purpose
         'views/settlement_account_views/account_account_inherit_views.xml',
 
         'views/charge_item_inherit_views.xml',
+        'views/charge_pricing_views/operation_workbench_dashboard_data_views.xml',
 
 
 
@@ -83,6 +85,7 @@ Long description of module's purpose
             'wd_iffm/static/src/js/workbench_kanban_registry.js',
         ],
     },
+    'license': 'LGPL-3',
 
 }
 
