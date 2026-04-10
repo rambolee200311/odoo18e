@@ -21,7 +21,7 @@
         <field name="arch" type="xml">
             <form duplicate="0">
                 <header>
-                    <button name="actionQueryMrnStock" type="object" string="Query" class="btn-primary"
+                    <button name="action_query_mrn_stock" type="object" string="Query" class="btn-primary"
                             invisible="state != 'draft'"/>
                     <button name="actionBackToDraft" type="object" string="Back To Draft" class="btn-secondary"
                             invisible="state != 'done'" groups="base.group_system"/>
@@ -32,6 +32,7 @@
                         <field name="name" readonly="state == 'done'"/>
                         <field name="start_time" required="1" readonly="state == 'done'"/>
                         <field name="end_time" required="1" readonly="state == 'done'"/>
+                        <field name="unique_identifier" readonly="state == 'done'"/>
                         <field name="product_id" readonly="state == 'done'"
                                options="{'no_create': True, 'no_open': True}"/>
                         <field name="mrn_id" readonly="state == 'done'" options="{'no_create': True, 'no_open': True}"/>
@@ -71,6 +72,7 @@
                 <field name="name"/>
                 <field name="product_id"/>
                 <field name="mrn_id"/>
+                <field name="unique_identifier"/>
                 <field name="start_time"/>
                 <field name="end_time"/>
                 <field name="state"/>

@@ -1,13 +1,7 @@
 # /.../bonded_models/mrn_stock_query.py
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
-
-CUSTOMS_STATUS_SELECTION = [("vrij", "Vrij"),
-                            ("rto", "Return to Origin"),
-                            ("entrepot", "Bonded Warehouse"),
-                            ("accijns", "Excise Goods"),
-                            ("ivv", "Import/Export/Transit & Equivalent"),
-                        ]
+from odoo.addons.bonded_mange.bonded_models.new_models.customs_document_core import CUSTOMS_STATUS_SELECTION
 MRN_STATUS_SELECTION = [("pending_declaration", "Pending Declaration"),
                         ("declared", "Declared"),
                         ("cleared", "Cleared"),
@@ -50,18 +44,17 @@ class BondedMrnStockQuery(models.Model):
             rec.write({"state": "draft"})
         return True
 
-
-    def actionQueryMrnStock(self):
+    def action_query_mrn_stock(self):
         line_model = self.env["stock.move.line"]
         product_model = self.env["product.product"]
         mrn_model = self.env["bonded.mrn.master"]
 
         for rec in self:
             rec.query_lines.unlink()
+            query_unique = (rec.unique_identifier or "").strip()
 
             domain_line = [
                 ("state", "=", "done"),
-                ("mrn_id", "!=", False),
                 ("date", "<=", rec.end_time),
                 ("picking_id.picking_type_id.code", "in", ["incoming", "outgoing"]),
             ]
@@ -69,19 +62,26 @@ class BondedMrnStockQuery(models.Model):
                 domain_line.append(("product_id", "=", rec.product_id.id))
             if rec.mrn_id:
                 domain_line.append(("mrn_id", "=", rec.mrn_id.id))
+            if query_unique:
+                domain_line.append(("unique_identifier", "=", query_unique))
 
             line_list = line_model.sudo().search(domain_line, order="date asc,id asc")
             data_map = {}
 
             for sml in line_list:
-                if not sml.mrn_id or not sml.product_id:
+                if not sml.product_id:
                     continue
 
-                key = (sml.mrn_id.id, sml.product_id.id)
+                mrn_id = sml.mrn_id.id or False
+                product_id = sml.product_id.id
+                unique_identifier = (sml.unique_identifier or "").strip() or False
+                key = (mrn_id, product_id, unique_identifier)
+
                 if key not in data_map:
                     data_map[key] = {
-                        "mrn_id": sml.mrn_id.id,
-                        "product_id": sml.product_id.id,
+                        "mrn_id": mrn_id,
+                        "product_id": product_id,
+                        "unique_identifier": unique_identifier,
                         "customs_status": sml.customs_status or False,
                         "mrn_status": sml.mrn_status or False,
                         "inbound_no": False,
@@ -145,13 +145,14 @@ class BondedMrnStockQuery(models.Model):
                 item["stock_qty"] = item["opening_qty"] + item["inbound_qty"] - item["outbound_qty"]
 
                 product = product_map.get(item["product_id"])
-                mrn = mrn_map.get(item["mrn_id"])
+                mrn = mrn_map.get(item["mrn_id"]) if item["mrn_id"] else False
                 customs_status = item["customs_status"] or (product.customs_status if product else False)
                 mrn_status = item["mrn_status"] or (mrn.mrn_status if mrn else False)
 
                 vals_list.append({
                     "query_id": rec.id,
-                    "mrn_id": item["mrn_id"],
+                    "mrn_id": item["mrn_id"] or False,
+                    "unique_identifier": item["unique_identifier"] or False,
                     "product_id": item["product_id"],
                     "customs_status": customs_status,
                     "mrn_status": mrn_status,
@@ -169,6 +170,8 @@ class BondedMrnStockQuery(models.Model):
             if vals_list:
                 self.env["bonded.mrn.stock.query.line"].create(vals_list)
             rec.state = "done"
+
+        return True
 
 
 class BondedMrnStockQueryLine(models.Model):

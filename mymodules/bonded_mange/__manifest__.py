@@ -54,5 +54,6 @@ Long description of module's purpose
     ],
     # only loaded in demonstration mode
     'application': True,
+    'license': 'LGPL-3',
 }
 

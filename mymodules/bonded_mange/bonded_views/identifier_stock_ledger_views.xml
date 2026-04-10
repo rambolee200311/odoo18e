@@ -4,7 +4,7 @@
         <field name="model">bonded.identifier.stock.ledger</field>
         <field name="arch" type="xml">
             <list create="0" edit="0" delete="0" default_order="id desc">
-                <field name="company_id" optional="show"/>
+<!--                <field name="company_id" optional="show"/>-->
                 <field name="unique_identifier" optional="show"/>
                 <field name="file_identifier" optional="show"/>
                 <field name="mrn_id" optional="show"/>
@@ -31,7 +31,7 @@
                 <sheet>
                     <group>
                         <group>
-                            <field name="company_id" readonly="1"/>
+<!--                            <field name="company_id" readonly="1"/>-->
                             <field name="unique_identifier" readonly="1"/>
                             <field name="file_identifier" readonly="1"/>
                             <field name="mrn_id" readonly="1"/>

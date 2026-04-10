@@ -9,7 +9,7 @@
                 <field name="goods_value"/>
                 <field name="hs_code"/>
                 <field name="customs_code" />
-                 <field name="customs_status" required="1"/>
+<!--                 <field name="customs_status" required="1"/>-->
             </xpath>
         </field>
     </record>

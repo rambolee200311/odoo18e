@@ -16,7 +16,13 @@ class BondedCustomsDocument(models.Model):
     _inherit = ["mail.thread", "mail.activity.mixin"]
     _description = "Customs Document"
     _order = "id desc"
-    _rec_name = "t1_document_number"
+    _rec_name = "customs_document_number"
+
+    _sql_constraints = [("customs_document_number_unique", "unique(customs_document_number)",
+                         "Customs Document Number must be unique.")]
+
+    customs_document_number = fields.Char(string="Customs Document Number", index=True, tracking=True, copy=False)
+
     customs_document_type = fields.Selection(
         [("import_declaration", "Import Declaration"),
          ("bonded_warehouse_inbound", "Bonded Warehouse Inbound"),
@@ -38,7 +44,7 @@ class BondedCustomsDocument(models.Model):
     t1_document_number = fields.Char(string="T1 Document Number", index=True, tracking=True)
     t1_status = fields.Selection(T1_STATUS_SELECTION, string="T1 Status", required=True, default="open", index=True, tracking=True)
     t1_closed_date = fields.Date(string="T1 Closed Date", tracking=True)
-    active = fields.Boolean(string="Active", default=True, index=True)
+    #active = fields.Boolean(string="Active", default=True, index=True)
 
     def write(self, vals):
         vals_write = dict(vals)

@@ -45,12 +45,12 @@
                 <field name="cmr_sign_filename"
                        invisible="picking_type_code not in ('outgoing')"
                        readonly="state == 'done'"/>
-                <field name="unique_identifier" readonly="1"/>
-                <field name="file_identifier"/>
+                <field name="unique_identifier" readonly="1" invisible="picking_type_code== 'outgoing'"/>
+                <field name="file_identifier" readonly="1" invisible="picking_type_code== 'outgoing'"/>
                 <field name="bonded_flag" readonly="1" widget="badge"
                        decoration-danger="bonded_flag in ('bonded')"
                        decoration-info="bonded_flag in ('non_bonded')"/>
-                <field name="customs_document_id" options="{'no_create': True, 'no_open': True}" readonly="1"/>
+                <field name="customs_document_id" options="{'no_create': True}" readonly="1"/>
                 <field name="t1_document_number" readonly="1"/>
                 <field name="t1_status" readonly="1"/>
                 <field name="t1_closed_date" readonly="1"/>

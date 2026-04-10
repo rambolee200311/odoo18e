@@ -14,4 +14,5 @@ from . import stock_picking_mrn
 from . import stock_quant_mrn
 from . import mrn_regulatory_report
 from . import new_models
+from . import outbound_order_unique_inherit
 

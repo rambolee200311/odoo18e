@@ -2,13 +2,8 @@ import re
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
 
-CUSTOMS_STATUS_SELECTION = [
-    ("vrij", "Vrij"),
-    ("rto", "Return to Origin"),
-    ("entrepot", "Bonded Warehouse"),
-    ("accijns", "Excise Goods"),
-    ("ivv", "Import/Export/Transit & Equivalent"),
-]
+from odoo.addons.bonded_mange.bonded_models.new_models.customs_document_core import CUSTOMS_STATUS_SELECTION
+from odoo.addons.bonded_mange.bonded_models.new_models.customs_document_core import T1_STATUS_SELECTION
 
 MRN_STATUS_SELECTION = [
     ("pending_declaration", "Pending Declaration"),
@@ -17,9 +12,6 @@ MRN_STATUS_SELECTION = [
     ("status_changed", "Status Changed"),
     ("exception", "Exception"),
 ]
-
-T1_STATUS_SELECTION = [("open", "Open"), ("closed", "Closed")]
-
 
 class BondedMrnMaster(models.Model):
     _name = "bonded.mrn.master"

@@ -1,6 +1,8 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError, UserError, AccessError
 from odoo.addons.bonded_mange.bonded_models.new_models.customs_document_core import CUSTOMS_STATUS_SELECTION
+
+
 def get_bonded_missing_fields(line):
     missing_fields = []
     if not line.origin_country:
@@ -110,11 +112,28 @@ class InboundOrderInherit(models.Model):
     def actionSyncCustomsDocumentToInboundPicking(self):
         picking_env = self.env["stock.picking"]
         for rec in self:
-            picking_ids = picking_env.sudo().search([("inbound_order_id", "=", rec.id), ("state", "!=", "cancel")]).ids
+            picking_ids = picking_env.sudo().search([
+                ("inbound_order_id", "=", rec.id),
+                ("state", "!=", "cancel"),
+            ]).ids
             for picking in picking_env.browse(picking_ids):
+                vals = {}
                 target_doc_id = rec.customs_document_id.id if rec.customs_document_id else False
                 if picking.customs_document_id.id != target_doc_id:
-                    picking.write({"customs_document_id": target_doc_id})
+                    vals["customs_document_id"] = target_doc_id
+
+                # 只给入库单据同步标识
+                if picking.picking_type_code == "incoming":
+                    if rec.unique_identifier and picking.unique_identifier != rec.unique_identifier:
+                        vals["unique_identifier"] = rec.unique_identifier
+                    if rec.file_identifier and picking.file_identifier != rec.file_identifier:
+                        vals["file_identifier"] = rec.file_identifier
+
+                if vals:
+                    picking.write(vals)
+
+                if picking.picking_type_code == "incoming":
+                    picking.action_sync_identifier_to_move_line_from_picking()
         return True
 
     def action_create_stock_picking(self):
@@ -260,7 +279,49 @@ class InboundOrderProductsOfPallet(models.Model):
         default=lambda self: self.env.company.currency_id)
     is_bonded = fields.Boolean(string="Bonded", related="inbound_order_product_id.inbound_order_id.is_bonded",
                                readonly=True)
-    unique_identifier = fields.Char(string="Unique Identifier",related='inbound_order_product_id.unique_identifier', tracking=True)
+    unique_identifier = fields.Char(string="Unique Identifier", related="inbound_order_product_id.unique_identifier", store=True, readonly=True, index=True, tracking=True)
+
+    def name_get(self):
+        result = []
+        for rec in self:
+            unique_text = (rec.unique_identifier or "").strip() or "-"
+            product_text = rec.product_id.display_name or "-"
+            inbound_text = rec.inbound_order_product_id.inbound_order_id.billno or "-"
+            qty_text = rec.quantity or 0.0
+            result.append((rec.id, "%s" % (unique_text)))
+        return result
+
+    @api.model
+    def name_search(self, name="", args=None, operator="ilike", limit=100):
+        domain = list(args or [])
+        domain.extend([
+            ("unique_identifier", "!=", False),
+            ("inbound_order_product_id.inbound_order_id.state", "=", "confirm"),
+            ("inbound_order_product_id.inbound_order_id.stock_picking_id.state", "=", "done"),
+        ])
+
+        bonded_flag = self.env.context.get("outbound_bonded_flag")
+        if bonded_flag in ("true", "false"):
+            domain.append(("inbound_order_product_id.inbound_order_id.is_bonded", "=", bonded_flag == "true"))
+
+        warehouse_id = self.env.context.get("outbound_warehouse_id")
+        if warehouse_id:
+            domain.append(("inbound_order_product_id.inbound_order_id.warehouse", "=", warehouse_id))
+
+        if name:
+            domain.extend([
+                "|", "|", "|", "|",
+                ("unique_identifier", operator, name),
+                ("product_id.display_name", operator, name),
+                ("product_id.default_code", operator, name),
+                ("product_id.barcode", operator, name),
+                ("inbound_order_product_id.inbound_order_id.billno", operator, name),
+            ])
+
+        pallet_model = self.env["world.depot.inbound.order.products.pallet"]
+        records = pallet_model.sudo().search(domain, order="id desc", limit=limit)
+        return records.name_get()
+
 
     @api.constrains(
         "origin_country",
@@ -323,3 +384,9 @@ class InboundOrderProductsOfPallet(models.Model):
             vals.setdefault("goods_value", vals_ref["goods_value"])
             vals.setdefault("weight", vals_ref["weight"])
         return super().write(vals)
+
+    def unlink(self):
+        for rec in self:
+            if rec.unique_identifier:
+                raise UserError(_("Inbound order with Unique Identifier cannot be deleted, even in Cancel state."))
+        return super().unlink()

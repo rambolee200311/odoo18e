@@ -99,7 +99,7 @@
         </record>
 
         <menuitem id="menu_customs_mrn_selection_dictionary" name="Customs/MRN Selection Dictionary"
-                  parent="worlddepot.menu_world_depot_configuration" action="action_customs_mrn_selection_dictionary"
+                  parent="bonded_mange.menu_bonded_root" action="action_customs_mrn_selection_dictionary"
                   sequence="981"
                   groups="base.group_system"
         />

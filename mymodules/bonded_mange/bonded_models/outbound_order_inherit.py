@@ -8,14 +8,20 @@ class OutboundOrder(models.Model):
     pick_type = fields.Many2one("stock.picking.type", string="Picking Type", tracking=True,
                                 domain="[('code', '=', 'outgoing'), ('warehouse_id', '=', warehouse), ('warehouse_id', '!=', False)]")
     cmr_sign_time = fields.Datetime(string="CMR Sign Time", tracking=True, copy=False, index=True, readonly=True)
-    mrn_id = fields.Many2one("bonded.mrn.master", string="MRN", index=True, copy=False, tracking=True,
-                             domain="[('id', 'in', inbound_confirm_mrn_ids)]")
-    inbound_confirm_mrn_ids = fields.Many2many("bonded.mrn.master", compute="_compute_inbound_confirm_mrn_ids",
-                                               compute_sudo=True)
+    mrn_id = fields.Many2one("bonded.mrn.master", string="MRN", index=True, copy=False, tracking=True)
+    #inbound_confirm_mrn_ids = fields.Many2many("bonded.mrn.master", compute="_compute_inbound_confirm_mrn_ids",compute_sudo=True)
+
     unique_identifier = fields.Char(string='Unique Identifier', tracking=True, copy=False, index=True, readonly=True)
-    bonded_flag = fields.Selection([("true", "bonded"), ("false", "Non-bonded")], string="Bonded Flag", index=True, default="false", readonly=True)
+    bonded_flag = fields.Selection([("true", "bonded"), ("false", "Non-bonded")], string="Bonded Flag", index=True)
     customs_document_id = fields.Many2one("bonded.customs.document", string="Customs Document", index=True,
                                           tracking=True, copy=False)
+
+    @api.constrains("bonded_flag")
+    def check_bonded_flag_required_when_no_mrn(self):
+        for rec in self:
+            if not rec.bonded_flag:
+                raise ValidationError(_("Bonded Flag is required."))
+
     def write(self, vals):
         res = super().write(vals)
         if "customs_document_id" in vals:
@@ -63,24 +69,24 @@ class OutboundOrder(models.Model):
         self.actionSyncCustomsDocumentToOutboundPicking()
         return res
 
-    @api.depends("mrn_id", "state")
-    def _compute_inbound_confirm_mrn_ids(self):
-        inbound_model = self.env["world.depot.inbound.order"]
-        outbound_model = self.env['world.depot.outbound.order']
-
-        inbound_mrn_ids = set(inbound_model.sudo().search(
-            [('mrn_id', '!=', False), ('state', '=', 'confirm'), ('stock_picking_id.state', '=', 'done')]).mapped(
-            "mrn_id").ids)
-        used_mrn_ids = set(outbound_model.sudo().search(
-            [("id", "not in", self.ids), ("state", "!=", "cancel"), ("mrn_id", "!=", False)]
-        ).mapped("mrn_id").ids)
-        available_ids = list(inbound_mrn_ids - used_mrn_ids)
-
-        for rec in self:
-            rec_ids = list(available_ids)
-            if rec.mrn_id:
-                rec_ids.append(rec.mrn_id.id)
-            rec.inbound_confirm_mrn_ids = [(6, 0, list(set(rec_ids)))]
+    # @api.depends("mrn_id", "state")
+    # def _compute_inbound_confirm_mrn_ids(self):
+    #     inbound_model = self.env["world.depot.inbound.order"]
+    #     outbound_model = self.env['world.depot.outbound.order']
+    #
+    #     inbound_mrn_ids = set(inbound_model.sudo().search(
+    #         [('mrn_id', '!=', False), ('state', '=', 'confirm'), ('stock_picking_id.state', '=', 'done')]).mapped(
+    #         "mrn_id").ids)
+    #     used_mrn_ids = set(outbound_model.sudo().search(
+    #         [("id", "not in", self.ids), ("state", "!=", "cancel"), ("mrn_id", "!=", False)]
+    #     ).mapped("mrn_id").ids)
+    #     available_ids = list(inbound_mrn_ids - used_mrn_ids)
+    #
+    #     for rec in self:
+    #         rec_ids = list(available_ids)
+    #         if rec.mrn_id:
+    #             rec_ids.append(rec.mrn_id.id)
+    #         rec.inbound_confirm_mrn_ids = [(6, 0, list(set(rec_ids)))]
 
     mrn_status = fields.Selection([
         ("pending_declaration", "Pending Declaration"),
@@ -120,15 +126,6 @@ class OutboundOrder(models.Model):
             "warehouse": False,
             "bonded_flag": mrn.bonded_flag or "false",
         }
-
-    def getMrnQuantGroupData(self):
-        self.ensure_one()
-        quant_env = self.env["stock.quant"]
-        domain = [("mrn_id", "=", self.mrn_id.id), ("quantity", ">", 0), ("location_id.usage", "=", "internal")]
-        if self.warehouse and self.warehouse.view_location_id:
-            domain.append(("location_id", "child_of", self.warehouse.view_location_id.id))
-        return quant_env.sudo().read_group(domain, ["product_id", "quantity:sum"], ["product_id"], lazy=False)
-
 
 
     @api.onchange("mrn_id")
@@ -199,8 +196,52 @@ class OutboundOrderProduct(models.Model):
         'res.currency',
         string='Currency',
         default=lambda self: self.env.company.currency_id)
-    unique_identifier = fields.Char(string="Unique Identifier", related='outbound_order_id.customs_document_id.unique_identifier',
-                                    tracking=True)
+
+    inbound_pallet_id = fields.Many2one(
+        "world.depot.inbound.order.products.pallet",
+        string="Inbound Pallet Line",
+        tracking=True,
+        copy=False,
+        index=True,
+        domain="[('product_id', '=', product_id),"
+               " ('inbound_order_product_id.inbound_order_id.state', '=', 'confirm'),"
+               " ('inbound_order_product_id.inbound_order_id.stock_picking_id.state', '=', 'done')]",
+    )
+    unique_identifier = fields.Char(string="Unique Identifier", related="inbound_pallet_id.unique_identifier",
+                                    store=True, readonly=True, tracking=True, index=True)
+
+    @api.constrains("inbound_pallet_id", "product_id")
+    def check_inbound_pallet_product_match(self):
+        for rec in self:
+            if rec.inbound_pallet_id and rec.product_id and rec.inbound_pallet_id.product_id != rec.product_id:
+                raise ValidationError(_("Inbound Pallet Line product does not match outbound line product."))
+
+    @api.onchange("product_id")
+    def onchange_product_id_clear_inbound_pallet_id(self):
+        for rec in self:
+            if rec.inbound_pallet_id and rec.product_id and rec.inbound_pallet_id.product_id != rec.product_id:
+                rec.inbound_pallet_id = False
+
+    @api.onchange("product_id")
+    def onchange_auto_assign_inbound_pallet_id(self):
+        for rec in self:
+            if not rec.product_id or not rec.outbound_order_id or rec.inbound_pallet_id:
+                continue
+            order = rec.outbound_order_id
+            if not order.get_is_bonded_outbound_order():
+                continue
+            qty_map = order.action_get_ledger_qty_map_by_product_unique([rec.product_id.id])
+            if not qty_map:
+                continue
+            unique_list = sorted({k[1] for k in qty_map.keys() if k[1]})
+            pallet_map = order.action_get_inbound_pallet_map_by_product_unique([rec.product_id.id],
+                                                                               unique_list=unique_list,
+                                                                               bonded_value=True)
+            candidate_list = [uid for uid in unique_list if (rec.product_id.id, uid) in pallet_map and float(
+                qty_map.get((rec.product_id.id, uid)) or 0.0) > 0]
+            if candidate_list:
+                rec.inbound_pallet_id = pallet_map[(rec.product_id.id, candidate_list[0])].id
+
 
     @api.onchange("product_id")
     def onchange_product_id_fill_reference_fields(self):
@@ -216,10 +257,25 @@ class OutboundOrderProduct(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         product_env = self.env["product.product"].sudo()
+        outbound_model = self.env["world.depot.outbound.order"].sudo()
         for vals in vals_list:
+            vals.pop("unique_identifier", None)
             product_id = vals.get("product_id")
             if not product_id:
                 continue
+            order_id = vals.get("outbound_order_id")
+            if order_id and not vals.get("inbound_pallet_id") and vals.get("unique_identifier"):
+                outbound = outbound_model.browse(order_id)
+                unique_text = (vals.get("unique_identifier") or "").strip()
+                if unique_text:
+                    pallet_map = outbound.action_get_inbound_pallet_map_by_product_unique(
+                        [product_id],
+                        unique_list=[unique_text],
+                        bonded_value=outbound.get_is_bonded_outbound_order(),
+                    )
+                    pallet = pallet_map.get((product_id, unique_text))
+                    if pallet:
+                        vals["inbound_pallet_id"] = pallet.id
             vals_ref = get_reference_vals(product_env.browse(product_id))
             vals.setdefault("origin_country", vals_ref["origin_country"])
             vals.setdefault("goods_value", vals_ref["goods_value"])
@@ -229,15 +285,40 @@ class OutboundOrderProduct(models.Model):
         return super().create(vals_list)
 
     def write(self, vals):
-        if ("hs_code" in vals or "customs_code" in vals) and "product_id" not in vals:
+        vals_write = dict(vals)
+        if ("hs_code" in vals_write or "customs_code" in vals_write) and "product_id" not in vals_write:
             raise UserError(_("HS Code and Customs Code are reference values and cannot be modified."))
-        if vals.get("product_id"):
-            product = self.env["product.product"].sudo().browse(vals["product_id"])
+
+        if "unique_identifier" in vals_write and "inbound_pallet_id" not in vals_write:
+            unique_text = (vals_write.get("unique_identifier") or "").strip()
+            vals_write.pop("unique_identifier", None)
+            if not unique_text:
+                vals_write["inbound_pallet_id"] = False
+            else:
+                if len(self) != 1:
+                    raise ValidationError(_("Batch write with unique_identifier is not supported."))
+                rec = self[0]
+                product_id = vals_write.get("product_id") or rec.product_id.id
+                order = rec.outbound_order_id
+                pallet_map = order.action_get_inbound_pallet_map_by_product_unique(
+                    [product_id],
+                    unique_list=[unique_text],
+                    bonded_value=order.get_is_bonded_outbound_order(),
+                )
+                pallet = pallet_map.get((product_id, unique_text))
+                if not pallet:
+                    raise ValidationError(_("Cannot find inbound pallet for Unique Identifier [%s].") % unique_text)
+                vals_write["inbound_pallet_id"] = pallet.id
+
+        if vals_write.get("product_id"):
+            product = self.env["product.product"].sudo().browse(vals_write["product_id"])
             vals_ref = get_reference_vals(product)
-            vals = dict(vals)
-            vals["hs_code"] = vals_ref["hs_code"]
-            vals["customs_code"] = vals_ref["customs_code"]
-            vals.setdefault("origin_country", vals_ref["origin_country"])
-            vals.setdefault("goods_value", vals_ref["goods_value"])
-            vals.setdefault("weight", vals_ref["weight"])
-        return super().write(vals)
+            vals_write["hs_code"] = vals_ref["hs_code"]
+            vals_write["customs_code"] = vals_ref["customs_code"]
+            vals_write.setdefault("origin_country", vals_ref["origin_country"])
+            vals_write.setdefault("goods_value", vals_ref["goods_value"])
+            vals_write.setdefault("weight", vals_ref["weight"])
+            if "inbound_pallet_id" not in vals_write:
+                vals_write["inbound_pallet_id"] = False
+
+        return super().write(vals_write)

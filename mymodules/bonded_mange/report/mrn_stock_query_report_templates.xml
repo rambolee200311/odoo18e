@@ -46,6 +46,9 @@
                                                                             t-options="{'widget': 'datetime'}"/></div>
                             <div><span class="key">End Time:</span> <span t-field="o.end_time"
                                                                           t-options="{'widget': 'datetime'}"/></div>
+                            <div><span class="key">Unique Identifier:</span> <span
+                                    t-esc="o.unique_identifier or 'ALL'"/></div>
+
                             <div><span class="key">Product:</span> <span
                                     t-esc="o.product_id.display_name if o.product_id else 'ALL'"/></div>
                             <div><span class="key">MRN:</span> <span

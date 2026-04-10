@@ -31,8 +31,10 @@
                        decoration-info="bonded_flag in ('non_bonded')"/>
 
                 <field name="file_identifier" optional="show"/>
-                <field name="io_picking_id" optional="show"/>
-                <field name="oo_picking_id" optional="show"/>
+                <field name="inbound_order_id" optional="show"/>
+                <field name="outbound_order_id" optional="show"/>
+<!--                <field name="io_picking_id" optional="show"/>-->
+<!--                <field name="oo_picking_id" optional="show"/>-->
                 <!--                <field name="in_no" optional="show"/>-->
                 <!--                <field name="pick_no" optional="show"/>-->
 
@@ -121,7 +123,7 @@
                 <field name="customs_code" readonly="1" optional="hide"/>
             </xpath>
             <xpath expr="//list/field[@name='quantity'][1]" position="after">
-                <field name="unique_identifier" optional="hide"/>
+                <field name="unique_identifier" optional="show"/>
                 <field name="bonded_flag" readonly="1" widget="badge"
                        decoration-danger="bonded_flag in ('bonded')"
                        decoration-info="bonded_flag in ('non_bonded')"/>
