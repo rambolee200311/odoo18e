@@ -82,6 +82,9 @@ class StockPicking(models.Model):
         for rec in self:
             if rec.picking_type_code != "outgoing":
                 continue
+            required_is_bonded = rec.get_required_is_bonded_by_picking()
+            if required_is_bonded is not True:
+                continue
             line_list = rec.move_line_ids.filtered(lambda x: (x.quantity or 0.0) > 0)
             missing_line_list = line_list.filtered(lambda x: not x.unique_identifier)
             if missing_line_list:
@@ -156,12 +159,73 @@ class StockPicking(models.Model):
         self.actionReverseLedgerByPicking()
         return res
 
+    def get_move_line_done_qty(self, line):
+        if "quantity" in line._fields:
+            return line.quantity or 0.0
+        if "qty_done" in line._fields:
+            return line.qty_done or 0.0
+        return 0.0
+
+    def get_required_is_bonded_by_picking(self):
+        self.ensure_one()
+        if self.picking_type_code == "incoming" and self.inbound_order_id:
+            return bool(self.inbound_order_id.is_bonded)
+
+        if self.picking_type_code == "outgoing":
+            if self.outbound_order_id and self.outbound_order_id.bonded_flag in ("true", "false"):
+                return self.outbound_order_id.bonded_flag == "true"
+            if self.bonded_flag in ("true", "false"):
+                return self.bonded_flag == "true"
+
+        return None
+
+    def check_location_bonded_policy(self):
+        for rec in self:
+            required_is_bonded = rec.get_required_is_bonded_by_picking()
+            if required_is_bonded is None:
+                continue
+
+            line_list = rec.move_line_ids.filtered(lambda x: rec.get_move_line_done_qty(x) > 0)
+
+            if rec.picking_type_code == "incoming":
+                location_list = line_list.mapped("location_dest_id").filtered(
+                    lambda x: x.usage in ("internal", "transit"))
+                wrong_location_list = location_list.filtered(lambda x: bool(x.is_bonded) != required_is_bonded)
+                if wrong_location_list:
+                    location_text = ", ".join(wrong_location_list.mapped("complete_name")[:5])
+                    raise ValidationError(
+                        _(
+                            "Inbound location bonded policy mismatch. Required bonded=%(required)s, wrong destination locations: %(locations)s"
+                        ) % {
+                            "required": "true" if required_is_bonded else "false",
+                            "locations": location_text,
+                        }
+                    )
+
+            if rec.picking_type_code == "outgoing":
+                location_list = line_list.mapped("location_id").filtered(lambda x: x.usage in ("internal", "transit"))
+                wrong_location_list = location_list.filtered(lambda x: bool(x.is_bonded) != required_is_bonded)
+                if wrong_location_list:
+                    location_text = ", ".join(wrong_location_list.mapped("complete_name")[:5])
+                    raise ValidationError(
+                        _(
+                            "Outbound source location bonded policy mismatch. Required bonded=%(required)s, wrong source locations: %(locations)s"
+                        ) % {
+                            "required": "true" if required_is_bonded else "false",
+                            "locations": location_text,
+                        }
+                    )
+
     def button_validate(self):
+        # 验证保税入库只能入保税库位,出库同
+        self.check_location_bonded_policy()
+
         outgoing_pickings = self.filtered(lambda x: x.picking_type_code == "outgoing")
         outgoing_pickings.action_check_outgoing_identifier_lines_required()
 
         for rec in self:
             rec.check_cmr_sign_time_before_done()
+
 
         res = super().button_validate()
 

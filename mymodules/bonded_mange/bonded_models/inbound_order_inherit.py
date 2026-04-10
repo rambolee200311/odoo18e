@@ -264,7 +264,11 @@ class InboundOrderProduct(models.Model):
 
 class InboundOrderProductsOfPallet(models.Model):
     _inherit = "world.depot.inbound.order.products.pallet"
+    _rec_name = "unique_identifier"
 
+
+    inbound_no = fields.Char(string="Inbound No", related="inbound_order_product_id.inbound_order_id.billno",
+                             store=True, readonly=True, index=True)
     origin_country = fields.Many2one("res.country", string="Country of Origin", tracking=True, index=True)
     goods_value = fields.Monetary(
         string='Goods Value',
@@ -282,17 +286,18 @@ class InboundOrderProductsOfPallet(models.Model):
     unique_identifier = fields.Char(string="Unique Identifier", related="inbound_order_product_id.unique_identifier", store=True, readonly=True, index=True, tracking=True)
 
     def name_get(self):
+        if not self.env.context.get("outbound_show_unique_identifier_only"):
+            return super().name_get()
         result = []
         for rec in self:
-            unique_text = (rec.unique_identifier or "").strip() or "-"
-            product_text = rec.product_id.display_name or "-"
-            inbound_text = rec.inbound_order_product_id.inbound_order_id.billno or "-"
-            qty_text = rec.quantity or 0.0
-            result.append((rec.id, "%s" % (unique_text)))
+            result.append((rec.id, (rec.unique_identifier or "").strip() or "-"))
         return result
 
     @api.model
     def name_search(self, name="", args=None, operator="ilike", limit=100):
+        if not self.env.context.get("outbound_show_unique_identifier_only"):
+            return super().name_search(name=name, args=args, operator=operator, limit=limit)
+
         domain = list(args or [])
         domain.extend([
             ("unique_identifier", "!=", False),
@@ -321,7 +326,6 @@ class InboundOrderProductsOfPallet(models.Model):
         pallet_model = self.env["world.depot.inbound.order.products.pallet"]
         records = pallet_model.sudo().search(domain, order="id desc", limit=limit)
         return records.name_get()
-
 
     @api.constrains(
         "origin_country",

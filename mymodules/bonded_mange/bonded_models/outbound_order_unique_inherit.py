@@ -87,8 +87,6 @@ class OutboundOrderBondedUniqueRule(models.Model):
         for rec in self:
             if not rec.get_is_bonded_outbound_order():
                 continue
-            if not rec.mrn_id:
-                raise ValidationError(_("Bonded outbound requires MRN first."))
             if not rec.warehouse or not rec.warehouse.view_location_id:
                 raise ValidationError(_("Bonded outbound requires warehouse first."))
 
@@ -164,7 +162,7 @@ class OutboundOrderBondedUniqueRule(models.Model):
                     product = self.env["product.product"].sudo().browse(product_id)
                     raise ValidationError(_("Insufficient stock for product [%s], Unique [%s]. Demand=%s, Available=%s") % (product.display_name, uid, demand_qty, available_qty))
 
-    @api.onchange("mrn_id", "warehouse", "bonded_flag")
+    @api.onchange("warehouse", "bonded_flag")
     def onchange_clear_all_line_unique_identifier(self):
         for rec in self:
             if rec.state == "new":
@@ -190,6 +188,11 @@ class OutboundOrderBondedUniqueRule(models.Model):
 
     def action_create_picking_PICK_linglong(self):
         raise ValidationError(_("linglong not support."))
+
+
+
+
+
 
     def write(self, vals):
         old_policy_map = {
