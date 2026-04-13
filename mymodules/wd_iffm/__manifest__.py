@@ -73,6 +73,7 @@ Long description of module's purpose
         'views/kanban_views/import_actions.xml',
         'views/kanban_views/import_menu.xml',
 
+        'views/dashboard_views.xml',
     ],
 
     'application': True,
@@ -81,8 +82,12 @@ Long description of module's purpose
         'web.assets_backend': [
             'wd_iffm/static/src/css/workbench_kanban.css',
             'wd_iffm/static/src/css/import_kanban_lane.css',
+            'wd_iffm/static/src/css/home_page.css',
+            'wd_iffm/static/src/xml/workbench_home_page.xml',
             'wd_iffm/static/src/js/workbench_kanban_record.js',
             'wd_iffm/static/src/js/workbench_kanban_registry.js',
+            'wd_iffm/static/src/js/workbench_home_action.js',
+            'wd_iffm/static/src/js/workbench_action_registry.js',
         ],
     },
     'license': 'LGPL-3',
