@@ -26,5 +26,6 @@ Long description of module's purpose
         'views/views.xml',
 
     ],
+    'license': 'LGPL-3',
 }
 
