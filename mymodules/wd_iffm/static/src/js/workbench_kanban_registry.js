@@ -40,6 +40,9 @@ export class WorkbenchKanbanRenderer extends KanbanRenderer {
 
         onMounted(() => {
             this._buildLaneCache();
+
+//            console.log("【加载完成】看板数据：", this.props.list);
+//            console.log("【分组列表】：", this.props.list.groups);
         });
 
         onPatched(() => {
@@ -50,6 +53,7 @@ export class WorkbenchKanbanRenderer extends KanbanRenderer {
     // ── 泳道缓存 ─────────────────────────────────────────────────────────────
 
     async _buildLaneCache() {
+        // 获取分组列表
         const groups = this.props.list?.groups || [];
         const laneIds = [];
         groups.forEach((g) => {
@@ -174,25 +178,7 @@ export class WorkbenchKanbanRenderer extends KanbanRenderer {
         };
     }
 
-    // ── 辅助 ────────────────────────────────────────────────────────────────
-
-//    _getWaybillIdFromRecord(recordId) {
-//        // 从 this.props.list 中找到该 record，取 waybill_id 字段
-//        // OWL Record.data 中 many2one 直接是 res_id（number/false），不是 {res_id} 对象
-//        const groups = this.props.list?.groups || [];
-//        for (const group of groups) {
-//            if (group.list?.records) {
-//                const record = group.list.records.find(
-//                    (r) => String(r.id) === String(recordId)
-//                );
-//                if (record) {
-//                    return record.data.waybill_id ?? null;
-//                }
-//            }
-//        }
-//        return null;
-//    }
-
+    // 获取「提单 ID」以供拖拽创建换单/清关
     _getWaybillIdFromRecord(recordId) {
         const groups = this.props.list?.groups || [];
         for (const group of groups) {
@@ -215,7 +201,7 @@ export class WorkbenchKanbanRenderer extends KanbanRenderer {
     }
 
     // ── 业务操作 ────────────────────────────────────────────────────────────
-
+    // 创建换单
     async _createHandover(waybillId, groupEl) {
         if (this.isCreating) {
             return;
@@ -262,6 +248,7 @@ export class WorkbenchKanbanRenderer extends KanbanRenderer {
         }
     }
 
+    // 创建清关（打开弹窗）
     async _openClearanceWizard(waybillId, groupEl) {
         if (this.isCreating) {
             return;
