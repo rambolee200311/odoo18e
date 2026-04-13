@@ -264,7 +264,7 @@ class InboundOrderProduct(models.Model):
 
 class InboundOrderProductsOfPallet(models.Model):
     _inherit = "world.depot.inbound.order.products.pallet"
-    _rec_name = "unique_identifier"
+    #_rec_name = "unique_identifier"
 
 
     inbound_no = fields.Char(string="Inbound No", related="inbound_order_product_id.inbound_order_id.billno",
@@ -284,6 +284,12 @@ class InboundOrderProductsOfPallet(models.Model):
     is_bonded = fields.Boolean(string="Bonded", related="inbound_order_product_id.inbound_order_id.is_bonded",
                                readonly=True)
     unique_identifier = fields.Char(string="Unique Identifier", related="inbound_order_product_id.unique_identifier", store=True, readonly=True, index=True, tracking=True)
+
+    def _compute_display_name(self):
+        if not self.env.context.get("outbound_show_unique_identifier_only"):
+            return super()._compute_display_name()
+        for rec in self:
+            rec.display_name = (rec.unique_identifier or "").strip()
 
     def name_get(self):
         if not self.env.context.get("outbound_show_unique_identifier_only"):

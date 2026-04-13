@@ -87,9 +87,9 @@
             <field name="search_view_id" ref="bonded_mange.view_bonded_customs_mrn_audit_log_search"/>
         </record>
 
-        <menuitem id="menu_bonded_customs_mrn_audit_log" name="Customs MRN Audit Log"
-                  parent="worlddepot.menu_world_depot_configuration" action="action_bonded_customs_mrn_audit_log"
-                  sequence="980"/>
+<!--        <menuitem id="menu_bonded_customs_mrn_audit_log" name="Customs MRN Audit Log"-->
+<!--                  parent="worlddepot.menu_world_depot_configuration" action="action_bonded_customs_mrn_audit_log"-->
+<!--                  sequence="980"/>-->
 
         <record id="action_customs_mrn_selection_dictionary" model="ir.actions.act_window">
             <field name="name">Customs/MRN Selection Dictionary</field>
@@ -98,10 +98,10 @@
             <field name="domain">[('field_id.name', 'in', ['customs_status', 'mrn_status'])]</field>
         </record>
 
-        <menuitem id="menu_customs_mrn_selection_dictionary" name="Customs/MRN Selection Dictionary"
-                  parent="bonded_mange.menu_bonded_root" action="action_customs_mrn_selection_dictionary"
-                  sequence="981"
-                  groups="base.group_system"
-        />
+<!--        <menuitem id="menu_customs_mrn_selection_dictionary" name="Customs/MRN Selection Dictionary"-->
+<!--                  parent="bonded_mange.menu_bonded_root" action="action_customs_mrn_selection_dictionary"-->
+<!--                  sequence="981"-->
+<!--                  groups="base.group_system"-->
+<!--        />-->
 
 </odoo>
