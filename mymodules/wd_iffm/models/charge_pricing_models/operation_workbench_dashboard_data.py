@@ -32,7 +32,7 @@ class OperationWorkbenchDashboardData(models.Model):
     @api.model
     def get_dashboard_counts(self):
         env_data = self.env["operation.workbench.dashboard.data"]
-        rows = env_data.sudo().search_read(["lane_code", "near_due_count", "overdue_count"], order="id desc")
+        rows = env_data.sudo().search_read([],["lane_code", "near_due_count", "overdue_count"], order="id desc")
         data = {
             "waybill": {"near_due_count": 0, "overdue_count": 0},
             "handover": {"near_due_count": 0, "overdue_count": 0},
