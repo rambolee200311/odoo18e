@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
+from datetime import datetime, time, timedelta
 HANDOVER_STATE = [("open", "Open"),
          ("paying", "Paying"), ("paid", "Paid"), ("releasing", "Releasing"),
          ("released", "Released"), ("close", "Close"),
@@ -102,6 +103,33 @@ class OperationOrderHandover(models.Model):
     actual_datetime = fields.Datetime(string="Actual Date")
     extra_remark = fields.Char(string="Additional Remark")
 
+    #逾期字段
+    is_handover_overdue = fields.Boolean(string="Is Handover Overdue", compute="_compute_is_handover_overdue")
+    overdue_blocking_reason_id = fields.Many2one("operation.blocking.reason", string="Overdue Blocking Reason",
+                                                 index=True, copy=False, tracking=True)
+    overdue_handle_result = fields.Selection([
+        ("backfill_done", "Backfilled Handover Done"),
+        ("urge_customer", "Urged Customer Payment/Documents"),
+        ("contact_ship_agent", "Contacted Shipping Line/Agent"),
+        ("resubmit_docs", "Resubmitted Correct Documents"),
+        ("other", "Other"),
+    ], string="Overdue Handle Result", index=True, copy=False, tracking=True)
+    overdue_handle_note = fields.Text(string="Overdue Handle Note", copy=False, tracking=True)
+
+    @api.depends("state", "waybill_id.ata", "waybill_id.eta")
+    def _compute_is_handover_overdue(self):
+        rule = self.env["operation.workbench.alert.rule"].get_rule_values(company_id=self.env.company.id)
+        available_days = int(rule.get("handover_available_days", 3))
+        done_states = {"released", "close", "cancelled"}
+        now_dt = fields.Datetime.now()
+        for rec in self:
+            base_date = rec.waybill_id.ata or rec.waybill_id.eta
+            if not base_date:
+                continue
+            base_date_value = fields.Date.to_date(base_date)
+            base_dt = datetime.combine(base_date_value, time(23, 59, 59))
+            handover_due_datetime = base_dt + timedelta(days=available_days)
+            rec.is_handover_overdue = bool(handover_due_datetime and rec.state not in done_states and now_dt >= handover_due_datetime)
 
     def action_create_child_handover(self):
         self.ensure_one()
@@ -445,6 +473,12 @@ class OperationOrderHandoverInvoiceLine(models.Model):
     def action_request_payment(self):
         move_model = self.env["account.move"]
         for rec in self:
+            if rec.handover_id.is_handover_overdue:
+                if not rec.handover_id.overdue_blocking_reason_id:
+                    raise ValidationError(_("Overdue blocking reason is required for overdue handovers."))
+                if not rec.handover_id.overdue_handle_result:
+                    raise ValidationError(_("Overdue handle result is required for overdue handovers."))
+
             operator = self.env.ref("base.user_admin")
             if not rec.handover_cost_line_ids:
                raise ValidationError(_("Cost lines are required before requesting payment."))

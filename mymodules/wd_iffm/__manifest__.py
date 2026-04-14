@@ -34,6 +34,8 @@ Long description of module's purpose
         'data/ir_sequence_quotation.xml',
         'data/account_account_data.xml',
         'data/workbench_test_data.xml',
+        'data/operation_blocking_reason_data.xml',
+
         'wizard/charge_quotation_add_wizard_views.xml',
         'wizard/waybill_arrival_wizard_views.xml',
         'wizard/waybill_create_clearance_wizard_views.xml',
@@ -62,7 +64,9 @@ Long description of module's purpose
         'views/settlement_account_views/account_account_inherit_views.xml',
 
         'views/charge_item_inherit_views.xml',
-        'views/charge_pricing_views/operation_workbench_dashboard_data_views.xml',
+        'views/workbench_views/operation_workbench_dashboard_data_views.xml',
+        'views/workbench_views/operation_blocking_reason_views.xml',
+        'views/workbench_views/operation_workbench_alert_rule_views.xml',
 
 
 
@@ -71,9 +75,10 @@ Long description of module's purpose
         'views/kanban_views/operation_workbench_card_kanban.xml',
         'views/kanban_views/workbench_lane_views.xml',
         'views/kanban_views/import_actions.xml',
+        'views/dashboard_views.xml',
         'views/kanban_views/import_menu.xml',
 
-        'views/dashboard_views.xml',
+
     ],
 
     'application': True,

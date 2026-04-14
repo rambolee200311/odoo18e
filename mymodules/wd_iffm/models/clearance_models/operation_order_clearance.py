@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
+from datetime import datetime, time, timedelta
 CLEARANCE_STATE = [("open", "Open"),
          ("paying", "Paying"), ("paid", "Paid"), ("clearancing", "Clearancing"),
          ("clearanced", "Clearanced"), ("close", "Close"),
@@ -122,6 +123,36 @@ class OperationOrderClearance(models.Model):
     reclearance_reason = fields.Text(string="Last Re-Clearance Reason", copy=False, tracking=True)
     reclearance_user_id = fields.Many2one("res.users", string="Last Re-Clearance User", copy=False, readonly=True)
     reclearance_time = fields.Datetime(string="Last Re-Clearance Time", copy=False, readonly=True)
+
+    # 逾期字段
+    is_clearance_overdue = fields.Boolean(string="Is Clearance Overdue", compute="_compute_is_clearance_overdue")
+    overdue_blocking_reason_id = fields.Many2one("operation.blocking.reason", string="Overdue Blocking Reason",
+                                                 index=True, copy=False, tracking=True)
+    overdue_handle_result = fields.Selection([
+        ("backfill_done", "Backfilled Clearance Done"),
+        ("urge_customer_tax", "Urged Customer Tax/Documents"),
+        ("follow_customs", "Followed Up Customs Inspection/Valuation"),
+        ("follow_broker", "Followed Up Broker Fix"),
+        ("other", "Other"),
+    ], string="Overdue Handle Result", index=True, copy=False, tracking=True)
+    overdue_handle_note = fields.Text(string="Overdue Handle Note", copy=False, tracking=True)
+
+    @api.depends("state", "waybill_id.ata", "waybill_id.eta")
+    def _compute_is_clearance_overdue(self):
+        done_states = {"clearanced", "close", "cancelled"}
+        now_dt = fields.Datetime.now()
+        rule = self.env["operation.workbench.alert.rule"].get_rule_values(company_id=self.env.company.id)
+        available_days = int(rule.get("clearance_available_days", 5))
+        for rec in self:
+            base_date = rec.waybill_id.ata or rec.waybill_id.eta
+            if not base_date:
+                continue
+            base_date_value = fields.Date.to_date(base_date)
+            base_dt = datetime.combine(base_date_value, time(23, 59, 59))
+            clearance_due_datetime = base_dt + timedelta(days=available_days)
+
+            rec.is_clearance_overdue = bool(
+                clearance_due_datetime and rec.state not in done_states and now_dt >= clearance_due_datetime)
 
     @api.constrains('parent_id', 'extra_reason', 'remark')
     def check_remark(self):
@@ -510,6 +541,11 @@ class OperationOrderClearanceInvoiceLine(models.Model):
     def action_request_clearance_payment(self):
         move_model = self.env["account.move"]
         for rec in self:
+            if rec.clearance_id.is_clearance_overdue:
+                if not rec.clearance_id.overdue_blocking_reason_id:
+                    raise ValidationError(_("Overdue blocking reason is required for overdue handovers."))
+                if not rec.clearance_id.overdue_handle_result:
+                    raise ValidationError(_("Overdue handle result is required for overdue handovers."))
             operator = self.env.ref("base.user_admin")
             if not rec.cost_line_ids:
                 raise ValidationError(_("Cost lines are required before requesting payment."))
