@@ -18,5 +18,5 @@
               name="进口提单看板"
               action="action_import_bill_kanban"
               parent="menu_kanban_root"
-              sequence="3"/>
+              sequence="2"/>
 </odoo>
