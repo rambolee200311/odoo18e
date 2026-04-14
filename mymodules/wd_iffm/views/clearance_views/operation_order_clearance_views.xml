@@ -69,7 +69,8 @@
                             <field name="eu_eori_no" readonly="1"/>
                             <field name="vat_tax_no" readonly="1"/>
                             <field name="clearance_receipt_no" readonly="state in ('clearanced','close')"/>
-                            <field name="customs_declaration_datetime" readonly="state in ('clearancing','clearanced','close')"/>
+                            <field name="customs_declaration_datetime"
+                                   readonly="state in ('clearancing','clearanced','close')"/>
                             <field name="remark" readonly="state in ('close')"/>
 
 
@@ -93,6 +94,12 @@
                             <field name="t1_inbound_release_datetime"
                                    invisible="clearance_type != 't1_bonded'" readonly="state in ('clearanced','close')"
                             />
+                        </group>
+                        <group string="Clearance Info">
+                            <field name="is_clearance_overdue" readonly="1" invisible="1"/>
+                            <field name="overdue_blocking_reason_id" required="is_clearance_overdue" invisible="is_clearance_overdue == False"/>
+                            <field name="overdue_handle_result" required="is_clearance_overdue" invisible="is_clearance_overdue == False"/>
+                            <field name="overdue_handle_note" invisible="is_clearance_overdue == False"/>
                         </group>
                     </group>
                     <notebook>
@@ -129,8 +136,9 @@
                             </group>
                         </page>
                         <page string="Containers">
-                            <field name="clearance_container_ids" create="False" delete="False" readonly="state in ('clearancing','clearanced','close')">
-                                <list editable="bottom" create="False"  delete="False">
+                            <field name="clearance_container_ids" create="False" delete="False"
+                                   readonly="state in ('clearancing','clearanced','close')">
+                                <list editable="bottom" create="False" delete="False">
                                     <field name="container_number"/>
                                     <field name="container_type"/>
                                     <field name="weight"/>

@@ -1,0 +1,52 @@
+<odoo noupdate="1">
+    <record id="operation_blocking_reason_01" model="operation.blocking.reason">
+        <field name="name">Customer information not provided</field>
+        <field name="short_name">Cust Info Missing</field>
+    </record>
+
+    <record id="operation_blocking_reason_02" model="operation.blocking.reason">
+        <field name="name">Fees unpaid / pending confirmation</field>
+        <field name="short_name">Fee Unpaid</field>
+    </record>
+
+    <record id="operation_blocking_reason_03" model="operation.blocking.reason">
+        <field name="name">Incomplete documents (invoice, packing list, contract, etc.)</field>
+        <field name="short_name">Docs Incomplete</field>
+    </record>
+
+    <record id="operation_blocking_reason_04" model="operation.blocking.reason">
+        <field name="name">Customs inspection / valuation</field>
+        <field name="short_name">Customs Insp/Val</field>
+    </record>
+
+    <record id="operation_blocking_reason_05" model="operation.blocking.reason">
+        <field name="name">Policy restrictions / regulatory reasons</field>
+        <field name="short_name">Policy/Regulatory</field>
+    </record>
+
+    <record id="operation_blocking_reason_06" model="operation.blocking.reason">
+        <field name="name">Port / terminal operation delay</field>
+        <field name="short_name">Port Op Delay</field>
+    </record>
+
+    <record id="operation_blocking_reason_07" model="operation.blocking.reason">
+        <field name="name">Shipping line / agent delay</field>
+        <field name="short_name">Ship/Agent Delay</field>
+    </record>
+
+    <record id="operation_blocking_reason_08" model="operation.blocking.reason">
+        <field name="name">Internal operation delay</field>
+        <field name="short_name">Internal Op Delay</field>
+    </record>
+
+    <record id="operation_blocking_reason_09" model="operation.blocking.reason">
+        <field name="name">Customer instruction not issued</field>
+        <field name="short_name">Instr Not Issued</field>
+    </record>
+
+    <record id="operation_blocking_reason_10" model="operation.blocking.reason">
+
+        <field name="name">Others (explanation required)</field>
+        <field name="short_name">Others + Exp</field>
+    </record>
+</odoo>

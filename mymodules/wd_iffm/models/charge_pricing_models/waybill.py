@@ -80,6 +80,34 @@ class Waybill(models.Model):
     arrival_confirm_time = fields.Datetime(string="Arrival Confirm Time", tracking=True, copy=False, readonly=True)
     is_arrived = fields.Boolean(string="Is Arrived")
 
+    #逾期信息
+    is_waybill_overdue = fields.Boolean(string="Is Waybill Overdue", compute="_compute_is_waybill_overdue")
+    arrival_overdue_reason = fields.Selection([
+        ("carrier_reason", "Carrier Reason"),
+        ("internal_reason", "Internal Operation Reason"),
+        ("other", "Other"),
+    ], string="Arrival Overdue Block Reason", tracking=True, copy=False)
+
+    arrival_overdue_result = fields.Selection([
+        ("contact_carrier", "Contacted Carrier And Confirmed New ETA/ATA"),
+        ("backfill_ata", "Backfilled ATA"),
+        ("assigned_followup", "Assigned Operator For Follow-up"),
+        ("other", "Other"),
+    ], string="Arrival Overdue Handle Result", tracking=True, copy=False)
+    arrival_overdue_note = fields.Text(string="Arrival Overdue Handle Note", tracking=True, copy=False)
+
+    @api.depends("eta", "ata")
+    def _compute_is_waybill_overdue(self):
+        for rec in self:
+            if not rec.eta:
+                rec.is_waybill_overdue = False
+                continue
+            today = fields.Date.context_today(rec)
+            if rec.ata:
+                rec.is_waybill_overdue = rec.ata > rec.eta
+            else:
+                rec.is_waybill_overdue = rec.eta < today
+
     def action_done_order(self):
         for rec in self:
             if rec.state != "confirm":
