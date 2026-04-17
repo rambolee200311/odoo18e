@@ -4,7 +4,7 @@
         <field name="model">bonded.identifier.stock.ledger</field>
         <field name="arch" type="xml">
             <list create="0" edit="0" delete="0" default_order="id desc">
-<!--                <field name="company_id" optional="show"/>-->
+                <!--                <field name="company_id" optional="show"/>-->
                 <field name="unique_identifier" optional="show"/>
                 <field name="file_identifier" optional="show"/>
                 <field name="mrn_id" optional="show"/>
@@ -14,10 +14,14 @@
                 <field name="package_id" optional="show"/>
                 <field name="owner_id" optional="show"/>
                 <field name="qty_on_hand" optional="show"/>
+                <field name="customs_status" readonly="1"/>
+                <field name="bonded_flag" optional="show"/>
+                <field name="inbound_order_no" optional="show"/>
+                <field name="outbound_order_no" optional="show"/>
                 <field name="qty_inbound" optional="show"/>
                 <field name="qty_outbound" optional="show"/>
                 <field name="last_time" optional="show"/>
-                <field name="last_move_line_id" optional="show"/>
+                <!--                <field name="last_move_line_id" optional="show"/>-->
                 <field name="remark" optional="show"/>
             </list>
         </field>
@@ -31,7 +35,7 @@
                 <sheet>
                     <group>
                         <group>
-<!--                            <field name="company_id" readonly="1"/>-->
+                            <!--                            <field name="company_id" readonly="1"/>-->
                             <field name="unique_identifier" readonly="1"/>
                             <field name="file_identifier" readonly="1"/>
                             <field name="mrn_id" readonly="1"/>
@@ -46,8 +50,12 @@
                             <field name="qty_inbound" readonly="1"/>
                             <field name="qty_outbound" readonly="1"/>
                             <field name="last_time" readonly="1"/>
-                            <field name="last_move_line_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
-                            <field name="last_picking_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="customs_status" readonly="1"/>
+                            <field name="bonded_flag" optional="show"/>
+                            <field name="inbound_order_no" optional="show"/>
+                            <field name="outbound_order_no" optional="show"/>
+                            <!--                            <field name="last_move_line_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>-->
+                            <!--                            <field name="last_picking_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>-->
                         </group>
                     </group>
                     <group>
@@ -70,12 +78,16 @@
                 <field name="product_id"/>
                 <field name="location_id"/>
                 <field name="lot_id"/>
-                <filter name="has_unique_identifier" string="Has Unique Identifier" domain="[('unique_identifier', '!=', False)]"/>
-                <filter name="has_file_identifier" string="Has File Identifier" domain="[('file_identifier', '!=', False)]"/>
+                <filter name="has_unique_identifier" string="Has Unique Identifier"
+                        domain="[('unique_identifier', '!=', False)]"/>
+                <filter name="has_file_identifier" string="Has File Identifier"
+                        domain="[('file_identifier', '!=', False)]"/>
                 <filter name="on_hand_positive" string="On Hand > 0" domain="[('qty_on_hand', '>', 0)]"/>
                 <group expand="0" string="Group By">
-                    <filter string="Unique Identifier" name="group_by_unique_identifier" context="{'group_by':'unique_identifier'}"/>
-                    <filter string="File Identifier" name="group_by_file_identifier" context="{'group_by':'file_identifier'}"/>
+                    <filter string="Unique Identifier" name="group_by_unique_identifier"
+                            context="{'group_by':'unique_identifier'}"/>
+                    <filter string="File Identifier" name="group_by_file_identifier"
+                            context="{'group_by':'file_identifier'}"/>
                     <filter string="MRN" name="group_by_mrn_id" context="{'group_by':'mrn_id'}"/>
                     <filter string="Product" name="group_by_product_id" context="{'group_by':'product_id'}"/>
                     <filter string="Location" name="group_by_location_id" context="{'group_by':'location_id'}"/>

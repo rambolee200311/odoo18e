@@ -2,13 +2,7 @@ from odoo import api, fields, models, tools, _
 from odoo.exceptions import UserError
 
 
-CUSTOMS_STATUS_SELECTION = [
-    ("vrij", "Vrij"),
-    ("rto", "Return to Origin"),
-    ("entrepot", "Bonded Warehouse"),
-    ("accijns", "Excise Goods"),
-    ("ivv", "Import/Export/Transit & Equivalent"),
-]
+from odoo.addons.bonded_mange.bonded_models.new_models.customs_document_core import CUSTOMS_STATUS_SELECTION
 
 MRN_STATUS_SELECTION = [
     ("pending_declaration", "Pending Declaration"),

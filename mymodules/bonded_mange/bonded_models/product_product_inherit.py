@@ -1,12 +1,6 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
-CUSTOMS_STATUS_SELECTION = [
-    ("vrij", "Vrij"),
-    ("rto", "Return to Origin"),
-    ("entrepot", "Bonded Warehouse"),
-    ("accijns", "Excise Goods"),
-    ("ivv", "Import/Export/Transit & Equivalent"),
-]
+from odoo.addons.bonded_mange.bonded_models.new_models.customs_document_core import CUSTOMS_STATUS_SELECTION
 
 class ProductProduct(models.Model):
     _inherit = "product.product"

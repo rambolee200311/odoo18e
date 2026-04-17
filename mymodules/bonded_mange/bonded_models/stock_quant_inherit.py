@@ -1,6 +1,6 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
-
+from odoo.addons.bonded_mange.bonded_models.new_models.customs_document_core import CUSTOMS_STATUS_SELECTION
 def get_reference_vals(product):
     return {
         "origin_country": product.origin_country.id or False,
@@ -29,13 +29,7 @@ class StockQuant(models.Model):
         string='Currency',
         default=lambda self: self.env.company.currency_id)
 
-    customs_status = fields.Selection([
-        ("vrij", "Vrij"),
-        ("rto", "Return to Origin"),
-        ("entrepot", "Bonded Warehouse"),
-        ("accijns", "Excise Goods"),
-        ("ivv", "Import/Export/Transit & Equivalent"),
-    ], string="Customs Status", index=True, tracking=True)
+    customs_status = fields.Selection(CUSTOMS_STATUS_SELECTION, string="Customs Status", index=True, tracking=True)
     mrn_id = fields.Many2one("bonded.mrn.master", string="MRN", index=True, copy=False, tracking=True)
     mrn_status = fields.Selection([
     ("pending_declaration", "Pending Declaration"),

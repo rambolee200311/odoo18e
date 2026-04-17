@@ -1,6 +1,6 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError, UserError
-
+from odoo.addons.bonded_mange.bonded_models.new_models.customs_document_core import CUSTOMS_STATUS_SELECTION
 
 class OutboundOrder(models.Model):
     _inherit = "world.depot.outbound.order"
@@ -90,13 +90,7 @@ class OutboundOrder(models.Model):
         ("status_changed", "Status Changed"),
         ("exception", "Exception"),
     ], string="MRN Status", index=True, copy=False, tracking=True)
-    customs_status = fields.Selection([
-        ("vrij", "Vrij"),
-        ("rto", "Return to Origin"),
-        ("entrepot", "Bonded Warehouse"),
-        ("accijns", "Excise Goods"),
-        ("ivv", "Import/Export/Transit & Equivalent"),
-    ], string="Customs Status", index=True, tracking=True)
+    customs_status = fields.Selection(CUSTOMS_STATUS_SELECTION, string="Customs Status", index=True, tracking=True)
     t1_document_number = fields.Char(string="T1 Document Number", index=True, copy=False, tracking=True)
     t1_status = fields.Selection([("open", "Open"), ("closed", "Closed")], string="T1 Status", default="open",
                                  index=True, tracking=True)

@@ -5,6 +5,7 @@
         <field name="arch" type="xml">
             <list>
                 <field name="customs_document_number"/>
+                <field name="customs_document_type"/>
                 <field name="unique_identifier"/>
                 <field name="customs_status"/>
                 <field name="t1_document_number"/>
@@ -23,6 +24,7 @@
                 <sheet>
                     <group>
                         <field name="customs_document_number" required="1"/>
+                        <field name="customs_document_type"/>
                         <field name="inbound_order_id" readonly="1"/>
                         <field name="unique_identifier" readonly="1"/>
                         <field name="inbound_reference" readonly="1"/>

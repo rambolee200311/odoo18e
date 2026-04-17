@@ -2,11 +2,11 @@ from odoo import api, fields, models, _
 
 
 CUSTOMS_STATUS_SELECTION = [
-    ("vrij", "Vrij"),
-    ("rto", "Return to Origin"),
-    ("entrepot", "Bonded Warehouse"),
-    ("accijns", "Excise Goods"),
-    ("ivv", "Import/Export/Transit & Equivalent"),
+    ("vrij", "Vrij(Free/Non-bonded/Free circulation)"),
+    ("rto", "RTO(Return to origin/Return shipment)"),
+    ("entrepot", "Entrepot(Bonded warehouse/Warehouse regime)"),
+    ("accijns", "Accijns(Excise goods/Excise duty regime)"),
+    ("ivv", "IVV(Import, export, transit & equivalent traffic)"),
 ]
 T1_STATUS_SELECTION = [("open", "Open"), ("closed", "Closed")]
 

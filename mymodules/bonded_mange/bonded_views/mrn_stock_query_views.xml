@@ -87,7 +87,7 @@
         <field name="search_view_id" ref="bonded_mange.view_bonded_mrn_stock_query_search"/>
     </record>
 
-    <menuitem id="menu_bonded_mrn_stock_query" name="MRN Product Stock Query"
+    <menuitem id="menu_bonded_mrn_stock_query" name="Bonded Product Stock Query"
               parent="bonded_mange.menu_bonded_root" action="action_bonded_mrn_stock_query" sequence="983"
               groups="base.group_user"/>
 </odoo>
