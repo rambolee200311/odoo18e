@@ -39,7 +39,7 @@
                        required="1"
                        decoration-danger="bonded_flag in ('true')"
                        decoration-info="bonded_flag in ('false')"/>
-                <field name="customs_document_id" readonly="state != 'new'"
+                <field name="customs_document_id" readonly="state != 'new'" required="bonded_flag == 'true'"
                        options="{'no_create': True}"/>
                 <field name="mrn_id" options="{'no_open': True , 'no_create': True}" readonly="state != 'new'"/>
                 <field name="cmr_sign_time" readonly="1"/>
