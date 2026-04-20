@@ -41,20 +41,20 @@
                         <field name="query_lines" nolabel="1" readonly="1"
                                options="{'no_create': True, 'no_open': True}">
                             <list create="0" edit="0" delete="0" default_order="id desc">
-                                <field name="mrn_id"/>
-                                <field name="product_id"/>
-                                <field name="unique_identifier"/>
-                                <field name="product_barcode"/>
-                                <field name="product_weight"/>
-                                <field name="customs_status" widget="badge"/>
-                                <field name="mrn_status" widget="badge"/>
-                                <field name="inbound_no"/>
-                                <field name="outbound_no"/>
-                                <field name="opening_qty"/>
-                                <field name="inbound_qty"/>
-                                <field name="outbound_qty"/>
-                                <field name="stock_qty"/>
-                                <field name="available_stock_qty"/>
+                                <field name="mrn_id" optional="show"/>
+                                <field name="product_id" optional="show"/>
+                                <field name="unique_identifier" optional="show"/>
+<!--                                <field name="product_barcode"/>-->
+                                <field name="event_total_weight" optional="show"/>
+                                <field name="customs_status" widget="badge" optional="show"/>
+                                <field name="mrn_status" widget="badge" optional="show"/>
+                                <field name="inbound_no" optional="show"/>
+                                <field name="outbound_no" optional="show"/>
+                                <field name="opening_qty" optional="show"/>
+                                <field name="inbound_qty" optional="show"/>
+                                <field name="outbound_qty" optional="show"/>
+                                <field name="stock_qty" optional="show"/>
+                                <field name="available_stock_qty" optional="show"/>
                                 <field name="operator_id" optional="show"/>
                                 <field name="change_time" optional="show"/>
                                 <field name="remark" optional="show"/>

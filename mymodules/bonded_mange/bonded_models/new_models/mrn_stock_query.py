@@ -161,9 +161,13 @@ class BondedMrnStockQuery(models.Model):
                 base_key = (item["product_id"], item["unique_identifier"])
                 item["available_stock_qty"] = float(available_map.get(base_key) or 0.0)
 
-                product = product_map.get(item["product_id"])
+
                 mrn = mrn_map.get(item["mrn_id"]) if item["mrn_id"] else False
-                customs_status = item["customs_status"] or (product.customs_status if product else False)
+                uid = (item["unique_identifier"] or "").strip()
+                customs_doc = self.env["bonded.customs.document"].sudo().search([("unique_identifier", "=", uid)],
+                                                                                order="id desc",
+                                                                                limit=1) if uid else False
+                customs_status = item["customs_status"] or (customs_doc.customs_status if customs_doc else False)
                 mrn_status = item["mrn_status"] or (mrn.mrn_status if mrn else False)
 
                 vals_list.append({
@@ -203,6 +207,7 @@ class BondedMrnStockQueryLine(models.Model):
     product_id = fields.Many2one("product.product", string="Product", required=True, index=True, options="{'no_create': True, 'no_open': True}")
     product_barcode = fields.Char(string="Product Barcode", related="product_id.barcode", readonly=True, store=True, index=True)
     product_weight = fields.Float(string="Product Weight",related='product_id.weight', readonly=True, store=True)
+    event_total_weight = fields.Float(string="Event Total Weight (kg)", compute="_compute_total_weight", store=True)
     customs_status = fields.Selection(CUSTOMS_STATUS_SELECTION, string="Customs Status", index=True, readonly=True)
     mrn_status = fields.Selection(MRN_STATUS_SELECTION, string="MRN Status", index=True, readonly=True)
     inbound_no = fields.Char(string="Inbound No", index=True, readonly=True)
@@ -215,3 +220,8 @@ class BondedMrnStockQueryLine(models.Model):
     operator_id = fields.Many2one("res.users", string="Operator", index=True, readonly=True, options="{'no_create': True, 'no_open': True}")
     change_time = fields.Datetime(string="Change Time", index=True, readonly=True)
     remark = fields.Char(string="Remark", readonly=True)
+
+    @api.depends("product_weight", "inbound_qty", "outbound_qty", "stock_qty")
+    def _compute_total_weight(self):
+        for rec in self:
+            rec.event_total_weight = abs(rec.stock_qty or 0.0) * (rec.product_weight or 0.0)
