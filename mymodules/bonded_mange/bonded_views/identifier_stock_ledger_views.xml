@@ -40,6 +40,10 @@
                             <field name="file_identifier" readonly="1"/>
                             <field name="mrn_id" readonly="1"/>
                             <field name="product_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="product_model" optional="show"/>
+                            <field name="flow_quantity" optional="show"/>
+                            <field name="product_weight" optional="show"/>
+                            <field name="flow_total_weight" optional="show"/>
                             <field name="location_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                             <field name="lot_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                         </group>
@@ -76,6 +80,10 @@
                 <field name="file_identifier"/>
                 <field name="mrn_id"/>
                 <field name="product_id"/>
+                <field name="product_model" optional="show"/>
+                <field name="flow_quantity" optional="show"/>
+                <field name="product_weight" optional="show"/>
+                <field name="flow_total_weight" optional="show"/>
                 <field name="location_id"/>
                 <field name="lot_id"/>
                 <filter name="has_unique_identifier" string="Has Unique Identifier"

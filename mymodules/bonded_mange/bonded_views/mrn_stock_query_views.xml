@@ -45,6 +45,7 @@
                                 <field name="product_id"/>
                                 <field name="unique_identifier"/>
                                 <field name="product_barcode"/>
+                                <field name="product_weight"/>
                                 <field name="customs_status" widget="badge"/>
                                 <field name="mrn_status" widget="badge"/>
                                 <field name="inbound_no"/>
@@ -53,6 +54,7 @@
                                 <field name="inbound_qty"/>
                                 <field name="outbound_qty"/>
                                 <field name="stock_qty"/>
+                                <field name="available_stock_qty"/>
                                 <field name="operator_id" optional="show"/>
                                 <field name="change_time" optional="show"/>
                                 <field name="remark" optional="show"/>
@@ -81,7 +83,7 @@
     </record>
 
     <record id="action_bonded_mrn_stock_query" model="ir.actions.act_window">
-        <field name="name">MRN Product Stock Query</field>
+        <field name="name">Bonded Product Stock Query</field>
         <field name="res_model">bonded.mrn.stock.query</field>
         <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="bonded_mange.view_bonded_mrn_stock_query_search"/>

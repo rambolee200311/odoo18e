@@ -72,10 +72,30 @@ class BondedMrnStockQuery(models.Model):
                 if not sml.product_id:
                     continue
 
+                pick_code = sml.picking_id.picking_type_id.code if sml.picking_id and sml.picking_id.picking_type_id else False
+                if pick_code not in ("incoming", "outgoing"):
+                    continue
+
                 mrn_id = sml.mrn_id.id or False
                 product_id = sml.product_id.id
                 unique_identifier = (sml.unique_identifier or "").strip() or False
-                key = (mrn_id, product_id, unique_identifier)
+
+                inbound_no = (
+                    sml.picking_id.inbound_order_id.billno
+                    if sml.picking_id and sml.picking_id.inbound_order_id
+                    else False
+                )
+                outbound_no = (
+                    sml.picking_id.outbound_order_id.billno
+                    if sml.picking_id and sml.picking_id.outbound_order_id
+                    else False
+                )
+                order_no = inbound_no if pick_code == "incoming" else outbound_no
+                if not order_no:
+                    order_no = sml.picking_id.name if sml.picking_id else False
+
+                # 关键：不同入库/出库单不合并
+                key = (mrn_id, product_id, unique_identifier, pick_code, order_no)
 
                 if key not in data_map:
                     data_map[key] = {
@@ -84,54 +104,42 @@ class BondedMrnStockQuery(models.Model):
                         "unique_identifier": unique_identifier,
                         "customs_status": sml.customs_status or False,
                         "mrn_status": sml.mrn_status or False,
-                        "inbound_no": False,
-                        "outbound_no": False,
+                        "inbound_no": order_no if pick_code == "incoming" else False,
+                        "outbound_no": order_no if pick_code == "outgoing" else False,
                         "opening_qty": 0.0,
                         "inbound_qty": 0.0,
                         "outbound_qty": 0.0,
                         "stock_qty": 0.0,
+                        "available_stock_qty": 0.0,
                         "operator_id": False,
                         "change_time": False,
                         "remark": False,
                         "latest_time": False,
-                        "latest_in_time": False,
-                        "latest_out_time": False,
                     }
 
                 item = data_map[key]
-                qty = sml.quantity or 0.0
-                pick_code = sml.picking_id.picking_type_id.code if sml.picking_id and sml.picking_id.picking_type_id else False
+                qty = float(sml.quantity or 0.0)
 
                 if sml.date < rec.start_time:
                     if pick_code == "incoming":
                         item["opening_qty"] += qty
-                    elif pick_code == "outgoing":
+                    else:
                         item["opening_qty"] -= qty
                 else:
                     if pick_code == "incoming":
                         item["inbound_qty"] += qty
-                        if (not item["latest_in_time"]) or sml.date >= item["latest_in_time"]:
-                            item["latest_in_time"] = sml.date
-                            item["inbound_no"] = (
-                                sml.picking_id.inbound_order_id.billno
-                                if sml.picking_id and sml.picking_id.inbound_order_id
-                                else (sml.picking_id.name if sml.picking_id else False)
-                            )
-                    elif pick_code == "outgoing":
+                    else:
                         item["outbound_qty"] += qty
-                        if (not item["latest_out_time"]) or sml.date >= item["latest_out_time"]:
-                            item["latest_out_time"] = sml.date
-                            item["outbound_no"] = (
-                                sml.picking_id.outbound_order_id.billno
-                                if sml.picking_id and sml.picking_id.outbound_order_id
-                                else (sml.picking_id.name if sml.picking_id else False)
-                            )
 
                 if (not item["latest_time"]) or sml.date >= item["latest_time"]:
                     item["latest_time"] = sml.date
                     item["operator_id"] = sml.create_uid.id if sml.create_uid else False
                     item["change_time"] = sml.date
-                    item["remark"] = sml.reference or (sml.picking_id.origin if sml.picking_id else False) or False
+                    item["remark"] = (
+                            (sml.picking_id.inbound_order_id.billno if sml.picking_id and sml.picking_id.inbound_order_id else False)
+                            or (
+                                sml.picking_id.outbound_order_id.billno if sml.picking_id and sml.picking_id.outbound_order_id else False)
+                            or False)
                     item["customs_status"] = sml.customs_status or item["customs_status"]
                     item["mrn_status"] = sml.mrn_status or item["mrn_status"]
 
@@ -140,9 +148,18 @@ class BondedMrnStockQuery(models.Model):
             product_map = {p.id: p for p in product_model.sudo().browse(product_ids)}
             mrn_map = {m.id: m for m in mrn_model.sudo().browse(mrn_ids)}
 
+            # 同一 mrn+product+unique 的可用库存（跨单据汇总）
+            available_map = {}
+            for item in data_map.values():
+                base_key = (item["mrn_id"], item["product_id"], item["unique_identifier"])
+                delta_qty = (item["opening_qty"] or 0.0) + (item["inbound_qty"] or 0.0) - (item["outbound_qty"] or 0.0)
+                available_map[base_key] = float(available_map.get(base_key) or 0.0) + float(delta_qty)
+
             vals_list = []
             for item in data_map.values():
                 item["stock_qty"] = item["opening_qty"] + item["inbound_qty"] - item["outbound_qty"]
+                base_key = (item["mrn_id"], item["product_id"], item["unique_identifier"])
+                item["available_stock_qty"] = float(available_map.get(base_key) or 0.0)
 
                 product = product_map.get(item["product_id"])
                 mrn = mrn_map.get(item["mrn_id"]) if item["mrn_id"] else False
@@ -162,6 +179,7 @@ class BondedMrnStockQuery(models.Model):
                     "inbound_qty": item["inbound_qty"],
                     "outbound_qty": item["outbound_qty"],
                     "stock_qty": item["stock_qty"],
+                    "available_stock_qty": item["available_stock_qty"],
                     "operator_id": item["operator_id"],
                     "change_time": item["change_time"],
                     "remark": item["remark"],
@@ -184,6 +202,7 @@ class BondedMrnStockQueryLine(models.Model):
     unique_identifier = fields.Char(string='Unique Identifier', tracking=True, copy=False, index=True)
     product_id = fields.Many2one("product.product", string="Product", required=True, index=True, options="{'no_create': True, 'no_open': True}")
     product_barcode = fields.Char(string="Product Barcode", related="product_id.barcode", readonly=True, store=True, index=True)
+    product_weight = fields.Float(string="Product Weight",related='product_id.weight', readonly=True, store=True)
     customs_status = fields.Selection(CUSTOMS_STATUS_SELECTION, string="Customs Status", index=True, readonly=True)
     mrn_status = fields.Selection(MRN_STATUS_SELECTION, string="MRN Status", index=True, readonly=True)
     inbound_no = fields.Char(string="Inbound No", index=True, readonly=True)
@@ -191,7 +210,8 @@ class BondedMrnStockQueryLine(models.Model):
     opening_qty = fields.Float(string="Qty Before Start", readonly=True)
     inbound_qty = fields.Float(string="Inbound Qty", readonly=True)
     outbound_qty = fields.Float(string="Outbound Qty", readonly=True)
-    stock_qty = fields.Float(string="Stock Qty", readonly=True)
+    stock_qty = fields.Float(string="Event Qty", readonly=True)
+    available_stock_qty = fields.Float(string="Available Stock", readonly=True)
     operator_id = fields.Many2one("res.users", string="Operator", index=True, readonly=True, options="{'no_create': True, 'no_open': True}")
     change_time = fields.Datetime(string="Change Time", index=True, readonly=True)
     remark = fields.Char(string="Remark", readonly=True)

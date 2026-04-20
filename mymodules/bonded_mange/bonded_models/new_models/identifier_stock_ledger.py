@@ -1,6 +1,7 @@
 from odoo import api, fields, models, _
 from odoo.addons.bonded_mange.bonded_models.new_models.customs_document_core import CUSTOMS_STATUS_SELECTION
 
+
 class BondedIdentifierStockLedger(models.Model):
     _name = "bonded.identifier.stock.ledger"
     _description = "Identifier Stock Ledger"
@@ -9,7 +10,8 @@ class BondedIdentifierStockLedger(models.Model):
     _sql_constraints = [("bucket_key_unique", "unique(bucket_key)", "Bucket Key must be unique.")]
 
     bucket_key = fields.Char(string="Bucket Key", required=True, index=True, copy=False)
-    company_id = fields.Many2one("res.company", string="Company", required=True, index=True, copy=False, default=lambda self: self.env.company)
+    company_id = fields.Many2one("res.company", string="Company", required=True, index=True, copy=False,
+                                 default=lambda self: self.env.company)
     product_id = fields.Many2one("product.product", string="Product", required=True, index=True, copy=False)
     location_id = fields.Many2one("stock.location", string="Location", required=True, index=True, copy=False)
     lot_id = fields.Many2one("stock.lot", string="Lot/Serial", index=True, copy=False)
@@ -27,9 +29,38 @@ class BondedIdentifierStockLedger(models.Model):
     last_time = fields.Datetime(string="Last Time", index=True, copy=False)
     remark = fields.Char(string="Remark", copy=False)
 
-    bonded_flag = fields.Selection([("true", "bonded"), ("false", "Non-bonded")], string="Bonded Flag", index=True,copy=False)
+    bonded_flag = fields.Selection([("true", "bonded"), ("false", "Non-bonded")], string="Bonded Flag", index=True,
+                                   copy=False)
     inbound_order_no = fields.Char(string="Inbound Order No", index=True, copy=False)
     outbound_order_no = fields.Char(string="Outbound Order No", index=True, copy=False)
+
+    flow_picking_id = fields.Many2one("stock.picking", string="Flow Picking", index=True, copy=False)
+    flow_outbound_order_id = fields.Many2one("world.depot.outbound.order", string="Flow Outbound", index=True, copy=False)
+
+    product_model = fields.Char(string="Product Model", related="product_id.default_code", store=True, readonly=True,
+                                index=True)
+    product_weight = fields.Float(string="Unit Weight (kg)", related="product_id.weight", store=True, readonly=True)
+    flow_quantity = fields.Float(string="Flow Quantity", compute="_compute_flow_quantity", store=True)
+    flow_total_weight = fields.Float(string="Flow Total Weight (kg)", compute="_compute_flow_total_weight", store=True)
+
+
+    @api.depends("flow_picking_id.picking_type_code", "qty_inbound", "qty_outbound", "qty_on_hand")
+    def _compute_flow_quantity(self):
+        for rec in self:
+            picking_code = rec.flow_picking_id.picking_type_code if rec.flow_picking_id else False
+            if picking_code == "incoming":
+                rec.flow_quantity = rec.qty_inbound or 0.0
+            elif picking_code == "outgoing":
+                rec.flow_quantity = abs(rec.qty_outbound or 0.0)
+            else:
+                rec.flow_quantity = rec.qty_on_hand or 0.0
+
+    @api.depends("flow_quantity", "product_weight")
+    def _compute_flow_total_weight(self):
+        for rec in self:
+            rec.flow_total_weight = (rec.flow_quantity or 0.0) * (rec.product_weight or 0.0)
+
+
 
     def actionBuildBucketKey(self, vals):
         unique_text = (vals.get("unique_identifier") or "").strip().replace("|", "/")
@@ -42,14 +73,19 @@ class BondedIdentifierStockLedger(models.Model):
             str(vals.get("package_id") or 0),
             str(vals.get("owner_id") or 0),
             str(vals.get("mrn_id") or 0),
+            str(vals.get("flow_picking_id") or 0),
+            str(vals.get("flow_outbound_order_id") or 0),
+
             unique_text,
             file_text,
         ])
 
     def actionGetIdentifierValsByMoveLine(self, move_line):
         picking = move_line.picking_id
-        unique_identifier = move_line.unique_identifier or move_line.move_id.unique_identifier or move_line.picking_id.unique_identifier or (move_line.lot_id.unique_identifier if move_line.lot_id else False)
-        file_identifier = move_line.file_identifier or move_line.picking_id.file_identifier or (move_line.lot_id.file_identifier if move_line.lot_id else False)
+        unique_identifier = move_line.unique_identifier or move_line.move_id.unique_identifier or move_line.picking_id.unique_identifier or (
+            move_line.lot_id.unique_identifier if move_line.lot_id else False)
+        file_identifier = move_line.file_identifier or move_line.picking_id.file_identifier or (
+            move_line.lot_id.file_identifier if move_line.lot_id else False)
         mrn_id = move_line.mrn_id.id or move_line.move_id.mrn_id.id or move_line.picking_id.mrn_id.id or False
         customs_status = move_line.customs_status or move_line.picking_id.customs_status or False
         bonded_flag = picking.bonded_flag or (
@@ -59,8 +95,12 @@ class BondedIdentifierStockLedger(models.Model):
         return {"unique_identifier": unique_identifier or False, "file_identifier": file_identifier or False,
                 "mrn_id": mrn_id, "customs_status": customs_status,
                 "bonded_flag": bonded_flag or False,
-        "inbound_order_no": inbound_order_no or False,
-        "outbound_order_no": outbound_order_no or False,}
+                "inbound_order_no": inbound_order_no or False,
+                "outbound_order_no": outbound_order_no or False,
+                "flow_picking_id": picking.id or False,
+                "flow_outbound_order_id": picking.outbound_order_id.id if picking.outbound_order_id else False,
+
+                }
 
     def actionUpsertLedgerByDelta(self, key_vals, qty_inbound_delta, qty_outbound_delta, move_line):
         bucket_key = self.actionBuildBucketKey(key_vals)
@@ -75,6 +115,11 @@ class BondedIdentifierStockLedger(models.Model):
                 "qty_outbound": (ledger.qty_outbound or 0.0) + (qty_outbound_delta or 0.0),
                 "customs_status": key_vals.get("customs_status") or False,
             }
+            if key_vals.get("flow_picking_id"):
+                vals["flow_picking_id"] = key_vals.get("flow_picking_id")
+            if key_vals.get("flow_outbound_order_id"):
+                vals["flow_outbound_order_id"] = key_vals.get("flow_outbound_order_id")
+
             if key_vals.get("bonded_flag") in ("true", "false"):
                 vals["bonded_flag"] = key_vals.get("bonded_flag")
             if key_vals.get("inbound_order_no"):
@@ -125,6 +170,8 @@ class BondedIdentifierStockLedger(models.Model):
                 "bonded_flag": id_vals.get("bonded_flag") or False,
                 "inbound_order_no": id_vals.get("inbound_order_no") or False,
                 "outbound_order_no": id_vals.get("outbound_order_no") or False,
+                "flow_picking_id": id_vals.get("flow_picking_id") or False,
+                "flow_outbound_order_id": id_vals.get("flow_outbound_order_id") or False,
             }
 
             qty = (move_line.quantity or 0.0) * (factor or 1.0)
@@ -142,4 +189,3 @@ class BondedIdentifierStockLedger(models.Model):
                 self.actionUpsertLedgerByDelta(dst_vals, qty, 0.0, move_line)
 
         return True
-

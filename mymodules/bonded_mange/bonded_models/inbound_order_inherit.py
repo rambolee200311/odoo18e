@@ -223,7 +223,11 @@ class InboundOrderInherit(models.Model):
         return res
 
 
-
+    def unlink(self):
+        for rec in self:
+            if rec.unique_identifier:
+                raise UserError(_("Inbound order with Unique Identifier cannot be deleted, even in Cancel state."))
+        return super().unlink()
     @api.onchange("warehouse")
     def onchange_warehouse_filter_pick_type(self):
         domain = [("id", "=", 0)]
