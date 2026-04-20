@@ -30,6 +30,9 @@
             <xpath expr="//list/field[@name='billno']" position="after">
                 <field name="unique_identifier" optional="show"/>
             </xpath>
+              <xpath expr="//list/field[@name='billno']" position="attributes">
+                <attribute name="string">Inbound No</attribute>
+            </xpath>
         </field>
     </record>
 

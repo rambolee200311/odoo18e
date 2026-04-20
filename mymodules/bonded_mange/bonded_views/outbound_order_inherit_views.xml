@@ -11,6 +11,9 @@
                 <!--                       decoration-danger="bonded_flag in ('bonded')"-->
                 <!--                       decoration-info="bonded_flag in ('non_bonded')"/>-->
             </xpath>
+             <xpath expr="//list/field[@name='billno']" position="attributes">
+                <attribute name="string">Outbound No</attribute>
+            </xpath>
         </field>
     </record>
     <record id="view_inbound_pallet_line_m2o_list_simple" model="ir.ui.view">
