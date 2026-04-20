@@ -151,14 +151,14 @@ class BondedMrnStockQuery(models.Model):
             # 同一 mrn+product+unique 的可用库存（跨单据汇总）
             available_map = {}
             for item in data_map.values():
-                base_key = (item["mrn_id"], item["product_id"], item["unique_identifier"])
+                base_key = (item["product_id"], item["unique_identifier"])
                 delta_qty = (item["opening_qty"] or 0.0) + (item["inbound_qty"] or 0.0) - (item["outbound_qty"] or 0.0)
                 available_map[base_key] = float(available_map.get(base_key) or 0.0) + float(delta_qty)
 
             vals_list = []
             for item in data_map.values():
                 item["stock_qty"] = item["opening_qty"] + item["inbound_qty"] - item["outbound_qty"]
-                base_key = (item["mrn_id"], item["product_id"], item["unique_identifier"])
+                base_key = (item["product_id"], item["unique_identifier"])
                 item["available_stock_qty"] = float(available_map.get(base_key) or 0.0)
 
                 product = product_map.get(item["product_id"])
