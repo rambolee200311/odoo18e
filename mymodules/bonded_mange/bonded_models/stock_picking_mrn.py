@@ -18,7 +18,11 @@ class StockPicking(models.Model):
                                       compute="_compute_t1_status_from_customs_document", store=True, index=True)
 
 
-    @api.depends("customs_document_id", "customs_document_id.t1_document_number", "customs_document_id.t1_status", "customs_document_id.t1_closed_date")
+    @api.depends("customs_document_id",
+                 "customs_document_id.t1_document_number",
+                 "customs_document_id.t1_status",
+                 "customs_document_id.t1_closed_date",
+                 "customs_document_id.customs_status")
     def _compute_t1_status_from_customs_document(self):
         for rec in self:
             if rec.customs_document_id:
