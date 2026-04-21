@@ -6,6 +6,11 @@
         <field name="inherit_id" ref="worlddepot.view_outbound_order_tree"/>
         <field name="arch" type="xml">
             <xpath expr="//list/field[@name='billno']" position="after">
+                <field name="unique_identifier" optional="show"/>
+                <field name="customs_document_id" optional="show"/>
+                <field name="customs_status" optional="show"/>
+                <field name="picking_PICK" optional="show"/>
+                <field name="cmr_sign_time" optional="show"/>
                 <!--                <field name="unique_identifier" optional="show"/>-->
                 <!--                <field name="bonded_flag" readonly="1" widget="badge"-->
                 <!--                       decoration-danger="bonded_flag in ('bonded')"-->
