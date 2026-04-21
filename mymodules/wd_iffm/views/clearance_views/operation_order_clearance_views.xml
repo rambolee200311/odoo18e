@@ -97,9 +97,17 @@
                         </group>
                         <group string="Clearance Info">
                             <field name="is_clearance_overdue" readonly="1" invisible="1"/>
-                            <field name="overdue_blocking_reason_id" required="is_clearance_overdue" invisible="is_clearance_overdue == False"/>
-                            <field name="overdue_handle_result" required="is_clearance_overdue" invisible="is_clearance_overdue == False"/>
-                            <field name="overdue_handle_note" invisible="is_clearance_overdue == False"/>
+                            <field name="overdue_blocking_reason_id" required="is_clearance_overdue"
+                                   invisible="is_clearance_overdue == False"/>
+                            <field name="overdue_reason_note"
+                                   required="overdue_blocking_reason_id and overdue_blocking_reason_short_name == 'Others + Exp'"
+                                   invisible="not (overdue_blocking_reason_id and overdue_blocking_reason_short_name == 'Others + Exp')"/>
+
+                            <field name="overdue_handle_result" required="is_clearance_overdue"
+                                   invisible="is_clearance_overdue == False"/>
+                            <field name="overdue_result_note"
+                                   required="overdue_handle_result == 'other'"
+                                   invisible="overdue_handle_result != 'other'"/>
                         </group>
                     </group>
                     <notebook>

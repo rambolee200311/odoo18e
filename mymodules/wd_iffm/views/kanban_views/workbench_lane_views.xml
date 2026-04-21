@@ -41,6 +41,6 @@
     </record>
 
     <menuitem id="menu_operation_workbench_lane" name="Workbench Lane Management"
-              parent="menu_wd_charge_root" action="action_operation_workbench_lane"
+              parent="menu_wd_base_config" action="action_operation_workbench_lane"
               sequence="99" groups="base.group_user"/>
 </odoo>

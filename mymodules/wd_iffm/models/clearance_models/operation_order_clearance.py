@@ -128,6 +128,9 @@ class OperationOrderClearance(models.Model):
     is_clearance_overdue = fields.Boolean(string="Is Clearance Overdue", compute="_compute_is_clearance_overdue")
     overdue_blocking_reason_id = fields.Many2one("operation.blocking.reason", string="Overdue Blocking Reason",
                                                  index=True, copy=False, tracking=True)
+    overdue_reason_note = fields.Text(string="Overdue Reason Note", tracking=True, copy=False)
+    overdue_blocking_reason_short_name = fields.Char(string="Overdue Blocking Reason Short Name",
+                                                     related="overdue_blocking_reason_id.short_name", store=True)
     overdue_handle_result = fields.Selection([
         ("backfill_done", "Backfilled Clearance Done"),
         ("urge_customer_tax", "Urged Customer Tax/Documents"),
@@ -135,7 +138,18 @@ class OperationOrderClearance(models.Model):
         ("follow_broker", "Followed Up Broker Fix"),
         ("other", "Other"),
     ], string="Overdue Handle Result", index=True, copy=False, tracking=True)
-    overdue_handle_note = fields.Text(string="Overdue Handle Note", copy=False, tracking=True)
+    overdue_result_note = fields.Text(string="Overdue Handle Note", copy=False, tracking=True)
+
+
+    @api.constrains("overdue_blocking_reason_id", "overdue_reason_note", "overdue_handle_result", "overdue_result_note")
+    def check_handover_overdue_other_notes(self):
+        for rec in self:
+            reason_code = rec.overdue_blocking_reason_id.short_name if rec.overdue_blocking_reason_id else False
+            if reason_code == "Others + Exp" and not (rec.overdue_reason_note or "").strip():
+                raise ValidationError(_("Reason Note is required when Blocking Reason is Others."))
+            if rec.overdue_handle_result == "other" and not (rec.overdue_result_note or "").strip():
+                raise ValidationError(_("Result Note is required when Handle Result is Other."))
+
 
     @api.depends("state", "waybill_id.ata", "waybill_id.eta")
     def _compute_is_clearance_overdue(self):

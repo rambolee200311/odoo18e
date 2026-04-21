@@ -1,40 +1,40 @@
 <odoo>
 
-<!--    <record id="view_world_depot_waybill_kanban_workbench" model="ir.ui.view">-->
-<!--        <field name="name">world.depot.waybill.kanban.workbench</field>-->
-<!--        <field name="model">world.depot.waybill</field>-->
-<!--        <field name="arch" type="xml">-->
-<!--            <kanban default_order="id desc">-->
-<!--                <field name="billno"/>-->
-<!--                <field name="bl_number"/>-->
-<!--                <field name="hbl_number"/>-->
-<!--                <field name="project"/>-->
-<!--                <field name="shipping"/>-->
-<!--                <field name="eta"/>-->
-<!--                <field name="state"/>-->
-<!--                <field name="handover_id"/>-->
-<!--                <field name="clearance_id"/>-->
-<!--                <templates>-->
-<!--                    <t t-name="card">-->
-<!--                        <a type="object" name="action_open_workbench" class="d-block text-reset text-decoration-none">-->
-<!--                            <div class="oe_kanban_card p-2">-->
-<!--                                <div class="fw-bold mb-1">-->
-<!--                                    <field name="billno"/>-->
-<!--                                </div>-->
-<!--                                <div class="text-muted mb-1">-->
-<!--                                    BL: <field name="bl_number"/> / HBL: <field name="hbl_number"/>-->
-<!--                                </div>-->
-<!--                                <div>客户: <field name="shipping"/></div>-->
-<!--                                <div>项目: <field name="project"/></div>-->
-<!--                                <div>日期: <field name="eta"/></div>-->
-<!--                                <div>状态: <field name="state"/></div>-->
-<!--                            </div>-->
-<!--                        </a>-->
-<!--                    </t>-->
-<!--                </templates>-->
-<!--            </kanban>-->
-<!--        </field>-->
-<!--    </record>-->
+    <!--    <record id="view_world_depot_waybill_kanban_workbench" model="ir.ui.view">-->
+    <!--        <field name="name">world.depot.waybill.kanban.workbench</field>-->
+    <!--        <field name="model">world.depot.waybill</field>-->
+    <!--        <field name="arch" type="xml">-->
+    <!--            <kanban default_order="id desc">-->
+    <!--                <field name="billno"/>-->
+    <!--                <field name="bl_number"/>-->
+    <!--                <field name="hbl_number"/>-->
+    <!--                <field name="project"/>-->
+    <!--                <field name="shipping"/>-->
+    <!--                <field name="eta"/>-->
+    <!--                <field name="state"/>-->
+    <!--                <field name="handover_id"/>-->
+    <!--                <field name="clearance_id"/>-->
+    <!--                <templates>-->
+    <!--                    <t t-name="card">-->
+    <!--                        <a type="object" name="action_open_workbench" class="d-block text-reset text-decoration-none">-->
+    <!--                            <div class="oe_kanban_card p-2">-->
+    <!--                                <div class="fw-bold mb-1">-->
+    <!--                                    <field name="billno"/>-->
+    <!--                                </div>-->
+    <!--                                <div class="text-muted mb-1">-->
+    <!--                                    BL: <field name="bl_number"/> / HBL: <field name="hbl_number"/>-->
+    <!--                                </div>-->
+    <!--                                <div>客户: <field name="shipping"/></div>-->
+    <!--                                <div>项目: <field name="project"/></div>-->
+    <!--                                <div>日期: <field name="eta"/></div>-->
+    <!--                                <div>状态: <field name="state"/></div>-->
+    <!--                            </div>-->
+    <!--                        </a>-->
+    <!--                    </t>-->
+    <!--                </templates>-->
+    <!--            </kanban>-->
+    <!--        </field>-->
+    <!--    </record>-->
     <!-- Waybill Views tree-->
     <record id="view_world_depot_waybill_tree" model="ir.ui.view">
         <field name="name">world.depot.waybill.tree</field>
@@ -130,10 +130,12 @@
                             <field name="obl_number" readonly="state!='new'"/>
                             <field name="document_number" readonly="state!='new'"/>
                             <field name="reference_number" readonly="state!='new'"/>
-                            <field name="shipping" readonly="state!='new'" required="1" domain="[('is_shipping_line','=',True)]"/>
+                            <field name="shipping" readonly="state!='new'" required="1"
+                                   domain="[('is_shipping_line','=',True)]"/>
                             <field name="shipper" readonly="state!='new'" domain="[('is_exporter','=',True)]"/>
                             <field name="voyage_no" readonly="state!='new'"/>
-                            <field name="consignee" readonly="state!='new'" required="1" domain="[('is_importer','=',True)]"/>
+                            <field name="consignee" readonly="state!='new'" required="1"
+                                   domain="[('is_importer','=',True)]"/>
                             <field name="notify_party" readonly="state!='new'" domain="[('is_notify_party','=',True)]"/>
                         </group>
                         <group col="2" string="INFO">
@@ -141,12 +143,20 @@
                                    context="{'form_view_ref': 'wd_iffm.view_operation_order_handover_form'}"/>
                             <!--                            <field name="clearance_id" readonly="1"-->
                             <!--                                   context="{'form_view_ref': 'wd_iffm.operation_order_clearance_form_view'}"/>-->
+                            <field name="arrival_overdue_reason" required="is_waybill_overdue==True" invisible="is_waybill_overdue == False"/>
+                            <field name="arrival_overdue_reason_note" required="arrival_overdue_reason == 'other'"
+                                   invisible="arrival_overdue_reason != 'other'"/>
+
+                            <field name="arrival_overdue_result" required="is_waybill_overdue==True" invisible="is_waybill_overdue == False"/>
+                            <field name="arrival_overdue_result_note" required="arrival_overdue_result == 'other'"
+                                   invisible="arrival_overdue_result != 'other'"/>
+
                             <field name="eta" required="1"/>
                             <field name="ata" readonly="1"/>
-                                <field name="port_id" required="1" domain="[('node_type', '=', 'port')]"/>
+                            <field name="port_id" required="1" domain="[('node_type', '=', 'port')]"/>
                             <field name="terminal_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
-<!--                            <field name="terminal_port" required="1"/>-->
-<!--                            <field name="terminal_a" readonly="1"/>-->
+                            <!--                            <field name="terminal_port" required="1"/>-->
+                            <!--                            <field name="terminal_a" readonly="1"/>-->
                             <field name="is_arrived" readonly="1"/>
                             <field name="release_received" readonly="1"/>
                             <field name="custom_clearance" readonly="1"/>

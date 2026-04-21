@@ -15,64 +15,90 @@ class OperationWorkbenchDashboardData(models.Model):
     record_ids_text = fields.Char(string="Record IDs (CSV)", help="Example: 11,12,13")
 
     @api.model
-    def get_dashboard_counts(self):
-        waybill_near_count = len(self.get_waybill_near_ids())
-        handover_near_count = len(self.get_handover_near_ids())
-        clearance_near_count = len(self.get_clearance_near_ids())
+    def get_dashboard_counts(self, filters=None):
+        filters = filters or {}
 
-        waybill_overdue_count = len(self.get_waybill_overdue_ids())
-        handover_overdue_count = len(self.get_handover_overdue_ids())
-        clearance_overdue_count = len(self.get_clearance_overdue_ids())
+        waybill_near = self.get_lane_record_ids("waybill", "near", filters).get("filtered_count", 0)
+        handover_near = self.get_lane_record_ids("handover", "near", filters).get("filtered_count", 0)
+        clearance_near = self.get_lane_record_ids("clearance", "near", filters).get("filtered_count", 0)
 
-        total_near_count = waybill_near_count + handover_near_count + clearance_near_count
-        total_overdue_count = waybill_overdue_count + handover_overdue_count + clearance_overdue_count
+        waybill_overdue = self.get_lane_record_ids("waybill", "overdue", filters).get("filtered_count", 0)
+        handover_overdue = self.get_lane_record_ids("handover", "overdue", filters).get("filtered_count", 0)
+        clearance_overdue = self.get_lane_record_ids("clearance", "overdue", filters).get("filtered_count", 0)
 
         return {
-            "waybill": {"near_due_count": waybill_near_count, "overdue_count": waybill_overdue_count},
-            "handover": {"near_due_count": handover_near_count, "overdue_count": handover_overdue_count},
-            "clearance": {"near_due_count": clearance_near_count, "overdue_count": clearance_overdue_count},
-            "total": {"near_due_count": total_near_count, "overdue_count": total_overdue_count},
+            "waybill": {"near_due_count": waybill_near, "overdue_count": waybill_overdue},
+            "handover": {"near_due_count": handover_near, "overdue_count": handover_overdue},
+            "clearance": {"near_due_count": clearance_near, "overdue_count": clearance_overdue},
+            "total": {
+                "near_due_count": waybill_near + handover_near + clearance_near,
+                "overdue_count": waybill_overdue + handover_overdue + clearance_overdue,
+            },
         }
 
-
     @api.model
-    def get_lane_record_ids(self, lane_code, alert_type="overdue"):
+    def get_lane_record_ids(self, lane_code, alert_type="overdue", filters=None):
+        filters = filters or {}
         if lane_code not in ("waybill", "handover", "clearance"):
             raise ValidationError("Unsupported lane code.")
         if alert_type not in ("near", "overdue", "all"):
             raise ValidationError("Unsupported alert type.")
 
-        lane_method_map = {
-            "waybill": {
-                "near": self.get_waybill_near_ids,
-                "overdue": self.get_waybill_overdue_ids,
-            },
-            "handover": {
-                "near": self.get_handover_near_ids,
-                "overdue": self.get_handover_overdue_ids,
-            },
-            "clearance": {
-                "near": self.get_clearance_near_ids,
-                "overdue": self.get_clearance_overdue_ids,
-            },
-        }
-
-        near_ids = lane_method_map[lane_code]["near"]()
-        overdue_ids = lane_method_map[lane_code]["overdue"]()
+        if lane_code == "waybill":
+            near_ids = self.get_waybill_near_ids()
+            overdue_ids = self.get_waybill_overdue_ids()
+            model_name = "world.depot.waybill"
+        elif lane_code == "handover":
+            near_ids = self.get_handover_near_ids()
+            overdue_ids = self.get_handover_overdue_ids()
+            model_name = "operation.order.handover"
+        else:
+            near_ids = self.get_clearance_near_ids()
+            overdue_ids = self.get_clearance_overdue_ids()
+            model_name = "operation.order.clearance"
 
         if alert_type == "near":
-            ids_list = near_ids
+            candidate_ids = near_ids
         elif alert_type == "overdue":
-            ids_list = overdue_ids
+            candidate_ids = overdue_ids
         else:
-            ids_list = sorted(set(near_ids + overdue_ids), reverse=True)
+            candidate_ids = list(set(near_ids + overdue_ids))
+
+        domain = [("id", "in", candidate_ids)]
+        ata_date_from = filters.get("ata_date_from")
+        ata_date_to = filters.get("ata_date_to")
+        shipping_line_id = filters.get("shipping_line_id")
+        project_id = filters.get("project_id")
+
+        if lane_code == "waybill":
+            if ata_date_from:
+                domain.append(("ata", ">=", ata_date_from))
+            if ata_date_to:
+                domain.append(("ata", "<=", ata_date_to))
+            if shipping_line_id:
+                domain.append(("shipping", "=", int(shipping_line_id)))
+            if project_id:
+                domain.append(("project", "=", int(project_id)))
+        else:
+            if ata_date_from:
+                domain.append(("waybill_id.ata", ">=", ata_date_from))
+            if ata_date_to:
+                domain.append(("waybill_id.ata", "<=", ata_date_to))
+            if shipping_line_id:
+                domain.append(("waybill_id.shipping", "=", int(shipping_line_id)))
+            if project_id:
+                domain.append(("waybill_id.project", "=", int(project_id)))
+
+        env_model = self.env[model_name]
+        final_ids = env_model.sudo().search(domain, order="id desc").ids
 
         return {
             "lane_code": lane_code,
             "alert_type": alert_type,
             "near_due_count": len(near_ids),
             "overdue_count": len(overdue_ids),
-            "ids": ids_list,
+            "filtered_count": len(final_ids),
+            "ids": final_ids,
         }
 
     @api.model

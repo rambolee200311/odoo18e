@@ -59,10 +59,19 @@
                         <group>
                             <field name="waybill_id" required="1" readonly="1"/>
                             <field name="container_qty" required="1" readonly="state != 'open'"/>
-                            <field name="is_handover_overdue" readonly="1" invisible="1"/>
-                            <field name="overdue_blocking_reason_id" required="is_handover_overdue" invisible="is_handover_overdue == False"/>
-                            <field name="overdue_handle_result" required="is_handover_overdue" invisible="is_handover_overdue == False"/>
-                            <field name="overdue_handle_note" invisible="is_handover_overdue == False"/>
+           1q                 <field name="is_handover_overdue" readonly="1" invisible="1"/>
+
+                            <field name="overdue_blocking_reason_id" required="is_handover_overdue"
+                                   invisible="is_handover_overdue == False"/>
+                            <field name="overdue_reason_note"
+                                   required="overdue_blocking_reason_id and overdue_blocking_reason_short_name == 'Others + Exp'"
+                                   invisible="not (overdue_blocking_reason_id and overdue_blocking_reason_short_name == 'Others + Exp')"/>
+
+                            <field name="overdue_handle_result" required="is_handover_overdue"
+                                   invisible="is_handover_overdue == False"/>
+                            <field name="overdue_result_note"
+                                   required="overdue_handle_result == 'other'"
+                                   invisible="overdue_handle_result != 'other'"/>
                         </group>
 
 

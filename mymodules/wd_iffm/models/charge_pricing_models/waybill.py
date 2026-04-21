@@ -87,6 +87,7 @@ class Waybill(models.Model):
         ("internal_reason", "Internal Operation Reason"),
         ("other", "Other"),
     ], string="Arrival Overdue Block Reason", tracking=True, copy=False)
+    arrival_overdue_reason_note = fields.Text(string="Arrival Overdue Reason Note", tracking=True)
 
     arrival_overdue_result = fields.Selection([
         ("contact_carrier", "Contacted Carrier And Confirmed New ETA/ATA"),
@@ -94,7 +95,18 @@ class Waybill(models.Model):
         ("assigned_followup", "Assigned Operator For Follow-up"),
         ("other", "Other"),
     ], string="Arrival Overdue Handle Result", tracking=True, copy=False)
-    arrival_overdue_note = fields.Text(string="Arrival Overdue Handle Note", tracking=True, copy=False)
+    arrival_overdue_result_note = fields.Text(string="Arrival Overdue Result Note", tracking=True)
+
+    @api.constrains(
+        "arrival_overdue_reason", "arrival_overdue_reason_note",
+        "arrival_overdue_result", "arrival_overdue_result_note"
+    )
+    def check_waybill_overdue_other_notes(self):
+        for rec in self:
+            if rec.arrival_overdue_reason == "other" and not (rec.arrival_overdue_reason_note or "").strip():
+                raise ValidationError(_("Reason Note is required when Overdue Reason is Other."))
+            if rec.arrival_overdue_result == "other" and not (rec.arrival_overdue_result_note or "").strip():
+                raise ValidationError(_("Result Note is required when Overdue Result is Other."))
 
     @api.depends("eta", "ata")
     def _compute_is_waybill_overdue(self):

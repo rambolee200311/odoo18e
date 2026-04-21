@@ -48,8 +48,8 @@ class OperationWorkbenchLane(models.Model):
         record = self.create({"name": name, "code": code, "sequence": max_seq + 10})
         return record.id, record.name
 
-    def unlink(self):
-        protected = self.filtered(lambda r: r.code in self.SYSTEM_CODES)
-        if protected:
-            raise UserError(_("Cannot delete system lanes: %s") % ", ".join(protected.mapped("name")))
-        return super().unlink()
+    # def unlink(self):
+    #     protected = self.filtered(lambda r: r.code in self.SYSTEM_CODES)
+    #     if protected:
+    #         raise UserError(_("Cannot delete system lanes: %s") % ", ".join(protected.mapped("name")))
+    #     return super().unlink()
