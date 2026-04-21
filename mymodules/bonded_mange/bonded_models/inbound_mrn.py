@@ -29,6 +29,8 @@ class InboundOrderInherit(models.Model):
             rec.used_mrn_ids = [(6, 0, used)]
 
     def getMrnStatusByCustomsStatus(self, customs_status):
+        if not customs_status:
+            return "status_changed"
         if customs_status in ("entrepot"):
             return "pending_declaration"
         if customs_status in ("vrij"):
@@ -81,3 +83,26 @@ class InboundOrderInherit(models.Model):
         res = super().action_confirm()
         self.actionSyncInboundSnapshotToMrn()
         return res
+
+    def action_fill_gap_unique_identifier(self,raw_uid_list):
+        inbound_model = self.env["world.depot.inbound.order"]
+        project_model = self.env["project.project"]
+
+        raw_uid_list = raw_uid_list
+        project = project_model.sudo().search([('name','=','Midea')], order="id asc", limit=1)
+        if not project:
+            raise ValidationError(_("No project found."))
+
+
+
+        created_recs = inbound_model.browse()
+        for uid in raw_uid_list:
+            vals = {
+                "type": "inbound",
+                "project": project.id,
+                "reference": "GAP-%s" % uid,
+                "date": fields.Date.context_today(self),
+                "unique_identifier": uid,
+                "remark": "Gap filler placeholder",
+            }
+            created_recs |= inbound_model.create(vals)

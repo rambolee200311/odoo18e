@@ -51,8 +51,20 @@ class InboundOrderInherit(models.Model):
                     _("The selected Customs Document is already used by another inbound order and cannot be reused."))
 
     def action_confirm(self):
+        seq_model = self.env["ir.sequence"]
         res = super().action_confirm()
         for rec in self:
+            vals = {}
+            seq_date = rec.date or fields.Date.context_today(rec)
+            if not rec.unique_identifier:
+                vals["unique_identifier"] = seq_model.next_by_code("seq.inbound.unique.identifier",
+                                                                   sequence_date=seq_date) or "/"
+            if not rec.file_identifier:
+                vals["file_identifier"] = seq_model.next_by_code("seq.inbound.file.identifier",
+                                                                 sequence_date=seq_date) or "/"
+            if vals:
+                rec.write(vals)
+
             if rec.customs_document_id and rec.unique_identifier and rec.customs_document_id.unique_identifier != rec.unique_identifier:
                 rec.customs_document_id.write({"unique_identifier": rec.unique_identifier})
             if rec.customs_document_id  and rec.customs_document_id.inbound_order_id != rec.id:
@@ -141,16 +153,6 @@ class InboundOrderInherit(models.Model):
         self.actionSyncCustomsDocumentToInboundPicking()
         return res
 
-    @api.model
-    def create(self, vals):
-        seq_date = vals.get('date') or fields.Date.context_today(self)
-        if not vals.get('unique_identifier'):
-            vals['unique_identifier'] = self.env['ir.sequence'].next_by_code('seq.inbound.unique.identifier',
-                                                                             sequence_date=seq_date) or '/'
-        if not vals.get('file_identifier'):
-            vals['file_identifier'] = self.env['ir.sequence'].next_by_code('seq.inbound.file.identifier',
-                                                                           sequence_date=seq_date) or '/'
-        return super().create(vals)
 
     def actionSyncInboundT1ToMrnAndQuant(self):
         picking_model = self.env["stock.picking"]
