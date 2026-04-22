@@ -29,6 +29,10 @@
             <field name="key">portbase-secret-access-key_wde</field>
             <field name="value">demo_secret_key_wde</field>
         </record>
+        <record id="param_portbase_webhook_url" model="ir.config_parameter">
+            <field name="key">portbase_webhook_url</field>
+            <field name="value">demo_webhook_url</field>
+        </record>
 
     </data>
 </odoo>

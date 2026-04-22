@@ -26,6 +26,7 @@ class WaybillPortbaseInherit(models.Model):
             "secret_access_key": env_param.get_param("portbase-secret-access-key"),
             "access_key_id_wde": env_param.get_param("portbase-access-key-id_wde"),
             "secret_access_key_wde": env_param.get_param("portbase-secret-access-key_wde"),
+            "portbase_webhook_url": env_param.get_param("portbase_webhook_url"),
         }
 
     @api.model
@@ -79,8 +80,8 @@ class WaybillPortbaseInherit(models.Model):
         return False
 
     @api.model
-    def subscribe_portbase_tracking(self, config, bl_number, container_number):
-        payload = {"trackRequests": [{"blNumber": bl_number, "transportEquipmentNumber": container_number}]}
+    def subscribe_portbase_tracking(self, config, bl_number, container_number,WEBHOOK_URL):
+        payload = {"trackRequests": [{"blNumber": bl_number, "transportEquipmentNumber": container_number,}],"webhookUrl":WEBHOOK_URL}
         for headers in self.get_portbase_headers_list(config):
             result = self.request_portbase(config["track_requests_url"], method="post", headers=headers,
                                            payload=payload)
@@ -112,8 +113,9 @@ class WaybillPortbaseInherit(models.Model):
         env_param = self.env["ir.config_parameter"].sudo()
         config = self.get_portbase_config(env_param)
         self.check_portbase_config(config)
+        WEBHOOK_URL = config["portbase_webhook_url"]
 
-        tracking_id = self.subscribe_portbase_tracking(config, bl_number, container_number)
+        tracking_id = self.subscribe_portbase_tracking(config, bl_number, container_number,WEBHOOK_URL)
         if not tracking_id:
             raise UserError(_("Subscribe tracking id failed, bl=%s cntr=%s") % (bl_number, container_number))
 

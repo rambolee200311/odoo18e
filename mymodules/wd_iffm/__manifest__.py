@@ -50,6 +50,7 @@ Long description of module's purpose
         'views/charge_pricing_views/waybill.xml',
         'views/charge_pricing_views/res_partner_inherit_views.xml',
         'views/charge_pricing_views/port_node_views.xml',
+        'views/charge_pricing_views/portbase_webhook_log_views.xml',
 
         'views/handover_views/operation_order_handover_views.xml',
         'views/handover_views/handover_invoice_line_views.xml',

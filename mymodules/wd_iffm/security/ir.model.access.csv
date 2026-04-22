@@ -42,3 +42,5 @@ access_pickup_container_line_user,access.pickup.container.line.user,model_pickup
 access_operation_workbench_dashboard_data_user,operation.workbench.dashboard.data user,model_operation_workbench_dashboard_data,,1,1,1,1
 access_operation_workbench_alert_rule_user,operation.workbench.alert.rule user,model_operation_workbench_alert_rule,,1,1,1,1
 access_operation_blocking_reason_user,operation.blocking.reason user,model_operation_blocking_reason,,1,1,1,1
+
+access_portbase_webhook_log_user,portbase.webhook.log user,model_portbase_webhook_log,,1,1,1,1
