@@ -2,6 +2,7 @@
 
 from . import models
 from . import wizard
+from . import controllers
 
 
 def _init_workbench_lanes(env):

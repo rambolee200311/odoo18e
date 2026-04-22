@@ -35,12 +35,14 @@ Long description of module's purpose
         'data/account_account_data.xml',
         'data/workbench_test_data.xml',
         'data/operation_blocking_reason_data.xml',
+        'data/portbase_api_data.xml',
         #'data/workbench_lane_data.xml',
 
         'wizard/charge_quotation_add_wizard_views.xml',
         'wizard/waybill_arrival_wizard_views.xml',
         'wizard/waybill_create_clearance_wizard_views.xml',
         'wizard/clearance/clearance_reclearance_wizard_views.xml',
+        'wizard/protbase_import/portbase_waybill_import_wizard.xml',
 
 
         'views/charge_pricing_views/charge_quotation_views.xml',
