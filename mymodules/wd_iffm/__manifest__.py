@@ -35,7 +35,7 @@ Long description of module's purpose
         'data/account_account_data.xml',
         'data/workbench_test_data.xml',
         'data/operation_blocking_reason_data.xml',
-        'data/workbench_lane_data.xml',
+        #'data/workbench_lane_data.xml',
 
         'wizard/charge_quotation_add_wizard_views.xml',
         'wizard/waybill_arrival_wizard_views.xml',
