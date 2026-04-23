@@ -94,7 +94,7 @@ class WaybillPortbaseInherit(models.Model):
             for line in (result.get("notTrackedBLs") or []):
                 tracking_id = line.get("id")
                 if tracking_id:
-                    return tracking_id
+                   raise UserError(_("tracking id not found"))
         return False
 
     @api.model
