@@ -6,7 +6,7 @@
                 <form string="Portbase Waybill Import" duplicate="false">
                     <sheet>
                         <group>
-                            <field name="project_id" required="1"/>
+                            <field name="project_id" required="1" options="{'no_create': True, 'no_open': True}" />
                             <field name="bl_number" required="1"/>
                             <field name="container_number" required="1"/>
 <!--                            <field name="tracking_id" readonly="1"/>-->
