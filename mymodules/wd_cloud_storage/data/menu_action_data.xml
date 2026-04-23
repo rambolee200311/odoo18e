@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <data noupdate="1">
+        <record id="action_s3_stored_file" model="ir.actions.act_window">
+            <field name="name">Cloud Files</field>
+            <field name="res_model">s3.stored.file</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <record id="action_s3_recycle_entry" model="ir.actions.act_window">
+            <field name="name">Recycle Bin</field>
+            <field name="res_model">s3.recycle.entry</field>
+            <field name="view_mode">list,form</field>
+            <field name="domain">[('state', '=', 'active')]</field>
+        </record>
+
+        <record id="action_s3_node" model="ir.actions.act_window">
+            <field name="name">Cloud Nodes</field>
+            <field name="res_model">s3.node</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <record id="action_s3_permission" model="ir.actions.act_window">
+            <field name="name">Cloud Permissions</field>
+            <field name="res_model">s3.permission</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <record id="action_s3_operation_log" model="ir.actions.act_window">
+            <field name="name">Cloud Operation Logs</field>
+            <field name="res_model">s3.operation.log</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <record id="action_s3_config" model="ir.actions.act_window">
+            <field name="name">Cloud Config</field>
+            <field name="res_model">s3.config</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <menuitem id="menu_wd_cloud_storage_root" name="Cloud Storage" sequence="65" groups="base.group_user" />
+        <menuitem id="menu_wd_cloud_storage_file" name="Cloud Files" parent="menu_wd_cloud_storage_root" action="action_s3_stored_file" sequence="10" groups="base.group_user" />
+        <menuitem id="menu_wd_cloud_storage_recycle" name="Recycle Bin" parent="menu_wd_cloud_storage_root" action="action_s3_recycle_entry" sequence="20" groups="base.group_user" />
+        <menuitem id="menu_wd_cloud_storage_node" name="Cloud Nodes" parent="menu_wd_cloud_storage_root" action="action_s3_node" sequence="30" groups="wd_cloud_storage.group_wd_cloud_storage_admin" />
+        <menuitem id="menu_wd_cloud_storage_permission" name="Cloud Permissions" parent="menu_wd_cloud_storage_root" action="action_s3_permission" sequence="40" groups="wd_cloud_storage.group_wd_cloud_storage_admin" />
+        <menuitem id="menu_wd_cloud_storage_log" name="Cloud Logs" parent="menu_wd_cloud_storage_root" action="action_s3_operation_log" sequence="50" groups="wd_cloud_storage.group_wd_cloud_storage_admin" />
+        <menuitem id="menu_wd_cloud_storage_config" name="Cloud Config" parent="menu_wd_cloud_storage_root" action="action_s3_config" sequence="60" groups="wd_cloud_storage.group_wd_cloud_storage_admin" />
+    </data>
+</odoo>
