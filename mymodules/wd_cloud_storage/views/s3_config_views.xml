@@ -22,6 +22,7 @@
             <form string="Cloud Config" duplicate="false">
                 <header>
                     <button name="action_test_connection" string="Test Connection" type="object" class="btn-secondary" />
+                    <button name="action_init_public_folders" string="Init Public Folders" type="object" class="btn-secondary" groups="wd_cloud_storage.group_wd_cloud_storage_admin" />
                 </header>
                 <sheet>
                     <group>

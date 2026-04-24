@@ -128,6 +128,10 @@ class S3Config(models.Model):
             if allowed == mime_type:
                 return True
         raise UserError('File type is not allowed by system config.')
+#一键初始化部门文件夹和管理员文件夹
+    def action_init_public_folders(self):
+        self.env['s3.node'].action_init_public_folders()
+        return True
 
     def action_test_connection(self):
         for rec in self:

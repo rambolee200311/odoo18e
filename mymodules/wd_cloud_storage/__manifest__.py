@@ -4,7 +4,7 @@
     'summary': 'AWS S3 cloud storage for Odoo internal usage.',
     'author': 'World Depot B.V.',
     'category': 'Tools',
-    'depends': ['base', 'base_setup', 'web', 'mail'],
+    'depends': ['base', 'base_setup', 'web', 'mail','hr'],
     'external_dependencies': {'python': ['boto3', 'botocore']},
     'data': [
         'security/security.xml',

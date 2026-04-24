@@ -149,3 +149,85 @@ class S3Node(models.Model):
                 'sticky': False,
             },
         }
+
+    # 一键初始化部门文件夹和管理员文件夹具体方法
+    @api.model
+    def action_init_public_folders(self):
+        if not self.env.user.has_group('wd_cloud_storage.group_wd_cloud_storage_admin'):
+            raise AccessError('Only cloud storage admin can initialize public folders.')
+
+        node_type_model = self.env['s3.node.type'].sudo()
+        node_model_sudo = self.env['s3.node'].sudo()
+        permission_model_sudo = self.env['s3.permission'].sudo()
+        department_model = self.env['hr.department'].sudo()
+
+        public_type = node_type_model.search([('code', '=', 'public'), ('is_active', '=', True)], limit=1,
+                                             order='id desc')
+        if not public_type:
+            raise UserError('Public node type not found.')
+
+        base_nodes = self.ensure_base_nodes()
+        public_root = self.browse(base_nodes['public'])
+        public_prefix = public_root.s3_key if public_root.s3_key.endswith('/') else f"{public_root.s3_key}/"
+
+        def ensure_node(folder_name, folder_key):
+            node = node_model_sudo.search([
+                ('node_type_id', '=', public_type.id),
+                ('parent_id', '=', public_root.id),
+                ('s3_key', '=', folder_key),
+                ('company_id', '=', self.env.company.id),
+            ], limit=1, order='id desc')
+            if node:
+                return self.browse(node.id)
+            return self.env['s3.node'].create({
+                'name': folder_name,
+                'node_type_id': public_type.id,
+                'parent_id': public_root.id,
+                's3_key': folder_key,
+                'company_id': self.env.company.id,
+            })
+
+        def ensure_permission(node, grantee_type, permission_level, user_id=False, group_id=False, department_id=False):
+            domain = [
+                ('node_id', '=', node.id),
+                ('grantee_type', '=', grantee_type),
+                ('permission_level', '=', permission_level),
+                ('user_id', '=', user_id or False),
+                ('group_id', '=', group_id or False),
+                ('department_id', '=', department_id or False),
+            ]
+            if permission_model_sudo.search_count(domain):
+                return
+            self.env['s3.permission'].create({
+                'node_id': node.id,
+                'grantee_type': grantee_type,
+                'permission_level': permission_level,
+                'user_id': user_id or False,
+                'group_id': group_id or False,
+                'department_id': department_id or False,
+            })
+
+        all_read_node = ensure_node('All Read', f'{public_prefix}all-read/')
+        admin_only_node = ensure_node('Admin Only', f'{public_prefix}admin-only/')
+
+        group_user = self.env.ref('base.group_user')
+        group_admin = self.env.ref('wd_cloud_storage.group_wd_cloud_storage_admin')
+
+        ensure_permission(all_read_node, 'group', 'read', group_id=group_user.id)
+        ensure_permission(admin_only_node, 'group', 'full_control', group_id=group_admin.id)
+
+        departments = department_model.search([], order='id desc')
+        for dep in departments:
+            dep_node = ensure_node(f'Department - {dep.name}', f'{public_prefix}department-{dep.id}/')
+            ensure_permission(dep_node, 'department', 'write', department_id=dep.id)
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'type': 'success',
+                'title': 'Success',
+                'message': 'Public folders and permissions initialized.',
+                'sticky': False,
+            },
+        }

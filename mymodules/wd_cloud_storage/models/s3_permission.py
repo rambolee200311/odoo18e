@@ -11,7 +11,7 @@ class S3Permission(models.Model):
     grantee_type = fields.Selection([('user', 'User'), ('group', 'Group'), ('department', 'Department')], string='Grantee Type', required=True, default='user', index=True)
     user_id = fields.Many2one('res.users', string='User', index=True)
     group_id = fields.Many2one('res.groups', string='Group', index=True)
-    department_id = fields.Integer(string='Department Id', index=True)
+    department_id = fields.Many2one('',string='Department Id', index=True)
     permission_level = fields.Selection([('read', 'Read'), ('write', 'Write'), ('full_control', 'Full Control')], string='Permission Level', required=True, default='read', index=True)
     granted_by_id = fields.Many2one('res.users', string='Granted By', default=lambda self: self.env.user, readonly=True, index=True)
     granted_datetime = fields.Datetime(string='Granted Datetime', default=fields.Datetime.now, readonly=True)
@@ -42,17 +42,21 @@ class S3Permission(models.Model):
             return False
         if user.has_group('wd_cloud_storage.group_wd_cloud_storage_admin'):
             return True
+
         level_values = self.get_level_by_action(action_name)
-        permission_lines = permission_model.search([('node_id', '=', node_id), ('permission_level', 'in', level_values)], order='id desc')
+        permission_lines = permission_model.search(
+            [('node_id', '=', node_id), ('permission_level', 'in', level_values)], order='id desc')
         user_group_ids = user.groups_id.ids
-        department_id = False
-        if 'employee_id' in user._fields and user.employee_id and 'department_id' in user.employee_id._fields and user.employee_id.department_id:
-            department_id = user.employee_id.department_id.id
+
+        user_department_id = False
+        if 'employee_id' in user._fields and user.employee_id and user.employee_id.department_id:
+            user_department_id = user.employee_id.department_id.id
+
         for rec in permission_lines:
             if rec.grantee_type == 'user' and rec.user_id and rec.user_id.id == user.id:
                 return True
             if rec.grantee_type == 'group' and rec.group_id and rec.group_id.id in user_group_ids:
                 return True
-            if rec.grantee_type == 'department' and rec.department_id and rec.department_id == department_id:
+            if rec.grantee_type == 'department' and rec.department_id and rec.department_id.id == user_department_id:
                 return True
         return False
