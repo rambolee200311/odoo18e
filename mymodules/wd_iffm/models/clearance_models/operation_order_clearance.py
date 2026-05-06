@@ -372,7 +372,7 @@ class OperationOrderClearance(models.Model):
         for rec in self:
             if rec.state != "clearancing":
                 raise ValidationError(_("Only Clearancing can be set to Clearanced."))
-            if not rec.waybill_id.ata or not rec.waybill_id.terminal_a:
+            if not rec.waybill_id.ata or not rec.waybill_id.terminal_id:
                 raise ValidationError(_("Waybill ETA and Terminal of Arrival is required before Released."))
             if not rec.vat_tax_no and not rec.clearance_receipt_no and not rec.eu_eori_no:
                 raise ValidationError(_("VAT Tax No, Clearance Receipt No, EU EORI No is required before Released."))

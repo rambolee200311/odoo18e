@@ -11,8 +11,10 @@ class ChargeQuotation(models.Model):
     _description = "Charge Quotation"
     _inherit = ["mail.thread", "mail.activity.mixin"]
     _order = "id desc"
+    _rec_name = "alias_name"
 
     name = fields.Char(string="Quotation No.", readonly=True, copy=False, default="", index=True)
+    alias_name = fields.Char(string="Alias Name", required=True, default="Alias")
     is_active = fields.Boolean(string="Active", default=False, index=True, tracking=True)
     date = fields.Date(string="Quotation Date", required=True, default=fields.Date.context_today, tracking=True)
     effective_from = fields.Date(string="Effective From", required=True, index=True, tracking=True)

@@ -644,7 +644,7 @@ msgstr "此费用项目已存在于本报价单中。"
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_operation_order_handover_child_form
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_operation_order_handover_form
 msgid "Charges"
-msgstr "费用"
+msgstr "应收费用"
 
 #. module: wd_iffm
 #. odoo-python

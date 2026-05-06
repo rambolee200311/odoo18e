@@ -394,7 +394,7 @@ class OperationOrderHandover(models.Model):
                 raise ValidationError(_("Only Releasing can be set to Released."))
             if rec.get_required_doc_count("do") == 0:
                 raise ValidationError(_("DO / Telex Release document is required before Released."))
-            if not rec.waybill_id.ata or not rec.waybill_id.terminal_a:
+            if not rec.waybill_id.ata or not rec.waybill_id.terminal_id:
                 raise ValidationError(_("Waybill ETA and Terminal of Arrival is required before Released."))
             if not rec.do_issue_datetime:
                 raise ValidationError(_("Do issue date is required."))

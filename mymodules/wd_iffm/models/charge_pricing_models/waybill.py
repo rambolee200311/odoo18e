@@ -305,16 +305,18 @@ class Waybill(models.Model):
             record.write(record._convert_to_write(record.read()[0]))
         return True
 
-    @api.model
-    def create(self, values):
-        """
-        生成跟踪单号
-        """
-        times = fields.Date.today()
+    @api.model_create_multi
+    def create(self, vals_list):
+        sequence_date = fields.Date.today()
+        sequence_env = self.env["ir.sequence"]
 
-        values['billno'] = self.env['ir.sequence'].next_by_code('seq.waybill', times)
-        values['state'] = 'new'
-        return super(Waybill, self).create(values)
+        for vals in vals_list:
+            if not vals.get("billno"):
+                vals["billno"] = sequence_env.next_by_code("seq.waybill", sequence_date=sequence_date) or _("New")
+            if not vals.get("state"):
+                vals["state"] = "new"
+
+        return super().create(vals_list)
 
     def action_confirm_order(self):
         for rec in self:
