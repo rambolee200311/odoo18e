@@ -24,7 +24,7 @@ class MarstekStockPortal(CustomerPortal):
             "filters": filters or {},
         })
         return values
-
+#库存总览页。
     @http.route(["/my/marstek/stock"], type="http", auth="user", website=True)
     def marstek_stock_page(self, **kw):
         filters = self.marstek_filter_values(kw, ["container_no", "bl_no", "product_code", "date_from", "date_to"])
@@ -35,6 +35,7 @@ class MarstekStockPortal(CustomerPortal):
         })
         return request.render("marstek_stock_portal.portal_marstek_stock", values)
 
+   # 按柜号查询库存页。
     @http.route(["/my/marstek/container_stock"], type="http", auth="user", website=True)
     def marstek_container_stock_page(self, **kw):
         filters = self.marstek_filter_values(kw, ["container_no"])
@@ -50,6 +51,7 @@ class MarstekStockPortal(CustomerPortal):
         })
         return request.render("marstek_stock_portal.portal_marstek_container_stock", values)
 
+    #入库查询页。
     @http.route(["/my/marstek/inbounds"], type="http", auth="user", website=True)
     def marstek_inbounds_page(self, **kw):
         filters = self.marstek_filter_values(kw, ["inbound_no", "bl_no", "container_no", "inbound_date_from", "inbound_date_to"])
@@ -59,7 +61,7 @@ class MarstekStockPortal(CustomerPortal):
             "rows": rows,
         })
         return request.render("marstek_stock_portal.portal_marstek_inbounds", values)
-
+#获取指定入库单下的托盘明细数据和获取指定入库单的可下载附件列表
     @http.route(["/my/marstek/inbounds/<int:inbound_id>"], type="http", auth="user", website=True)
     def marstek_inbound_detail_page(self, inbound_id, **kw):
         inbound_env = request.env["world.depot.inbound.order"]
