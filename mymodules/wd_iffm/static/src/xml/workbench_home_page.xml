@@ -152,8 +152,8 @@
                     <div class="d-flex gap-2 align-items-center flex-wrap">
                         <!-- 1. 提单所属项目 -->
                         <select class="form-select form-select-sm" style="width: 160px;"
-                                t-model="state.filters.project_id"
                                 t-on-change="(e) => onFilterChange('project_id', e.target.value)">
+<!--                                t-model="state.filters.project_id"-->
                             <option value="">全部项目</option>
                             <t t-foreach="state.projectOptions" t-as="project" t-key="project.id">
                                 <option t-att-value="project.id" t-att-selected="state.filters.project_id == project.id">
@@ -164,8 +164,8 @@
 
                         <!-- 2. 船公司 -->
                         <select class="form-select form-select-sm" style="width: 160px;"
-                                t-model="state.filters.shipping_company_id"
                                 t-on-change="(e) => onFilterChange('shipping_company_id', e.target.value)">
+<!--                                t-model="state.filters.shipping_company_id"-->
                             <option value="">全部船公司</option>
                             <t t-foreach="state.shippingCompanyOptions" t-as="company" t-key="company.id">
                                 <option t-att-value="company.id" t-att-selected="state.filters.shipping_company_id == company.id">
@@ -178,14 +178,14 @@
                         <div class="d-flex align-items-center gap-1 ms-1">
                             <strong class="me-1">ETA: </strong>
                             <input type="date" class="form-control form-control-sm" style="width: 130px;"
-                                   t-model="state.filters.eta_date_from"
                                    t-on-change="(e) => onFilterChange('eta_date_from', e.target.value)"
                                    placeholder="开始"/>
+<!--                                   t-model="state.filters.eta_date_from"-->
                             <span class="text-muted">至</span>
                             <input type="date" class="form-control form-control-sm" style="width: 130px;"
-                                   t-model="state.filters.eta_date_to"
                                    t-on-change="(e) => onFilterChange('eta_date_to', e.target.value)"
                                    placeholder="结束"/>
+<!--                                   t-model="state.filters.eta_date_to"-->
                         </div>
 
                         <!-- 清空按钮 -->

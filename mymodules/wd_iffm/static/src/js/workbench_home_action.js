@@ -93,10 +93,25 @@ export class WdIffmWorkbench extends Component {
         this.onViewTypeClick = this.onViewTypeClick.bind(this);
         this.onFilterChange = this.onFilterChange.bind(this);
         this.clearFilters = this.clearFilters.bind(this);
+        this.onViewRecordClicked = this.onViewRecordClicked.bind(this);
 
         onWillStart(async () => {
             await this.loadDashboardData();
             await this.loadView(this.state.activeTab);
+        });
+    }
+
+    async onViewRecordClicked(record) {
+        console.log(1211)
+        const actionService = this.env.services.action;
+        await actionService.doAction({
+            type: "ir.actions.act_window",
+            name: "提单详情",
+            res_model: this.state.currentResModel,
+            res_id: record.resId,
+            view_mode: "form",
+            views: [[false, "form"]],
+            target: "current",
         });
     }
 
@@ -133,8 +148,20 @@ export class WdIffmWorkbench extends Component {
                 []
             );
             this.state.dashboardData = data;
-        } catch (error) {
-            console.error("加载仪表盘数据失败:", error);
+        } catch (err) {
+//            console.error("加载仪表盘数据失败:", error);
+            const msg =
+                err?.data?.arguments?.[0] ||
+                (err?.data?.message ? err.data.message.replace(/^odoo\.exceptions\.[^:]+:\s*/, "") : "") ||
+                err?.message ||
+                "未知错误";
+
+//            this.notification.add(`操作失败：${msg}`, {
+//                type: "danger",
+//                title: "错误",
+//            });
+            console.error("加载仪表盘数据失败:", msg);
+
             this.state.dashboardData = {
                 waybill: { near_due_count: 0, overdue_count: 0 },
                 handover: { near_due_count: 0, overdue_count: 0 },
@@ -229,7 +256,21 @@ export class WdIffmWorkbench extends Component {
                 display: {},
                 context: {},
                 domain: domain,
+                selectRecord: (resId) => {
+                    this.onViewRecordClicked({ resId });
+                },
                 searchViewId: viewInfo.views[finalViewType]?.searchViewId,
+                action: {
+                    id: false,
+                    name: config.label || "提单列表",
+                    res_model: config.res_model,
+                    type: "ir.actions.act_window",
+                    view_mode: `${finalViewType},form`,
+                    views: [
+                        [viewInfo.views[finalViewType]?.id || false, finalViewType],
+                        [false, "form"],
+                    ],
+                },
             };
         } catch (error) {
             console.error("加载视图失败:", error);

@@ -6,7 +6,7 @@
         <field name="model">world.depot.waybill</field>
         <field name="arch" type="xml">
 <!--            can_open_records="True"-->
-            <kanban default_group_by="state" can_open_records="True" class="wd_iffm_kanban wd_iffm_waybill_kanban wd_iffm_waybill_kanban_lane" default_order="id asc">
+            <kanban default_group_by="state" can_open_records="True" class="wd_iffm_kanban wd_iffm_waybill_kanban wd_iffm_waybill_kanban_lane" default_order="id desc">
                 <field name="billno"/>
                 <field name="project"/>
                 <field name="state"/>
@@ -16,6 +16,8 @@
                 <field name="ata"/>
                 <field name="container_qty"/>
                 <field name="obl_number"/>
+                <field name="is_waybill_overdue"/>
+                <field name="arrival_overdue_reason"/>
     <!--            <field name="container_number"/>-->
 
                 <templates>
@@ -76,13 +78,28 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="o_kanban_card_content_row">
-                                        <span class="text-muted">Container Number: </span>
-                                        <field name="container_qty"/>
+                                    <div class="row gx-2">
+                                        <div class="col-6">
+                                            <div class="o_kanban_card_content_row">
+                                                <span class="text-muted">Container Number: </span>
+                                                <field name="container_qty"/>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="o_kanban_card_content_row">
+                                                <span t-if="record.is_waybill_overdue" class="badge text-bg-danger">
+                                                    <i class="fa fa-exclamation-triangle me-1"/>Overdue
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="o_kanban_card_content_row">
                                         <span class="text-muted">Bill No: </span>
                                         <field name="billno"/>
+                                    </div>
+                                    <div t-if="record.is_waybill_overdue" class="o_kanban_card_content_row">
+                                        <span class="text-muted">Overdue Reason: </span>
+                                        <field name="arrival_overdue_reason"/>
                                     </div>
                                 </div>
 
