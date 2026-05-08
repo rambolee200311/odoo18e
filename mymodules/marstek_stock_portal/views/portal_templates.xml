@@ -1,0 +1,350 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="portal_marstek_page_shell" name="Marstek Portal Page Shell">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+            <div class="o_portal_wrap">
+                <div class="container">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h3 class="mb-0">
+                            <t t-esc="marstek_page_title"/>
+                        </h3>
+                    </div>
+                    <div class="o_marstek_portal_page" t-att-data-page-name="page_name">
+                        <t t-out="0"/>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="portal_marstek_stock" name="Marstek Stock Overview">
+        <t t-call="marstek_stock_portal.portal_marstek_page_shell">
+            <form method="get" action="/my/marstek/stock" class="row g-2 mb-3">
+                <div class="col-12 col-md-2">
+                    <input type="text" name="container_no" class="form-control" placeholder="Container No" t-att-value="filters.get('container_no')"/>
+                </div>
+                <div class="col-12 col-md-2">
+                    <input type="text" name="bl_no" class="form-control" placeholder="BL No" t-att-value="filters.get('bl_no')"/>
+                </div>
+                <div class="col-12 col-md-2">
+                    <input type="text" name="product_code" class="form-control" placeholder="Product Code" t-att-value="filters.get('product_code')"/>
+                </div>
+                <div class="col-12 col-md-2">
+                    <input type="date" name="date_from" class="form-control" t-att-value="filters.get('date_from')"/>
+                </div>
+                <div class="col-12 col-md-2">
+                    <input type="date" name="date_to" class="form-control" t-att-value="filters.get('date_to')"/>
+                </div>
+                <div class="col-12 col-md-2 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Search</button>
+                    <a href="/my/marstek/stock" class="btn btn-secondary">Clear</a>
+                </div>
+            </form>
+
+            <div class="table-responsive">
+                <table class="table table-sm table-hover o_portal_table">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Package</th>
+                            <th>Container No</th>
+                            <th>BL No</th>
+                            <th>Product Code</th>
+                            <th>Product Name</th>
+                            <th class="text-end">Quantity</th>
+                            <th>Location</th>
+                            <th>Inbound Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-if="not rows">
+                            <tr>
+                                <td colspan="8" class="text-center text-muted py-4">No records found.</td>
+                            </tr>
+                        </t>
+                        <tr t-foreach="rows" t-as="row">
+                            <td><t t-esc="row.get('package_name')"/></td>
+                            <td>
+                                <a t-if="row.get('container_no')" t-attf-href="/my/marstek/container_stock?container_no=#{row.get('container_no')}">
+                                    <t t-esc="row.get('container_no')"/>
+                                </a>
+                            </td>
+                            <td><t t-esc="row.get('bl_no')"/></td>
+                            <td><t t-esc="row.get('product_code')"/></td>
+                            <td><t t-esc="row.get('product_name')"/></td>
+                            <td class="text-end"><t t-esc="row.get('quantity')"/></td>
+                            <td><t t-esc="row.get('location_name')"/></td>
+                            <td><t t-esc="row.get('inbound_date')"/></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </t>
+    </template>
+
+    <template id="portal_marstek_container_stock" name="Marstek Container Stock">
+        <t t-call="marstek_stock_portal.portal_marstek_page_shell">
+            <form method="get" action="/my/marstek/container_stock" class="row g-2 mb-3">
+                <div class="col-12 col-md-4">
+                    <input type="text" name="container_no" class="form-control" placeholder="Container No" t-att-value="filters.get('container_no')"/>
+                </div>
+                <div class="col-12 col-md-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Search</button>
+                    <a href="/my/marstek/container_stock" class="btn btn-secondary">Clear</a>
+                </div>
+            </form>
+
+            <div t-if="container_no" class="d-flex flex-wrap gap-4 mb-3">
+                <div><strong>Container No:</strong> <t t-esc="stock_result.get('container_no')"/></div>
+                <div><strong>BL No:</strong> <t t-esc="stock_result.get('bl_no')"/></div>
+                <div><strong>Total Quantity:</strong> <t t-esc="stock_result.get('total_quantity')"/></div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-sm table-hover o_portal_table">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Package</th>
+                            <th>Container No</th>
+                            <th>BL No</th>
+                            <th>Product Code</th>
+                            <th>Product Name</th>
+                            <th class="text-end">Quantity</th>
+                            <th>Location</th>
+                            <th>Inbound Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-if="not rows">
+                            <tr>
+                                <td colspan="8" class="text-center text-muted py-4">No records found.</td>
+                            </tr>
+                        </t>
+                        <tr t-foreach="rows" t-as="row">
+                            <td><t t-esc="row.get('package_name')"/></td>
+                            <td><t t-esc="row.get('container_no')"/></td>
+                            <td><t t-esc="row.get('bl_no')"/></td>
+                            <td><t t-esc="row.get('product_code')"/></td>
+                            <td><t t-esc="row.get('product_name')"/></td>
+                            <td class="text-end"><t t-esc="row.get('quantity')"/></td>
+                            <td><t t-esc="row.get('location_name')"/></td>
+                            <td><t t-esc="row.get('inbound_date')"/></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </t>
+    </template>
+
+<template id="portal_marstek_inbounds" name="Marstek Inbound Orders">
+    <t t-call="marstek_stock_portal.portal_marstek_page_shell">
+        <form method="get" action="/my/marstek/inbounds" class="row g-2 mb-3">
+            <div class="col-12 col-md-2">
+                <input type="text" name="inbound_no" class="form-control" placeholder="Inbound No" t-att-value="filters.get('inbound_no')"/>
+            </div>
+            <div class="col-12 col-md-2">
+                <input type="text" name="bl_no" class="form-control" placeholder="BL No" t-att-value="filters.get('bl_no')"/>
+            </div>
+            <div class="col-12 col-md-2">
+                <input type="text" name="container_no" class="form-control" placeholder="Container No" t-att-value="filters.get('container_no')"/>
+            </div>
+            <div class="col-12 col-md-2">
+                <input type="date" name="inbound_date_from" class="form-control" t-att-value="filters.get('inbound_date_from')"/>
+            </div>
+            <div class="col-12 col-md-2">
+                <input type="date" name="inbound_date_to" class="form-control" t-att-value="filters.get('inbound_date_to')"/>
+            </div>
+            <div class="col-12 col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Search</button>
+                <a href="/my/marstek/inbounds" class="btn btn-secondary">Clear</a>
+            </div>
+        </form>
+
+        <div class="table-responsive">
+            <table class="table table-sm table-hover o_portal_table">
+                <thead class="table-light">
+                    <tr>
+                        <th>Inbound No</th>
+                        <th>Reference</th>
+                        <th>BL No</th>
+                        <th>Container No</th>
+                        <th>Inbound Date</th>
+                        <th class="text-end">Pallets</th>
+                        <th class="text-end">Quantity</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-if="not rows">
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">No records found.</td>
+                        </tr>
+                    </t>
+                    <tr t-foreach="rows" t-as="row">
+                        <td>
+                            <a t-attf-href="/my/marstek/inbounds/#{row.get('inbound_id')}">
+                                <t t-esc="row.get('inbound_no')"/>
+                            </a>
+                        </td>
+                        <td><t t-esc="row.get('reference')"/></td>
+                        <td><t t-esc="row.get('bl_no')"/></td>
+                        <td><t t-esc="row.get('container_no')"/></td>
+                        <td><t t-esc="row.get('inbound_date')"/></td>
+                        <td class="text-end"><t t-esc="row.get('total_pallets')"/></td>
+                        <td class="text-end"><t t-esc="row.get('total_quantity')"/></td>
+                        <td><t t-esc="row.get('state')"/></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </t>
+</template>
+
+<template id="portal_marstek_inbound_detail" name="Marstek Inbound Detail">
+    <t t-call="marstek_stock_portal.portal_marstek_page_shell">
+        <div class="mb-3">
+            <a href="/my/marstek/inbounds" class="btn btn-secondary btn-sm">Back</a>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-12 col-md-3">
+                <strong>Inbound No:</strong>
+                <span t-esc="order.billno or ''"/>
+            </div>
+            <div class="col-12 col-md-3">
+                <strong>Reference:</strong>
+                <span t-esc="order.reference or ''"/>
+            </div>
+            <div class="col-12 col-md-3">
+                <strong>BL No:</strong>
+                <span t-esc="order.bl_no or ''"/>
+            </div>
+            <div class="col-12 col-md-3">
+                <strong>Container No:</strong>
+                <span t-esc="order.cntr_no or ''"/>
+            </div>
+        </div>
+
+        <h5 class="mb-3">Package Details</h5>
+        <div class="table-responsive mb-4">
+            <table class="table table-sm table-hover o_portal_table">
+                <thead class="table-light">
+                    <tr>
+                        <th>Package</th>
+                        <th>Container No</th>
+                        <th>BL No</th>
+                        <th>Product Code</th>
+                        <th>Product Name</th>
+                        <th class="text-end">Quantity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-if="not detail_rows">
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">No package details found.</td>
+                        </tr>
+                    </t>
+                    <tr t-foreach="detail_rows" t-as="row">
+                        <td><t t-esc="row.get('package_name')"/></td>
+                        <td><t t-esc="row.get('container_no')"/></td>
+                        <td><t t-esc="row.get('bl_no')"/></td>
+                        <td><t t-esc="row.get('product_code')"/></td>
+                        <td><t t-esc="row.get('product_name')"/></td>
+                        <td class="text-end"><t t-esc="row.get('quantity')"/></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h5 class="mb-3">Attachments</h5>
+        <div class="table-responsive">
+            <table class="table table-sm table-hover o_portal_table">
+                <thead class="table-light">
+                    <tr>
+                        <th>File Name</th>
+                        <th>Type</th>
+                        <th class="text-end">Size</th>
+                        <th class="text-end">Download</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-if="not attachment_rows">
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-4">No attachments found.</td>
+                        </tr>
+                    </t>
+                    <tr t-foreach="attachment_rows" t-as="row">
+                        <td><t t-esc="row.get('file_name')"/></td>
+                        <td><t t-esc="row.get('file_type')"/></td>
+                        <td class="text-end"><t t-esc="row.get('file_size')"/></td>
+                        <td class="text-end">
+                            <a t-att-href="row.get('download_url')" class="btn btn-sm btn-primary">
+                                Download
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </t>
+</template>
+
+    <template id="portal_marstek_outbounds" name="Marstek Outbound Orders">
+        <t t-call="marstek_stock_portal.portal_marstek_page_shell">
+            <form method="get" action="/my/marstek/outbounds" class="row g-2 mb-3">
+                <div class="col-12 col-md-2">
+                    <input type="text" name="outbound_no" class="form-control" placeholder="Outbound No" t-att-value="filters.get('outbound_no')"/>
+                </div>
+                <div class="col-12 col-md-2">
+                    <input type="text" name="bl_no" class="form-control" placeholder="BL No" t-att-value="filters.get('bl_no')"/>
+                </div>
+                <div class="col-12 col-md-2">
+                    <input type="text" name="container_no" class="form-control" placeholder="Container No" t-att-value="filters.get('container_no')"/>
+                </div>
+                <div class="col-12 col-md-2">
+                    <input type="text" name="status" class="form-control" placeholder="Status" t-att-value="filters.get('status')"/>
+                </div>
+                <div class="col-12 col-md-2">
+                    <input type="date" name="outbound_date_from" class="form-control" t-att-value="filters.get('outbound_date_from')"/>
+                </div>
+                <div class="col-12 col-md-2 d-flex gap-2">
+                    <input type="date" name="outbound_date_to" class="form-control" t-att-value="filters.get('outbound_date_to')"/>
+                    <button type="submit" class="btn btn-primary">Search</button>
+                    <a href="/my/marstek/outbounds" class="btn btn-secondary">Clear</a>
+                </div>
+            </form>
+
+            <div class="table-responsive">
+                <table class="table table-sm table-hover o_portal_table">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Outbound No</th>
+                            <th>BL No</th>
+                            <th>Container No</th>
+                            <th>Outbound Date</th>
+                            <th>Status</th>
+                            <th class="text-end">Quantity</th>
+                            <th>Picking No</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-if="not rows">
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-4">No records found.</td>
+                            </tr>
+                        </t>
+                        <tr t-foreach="rows" t-as="row">
+                            <td><t t-esc="row.get('outbound_no')"/></td>
+                            <td><t t-esc="row.get('bl_no')"/></td>
+                            <td><t t-esc="row.get('container_no')"/></td>
+                            <td><t t-esc="row.get('outbound_date')"/></td>
+                            <td><t t-esc="row.get('state')"/></td>
+                            <td class="text-end"><t t-esc="row.get('total_quantity')"/></td>
+                            <td><t t-esc="row.get('picking_no')"/></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </t>
+    </template>
+</odoo>

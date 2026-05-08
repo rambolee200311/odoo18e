@@ -1,0 +1,22 @@
+# -*- coding: utf-8 -*-
+
+{
+    "name": "Marstek Stock Portal",
+    "summary": "Read-only stock portal backend methods for Marstek customers",
+    "description": """
+Read-only ORM methods for Marstek portal stock, inbound, outbound, SN, and attachment queries.
+    """,
+    "author": "World Depot B.V.",
+    "category": "进口/进口",
+    "version": "18.0.1.0.0",
+    "depends": ["worlddepot", "portal", "stock"],
+    "data": [
+        "security/ir.model.access.csv",
+        "security/security.xml",
+        "views/res_user_views.xml",
+        #"views/portal_templates.xml",
+    ],
+    "license": "LGPL-3",
+    "installable": True,
+    "application": True,
+}
