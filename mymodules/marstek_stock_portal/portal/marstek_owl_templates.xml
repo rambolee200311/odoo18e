@@ -1,0 +1,494 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- =========================================== -->
+    <!-- Owl2 组件模板 -->
+    <!-- =========================================== -->
+
+    <!-- 库存概览组件模板 -->
+    <template id="marstek_stock_overview_template">
+        <div class="stock-overview-page">
+            <!-- 搜索栏 -->
+            <div class="mb-4">
+                <div class="input-group">
+                    <input type="text"
+                           class="form-control"
+                           placeholder="按货盘号、集装箱号、BL号、产品搜索..."
+                           t-model="state.searchKeyword"
+                           t-on-input="debounceSearch"/>
+                    <button class="btn btn-outline-secondary" type="button" t-on-click="clearSearch" t-if="state.searchKeyword">
+                        <i class="fa fa-times"/>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 加载状态 -->
+            <div t-if="state.loading" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">加载中...</span>
+                </div>
+                <p class="mt-2 text-muted">正在加载库存数据...</p>
+            </div>
+
+            <!-- 错误提示 -->
+            <div t-if="state.error" class="alert alert-danger" role="alert">
+                <t t-esc="state.error"/>
+                <button type="button" class="btn-close float-end" t-on-click="state.error = null"/>
+            </div>
+
+            <!-- 数据表格 -->
+            <div t-if="!state.loading and state.stockData.length > 0" class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>货盘号</th>
+                            <th>集装箱号</th>
+                            <th>BL号</th>
+                            <th>产品代码</th>
+                            <th>产品名称</th>
+                            <th class="text-end">数量</th>
+                            <th>库位</th>
+                            <th>入库日期</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr t-foreach="paginatedData" t-as="row" t-key="row.id">
+                            <td><t t-esc="row.package_name"/></td>
+                            <td><t t-esc="row.container_no"/></td>
+                            <td><t t-esc="row.bl_no"/></td>
+                            <td><t t-esc="row.product_code"/></td>
+                            <td><t t-esc="row.product_name"/></td>
+                            <td class="text-end"><t t-esc="row.quantity"/></td>
+                            <td><t t-esc="row.location_name"/></td>
+                            <td><t t-esc="row.in_date"/></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 空状态 -->
+            <div t-if="!state.loading and state.stockData.length === 0" class="text-center py-5">
+                <i class="fa fa-inbox fa-3x text-muted mb-3"/>
+                <p class="text-muted">暂无库存数据</p>
+            </div>
+
+            <!-- 分页 -->
+            <div t-if="!state.loading and totalPages > 1" class="mt-4">
+                <nav aria-label="分页导航">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item" t-att-class="{'disabled': state.currentPage === 1}">
+                            <a class="page-link" href="#" t-on-click.prevent="prevPage">上一页</a>
+                        </li>
+                        <li class="page-item" t-foreach="pageNumbers" t-as="page" t-key="page"
+                            t-att-class="{'active': page === state.currentPage, 'disabled': page === '...'}">
+                            <a class="page-link" href="#" t-on-click.prevent="() => goToPage(page)">
+                                <t t-esc="page"/>
+                            </a>
+                        </li>
+                        <li class="page-item" t-att-class="{'disabled': state.currentPage === totalPages}">
+                            <a class="page-link" href="#" t-on-click.prevent="nextPage">下一页</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </template>
+
+    <!-- 集装箱查询组件模板 -->
+    <template id="marstek_container_query_template">
+        <div class="container-query-page">
+            <!-- 搜索输入框 -->
+            <div class="row mb-4">
+                <div class="col-md-8">
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fa fa-search"/>
+                        </span>
+                        <input type="text"
+                               class="form-control form-control-lg"
+                               placeholder="输入集装箱号..."
+                               t-model="state.containerNo"
+                               t-on-keydown="onKeydown"/>
+                        <button class="btn btn-primary btn-lg" type="button" t-on-click="searchContainer">
+                            查询
+                        </button>
+                        <button class="btn btn-outline-secondary btn-lg" type="button" t-on-click="clearSearch">
+                            清除
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 加载状态 -->
+            <div t-if="state.loading" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">加载中...</span>
+                </div>
+                <p class="mt-2 text-muted">正在查询集装箱...</p>
+            </div>
+
+            <!-- 错误提示 -->
+            <div t-if="state.error" class="alert alert-danger" role="alert">
+                <t t-esc="state.error"/>
+            </div>
+
+            <!-- 结果头部 -->
+            <div t-if="state.hasSearched and !state.loading" class="mb-4">
+                <h4 t-if="state.stockData.length > 0">
+                    集装箱 <span class="text-primary"><t t-esc="state.containerNo"/></span> 的查询结果
+                </h4>
+                <h4 t-if="state.stockData.length === 0">
+                    未找到集装箱 <span class="text-danger"><t t-esc="state.containerNo"/></span> 的数据
+                </h4>
+            </div>
+
+            <!-- 汇总卡片 -->
+            <div t-if="state.hasSearched and state.stockData.length > 0" class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card bg-primary bg-opacity-10 border-0">
+                        <div class="card-body">
+                            <h6 class="text-muted mb-1">货盘总数</h6>
+                            <h3 class="mb-0"><t t-esc="state.stockData.length"/></h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-success bg-opacity-10 border-0">
+                        <div class="card-body">
+                            <h6 class="text-muted mb-1">库存总量</h6>
+                            <h3 class="mb-0"><t t-esc="totalQuantity"/></h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card bg-info bg-opacity-10 border-0">
+                        <div class="card-body">
+                            <h6 class="text-muted mb-1">BL号</h6>
+                            <h3 class="mb-0"><t t-esc="state.stockData[0]?.bl_no or '-'"/></h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 数据表格 -->
+            <div t-if="!state.loading and state.stockData.length > 0" class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>货盘号</th>
+                            <th>产品代码</th>
+                            <th>产品名称</th>
+                            <th class="text-end">数量</th>
+                            <th>库位</th>
+                            <th>入库日期</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr t-foreach="paginatedData" t-as="row" t-key="row.id">
+                            <td><t t-esc="row.package_name"/></td>
+                            <td><t t-esc="row.product_code"/></td>
+                            <td><t t-esc="row.product_name"/></td>
+                            <td class="text-end"><t t-esc="row.quantity"/></td>
+                            <td><t t-esc="row.location_name"/></td>
+                            <td><t t-esc="row.in_date"/></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </template>
+
+    <!-- 入库单列表组件模板 -->
+    <template id="marstek_inbound_list_template">
+        <div class="inbound-list-page">
+            <!-- 搜索栏 -->
+            <div class="mb-4">
+                <div class="input-group">
+                    <input type="text"
+                           class="form-control"
+                           placeholder="按入库单号、BL号、集装箱号搜索..."
+                           t-model="state.searchKeyword"
+                           t-on-input="debounceSearch"/>
+                </div>
+            </div>
+
+            <!-- 加载状态 -->
+            <div t-if="state.loading" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">加载中...</span>
+                </div>
+            </div>
+
+            <!-- 数据表格 -->
+            <div t-if="!state.loading and filteredData.length > 0" class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>入库单号</th>
+                            <th>BL号</th>
+                            <th>集装箱号</th>
+                            <th>入库日期</th>
+                            <th class="text-end">货盘数</th>
+                            <th class="text-end">总量</th>
+                            <th>状态</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr t-foreach="paginatedData" t-as="row" t-key="row.id">
+                            <td><t t-esc="row.billno"/></td>
+                            <td><t t-esc="row.bl_no"/></td>
+                            <td><t t-esc="row.cntr_no"/></td>
+                            <td><t t-esc="row.date"/></td>
+                            <td class="text-end"><t t-esc="row.pallets"/></td>
+                            <td class="text-end"><t t-esc="row.total_quantity"/></td>
+                            <td>
+                                <span class="badge" t-att-class="getStatusClass(row.state)">
+                                    <t t-esc="formatStatus(row.state)"/>
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 空状态 -->
+            <div t-if="!state.loading and filteredData.length === 0" class="text-center py-5">
+                <i class="fa fa-inbox fa-3x text-muted mb-3"/>
+                <p class="text-muted">暂无入库单数据</p>
+            </div>
+        </div>
+    </template>
+
+    <!-- 出库单列表组件模板 -->
+    <template id="marstek_outbound_list_template">
+        <div class="outbound-list-page">
+            <!-- 搜索栏 -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <input type="text"
+                               class="form-control"
+                               placeholder="按出库单号、BL号、集装箱号搜索..."
+                               t-model="state.searchKeyword"
+                               t-on-input="debounceSearch"/>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" t-model="state.statusFilter" t-on-change="onStatusChange">
+                        <option value="all">全部状态</option>
+                        <option value="new">新建</option>
+                        <option value="planning">计划中</option>
+                        <option value="picking">拣货中</option>
+                        <option value="outbound">已出库</option>
+                        <option value="done">已完成</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 加载状态 -->
+            <div t-if="state.loading" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">加载中...</span>
+                </div>
+            </div>
+
+            <!-- 数据表格 -->
+            <div t-if="!state.loading and filteredData.length > 0" class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>出库单号</th>
+                            <th>BL号</th>
+                            <th>集装箱号</th>
+                            <th>出库日期</th>
+                            <th class="text-end">总量</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr t-foreach="paginatedData" t-as="row" t-key="row.id">
+                            <td><t t-esc="row.billno"/></td>
+                            <td><t t-esc="row.bl_no"/></td>
+                            <td><t t-esc="row.container_no"/></td>
+                            <td><t t-esc="row.date"/></td>
+                            <td class="text-end"><t t-esc="row.total_quantity"/></td>
+                            <td>
+                                <span class="badge" t-att-class="getStatusClass(row.state)">
+                                    <t t-esc="formatStatus(row.state)"/>
+                                </span>
+                            </td>
+                            <td>
+                                <a t-att-href="'/my/marstek/outbound/detail/' + row.id" class="btn btn-sm btn-primary">
+                                    查看详情
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 空状态 -->
+            <div t-if="!state.loading and filteredData.length === 0" class="text-center py-5">
+                <i class="fa fa-inbox fa-3x text-muted mb-3"/>
+                <p class="text-muted">暂无出库单数据</p>
+            </div>
+        </div>
+    </template>
+
+    <!-- 出库单详情组件模板 -->
+    <template id="marstek_outbound_detail_template">
+        <div class="outbound-detail-page">
+            <!-- 加载状态 -->
+            <div t-if="state.loading" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">加载中...</span>
+                </div>
+            </div>
+
+            <!-- 订单信息 -->
+            <div t-if="!state.loading and state.outboundData" class="mb-4">
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">
+                            <i class="fa fa-file-text me-2"/>出库单：<t t-esc="state.outboundData.billno"/>
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <p class="mb-1 text-muted">BL号</p>
+                                <p class="mb-0 fw-bold"><t t-esc="state.outboundData.bl_no or '-'"/></p>
+                            </div>
+                            <div class="col-md-4">
+                                <p class="mb-1 text-muted">集装箱号</p>
+                                <p class="mb-0 fw-bold"><t t-esc="state.outboundData.container_no or '-'"/></p>
+                            </div>
+                            <div class="col-md-4">
+                                <p class="mb-1 text-muted">状态</p>
+                                <span class="badge" t-att-class="getStatusClass(state.outboundData.state)">
+                                    <t t-esc="formatStatus(state.outboundData.state)"/>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SN 详情 -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fa fa-barcode me-2"/>SN 详情
+                            <span class="badge bg-secondary ms-2"><t t-esc="state.snDetails.length"/></span>
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>序列号</th>
+                                        <th>产品代码</th>
+                                        <th>产品名称</th>
+                                        <th>货盘号</th>
+                                        <th class="text-end">数量</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr t-foreach="paginatedSnData" t-as="sn" t-key="sn.id or sn.sn">
+                                        <td><t t-esc="sn.sn"/></td>
+                                        <td><t t-esc="sn.product_code"/></td>
+                                        <td><t t-esc="sn.product_name"/></td>
+                                        <td><t t-esc="sn.pallet_no"/></td>
+                                        <td class="text-end"><t t-esc="sn.quantity"/></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- SN 查询组件模板 -->
+    <template id="marstek_sn_query_template">
+        <div class="sn-query-page">
+            <!-- 搜索输入框 -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="fa fa-barcode"/>
+                        </span>
+                        <input type="text"
+                               class="form-control form-control-lg"
+                               placeholder="输入序列号..."
+                               t-model="state.snCode"
+                               t-on-keydown="onKeydown"/>
+                        <button class="btn btn-primary btn-lg" type="button" t-on-click="searchSn">
+                            查询
+                        </button>
+                        <button class="btn btn-outline-secondary btn-lg" type="button" t-on-click="clearSearch">
+                            清除
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 加载状态 -->
+            <div t-if="state.loading" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">加载中...</span>
+                </div>
+            </div>
+
+            <!-- 未找到 -->
+            <div t-if="!state.loading and state.notFound" class="text-center py-5">
+                <i class="fa fa-search fa-3x text-muted mb-3"/>
+                <h5 class="mb-2">未找到 SN</h5>
+                <p class="text-muted">未找到此序列号的出库记录。SN 记录仅适用于已发货的商品。</p>
+            </div>
+
+            <!-- SN 结果 -->
+            <div t-if="!state.loading and state.snData" class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fa fa-barcode me-2"/>序列号：<t t-esc="state.snData.sn"/>
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="mb-1 text-muted">产品代码</p>
+                            <p class="mb-0 fw-bold"><t t-esc="state.snData.product_code"/></p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-1 text-muted">产品名称</p>
+                            <p class="mb-0 fw-bold"><t t-esc="state.snData.product_name"/></p>
+                        </div>
+                        <div class="col-md-6 mt-3">
+                            <p class="mb-1 text-muted">出库单号</p>
+                            <p class="mb-0 fw-bold">
+                                <a t-att-href="'/my/marstek/outbound/detail/' + state.snData.outbound_id" class="text-primary">
+                                    <t t-esc="state.snData.outbound_no"/>
+                                </a>
+                            </p>
+                        </div>
+                        <div class="col-md-6 mt-3">
+                            <p class="mb-1 text-muted">出库日期</p>
+                            <p class="mb-0 fw-bold"><t t-esc="state.snData.outbound_date"/></p>
+                        </div>
+                        <div class="col-md-6 mt-3">
+                            <p class="mb-1 text-muted">集装箱号</p>
+                            <p class="mb-0 fw-bold"><t t-esc="state.snData.container_no"/></p>
+                        </div>
+                        <div class="col-md-6 mt-3">
+                            <p class="mb-1 text-muted">BL号</p>
+                            <p class="mb-0 fw-bold"><t t-esc="state.snData.bl_no"/></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+</odoo>

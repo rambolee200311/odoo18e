@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Portal Demo Data -->
+        <!-- This file can be used to create demo/seed data for testing -->
+        
+        <!-- Portal Configuration Demo -->
+        <record id="portal_config_demo_1" model="marstek.stock.portal.config">
+            <field name="name">Marstek Demo Configuration</field>
+            <field name="partner_id" ref="base.partner_demo"/>
+            <field name="active">True</field>
+        </record>
+    </data>
+</odoo>
