@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- =========================================== -->
+    <!-- 1. 门户主页卡片 (Portal My Home) -->
+    <!-- 在现有门户主页中添加 Marstek 入口卡片 -->
+    <!-- =========================================== -->
+    <template id="portal_my_home_marstek" name="Marstek 库存门户入口" customize_show="True" inherit_id="portal.portal_my_home" priority="20">
+        <!-- 在门户主页卡片区域插入 Marstek 入口 -->
+        <xpath expr="//*[hasclass('o_portal_my_home')]" position="inside">
+            <div class="row g-3 mt-3">
+                <div class="col-12 col-md-6">
+                    <a href="/my/marstek" title="Marstek 库存查询" class="text-decoration-none">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body d-flex align-items-center">
+                                <div class="me-3">
+                                    <div class="bg-primary bg-opacity-10 rounded-3 p-3">
+                                        <i class="fa fa-cubes text-primary fa-2x"/>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h5 class="card-title mb-1">Marstek 库存</h5>
+                                    <p class="card-text text-muted small mb-0">查看您的库存和订单信息</p>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </xpath>
+    </template>
+
+    <!-- =========================================== -->
+    <!-- 2. Marstek 门户主页 -->
+    <!-- 入口页面，展示功能列表 -->
+    <!-- =========================================== -->
+    <template id="portal_marstek_home" name="Marstek 库存门户">
+        <t t-call="portal.portal_layout">
+            <t t-call="portal.portal_breadcrumbs">
+                <t t-set="segments" t-value="[('marstek_home', 'Marstek 库存')]"/>
+            </t>
+
+            <div class="container mt-3">
+                <div class="row">
+                    <div class="col-12">
+                        <h1 class="mb-4">Marstek 库存查询</h1>
+                        <p class="text-muted mb-4">欢迎使用 Marstek 库存查询门户。请选择下方功能查看您的库存和订单信息。</p>
+                    </div>
+                </div>
+
+                <!-- 功能入口卡片 -->
+                <div class="row g-3">
+                    <!-- 库存概览 -->
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <a href="/my/marstek/stock/overview" class="text-decoration-none">
+                            <div class="card h-100 portal-card border-0 shadow-sm">
+                                <div class="card-body d-flex align-items-center">
+                                    <div class="me-3">
+                                        <div class="bg-primary bg-opacity-10 rounded-3 p-3">
+                                            <i class="fa fa-cubes text-primary fa-2x"/>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h5 class="card-title mb-1">库存概览</h5>
+                                        <p class="card-text text-muted small mb-0">查看所有库存（按货盘/集装箱/BL）</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- 集装箱查询 -->
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <a href="/my/marstek/container/query" class="text-decoration-none">
+                            <div class="card h-100 portal-card border-0 shadow-sm">
+                                <div class="card-body d-flex align-items-center">
+                                    <div class="me-3">
+                                        <div class="bg-success bg-opacity-10 rounded-3 p-3">
+                                            <i class="fa fa-search text-success fa-2x"/>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h5 class="card-title mb-1">集装箱查询</h5>
+                                        <p class="card-text text-muted small mb-0">按集装箱号查询库存</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- 入库单查询 -->
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <a href="/my/marstek/inbound/list" class="text-decoration-none">
+                            <div class="card h-100 portal-card border-0 shadow-sm">
+                                <div class="card-body d-flex align-items-center">
+                                    <div class="me-3">
+                                        <div class="bg-info bg-opacity-10 rounded-3 p-3">
+                                            <i class="fa fa-arrow-down text-info fa-2x"/>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h5 class="card-title mb-1">入库单查询</h5>
+                                        <p class="card-text text-muted small mb-0">查看和管理入库单</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- 出库单查询 -->
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <a href="/my/marstek/outbound/list" class="text-decoration-none">
+                            <div class="card h-100 portal-card border-0 shadow-sm">
+                                <div class="card-body d-flex align-items-center">
+                                    <div class="me-3">
+                                        <div class="bg-warning bg-opacity-10 rounded-3 p-3">
+                                            <i class="fa fa-arrow-up text-warning fa-2x"/>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h5 class="card-title mb-1">出库单查询</h5>
+                                        <p class="card-text text-muted small mb-0">查看和管理出库单</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- SN码查询 -->
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <a href="/my/marstek/sn/query" class="text-decoration-none">
+                            <div class="card h-100 portal-card border-0 shadow-sm">
+                                <div class="card-body d-flex align-items-center">
+                                    <div class="me-3">
+                                        <div class="bg-secondary bg-opacity-10 rounded-3 p-3">
+                                            <i class="fa fa-barcode text-secondary fa-2x"/>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h5 class="card-title mb-1">SN码查询</h5>
+                                        <p class="card-text text-muted small mb-0">查询已发货商品的序列号</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- =========================================== -->
+    <!-- 3. 库存概览页面 -->
+    <!-- =========================================== -->
+    <template id="portal_marstek_stock_overview" name="库存概览">
+        <t t-call="portal.portal_layout">
+            <t t-call="portal.portal_breadcrumbs">
+                <t t-set="segments" t-value="[
+                    ('marstek_home', 'Marstek 库存'),
+                    ('stock_overview', '库存概览')
+                ]"/>
+            </t>
+
+            <div class="container mt-3">
+                <div class="row">
+                    <div class="col-12">
+                        <h2 class="mb-4">库存概览</h2>
+
+                        <!-- Owl2 组件挂载点 -->
+                        <div id="marstek_stock_overview_app" class="marstek-owl-app"></div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- =========================================== -->
+    <!-- 4. 集装箱查询页面 (核心功能) -->
+    <!-- =========================================== -->
+    <template id="portal_marstek_container_query" name="集装箱查询">
+        <t t-call="portal.portal_layout">
+            <t t-call="portal.portal_breadcrumbs">
+                <t t-set="segments" t-value="[
+                    ('marstek_home', 'Marstek 库存'),
+                    ('container_query', '集装箱查询')
+                ]"/>
+            </t>
+
+            <div class="container mt-3">
+                <div class="row">
+                    <div class="col-12">
+                        <h2 class="mb-4">集装箱查询</h2>
+                        <p class="text-muted mb-3">输入集装箱号查看该集装箱内的所有货盘和库存。</p>
+
+                        <!-- Owl2 组件挂载点 -->
+                        <div id="marstek_container_query_app" class="marstek-owl-app"></div>
+
+                        <!-- 隐藏字段，存储初始集装箱号 -->
+                        <input type="hidden" id="initial_container_no" t-att-value="initial_container"/>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- =========================================== -->
+    <!-- 5. 入库单列表页面 -->
+    <!-- =========================================== -->
+    <template id="portal_marstek_inbound_list" name="入库单列表">
+        <t t-call="portal.portal_layout">
+            <t t-call="portal.portal_breadcrumbs">
+                <t t-set="segments" t-value="[
+                    ('marstek_home', 'Marstek 库存'),
+                    ('inbound_list', '入库单')
+                ]"/>
+            </t>
+
+            <div class="container mt-3">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h2 class="mb-0">入库单列表</h2>
+                        </div>
+
+                        <!-- Owl2 组件挂载点 -->
+                        <div id="marstek_inbound_list_app" class="marstek-owl-app"></div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- =========================================== -->
+    <!-- 6. 出库单列表页面 -->
+    <!-- =========================================== -->
+    <template id="portal_marstek_outbound_list" name="出库单列表">
+        <t t-call="portal.portal_layout">
+            <t t-call="portal.portal_breadcrumbs">
+                <t t-set="segments" t-value="[
+                    ('marstek_home', 'Marstek 库存'),
+                    ('outbound_list', '出库单')
+                ]"/>
+            </t>
+
+            <div class="container mt-3">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h2 class="mb-0">出库单列表</h2>
+                        </div>
+
+                        <!-- Owl2 组件挂载点 -->
+                        <div id="marstek_outbound_list_app" class="marstek-owl-app"></div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- =========================================== -->
+    <!-- 7. 出库单详情页面 (包含 SN) -->
+    <!-- =========================================== -->
+    <template id="portal_marstek_outbound_detail" name="出库单详情">
+        <t t-call="portal.portal_layout">
+            <t t-call="portal.portal_breadcrumbs">
+                <t t-set="segments" t-value="[
+                    ('marstek_home', 'Marstek 库存'),
+                    ('outbound_list', '出库单'),
+                    ('outbound_detail', '详情')
+                ]"/>
+            </t>
+
+            <div class="container mt-3">
+                <div class="row">
+                    <div class="col-12">
+                        <!-- 返回按钮 -->
+                        <a href="/my/marstek/outbound/list" class="btn btn-outline-secondary mb-4">
+                            <i class="fa fa-arrow-left me-1"/> 返回出库单列表
+                        </a>
+
+                        <h2 class="mb-4">出库单详情</h2>
+
+                        <!-- 隐藏字段，存储出库单 ID -->
+                        <input type="hidden" id="outbound_order_id" t-att-value="outbound_id"/>
+
+                        <!-- Owl2 组件挂载点 -->
+                        <div id="marstek_outbound_detail_app" class="marstek-owl-app"></div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- =========================================== -->
+    <!-- 8. SN码查询页面 -->
+    <!-- =========================================== -->
+    <template id="portal_marstek_sn_query" name="SN码查询">
+        <t t-call="portal.portal_layout">
+            <t t-call="portal.portal_breadcrumbs">
+                <t t-set="segments" t-value="[
+                    ('marstek_home', 'Marstek 库存'),
+                    ('sn_query', 'SN码查询')
+                ]"/>
+            </t>
+
+            <div class="container mt-3">
+                <div class="row">
+                    <div class="col-12">
+                        <h2 class="mb-4">SN码查询</h2>
+                        <p class="text-muted mb-3">输入序列号查询出库信息。仅已发货的商品有 SN 记录。</p>
+
+                        <!-- Owl2 组件挂载点 -->
+                        <div id="marstek_sn_query_app" class="marstek-owl-app"></div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+</odoo>
