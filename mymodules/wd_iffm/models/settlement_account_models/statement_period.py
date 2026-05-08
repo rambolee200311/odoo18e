@@ -114,8 +114,8 @@ class StatementPeriod(models.Model):
                 additional_time_field = 'eta_datetime'
 
             # 基础时间域
-            #base_domain = [('state', '=', 'done'),('project_id', '=', rec.project_id.id)]
-            base_domain = []
+            base_domain = [('state', '=', 'close'),('project_id', '=', rec.project_id.id)]
+            #base_domain = []
 
             handover_time_domain = [
                                        (handover_time_field, '>=', rec.date_start),
@@ -125,16 +125,17 @@ class StatementPeriod(models.Model):
             clearance_time_domain = [
                                         (clearance_time_field, '>=', rec.date_start),
                                         (clearance_time_field, '<=', rec.date_end),
-                                    ] + base_domain
+                                        ("state", "in", ("clearanced", "close")),('project_id', '=', rec.project_id.id)
+                                    ]
 
             additional_time_domain = [
                                          (additional_time_field, '>=', rec.date_start),
                                          (additional_time_field, '<=', rec.date_end),
                                      ] + base_domain
 
-            handover_time_domain = []
-            clearance_time_domain = []
-            additional_time_domain = []
+            # handover_time_domain = []
+            # clearance_time_domain = []
+            # additional_time_domain = []
             handover_records = False
             clearance_records = False
             if rec.operation_order_scope == 'child':
@@ -272,7 +273,7 @@ class StatementPeriod(models.Model):
 
 
         for l in rec.handover_order_lines:
-            ws.write(row, 0, l.waybill_id.bl_number or l.waybill_id.hbl_number, fmt["cell"])
+            ws.write(row, 0, l.waybill_id.bl_number or l.waybill_id.hbl_number or l.waybill_id.obl_number, fmt["cell"])
             ws.write(row, 1, l.container_nums, fmt["cell"])
             ws.write(row, 2, l.shipping_line_id.name, fmt["cell"])
             ws.write_number(row, 3, l.container_qty, fmt["int"])
@@ -317,7 +318,7 @@ class StatementPeriod(models.Model):
 
 
         for c in rec.clearance_order_lines:
-            ws.write(row, 0, c.waybill_id.bl_number or c.waybill_id.hbl_number, fmt["cell"])
+            ws.write(row, 0, c.waybill_id.bl_number or c.waybill_id.hbl_number or c.waybill_id.obl_number, fmt["cell"])
             ws.write(row, 1, c.container_nums, fmt["cell"])
 
             line_total = 0.0

@@ -39,19 +39,22 @@ class OperationOrderClearanceChargeLine(models.Model):
 
     remark = fields.Char(string="Remark")
 
-    @api.depends('clearance_id.container_qty', 'clearance_id.hs_code_qty','charge_item_id')
+    @api.depends('clearance_id.container_qty', 'clearance_id.hs_code_qty','charge_item_id','charge_item_id.charge_based_on_max')
     def compute_charge_qty(self):
         for rec in self:
+            if not rec.charge_item_id.charge_based_on_max:
+                rec.charge_qty = 0
+                continue
             if rec.clearance_id.container_qty > rec.clearance_id.hs_code_qty:
                 rec.charge_qty = rec.clearance_id.container_qty
             else:
                 rec.charge_qty = rec.clearance_id.hs_code_qty
 
-    @api.onchange("charge_item_id",)
+    @api.onchange("charge_item_id", "charge_qty")
     def onchange_charge_qty(self):
         for rec in self:
             if rec.charge_item_id.charge_based_on_max:
-                rec.write({"qty": rec.charge_qty})
+                rec.qty = rec.charge_qty
                 #rec.qty = rec.charge_qty or 1.0
 
     @api.depends("qty", "unit_price",'charge_item_id')

@@ -91,7 +91,7 @@
                                    context="{'form_view_ref': 'wd_iffm.view_handover_statement_period_form'}"
                                    mode="list,form">
                                 <list delete="false" create="false">
-                                    <field name="waybill_id"/>
+                                    <field name="waybill_bill_number"/>
                                     <field name="name"/>
                                     <field name="container_nums"/>
                                     <field name="currency_id" readonly="1"
@@ -112,7 +112,7 @@
                                    context="{'form_view_ref': 'wd_iffm.view_clearance_statement_period_form'}"
                                    mode="list,form">
                                 <list delete="false" create="false">
-                                    <field name="waybill_id"/>
+                                    <field name="waybill_bill_number"/>
                                     <field name="name"/>
                                     <field name="container_nums"/>
                                     <field name="currency_id" readonly="1"

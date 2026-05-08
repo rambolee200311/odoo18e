@@ -24,7 +24,7 @@
         <field name="name">charge.quotation.form</field>
         <field name="model">charge.quotation</field>
         <field name="arch" type="xml">
-            <form>
+            <form class="wd_iffm_required_highlight">
                 <header>
                     <button name="action_set_active" type="object" string="Activate"
                             class="btn-primary"

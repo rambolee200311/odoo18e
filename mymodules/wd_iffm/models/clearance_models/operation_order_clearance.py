@@ -17,6 +17,13 @@ class OperationOrderClearance(models.Model):
 
     waybill_id = fields.Many2one("world.depot.waybill", string="Waybill", required=True, ondelete="restrict", index=True)
 
+    waybill_bill_number = fields.Char(string="Waybill Bill Number", compute="_compute_waybill_bill_number", store=True)
+
+    @api.depends("waybill_id.bl_number", "waybill_id.hbl_number", "waybill_id.obl_number")
+    def _compute_waybill_bill_number(self):
+        for rec in self:
+            rec.waybill_bill_number = rec.waybill_id.bl_number or rec.waybill_id.hbl_number or rec.waybill_id.obl_number
+
     clearance_type = fields.Selection(
         [
         ('general', 'General Trade'),
@@ -39,7 +46,7 @@ class OperationOrderClearance(models.Model):
     t1_inbound_release_datetime = fields.Datetime(string="T1 Inbound Release Date")
 
     can_complete = fields.Boolean(compute="_compute_can_complete")
-    clearance_finish_datetime = fields.Datetime(string="Clearance Finish Time", compute='_compute_can_complete')
+    clearance_finish_datetime = fields.Datetime(string="Clearance Finish Time", compute='_compute_can_complete', store=True)
 
 
     external_system_type = fields.Selection([("tms", "TMS"), ("oms", "OMS"), ("other", "Other")], string="External System Type")
@@ -125,7 +132,7 @@ class OperationOrderClearance(models.Model):
     reclearance_time = fields.Datetime(string="Last Re-Clearance Time", copy=False, readonly=True)
 
     # 逾期字段
-    is_clearance_overdue = fields.Boolean(string="Is Clearance Overdue", compute="_compute_is_clearance_overdue")
+    is_clearance_overdue = fields.Boolean(string="Is Clearance Overdue", compute="_compute_is_clearance_overdue",default=False)
     overdue_blocking_reason_id = fields.Many2one("operation.blocking.reason", string="Overdue Blocking Reason",
                                                  index=True, copy=False, tracking=True)
     overdue_reason_note = fields.Text(string="Overdue Reason Note", tracking=True, copy=False)
@@ -312,10 +319,12 @@ class OperationOrderClearance(models.Model):
 
     def action_clearancing(self):
         for rec in self:
-            if rec.state not in ("paying", "paid"):
-                raise ValidationError(_("Only Apply/Paying/Paid can go to Clearancing."))
-            if rec.has_advance_invoice and not rec.all_advance_paid:
-                raise ValidationError(_("All advance invoices must be paid before Clearancing."))
+            if rec.state not in ("open", "paying", "paid"):
+                raise ValidationError(_("Only Open/Paying/Paid can go to Clearancing."))
+            # if rec.state not in ("paying", "paid"):
+            #     raise ValidationError(_("Only Apply/Paying/Paid can go to Clearancing."))
+            # if rec.has_advance_invoice and not rec.all_advance_paid:
+            #     raise ValidationError(_("All advance invoices must be paid before Clearancing."))
             if not rec.customs_declaration_datetime:
                 raise ValidationError(_("Customs declaration date is required."))
             if not rec.eu_eori_no and not rec.vat_tax_no:
@@ -411,6 +420,14 @@ class OperationOrderClearance(models.Model):
                     raise ValidationError(_("Only Clearanced can be closed."))
                 if len(rec.charge_line_ids) == 0:
                     raise ValidationError(_("Charges are required before Close."))
+                #关闭前必须有发票行
+                invoice_lines = rec.invoice_line_ids
+                if not invoice_lines:
+                    raise ValidationError(_("Vendor invoice lines are required before Close."))
+
+                unpaid_lines = invoice_lines.filtered(lambda line: line.payment_state != "paid")
+                if unpaid_lines:
+                    raise ValidationError(_("All vendor invoice lines must be paid before Close."))
             rec.write({"state": "close"})
 
     def get_required_doc_count(self, doc_type):
@@ -530,7 +547,23 @@ class OperationOrderClearanceInvoiceLine(models.Model):
                                          domain=[("type", "in", ("bank", "cash"))])
     payment_id = fields.Many2one("account.payment", string="Payment", readonly=True)
 
+    payment_company_id = fields.Many2one("res.partner", string="Payment Company",
+                                         default=lambda self: self.default_payment_company_id(), index=True)
+    receipt_company_id = fields.Many2one("res.partner", string="Receipt Company", index=True)
 
+    @api.model
+    def default_payment_company_id(self):
+        clearance_id = self.env.context.get("default_clearance_id")
+        if clearance_id:
+            clearance = self.env["operation.order.clearance"].sudo().browse(clearance_id)
+            return clearance.project_id.payment_company_id.id if clearance.project_id.payment_company_id else False
+        return False
+
+    @api.onchange("clearance_id")
+    def onchange_clearance_id(self):
+        for rec in self:
+            if rec.clearance_id and not rec.payment_company_id:
+                rec.payment_company_id = rec.clearance_id.project_id.payment_company_id
 
     @api.constrains("vendor_invoice_num")
     def check_vendor_invoice_num(self):
@@ -615,14 +648,17 @@ class OperationOrderClearanceInvoiceLine(models.Model):
                         "price_unit": price or 0.0,
                         "account_id": account.id,
                     }))
+            waybill = rec.clearance_id.waybill_id
+            waybill_bill_number = waybill.bl_number or waybill.hbl_number or waybill.obl_number or False
 
             move_vals = {
                 "move_type": "in_invoice",
-                "partner_id": rec.clearance_id.shipping_line_id.id,
+                "partner_id": rec.receipt_company_id.id,
                 "invoice_date": rec.invoice_date or fields.Date.context_today(rec),
                 "currency_id": rec.currency_id.id,
                 "journal_id": journal.id,
                 "ref": f"{rec.clearance_id.name}/{rec.id}",
+                "waybill_bill_number": waybill_bill_number,
                 "invoice_line_ids": invoice_lines,
             }
             move = move_model.with_user(operator).create(move_vals)
@@ -633,7 +669,7 @@ class OperationOrderClearanceInvoiceLine(models.Model):
             })
 
             if rec.vendor_invoice_attachment_ids:
-                rec.vendor_invoice_attachment_ids.copy({
+                rec.vendor_invoice_attachment_ids.with_user(operator).copy({
                     "res_model": "account.move",
                     "res_id": move.id,
                 })

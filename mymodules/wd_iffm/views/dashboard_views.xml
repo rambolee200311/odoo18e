@@ -25,11 +25,11 @@
     <!-- 菜单结构 -->
     <menuitem id="menu_wd_iffm_root" name="进口货代管理" sequence="10"/>
 
-    <menuitem id="menu_wd_iffm_dashboard"
-              name="工作台"
-              parent="menu_wd_iffm_root"
-              action="action_wd_iffm_workbench"
-              sequence="3"/>
+<!--    <menuitem id="menu_wd_iffm_dashboard"-->
+<!--              name="工作台"-->
+<!--              parent="menu_wd_iffm_root"-->
+<!--              action="action_wd_iffm_workbench"-->
+<!--              sequence="1"/>-->
 
     <!-- 原有首页仪表盘模板保留（供HTTP控制器使用） -->
 <!--    <template id="dashboard_template" name="首页仪表盘">-->

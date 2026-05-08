@@ -77,7 +77,7 @@ class PortbaseWebhookController(http.Controller):
             events = [x for x in payload if isinstance(x, dict)]
         else:
             events = []
-
+        #self.portbase_webhook_t()
         if not events:
             return Response("invalid payload", status=400, content_type="text/plain;charset=utf-8")
 
@@ -115,7 +115,7 @@ class PortbaseWebhookController(http.Controller):
                 fail_count += 1
 
         return Response(f"OK: {ok_count}, FAIL: {fail_count}", status=200, content_type="text/plain;charset=utf-8")
-    # def portbase_webhook(self, **kwargs):
+    # def portbase_webhook_t(self, **kwargs):
     #     try:
     #         raw_data = request.httprequest.data or b"{}"
     #         payload = json.loads(raw_data.decode("utf-8"))
@@ -160,9 +160,9 @@ class PortbaseWebhookController(http.Controller):
     #             waybill_vals["voyage_no"] = vessel_visit.get("crn") or False
     #         if "portbase_tracking_id" in waybill._fields:
     #             waybill_vals["portbase_tracking_id"] = payload.get("id") or waybill.portbase_tracking_id or False
-    #
-    #         waybill.write(waybill_vals)
-    #         waybill.message_post(body="Portbase webhook Update", subtype_xmlid="mail.mt_note")
+    #         user = request.env.ref('base.user_admin')
+    #         waybill.with_user(user).write(waybill_vals)
+    #         waybill.with_user(user).message_post(body="Portbase webhook Update", subtype_xmlid="mail.mt_note")
     #
     #         release_map = self.build_line_map(commercial_releases)
     #         gate_out_map = self.build_line_map(hinterland_terminal_data)
@@ -171,7 +171,7 @@ class PortbaseWebhookController(http.Controller):
     #         inspection_map = self.build_inspection_map(inspection_items)
     #         operator_map = self.build_inland_operator_map(nominated_inland_operators)
     #
-    #         env_container = request.env["world.depot.waybill.container"]
+    #         env_container = request.env["world.depot.waybill.container"].with_user(user)
     #         container_ids = env_container.sudo().search([("waybill_id", "=", waybill.id)]).ids
     #         containers = env_container.browse(container_ids)
     #
@@ -206,7 +206,7 @@ class PortbaseWebhookController(http.Controller):
     #             if "portbase_tracking_id" in container._fields:
     #                 container_vals["portbase_tracking_id"] = payload.get("id") or container.portbase_tracking_id or False
     #
-    #             container.write(container_vals)
+    #             container.sudo().write(container_vals)
     #
     #         _logger.info("portbase webhook processed, bl_number=%s", bl_number)
     #         return Response("OK", status=200, content_type="text/plain;charset=utf-8")

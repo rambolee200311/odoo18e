@@ -92,6 +92,7 @@ Long description of module's purpose
             'wd_iffm/static/src/css/workbench_kanban.css',
             'wd_iffm/static/src/css/import_kanban_lane.css',
             'wd_iffm/static/src/css/home_page.css',
+            'wd_iffm/static/src/scss/wd_required_field_highlight.scss',
             'wd_iffm/static/src/xml/workbench_home_page.xml',
             'wd_iffm/static/src/js/workbench_kanban_record.js',
             'wd_iffm/static/src/js/workbench_kanban_registry.js',

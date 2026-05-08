@@ -5,7 +5,7 @@
         <field name="name">operation.order.handover.view.list</field>
         <field name="model">operation.order.handover</field>
         <field name="arch" type="xml">
-            <list string="Handover Orders">
+            <list string="Handover Orders" create="false">
 
                 <field name="name"/>
                 <field name="parent_id"/>
@@ -27,7 +27,7 @@
         <field name="model">operation.order.handover</field>
         <field name="priority">10</field>
         <field name="arch" type="xml">
-            <form string="Handover" duplicate="false">
+            <form string="Handover" duplicate="false" create="false" class="wd_iffm_required_highlight">
                 <header>
                     <button name="action_releasing" type="object" string="Releasing" class="btn-secondary"
                             invisible="state not in ('paying','paid')"/>
@@ -59,7 +59,7 @@
                         <group>
                             <field name="waybill_id" required="1" readonly="1"/>
                             <field name="container_qty" required="1" readonly="state != 'open'"/>
-           1q                 <field name="is_handover_overdue" readonly="1" invisible="1"/>
+                     <field name="is_handover_overdue" readonly="1" invisible="1"/>
 
                             <field name="overdue_blocking_reason_id" required="is_handover_overdue"
                                    invisible="is_handover_overdue == False"/>
@@ -170,7 +170,7 @@
         <field name="model">operation.order.handover</field>
         <field name="priority">20</field>
         <field name="arch" type="xml">
-            <form string="Child Handover" duplicate="false">
+            <form string="Child Handover" duplicate="false" create="false">
                 <header>
 
                     <button name="action_close" type="object" string="Close" class="btn-success"

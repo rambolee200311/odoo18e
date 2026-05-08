@@ -4,7 +4,7 @@
         <field name="name">operation.order.clearance.invoice.line.form</field>
         <field name="model">operation.order.clearance.invoice.line</field>
         <field name="arch" type="xml">
-            <form string="Invoice Line">
+            <form string="Invoice Line" class="wd_iffm_required_highlight">
                 <header>
                     <field name="payment_state" widget="statusbar"
                            statusbar_visible="draft,paying,paid"/>
@@ -22,8 +22,15 @@
                         <group>
                             <field name="clearance_id" readonly="1"/>
                             <field name="customs_broker_id" required="1" readonly="payment_state!='draft'"
-                                   options="{'no_create': True, 'no_open': True}" domain="[('is_customs_broker','=',True)]"/>
-                            <field name="currency_id" options="{'no_create': True, 'no_open': True}" readonly="payment_state != 'draft'"/>
+                                   options="{'no_create': True, 'no_open': True}"
+                                   domain="[('is_customs_broker','=',True)]"/>
+                            <field name="currency_id" options="{'no_create': True, 'no_open': True}"
+                                   readonly="payment_state != 'draft'"/>
+                            <field name="payment_company_id" required="1" readonly="payment_state != 'draft'"
+                                   options="{'no_create': True, 'no_open': True}"/>
+                            <field name="receipt_company_id" required="1" readonly="payment_state != 'draft'"
+                                   options="{'no_create': True, 'no_open': True}"/>
+
                             <field name="vendor_invoice_id" readonly="1"
                                    options="{'no_create': True, 'no_open': True}"/>
                             <field name="bank_proof_attachment_ids" widget="many2many_binary" readonly="1"/>

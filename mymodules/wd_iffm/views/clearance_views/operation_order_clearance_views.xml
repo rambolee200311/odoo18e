@@ -5,7 +5,7 @@
         <field name="name">operation.order.clearance.tree</field>
         <field name="model">operation.order.clearance</field>
         <field name="arch" type="xml">
-            <list string="Clearance Orders">
+            <list string="Clearance Orders" create="false">
                 <field name="name"/>
                 <field name="waybill_id"/>
                 <field name="project_id"/>
@@ -24,10 +24,10 @@
         <field name="model">operation.order.clearance</field>
         <field name="priority">10</field>
         <field name="arch" type="xml">
-            <form string="Clearance">
+            <form string="Clearance" class="wd_iffm_required_highlight" create="false">
                 <header>
                     <button name="action_clearancing" type="object" string="Clearancing" class="btn-secondary"
-                            invisible="state not in ('paying','paid')"/>
+                            invisible="state not in ('open','paying','paid')"/>
                     <button name="action_clearanced" type="object" string="Clearanced" class="btn-secondary"
                             invisible="state != 'clearancing'"/>
                     <button name="action_close" type="object" string="Close" class="btn-success"
@@ -115,7 +115,7 @@
                         <page string="Charge / Cost">
 
                             <field name="invoice_line_ids" context="{'default_clearance_id': id}"
-                                   readonly="state in ('clearancing','clearanced','close')">
+                                   readonly="state in ('close')">
                                 <list>
 
                                     <field name="vendor_invoice_id"/>
@@ -127,10 +127,10 @@
 
 
                             <!-- Charge Lines -->
-                            <group string="Charges" invisible="state not in ('close','clearanced')">
-                                <field name="charge_line_ids" readonly="state == 'close'">
+                            <group string="Charges" invisible="state not in ('close','clearancing','clearanced')">
+                                <field name="charge_line_ids" readonly="state in ('clearanced','close')">
                                     <list editable="bottom">
-                                        <field name="charge_qty"/>
+                                        <field name="charge_qty" column_invisible="True"/>
                                         <field name="charge_item_id" options="{'no_create': True, 'no_open': True}"
                                                domain="[('operation_type', '=','clearance'),('is_leaf','=',True)]"
                                                required="1"/>
@@ -177,7 +177,7 @@
         <field name="model">operation.order.clearance</field>
         <field name="priority">20</field>
         <field name="arch" type="xml">
-            <form string="Child Clearance" duplicate="false">
+            <form string="Child Clearance" duplicate="false" create="false">
                 <header>
                     <button name="action_close" type="object" string="Close" class="btn-success"
                             invisible="state == 'close'"/>

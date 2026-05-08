@@ -19,6 +19,7 @@ class AccountMoveInherit(models.Model):
         copy=False,
         tracking=True,
     )
+    waybill_bill_number = fields.Char(string="Waybill Bill Number", copy=False)
 
     def action_push_customer_invoice_files_to_period(self):
         for rec in self:

@@ -26,7 +26,12 @@ class OperationOrderHandover(models.Model):
          ('third_party', 'Third Party Release')], string="BL Release Type",
         default='original', required=True)
 
+    waybill_bill_number = fields.Char(string="Waybill Bill Number", compute="_compute_waybill_bill_number", store=True)
 
+    @api.depends("waybill_id.bl_number", "waybill_id.hbl_number", "waybill_id.obl_number")
+    def _compute_waybill_bill_number(self):
+        for rec in self:
+            rec.waybill_bill_number = rec.waybill_id.bl_number or rec.waybill_id.hbl_number or rec.waybill_id.obl_number
 
     #外部系统
     external_system_type = fields.Selection([("tms", "TMS"), ("oms", "OMS"), ("other", "Other")], string="External System Type")
@@ -104,7 +109,7 @@ class OperationOrderHandover(models.Model):
     extra_remark = fields.Char(string="Additional Remark")
 
     #逾期字段
-    is_handover_overdue = fields.Boolean(string="Is Handover Overdue", compute="_compute_is_handover_overdue")
+    is_handover_overdue = fields.Boolean(string="Is Handover Overdue", compute="_compute_is_handover_overdue",default=False)
     overdue_blocking_reason_id = fields.Many2one("operation.blocking.reason", string="Overdue Blocking Reason",
                                                  index=True, copy=False, tracking=True)
     overdue_blocking_reason_short_name = fields.Char(related='overdue_blocking_reason_id.short_name',store=True)
@@ -462,6 +467,23 @@ class OperationOrderHandoverInvoiceLine(models.Model):
                                          domain=[("type", "in", ("bank", "cash"))])
     payment_id = fields.Many2one("account.payment", string="Payment", readonly=True)
 
+    payment_company_id = fields.Many2one("res.partner", string="Payment Company",
+                                         default=lambda self: self.default_payment_company_id(), index=True)
+    receipt_company_id = fields.Many2one("res.partner", string="Receipt Company", index=True)
+
+    @api.model
+    def default_payment_company_id(self):
+        handover_id = self.env.context.get("default_handover_id")
+        if handover_id:
+            handover = self.env["operation.order.handover"].sudo().browse(handover_id)
+            return handover.project_id.payment_company_id.id if handover.project_id.payment_company_id else False
+        return False
+
+    @api.onchange("handover_id")
+    def onchange_handover_id(self):
+        for rec in self:
+            if rec.handover_id and not rec.payment_company_id:
+                rec.payment_company_id = rec.handover_id.project_id.payment_company_id
     @api.constrains("vendor_invoice_num")
     def check_vendor_invoice_num(self):
         for rec in self:
@@ -545,14 +567,17 @@ class OperationOrderHandoverInvoiceLine(models.Model):
                         "price_unit": price or 0.0,
                         "account_id": account.id,
                     }))
+            waybill = rec.handover_id.waybill_id
+            waybill_bill_number = waybill.bl_number or waybill.hbl_number or waybill.obl_number or False
 
             move_vals = {
                 "move_type": "in_invoice",
-                "partner_id": rec.handover_id.shipping_line_id.id,
+                "partner_id": rec.receipt_company_id.id,
                 "invoice_date": rec.invoice_date or fields.Date.context_today(rec),
                 "currency_id": rec.currency_id.id,
                 "journal_id": journal.id,
                 "ref": f"{rec.handover_id.name}/{rec.id}",
+                "waybill_bill_number": waybill_bill_number,
                 "invoice_line_ids": invoice_lines,
             }
             move = move_model.with_user(operator).create(move_vals)
@@ -563,7 +588,7 @@ class OperationOrderHandoverInvoiceLine(models.Model):
             })
 
             if rec.vendor_invoice_attachment_ids:
-                rec.vendor_invoice_attachment_ids.copy({
+                rec.vendor_invoice_attachment_ids.with_user(operator).copy({
                     "res_model": "account.move",
                     "res_id": move.id,
                 })

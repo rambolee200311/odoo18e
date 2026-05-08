@@ -16,7 +16,7 @@
         <field name="name">world.depot.port.node.form</field>
         <field name="model">world.depot.port.node</field>
         <field name="arch" type="xml">
-            <form>
+            <form class="wd_iffm_required_highlight">
                 <sheet>
                     <group>
                         <field name="node_type" required="1"/>

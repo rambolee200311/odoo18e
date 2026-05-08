@@ -21,7 +21,7 @@
         <field name="name">world.depot.waybill.form</field>
         <field name="model">world.depot.waybill</field>
         <field name="arch" type="xml">
-            <form>
+            <form class="wd_iffm_required_highlight">
                 <header>
                     <!--                    <button name="save_record"-->
                     <!--                            type="object"-->
@@ -224,7 +224,7 @@
         <field name="name">waybill.packing.list.form</field>
         <field name="model">world.depot.waybill.packing.list</field>
         <field name="arch" type="xml">
-            <form>
+            <form class="wd_iffm_required_highlight">
                 <sheet>
                     <!--<group col="2" string="MAIN">
                         <group col="2">
@@ -307,7 +307,7 @@
         <field name="name">waybill.container.form</field>
         <field name="model">world.depot.waybill.container</field>
         <field name="arch" type="xml">
-            <form>
+            <form class="wd_iffm_required_highlight">
                 <sheet>
                     <group string="Waybill">
                         <field name="waybill_id" readonly="1"/>
