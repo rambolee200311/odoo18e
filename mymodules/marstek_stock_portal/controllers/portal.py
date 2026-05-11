@@ -56,7 +56,7 @@ class MarstekStockPortal(CustomerPortal):
             "rows": rows,
             "pager": pager,
         })
-        return request.render("marstek_stock_portal.portal_marstek_stock", values)
+        return request.render("marstek_stock_portal.portal_marstek_stock_overview", values)
 
    # 按柜号查询库存页。
     @http.route(["/my/marstek/container_stock"], type="http", auth="user", website=True)
@@ -72,7 +72,7 @@ class MarstekStockPortal(CustomerPortal):
             "stock_result": stock_result,
             "rows": stock_result.get("lines", []),
         })
-        return request.render("marstek_stock_portal.portal_marstek_container_stock", values)
+        return request.render("marstek_stock_portal.portal_marstek_container_query", values)
 
     #入库查询页。
     @http.route(["/my/marstek/inbounds","/my/marstek/inbounds/page/<int:page>"], type="http", auth="user", website=True)
@@ -99,6 +99,7 @@ class MarstekStockPortal(CustomerPortal):
 
 
 
+        return request.render("marstek_stock_portal.portal_marstek_inbound_list", values)
 #获取指定入库单下的托盘明细数据和获取指定入库单的可下载附件列表
     @http.route(["/my/marstek/inbounds/<int:inbound_id>"], type="http", auth="user", website=True)
     def marstek_inbound_detail_page(self, inbound_id, **kw):
@@ -117,7 +118,7 @@ class MarstekStockPortal(CustomerPortal):
             "detail_rows": detail_rows,
             "attachment_rows": attachment_rows,
         })
-        return request.render("marstek_stock_portal.portal_marstek_inbound_detail", values)
+        return request.render("marstek_stock_portal.portal_marstek_inbound_list", values)
 
     # @http.route(["/my/marstek/outbounds"], type="http", auth="user", website=True)
     # def marstek_outbounds_page(self, **kw):
@@ -129,54 +130,35 @@ class MarstekStockPortal(CustomerPortal):
     #     })
     #     return request.render("marstek_stock_portal.portal_marstek_outbounds", values)
 
-class CustomerPortal(portal.CustomerPortal):
-
-    def _prepare_home_portal_values(self, counters):
-        values = super()._prepare_home_portal_values(counters)
-        if 'marstek_stock_count' in counters:
-            values['marstek_stock_count'] = 1
-        return values
-
-    @http.route(['/my/marstek'], type='http', auth="user")
-    def portal_marstek_home(self, **kwargs):
-        values = self._prepare_portal_layout_values()
-        values['page_name'] = 'marstek_home'
-        return request.render("marstek_stock_portal.portal_marstek_home", values)
-
-    @http.route(['/my/marstek/stock/overview'], type='http', auth="user")
-    def portal_marstek_stock_overview(self, **kwargs):
-        values = self._prepare_portal_layout_values()
-        values['page_name'] = 'stock_overview'
-        return request.render("marstek_stock_portal.portal_marstek_stock_overview", values)
-
-    @http.route(['/my/marstek/container/query'], type='http', auth="user")
-    def portal_marstek_container_query(self, **kwargs):
-        values = self._prepare_portal_layout_values()
-        values['page_name'] = 'container_query'
-        values['initial_container'] = kwargs.get('container_no', '')
-        return request.render("marstek_stock_portal.portal_marstek_container_query", values)
-
-    @http.route(['/my/marstek/inbound/list'], type='http', auth="user")
-    def portal_marstek_inbound_list(self, **kwargs):
-        values = self._prepare_portal_layout_values()
-        values['page_name'] = 'inbound_list'
-        return request.render("marstek_stock_portal.portal_marstek_inbound_list", values)
-
-    @http.route(['/my/marstek/outbound/list'], type='http', auth="user")
-    def portal_marstek_outbound_list(self, **kwargs):
-        values = self._prepare_portal_layout_values()
-        values['page_name'] = 'outbound_list'
-        return request.render("marstek_stock_portal.portal_marstek_outbound_list", values)
-
-    @http.route(['/my/marstek/outbound/detail/<int:outbound_id>'], type='http', auth="user")
-    def portal_marstek_outbound_detail(self, outbound_id=None, **kwargs):
-        values = self._prepare_portal_layout_values()
-        values['page_name'] = 'outbound_detail'
-        values['outbound_id'] = outbound_id
-        return request.render("marstek_stock_portal.portal_marstek_outbound_detail", values)
-
-    @http.route(['/my/marstek/sn/query'], type='http', auth="user")
-    def portal_marstek_sn_query(self, **kwargs):
-        values = self._prepare_portal_layout_values()
-        values['page_name'] = 'sn_query'
-        return request.render("marstek_stock_portal.portal_marstek_sn_query", values)
+# class CustomerPortal(portal.CustomerPortal):
+#
+#     def _prepare_home_portal_values(self, counters):
+#         values = super()._prepare_home_portal_values(counters)
+#         if 'marstek_stock_count' in counters:
+#             values['marstek_stock_count'] = 1
+#         return values
+#
+#     @http.route(['/my/marstek'], type='http', auth="user")
+#     def portal_marstek_home(self, **kwargs):
+#         values = self._prepare_portal_layout_values()
+#         values['page_name'] = 'marstek_home'
+#         return request.render("marstek_stock_portal.portal_marstek_home", values)
+#
+#     @http.route(['/my/marstek/outbound/list'], type='http', auth="user")
+#     def portal_marstek_outbound_list(self, **kwargs):
+#         values = self._prepare_portal_layout_values()
+#         values['page_name'] = 'outbound_list'
+#         return request.render("marstek_stock_portal.portal_marstek_outbound_list", values)
+#
+#     @http.route(['/my/marstek/outbound/detail/<int:outbound_id>'], type='http', auth="user")
+#     def portal_marstek_outbound_detail(self, outbound_id=None, **kwargs):
+#         values = self._prepare_portal_layout_values()
+#         values['page_name'] = 'outbound_detail'
+#         values['outbound_id'] = outbound_id
+#         return request.render("marstek_stock_portal.portal_marstek_outbound_detail", values)
+#
+#     @http.route(['/my/marstek/sn/query'], type='http', auth="user")
+#     def portal_marstek_sn_query(self, **kwargs):
+#         values = self._prepare_portal_layout_values()
+#         values['page_name'] = 'sn_query'
+#         return request.render("marstek_stock_portal.portal_marstek_sn_query", values)
