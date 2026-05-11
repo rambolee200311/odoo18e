@@ -27,7 +27,7 @@ class MarstekStockPortal(CustomerPortal):
 
     #Marstek库存模块主菜单页(点击卡片后进入的菜单页面)
 
-    @http.route(["/my/manstek"], type="http", auth="user", website=True)
+    @http.route(["/my/marstek"], type="http", auth="user", website=True)
     def manstek_home(self, **kw):
         values = self.marstek_prepare_page_values(
             page_name="marstek_home",
