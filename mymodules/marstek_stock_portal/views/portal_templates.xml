@@ -41,7 +41,6 @@
                     <a href="/my/marstek/stock" class="btn btn-secondary">Clear</a>
                 </div>
             </form>
-
             <div class="table-responsive">
                 <table class="table table-sm table-hover o_portal_table">
                     <thead class="table-light">
@@ -79,6 +78,7 @@
                     </tbody>
                 </table>
             </div>
+            <t t-call="portal.pager"/>
         </t>
     </template>
 
@@ -149,12 +149,20 @@
                 <input type="text" name="container_no" class="form-control" placeholder="Container No" t-att-value="filters.get('container_no')"/>
             </div>
             <div class="col-12 col-md-2">
+                <select name="portal_inbound_status" class="form-select">
+                    <option value="" t-att-selected="not filters.get('portal_inbound_status')">All Status</option>
+                    <option value="inbound_confirmed" t-att-selected="filters.get('portal_inbound_status') == 'inbound_confirmed'">入库确认</option>
+                    <option value="inbound_processing" t-att-selected="filters.get('portal_inbound_status') == 'inbound_processing'">入库中</option>
+                    <option value="inbound_done" t-att-selected="filters.get('portal_inbound_status') == 'inbound_done'">入库已完成</option>
+                </select>
+            </div>
+            <div class="col-12 col-md-2">
                 <input type="date" name="inbound_date_from" class="form-control" t-att-value="filters.get('inbound_date_from')"/>
             </div>
             <div class="col-12 col-md-2">
                 <input type="date" name="inbound_date_to" class="form-control" t-att-value="filters.get('inbound_date_to')"/>
             </div>
-            <div class="col-12 col-md-2 d-flex gap-2">
+            <div class="col-12 d-flex gap-2">
                 <button type="submit" class="btn btn-primary">Search</button>
                 <a href="/my/marstek/inbounds" class="btn btn-secondary">Clear</a>
             </div>
@@ -192,11 +200,19 @@
                         <td><t t-esc="row.get('inbound_date')"/></td>
                         <td class="text-end"><t t-esc="row.get('total_pallets')"/></td>
                         <td class="text-end"><t t-esc="row.get('total_quantity')"/></td>
-                        <td><t t-esc="row.get('state')"/></td>
+                        <td>
+                            <t t-set="inbound_status" t-value="row.get('portal_inbound_status') or row.get('state')"/>
+                            <span t-if="inbound_status == 'inbound_confirmed'" class="badge text-bg-secondary">入库确认</span>
+                            <span t-elif="inbound_status == 'inbound_processing'" class="badge text-bg-primary">入库中</span>
+                            <span t-elif="inbound_status == 'inbound_done'" class="badge text-bg-success">入库已完成</span>
+                            <span t-else="" class="badge text-bg-light"><t t-esc="inbound_status or ''"/></span>
+                        </td>
                     </tr>
                 </tbody>
             </table>
         </div>
+
+        <t t-call="portal.pager"/>
     </t>
 </template>
 

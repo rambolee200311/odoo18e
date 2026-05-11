@@ -28,8 +28,9 @@ class OutboundOrder(models.Model):
     def get_outbound_list(self, filters=None, offset=0, limit=0):
         filters = filters or {}
         domain = portal_owner_domain(self.env, "project.owner")
-        outbound_no = portal_filter_value(filters, "outbound_no", "billno", "reference")
-        status = portal_filter_value(filters, "status")
+        outbound_no = portal_filter_value(filters, "outbound_no", "reference")
+        portal_outbound_status = portal_filter_value(filters, "status")
+        domain.append(("state", "=", "confirm"))
         if outbound_no:
             domain = expression.AND([domain, ["|", ("billno", "ilike", outbound_no), ("reference", "ilike", outbound_no)]])
         if status:

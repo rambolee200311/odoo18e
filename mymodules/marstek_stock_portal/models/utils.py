@@ -131,21 +131,31 @@ def portal_package_ids_by_shipping(env, field_key, operator, value, owner=None):
 #把 stock.quant 库存记录整理成前端要的库存行
 def portal_stock_rows_from_quants(env, quants, forced_container_no=""):
     info_by_package = portal_package_shipping_map(env, quants.mapped("package_id").ids)
-    rows = []
+    rows_by_key = {}
     for quant in quants:
         package = quant.package_id
         product = quant.product_id
+        location = quant.location_id
         info = info_by_package.get(package.id, {})
-        rows.append({
+        key = (package.id, product.id, location.id)
+        row = rows_by_key.setdefault(key, {
             "package_name": package.name or "",
             "container_no": forced_container_no or info.get("container_no") or "",
             "bl_no": info.get("bl_no") or "",
             "product_code": portal_product_code(product),
             "product_name": product.display_name or product.name or "",
-            "quantity": portal_float(quant.quantity),
-            "location_name": quant.location_id.complete_name or quant.location_id.display_name or "",
+            "quantity": 0.0,
+            "location_name": location.complete_name or location.display_name or "",
             "inbound_date": portal_format_date(quant.in_date),
+            "inbound_date_value": quant.in_date,
         })
+        row["quantity"] += portal_float(quant.quantity)
+        if quant.in_date and (not row["inbound_date_value"] or quant.in_date < row["inbound_date_value"]):
+            row["inbound_date_value"] = quant.in_date
+            row["inbound_date"] = portal_format_date(quant.in_date)
+    rows = list(rows_by_key.values())
+    for row in rows:
+        row.pop("inbound_date_value", None)
     return rows
 
 

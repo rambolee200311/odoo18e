@@ -4,7 +4,7 @@ from odoo import http
 from odoo.addons.portal.controllers.portal import CustomerPortal
 from odoo.http import request
 from odoo.addons.portal.controllers import portal
-
+from odoo.addons.portal.controllers.portal import CustomerPortal, pager as portal_pager
 class MarstekStockPortal(CustomerPortal):
 
     def marstek_filter_values(self, kw, names):
@@ -24,14 +24,37 @@ class MarstekStockPortal(CustomerPortal):
             "filters": filters or {},
         })
         return values
+
+    #Marstek库存模块主菜单页(点击卡片后进入的菜单页面)
+
+    @http.route(["/my/manstek"], type="http", auth="user", website=True)
+    def manstek_home(self, **kw):
+        values = self.marstek_prepare_page_values(
+            page_name="marstek_home",
+            page_title="Manstek Stock"
+        )
+        return request.render("marstek_stock_portal.portal_marstek_home", values)
+
 #库存总览页。
-    @http.route(["/my/marstek/stock"], type="http", auth="user", website=True)
-    def marstek_stock_page(self, **kw):
+    @http.route(["/my/marstek/stock", "/my/marstek/stock/page/<int:page>"], type="http", auth="user", website=True)
+    def marstek_stock_page(self, page=1, **kw):
         filters = self.marstek_filter_values(kw, ["container_no", "bl_no", "product_code", "date_from", "date_to"])
-        rows = request.env["stock.quant.package"].get_all_stock(filters)
+        page_size = 20
+        all_rows = request.env["stock.quant.package"].get_all_stock(filters)
+        total = len(all_rows)
+        pager = portal_pager(
+            url="/my/marstek/stock",
+            url_args=filters,
+            total=total,
+            page=page,
+            step=page_size,
+        )
+
+        rows = all_rows[pager["offset"]: pager["offset"] + page_size]
         values = self.marstek_prepare_page_values("marstek_stock", "Stock Overview", filters)
         values.update({
             "rows": rows,
+            "pager": pager,
         })
         return request.render("marstek_stock_portal.portal_marstek_stock", values)
 
@@ -52,15 +75,30 @@ class MarstekStockPortal(CustomerPortal):
         return request.render("marstek_stock_portal.portal_marstek_container_stock", values)
 
     #入库查询页。
-    @http.route(["/my/marstek/inbounds"], type="http", auth="user", website=True)
-    def marstek_inbounds_page(self, **kw):
-        filters = self.marstek_filter_values(kw, ["inbound_no", "bl_no", "container_no", "inbound_date_from", "inbound_date_to"])
-        rows = request.env["world.depot.inbound.order"].get_inbound_list(filters)
+    @http.route(["/my/marstek/inbounds","/my/marstek/inbounds/page/<int:page>"], type="http", auth="user", website=True)
+    def marstek_inbounds_page(self,page=1, **kw):
+        filters = self.marstek_filter_values(kw, ["inbound_no", "reference", "container_no", "inbound_date_from", "inbound_date_to","portal_inbound_status"])
+        page_size = 20
+        all_rows = request.env["world.depot.inbound.order"].get_inbound_list(filters)
+        total = len(all_rows)
+        pager = portal_pager(
+            url="/my/marstek/inbounds",
+            url_args=filters,
+            total=total,
+            page=page,
+            step=page_size,
+        )
+        rows =all_rows[pager["offset"]: pager["offset"] + page_size]
+
         values = self.marstek_prepare_page_values("marstek_inbounds", "Inbound Orders", filters)
         values.update({
             "rows": rows,
+            "pager": pager,
         })
         return request.render("marstek_stock_portal.portal_marstek_inbounds", values)
+
+
+
 #获取指定入库单下的托盘明细数据和获取指定入库单的可下载附件列表
     @http.route(["/my/marstek/inbounds/<int:inbound_id>"], type="http", auth="user", website=True)
     def marstek_inbound_detail_page(self, inbound_id, **kw):
