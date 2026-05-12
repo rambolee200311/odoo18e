@@ -120,45 +120,78 @@ class MarstekStockPortal(CustomerPortal):
         })
         return request.render("marstek_stock_portal.portal_marstek_inbound_list", values)
 
-    # @http.route(["/my/marstek/outbounds"], type="http", auth="user", website=True)
-    # def marstek_outbounds_page(self, **kw):
-    #     filters = self.marstek_filter_values(kw, ["outbound_no", "bl_no", "container_no", "status", "outbound_date_from", "outbound_date_to"])
-    #     rows = request.env["world.depot.outbound.order"].get_outbound_list(filters)
-    #     values = self.marstek_prepare_page_values("marstek_outbounds", "Outbound Orders", filters)
-    #     values.update({
-    #         "rows": rows,
-    #     })
-    #     return request.render("marstek_stock_portal.portal_marstek_outbounds", values)
 
-# class CustomerPortal(portal.CustomerPortal):
+#出库查询页
+    @http.route(["/my/marstek/outbounds","/my/marstek/outbounds/page/<int:page>"], type="http", auth="user", website=True)
+    def marstek_outbounds_page(self, page=1, **kw):
+        filters = self.marstek_filter_values(kw,
+                                             ["outbound_no", "bl_no", "container_no", "portal_outbound_status", "outbound_date_from",
+                                              "outbound_date_to"])
+        page_size = 20
+        all_rows = request.env["world.depot.outbound.order"].get_outbound_list(filters)
+        total = len(all_rows)
+        pager = portal_pager(
+            url="/my/marstek/outbounds",
+            url_args=filters,
+            total=total,
+            page=page,
+            step=page_size,
+        )
+        rows = all_rows[pager["offset"]: pager["offset"] + page_size]
+
+        values = self.marstek_prepare_page_values("marstek_outbounds", "Outbound Orders", filters)
+        values.update({
+            "rows": rows,
+            "pager": pager,
+        })
+        return request.render("marstek_stock_portal.portal_marstek_outbounds", values)
+
+    #获取指定出库单下的托盘明细数据
+    @http.route(["/my/marstek/outbounds/<int:outbound_id>", "/my/marstek/outbounds/<int:outbound_id>/page/<int:page>"], type="http", auth="user", website=True)
+    def marstek_outbound_detail_page(self, outbound_id, page=1, **kw):
+        outbound_env = request.env["world.depot.outbound.order"]
+        order = outbound_env.get_outbound_order(outbound_id)
+        if not order:
+            return request.redirect("/my/marstek/outbounds")
+
+        page_size = 10
+        all_detail_rows = outbound_env.get_outbound_detail(outbound_id)
+        total = len(all_detail_rows)
+        pager = portal_pager(
+            url=f"/my/marstek/outbounds/{outbound_id}",
+            total=total,
+            page=page,
+            step=page_size,
+        )
+        detail_rows = all_detail_rows[pager["offset"]: pager["offset"] + page_size]
+        attachment_rows = outbound_env.get_outbound_attachments(outbound_id)
+
+        values = self.marstek_prepare_page_values("marstek_outbound_detail", "Outbound Detail")
+        values.update({
+            "order": order,
+            "detail_rows": detail_rows,
+            "attachment_rows": attachment_rows,
+            "detail_pager": pager,
+        })
+        return request.render("marstek_stock_portal.portal_marstek_outbound_detail", values)
+
+
+# #获取指定出库单下的可下载附件列表
+#     @http.route(["/my/marstek/outbounds/<int:outbound_id>/attachments"], type="http", auth="user", website=True)
+#     def marstek_outbound_attachments_page(self, outbound_id, **kw):
+#         outbound_env = request.env["world.depot.outbound.order"]
+#         order = outbound_env.get_outbound_order(outbound_id)
+#         if not order:
+#             return request.redirect("/my/marstek/outbounds")
 #
-#     def _prepare_home_portal_values(self, counters):
-#         values = super()._prepare_home_portal_values(counters)
-#         if 'marstek_stock_count' in counters:
-#             values['marstek_stock_count'] = 1
-#         return values
+#         attachment_rows = outbound_env.get_outbound_attachments(outbound_id)
 #
-#     @http.route(['/my/marstek'], type='http', auth="user")
-#     def portal_marstek_home(self, **kwargs):
-#         values = self._prepare_portal_layout_values()
-#         values['page_name'] = 'marstek_home'
-#         return request.render("marstek_stock_portal.portal_marstek_home", values)
-#
-#     @http.route(['/my/marstek/outbound/list'], type='http', auth="user")
-#     def portal_marstek_outbound_list(self, **kwargs):
-#         values = self._prepare_portal_layout_values()
-#         values['page_name'] = 'outbound_list'
-#         return request.render("marstek_stock_portal.portal_marstek_outbound_list", values)
-#
-#     @http.route(['/my/marstek/outbound/detail/<int:outbound_id>'], type='http', auth="user")
-#     def portal_marstek_outbound_detail(self, outbound_id=None, **kwargs):
-#         values = self._prepare_portal_layout_values()
-#         values['page_name'] = 'outbound_detail'
-#         values['outbound_id'] = outbound_id
-#         return request.render("marstek_stock_portal.portal_marstek_outbound_detail", values)
-#
-#     @http.route(['/my/marstek/sn/query'], type='http', auth="user")
-#     def portal_marstek_sn_query(self, **kwargs):
-#         values = self._prepare_portal_layout_values()
-#         values['page_name'] = 'sn_query'
-#         return request.render("marstek_stock_portal.portal_marstek_sn_query", values)
+#         values = self.marstek_prepare_page_values("marstek_outbound_attachments", "Outbound Attachments")
+#         values.update({
+#             "order": order,
+#             "attachment_rows": attachment_rows,
+#         })
+#         return request.render("marstek_stock_portal.portal_marstek_outbound_attachments", values)
+
+
+

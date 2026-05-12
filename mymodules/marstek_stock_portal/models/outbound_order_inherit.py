@@ -29,36 +29,54 @@ class OutboundOrder(models.Model):
         filters = filters or {}
         domain = portal_owner_domain(self.env, "project.owner")
         outbound_no = portal_filter_value(filters, "outbound_no", "reference")
-        portal_outbound_status = portal_filter_value(filters, "status")
+        portal_outbound_status = filters.get("portal_outbound_status")
+        container_no = filters.get("container_no")
+        bl_no = filters.get("bl_no")
         domain.append(("state", "=", "confirm"))
+        # if bl_no:
+        #     domain.append(("bl_no", "ilike", bl_no))
+        # if container_no:
+        #     domain.append(("cntr_no", "ilike", container_no))
         if outbound_no:
             domain = expression.AND([domain, ["|", ("billno", "ilike", outbound_no), ("reference", "ilike", outbound_no)]])
-        if status:
-            domain.append(("status", "=", status))
-        portal_apply_date_filters(domain, filters, "o_date", ("date_from", "outbound_date_from"), ("date_to", "outbound_date_to"))
+
+        if portal_outbound_status == "outbound_confirmed":
+            domain.append(("picking_PICK", "=", False))
+        elif portal_outbound_status == "outbound_picking_processing":
+            domain += [("picking_PICK", "!=", False), ("picking_PICK.state", "!=", "done")]
+        elif portal_outbound_status == "outbound_picking_done":
+            domain.append(("picking_PICK.state", "=", "done"))
+        portal_apply_date_filters(domain, filters, "picking_PICK_date", ("outbound_date_from",), ("outbound_date_to",))
         outbound_env = self.env["world.depot.outbound.order"].sudo()
         orders = outbound_env.search(domain, order="o_date desc, picking_Out_date desc, date desc, id desc", offset=offset, limit=limit)
         shipping_by_order = self.get_outbound_shipping_map(orders)
-        container_no = portal_filter_value(filters, "container_no", "cntr_no")
-        bl_no = portal_filter_value(filters, "bl_no")
+
+
         rows = []
         for rec in orders:
+            picking = rec.picking_PICK
+            if picking and picking.state == "done":
+                state = "outbound_picking_done"
+            elif picking:
+                state = "outbound_picking_processing"
+            else:
+                state = "outbound_confirmed"
             shipping = shipping_by_order.get(rec.id, {"containers": set(), "bls": set()})
-            containers = set(line.cntr_no for line in rec.outbound_order_product_ids if line.cntr_no)
-            containers.update(shipping["containers"])
+            containers = set(shipping["containers"])
             bls = shipping["bls"]
             if container_no and not any(container_no.lower() in item.lower() for item in containers):
                 continue
             if bl_no and not any(bl_no.lower() in item.lower() for item in bls):
                 continue
             total_quantity = sum(line.quantity for line in rec.outbound_order_product_ids)
+
             rows.append({
                 "outbound_id": rec.id,
                 "outbound_no": rec.billno or rec.reference or "",
                 "bl_no": ", ".join(sorted(bls)),
                 "container_no": ", ".join(sorted(containers)),
-                "outbound_date": portal_format_date(rec.o_date or rec.picking_Out_date or rec.picking_PICK_date or rec.date),
-                "state": rec.status or rec.state or "",
+                "outbound_date": portal_format_date(rec.picking_PICK_date),
+                 "portal_inbound_status": state,
                 "total_quantity": total_quantity,
                 "picking_no": rec.picking_PICK.name or "",
             })
@@ -167,26 +185,40 @@ class OutboundOrder(models.Model):
             picking_ids.append(order.picking_Out.id)
         if not picking_ids:
             return []
+
         move_line_env = self.env["stock.move.line"].sudo()
         move_lines = move_line_env.search(
-            [("picking_id", "in", picking_ids), ("product_id", "!=", False), ("lot_id", "!=", False)],
+            [("picking_id", "in", picking_ids), ("product_id", "!=", False)],
             order="date desc, id desc",
         )
+
         package_ids = set(move_lines.mapped("package_id").ids + move_lines.mapped("result_package_id").ids)
         info_by_package = portal_package_shipping_map(self.env, list(package_ids))
+
         rows = []
         seen = set()
         for move_line in move_lines:
             lot = move_line.lot_id
             product = move_line.product_id
-            key = (lot.name, product.id)
+            package = move_line.package_id or move_line.result_package_id
+
+            if product.tracking == "serial" and lot:
+                key = ("serial", lot.name, product.id)
+                quantity = 1
+                sn_code = lot.name or ""
+            else:
+                key = ("move_line", move_line.id)
+                quantity = move_line.quantity
+                sn_code = ""
+
             if key in seen:
                 continue
             seen.add(key)
-            package = move_line.package_id or move_line.result_package_id
+
             info = info_by_package.get(package.id, {}) if package else {}
-            container_no = lot.cntrno or info.get("container_no") or portal_package_container_from_name(package.name if package else "")
-            bl_no = lot.bill_of_lading or info.get("bl_no") or ""
+            container_no = (lot.cntrno if lot else "") or info.get("container_no")or portal_package_container_from_name(package.name if package else "")
+            bl_no = (lot.bill_of_lading if lot else "") or info.get("bl_no") or ""
+
             rows.append({
                 "outbound_no": order.billno or order.reference or "",
                 "bl_no": bl_no,
@@ -194,8 +226,8 @@ class OutboundOrder(models.Model):
                 "package_name": package.name if package else "",
                 "product_code": portal_product_code(product),
                 "product_name": product.display_name or product.name or "",
-                "quantity": 1,
-                "sn_code": lot.name or "",
+                "quantity": quantity,
+                "sn_code": sn_code,
                 "scan_time": portal_format_datetime(move_line.date or move_line.picking_id.date_done),
             })
         return rows
