@@ -9,9 +9,14 @@ class OperationOrderClearanceAttachmentLine(models.Model):
     _order = "id desc"
 
     clearance_id = fields.Many2one("operation.order.clearance", string="Handover", required=True, ondelete="cascade", index=True)
-    doc_type = fields.Selection([("bl", "BL"), ("poa", "POA"),
-                                 ("do", "DO/Telex Release"),
-                                 ("other", "Other")], string="Document Type", required=True, index=True)
+    doc_type = fields.Selection([
+        ("bl", "BL"),
+        ("poa", "POA"),
+        ("do", "DO/Telex Release"),
+        ("packing_list", "Packing List"),
+        ("customs_release", "Customs Release"),
+        ("other", "Other"),
+    ], string="Document Type", required=True, index=True)
     name = fields.Char(string="Document Name")
     file = fields.Binary(string='File')
     remark = fields.Text(string="Remark")

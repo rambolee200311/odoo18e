@@ -1,6 +1,6 @@
 from odoo import api, fields, models
 from odoo.exceptions import AccessError, UserError, ValidationError
-
+import re
 
 class S3Node(models.Model):
     _name = 's3.node'
@@ -25,11 +25,16 @@ class S3Node(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        node_model_sudo = self.env['s3.node'].sudo()
         for vals in vals_list:
             if vals.get('s3_key'):
                 vals['s3_key'] = vals['s3_key'].strip()
             if vals.get('s3_key') == '':
                 raise ValidationError('S3 key cannot be empty.')
+            if vals.get('parent_id') and not vals.get('user_id'):
+                parent = node_model_sudo.browse(vals['parent_id'])
+                if parent and parent.user_id:
+                    vals['user_id'] = parent.user_id.id
         return super().create(vals_list)
 
     def write(self, vals):
@@ -191,12 +196,14 @@ class S3Node(models.Model):
             domain = [
                 ('node_id', '=', node.id),
                 ('grantee_type', '=', grantee_type),
-                ('permission_level', '=', permission_level),
                 ('user_id', '=', user_id or False),
                 ('group_id', '=', group_id or False),
                 ('department_id', '=', department_id or False),
             ]
-            if permission_model_sudo.search_count(domain):
+            existed = permission_model_sudo.search(domain, limit=1, order='id desc')
+            if existed:
+                if existed.permission_level != permission_level:
+                    self.env['s3.permission'].browse(existed.id).write({'permission_level': permission_level})
                 return
             self.env['s3.permission'].create({
                 'node_id': node.id,
@@ -207,16 +214,23 @@ class S3Node(models.Model):
                 'department_id': department_id or False,
             })
 
+
+
         all_read_node = ensure_node('All Read', f'{public_prefix}all-read/')
         admin_only_node = ensure_node('Admin Only', f'{public_prefix}admin-only/')
 
         group_user = self.env.ref('base.group_user')
         group_admin = self.env.ref('wd_cloud_storage.group_wd_cloud_storage_admin')
 
+        ensure_permission(public_root, 'group', 'read', group_id=group_user.id)
+        ensure_permission(public_root, 'group', 'full_control', group_id=group_admin.id)
         ensure_permission(all_read_node, 'group', 'read', group_id=group_user.id)
         ensure_permission(admin_only_node, 'group', 'full_control', group_id=group_admin.id)
 
-        departments = department_model.search([], order='id desc')
+        departments = department_model.search(
+            ['|', ('company_id', '=', False), ('company_id', '=', self.env.company.id)],
+            order='id desc'
+        )
         for dep in departments:
             dep_node = ensure_node(f'Department - {dep.name}', f'{public_prefix}department-{dep.id}/')
             ensure_permission(dep_node, 'department', 'write', department_id=dep.id)
@@ -231,3 +245,72 @@ class S3Node(models.Model):
                 'sticky': False,
             },
         }
+
+    @api.model
+    def get_selected_node(self, node_id):
+        node_model_sudo = self.env['s3.node'].sudo()
+        node = node_model_sudo.search(
+            [('id', '=', node_id), ('is_active', '=', True), ('company_id', '=', self.env.company.id)],
+            limit=1, order='id desc'
+        )
+        if not node:
+            raise UserError('Please select a valid folder first.')
+        return self.env['s3.node'].browse(node.id)
+
+    @api.model
+    def check_can_upload_in_node(self, node_id):
+        node = self.get_selected_node(node_id)
+        node.check_access_for_user(action_name='write')
+        if node.node_type_id.code in ('recycle_root', 'recycle_bin'):
+            raise UserError('Recycle folder does not allow upload.')
+        return True
+
+    @api.model
+    def check_can_create_subfolder_in_node(self, node_id):
+        node = self.get_selected_node(node_id)
+        node.check_access_for_user(action_name='write')
+        if node.node_type_id.code in ('root', 'recycle_root', 'recycle_bin'):
+            raise UserError('This folder does not allow subfolder creation.')
+        if node.node_type_id.code not in ('private_root', 'private_sub'):
+            raise UserError('Only personal folder supports subfolder creation.')
+        if not node.user_id or node.user_id.id != self.env.uid:
+            raise AccessError('You can only create subfolder in your own personal folder.')
+        return True
+
+    @api.model
+    def create_subfolder_in_node(self, node_id, folder_name):
+        node = self.get_selected_node(node_id)
+        self.check_can_create_subfolder_in_node(node.id)
+
+        folder_name_text = (folder_name or '').strip()
+        if not folder_name_text:
+            raise UserError('Folder name is required.')
+
+        safe_key_name = re.sub(r'[^A-Za-z0-9._-]+', '-', folder_name_text).strip('-').lower() or 'folder'
+        parent_key = node.s3_key if node.s3_key.endswith('/') else f'{node.s3_key}/'
+        folder_key = f'{parent_key}{safe_key_name}/'
+
+        node_model_sudo = self.env['s3.node'].sudo()
+        seq = 1
+        while node_model_sudo.search_count([('s3_key', '=', folder_key), ('company_id', '=', self.env.company.id)]):
+            folder_key = f'{parent_key}{safe_key_name}-{seq}/'
+            seq += 1
+
+        node_type_model_sudo = self.env['s3.node.type'].sudo()
+        private_sub_type = node_type_model_sudo.search(
+            [('code', '=', 'private_sub'), ('is_active', '=', True)],
+            limit=1, order='id desc'
+        )
+        if not private_sub_type:
+            raise UserError('Private subfolder type not found.')
+
+        new_node = self.env['s3.node'].create({
+            'name': folder_name_text,
+            'node_type_id': private_sub_type.id,
+            's3_key': folder_key,
+            'parent_id': node.id,
+            'user_id': self.env.uid,
+            'company_id': self.env.company.id,
+            'is_active': True,
+        })
+        return {'id': new_node.id, 'name': new_node.name}

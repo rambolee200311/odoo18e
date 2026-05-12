@@ -15,3 +15,6 @@ access_s3_recycle_entry_user,s3.recycle.entry user,model_s3_recycle_entry,base.g
 access_s3_recycle_entry_admin,s3.recycle.entry admin,model_s3_recycle_entry,wd_cloud_storage.group_wd_cloud_storage_admin,1,1,1,1
 access_s3_operation_log_user,s3.operation.log user,model_s3_operation_log,base.group_user,1,0,1,0
 access_s3_operation_log_admin,s3.operation.log admin,model_s3_operation_log,wd_cloud_storage.group_wd_cloud_storage_admin,1,1,1,1
+
+
+access_s3_create_folder_wizard_user,s3.create.folder.wizard user,model_s3_create_folder_wizard,base.group_user,1,1,1,1

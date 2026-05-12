@@ -20,7 +20,15 @@
         'views/s3_recycle_entry_views.xml',
         'views/s3_operation_log_views.xml',
         'views/res_users_inherit_views.xml',
+        'wizard/s3_create_folder_wizard_views.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            'wd_cloud_storage/static/src/views/wd_cloud_storage_list_controller.js',
+            'wd_cloud_storage/static/src/views/wd_cloud_storage_list_controller.xml',
+        ],
+    },
+
     'installable': True,
     'application': True,
     'license': 'LGPL-3',

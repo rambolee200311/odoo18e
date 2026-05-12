@@ -245,11 +245,10 @@ class OperationWorkbenchDashboardData(models.Model):
         now_dt = self.get_now_datetime()
 
         available_days = rule["handover_available_days"]
-        done_states = ["released", "close", "cancelled"]
 
         rows = env_handover.sudo().search([
             ("waybill_id", "!=", False),
-            ("state", "not in", done_states),
+            ("state", "!=", "cancelled"),
         ], order="id desc")
 
         ids_list = []
@@ -258,7 +257,8 @@ class OperationWorkbenchDashboardData(models.Model):
             if not base_dt:
                 continue
             due_dt = base_dt + timedelta(days=available_days)
-            if now_dt >= due_dt:
+            compare_dt = self.to_datetime_value(rec.do_issue_datetime) or now_dt
+            if compare_dt  >= due_dt:
                 ids_list.append(rec.id)
         return ids_list
 
@@ -269,11 +269,12 @@ class OperationWorkbenchDashboardData(models.Model):
         now_dt = self.get_now_datetime()
 
         available_days = rule["clearance_available_days"]
-        done_states = ["clearanced", "close", "cancelled"]
+
+
 
         rows = env_clearance.sudo().search([
             ("waybill_id", "!=", False),
-            ("state", "not in", done_states),
+            ("state", "!=", "cancelled"),
         ], order="id desc")
 
         ids_list = []
@@ -281,8 +282,17 @@ class OperationWorkbenchDashboardData(models.Model):
             base_dt = self.get_base_datetime_from_waybill(rec.waybill_id)
             if not base_dt:
                 continue
+
+            finish_dt = self.to_datetime_value(rec.clearance_finish_datetime)
+
+            if rec.state in ("clearanced", "close") and not finish_dt:
+                continue
+
+            compare_dt = finish_dt or now_dt
             due_dt = base_dt + timedelta(days=available_days)
-            if now_dt >= due_dt:
+
+            if compare_dt >= due_dt:
                 ids_list.append(rec.id)
+
         return ids_list
 

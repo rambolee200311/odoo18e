@@ -4,15 +4,15 @@
         <field name="name">s3.stored.file.list</field>
         <field name="model">s3.stored.file</field>
         <field name="arch" type="xml">
-            <list>
-                <field name="name" />
-                <field name="node_id" />
-                <field name="size" />
-                <field name="mimetype" />
-                <field name="owner_id" />
-                <field name="upload_datetime" />
-                <field name="state" />
-                <field name="is_active" />
+            <list js_class="wd_cloud_storage_list" create="false">
+                <field name="name"/>
+                <field name="node_id"/>
+                <field name="size"/>
+                <field name="mimetype"/>
+                <field name="owner_id"/>
+                <field name="upload_datetime"/>
+                <field name="state"/>
+                <field name="is_active"/>
             </list>
         </field>
     </record>
@@ -23,31 +23,48 @@
         <field name="arch" type="xml">
             <form string="Cloud File" duplicate="false">
                 <header>
-                    <button name="action_download_file" string="Download" type="object" class="btn-primary" invisible="state != 'stored'" />
-                    <button name="action_move_to_recycle_bin" string="Move To Recycle" type="object" class="btn-secondary" invisible="state != 'stored'" />
+                    <button name="action_download_file" string="Download" type="object" class="btn-primary"
+                            invisible="state != 'stored'"/>
+                    <button name="action_move_to_recycle_bin" string="Move To Recycle" type="object"
+                            class="btn-secondary" invisible="state != 'stored'"/>
                 </header>
                 <sheet>
                     <group>
                         <group>
-                            <field name="name" required="0"/>
-                            <field name="node_id" required="1" options="{'no_create': True, 'no_open': True}" />
-                            <field name="owner_id" readonly="1" options="{'no_create': True, 'no_open': True}" />
-<!--                            <field name="company_id" required="1" readonly="1" options="{'no_create': True, 'no_open': True}" />-->
-                            <field name="state" readonly="1" />
-                            <field name="is_active" readonly="1" />
+                            <field name="name" required="0" readonly="1"/>
+                            <field name="node_id" required="1" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="owner_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <!--                            <field name="company_id" required="1" readonly="1" options="{'no_create': True, 'no_open': True}" />-->
+                            <field name="state" readonly="1"/>
+                            <field name="is_active" readonly="1"/>
                         </group>
                         <group>
-                            <field name="s3_key" readonly="1" />
-                            <field name="size" readonly="1" />
-                            <field name="mimetype" readonly="1" />
-                            <field name="checksum" readonly="1" />
-                            <field name="upload_datetime" readonly="1" />
-                            <field name="upload_filename" />
-                            <field name="upload_datas" filename="upload_filename" />
+                            <field name="s3_key" readonly="1"/>
+                            <field name="size" readonly="1"/>
+                            <field name="mimetype" readonly="1"/>
+                            <field name="checksum" readonly="1"/>
+                            <field name="upload_datetime" readonly="1"/>
+                            <field name="upload_filename"/>
+                            <field name="upload_datas" filename="upload_filename"/>
                         </group>
                     </group>
                 </sheet>
             </form>
         </field>
     </record>
+
+    <record id="view_s3_stored_file_search" model="ir.ui.view">
+        <field name="name">s3.stored.file.search</field>
+        <field name="model">s3.stored.file</field>
+        <field name="arch" type="xml">
+            <search string="Cloud Files">
+                <field name="name"/>
+                <field name="owner_id"/>
+                <searchpanel>
+                    <field name="node_id" string="Folders"/>
+                </searchpanel>
+            </search>
+        </field>
+    </record>
+
 </odoo>

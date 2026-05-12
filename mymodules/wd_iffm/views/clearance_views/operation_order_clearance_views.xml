@@ -157,9 +157,9 @@
                         <page string="Documents">
                             <field name="attachment_line_ids" readonly="state in ('clearancing','clearanced','close')">
                                 <list editable="bottom">
-                                    <field name="file"/>
                                     <field name="doc_type"/>
                                     <field name="name"/>
+                                    <field name="file"/>
                                     <field name="upload_time"/>
                                     <field name="upload_user_id"/>
                                 </list>

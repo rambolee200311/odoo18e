@@ -109,6 +109,70 @@ class S3StoredFile(models.Model):
                 raise UserError('Please move file to recycle first.')
         return super().unlink()
 
+    def convert_node_child_domain(self, domain):
+        converted_domain = []
+        for item in domain or []:
+            if isinstance(item, (list, tuple)) and len(item) == 3 and item[0] == 'node_id' and item[1] == 'child_of':
+                converted_domain.append(('node_id', '=', item[2]))
+            elif isinstance(item, list):
+                converted_domain.append(self.convert_node_child_domain(item))
+            else:
+                converted_domain.append(item)
+        return converted_domain
+
+    @api.model
+    def web_search_read(self, domain, specification, offset=0, limit=None, order=None, count_limit=None):
+        domain = self.convert_node_child_domain(domain)
+        return super().web_search_read(domain, specification, offset=offset, limit=limit, order=order,
+                                       count_limit=count_limit)
+    @api.model
+    def search_panel_select_range(self, field_name, **kwargs):
+        if field_name != 'node_id':
+            return super().search_panel_select_range(field_name, **kwargs)
+
+        node_model_sudo = self.env['s3.node'].sudo()
+        node_records = node_model_sudo.search(
+            [('is_active', '=', True), ('company_id', '=', self.env.company.id)],
+            order='id desc',
+        )
+
+        is_admin = self.env.user.has_group('wd_cloud_storage.group_wd_cloud_storage_admin')
+        root_node = node_model_sudo.search(
+            [('node_type_id.code', '=', 'root'), ('company_id', '=', self.env.company.id), ('is_active', '=', True)],
+            limit=1, order='id desc'
+        )
+        root_id = root_node.id if root_node else False
+        allowed_ids = set()
+        values = []
+
+        for node in node_records:
+            if node_model_sudo.browse(node.id).check_access_for_user(user_id=self.env.uid, action_name='read',
+                                                                     raise_error=False):
+                allowed_ids.add(node.id)
+
+        for node in node_records:
+            if node.id not in allowed_ids:
+                continue
+
+            node_code = node.node_type_id.code
+
+
+            if not is_admin and node_code == 'recycle_root':
+                continue
+
+            if not is_admin and node_code == 'recycle_bin' and node.user_id and node.user_id.id == self.env.uid:
+                parent_id = root_id
+            else:
+                parent_id = node.parent_id.id if node.parent_id and node.parent_id.id in allowed_ids else False
+
+            values.append({
+                'id': node.id,
+                'display_name': node.name,
+                'parent_id': parent_id,
+            })
+
+        return {'parent_field': 'parent_id', 'values': values}
+
     @api.model
     def create_from_upload(self, node_id, file_data, file_name):
         node_model = self.env['s3.node'].sudo()
@@ -201,7 +265,24 @@ class S3StoredFile(models.Model):
             except (BotoCoreError, ClientError) as error:
                 log_model.create_log_line({'operate_type_id': delete_operate_type.id if delete_operate_type else False, 'file_name': rec.name, 'file_path': rec.s3_key, 'original_path': rec.s3_key, 'operate_result': 'fail', 'delete_reason': delete_reason, 'error_message': str(error)})
                 raise UserError(f'Move file to recycle failed: {error}') from error
-            recycle_model.create({'file_id': rec.id, 'original_s3_key': rec.s3_key, 'recycle_s3_key': recycle_key, 'deleted_by_id': self.env.uid, 'delete_reason': delete_reason})
-            rec.write({'is_active': False, 'state': 'recycled'})
+
+            private_nodes = self.env['s3.node'].ensure_private_node(self.env.uid)
+            recycle_node = self.env['s3.node'].browse(private_nodes['recycle_node_id'])
+
+            recycle_model.create({
+                'file_id': rec.id,
+                'original_node_id': rec.node_id.id,
+                'original_s3_key': rec.s3_key,
+                'recycle_s3_key': recycle_key,
+                'deleted_by_id': self.env.uid,
+                'delete_reason': delete_reason,
+            })
+
+            rec.write({
+                'node_id': recycle_node.id,
+                's3_key': recycle_key,
+                'is_active': True,
+                'state': 'recycled',
+            })
             log_model.create_log_line({'operate_type_id': delete_operate_type.id if delete_operate_type else False, 'file_name': rec.name, 'file_path': recycle_key, 'original_path': rec.s3_key, 'operate_result': 'success', 'delete_reason': delete_reason})
         return True

@@ -124,6 +124,24 @@ class OperationOrderHandover(models.Model):
     ], string="Overdue Handle Result", index=True, copy=False, tracking=True)
     overdue_result_note = fields.Text(string="Overdue Result Note", tracking=True, copy=False)
 
+    @api.onchange("do_issue_datetime", "attachment_line_ids")
+    def onchange_do_release_document_required(self):
+        self.check_do_release_document_required()
+
+    @api.constrains("do_issue_datetime", "attachment_line_ids")
+    def check_do_release_document_required(self):
+        for rec in self:
+            if not rec.do_issue_datetime:
+                continue
+
+            do_files = rec.attachment_line_ids.filtered(
+                lambda line: line.doc_type == "do" and line.file
+            )
+            if not do_files:
+                raise ValidationError(
+                    _("DO / Telex Release document is required when DO Issue Date is filled.")
+                )
+
     @api.constrains("overdue_blocking_reason_id", "overdue_reason_note", "overdue_handle_result", "overdue_result_note")
     def check_handover_overdue_other_notes(self):
         for rec in self:
@@ -138,16 +156,22 @@ class OperationOrderHandover(models.Model):
     def _compute_is_handover_overdue(self):
         rule = self.env["operation.workbench.alert.rule"].get_rule_values(company_id=self.env.company.id)
         available_days = int(rule.get("handover_available_days", 3))
-        done_states = {"released", "close", "cancelled"}
+
         now_dt = fields.Datetime.now()
         for rec in self:
+            rec.is_handover_overdue = False
+
+            if rec.state == "cancelled":
+                continue
             base_date = rec.waybill_id.ata or rec.waybill_id.eta
             if not base_date:
                 continue
             base_date_value = fields.Date.to_date(base_date)
             base_dt = datetime.combine(base_date_value, time(23, 59, 59))
             handover_due_datetime = base_dt + timedelta(days=available_days)
-            rec.is_handover_overdue = bool(handover_due_datetime and rec.state not in done_states and now_dt >= handover_due_datetime)
+
+            compare_datetime = rec.do_issue_datetime or now_dt
+            rec.is_handover_overdue = compare_datetime >= handover_due_datetime
 
     def action_create_child_handover(self):
         self.ensure_one()

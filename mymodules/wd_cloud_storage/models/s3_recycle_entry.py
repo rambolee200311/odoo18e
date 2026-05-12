@@ -28,6 +28,7 @@ class S3RecycleEntry(models.Model):
     delete_reason = fields.Char(string='Delete Reason')
     clean_reason = fields.Char(string='Clean Reason')
     owner_id = fields.Many2one('res.users', string='File Owner', related='file_id.owner_id', store=True, index=True)
+    original_node_id = fields.Many2one('s3.node', string='Original Node', required=True, ondelete='restrict', index=True)
 
     @api.depends('deletion_datetime')
     def _compute_expiry_datetime(self):
@@ -77,7 +78,12 @@ class S3RecycleEntry(models.Model):
             except (BotoCoreError, ClientError) as error:
                 log_model.create_log_line({'operate_type_id': restore_operate_type.id if restore_operate_type else False, 'file_name': rec.file_id.name, 'file_path': rec.recycle_s3_key, 'original_path': rec.original_s3_key, 'operate_result': 'fail', 'error_message': str(error)})
                 raise UserError(f'Restore file failed: {error}') from error
-            rec.file_id.write({'is_active': True, 'state': 'stored'})
+            rec.file_id.write({
+                'node_id': rec.original_node_id.id,
+                's3_key': rec.original_s3_key,
+                'is_active': True,
+                'state': 'stored',
+            })
             rec.write({'state': 'restored', 'restore_datetime': fields.Datetime.now()})
             log_model.create_log_line({'operate_type_id': restore_operate_type.id if restore_operate_type else False, 'file_name': rec.file_id.name, 'file_path': rec.original_s3_key, 'original_path': rec.recycle_s3_key, 'operate_result': 'success'})
         return True

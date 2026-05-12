@@ -88,11 +88,11 @@ class S3Config(models.Model):
 
     @api.model
     def get_current_config(self):
-        config_model = self.env['s3.config'].sudo()
-        config = config_model.search([], limit=1, order='id desc')
+        config_model_sudo = self.env['s3.config'].sudo()
+        config = config_model_sudo.search([], limit=1, order='id desc')
         if not config:
             raise UserError('Please configure cloud storage first.')
-        return self.browse(config.id)
+        return config
    # 回收站天数
     @api.model
     def get_recycle_retention_days(self):

@@ -45,7 +45,7 @@ class OperationOrderClearance(models.Model):
     t1_closed_datetime = fields.Datetime(string="T1 Closed Date")
     t1_inbound_release_datetime = fields.Datetime(string="T1 Inbound Release Date")
 
-    can_complete = fields.Boolean(compute="_compute_can_complete")
+    can_complete = fields.Boolean(compute="_compute_can_complete", store=True)
     clearance_finish_datetime = fields.Datetime(string="Clearance Finish Time", compute='_compute_can_complete', store=True)
 
 
@@ -148,6 +148,48 @@ class OperationOrderClearance(models.Model):
     overdue_result_note = fields.Text(string="Overdue Handle Note", copy=False, tracking=True)
 
 
+    @api.onchange(
+        "clearance_receipt_no",
+        "customs_release_datetime",
+        "inbound_release_datetime",
+        "outbound_release_datetime",
+        "t1_closed_datetime",
+        "t1_inbound_release_datetime",
+        "attachment_line_ids",
+    )
+    def onchange_customs_release_document_required(self):
+        self.check_customs_release_document_required()
+
+    @api.constrains(
+        "clearance_receipt_no",
+        "customs_release_datetime",
+        "inbound_release_datetime",
+        "outbound_release_datetime",
+        "t1_closed_datetime",
+        "t1_inbound_release_datetime",
+        "attachment_line_ids",
+    )
+    def check_customs_release_document_required(self):
+        for rec in self:
+            has_release_info = bool(
+                rec.clearance_receipt_no
+                or rec.customs_release_datetime
+                or rec.inbound_release_datetime
+                or rec.outbound_release_datetime
+                or rec.t1_closed_datetime
+                or rec.t1_inbound_release_datetime
+            )
+            if not has_release_info:
+                continue
+
+            customs_release_files = rec.attachment_line_ids.filtered(
+                lambda line: line.doc_type == "customs_release" and line.file
+            )
+            if not customs_release_files:
+                raise ValidationError(
+                    _("Customs release document is required when clearance finish time or release number is filled.")
+                )
+
     @api.constrains("overdue_blocking_reason_id", "overdue_reason_note", "overdue_handle_result", "overdue_result_note")
     def check_handover_overdue_other_notes(self):
         for rec in self:
@@ -158,22 +200,26 @@ class OperationOrderClearance(models.Model):
                 raise ValidationError(_("Result Note is required when Handle Result is Other."))
 
 
-    @api.depends("state", "waybill_id.ata", "waybill_id.eta")
+    @api.depends("state", "waybill_id.ata", "waybill_id.eta","clearance_finish_datetime")
     def _compute_is_clearance_overdue(self):
         done_states = {"clearanced", "close", "cancelled"}
         now_dt = fields.Datetime.now()
         rule = self.env["operation.workbench.alert.rule"].get_rule_values(company_id=self.env.company.id)
         available_days = int(rule.get("clearance_available_days", 5))
+
         for rec in self:
+            rec.is_clearance_overdue = False
+            if rec.state == "cancelled":
+                continue
+
             base_date = rec.waybill_id.ata or rec.waybill_id.eta
             if not base_date:
                 continue
             base_date_value = fields.Date.to_date(base_date)
             base_dt = datetime.combine(base_date_value, time(23, 59, 59))
             clearance_due_datetime = base_dt + timedelta(days=available_days)
-
-            rec.is_clearance_overdue = bool(
-                clearance_due_datetime and rec.state not in done_states and now_dt >= clearance_due_datetime)
+            compare_datetime = rec.clearance_finish_datetime or now_dt
+            rec.is_clearance_overdue = compare_datetime >= clearance_due_datetime
 
     @api.constrains('parent_id', 'extra_reason', 'remark')
     def check_remark(self):

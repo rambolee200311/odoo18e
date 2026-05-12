@@ -11,7 +11,7 @@ class S3Permission(models.Model):
     grantee_type = fields.Selection([('user', 'User'), ('group', 'Group'), ('department', 'Department')], string='Grantee Type', required=True, default='user', index=True)
     user_id = fields.Many2one('res.users', string='User', index=True)
     group_id = fields.Many2one('res.groups', string='Group', index=True)
-    department_id = fields.Many2one('',string='Department Id', index=True)
+    department_id = fields.Many2one('hr.department',string='Department', index=True)
     permission_level = fields.Selection([('read', 'Read'), ('write', 'Write'), ('full_control', 'Full Control')], string='Permission Level', required=True, default='read', index=True)
     granted_by_id = fields.Many2one('res.users', string='Granted By', default=lambda self: self.env.user, readonly=True, index=True)
     granted_datetime = fields.Datetime(string='Granted Datetime', default=fields.Datetime.now, readonly=True)

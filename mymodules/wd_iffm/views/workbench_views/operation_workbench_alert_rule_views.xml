@@ -4,13 +4,13 @@
         <field name="model">operation.workbench.alert.rule</field>
         <field name="arch" type="xml">
             <list default_order="id desc">
-                <field name="name"/>
-                <field name="arrival_near_hours"/>
-                <field name="handover_available_days"/>
-                <field name="handover_near_hours"/>
-                <field name="clearance_available_days"/>
-                <field name="clearance_near_hours"/>
-                <field name="active"/>
+                <field name="name" width="220px"/>
+                <field name="arrival_near_hours" width="140px"/>
+                <field name="handover_available_days" width="180px"/>
+                <field name="handover_near_hours" width="160px"/>
+                <field name="clearance_available_days" width="180px"/>
+                <field name="clearance_near_hours" width="160px"/>
+                <field name="active" width="80px"/>
             </list>
         </field>
     </record>
