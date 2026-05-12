@@ -11,6 +11,66 @@
  */
 
 /* ============================================================
+   Marstek Module Cards (Menu Page)
+   ============================================================ */
+
+.o_marstek_module_cards {
+    margin-top: 1rem;
+}
+
+.o_marstek_card {
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    cursor: pointer;
+}
+
+.o_marstek_card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+.o_marstek_card_stock:hover {
+    border-color: #0d6efd;
+}
+
+.o_marstek_card_container:hover {
+    border-color: #198754;
+}
+
+.o_marstek_card_inbound:hover {
+    border-color: #ffc107;
+}
+
+.o_marstek_icon {
+    height: 60px;
+    width: 60px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.4));
+}
+
+.o_marstek_card .card-title {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+/* ============================================================
+   Portal Home Card - Marstek Entry
+   ============================================================ */
+
+.o_portal_wrapcolumn .card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.o_portal_wrapcolumn .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* ============================================================
    Portal Card Styles
    ============================================================ */
 

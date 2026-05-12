@@ -7,10 +7,10 @@
     <template id="portal_my_home_marstek" name="Marstek 库存门户入口" customize_show="True" inherit_id="portal.portal_my_home" priority="20">
         <xpath expr="//*[hasclass('o_portal_my_home')]" position="inside">
             <div class="mt-3">
-                <a href="/my/marstek/stock" class="text-decoration-none">
+                <a href="/my/marstek" class="text-decoration-none">
                     <div class="card">
                         <div class="card-body">
-                            <h5><i class="fa fa-cubes me-2"/>Marstek 库存</h5>
+                            <h5><i class="fa fa-cubes me-2"/>Marstek Stock</h5>
                             <p class="text-muted mb-0">查看您的库存和订单信息</p>
                         </div>
                     </div>
@@ -20,48 +20,72 @@
     </template>
 
     <!-- =========================================== -->
-    <!-- 2. Marstek 门户主页 -->
+    <!-- 2. Marstek 门户主页（菜单页面） -->
     <!-- =========================================== -->
     <template id="portal_marstek_home" name="Marstek 库存门户">
         <t t-call="portal.portal_layout">
-            <t t-call="portal.portal_breadcrumbs">
-                <t t-set="segments" t-value="[('marstek_home', 'Marstek 库存')]"/>
-            </t>
+            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': None, 'name': 'Marstek 库存'}]"/>
 
-            <h1>Marstek 库存查询</h1>
-            <p class="text-muted">请选择下方功能查看您的库存和订单信息。</p>
+            <div class="o_portal_content">
+                <h1 class="mb-4">
+                    <i class="fa fa-cubes me-2 text-primary"/>
+                    Marstek 库存
+                </h1>
+                <p class="text-muted mb-4">请选择下方功能模块查看您的库存和订单信息。</p>
 
-            <div class="row mt-4">
-                <!-- 库存概览 -->
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5><i class="fa fa-cubes me-2"/>库存概览</h5>
-                            <p class="text-muted">查看所有库存（按货盘/集装箱/BL）</p>
-                            <a href="/my/marstek/stock" class="btn btn-primary">查看</a>
-                        </div>
+                <div class="row o_marstek_module_cards">
+                    <!-- 库存概览 -->
+                    <div class="col-12 col-md-6 col-lg-4 mb-4">
+                        <a href="/my/marstek/stock" class="text-decoration-none">
+                            <div class="card h-100 o_marstek_card o_marstek_card_stock">
+                                <div class="card-body text-center">
+                                    <div class="o_marstek_icon mb-3">
+                                        <i class="fa fa-cubes fa-3x text-primary"/>
+                                    </div>
+                                    <h4 class="card-title">库存概览</h4>
+                                    <p class="text-muted">查看所有库存信息<br/>按货盘/集装箱/BL筛选</p>
+                                    <span class="btn btn-outline-primary mt-2">
+                                        进入 <i class="fa fa-arrow-right ms-1"/>
+                                    </span>
+                                </div>
+                            </div>
+                        </a>
                     </div>
-                </div>
 
-                <!-- 集装箱查询 -->
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5><i class="fa fa-search me-2"/>集装箱查询</h5>
-                            <p class="text-muted">按集装箱号查询库存</p>
-                            <a href="/my/marstek/container_stock" class="btn btn-primary">查询</a>
-                        </div>
+                    <!-- 集装箱查询 -->
+                    <div class="col-12 col-md-6 col-lg-4 mb-4">
+                        <a href="/my/marstek/container_stock" class="text-decoration-none">
+                            <div class="card h-100 o_marstek_card o_marstek_card_container">
+                                <div class="card-body text-center">
+                                    <div class="o_marstek_icon mb-3">
+                                        <i class="fa fa-truck fa-3x text-success"/>
+                                    </div>
+                                    <h4 class="card-title">集装箱查询</h4>
+                                    <p class="text-muted">按集装箱号查询库存<br/>查看柜内所有货盘</p>
+                                    <span class="btn btn-outline-success mt-2">
+                                        进入 <i class="fa fa-arrow-right ms-1"/>
+                                    </span>
+                                </div>
+                            </div>
+                        </a>
                     </div>
-                </div>
 
-                <!-- 入库单查询 -->
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5><i class="fa fa-arrow-down me-2"/>入库单查询</h5>
-                            <p class="text-muted">查看和管理入库单</p>
-                            <a href="/my/marstek/inbounds" class="btn btn-primary">查看</a>
-                        </div>
+                    <!-- 入库单查询 -->
+                    <div class="col-12 col-md-6 col-lg-4 mb-4">
+                        <a href="/my/marstek/inbounds" class="text-decoration-none">
+                            <div class="card h-100 o_marstek_card o_marstek_card_inbound">
+                                <div class="card-body text-center">
+                                    <div class="o_marstek_icon mb-3">
+                                        <i class="fa fa-arrow-down fa-3x text-warning"/>
+                                    </div>
+                                    <h4 class="card-title">入库单查询</h4>
+                                    <p class="text-muted">查看和管理入库单<br/>下载入库附件</p>
+                                    <span class="btn btn-outline-warning mt-2">
+                                        进入 <i class="fa fa-arrow-right ms-1"/>
+                                    </span>
+                                </div>
+                            </div>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -85,14 +109,44 @@
             <!-- 搜索栏 -->
             <div class="mb-4">
                 <form method="get" action="/my/marstek/stock">
-                    <div class="input-group">
-                        <input type="text" class="form-control" name="search" placeholder="按货盘号、集装箱号、BL号、产品搜索..." t-att-value="filters.get('search', '')"/>
-                        <button class="btn btn-outline-secondary" type="submit">
-                            <i class="fa fa-search"/> 搜索
-                        </button>
-                        <a class="btn btn-outline-primary" href="/my/marstek/stock">
-                            <i class="fa fa-refresh"/> 重置
-                        </a>
+                    <div class="row g-2">
+                        <div class="col-md-3">
+                            <input type="text" class="form-control" name="container_no" 
+                                   placeholder="集装箱号" 
+                                   t-att-value="filters.get('container_no', '')"/>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="text" class="form-control" name="bl_no" 
+                                   placeholder="BL号" 
+                                   t-att-value="filters.get('bl_no', '')"/>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="text" class="form-control" name="product_code" 
+                                   placeholder="产品代码" 
+                                   t-att-value="filters.get('product_code', '')"/>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="input-group">
+                                <button class="btn btn-outline-secondary" type="submit">
+                                    <i class="fa fa-search"/> 搜索
+                                </button>
+                                <a class="btn btn-outline-primary" href="/my/marstek/stock">
+                                    <i class="fa fa-refresh"/> 重置
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-2 mt-2">
+                        <div class="col-md-3">
+                            <input type="date" class="form-control" name="date_from" 
+                                   placeholder="入库日期从" 
+                                   t-att-value="filters.get('date_from', '')"/>
+                        </div>
+                        <div class="col-md-3">
+                            <input type="date" class="form-control" name="date_to" 
+                                   placeholder="入库日期至" 
+                                   t-att-value="filters.get('date_to', '')"/>
+                        </div>
                     </div>
                 </form>
             </div>
