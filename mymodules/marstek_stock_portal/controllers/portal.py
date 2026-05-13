@@ -56,7 +56,7 @@ class MarstekStockPortal(CustomerPortal):
             "rows": rows,
             "pager": pager,
         })
-        return request.render("marstek_stock_portal.portal_marstek_stock_overview", values)
+        return request.render("marstek_stock_portal.portal_marstek_stock", values)
 
    # 按柜号查询库存页。
     @http.route(["/my/marstek/container_stock"], type="http", auth="user", website=True)
@@ -72,7 +72,7 @@ class MarstekStockPortal(CustomerPortal):
             "stock_result": stock_result,
             "rows": stock_result.get("lines", []),
         })
-        return request.render("marstek_stock_portal.portal_marstek_container_query", values)
+        return request.render("marstek_stock_portal.portal_marstek_container_stock", values)
 
     #入库查询页。
     @http.route(["/my/marstek/inbounds","/my/marstek/inbounds/page/<int:page>"], type="http", auth="user", website=True)
@@ -98,8 +98,6 @@ class MarstekStockPortal(CustomerPortal):
         return request.render("marstek_stock_portal.portal_marstek_inbounds", values)
 
 
-
-        return request.render("marstek_stock_portal.portal_marstek_inbound_list", values)
 #获取指定入库单下的托盘明细数据和获取指定入库单的可下载附件列表
     @http.route(["/my/marstek/inbounds/<int:inbound_id>"], type="http", auth="user", website=True)
     def marstek_inbound_detail_page(self, inbound_id, **kw):
@@ -118,7 +116,7 @@ class MarstekStockPortal(CustomerPortal):
             "detail_rows": detail_rows,
             "attachment_rows": attachment_rows,
         })
-        return request.render("marstek_stock_portal.portal_marstek_inbound_list", values)
+        return request.render("marstek_stock_portal.portal_marstek_inbound_detail", values)
 
 
 #出库查询页
@@ -190,23 +188,5 @@ class MarstekStockPortal(CustomerPortal):
             "sn_result": sn_result,
         })
         return request.render("marstek_stock_portal.portal_marstek_sn_query", values)
-
-# #获取指定出库单下的可下载附件列表
-#     @http.route(["/my/marstek/outbounds/<int:outbound_id>/attachments"], type="http", auth="user", website=True)
-#     def marstek_outbound_attachments_page(self, outbound_id, **kw):
-#         outbound_env = request.env["world.depot.outbound.order"]
-#         order = outbound_env.get_outbound_order(outbound_id)
-#         if not order:
-#             return request.redirect("/my/marstek/outbounds")
-#
-#         attachment_rows = outbound_env.get_outbound_attachments(outbound_id)
-#
-#         values = self.marstek_prepare_page_values("marstek_outbound_attachments", "Outbound Attachments")
-#         values.update({
-#             "order": order,
-#             "attachment_rows": attachment_rows,
-#         })
-#         return request.render("marstek_stock_portal.portal_marstek_outbound_attachments", values)
-
 
 

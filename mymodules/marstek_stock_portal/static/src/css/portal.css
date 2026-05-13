@@ -41,6 +41,10 @@
     border-color: #ffc107;
 }
 
+.o_marstek_card_outbound:hover {
+    border-color: #0dcaf0;
+}
+
 .o_marstek_icon {
     height: 60px;
     width: 60px;

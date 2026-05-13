@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-
     <!-- =========================================== -->
-    <!-- 1. 门户主页卡片 -->
+    <!-- 门户主页卡片 -->
     <!-- =========================================== -->
     <template id="portal_my_home_marstek" name="Marstek 库存门户入口" customize_show="True" inherit_id="portal.portal_my_home" priority="20">
         <xpath expr="//*[hasclass('o_portal_my_home')]" position="inside">
@@ -20,10 +19,11 @@
     </template>
 
     <!-- =========================================== -->
-    <!-- 2. Marstek 门户主页（菜单页面） -->
+    <!-- Marstek 门户主页（菜单页面） -->
     <!-- =========================================== -->
     <template id="portal_marstek_home" name="Marstek 库存门户">
         <t t-call="portal.portal_layout">
+            <!-- 面包屑home-->
             <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': None, 'name': 'Marstek 库存'}]"/>
 
             <div class="o_portal_content">
@@ -87,320 +87,770 @@
                             </div>
                         </a>
                     </div>
+
+                    <!-- 出库单查询 -->
+                    <div class="col-12 col-md-6 col-lg-4 mb-4">
+                        <a href="/my/marstek/outbounds" class="text-decoration-none">
+                            <div class="card h-100 o_marstek_card o_marstek_card_outbound">
+                                <div class="card-body text-center">
+                                    <div class="o_marstek_icon mb-3">
+                                        <i class="fa fa-arrow-up fa-3x text-info"/>
+                                    </div>
+                                    <h4 class="card-title">出库单查询</h4>
+                                    <p class="text-muted">查看和管理出库单<br/>下载出库附件</p>
+                                    <span class="btn btn-outline-info mt-2">
+                                        进入 <i class="fa fa-arrow-right ms-1"/>
+                                    </span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
                 </div>
             </div>
         </t>
     </template>
 
     <!-- =========================================== -->
-    <!-- 3. 库存概览页面 -->
+    <!-- 1. 库存总览页面 -->
     <!-- =========================================== -->
-    <template id="portal_marstek_stock_overview" name="库存概览">
+    <template id="portal_marstek_stock" name="Stock Overview">
         <t t-call="portal.portal_layout">
-            <t t-call="portal.portal_breadcrumbs">
-                <t t-set="segments" t-value="[
-                    ('marstek_home', 'Marstek 库存'),
-                    ('stock_overview', '库存概览')
-                ]"/>
-            </t>
+            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/marstek', 'name': 'Marstek 库存'}, {'url': None, 'name': '库存总览'}]"/>
 
-            <t t-set="breadcrumbs_searchbar" t-value="True"/>
-
-            <!-- 搜索栏 -->
-            <div class="mb-4">
-                <form method="get" action="/my/marstek/stock">
-                    <div class="row g-2">
-                        <div class="col-md-3">
-                            <input type="text" class="form-control" name="container_no" 
-                                   placeholder="集装箱号" 
-                                   t-att-value="filters.get('container_no', '')"/>
-                        </div>
-                        <div class="col-md-3">
-                            <input type="text" class="form-control" name="bl_no" 
-                                   placeholder="BL号" 
-                                   t-att-value="filters.get('bl_no', '')"/>
-                        </div>
-                        <div class="col-md-3">
-                            <input type="text" class="form-control" name="product_code" 
-                                   placeholder="产品代码" 
-                                   t-att-value="filters.get('product_code', '')"/>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="input-group">
-                                <button class="btn btn-outline-secondary" type="submit">
-                                    <i class="fa fa-search"/> 搜索
+            <div class="o_portal_content">
+                <!-- 筛选表单 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fa fa-filter me-2"/>
+                            筛选条件
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="/my/marstek/stock" method="get" class="row g-3">
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="container_no" class="form-label">柜号</label>
+                                <input type="text" class="form-control" id="container_no" name="container_no" t-attf-value="#{filters.get('container_no', '')}" placeholder="请输入柜号"/>
+                            </div>
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="bl_no" class="form-label">提单号</label>
+                                <input type="text" class="form-control" id="bl_no" name="bl_no" t-attf-value="#{filters.get('bl_no', '')}" placeholder="请输入提单号"/>
+                            </div>
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="product_code" class="form-label">产品编码</label>
+                                <input type="text" class="form-control" id="product_code" name="product_code" t-attf-value="#{filters.get('product_code', '')}" placeholder="请输入产品编码"/>
+                            </div>
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="date_from" class="form-label">开始日期</label>
+                                <input type="date" class="form-control" id="date_from" name="date_from" t-attf-value="#{filters.get('date_from', '')}"/>
+                            </div>
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="date_to" class="form-label">结束日期</label>
+                                <input type="date" class="form-control" id="date_to" name="date_to" t-attf-value="#{filters.get('date_to', '')}"/>
+                            </div>
+                            <div class="col-12 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary me-2">
+                                    <i class="fa fa-search me-1"/>
+                                    查询
                                 </button>
-                                <a class="btn btn-outline-primary" href="/my/marstek/stock">
-                                    <i class="fa fa-refresh"/> 重置
+                                <a href="/my/marstek/stock" class="btn btn-secondary">
+                                    <i class="fa fa-refresh me-1"/>
+                                    重置
                                 </a>
                             </div>
-                        </div>
-                    </div>
-                    <div class="row g-2 mt-2">
-                        <div class="col-md-3">
-                            <input type="date" class="form-control" name="date_from" 
-                                   placeholder="入库日期从" 
-                                   t-att-value="filters.get('date_from', '')"/>
-                        </div>
-                        <div class="col-md-3">
-                            <input type="date" class="form-control" name="date_to" 
-                                   placeholder="入库日期至" 
-                                   t-att-value="filters.get('date_to', '')"/>
-                        </div>
-                    </div>
-                </form>
-            </div>
-
-            <!-- 空状态 -->
-            <t t-if="not rows">
-                <p class="alert alert-warning">There are currently no stock records for your account.</p>
-            </t>
-
-            <!-- 数据表格 -->
-            <t t-if="rows" t-call="portal.portal_table">
-                <thead>
-                    <tr>
-                        <th>货盘号</th>
-                        <th>集装箱号</th>
-                        <th>BL号</th>
-                        <th>产品代码</th>
-                        <th>产品名称</th>
-                        <th class="text-end">数量</th>
-                        <th>库位</th>
-                        <th>入库日期</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr t-foreach="rows" t-as="row">
-                        <td><t t-esc="row['package_name']"/></td>
-                        <td><t t-esc="row['container_no']"/></td>
-                        <td><t t-esc="row['bl_no']"/></td>
-                        <td><t t-esc="row['product_code']"/></td>
-                        <td><t t-esc="row['product_name']"/></td>
-                        <td class="text-end"><t t-esc="row['quantity']"/></td>
-                        <td><t t-esc="row['location_name']"/></td>
-                        <td><t t-esc="row['inbound_date']"/></td>
-                    </tr>
-                </tbody>
-            </t>
-        </t>
-    </template>
-
-    <!-- =========================================== -->
-    <!-- 4. 集装箱查询页面 (核心功能) -->
-    <!-- =========================================== -->
-    <template id="portal_marstek_container_query" name="集装箱查询">
-        <t t-call="portal.portal_layout">
-            <t t-call="portal.portal_breadcrumbs">
-                <t t-set="segments" t-value="[
-                    ('marstek_home', 'Marstek 库存'),
-                    ('container_query', '集装箱查询')
-                ]"/>
-            </t>
-
-            <t t-set="breadcrumbs_searchbar" t-value="True"/>
-
-            <h2 class="mb-3">集装箱查询</h2>
-            <p class="text-muted">输入集装箱号查看该集装箱内的所有货盘和库存。</p>
-
-            <!-- 搜索表单 -->
-            <form method="get" action="/my/marstek/container_stock" class="mb-4">
-                <div class="input-group">
-                    <input type="text" class="form-control" name="container_no"
-                           placeholder="输入集装箱号..." t-att-value="container_no"/>
-                    <button class="btn btn-primary" type="submit">
-                        <i class="fa fa-search"/> 查询
-                    </button>
-                    <a class="btn btn-outline-secondary" href="/my/marstek/container_stock">
-                        重置
-                    </a>
-                </div>
-            </form>
-
-            <!-- 查询结果 -->
-            <t t-if="container_no and stock_result.get('lines')">
-                <!-- 汇总卡片 -->
-                <div class="row mb-4">
-                    <div class="col-md-4">
-                        <div class="card bg-light">
-                            <div class="card-body">
-                                <h6 class="text-muted mb-1">货盘总数</h6>
-                                <h3><t t-esc="len(stock_result['lines'])"/></h3>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card bg-light">
-                            <div class="card-body">
-                                <h6 class="text-muted mb-1">库存总量</h6>
-                                <h3><t t-esc="stock_result['total_quantity']"/></h3>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card bg-light">
-                            <div class="card-body">
-                                <h6 class="text-muted mb-1">BL号</h6>
-                                <h3><t t-esc="stock_result['bl_no'] or '-'"/></h3>
-                            </div>
-                        </div>
+                        </form>
                     </div>
                 </div>
 
                 <!-- 数据表格 -->
-                <t t-call="portal.portal_table">
-                    <thead>
-                        <tr>
-                            <th>货盘号</th>
-                            <th>产品代码</th>
-                            <th>产品名称</th>
-                            <th class="text-end">数量</th>
-                            <th>库位</th>
-                            <th>入库日期</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr t-foreach="stock_result['lines']" t-as="row">
-                            <td><t t-esc="row['package_name']"/></td>
-                            <td><t t-esc="row['product_code']"/></td>
-                            <td><t t-esc="row['product_name']"/></td>
-                            <td class="text-end"><t t-esc="row['quantity']"/></td>
-                            <td><t t-esc="row['location_name']"/></td>
-                            <td><t t-esc="row['inbound_date']"/></td>
-                        </tr>
-                    </tbody>
-                </t>
-            </t>
-
-            <t t-elif="container_no and not stock_result.get('lines')">
-                <p class="alert alert-warning">未找到集装箱 <strong><t t-esc="container_no"/></strong> 的数据</p>
-            </t>
-        </t>
-    </template>
-
-    <!-- =========================================== -->
-    <!-- 5. 入库单列表页面 -->
-    <!-- =========================================== -->
-    <template id="portal_marstek_inbound_list" name="入库单列表">
-        <t t-call="portal.portal_layout">
-            <t t-call="portal.portal_breadcrumbs">
-                <t t-set="segments" t-value="[
-                    ('marstek_home', 'Marstek 库存'),
-                    ('inbound_list', '入库单')
-                ]"/>
-            </t>
-
-            <t t-set="breadcrumbs_searchbar" t-value="True"/>
-
-            <!-- 搜索栏 -->
-            <div class="mb-4">
-                <form method="get" action="/my/marstek/inbounds">
-                    <div class="input-group">
-                        <input type="text" class="form-control" name="inbound_no" placeholder="入库单号..."
-                               t-att-value="filters.get('inbound_no', '')"/>
-                        <input type="text" class="form-control" name="bl_no" placeholder="BL号..."
-                               t-att-value="filters.get('bl_no', '')"/>
-                        <input type="text" class="form-control" name="container_no" placeholder="集装箱号..."
-                               t-att-value="filters.get('container_no', '')"/>
-                        <button class="btn btn-outline-secondary" type="submit">
-                            <i class="fa fa-search"/> 搜索
-                        </button>
-                        <a class="btn btn-outline-primary" href="/my/marstek/inbounds">
-                            <i class="fa fa-refresh"/> 重置
-                        </a>
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">库存列表</h5>
+                        <span class="badge bg-primary">共 <t t-esc="pager.get('total', 0)"/> 条</span>
                     </div>
-                </form>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="text-nowrap">托盘号</th>
+                                        <th class="text-nowrap">柜号</th>
+                                        <th class="text-nowrap">提单号</th>
+                                        <th class="text-nowrap">产品编码</th>
+                                        <th class="text-nowrap">产品名称</th>
+                                        <th class="text-nowrap text-end">数量</th>
+                                        <th class="text-nowrap">库位</th>
+                                        <th class="text-nowrap">入库日期</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="rows" t-as="row">
+                                        <tr>
+                                            <td><t t-esc="row.get('package_name', '')"/></td>
+                                            <td><t t-esc="row.get('container_no', '')"/></td>
+                                            <td><t t-esc="row.get('bl_no', '')"/></td>
+                                            <td><t t-esc="row.get('product_code', '')"/></td>
+                                            <td><t t-esc="row.get('product_name', '')"/></td>
+                                            <td class="text-end"><t t-esc="row.get('quantity', 0)"/></td>
+                                            <td><t t-esc="row.get('location_name', '')"/></td>
+                                            <td><t t-esc="row.get('inbound_date', '')"/></td>
+                                        </tr>
+                                    </t>
+                                    <t t-if="not rows">
+                                        <tr>
+                                            <td colspan="8" class="text-center text-muted py-4">暂无数据</td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div t-if="pager.get('page_count', 1) > 1" class="card-footer">
+                        <t t-call="portal.pager"/>
+                    </div>
+                </div>
             </div>
-
-            <!-- 空状态 -->
-            <t t-if="not rows">
-                <p class="alert alert-warning">There are currently no inbound orders for your account.</p>
-            </t>
-
-            <!-- 数据表格 -->
-            <t t-if="rows" t-call="portal.portal_table">
-                <thead>
-                    <tr>
-                        <th>入库单号</th>
-                        <th>BL号</th>
-                        <th>集装箱号</th>
-                        <th>入库日期</th>
-                        <th class="text-end">货盘数</th>
-                        <th class="text-end">总量</th>
-                        <th>状态</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr t-foreach="rows" t-as="row">
-                        <td>
-                            <a t-attf-href="/my/marstek/inbounds/{{ row['id'] }}">
-                                <t t-esc="row['billno']"/>
-                            </a>
-                        </td>
-                        <td><t t-esc="row['bl_no']"/></td>
-                        <td><t t-esc="row['cntr_no']"/></td>
-                        <td><t t-esc="row['date']"/></td>
-                        <td class="text-end"><t t-esc="row['pallets']"/></td>
-                        <td class="text-end"><t t-esc="row['total_quantity']"/></td>
-                        <td>
-                            <span class="badge" t-attf-class="bg-{{ row.get('state_color', 'secondary') }}">
-                                <t t-esc="row.get('state_text', '')"/>
-                            </span>
-                        </td>
-                    </tr>
-                </tbody>
-            </t>
         </t>
     </template>
 
     <!-- =========================================== -->
-    <!-- 6. 出库单列表页面 -->
+    <!-- 2. 集装箱查询页面 -->
     <!-- =========================================== -->
-    <template id="portal_marstek_outbound_list" name="出库单列表">
+    <template id="portal_marstek_container_stock" name="Container Stock">
         <t t-call="portal.portal_layout">
-            <t t-call="portal.portal_breadcrumbs">
-                <t t-set="segments" t-value="[
-                    ('marstek_home', 'Marstek 库存'),
-                    ('outbound_list', '出库单')
-                ]"/>
-            </t>
+            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/marstek', 'name': 'Marstek 库存'}, {'url': None, 'name': '集装箱查询'}]"/>
 
-            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+            <div class="o_portal_content">
+                <!-- 查询表单 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fa fa-truck me-2"/>
+                            按柜号查询
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="/my/marstek/container_stock" method="get" class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <label for="container_no" class="form-label">柜号 <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="container_no" name="container_no" t-attf-value="#{container_no or ''}" placeholder="请输入柜号" required="1"/>
+                            </div>
+                            <div class="col-12 d-flex align-items-end">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fa fa-search me-1"/>
+                                    查询
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
 
-            <p class="alert alert-info">出库单功能开发中...</p>
+                <!-- 查询结果 -->
+                <t t-if="stock_result.get('container_no')">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fa fa-info-circle me-2"/>
+                                柜号: <t t-esc="stock_result.get('container_no', '')"/>
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <strong>提单号:</strong>
+                                    <span class="ms-2"><t t-esc="stock_result.get('bl_no', '')"/></span>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <strong>总数量:</strong>
+                                    <span class="ms-2"><t t-esc="stock_result.get('total_quantity', 0)"/></span>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <strong>货盘数:</strong>
+                                    <span class="ms-2"><t t-esc="len(stock_result.get('lines', []))"/></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">货盘明细</h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>托盘号</th>
+                                            <th>柜号</th>
+                                            <th>提单号</th>
+                                            <th>产品编码</th>
+                                            <th>产品名称</th>
+                                            <th class="text-end">数量</th>
+                                            <th>库位</th>
+                                            <th>入库日期</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="rows" t-as="row">
+                                            <tr>
+                                                <td><t t-esc="row.get('package_name', '')"/></td>
+                                                <td><t t-esc="row.get('container_no', '')"/></td>
+                                                <td><t t-esc="row.get('bl_no', '')"/></td>
+                                                <td><t t-esc="row.get('product_code', '')"/></td>
+                                                <td><t t-esc="row.get('product_name', '')"/></td>
+                                                <td class="text-end"><t t-esc="row.get('quantity', 0)"/></td>
+                                                <td><t t-esc="row.get('location_name', '')"/></td>
+                                                <td><t t-esc="row.get('inbound_date', '')"/></td>
+                                            </tr>
+                                        </t>
+                                        <t t-if="not rows">
+                                            <tr>
+                                                <td colspan="8" class="text-center text-muted py-4">暂无数据</td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+
+                <t t-elif="container_no and not stock_result.get('lines')">
+                    <div class="alert alert-warning">
+                        <i class="fa fa-exclamation-triangle me-2"/>
+                        未找到柜号 '<t t-esc="container_no"/>' 对应的库存数据
+                    </div>
+                </t>
+            </div>
         </t>
     </template>
 
     <!-- =========================================== -->
-    <!-- 7. 出库单详情页面 -->
+    <!-- 3. 入库查询列表页面 -->
     <!-- =========================================== -->
-    <template id="portal_marstek_outbound_detail" name="出库单详情">
+    <template id="portal_marstek_inbounds" name="Inbound Orders">
         <t t-call="portal.portal_layout">
-            <t t-call="portal.portal_breadcrumbs">
-                <t t-set="segments" t-value="[
-                    ('marstek_home', 'Marstek 库存'),
-                    ('outbound_list', '出库单'),
-                    ('outbound_detail', '详情')
-                ]"/>
-            </t>
+            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/marstek', 'name': 'Marstek 库存'}, {'url': None, 'name': '入库单查询'}]"/>
 
-            <p class="alert alert-info">出库单详情功能开发中...</p>
+            <div class="o_portal_content">
+                <!-- 筛选表单 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fa fa-filter me-2"/>
+                            筛选条件
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="/my/marstek/inbounds" method="get" class="row g-3">
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="inbound_no" class="form-label">入库单号/客户参考号</label>
+                                <input type="text" class="form-control" id="inbound_no" name="inbound_no" t-attf-value="#{filters.get('inbound_no', '')}" placeholder="请输入入库单号或参考号"/>
+                            </div>
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="bl_no" class="form-label">提单号</label>
+                                <input type="text" class="form-control" id="bl_no" name="bl_no" t-attf-value="#{filters.get('bl_no', '')}" placeholder="请输入提单号"/>
+                            </div>
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="container_no" class="form-label">柜号</label>
+                                <input type="text" class="form-control" id="container_no" name="container_no" t-attf-value="#{filters.get('container_no', '')}" placeholder="请输入柜号"/>
+                            </div>
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="portal_inbound_status" class="form-label">状态</label>
+                                <select class="form-select" id="portal_inbound_status" name="portal_inbound_status">
+                                    <option value="">全部</option>
+                                    <option value="inbound_confirmed" t-att-selected="'selected' if filters.get('portal_inbound_status') == 'inbound_confirmed' else None">已确认</option>
+                                    <option value="inbound_processing" t-att-selected="'selected' if filters.get('portal_inbound_status') == 'inbound_processing' else None">处理中</option>
+                                    <option value="inbound_done" t-att-selected="'selected' if filters.get('portal_inbound_status') == 'inbound_done' else None">已完成</option>
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="inbound_date_from" class="form-label">开始日期</label>
+                                <input type="date" class="form-control" id="inbound_date_from" name="inbound_date_from" t-attf-value="#{filters.get('inbound_date_from', '')}"/>
+                            </div>
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="inbound_date_to" class="form-label">结束日期</label>
+                                <input type="date" class="form-control" id="inbound_date_to" name="inbound_date_to" t-attf-value="#{filters.get('inbound_date_to', '')}"/>
+                            </div>
+                            <div class="col-12 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary me-2">
+                                    <i class="fa fa-search me-1"/>
+                                    查询
+                                </button>
+                                <a href="/my/marstek/inbounds" class="btn btn-secondary">
+                                    <i class="fa fa-refresh me-1"/>
+                                    重置
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- 数据表格 -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">入库单列表</h5>
+                        <span class="badge bg-primary">共 <t t-esc="pager.get('total', 0)"/> 条</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>入库单号</th>
+                                        <th>客户参考号</th>
+                                        <th>提单号</th>
+                                        <th>柜号</th>
+                                        <th>入库日期</th>
+                                        <th>状态</th>
+                                        <th class="text-end">总数量</th>
+                                        <th class="text-end">货盘数</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="rows" t-as="row">
+                                        <tr>
+                                            <td><t t-esc="row.get('inbound_no', '')"/></td>
+                                            <td><t t-esc="row.get('reference', '')"/></td>
+                                            <td><t t-esc="row.get('bl_no', '')"/></td>
+                                            <td><t t-esc="row.get('container_no', '')"/></td>
+                                            <td><t t-esc="row.get('inbound_date', '')"/></td>
+                                            <td>
+                                                <t t-if="row.get('portal_inbound_status') == 'inbound_confirmed'">
+                                                    <span class="badge bg-info">已确认</span>
+                                                </t>
+                                                <t t-elif="row.get('portal_inbound_status') == 'inbound_processing'">
+                                                    <span class="badge bg-warning">处理中</span>
+                                                </t>
+                                                <t t-else="">
+                                                    <span class="badge bg-success">已完成</span>
+                                                </t>
+                                            </td>
+                                            <td class="text-end"><t t-esc="row.get('total_quantity', 0)"/></td>
+                                            <td class="text-end"><t t-esc="row.get('total_pallets', 0)"/></td>
+                                            <td>
+                                                <a t-attf-href="/my/marstek/inbounds/#{row.get('inbound_id')}" class="btn btn-sm btn-outline-primary">
+                                                    查看详情
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                    <t t-if="not rows">
+                                        <tr>
+                                            <td colspan="9" class="text-center text-muted py-4">暂无数据</td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div t-if="pager.get('page_count', 1) > 1" class="card-footer">
+                        <t t-call="portal.pager"/>
+                    </div>
+                </div>
+            </div>
         </t>
     </template>
 
     <!-- =========================================== -->
-    <!-- 8. SN码查询页面 -->
+    <!-- 4. 入库详情页面 -->
     <!-- =========================================== -->
-    <template id="portal_marstek_sn_query" name="SN码查询">
+    <template id="portal_marstek_inbound_detail" name="Inbound Detail">
         <t t-call="portal.portal_layout">
-            <t t-call="portal.portal_breadcrumbs">
-                <t t-set="segments" t-value="[
-                    ('marstek_home', 'Marstek 库存'),
-                    ('sn_query', 'SN码查询')
-                ]"/>
-            </t>
+            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/marstek', 'name': 'Marstek 库存'}, {'url': '/my/marstek/inbounds', 'name': '入库单查询'}, {'url': None, 'name': '入库详情'}]"/>
 
-            <p class="alert alert-info">SN码查询功能开发中...</p>
+            <div class="o_portal_content">
+                <!-- 订单信息 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fa fa-file-text-o me-2"/>
+                            入库单信息
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <strong>入库单号:</strong>
+                                <span class="ms-2"><t t-esc="order.billno if order else ''"/></span>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <strong>客户参考号:</strong>
+                                <span class="ms-2"><t t-esc="order.reference if order else ''"/></span>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <strong>提单号:</strong>
+                                <span class="ms-2"><t t-esc="order.bl_no if order else ''"/></span>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <strong>柜号:</strong>
+                                <span class="ms-2"><t t-esc="order.cntr_no if order else ''"/></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 货盘明细 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fa fa-list me-2"/>
+                            货盘明细
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>托盘号</th>
+                                        <th>柜号</th>
+                                        <th>提单号</th>
+                                        <th>产品编码</th>
+                                        <th>产品名称</th>
+                                        <th class="text-end">数量</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="detail_rows" t-as="row">
+                                        <tr>
+                                            <td><t t-esc="row.get('package_name', '')"/></td>
+                                            <td><t t-esc="row.get('container_no', '')"/></td>
+                                            <td><t t-esc="row.get('bl_no', '')"/></td>
+                                            <td><t t-esc="row.get('product_code', '')"/></td>
+                                            <td><t t-esc="row.get('product_name', '')"/></td>
+                                            <td class="text-end"><t t-esc="row.get('quantity', 0)"/></td>
+                                        </tr>
+                                    </t>
+                                    <t t-if="not detail_rows">
+                                        <tr>
+                                            <td colspan="6" class="text-center text-muted py-4">暂无数据</td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 附件列表 -->
+                <t t-if="attachment_rows">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fa fa-paperclip me-2"/>
+                                附件列表
+                            </h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>文件名</th>
+                                            <th>类型</th>
+                                            <th>大小</th>
+                                            <th class="text-center">操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="attachment_rows" t-as="att">
+                                            <tr>
+                                                <td><t t-esc="att.get('file_name', '')"/></td>
+                                                <td><t t-esc="att.get('file_type', '')"/></td>
+                                                <td><t t-esc="att.get('file_size', 0)"/> bytes</td>
+                                                <td class="text-center">
+                                                    <a t-if="att.get('download_url')" t-attf-href="#{att.get('download_url')}" class="btn btn-sm btn-primary" target="_blank">
+                                                        <i class="fa fa-download me-1"/>
+                                                        下载
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+
+                <!-- 返回按钮 -->
+                <div class="mt-4">
+                    <a href="/my/marstek/inbounds" class="btn btn-secondary">
+                        <i class="fa fa-arrow-left me-1"/>
+                        返回列表
+                    </a>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- =========================================== -->
+    <!-- 5. 出库查询列表页面 -->
+    <!-- =========================================== -->
+    <template id="portal_marstek_outbounds" name="Outbound Orders">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/marstek', 'name': 'Marstek 库存'}, {'url': None, 'name': '出库单查询'}]"/>
+
+            <div class="o_portal_content">
+                <!-- 筛选表单 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fa fa-filter me-2"/>
+                            筛选条件
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="/my/marstek/outbounds" method="get" class="row g-3">
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="outbound_no" class="form-label">出库单号/客户参考号</label>
+                                <input type="text" class="form-control" id="outbound_no" name="outbound_no" t-attf-value="#{filters.get('outbound_no', '')}" placeholder="请输入出库单号或参考号"/>
+                            </div>
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="bl_no" class="form-label">提单号</label>
+                                <input type="text" class="form-control" id="bl_no" name="bl_no" t-attf-value="#{filters.get('bl_no', '')}" placeholder="请输入提单号"/>
+                            </div>
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="container_no" class="form-label">柜号</label>
+                                <input type="text" class="form-control" id="container_no" name="container_no" t-attf-value="#{filters.get('container_no', '')}" placeholder="请输入柜号"/>
+                            </div>
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="portal_outbound_status" class="form-label">状态</label>
+                                <select class="form-select" id="portal_outbound_status" name="portal_outbound_status">
+                                    <option value="">全部</option>
+                                    <option value="outbound_confirmed" t-att-selected="'selected' if filters.get('portal_outbound_status') == 'outbound_confirmed' else None">已确认</option>
+                                    <option value="outbound_picking_processing" t-att-selected="'selected' if filters.get('portal_outbound_status') == 'outbound_picking_processing' else None">拣货中</option>
+                                    <option value="outbound_picking_done" t-att-selected="'selected' if filters.get('portal_outbound_status') == 'outbound_picking_done' else None">拣货完成</option>
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="outbound_date_from" class="form-label">开始日期</label>
+                                <input type="date" class="form-control" id="outbound_date_from" name="outbound_date_from" t-attf-value="#{filters.get('outbound_date_from', '')}"/>
+                            </div>
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="outbound_date_to" class="form-label">结束日期</label>
+                                <input type="date" class="form-control" id="outbound_date_to" name="outbound_date_to" t-attf-value="#{filters.get('outbound_date_to', '')}"/>
+                            </div>
+                            <div class="col-12 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary me-2">
+                                    <i class="fa fa-search me-1"/>
+                                    查询
+                                </button>
+                                <a href="/my/marstek/outbounds" class="btn btn-secondary">
+                                    <i class="fa fa-refresh me-1"/>
+                                    重置
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- 数据表格 -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">出库单列表</h5>
+                        <span class="badge bg-primary">共 <t t-esc="pager.get('total', 0)"/> 条</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>出库单号</th>
+                                        <th>提单号</th>
+                                        <th>柜号</th>
+                                        <th>出库日期</th>
+                                        <th>状态</th>
+                                        <th class="text-end">总数量</th>
+                                        <th>拣货单号</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="rows" t-as="row">
+                                        <tr>
+                                            <td><t t-esc="row.get('outbound_no', '')"/></td>
+                                            <td><t t-esc="row.get('bl_no', '')"/></td>
+                                            <td><t t-esc="row.get('container_no', '')"/></td>
+                                            <td><t t-esc="row.get('outbound_date', '')"/></td>
+                                            <td>
+                                                <t t-if="row.get('portal_outbound_status') == 'outbound_confirmed'">
+                                                    <span class="badge bg-info">已确认</span>
+                                                </t>
+                                                <t t-elif="row.get('portal_outbound_status') == 'outbound_picking_processing'">
+                                                    <span class="badge bg-warning">拣货中</span>
+                                                </t>
+                                                <t t-else="">
+                                                    <span class="badge bg-success">拣货完成</span>
+                                                </t>
+                                            </td>
+                                            <td class="text-end"><t t-esc="row.get('total_quantity', 0)"/></td>
+                                            <td><t t-esc="row.get('picking_no', '')"/></td>
+                                            <td>
+                                                <a t-attf-href="/my/marstek/outbounds/#{row.get('outbound_id')}" class="btn btn-sm btn-outline-primary">
+                                                    查看详情
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                    <t t-if="not rows">
+                                        <tr>
+                                            <td colspan="8" class="text-center text-muted py-4">暂无数据</td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div t-if="pager.get('page_count', 1) > 1" class="card-footer">
+                        <t t-call="portal.pager"/>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- =========================================== -->
+    <!-- 6. 出库详情页面 -->
+    <!-- =========================================== -->
+    <template id="portal_marstek_outbound_detail" name="Outbound Detail">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/marstek', 'name': 'Marstek 库存'}, {'url': '/my/marstek/outbounds', 'name': '出库单查询'}, {'url': None, 'name': '出库详情'}]"/>
+
+            <div class="o_portal_content">
+                <!-- 订单信息 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fa fa-file-text-o me-2"/>
+                            出库单信息
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <strong>出库单号:</strong>
+                                <span class="ms-2"><t t-esc="order.billno if order else ''"/></span>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <strong>客户参考号:</strong>
+                                <span class="ms-2"><t t-esc="order.reference if order else ''"/></span>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <strong>拣货单号:</strong>
+                                <span class="ms-2"><t t-esc="order.picking_PICK if order else ''"/> / <t t-esc="order.picking_Out if order else ''"/></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 出库明细 -->
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fa fa-list me-2"/>
+                            出库明细
+                        </h5>
+                        <t t-if="detail_pager and detail_pager.get('page_count', 1) > 1">
+                            <span class="badge bg-secondary">共 <t t-esc="detail_pager.get('total', 0)"/> 条</span>
+                        </t>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>出库单号</th>
+                                        <th>提单号</th>
+                                        <th>柜号</th>
+                                        <th>托盘号</th>
+                                        <th>产品编码</th>
+                                        <th>产品名称</th>
+                                        <th class="text-end">数量</th>
+                                        <th>SN序列号</th>
+                                        <th>扫描时间</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="detail_rows" t-as="row">
+                                        <tr>
+                                            <td><t t-esc="row.get('outbound_no', '')"/></td>
+                                            <td><t t-esc="row.get('bl_no', '')"/></td>
+                                            <td><t t-esc="row.get('container_no', '')"/></td>
+                                            <td><t t-esc="row.get('package_name', '')"/></td>
+                                            <td><t t-esc="row.get('product_code', '')"/></td>
+                                            <td><t t-esc="row.get('product_name', '')"/></td>
+                                            <td class="text-end"><t t-esc="row.get('quantity', 0)"/></td>
+                                            <td><t t-esc="row.get('sn_code', '')"/></td>
+                                            <td><t t-esc="row.get('scan_time', '')"/></td>
+                                        </tr>
+                                    </t>
+                                    <t t-if="not detail_rows">
+                                        <tr>
+                                            <td colspan="9" class="text-center text-muted py-4">暂无数据</td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div t-if="detail_pager and detail_pager.get('page_count', 1) > 1" class="card-footer">
+                        <t t-call="portal.pager" t-value="detail_pager"/>
+                    </div>
+                </div>
+
+                <!-- 附件列表 -->
+                <t t-if="attachment_rows">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fa fa-paperclip me-2"/>
+                                附件列表
+                            </h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>文件名</th>
+                                            <th>类型</th>
+                                            <th>大小</th>
+                                            <th class="text-center">操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="attachment_rows" t-as="att">
+                                            <tr>
+                                                <td><t t-esc="att.get('file_name', '')"/></td>
+                                                <td><t t-esc="att.get('file_type', '')"/></td>
+                                                <td><t t-esc="att.get('file_size', 0)"/> bytes</td>
+                                                <td class="text-center">
+                                                    <a t-if="att.get('download_url')" t-attf-href="#{att.get('download_url')}" class="btn btn-sm btn-primary" target="_blank">
+                                                        <i class="fa fa-download me-1"/>
+                                                        下载
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+
+                <!-- 返回按钮 -->
+                <div class="mt-4">
+                    <a href="/my/marstek/outbounds" class="btn btn-secondary">
+                        <i class="fa fa-arrow-left me-1"/>
+                        返回列表
+                    </a>
+                </div>
+            </div>
         </t>
     </template>
 
