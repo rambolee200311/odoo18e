@@ -188,8 +188,6 @@ class MarstekStockPortal(CustomerPortal):
         values.update({
             "sn_code": sn_code,
             "sn_result": sn_result,
-            "sn_data": sn_result.get("data", {}) if sn_result.get("status") == "FOUND" else {},
-            "not_found": bool(sn_code and sn_result.get("status") == "NOT_FOUND"),
         })
         return request.render("marstek_stock_portal.portal_marstek_sn_query", values)
 
