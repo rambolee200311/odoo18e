@@ -87,20 +87,37 @@ def portal_package_shipping_map(env, package_ids, quants=None):
         [
             ("result_package_id", "in", package_ids),
             ("picking_id.picking_type_id.code", "=", "incoming"),
-            ("picking_id.inbound_order_id", "!=", False),
         ],
         order="date desc, id desc",
     )
 
     for move_line in move_lines:
-        package_id = move_line.result_package_id.id
-        inbound = move_line.picking_id.inbound_order_id
+        package = move_line.result_package_id
+        if not package:
+            continue
+
+        package_id = package.id
+        current_info = info_by_package.get(package_id, {})
+
+        if current_info.get("container_no") and current_info.get("bl_no"):
+            continue
+
+        picking = move_line.picking_id
+        inbound = picking.inbound_order_id
+
+        container_no = (inbound.cntr_no if inbound else "") or picking.cntrno or ""
+        bl_no = (inbound.bl_no if inbound else "") or picking.bill_of_lading or ""
+
+        if not container_no and not bl_no:
+            continue
+
         info_by_package[package_id] = {
-            "container_no": inbound.cntr_no or "",
-            "bl_no": inbound.bl_no or "",
+            "container_no": current_info.get("container_no") or container_no,
+            "bl_no": current_info.get("bl_no") or bl_no,
         }
 
     return info_by_package
+
 
 
 #通过柜号或 BL 反查托盘 ID”
@@ -108,24 +125,42 @@ def portal_package_ids_by_shipping(env, field_key, operator, value, owner=None):
     if not value:
         return []
 
+    if field_key not in ("container_no", "bl_no"):
+        return []
+
     operator = operator or "ilike"
     if operator not in ("=", "!=", "ilike", "not ilike", "=ilike"):
         operator = "ilike"
 
     inbound_field = "cntr_no" if field_key == "container_no" else "bl_no"
+    picking_field = "cntrno" if field_key == "container_no" else "bill_of_lading"
 
-    domain = [
+    base_domain = [
         ("result_package_id", "!=", False),
         ("picking_id.picking_type_id.code", "=", "incoming"),
-        ("picking_id.inbound_order_id", "!=", False),
-        (f"picking_id.inbound_order_id.{inbound_field}", operator, value),
     ]
 
-    if owner:
-        domain.append(("picking_id.inbound_order_id.project.owner", "=", owner.id))
+    shipping_domain = expression.OR([
+        [(f"picking_id.inbound_order_id.{inbound_field}", operator, value)],
+        [(f"picking_id.{picking_field}", operator, value)],
+    ])
 
-    move_lines = env["stock.move.line"].sudo().search(domain)
+    domain = expression.AND([base_domain, shipping_domain])
+
+    if owner:
+        owner_domain = expression.OR([
+            [("picking_id.inbound_order_id.project.owner", "=", owner.id)],
+            [("picking_id.owner_id", "=", owner.id)],
+            [("picking_id.partner_id", "=", owner.id)],
+        ])
+        domain = expression.AND([domain, owner_domain])
+
+    move_lines = env["stock.move.line"].sudo().search(
+        domain,
+        order="date desc, id desc",
+    )
     return list(set(move_lines.mapped("result_package_id").ids))
+
 
 
 #把 stock.quant 库存记录整理成前端要的库存行

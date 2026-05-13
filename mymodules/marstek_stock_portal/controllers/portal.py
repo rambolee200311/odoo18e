@@ -77,7 +77,7 @@ class MarstekStockPortal(CustomerPortal):
     #入库查询页。
     @http.route(["/my/marstek/inbounds","/my/marstek/inbounds/page/<int:page>"], type="http", auth="user", website=True)
     def marstek_inbounds_page(self,page=1, **kw):
-        filters = self.marstek_filter_values(kw, ["inbound_no", "reference", "container_no", "inbound_date_from", "inbound_date_to","portal_inbound_status"])
+        filters = self.marstek_filter_values(kw, ["inbound_no", "bl_no","reference", "container_no", "inbound_date_from", "inbound_date_to","portal_inbound_status"])
         page_size = 20
         all_rows = request.env["world.depot.inbound.order"].get_inbound_list(filters)
         total = len(all_rows)
@@ -175,6 +175,23 @@ class MarstekStockPortal(CustomerPortal):
         })
         return request.render("marstek_stock_portal.portal_marstek_outbound_detail", values)
 
+    @http.route(["/my/marstek/sn_query"], type="http", auth="user", website=True)
+    def marstek_sn_query_page(self, **kw):
+        filters = self.marstek_filter_values(kw, ["sn_code"])
+        sn_code = filters.get("sn_code")
+        sn_result = {"status": "", "data": {}}
+
+        if sn_code:
+            sn_result = request.env["world.depot.outbound.order.sn.detail"].search_sn(sn_code)
+
+        values = self.marstek_prepare_page_values("marstek_sn_query", "SN Query", filters)
+        values.update({
+            "sn_code": sn_code,
+            "sn_result": sn_result,
+            "sn_data": sn_result.get("data", {}) if sn_result.get("status") == "FOUND" else {},
+            "not_found": bool(sn_code and sn_result.get("status") == "NOT_FOUND"),
+        })
+        return request.render("marstek_stock_portal.portal_marstek_sn_query", values)
 
 # #获取指定出库单下的可下载附件列表
 #     @http.route(["/my/marstek/outbounds/<int:outbound_id>/attachments"], type="http", auth="user", website=True)

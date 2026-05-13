@@ -76,7 +76,7 @@ class OutboundOrder(models.Model):
                 "bl_no": ", ".join(sorted(bls)),
                 "container_no": ", ".join(sorted(containers)),
                 "outbound_date": portal_format_date(rec.picking_PICK_date),
-                 "portal_inbound_status": state,
+                 "portal_outbound_status": state,
                 "total_quantity": total_quantity,
                 "picking_no": rec.picking_PICK.name or "",
             })
@@ -201,6 +201,9 @@ class OutboundOrder(models.Model):
             lot = move_line.lot_id
             product = move_line.product_id
             package = move_line.package_id or move_line.result_package_id
+            if package.id == 1224:
+                a=1
+
 
             if product.tracking == "serial" and lot:
                 key = ("serial", lot.name, product.id)
@@ -216,7 +219,7 @@ class OutboundOrder(models.Model):
             seen.add(key)
 
             info = info_by_package.get(package.id, {}) if package else {}
-            container_no = (lot.cntrno if lot else "") or info.get("container_no")or portal_package_container_from_name(package.name if package else "")
+            container_no = (lot.cntrno if lot else "") or info.get("container_no")
             bl_no = (lot.bill_of_lading if lot else "") or info.get("bl_no") or ""
 
             rows.append({
