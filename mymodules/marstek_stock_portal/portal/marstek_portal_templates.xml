@@ -123,7 +123,7 @@
                     <div class="card-header">
                         <h5 class="mb-0">
                             <i class="fa fa-filter me-2"/>
-                            筛选条件
+                            库存概览
                         </h5>
                     </div>
                     <div class="card-body">
@@ -187,8 +187,18 @@
                                     <t t-foreach="rows" t-as="row">
                                         <tr>
                                             <td><t t-esc="row.get('package_name', '')"/></td>
-                                            <td><t t-esc="row.get('container_no', '')"/></td>
-                                            <td><t t-esc="row.get('bl_no', '')"/></td>
+                                            <td>
+                                                <a t-if="row.get('container_no')" class="text-primary text-decoration-none fw-bold cursor-pointer" t-attf-href="/my/marstek/container_stock?container_no=#{row.get('container_no', '')}">
+                                                    <t t-esc="row.get('container_no', '')"/>
+                                                </a>
+                                                <t t-else=""><t t-esc="row.get('container_no', '')"/></t>
+                                            </td>
+                                            <td>
+                                                <a t-if="row.get('bl_no')" class="text-primary text-decoration-none fw-bold cursor-pointer" t-attf-href="/my/marstek/inbounds?bl_no=#{row.get('bl_no', '')}">
+                                                    <t t-esc="row.get('bl_no', '')"/>
+                                                </a>
+                                                <t t-else=""><t t-esc="row.get('bl_no', '')"/></t>
+                                            </td>
                                             <td><t t-esc="row.get('product_code', '')"/></td>
                                             <td><t t-esc="row.get('product_name', '')"/></td>
                                             <td class="text-end"><t t-esc="row.get('quantity', 0)"/></td>
@@ -295,7 +305,12 @@
                                         <t t-foreach="rows" t-as="row">
                                             <tr>
                                                 <td><t t-esc="row.get('package_name', '')"/></td>
-                                                <td><t t-esc="row.get('container_no', '')"/></td>
+                                                <td>
+                                                    <a t-if="row.get('container_no')" class="text-primary text-decoration-none fw-bold cursor-pointer" t-attf-href="/my/marstek/stock?container_no=#{row.get('container_no', '')}">
+                                                        <t t-esc="row.get('container_no', '')"/>
+                                                    </a>
+                                                    <t t-else=""><t t-esc="row.get('container_no', '')"/></t>
+                                                </td>
                                                 <td><t t-esc="row.get('bl_no', '')"/></td>
                                                 <td><t t-esc="row.get('product_code', '')"/></td>
                                                 <td><t t-esc="row.get('product_name', '')"/></td>
@@ -339,7 +354,7 @@
                     <div class="card-header">
                         <h5 class="mb-0">
                             <i class="fa fa-filter me-2"/>
-                            筛选条件
+                            入库单查询
                         </h5>
                     </div>
                     <div class="card-body">
@@ -412,10 +427,25 @@
                                 <tbody>
                                     <t t-foreach="rows" t-as="row">
                                         <tr>
-                                            <td><t t-esc="row.get('inbound_no', '')"/></td>
+                                            <td>
+                                                <a t-if="row.get('inbound_id')" class="text-primary text-decoration-none fw-bold cursor-pointer" t-attf-href="/my/marstek/inbounds/#{row.get('inbound_id')}">
+                                                    <t t-esc="row.get('inbound_no', '')"/>
+                                                </a>
+                                                <t t-else=""><t t-esc="row.get('inbound_no', '')"/></t>
+                                            </td>
                                             <td><t t-esc="row.get('reference', '')"/></td>
-                                            <td><t t-esc="row.get('bl_no', '')"/></td>
-                                            <td><t t-esc="row.get('container_no', '')"/></td>
+                                            <td>
+                                                <a t-if="row.get('bl_no')" class="text-primary text-decoration-none fw-bold cursor-pointer" t-attf-href="/my/marstek/inbounds?bl_no=#{row.get('bl_no', '')}">
+                                                    <t t-esc="row.get('bl_no', '')"/>
+                                                </a>
+                                                <t t-else=""><t t-esc="row.get('bl_no', '')"/></t>
+                                            </td>
+                                            <td>
+                                                <a t-if="row.get('container_no')" class="text-primary text-decoration-none fw-bold cursor-pointer" t-attf-href="/my/marstek/stock?container_no=#{row.get('container_no', '')}">
+                                                    <t t-esc="row.get('container_no', '')"/>
+                                                </a>
+                                                <t t-else=""><t t-esc="row.get('container_no', '')"/></t>
+                                            </td>
                                             <td><t t-esc="row.get('inbound_date', '')"/></td>
                                             <td>
                                                 <t t-if="row.get('portal_inbound_status') == 'inbound_confirmed'">
@@ -600,7 +630,7 @@
                     <div class="card-header">
                         <h5 class="mb-0">
                             <i class="fa fa-filter me-2"/>
-                            筛选条件
+                            出库单查询
                         </h5>
                     </div>
                     <div class="card-body">
@@ -672,7 +702,12 @@
                                 <tbody>
                                     <t t-foreach="rows" t-as="row">
                                         <tr>
-                                            <td><t t-esc="row.get('outbound_no', '')"/></td>
+                                            <td>
+                                                <a t-if="row.get('outbound_id')" class="text-primary text-decoration-none fw-bold cursor-pointer" t-attf-href="/my/marstek/outbounds/#{row.get('outbound_id')}">
+                                                    <t t-esc="row.get('outbound_no', '')"/>
+                                                </a>
+                                                <t t-else=""><t t-esc="row.get('outbound_no', '')"/></t>
+                                            </td>
                                             <td><t t-esc="row.get('bl_no', '')"/></td>
                                             <td><t t-esc="row.get('container_no', '')"/></td>
                                             <td><t t-esc="row.get('outbound_date', '')"/></td>
@@ -777,7 +812,13 @@
                                 <tbody>
                                     <t t-foreach="detail_rows" t-as="row">
                                         <tr>
-                                            <td><t t-esc="row.get('outbound_no', '')"/></td>
+<!--                                            <td><t t-esc="row.get('outbound_no', '')"/></td>-->
+                                            <td>
+                                                <a t-if="row.get('outbound_id')" class="text-primary text-decoration-none fw-bold cursor-pointer" t-attf-href="/my/marstek/outbounds/#{row.get('outbound_id')}">
+                                                    <t t-esc="row.get('outbound_no', '')"/>
+                                                </a>
+                                                <t t-else=""><t t-esc="row.get('outbound_no', '')"/></t>
+                                            </td>
                                             <td><t t-esc="row.get('bl_no', '')"/></td>
                                             <td><t t-esc="row.get('container_no', '')"/></td>
                                             <td><t t-esc="row.get('package_name', '')"/></td>
