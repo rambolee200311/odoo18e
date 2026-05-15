@@ -120,25 +120,38 @@ class InboundOrder(models.Model):
         order = self.get_inbound_order(inbound_id)
         if not order:
             return []
+
         doc_env = self.env["world.depot.inbound.order.docs"].sudo()
         attachment_env = self.env["ir.attachment"].sudo()
+
         docs = doc_env.search([("inbound_order_id", "=", order.id)], order="id desc")
-        attachment_domain = [("res_model", "=", "world.depot.inbound.order"), ("res_id", "=", order.id)]
-        if docs:
-            attachment_domain = expression.OR([
-                attachment_domain,
-                [("res_model", "=", "world.depot.inbound.order.docs"), ("res_id", "in", docs.ids)],
-            ])
+        doc_by_filename = {doc.filename: doc for doc in docs if doc.filename}
+
+        attachment_domain = [
+            ("res_model", "=", "world.depot.inbound.order"),
+            ("res_id", "=", order.id),
+            ("res_field", "=", False),
+        ]
         attachments = attachment_env.search(attachment_domain, order="id desc")
+
         rows = []
         seen_names = set()
+
         for attachment in attachments:
-            row = portal_attachment_row(attachment)
+            datas_fname = attachment.datas_fname if "datas_fname" in attachment._fields else ""
+            file_name = attachment.name or datas_fname or ""
+            doc = doc_by_filename.get(file_name)
+            file_type = portal_detect_attachment_type(file_name,
+                                                      doc.doc_type) if doc else portal_detect_attachment_type(file_name)
+            row = portal_attachment_row(attachment, file_type)
             rows.append(row)
-            seen_names.add(row["file_name"])
+            seen_names.add(file_name)
+
         for doc in docs:
-            if doc.filename and doc.filename not in seen_names and doc.file:
+            if doc.filename and doc.file and doc.filename not in seen_names:
                 rows.append(portal_doc_binary_row(doc, portal_detect_attachment_type(doc.filename, doc.doc_type)))
+                seen_names.add(doc.filename)
+
         return rows
 
     @api.model
