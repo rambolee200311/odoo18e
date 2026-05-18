@@ -105,6 +105,24 @@
                             </div>
                         </a>
                     </div>
+
+                    <!-- SN 查询 -->
+                    <div class="col-12 col-md-6 col-lg-4 mb-4">
+                        <a href="/my/marstek/sn_query" class="text-decoration-none">
+                            <div class="card h-100 o_marstek_card o_marstek_card_sn">
+                                <div class="card-body text-center">
+                                    <div class="o_marstek_icon mb-3">
+                                        <i class="fa fa-barcode fa-3x text-secondary"/>
+                                    </div>
+                                    <h4 class="card-title">SN 查询</h4>
+                                    <p class="text-muted">按序列号查询<br/>已出库商品信息</p>
+                                    <span class="btn btn-outline-secondary mt-2">
+                                        进入 <i class="fa fa-arrow-right ms-1"/>
+                                    </span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
                 </div>
             </div>
         </t>
@@ -839,7 +857,9 @@
                         </div>
                     </div>
                     <div t-if="detail_pager and detail_pager.get('page_count', 1) > 1" class="card-footer">
-                        <t t-call="portal.pager" t-value="detail_pager"/>
+                        <t t-call="portal.pager">
+                            <t t-set="pager" t-value="detail_pager"/>
+                        </t>
                     </div>
                 </div>
 
@@ -891,6 +911,194 @@
                         返回列表
                     </a>
                 </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- =========================================== -->
+    <!-- SN 查询页面 -->
+    <!-- =========================================== -->
+    <template id="portal_marstek_sn_query" name="SN Query">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/marstek', 'name': 'Marstek 库存'}, {'url': None, 'name': 'SN 查询'}]"/>
+
+            <div class="o_portal_content">
+                <!-- 页面标题 -->
+                <div class="mb-4">
+                    <h2>
+                        <i class="fa fa-barcode me-2 text-secondary"/>
+                        SN 序列号查询
+                    </h2>
+                    <p class="text-muted">输入 SN 序列号查询已出库商品的出库信息</p>
+                </div>
+
+                <!-- 查询表单 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fa fa-search me-2"/>
+                            查询条件
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="/my/marstek/sn_query" method="get" class="row g-3">
+                            <div class="col-12 col-md-8">
+                                <label for="sn_code" class="form-label">SN 序列号</label>
+                                <input type="text"
+                                       class="form-control form-control-lg"
+                                       id="sn_code"
+                                       name="sn_code"
+                                       t-attf-value="#{filters.get('sn_code', '')}"
+                                       placeholder="请输入 SN 序列号"
+                                       autofocus="1"/>
+                            </div>
+                            <div class="col-12 col-md-4 d-flex align-items-end">
+                                <div class="d-grid gap-2 d-md-block">
+                                    <button type="submit" class="btn btn-primary btn-lg me-2" id="sn_query_btn">
+                                        <i class="fa fa-search me-1"/>
+                                        查询
+                                    </button>
+                                    <a href="/my/marstek/sn_query" class="btn btn-secondary btn-lg">
+                                        <i class="fa fa-refresh me-1"/>
+                                        重置
+                                    </a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- 查询结果 -->
+                <t t-if="sn_code">
+                    <!-- 未找到 -->
+                    <t t-if="sn_result.get('status') == 'NOT_FOUND'">
+                        <div class="alert alert-warning" role="alert">
+                            <i class="fa fa-exclamation-triangle me-2"/>
+                            未找到 SN 序列号 "<t t-esc="sn_code"/>" 的出库记录
+                            <br/>
+                            <small class="text-muted">提示：SN 记录仅适用于已出库的商品</small>
+                        </div>
+                    </t>
+
+                    <!-- 找到结果 -->
+                    <t t-if="sn_result.get('status') == 'FOUND' and sn_result.get('data')">
+                        <div class="card border-success">
+                            <div class="card-header bg-success text-white">
+                                <h5 class="mb-0">
+                                    <i class="fa fa-check-circle me-2"/>
+                                    查询结果
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <!-- SN 信息卡片 -->
+                                <div class="row mb-4">
+                                    <div class="col-md-6">
+                                        <div class="card bg-light">
+                                            <div class="card-body">
+                                                <h6 class="text-muted mb-1">SN 序列号</h6>
+                                                <h4 class="mb-0 text-primary">
+                                                    <i class="fa fa-barcode me-2"/>
+                                                    <t t-esc="sn_result['data'].get('sn_code', sn_code)"/>
+                                                </h4>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card bg-light">
+                                            <div class="card-body">
+                                                <h6 class="text-muted mb-1">产品编码</h6>
+                                                <h4 class="mb-0">
+                                                    <t t-esc="sn_result['data'].get('product_code', '-')"/>
+                                                </h4>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 详细信息 -->
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <strong>产品名称:</strong>
+                                        <span class="ms-2"><t t-esc="sn_result['data'].get('product_name', '-')"/></span>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <strong>出库单号:</strong>
+                                        <span class="ms-2"><t t-esc="sn_result['data'].get('outbound_no', '-')"/></span>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <strong>出库日期:</strong>
+                                        <span class="ms-2"><t t-esc="sn_result['data'].get('outbound_date', '-')"/></span>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <strong>柜号:</strong>
+                                        <span class="ms-2"><t t-esc="sn_result['data'].get('container_no', '-')"/></span>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <strong>提单号:</strong>
+                                        <span class="ms-2"><t t-esc="sn_result['data'].get('bl_no', '-')"/></span>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <strong>状态:</strong>
+                                        <span class="ms-2">
+                                            <t t-if="sn_result['data'].get('portal_outbound_status') == 'outbound_picking_done'">
+                                                <span class="badge bg-success">拣货完成</span>
+                                            </t>
+                                            <t t-elif="sn_result['data'].get('portal_outbound_status') == 'outbound_picking_processing'">
+                                                <span class="badge bg-warning text-dark">拣货中</span>
+                                            </t>
+                                            <t t-elif="sn_result['data'].get('portal_outbound_status') == 'outbound_confirmed'">
+                                                <span class="badge bg-info">已确认</span>
+                                            </t>
+                                            <t t-else="">
+                                                <span class="badge bg-secondary"><t t-esc="sn_result['data'].get('state', '-')"/></span>
+                                            </t>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </t>
+
+                <!-- 快速操作入口 -->
+                <t t-if="not sn_code or sn_result.get('status') == 'NOT_FOUND'">
+                    <div class="card mt-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fa fa-link me-2"/>
+                                快速跳转
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3 mb-2">
+                                    <a href="/my/marstek/stock" class="btn btn-outline-primary w-100">
+                                        <i class="fa fa-cubes me-2"/>
+                                        库存概览
+                                    </a>
+                                </div>
+                                <div class="col-md-3 mb-2">
+                                    <a href="/my/marstek/inbounds" class="btn btn-outline-warning w-100">
+                                        <i class="fa fa-arrow-down me-2"/>
+                                        入库单查询
+                                    </a>
+                                </div>
+                                <div class="col-md-3 mb-2">
+                                    <a href="/my/marstek/outbounds" class="btn btn-outline-info w-100">
+                                        <i class="fa fa-arrow-up me-2"/>
+                                        出库单查询
+                                    </a>
+                                </div>
+                                <div class="col-md-3 mb-2">
+                                    <a href="/my/marstek/container_stock" class="btn btn-outline-success w-100">
+                                        <i class="fa fa-truck me-2"/>
+                                        集装箱查询
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </t>
             </div>
         </t>
     </template>
