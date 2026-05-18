@@ -49,6 +49,8 @@ class MarstekStockPortal(CustomerPortal):
             page=page,
             step=page_size,
         )
+        pager["total"] = total
+
 
         rows = all_rows[pager["offset"]: pager["offset"] + page_size]
         values = self.marstek_prepare_page_values("marstek_stock", "Stock Overview", filters)
@@ -88,6 +90,7 @@ class MarstekStockPortal(CustomerPortal):
             page=page,
             step=page_size,
         )
+        pager["total"] = total
         rows =all_rows[pager["offset"]: pager["offset"] + page_size]
 
         values = self.marstek_prepare_page_values("marstek_inbounds", "Inbound Orders", filters)
@@ -135,6 +138,7 @@ class MarstekStockPortal(CustomerPortal):
             page=page,
             step=page_size,
         )
+        pager["total"] = total
         rows = all_rows[pager["offset"]: pager["offset"] + page_size]
 
         values = self.marstek_prepare_page_values("marstek_outbounds", "Outbound Orders", filters)
@@ -161,6 +165,7 @@ class MarstekStockPortal(CustomerPortal):
             page=page,
             step=page_size,
         )
+        pager["total"] = total
         detail_rows = all_detail_rows[pager["offset"]: pager["offset"] + page_size]
         attachment_rows = outbound_env.get_outbound_attachments(outbound_id)
 
