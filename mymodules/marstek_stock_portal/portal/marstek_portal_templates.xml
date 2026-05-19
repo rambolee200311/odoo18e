@@ -184,7 +184,22 @@
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">库存列表</h5>
-                        <span class="badge bg-primary">共 <t t-esc="pager.get('total', 0)"/> 条</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-primary me-3">共 <t t-esc="pager.get('total', 0)"/> 条</span>
+                            <!-- 导出按钮 -->
+                            <a t-attf-href="/my/marstek/export/stock/csv?container_no=#{filters.get('container_no', '')}&amp;bl_no=#{filters.get('bl_no', '')}&amp;product_code=#{filters.get('product_code', '')}&amp;date_from=#{filters.get('date_from', '')}&amp;date_to=#{filters.get('date_to', '')}"
+                               t-attf-class="btn btn-primary #{'disabled' if not rows else ''}"
+                               t-attf-title="#{'暂无可导出数据' if not rows else '导出 CSV'}">
+                                <i class="fa fa-file-text-o me-1"/>
+                                导出 CSV
+                            </a>
+                            <a t-attf-href="/my/marstek/export/stock/pdf?container_no=#{filters.get('container_no', '')}&amp;bl_no=#{filters.get('bl_no', '')}&amp;product_code=#{filters.get('product_code', '')}&amp;date_from=#{filters.get('date_from', '')}&amp;date_to=#{filters.get('date_to', '')}"
+                               t-attf-class="btn btn-primary #{'disabled' if not rows else ''}"
+                               t-attf-title="#{'暂无可导出数据' if not rows else '导出 PDF'}">
+                                <i class="fa fa-file-pdf-o me-1"/>
+                                导出 PDF
+                            </a>
+                        </div>
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
@@ -301,8 +316,23 @@
                     </div>
 
                     <div class="card">
-                        <div class="card-header">
+                        <div class="card-header d-flex justify-content-between align-items-center">
                             <h5 class="mb-0">货盘明细</h5>
+                            <!-- 导出按钮 -->
+                            <div class="d-flex gap-2">
+                                <a t-attf-href="/my/marstek/export/container_stock/csv?container_no=#{container_no or ''}"
+                                   t-attf-class="btn btn-primary #{'disabled' if not rows else ''}"
+                                   t-attf-title="#{'请先输入柜号查询' if not container_no else ('暂无可导出数据' if not rows else '导出 CSV')}">
+                                    <i class="fa fa-file-text-o me-1"/>
+                                    导出 CSV
+                                </a>
+                                <a t-attf-href="/my/marstek/export/container_stock/pdf?container_no=#{container_no or ''}"
+                                   t-attf-class="btn btn-primary #{'disabled' if not rows else ''}"
+                                   t-attf-title="#{'请先输入柜号查询' if not container_no else ('暂无可导出数据' if not rows else '导出 PDF')}">
+                                    <i class="fa fa-file-pdf-o me-1"/>
+                                    导出 PDF
+                                </a>
+                            </div>
                         </div>
                         <div class="card-body p-0">
                             <div class="table-responsive">
@@ -424,7 +454,22 @@
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">入库单列表</h5>
-                        <span class="badge bg-primary">共 <t t-esc="pager.get('total', 0)"/> 条</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-primary me-3">共 <t t-esc="pager.get('total', 0)"/> 条</span>
+                            <!-- 导出按钮 -->
+                            <a t-attf-href="/my/marstek/export/inbounds/csv?inbound_no=#{filters.get('inbound_no', '')}&amp;reference=#{filters.get('reference', '')}&amp;bl_no=#{filters.get('bl_no', '')}&amp;container_no=#{filters.get('container_no', '')}&amp;portal_inbound_status=#{filters.get('portal_inbound_status', '')}&amp;inbound_date_from=#{filters.get('inbound_date_from', '')}&amp;inbound_date_to=#{filters.get('inbound_date_to', '')}"
+                               t-attf-class="btn btn-primary #{'disabled' if not rows else ''}"
+                               t-attf-title="#{'暂无可导出数据' if not rows else '导出 CSV'}">
+                                <i class="fa fa-file-text-o me-1"/>
+                                导出 CSV
+                            </a>
+                            <a t-attf-href="/my/marstek/export/inbounds/pdf?inbound_no=#{filters.get('inbound_no', '')}&amp;reference=#{filters.get('reference', '')}&amp;bl_no=#{filters.get('bl_no', '')}&amp;container_no=#{filters.get('container_no', '')}&amp;portal_inbound_status=#{filters.get('portal_inbound_status', '')}&amp;inbound_date_from=#{filters.get('inbound_date_from', '')}&amp;inbound_date_to=#{filters.get('inbound_date_to', '')}"
+                               t-attf-class="btn btn-primary #{'disabled' if not rows else ''}"
+                               t-attf-title="#{'暂无可导出数据' if not rows else '导出 PDF'}">
+                                <i class="fa fa-file-pdf-o me-1"/>
+                                导出 PDF
+                            </a>
+                        </div>
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
@@ -700,7 +745,22 @@
                 <div class="card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">出库单列表</h5>
-                        <span class="badge bg-primary">共 <t t-esc="pager.get('total', 0)"/> 条</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-primary me-3">共 <t t-esc="pager.get('total', 0)"/> 条</span>
+                            <!-- 导出按钮 -->
+                            <a t-attf-href="/my/marstek/export/outbounds/csv?outbound_no=#{filters.get('outbound_no', '')}&amp;bl_no=#{filters.get('bl_no', '')}&amp;container_no=#{filters.get('container_no', '')}&amp;portal_outbound_status=#{filters.get('portal_outbound_status', '')}&amp;outbound_date_from=#{filters.get('outbound_date_from', '')}&amp;outbound_date_to=#{filters.get('outbound_date_to', '')}"
+                               t-attf-class="btn btn-primary #{'disabled' if not rows else ''}"
+                               t-attf-title="#{'暂无可导出数据' if not rows else '导出 CSV'}">
+                                <i class="fa fa-file-text-o me-1"/>
+                                导出 CSV
+                            </a>
+                            <a t-attf-href="/my/marstek/export/outbounds/pdf?outbound_no=#{filters.get('outbound_no', '')}&amp;bl_no=#{filters.get('bl_no', '')}&amp;container_no=#{filters.get('container_no', '')}&amp;portal_outbound_status=#{filters.get('portal_outbound_status', '')}&amp;outbound_date_from=#{filters.get('outbound_date_from', '')}&amp;outbound_date_to=#{filters.get('outbound_date_to', '')}"
+                               t-attf-class="btn btn-primary #{'disabled' if not rows else ''}"
+                               t-attf-title="#{'暂无可导出数据' if not rows else '导出 PDF'}">
+                                <i class="fa fa-file-pdf-o me-1"/>
+                                导出 PDF
+                            </a>
+                        </div>
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">

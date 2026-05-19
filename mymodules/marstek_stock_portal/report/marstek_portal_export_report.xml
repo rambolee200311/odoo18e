@@ -49,11 +49,4 @@
             <field name="paperformat_id" ref="marstek_stock_portal.paperformat_marstek_portal_export_a4"/>
         </record>
     </data>
-
-    <data>
-
-
-
-
-    </data>
 </odoo>

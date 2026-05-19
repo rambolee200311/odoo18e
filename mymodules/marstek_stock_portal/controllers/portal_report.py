@@ -43,10 +43,10 @@ class MarstekPortalReport(http.Controller):
     }
 
     pdf_report_xmlid_by_page_type = {
-        "stock": "marstek_stock_portal.action_report_marstek_stock_export_pdf",
-        "container_stock": "marstek_stock_portal.action_report_marstek_container_stock_export_pdf",
-        "inbounds": "marstek_stock_portal.action_report_marstek_inbounds_export_pdf",
-        "outbounds": "marstek_stock_portal.action_report_marstek_outbounds_export_pdf",
+        "stock": "marstek_stock_portal.report_marstek_stock_export_pdf",
+        "container_stock": "marstek_stock_portal.report_marstek_container_stock_export_pdf",
+        "inbounds": "marstek_stock_portal.report_marstek_inbounds_export_pdf",
+        "outbounds": "marstek_stock_portal.report_marstek_outbounds_export_pdf",
     }
 
     def marstek_filter_values(self, kw, page_type):
@@ -148,15 +148,16 @@ class MarstekPortalReport(http.Controller):
         )
 
     def make_pdf_response(self, page_type, rows):
-        report = request.env.ref(self.pdf_report_xmlid_by_page_type[page_type]).sudo()
-        pdf_content, _content_type = report._render_qweb_pdf(
-            report.report_name,
-            data={
-                "rows": rows,
-            },
+        view_xmlid = self.pdf_report_xmlid_by_page_type[page_type]
+        # 直接渲染 HTML 模板
+        html = request.env["ir.ui.view"].sudo()._render_template(
+            view_xmlid,
+            {"docs": rows}
         )
+        # 使用 Odoo 的报告服务生成 PDF
+        pdf = request.env["ir.actions.report"].sudo()._run_wkhtmltopdf([html])
         return request.make_response(
-            pdf_content,
+            pdf,
             headers=[
                 ("Content-Type", "application/pdf"),
                 ("Content-Disposition", content_disposition(f"marstek_{page_type}.pdf")),
