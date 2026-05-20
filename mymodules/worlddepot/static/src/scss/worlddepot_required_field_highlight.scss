@@ -1,0 +1,19 @@
+.worlddepot_required_highlight label.o_required_modifier,
+.worlddepot_required_highlight .o_required_modifier > label {
+    color: #b42318 !important;
+    font-weight: 700;
+}
+
+.worlddepot_required_highlight .o_required_modifier .o_input,
+.worlddepot_required_highlight .o_required_modifier input,
+.worlddepot_required_highlight .o_required_modifier textarea,
+.worlddepot_required_highlight .o_required_modifier select {
+    border-left: 4px solid #d92d20 !important;
+    background-color: #fff6f5 !important;
+}
+
+.worlddepot_required_highlight label.o_required_modifier::after {
+    content: " *";
+    color: #d92d20;
+    font-weight: 800;
+}

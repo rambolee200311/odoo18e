@@ -32,7 +32,7 @@
         <field name="name">outbound.order.pack.info.form</field>
         <field name="model">world.depot.outbound.order.pack.info</field>
         <field name="arch" type="xml">
-            <form>
+            <form class="worlddepot_required_highlight">
                 <sheet>
                     <div class="oe_title">
                         <h1>

@@ -24,7 +24,7 @@
         <field name="name">outbound.order.form</field>
         <field name="model">world.depot.outbound.order</field>
         <field name="arch" type="xml">
-            <form string="Outbound Order">
+            <form string="Outbound Order" class="worlddepot_required_highlight">
                 <header>
                     <!-- groups="panexLogi.groups_panex_finance_manager"-->
                     <button name="action_confirm" type="object" string="Confirm" class="btn-primary" invisible="state!='new'"/>
