@@ -1,0 +1,343 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- =========================================== -->
+    <!-- 3. 入库查询列表页面 -->
+    <!-- =========================================== -->
+    <template id="portal_marstek_inbounds" name="Inbound Orders">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/marstek', 'name': 'Marstek 库存'}, {'url': None, 'name': '入库单查询'}]"/>
+
+            <div class="o_portal_content">
+                <!-- 筛选表单 - 可折叠 -->
+                <div class="card mb-4" id="inbound_filter_card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 d-inline">
+                            <i class="fa fa-filter me-2"/>
+                            入库单查询
+                        </h5>
+                        <button class="btn btn-link text-decoration-none p-0 border-0" type="button" data-bs-toggle="collapse" data-bs-target="#inbound_filter_collapse" aria-expanded="true">
+                            <i class="fa fa-chevron-up collapse-icon"/>
+                        </button>
+                    </div>
+                    <div id="inbound_filter_collapse" class="collapse show">
+                    <div class="card-body">
+                        <form action="/my/marstek/inbounds" method="get" class="row g-3">
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="inbound_no" class="form-label">入库单号/客户参考号</label>
+                                <input type="text" class="form-control" id="inbound_no" name="inbound_no" t-attf-value="#{filters.get('inbound_no', '')}" placeholder="请输入入库单号或参考号"/>
+                            </div>
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="bl_no" class="form-label">提单号</label>
+                                <input type="text" class="form-control" id="bl_no" name="bl_no" t-attf-value="#{filters.get('bl_no', '')}" placeholder="请输入提单号"/>
+                            </div>
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="container_no" class="form-label">柜号</label>
+                                <input type="text" class="form-control" id="container_no" name="container_no" t-attf-value="#{filters.get('container_no', '')}" placeholder="请输入柜号"/>
+                            </div>
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="portal_inbound_status" class="form-label">状态</label>
+                                <select class="form-select" id="portal_inbound_status" name="portal_inbound_status">
+                                    <option value="">全部</option>
+                                    <option value="inbound_confirmed" t-att-selected="'selected' if filters.get('portal_inbound_status') == 'inbound_confirmed' else None">已确认</option>
+                                    <option value="inbound_processing" t-att-selected="'selected' if filters.get('portal_inbound_status') == 'inbound_processing' else None">处理中</option>
+                                    <option value="inbound_done" t-att-selected="'selected' if filters.get('portal_inbound_status') == 'inbound_done' else None">已完成</option>
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="inbound_date_from" class="form-label">开始日期</label>
+                                <input type="date" class="form-control" id="inbound_date_from" name="inbound_date_from" t-attf-value="#{filters.get('inbound_date_from', '')}"/>
+                            </div>
+                            <div class="col-12 col-md-6 col-lg-4">
+                                <label for="inbound_date_to" class="form-label">结束日期</label>
+                                <input type="date" class="form-control" id="inbound_date_to" name="inbound_date_to" t-attf-value="#{filters.get('inbound_date_to', '')}"/>
+                            </div>
+                            <div class="col-12 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary me-2">
+                                    <i class="fa fa-search me-1"/>
+                                    查询
+                                </button>
+                                <a href="/my/marstek/inbounds" class="btn btn-secondary">
+                                    <i class="fa fa-refresh me-1"/>
+                                    重置
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                    </div>
+                </div>
+
+                <!-- 数据表格 - 可折叠 -->
+                <div class="card" id="inbound_table_card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">入库单列表</h5>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-primary me-3">共 <t t-esc="pager.get('total', 0)"/> 条</span>
+                            <!-- 导出按钮 -->
+                            <a t-attf-href="/my/marstek/export/inbounds/csv?inbound_no=#{filters.get('inbound_no', '')}&amp;reference=#{filters.get('reference', '')}&amp;bl_no=#{filters.get('bl_no', '')}&amp;container_no=#{filters.get('container_no', '')}&amp;portal_inbound_status=#{filters.get('portal_inbound_status', '')}&amp;inbound_date_from=#{filters.get('inbound_date_from', '')}&amp;inbound_date_to=#{filters.get('inbound_date_to', '')}"
+                               t-attf-class="btn btn-primary #{'disabled' if not rows else ''}"
+                               t-attf-title="#{'暂无可导出数据' if not rows else '导出 CSV'}">
+                                <i class="fa fa-file-text-o me-1"/>
+                                导出 CSV
+                            </a>
+                            <a t-attf-href="/my/marstek/export/inbounds/pdf?inbound_no=#{filters.get('inbound_no', '')}&amp;reference=#{filters.get('reference', '')}&amp;bl_no=#{filters.get('bl_no', '')}&amp;container_no=#{filters.get('container_no', '')}&amp;portal_inbound_status=#{filters.get('portal_inbound_status', '')}&amp;inbound_date_from=#{filters.get('inbound_date_from', '')}&amp;inbound_date_to=#{filters.get('inbound_date_to', '')}"
+                               t-attf-class="btn btn-primary #{'disabled' if not rows else ''}"
+                               t-attf-title="#{'暂无可导出数据' if not rows else '导出 PDF'}">
+                                <i class="fa fa-file-pdf-o me-1"/>
+                                导出 PDF
+                            </a>
+                            <button class="btn btn-link text-decoration-none p-0 border-0" type="button" data-bs-toggle="collapse" data-bs-target="#inbound_table_collapse" aria-expanded="true">
+                                <i class="fa fa-chevron-up collapse-icon"/>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="inbound_table_collapse" class="collapse show">
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>入库单号</th>
+                                            <th>客户参考号</th>
+                                            <th>提单号</th>
+                                            <th>柜号</th>
+                                            <th>入库日期</th>
+                                            <th>状态</th>
+                                            <th class="text-end">总数量</th>
+                                            <th class="text-end">货盘数</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="rows" t-as="row">
+                                            <tr>
+                                                <td>
+                                                    <a t-if="row.get('inbound_id')" class="text-primary text-decoration-none fw-bold cursor-pointer" t-attf-href="/my/marstek/inbounds/#{row.get('inbound_id')}">
+                                                        <t t-esc="row.get('inbound_no', '')"/>
+                                                    </a>
+                                                    <t t-else=""><t t-esc="row.get('inbound_no', '')"/></t>
+                                                </td>
+                                                <td><t t-esc="row.get('reference', '')"/></td>
+                                                <td>
+                                                    <a t-if="row.get('bl_no')" class="text-primary text-decoration-none fw-bold cursor-pointer" t-attf-href="/my/marstek/inbounds?bl_no=#{row.get('bl_no', '')}">
+                                                        <t t-esc="row.get('bl_no', '')"/>
+                                                    </a>
+                                                    <t t-else=""><t t-esc="row.get('bl_no', '')"/></t>
+                                                </td>
+                                                <td>
+                                                    <a t-if="row.get('container_no')" class="text-primary text-decoration-none fw-bold cursor-pointer" t-attf-href="/my/marstek/stock?container_no=#{row.get('container_no', '')}">
+                                                        <t t-esc="row.get('container_no', '')"/>
+                                                    </a>
+                                                    <t t-else=""><t t-esc="row.get('container_no', '')"/></t>
+                                                </td>
+                                                <td><t t-esc="row.get('inbound_date', '')"/></td>
+                                                <td>
+                                                    <t t-if="row.get('portal_inbound_status') == 'inbound_confirmed'">
+                                                        <span class="badge bg-info">已确认</span>
+                                                    </t>
+                                                    <t t-elif="row.get('portal_inbound_status') == 'inbound_processing'">
+                                                        <span class="badge bg-warning">处理中</span>
+                                                    </t>
+                                                    <t t-else="">
+                                                        <span class="badge bg-success">已完成</span>
+                                                    </t>
+                                                </td>
+                                                <td class="text-end"><t t-esc="row.get('total_quantity', 0)"/></td>
+                                                <td class="text-end"><t t-esc="row.get('total_pallets', 0)"/></td>
+                                                <td>
+                                                    <a t-attf-href="/my/marstek/inbounds/#{row.get('inbound_id')}" class="btn btn-sm btn-outline-primary">
+                                                        查看详情
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                        <t t-if="not rows">
+                                            <tr>
+                                                <td colspan="9" class="text-center text-muted py-4">暂无数据</td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div t-if="pager.get('page_count', 1) > 1" class="card-footer">
+                            <t t-call="portal.pager"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- =========================================== -->
+    <!-- 4. 入库详情页面 -->
+    <!-- =========================================== -->
+    <template id="portal_marstek_inbound_detail" name="Inbound Detail">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/marstek', 'name': 'Marstek 库存'}, {'url': '/my/marstek/inbounds', 'name': '入库单查询'}, {'url': None, 'name': '入库详情'}]"/>
+
+            <div class="o_portal_content">
+                <!-- 入库单信息 - 可折叠 -->
+                <div class="card mb-4" id="inbound_order_card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 d-inline">
+                            <i class="fa fa-file-text-o me-2"/>
+                            入库单信息
+                        </h5>
+                        <button class="btn btn-link text-decoration-none p-0 border-0" type="button" data-bs-toggle="collapse" data-bs-target="#inbound_order_collapse" aria-expanded="true">
+                            <i class="fa fa-chevron-up collapse-icon"/>
+                        </button>
+                    </div>
+                    <!-- 始终显示的基础信息 -->
+                    <div class="card-body pt-3 pb-2 border-bottom bg-light">
+                        <div class="row">
+                            <div class="col-md-3 mb-2">
+                                <strong class="text-muted small">入库单号</strong>
+                                <div class="fw-bold"><t t-esc="order.billno if order else ''"/></div>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <strong class="text-muted small">客户参考号</strong>
+                                <div><t t-esc="order.reference if order else ''"/></div>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <strong class="text-muted small">入库日期</strong>
+                                <div><t t-esc="order.i_date if order else ''"/></div>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <strong class="text-muted small">状态</strong>
+                                <div>
+                                    <t t-if="order and order.state == 'confirm'">
+                                        <span class="badge bg-success">已确认</span>
+                                    </t>
+                                    <t t-elif="order and order.state == 'cancel'">
+                                        <span class="badge bg-danger">已取消</span>
+                                    </t>
+                                    <t t-else="">
+                                        <span class="badge bg-secondary">新建</span>
+                                    </t>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 可折叠的详细信息 -->
+                    <div id="inbound_order_collapse" class="collapse show">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <strong>提单号:</strong>
+                                    <span class="ms-2"><t t-esc="order.bl_no if order else ''"/></span>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <strong>柜号:</strong>
+                                    <span class="ms-2"><t t-esc="order.cntr_no if order else ''"/></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 货盘明细 - 可折叠 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0 d-inline">
+                            <i class="fa fa-list me-2"/>
+                            货盘明细
+                        </h5>
+                        <button class="btn btn-link text-decoration-none float-end p-0 border-0" type="button" data-bs-toggle="collapse" data-bs-target="#inbound_detail_collapse" aria-expanded="true">
+                            <i class="fa fa-chevron-up collapse-icon"/>
+                        </button>
+                    </div>
+                    <div id="inbound_detail_collapse" class="collapse show">
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>托盘号</th>
+                                            <th>柜号</th>
+                                            <th>提单号</th>
+                                            <th>产品编码</th>
+                                            <th>产品名称</th>
+                                            <th class="text-end">数量</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="detail_rows" t-as="row">
+                                            <tr>
+                                                <td><t t-esc="row.get('package_name', '')"/></td>
+                                                <td><t t-esc="row.get('container_no', '')"/></td>
+                                                <td><t t-esc="row.get('bl_no', '')"/></td>
+                                                <td><t t-esc="row.get('product_code', '')"/></td>
+                                                <td><t t-esc="row.get('product_name', '')"/></td>
+                                                <td class="text-end"><t t-esc="row.get('quantity', 0)"/></td>
+                                            </tr>
+                                        </t>
+                                        <t t-if="not detail_rows">
+                                            <tr>
+                                                <td colspan="6" class="text-center text-muted py-4">暂无数据</td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 附件列表 - 可折叠 -->
+                <t t-if="attachment_rows">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0 d-inline">
+                                <i class="fa fa-paperclip me-2"/>
+                                附件列表
+                            </h5>
+                            <button class="btn btn-link text-decoration-none float-end p-0 border-0" type="button" data-bs-toggle="collapse" data-bs-target="#inbound_attachment_collapse" aria-expanded="true">
+                                <i class="fa fa-chevron-up collapse-icon"/>
+                            </button>
+                        </div>
+                        <div id="inbound_attachment_collapse" class="collapse show">
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>文件名</th>
+                                                <th>类型</th>
+                                                <th>大小</th>
+                                                <th class="text-center">操作</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-foreach="attachment_rows" t-as="att">
+                                                <tr>
+                                                    <td><t t-esc="att.get('file_name', '')"/></td>
+                                                    <td><t t-esc="att.get('file_type', '')"/></td>
+                                                    <td><t t-esc="att.get('file_size', 0)"/> bytes</td>
+                                                    <td class="text-center">
+                                                        <a t-if="att.get('download_url')" t-attf-href="#{att.get('download_url')}" class="btn btn-sm btn-primary" target="_blank">
+                                                            <i class="fa fa-download me-1"/>
+                                                            下载
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+
+                <!-- 返回按钮 -->
+                <div class="mt-4">
+                    <a href="/my/marstek/inbounds" class="btn btn-secondary">
+                        <i class="fa fa-arrow-left me-1"/>
+                        返回列表
+                    </a>
+                </div>
+            </div>
+        </t>
+    </template>
+
+</odoo>
