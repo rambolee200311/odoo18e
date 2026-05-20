@@ -1,0 +1,126 @@
+/* ===========================================
+   Marstek Stock Portal - Collapsible Card Styles
+   折叠卡片样式
+   =========================================== */
+
+/* 折叠卡片容器样式 */
+.o_portal_content .card [data-bs-toggle="collapse"] {
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s ease;
+}
+
+.o_portal_content .card [data-bs-toggle="collapse"]:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* 折叠图标样式和动画 */
+.o_portal_content .card .collapse-icon {
+    transition: transform 0.3s ease;
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+/* 折叠内容区域的过渡动画 */
+.o_portal_content .card .collapse {
+    transition: height 0.3s ease-out, opacity 0.2s ease-out;
+}
+
+/* 卡片头部内的元素对齐 */
+.o_portal_content .card-header.d-flex {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+/* 折叠图标位置微调 */
+.o_portal_content .card .collapse-icon::before {
+    font-family: "FontAwesome";
+}
+
+/* 已折叠状态的视觉反馈 */
+.o_portal_content .card-header.collapsed {
+    border-bottom: none;
+}
+
+/* 展开状态下的卡片头部 */
+.o_portal_content .card .collapse.show + .card-footer,
+.o_portal_content .card .collapse.show ~ .card-footer {
+    border-top: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+/* ===========================================
+   PDA/移动端触摸友好样式
+   =========================================== */
+
+/* 触摸友好的折叠按钮 - 增大点击区域 */
+@media (max-width: 991px) {
+    /* 卡片头部的折叠按钮 */
+    .o_portal_content .card-header .btn-link[data-bs-toggle="collapse"] {
+        min-width: 44px;
+        min-height: 44px;
+        padding: 8px 12px;
+        margin: -8px -12px;
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+        position: relative;
+        z-index: 1;
+    }
+
+    /* 折叠图标尺寸增大 */
+    .o_portal_content .card .collapse-icon {
+        font-size: 1.25rem;
+        padding: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* 确保卡片头部有足够的高度和相对定位 */
+    .o_portal_content .card-header {
+        min-height: 50px;
+        position: relative;
+    }
+
+    /* 卡片头部的 flexbox 布局优化 */
+    .o_portal_content .card-header > .d-flex,
+    .o_portal_content .card-header > h5 + .d-flex {
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+
+    /* 修复折叠按钮可能被遮挡的问题 */
+    .o_portal_content .card [data-bs-toggle="collapse"] {
+        position: relative;
+        z-index: 10;
+    }
+}
+
+/* ===========================================
+   响应式调整
+   =========================================== */
+@media (max-width: 768px) {
+    .o_portal_content .card-header.d-flex {
+        flex-direction: column;
+        align-items: flex-start !important;
+        padding-right: 50px;
+    }
+
+    .o_portal_content .card-header .d-flex,
+    .o_portal_content .card-header .d-flex.gap-2 {
+        width: 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .o_portal_content .card-header .badge {
+        margin-bottom: 0.25rem;
+    }
+
+    /* 移动端搜索面板下拉按钮 */
+    .o_portal_search_panel .dropdown-toggle {
+        min-width: 44px;
+        min-height: 44px;
+    }
+}
