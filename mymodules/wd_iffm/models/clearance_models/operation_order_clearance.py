@@ -34,7 +34,7 @@ class OperationOrderClearance(models.Model):
         required=True)
 
     eu_eori_no = fields.Char(string="EORI No", related="waybill_id.consignee.eu_eori_no", store=True, readonly=True)
-    vat_tax_no = fields.Char(string="VAT No", related="waybill_id.consignee.vat_tax_no", store=True, readonly=True)
+    vat_tax_no = fields.Char(string="VAT No", related="waybill_id.consignee.vat", store=True, readonly=True)
     clearance_receipt_no = fields.Char(string="Customs Clearance Receipt No.", index=True, copy=False, tracking=True)
 
     customs_declaration_datetime = fields.Datetime(string="Customs Declaration Date",default=fields.Datetime.now, tracking=True)

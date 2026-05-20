@@ -23,9 +23,9 @@
                             <field name="currency_id" required="1" options="{'no_create': True, 'no_open': True}"
                                    readonly="payment_state != 'draft'"/>
                             <field name="payment_company_id" required="1" readonly="payment_state != 'draft'"
-                                   options="{'no_create': True, 'no_open': True}"/>
+                                   options="{'no_create': True, 'no_open': True}" domain="[('is_payment','=',True)]"/>
                             <field name="receipt_company_id" required="1" readonly="payment_state != 'draft'"
-                                   options="{'no_create': True, 'no_open': True}"/>
+                                   options="{'no_create': True, 'no_open': True}" domain="[('is_receipt','=',True)]"/>
 
                             <field name="vendor_invoice_id" readonly="1"
                                    options="{'no_create': True, 'no_open': True}"/>
