@@ -50,7 +50,7 @@
         <field name="name">inbound.order.product.form</field>
         <field name="model">world.depot.inbound.order.product</field>
         <field name="arch" type="xml">
-            <form string="Inbound Order Pallets">
+            <form string="Inbound Order Pallets" class="worlddepot_required_highlight">
                 <sheet>
                     <div class="oe_title">
                          <h1>
@@ -97,7 +97,7 @@
         <field name="name">inbound.order.form</field>
         <field name="model">world.depot.inbound.order</field>
         <field name="arch" type="xml">
-            <form string="Inbound Order" class="o_inbound_order">
+            <form string="Inbound Order" class="o_inbound_order worlddepot_required_highlight" >
                 <header>
                     <button name="save_record" type="object" string="Save" class="btn-primary" invisible="state!='new'"/>
                     <button name="action_confirm" type="object" string="Confirm" class="btn-primary" invisible="state!='new'"/>
