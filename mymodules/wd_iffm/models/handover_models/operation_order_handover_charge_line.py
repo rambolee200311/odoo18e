@@ -30,6 +30,7 @@ class OperationOrderHandoverChargeLine(models.Model):
     charge_item_operation_type = fields.Selection(OPERATION_TYPE, string="Operation Type", related="charge_item_id.operation_type", store=True)
     #rule_id = fields.Many2one("charge.rule", string="Charge Rule",tracking= True)
     #quantity_rule_id = fields.Many2one("charge.quantity.rule", string="Quantity Rule",tracking= True)
+    is_fixed_fee = fields.Boolean(string="Fixed Fee", default=False, index=True)
     qty = fields.Float(string="Qty", default=1.0,tracking= True, store=True)
     unit_price = fields.Monetary(string="Unit Price", currency_field="currency_id", default=0.0,tracking= True)
     amount_total = fields.Monetary(string="Total Amount", currency_field="currency_id", compute="compute_amount_total")
@@ -42,11 +43,13 @@ class OperationOrderHandoverChargeLine(models.Model):
 
 
 
-
-    @api.depends("qty", "unit_price")
+    @api.depends("qty", "unit_price", "is_fixed_fee")
     def compute_amount_total(self):
         for rec in self:
-            rec.amount_total = rec.qty * rec.unit_price
+            if rec.is_fixed_fee:
+                rec.amount_total = rec.unit_price or 0.0
+            else:
+                rec.amount_total = (rec.qty or 0.0) * (rec.unit_price or 0.0)
 
     @api.onchange("charge_item_id")
     def onchange_charge_item_id(self):

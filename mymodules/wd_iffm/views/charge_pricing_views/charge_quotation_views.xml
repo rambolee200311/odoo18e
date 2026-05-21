@@ -73,7 +73,7 @@
                                     <field name="charge_item_id" required="1"
                                            options="{'no_create': True, 'no_open': True}"
                                            domain="[('tab_category', '=', context.get('default_tab_category')),('is_leaf','=',True)]"/>
-                                    <field name="tab_category" invisible="1"/>
+                                    <field name="tab_category" column_invisible="1"/>
                                     <field name="is_fixed_fee"/>
                                     <field name="unit_price"/>
                                     <field name="remark"/>
@@ -98,7 +98,7 @@
                                     <field name="charge_item_id" required="1"
                                            options="{'no_create': True, 'no_open': True}"
                                            domain="[('tab_category', '=', context.get('default_tab_category')),('is_leaf','=',True)]"/>
-                                    <field name="tab_category" invisible="1"/>
+                                    <field name="tab_category" column_invisible="1"/>
                                     <field name="is_fixed_fee"/>
                                     <field name="unit_price"/>
                                     <field name="remark"/>

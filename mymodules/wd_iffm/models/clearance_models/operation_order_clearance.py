@@ -291,11 +291,11 @@ class OperationOrderClearance(models.Model):
                 "attachment_line_ids": [
                     (0, 0, {"doc_type": line.doc_type, "remark": line.remark, "file": line.file, "name": line.name}) for
                     line in rec.attachment_line_ids],
-                "charge_line_ids": [(0, 0, {"charge_item_id": line.charge_item_id.id,
-                                            "charge_origin_type": line.charge_origin_type, "qty": line.qty,
-                                            "unit_price": line.unit_price,
-                                            "manual_amount_total": line.manual_amount_total, "remark": line.remark}) for
-                                    line in rec.charge_line_ids],
+                # "charge_line_ids": [(0, 0, {"charge_item_id": line.charge_item_id.id,
+                #                             "charge_origin_type": line.charge_origin_type, "qty": line.qty,
+                #                             "unit_price": line.unit_price,
+                #                             "manual_amount_total": line.manual_amount_total, "remark": line.remark}) for
+                #                     line in rec.charge_line_ids],
             }
             child = env_clearance.create(vals)
 
@@ -488,33 +488,33 @@ class OperationOrderClearance(models.Model):
                 vals["name"] = self.env["ir.sequence"].next_by_code("operation.order.clearance") or _("New")
         return super().create(vals_list)
 
-    @api.onchange("waybill_id")
-    def _onchange_waybill_id(self):
-        for rec in self:
-            if rec.waybill_id:
-                rec.clearance_container_ids = [(6, 0, rec.waybill_id.container_ids.ids)]
-                rec.attachment_line_ids = [(5, 0, 0)]
-                rec.charge_line_ids = [(5, 0, 0)]
-                attachment_lines = [(0, 0, {
-                    "doc_type": ln.bill_doc_type,
-                    "remark": ln.description,
-                    "file": ln.file,
-                    "name": ln.filename,
-                }) for ln in rec.waybill_id.other_docs_ids]
-
-                charge_lines = [(0, 0, {
-                    "charge_item_id": ln.charge_item_id.id,
-                    "charge_origin_type": 'quotation',
-                    "unit_price": ln.unit_price,
-                }) for ln in rec.waybill_id.project.quotation_id.quotation_customs_lines]
-
-                rec.container_qty = rec.waybill_id.container_qty
-                rec.attachment_line_ids = attachment_lines
-                rec.charge_line_ids = charge_lines
-            else:
-                rec.container_qty = False
-                rec.attachment_line_ids = [(5, 0, 0)]
-                rec.charge_line_ids = [(5, 0, 0)]
+    # @api.onchange("waybill_id")
+    # def _onchange_waybill_id(self):
+    #     for rec in self:
+    #         if rec.waybill_id:
+    #             rec.clearance_container_ids = [(6, 0, rec.waybill_id.container_ids.ids)]
+    #             rec.attachment_line_ids = [(5, 0, 0)]
+    #             rec.charge_line_ids = [(5, 0, 0)]
+    #             attachment_lines = [(0, 0, {
+    #                 "doc_type": ln.bill_doc_type,
+    #                 "remark": ln.description,
+    #                 "file": ln.file,
+    #                 "name": ln.filename,
+    #             }) for ln in rec.waybill_id.other_docs_ids]
+    #
+    #             charge_lines = [(0, 0, {
+    #                 "charge_item_id": ln.charge_item_id.id,
+    #                 "charge_origin_type": 'quotation',
+    #                 "unit_price": ln.unit_price,
+    #             }) for ln in rec.waybill_id.project.quotation_id.quotation_customs_lines]
+    #
+    #             rec.container_qty = rec.waybill_id.container_qty
+    #             rec.attachment_line_ids = attachment_lines
+    #             rec.charge_line_ids = charge_lines
+    #         else:
+    #             rec.container_qty = False
+    #             rec.attachment_line_ids = [(5, 0, 0)]
+    #             rec.charge_line_ids = [(5, 0, 0)]
     def action_recompute_state(self):
         for rec in self:
             if rec.state in ("clearancing", "clearanced", "close", "cancelled"):
