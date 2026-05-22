@@ -57,6 +57,18 @@ class InboundOrder(models.Model):
 
             total_quantity = sum(line.quantity for line in rec.inbound_order_product_ids)
             total_pallets = rec.pallets or sum(line.pallets for line in rec.inbound_order_product_ids)
+
+            package_names = []
+            if rec.stock_picking_id:
+                package_names = rec.stock_picking_id.move_line_ids.mapped("result_package_id.name")
+                package_names = [name for name in package_names if name]
+            first_package_name = package_names[0] if package_names else ""
+            pallet_summary = f"{first_package_name}Etc.{total_pallets}Pallet" if first_package_name else ""
+            product_names  = rec.inbound_order_product_ids.inbound_order_product_pallet_ids.mapped('product_id.name')
+            product_names = [name for name in product_names if name]
+            first_product_name = product_names[0] if product_names else ""
+            product_summary = f"{first_product_name},  etc.({total_quantity} pcs)" if first_product_name else ""
+
             rows.append({
                 "inbound_id": rec.id,
                 "inbound_no": rec.billno or "",
@@ -67,6 +79,8 @@ class InboundOrder(models.Model):
                 "portal_inbound_status": state,
                 "total_quantity": total_quantity,
                 "total_pallets": total_pallets,
+                "pallet_summary": pallet_summary,
+                "product_summary": product_summary,
             })
         return rows
 
