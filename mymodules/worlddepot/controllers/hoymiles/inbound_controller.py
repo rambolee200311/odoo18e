@@ -233,9 +233,9 @@ class InboundOrderAPI(http.Controller):
     def cancel_inbound_order(self, **params):
         try:
             data = json.loads(request.httprequest.data)
-            domain = [('reference', '=', data['reference'])]
+            domain = [('reference', '=', data['reference']),('state', '!=', 'cancel')]
 
-            order = request.env['world.depot.inbound.order'].sudo().search(domain, limit=1)
+            order = request.env['world.depot.inbound.order'].sudo().search(domain,order='id desc',  limit=1)
             if not order:
                 return {'success': False, 'error': 'Order %s not found' % data['reference']}
 
