@@ -68,17 +68,33 @@ class OutboundOrder(models.Model):
                 continue
             if bl_no and not any(bl_no.lower() in item.lower() for item in bls):
                 continue
+            #total_pallets = sum(line.pallets for line in rec.outbound_order_product_ids)
             total_quantity = sum(line.quantity for line in rec.outbound_order_product_ids)
 
+            # package_names = []
+            # if rec.picking_PICK:
+            #     package_names = rec.picking_PICK.move_line_ids.mapped("package_id.name")
+            #     package_names += rec.picking_PICK.move_line_ids.mapped("result_package_id.name")
+            #     package_names = [name for name in package_names if name]
+            # first_package_name = package_names[0] if package_names else ""
+            # pallet_summary = f"{first_package_name},etc.{total_pallets}Pallet" if first_package_name else ""
+
+
+            product_names = rec.outbound_order_product_ids.mapped("product_id.name")
+            first_product_name = product_names[0] if product_names else ""
+            product_summary = f"{first_product_name},  etc.({total_quantity} pcs)" if first_product_name else ""
             rows.append({
                 "outbound_id": rec.id,
                 "outbound_no": rec.billno or rec.reference or "",
                 "bl_no": ", ".join(sorted(bls)),
                 "container_no": ", ".join(sorted(containers)),
                 "outbound_date": portal_format_date(rec.picking_PICK_date),
-                 "portal_outbound_status": state,
+                "portal_outbound_status": state,
+                #"total_pallets":total_pallets,
                 "total_quantity": total_quantity,
                 "picking_no": rec.picking_PICK.name or "",
+                #"pallet_summary": pallet_summary,
+                "product_summary": product_summary,
             })
         return rows
 
