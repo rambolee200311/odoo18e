@@ -203,15 +203,16 @@ class OutboundOrderAPI(http.Controller):
     def cancel_outbound_order(self, **params):
         try:
             data = json.loads(request.httprequest.data)
-            domain = [('reference', '=', data['reference'])]
+            domain = [('reference', '=', data['reference']),('state', '!=', 'cancel')]
 
-            order = request.env['world.depot.outbound.order'].sudo().search(domain, limit=1)
+            order = request.env['world.depot.outbound.order'].sudo().search(domain, order='id desc', limit=1)
             if not order:
                 return {'success': False, 'error': 'Order %s not found' % data['reference']}
 
             order.action_cancel()
             return {'success': True,
                     'billno': order.billno,
+                    'reference': order.reference,
                     'id': order.id,
                     'state': order.state}
 

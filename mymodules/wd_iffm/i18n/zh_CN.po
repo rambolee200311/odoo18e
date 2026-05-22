@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0+e-20250619\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-12 02:36+0000\n"
-"PO-Revision-Date: 2026-05-12 02:36+0000\n"
+"POT-Creation-Date: 2026-05-21 06:23+0000\n"
+"PO-Revision-Date: 2026-05-21 06:23+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -187,7 +187,7 @@ msgstr "实际到港时间"
 #: model:ir.model,name:wd_iffm.model_account_account
 #: model:ir.model.fields,field_description:wd_iffm.field_world_depot_charge_item__account_account_id
 msgid "Account"
-msgstr "会计账户类型(会计记账)"
+msgstr "账户"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_account_account__account_category
@@ -747,11 +747,6 @@ msgstr "应收/成本"
 #: model:ir.model.fields,field_description:wd_iffm.field_world_depot_charge_item__charge_based_on_max
 msgid "Charge Based on Max Quantity container or hscode"
 msgstr "基于集装箱或HS编码最大数量计费"
-
-#. module: wd_iffm
-#: model:ir.model.fields,field_description:wd_iffm.field_world_depot_charge_item__tab_category
-msgid "Quotation Charge Category"
-msgstr "报价单页签费用分类"
 
 #. module: wd_iffm
 #: model:ir.model,name:wd_iffm.model_world_depot_charge_item
@@ -1926,7 +1921,7 @@ msgstr "导出XLSX"
 #: model:ir.model.fields,field_description:wd_iffm.field_res_partner__is_exporter
 #: model:ir.model.fields,field_description:wd_iffm.field_res_users__is_exporter
 msgid "Exporter"
-msgstr ""
+msgstr "出口商"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_clearance__external_system_no
@@ -1979,6 +1974,8 @@ msgstr "完成时间"
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation_add_wizard_line__is_fixed_fee
 #: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation_line__is_fixed_fee
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_clearance_charge_line__is_fixed_fee
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_charge_line__is_fixed_fee
 msgid "Fixed Fee"
 msgstr "固定费用"
 
@@ -3490,8 +3487,10 @@ msgstr "付款"
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_clearance_invoice_line__payment_company_id
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_invoice_line__payment_company_id
 #: model:ir.model.fields,field_description:wd_iffm.field_project_project__payment_company_id
+#: model:ir.model.fields,field_description:wd_iffm.field_res_partner__is_payment
+#: model:ir.model.fields,field_description:wd_iffm.field_res_users__is_payment
 msgid "Payment Company"
-msgstr "付款方"
+msgstr "付款公司"
 
 #. module: wd_iffm
 #: model:ir.model.fields.selection,name:wd_iffm.selection__statement_period__state__payment_in_progress
@@ -3817,6 +3816,11 @@ msgid "Quotation"
 msgstr "报价单"
 
 #. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_world_depot_charge_item__tab_category
+msgid "Quotation Charge Category"
+msgstr "报价单页签费用分类"
+
+#. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation__date
 msgid "Quotation Date"
 msgstr "报价日期"
@@ -3923,6 +3927,8 @@ msgstr "当逾期原因为其他时，必须填写原因说明。"
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_clearance_invoice_line__receipt_company_id
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_invoice_line__receipt_company_id
+#: model:ir.model.fields,field_description:wd_iffm.field_res_partner__is_receipt
+#: model:ir.model.fields,field_description:wd_iffm.field_res_users__is_receipt
 msgid "Receipt Company"
 msgstr "收款公司"
 
@@ -4102,7 +4108,6 @@ msgstr "角色"
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_workbench_alert_rule__name
 msgid "Rule Name"
 msgstr "规则名称"
-
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_clearance_cost_line__rule_snapshot
@@ -4546,6 +4551,14 @@ msgid "Terminal of Port"
 msgstr "目的港口"
 
 #. module: wd_iffm
+#: model:ir.model.fields,help:wd_iffm.field_operation_order_clearance__vat_tax_no
+msgid ""
+"The Tax Identification Number. Values here will be validated based on the "
+"country format. You can use '/' to indicate that the partner is not subject "
+"to tax."
+msgstr ""
+
+#. module: wd_iffm
 #. odoo-python
 #: code:addons/wd_iffm/models/transportation_models/import_pickup_requirement.py:0
 msgid "The container must belong to the current waybill."
@@ -4798,8 +4811,6 @@ msgstr "催办客户税务/单据资料"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_clearance__vat_tax_no
-#: model:ir.model.fields,field_description:wd_iffm.field_res_partner__vat_tax_no
-#: model:ir.model.fields,field_description:wd_iffm.field_res_users__vat_tax_no
 msgid "VAT No"
 msgstr "增值税号"
 
