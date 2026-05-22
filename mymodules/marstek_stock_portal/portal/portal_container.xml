@@ -4,7 +4,7 @@
     <!-- 2. 集装箱查询页面 -->
     <!-- =========================================== -->
     <template id="portal_marstek_container_stock" name="Container Stock">
-        <t t-call="portal.portal_layout">
+            <t t-call="portal.portal_layout">
             <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/marstek', 'name': 'Marstek 库存'}, {'url': None, 'name': '集装箱查询'}]"/>
 
             <div class="o_portal_content">
@@ -68,19 +68,32 @@
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h5 class="mb-0">货盘明细</h5>
-                            <!-- 导出按钮 -->
-                            <div class="d-flex gap-2">
+                            <div class="d-flex align-items-center gap-2">
+                                <!-- 视图切换按钮 -->
+                                <div class="btn-group btn-group-sm" role="group" aria-label="视图切换">
+                                    <input type="radio" class="btn-check" name="view_mode" id="view_table" value="table" checked="checked" autocomplete="off"/>
+                                    <label class="btn btn-outline-primary" for="view_table" title="表格视图">
+                                        <i class="fa fa-table"/>
+                                        <span class="d-none d-sm-inline ms-1">表格</span>
+                                    </label>
+                                    <input type="radio" class="btn-check" name="view_mode" id="view_card" value="card" autocomplete="off"/>
+                                    <label class="btn btn-outline-primary" for="view_card" title="卡片视图">
+                                        <i class="fa fa-th-large"/>
+                                        <span class="d-none d-sm-inline ms-1">卡片</span>
+                                    </label>
+                                </div>
+                                <!-- 导出按钮 -->
                                 <a t-attf-href="/my/marstek/export/container_stock/csv?container_no=#{container_no or ''}"
-                                   t-attf-class="btn btn-primary #{'disabled' if not rows else ''}"
-                                   t-attf-title="#{'请先输入柜号查询' if not container_no else ('暂无可导出数据' if not rows else '导出 CSV')}">
-                                    <i class="fa fa-file-text-o me-1"/>
-                                    导出 CSV
+                                   t-attf-class="btn btn-primary export-btn #{'disabled' if not rows else ''}"
+                                   t-attf-title="#{'暂无可导出数据' if not rows else '导出 CSV'}">
+                                    <i class="fa fa-file-text-o"/>
+                                    <span class="d-none d-sm-inline ms-1">导出 CSV</span>
                                 </a>
                                 <a t-attf-href="/my/marstek/export/container_stock/pdf?container_no=#{container_no or ''}"
-                                   t-attf-class="btn btn-primary #{'disabled' if not rows else ''}"
-                                   t-attf-title="#{'请先输入柜号查询' if not container_no else ('暂无可导出数据' if not rows else '导出 PDF')}">
-                                    <i class="fa fa-file-pdf-o me-1"/>
-                                    导出 PDF
+                                   t-attf-class="btn btn-primary export-btn #{'disabled' if not rows else ''}"
+                                   t-attf-title="#{'暂无可导出数据' if not rows else '导出 PDF'}">
+                                    <i class="fa fa-file-pdf-o"/>
+                                    <span class="d-none d-sm-inline ms-1">导出 PDF</span>
                                 </a>
                                 <button class="btn btn-link text-decoration-none p-0 border-0" type="button" data-bs-toggle="collapse" data-bs-target="#container_pallet_collapse" aria-expanded="true">
                                     <i class="fa fa-chevron-up collapse-icon"/>
@@ -88,8 +101,9 @@
                             </div>
                         </div>
                         <div id="container_pallet_collapse" class="collapse show">
-                            <div class="card-body p-0">
-                                <div class="table-responsive">
+                            <!-- 表格视图 -->
+                            <div id="table_view" class="card-body p-0">
+                                <div class="table-responsive" style="max-height: 60vh; overflow: auto;">
                                     <table class="table table-hover mb-0">
                                         <thead class="table-light">
                                             <tr>
@@ -128,6 +142,77 @@
                                             </t>
                                         </tbody>
                                     </table>
+                                </div>
+                            </div>
+                            <!-- 卡片视图 -->
+                            <div id="card_view" class="card-body p-3" style="display: none;">
+                                <div class="stock-card-list">
+                                    <t t-foreach="rows" t-as="row">
+                                        <div class="stock-card-item">
+                                            <!-- 卡片标题：点击折叠/展开 -->
+                                            <div class="card-item-header" onclick="marstekToggleCard(this)">
+                                                <div class="card-summary">
+                                                    <span class="summary-item">
+                                                        <i class="fa fa-cube me-1 text-primary"></i>
+                                                        <t t-esc="row.get('product_name', '')"/>
+                                                    </span>
+                                                    <span class="summary-item">
+                                                        <i class="fa fa-database me-1 text-success"></i>
+                                                        <t t-esc="row.get('quantity', 0)"/> 件
+                                                    </span>
+                                                </div>
+                                                <i class="card-arrow fa fa-chevron-down"></i>
+                                            </div>
+                                            <!-- 卡片详情：默认隐藏 -->
+                                            <div class="card-item-details">
+                                                <div class="detail-grid">
+                                                    <div class="detail-item">
+                                                        <label>托盘号</label>
+                                                        <span><t t-esc="row.get('package_name', '')"/></span>
+                                                    </div>
+                                                    <div class="detail-item">
+                                                        <label>柜号</label>
+                                                        <span>
+                                                            <a t-if="row.get('container_no')" class="text-primary text-decoration-none" t-attf-href="/my/marstek/stock?container_no=#{row.get('container_no', '')}">
+                                                                <t t-esc="row.get('container_no', '')"/>
+                                                            </a>
+                                                            <t t-else=""><t t-esc="row.get('container_no', '')"/></t>
+                                                        </span>
+                                                    </div>
+                                                    <div class="detail-item">
+                                                        <label>提单号</label>
+                                                        <span><t t-esc="row.get('bl_no', '')"/></span>
+                                                    </div>
+                                                    <div class="detail-item">
+                                                        <label>产品编码</label>
+                                                        <span><t t-esc="row.get('product_code', '')"/></span>
+                                                    </div>
+                                                    <div class="detail-item">
+                                                        <label>产品名称</label>
+                                                        <span><t t-esc="row.get('product_name', '')"/></span>
+                                                    </div>
+                                                    <div class="detail-item">
+                                                        <label>数量</label>
+                                                        <span class="text-success fw-bold"><t t-esc="row.get('quantity', 0)"/></span>
+                                                    </div>
+                                                    <div class="detail-item">
+                                                        <label>库位</label>
+                                                        <span><t t-esc="row.get('location_name', '')"/></span>
+                                                    </div>
+                                                    <div class="detail-item">
+                                                        <label>入库日期</label>
+                                                        <span><t t-esc="row.get('inbound_date', '')"/></span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </t>
+                                    <t t-if="not rows">
+                                        <div class="text-center text-muted py-5">
+                                            <i class="fa fa-inbox fa-3x mb-3"></i>
+                                            <p>暂无数据</p>
+                                        </div>
+                                    </t>
                                 </div>
                             </div>
                         </div>

@@ -3,6 +3,56 @@
    折叠卡片样式
    =========================================== */
 
+/* ===========================================
+   表格表头固定样式（通用）
+   =========================================== */
+.table-responsive {
+    position: relative;
+}
+
+.table-responsive thead {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+}
+
+.table-responsive thead th {
+    background-color: #f8f9fa;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+/* 手机端隐藏列的样式 */
+.col-hidden-mobile {
+    display: none !important;
+}
+
+@media (min-width: 768px) {
+    .col-hidden-mobile {
+        display: table-cell !important;
+    }
+}
+
+/* 手机端表格切换按钮 */
+.mobile-table-toggle {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+/* ===========================================
+   导出按钮样式优化
+   =========================================== */
+/* 减小导出按钮尺寸，让表头不那么拥挤 */
+.o_portal_content .card-header .btn-primary.export-btn {
+    font-size: 0.8rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.o_portal_content .card-header .btn-primary.export-btn i {
+    margin-right: 0.25rem;
+}
+
+
 /* 折叠卡片容器样式 */
 .o_portal_content .card [data-bs-toggle="collapse"] {
     cursor: pointer;
@@ -19,6 +69,16 @@
     transition: transform 0.3s ease;
     font-size: 0.875rem;
     color: #6c757d;
+}
+
+/* 展开时箭头向上（旋转180度） */
+.o_portal_content .card [data-bs-toggle="collapse"][aria-expanded="true"] .collapse-icon {
+    transform: rotate(180deg);
+}
+
+/* 折叠时箭头向下（默认状态，不旋转） */
+.o_portal_content .card [data-bs-toggle="collapse"][aria-expanded="false"] .collapse-icon {
+    transform: rotate(0deg);
 }
 
 /* 折叠内容区域的过渡动画 */
@@ -101,16 +161,17 @@
    响应式调整
    =========================================== */
 @media (max-width: 768px) {
-    .o_portal_content .card-header.d-flex {
+    .o_portal_content .card-header {
         flex-direction: column;
         align-items: flex-start !important;
         padding-right: 50px;
+        min-height: 80px;
     }
 
     .o_portal_content .card-header .d-flex,
-    .o_portal_content .card-header .d-flex.gap-2 {
+    .o_portal_content .card-header .d-flex.align-items-center.gap-2 {
         width: 100%;
-        justify-content: flex-start;
+        justify-content: flex-end;
         flex-wrap: wrap;
     }
 
@@ -118,9 +179,170 @@
         margin-bottom: 0.25rem;
     }
 
-    /* 移动端搜索面板下拉按钮 */
     .o_portal_search_panel .dropdown-toggle {
         min-width: 44px;
         min-height: 44px;
+    }
+}
+
+/* ===========================================
+   库存卡片视图样式
+   =========================================== */
+
+/* 卡片列表容器 */
+.stock-card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* 单张卡片 */
+.stock-card-item {
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e9ecef;
+    overflow: hidden;
+    transition: box-shadow 0.2s ease;
+}
+
+.stock-card-item:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+/* 卡片标题栏（点击区） */
+.card-item-header {
+    padding: 14px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    background: linear-gradient(to right, #f8f9fa, #ffffff);
+    border-bottom: 1px solid transparent;
+    transition: background-color 0.2s ease;
+}
+
+.card-item-header:hover {
+    background: linear-gradient(to right, #e9ecef, #f8f9fa);
+}
+
+.card-item-header.active {
+    background: #e7f1ff;
+    border-bottom-color: #dee2e6;
+}
+
+/* 概要信息布局 */
+.card-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    flex: 1;
+}
+
+.summary-item {
+    font-size: 14px;
+    color: #495057;
+}
+
+/* 箭头图标 */
+.card-arrow {
+    font-size: 12px;
+    color: #6c757d;
+    transition: transform 0.3s ease;
+    margin-left: 8px;
+}
+
+/* 详情内容区 */
+.card-item-details {
+    display: none;
+    padding: 0;
+    background: #ffffff;
+}
+
+/* 详情网格布局 */
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px 16px;
+    padding: 16px;
+}
+
+/* 详情行 */
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    padding: 8px 0;
+    border-bottom: 1px dashed #f1f3f5;
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+}
+
+.detail-item label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #868e96;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.detail-item span {
+    font-size: 14px;
+    color: #212529;
+}
+
+/* 移动端适配 - 手机端两列布局 */
+@media (max-width: 576px) {
+    /* 手机端卡片标题行保持横向排列，箭头靠右 */
+    .card-item-header {
+        padding: 10px 12px;
+    }
+
+    .card-summary {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 8px;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .summary-item {
+        font-size: 13px;
+        white-space: nowrap;
+    }
+
+    .card-arrow {
+        margin-left: 8px;
+        flex-shrink: 0;
+    }
+
+    .detail-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px 12px;
+        padding: 12px;
+    }
+
+    .detail-item {
+        padding: 6px 0;
+    }
+
+    .detail-item label {
+        font-size: 11px;
+        margin-bottom: 2px;
+    }
+
+    .detail-item span {
+        font-size: 13px;
+        word-break: break-all;
+        line-height: 1.3;
+    }
+
+    .detail-item span.btn,
+    .detail-item span a.btn {
+        font-size: 11px;
+        padding: 2px 8px;
     }
 }

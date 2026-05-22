@@ -4,7 +4,7 @@
     <!-- 5. 出库查询列表页面 -->
     <!-- =========================================== -->
     <template id="portal_marstek_outbounds" name="Outbound Orders">
-        <t t-call="portal.portal_layout">
+            <t t-call="portal.portal_layout">
             <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/marstek', 'name': 'Marstek 库存'}, {'url': None, 'name': '出库单查询'}]"/>
 
             <div class="o_portal_content">
@@ -72,18 +72,31 @@
                         <h5 class="mb-0">出库单列表</h5>
                         <div class="d-flex align-items-center gap-2">
                             <span class="badge bg-primary me-3">共 <t t-esc="pager.get('total', 0)"/> 条</span>
+                            <!-- 视图切换按钮 -->
+                            <div class="btn-group btn-group-sm" role="group" aria-label="视图切换">
+                                <input type="radio" class="btn-check" name="view_mode" id="view_table" value="table" checked="checked" autocomplete="off"/>
+                                <label class="btn btn-outline-primary" for="view_table" title="表格视图">
+                                    <i class="fa fa-table"/>
+                                    <span class="d-none d-sm-inline ms-1">表格</span>
+                                </label>
+                                <input type="radio" class="btn-check" name="view_mode" id="view_card" value="card" autocomplete="off"/>
+                                <label class="btn btn-outline-primary" for="view_card" title="卡片视图">
+                                    <i class="fa fa-th-large"/>
+                                    <span class="d-none d-sm-inline ms-1">卡片</span>
+                                </label>
+                            </div>
                             <!-- 导出按钮 -->
                             <a t-attf-href="/my/marstek/export/outbounds/csv?outbound_no=#{filters.get('outbound_no', '')}&amp;bl_no=#{filters.get('bl_no', '')}&amp;container_no=#{filters.get('container_no', '')}&amp;portal_outbound_status=#{filters.get('portal_outbound_status', '')}&amp;outbound_date_from=#{filters.get('outbound_date_from', '')}&amp;outbound_date_to=#{filters.get('outbound_date_to', '')}"
-                               t-attf-class="btn btn-primary #{'disabled' if not rows else ''}"
+                               t-attf-class="btn btn-primary export-btn #{'disabled' if not rows else ''}"
                                t-attf-title="#{'暂无可导出数据' if not rows else '导出 CSV'}">
-                                <i class="fa fa-file-text-o me-1"/>
-                                导出 CSV
+                                <i class="fa fa-file-text-o"/>
+                                <span class="d-none d-sm-inline ms-1">导出 CSV</span>
                             </a>
                             <a t-attf-href="/my/marstek/export/outbounds/pdf?outbound_no=#{filters.get('outbound_no', '')}&amp;bl_no=#{filters.get('bl_no', '')}&amp;container_no=#{filters.get('container_no', '')}&amp;portal_outbound_status=#{filters.get('portal_outbound_status', '')}&amp;outbound_date_from=#{filters.get('outbound_date_from', '')}&amp;outbound_date_to=#{filters.get('outbound_date_to', '')}"
-                               t-attf-class="btn btn-primary #{'disabled' if not rows else ''}"
+                               t-attf-class="btn btn-primary export-btn #{'disabled' if not rows else ''}"
                                t-attf-title="#{'暂无可导出数据' if not rows else '导出 PDF'}">
-                                <i class="fa fa-file-pdf-o me-1"/>
-                                导出 PDF
+                                <i class="fa fa-file-pdf-o"/>
+                                <span class="d-none d-sm-inline ms-1">导出 PDF</span>
                             </a>
                             <button class="btn btn-link text-decoration-none p-0 border-0" type="button" data-bs-toggle="collapse" data-bs-target="#outbound_table_collapse" aria-expanded="true">
                                 <i class="fa fa-chevron-up collapse-icon"/>
@@ -91,7 +104,8 @@
                         </div>
                     </div>
                     <div id="outbound_table_collapse" class="collapse show">
-                        <div class="card-body p-0">
+                        <!-- 表格视图 -->
+                        <div id="table_view" class="card-body p-0">
                             <div class="table-responsive">
                                 <table class="table table-hover mb-0">
                                     <thead class="table-light">
@@ -147,6 +161,98 @@
                                 </table>
                             </div>
                         </div>
+                        <!-- 卡片视图 -->
+                        <div id="card_view" class="card-body p-3" style="display: none;">
+                            <div class="stock-card-list">
+                                <t t-foreach="rows" t-as="row">
+                                    <div class="stock-card-item">
+                                        <!-- 卡片标题：点击折叠/展开 -->
+                                        <div class="card-item-header" onclick="marstekToggleCard(this)">
+                                            <div class="card-summary">
+                                                <span class="summary-item">
+                                                    <i class="fa fa-truck me-1 text-primary"></i>
+                                                    <t t-esc="row.get('outbound_no', '')"/>
+                                                </span>
+                                                <span class="summary-item">
+                                                    <t t-if="row.get('portal_outbound_status') == 'outbound_confirmed'">
+                                                        <span class="badge bg-info">已确认</span>
+                                                    </t>
+                                                    <t t-elif="row.get('portal_outbound_status') == 'outbound_picking_processing'">
+                                                        <span class="badge bg-warning">拣货中</span>
+                                                    </t>
+                                                    <t t-else="">
+                                                        <span class="badge bg-success">拣货完成</span>
+                                                    </t>
+                                                </span>
+                                            </div>
+                                            <i class="card-arrow fa fa-chevron-down"></i>
+                                        </div>
+                                        <!-- 卡片详情：默认隐藏 -->
+                                        <div class="card-item-details">
+                                            <div class="detail-grid">
+                                                <div class="detail-item">
+                                                    <label>出库单号</label>
+                                                    <span>
+                                                        <a t-if="row.get('outbound_id')" class="text-primary text-decoration-none" t-attf-href="/my/marstek/outbounds/#{row.get('outbound_id')}">
+                                                            <t t-esc="row.get('outbound_no', '')"/>
+                                                        </a>
+                                                        <t t-else=""><t t-esc="row.get('outbound_no', '')"/></t>
+                                                    </span>
+                                                </div>
+                                                <div class="detail-item">
+                                                    <label>提单号</label>
+                                                    <span><t t-esc="row.get('bl_no', '')"/></span>
+                                                </div>
+                                                <div class="detail-item">
+                                                    <label>柜号</label>
+                                                    <span><t t-esc="row.get('container_no', '')"/></span>
+                                                </div>
+                                                <div class="detail-item">
+                                                    <label>出库日期</label>
+                                                    <span><t t-esc="row.get('outbound_date', '')"/></span>
+                                                </div>
+                                                <div class="detail-item">
+                                                    <label>状态</label>
+                                                    <span>
+                                                        <t t-if="row.get('portal_outbound_status') == 'outbound_confirmed'">
+                                                            <span class="badge bg-info">已确认</span>
+                                                        </t>
+                                                        <t t-elif="row.get('portal_outbound_status') == 'outbound_picking_processing'">
+                                                            <span class="badge bg-warning">拣货中</span>
+                                                        </t>
+                                                        <t t-else="">
+                                                            <span class="badge bg-success">拣货完成</span>
+                                                        </t>
+                                                    </span>
+                                                </div>
+                                                <div class="detail-item">
+                                                    <label>总数量</label>
+                                                    <span class="text-success fw-bold"><t t-esc="row.get('total_quantity', 0)"/></span>
+                                                </div>
+                                                <div class="detail-item">
+                                                    <label>拣货单号</label>
+                                                    <span><t t-esc="row.get('picking_no', '')"/></span>
+                                                </div>
+                                                <div class="detail-item">
+                                                    <label>操作</label>
+                                                    <span>
+                                                        <a t-attf-href="/my/marstek/outbounds/#{row.get('outbound_id')}" class="btn btn-sm btn-outline-primary">
+                                                            查看详情
+                                                        </a>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </t>
+                                <t t-if="not rows">
+                                    <div class="text-center text-muted py-5">
+                                        <i class="fa fa-inbox fa-3x mb-3"></i>
+                                        <p>暂无数据</p>
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
                         <div t-if="pager.get('page_count', 1) > 1" class="card-footer">
                             <t t-call="portal.pager"/>
                         </div>
@@ -160,7 +266,7 @@
     <!-- 6. 出库详情页面 -->
     <!-- =========================================== -->
     <template id="portal_marstek_outbound_detail" name="Outbound Detail">
-        <t t-call="portal.portal_layout">
+            <t t-call="portal.portal_layout">
             <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/marstek', 'name': 'Marstek 库存'}, {'url': '/my/marstek/outbounds', 'name': '出库单查询'}, {'url': None, 'name': '出库详情'}]"/>
 
             <div class="o_portal_content">
@@ -254,7 +360,7 @@
                     <div id="outbound_detail_collapse" class="collapse show">
                         <div class="card-body p-0">
                             <div class="table-responsive">
-                                <table class="table table-hover mb-0">
+                                <table class="table table-hover mb-0 outbound-detail-table">
                                     <thead class="table-light">
                                         <tr>
                                             <th>出库单号</th>
@@ -319,7 +425,7 @@
                         <div id="outbound_attachment_collapse" class="collapse show">
                             <div class="card-body p-0">
                                 <div class="table-responsive">
-                                    <table class="table table-hover mb-0">
+                                    <table class="table table-hover mb-0 outbound-attachment-table">
                                         <thead class="table-light">
                                             <tr>
                                                 <th>文件名</th>

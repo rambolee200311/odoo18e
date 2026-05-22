@@ -26,4 +26,10 @@ Read-only ORM methods for Marstek portal stock, inbound, outbound, SN, and attac
     "license": "LGPL-3",
     "installable": True,
     "application": True,
+    "assets": {
+        "web.assets_frontend": [
+            "marstek_stock_portal/static/src/js/marstek_table_utils.js",
+            "marstek_stock_portal/static/src/css/marstek_collapsible.css",
+        ],
+    },
 }
