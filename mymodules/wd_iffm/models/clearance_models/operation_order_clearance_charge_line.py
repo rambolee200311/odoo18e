@@ -27,7 +27,7 @@ class OperationOrderClearanceChargeLine(models.Model):
     charge_item_id = fields.Many2one("world.depot.charge.item", string="Charge Item", tracking=True)
     quotation_tab_category = fields.Selection(TAB_CATEGORY_LIST, related="charge_item_id.tab_category", string="Tab Category", tracking=True)
     charge_item_operation_type = fields.Selection(OPERATION_TYPE, string="Operation Type", related="charge_item_id.operation_type", store=True, index=True)
-
+    is_fixed_fee = fields.Boolean(string="Fixed Fee", default=False, index=True)
     qty = fields.Integer(string="Qty", default=1.0, tracking=True)
     charge_qty = fields.Integer(string="Charge Quantity", compute="compute_charge_qty", store=True)
 
@@ -50,16 +50,22 @@ class OperationOrderClearanceChargeLine(models.Model):
             else:
                 rec.charge_qty = rec.clearance_id.hs_code_qty
 
-    @api.onchange("charge_item_id", "charge_qty")
+    @api.onchange("charge_item_id", "charge_qty", "is_fixed_fee")
     def onchange_charge_qty(self):
         for rec in self:
+            if rec.is_fixed_fee:
+                rec.qty = 1.0
+                continue
             if rec.charge_item_id.charge_based_on_max:
                 rec.qty = rec.charge_qty
                 #rec.qty = rec.charge_qty or 1.0
 
-    @api.depends("qty", "unit_price",'charge_item_id')
+    @api.depends("qty", "unit_price",'charge_item_id', "is_fixed_fee")
     def compute_amount_total(self):
         for rec in self:
+            if rec.is_fixed_fee:
+                rec.amount_total = rec.unit_price or 0.0
+                continue
             if rec.charge_item_id.charge_based_on_max:
                 rec.amount_total = ((rec.qty or 0) - 1) * (rec.unit_price or 0.0)
                 rec.remark = "Maximum charge (qty-1)*unit price"

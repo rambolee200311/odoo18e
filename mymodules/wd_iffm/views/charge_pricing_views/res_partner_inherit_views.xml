@@ -10,10 +10,10 @@
                     <field name="eu_eori_no"/>
                 </div>
 
-                <label for="vat_tax_no"/>
-                <div class="o_row">
-                    <field name="vat_tax_no"/>
-                </div>
+<!--                <label for="vat_tax_no"/>-->
+<!--                <div class="o_row">-->
+<!--                    <field name="vat_tax_no"/>-->
+<!--                </div>-->
             </xpath>
             <xpath expr="//notebook" position="inside">
                 <page string="Role">
@@ -26,6 +26,8 @@
                         <group>
                             <field name="is_customs_broker"/>
                             <field name="is_notify_party"/>
+                            <field name="is_payment"/>
+                            <field name="is_receipt"/>
                         </group>
                     </group>
                 </page>

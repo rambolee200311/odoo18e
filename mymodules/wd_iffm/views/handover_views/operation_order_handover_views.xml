@@ -123,8 +123,9 @@
                                         <field name="charge_item_id" options="{'no_create': True, 'no_open': True}"
                                                domain="[('operation_type', '=','handover'),('is_leaf','=',True)]"
                                                required="1"/>
-                                        <field name="qty"/>
-                                        <field name="unit_price"/>
+                                        <field name="is_fixed_fee" readonly="1"/>
+                                        <field name="qty" readonly="is_fixed_fee"/>
+                                        <field name="unit_price" readonly="is_fixed_fee"/>
                                         <field name="amount_total" sum="Total Amount"/>
                                         <field name="manual_amount_total" sum="Manual Total"/>
                                         <field name="remark"/>

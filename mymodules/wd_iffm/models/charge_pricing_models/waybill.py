@@ -200,6 +200,7 @@ class Waybill(models.Model):
                 "charge_item_id": ln.charge_item_id.id,
                 "charge_origin_type": 'quotation',
                 "unit_price": ln.unit_price,
+                "is_fixed_fee": ln.is_fixed_fee,
             }) for ln in rec.quotation_id.quotation_thc_lines]
 
             handover_id = rec.env['operation.order.handover'].sudo().create({
@@ -276,6 +277,7 @@ class Waybill(models.Model):
                 "charge_item_id": ln.charge_item_id.id,
                 "charge_origin_type": 'quotation',
                 "unit_price": ln.unit_price,
+                "is_fixed_fee": ln.is_fixed_fee,
             }) for ln in rec.quotation_id.quotation_customs_lines]
 
             clearance_id = rec.env['operation.order.clearance'].sudo().create({

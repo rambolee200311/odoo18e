@@ -235,11 +235,11 @@ class OperationOrderHandover(models.Model):
                 "attachment_line_ids": [
                     (0, 0, {"doc_type": line.doc_type, "remark": line.remark, "file": line.file, "name": line.name}) for
                     line in rec.attachment_line_ids],
-                "charge_line_ids": [(0, 0, {"charge_item_id": line.charge_item_id.id,
-                                            "charge_origin_type": line.charge_origin_type, "qty": line.qty,
-                                            "unit_price": line.unit_price,
-                                            "manual_amount_total": line.manual_amount_total, "remark": line.remark}) for
-                                    line in rec.charge_line_ids],
+                # "charge_line_ids": [(0, 0, {"charge_item_id": line.charge_item_id.id,
+                #                             "charge_origin_type": line.charge_origin_type, "qty": line.qty,
+                #                             "unit_price": line.unit_price,
+                #                             "manual_amount_total": line.manual_amount_total, "remark": line.remark}) for
+                #                     line in rec.charge_line_ids],
             }
             child = env_handover.create(vals)
 
@@ -287,34 +287,34 @@ class OperationOrderHandover(models.Model):
             container_numbers = [line.container_number for line in record.container_line_ids]
             record.container_nums = ', '.join(container_numbers)
 
-    @api.onchange("waybill_id")
-    def _onchange_waybill_id(self):
-        for rec in self:
-            if rec.waybill_id:
-                rec.attachment_line_ids = [(5, 0, 0)]
-                rec.charge_line_ids = [(5, 0, 0)]
-                attachment_lines = [(0, 0, {
-                    "doc_type": ln.bill_doc_type,
-                    "remark": ln.description,
-                    "file": ln.file,
-                    "name": ln.filename,
-                }) for ln in rec.waybill_id.other_docs_ids]
-
-                charge_lines = [(0, 0, {
-                    "charge_item_id": ln.charge_item_id.id,
-                    "charge_origin_type": 'quotation',
-                    "unit_price": ln.unit_price,
-                }) for ln in rec.waybill_id.project.quotation_id.quotation_thc_lines]
-
-                rec.project_id = rec.waybill_id.project
-                rec.container_qty = rec.waybill_id.container_qty
-                rec.attachment_line_ids =  attachment_lines
-                rec.charge_line_ids = charge_lines
-            else:
-                rec.project_id = False
-                rec.container_qty = False
-                rec.attachment_line_ids = [(5, 0, 0)]
-                rec.charge_line_ids = [(5, 0, 0)]
+    # @api.onchange("waybill_id")
+    # def _onchange_waybill_id(self):
+    #     for rec in self:
+    #         if rec.waybill_id:
+    #             rec.attachment_line_ids = [(5, 0, 0)]
+    #             rec.charge_line_ids = [(5, 0, 0)]
+    #             attachment_lines = [(0, 0, {
+    #                 "doc_type": ln.bill_doc_type,
+    #                 "remark": ln.description,
+    #                 "file": ln.file,
+    #                 "name": ln.filename,
+    #             }) for ln in rec.waybill_id.other_docs_ids]
+    #
+    #             charge_lines = [(0, 0, {
+    #                 "charge_item_id": ln.charge_item_id.id,
+    #                 "charge_origin_type": 'quotation',
+    #                 "unit_price": ln.unit_price,
+    #             }) for ln in rec.waybill_id.project.quotation_id.quotation_thc_lines]
+    #
+    #             rec.project_id = rec.waybill_id.project
+    #             rec.container_qty = rec.waybill_id.container_qty
+    #             rec.attachment_line_ids =  attachment_lines
+    #             rec.charge_line_ids = charge_lines
+    #         else:
+    #             rec.project_id = False
+    #             rec.container_qty = False
+    #             rec.attachment_line_ids = [(5, 0, 0)]
+    #             rec.charge_line_ids = [(5, 0, 0)]
 
     @api.constrains("waybill_id", "state")
     def _constrain_unique_waybill(self):

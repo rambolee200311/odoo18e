@@ -21,19 +21,29 @@ class OutboundOrderSNDetail(models.Model):
     def search_sn(self, sn_code):
         if not sn_code:
             return {"status": "NOT_FOUND", "data": {}}
-        detail_env = self.env["world.depot.outbound.order.sn.detail"].sudo()
-        detail_domain = [("lot_name", "=", sn_code),('picking_PICK.state','=','done')] + portal_owner_domain(self.env, "project.owner")
-        details  = detail_env.search(detail_domain, order="p_date desc, id desc")
-        if details:
-            for detail in details:
-                return {"status": "FOUND", "data": self.get_sn_result_from_detail(detail)}
+
         move_line = self.get_sn_move_line(sn_code)
-        if not move_line:
-            return {"status": "NOT_FOUND", "data": {}}
-        order = self.get_sn_outbound_order(move_line)
-        if not order or order.picking_PICK.state != "done":
-            return {"status": "NOT_FOUND", "data": {}}
-        return {"status": "FOUND", "data": self.get_sn_result_from_move_line(move_line, order)}
+        if move_line:
+            order = self.get_sn_outbound_order(move_line)
+            if order and order.picking_PICK and order.picking_PICK.state == "done":
+                return {
+                    "status": "FOUND",
+                    "data": self.get_sn_result_from_move_line(move_line, order),
+                }
+
+        detail_env = self.env["world.depot.outbound.order.sn.detail"].sudo()
+        detail_domain = [
+                            ("lot_name", "=", sn_code),
+                            ("picking_PICK.state", "=", "done"),
+                        ] + portal_owner_domain(self.env, "project.owner")
+        detail = detail_env.search(detail_domain, limit=1, order="p_date desc, id desc")
+        if detail:
+            return {
+                "status": "FOUND",
+                "data": self.get_sn_result_from_detail(detail),
+            }
+
+        return {"status": "NOT_FOUND", "data": {}}
 
     @api.model
     def get_sn_move_line(self, sn_code):
@@ -116,6 +126,14 @@ class OutboundOrderSNDetail(models.Model):
         info = info_by_package.get(package.id, {}) if package else {}
         lot = move_line.lot_id
         product = move_line.product_id
+        picking = order.picking_PICK
+
+        if picking and picking.state == "done":
+            state = "outbound_picking_done"
+        elif picking:
+            state = "outbound_picking_processing"
+        else:
+            state = "outbound_confirmed"
         return {
             "sn_code": lot.name or "",
             "product_code": portal_product_code(product),
@@ -124,5 +142,5 @@ class OutboundOrderSNDetail(models.Model):
             "outbound_date": portal_format_date(order.o_date or move_line.picking_id.date_done or move_line.date),
             "container_no": lot.cntrno or info.get("container_no") or portal_package_container_from_name(package.name if package else ""),
             "bl_no": lot.bill_of_lading or info.get("bl_no") or "",
-            "state": order.status or order.state or "",
+            "portal_outbound_status": state,
         }

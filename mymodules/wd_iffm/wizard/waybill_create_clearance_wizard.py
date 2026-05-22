@@ -99,7 +99,7 @@ class WaybillCreateClearanceWizard(models.TransientModel):
             for rec in waybill.other_docs_ids]
         quotation = waybill.quotation_id
         charge_lines = [(0, 0, {"charge_item_id": rec.charge_item_id.id, "charge_origin_type": "quotation",
-                                "unit_price": rec.unit_price}) for rec in
+                                "unit_price": rec.unit_price,"is_fixed_fee": rec.is_fixed_fee,}) for rec in
                         quotation.quotation_customs_lines] if quotation else []
 
         clearance = env_clearance.create({

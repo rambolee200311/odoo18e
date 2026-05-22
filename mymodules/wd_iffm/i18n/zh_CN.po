@@ -187,7 +187,7 @@ msgstr "实际到港时间"
 #: model:ir.model,name:wd_iffm.model_account_account
 #: model:ir.model.fields,field_description:wd_iffm.field_world_depot_charge_item__account_account_id
 msgid "Account"
-msgstr "账户"
+msgstr "会计账户类型(会计记账)"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_account_account__account_category
@@ -750,8 +750,8 @@ msgstr "基于集装箱或HS编码最大数量计费"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_world_depot_charge_item__tab_category
-msgid "Charge Category"
-msgstr "费用类别"
+msgid "Quotation Charge Category"
+msgstr "报价单页签费用分类"
 
 #. module: wd_iffm
 #: model:ir.model,name:wd_iffm.model_world_depot_charge_item
@@ -4096,12 +4096,13 @@ msgstr ""
 #. module: wd_iffm
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_partner_form_inherit_eori_vat_tax
 msgid "Role"
-msgstr "撤销请求"
+msgstr "角色"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_workbench_alert_rule__name
 msgid "Rule Name"
 msgstr "规则名称"
+
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_clearance_cost_line__rule_snapshot

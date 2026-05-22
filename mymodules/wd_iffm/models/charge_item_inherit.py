@@ -22,7 +22,7 @@ class ChargeItemInherit(models.Model):
     account_account_id = fields.Many2one("account.account", string="Account", ondelete="restrict", index=True)
     tab_category = fields.Selection(
         TAB_CATEGORY_LIST,
-        string="Charge Category",
+        string="Quotation Charge Category",
     )
     child_ids = fields.One2many(
         'world.depot.charge.item',

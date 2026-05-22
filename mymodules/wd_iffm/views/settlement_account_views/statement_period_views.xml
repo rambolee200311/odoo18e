@@ -22,7 +22,7 @@
         <field name="name">statement.period.form</field>
         <field name="model">statement.period</field>
         <field name="arch" type="xml">
-            <form string="Statement Period">
+            <form string="Statement Period" class="wd_iffm_required_highlight">
                 <header>
                     <button name="get_periodic_statement"
                             type="object"
