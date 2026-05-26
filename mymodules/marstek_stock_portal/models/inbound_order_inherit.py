@@ -135,6 +135,8 @@ class InboundOrder(models.Model):
         if not order:
             return []
         move_line_env = self.env["stock.move.line"].sudo()
+        product_env = self.env["product.product"].sudo()
+
         domain = [
             ("picking_id.inbound_order_id", "=", order.id),
             ("result_package_id", "!=", False),
