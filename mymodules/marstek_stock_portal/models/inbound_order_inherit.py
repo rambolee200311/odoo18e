@@ -160,6 +160,9 @@ class InboundOrder(models.Model):
             )
 
         if groups:
+            product_ids = [group["product_id"][0] for group in groups if group.get("product_id")]
+            products_by_id = {product.id: product for product in product_env.browse(product_ids)}
+
             grouped_rows = {}
 
             for group in groups:
@@ -171,6 +174,9 @@ class InboundOrder(models.Model):
 
                 package_id = package_data[0]
                 package_name = package_data[1]
+                product_id = product_data[0]
+                product = products_by_id.get(product_id)
+
                 package_row = grouped_rows.setdefault(package_id, {
                     "package_name": package_name or "",
                     "container_no": order.cntr_no or "",
@@ -182,7 +188,8 @@ class InboundOrder(models.Model):
                 quantity = group.get("quantity_sum") or 0.0
 
                 package_row["products"].append({
-                    "product_name": product_data[1],
+                    "product_code": portal_product_code(product) if product else "",
+                    "product_name": product.display_name if product else product_data[1],
                     "quantity": quantity,
                 })
                 package_row["total_quantity"] += quantity

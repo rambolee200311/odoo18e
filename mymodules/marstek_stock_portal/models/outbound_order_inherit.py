@@ -230,8 +230,6 @@ class OutboundOrder(models.Model):
             lot = move_line.lot_id
             product = move_line.product_id
             package = move_line.package_id or move_line.result_package_id
-            if package.id == 1224:
-                a=1
 
 
             if product.tracking == "serial" and lot:
@@ -263,3 +261,32 @@ class OutboundOrder(models.Model):
                 "scan_time": portal_format_datetime(move_line.date or move_line.picking_id.date_done),
             })
         return rows
+
+    @api.model
+    def get_outbound_detail_grouped(self, outbound_id):
+        order = self.get_outbound_order(outbound_id)
+        if not order:
+            return []
+
+        products_by_id = {}
+        for line in order.outbound_order_product_ids:
+            product = line.product_id
+            if not product:
+                continue
+
+            product_row = products_by_id.setdefault(product.id, {
+                "product_code": portal_product_code(product),
+                "product_name": product.display_name or product.name or "",
+                "quantity": 0.0,
+            })
+            product_row["quantity"] += line.quantity or 0.0
+
+        products = list(products_by_id.values())
+        if not products:
+            return []
+
+        return [{
+            "outbound_no": order.billno or order.reference or "",
+            "total_quantity": sum(product["quantity"] for product in products),
+            "products": products,
+        }]
