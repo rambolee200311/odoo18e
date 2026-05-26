@@ -126,7 +126,7 @@ class MarstekStockPortal(CustomerPortal):
     @http.route(["/my/marstek/outbounds","/my/marstek/outbounds/page/<int:page>"], type="http", auth="user", website=True)
     def marstek_outbounds_page(self, page=1, **kw):
         filters = self.marstek_filter_values(kw,
-                                             ["outbound_no", "bl_no", "container_no", "portal_outbound_status", "outbound_date_from",
+                                             ["outbound_no","reference","bl_no", "container_no", "portal_outbound_status", "outbound_date_from",
                                               "outbound_date_to", "view_mode"])
         page_size = 20
         all_rows = request.env["world.depot.outbound.order"].get_outbound_list(filters)
