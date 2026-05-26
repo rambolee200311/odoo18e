@@ -245,3 +245,110 @@
         font-size: 12px;
     }
 }
+
+/* ============================================================
+   Inbound Card View Styles
+   ============================================================ */
+
+.stock-card-item {
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: box-shadow 0.2s ease;
+    margin-bottom: 12px;
+}
+
+.stock-card-item:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 12px 16px;
+    background: #f8f9fa;
+    cursor: pointer;
+    user-select: none;
+}
+
+.card-item-header:hover {
+    background: #e9ecef;
+}
+
+.card-summary {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+    justify-content: flex-start !important;
+}
+
+.summary-row {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+    justify-content: flex-start !important;
+}
+
+.summary-item {
+    display: flex !important;
+    align-items: flex-start !important;
+    font-size: 14px !important;
+    color: #495057 !important;
+    word-break: break-word !important;
+    text-align: left !important;
+}
+
+/* 强制覆盖 Bootstrap 的 text-center */
+.card-summary .summary-row .summary-item,
+.card-summary .summary-row .summary-item * {
+    text-align: left !important;
+}
+
+.summary-item strong {
+    white-space: nowrap;
+    margin-right: 4px;
+}
+
+.summary-status {
+    margin-left: auto;
+}
+
+.card-arrow {
+    color: #6c757d;
+    transition: transform 0.2s ease;
+    margin-left: 10px;
+    flex-shrink: 0;
+    margin-top: 4px;
+}
+
+.card-item-details {
+    padding: 0;
+    border-top: 1px solid #dee2e6;
+}
+
+/* Responsive for mobile */
+@media (max-width: 576px) {
+    .card-item-header {
+        flex-direction: column;
+    }
+
+    .card-arrow {
+        align-self: flex-end;
+        margin-left: 0;
+        margin-top: 8px;
+    }
+
+    .summary-row {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .summary-status {
+        margin-left: 0;
+        margin-top: 4px;
+    }
+}

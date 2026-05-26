@@ -234,15 +234,26 @@
 
 /* 概要信息布局 */
 .card-summary {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    flex: 1;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 12px !important;
+    flex: 1 !important;
+    justify-content: flex-start !important;
 }
 
 .summary-item {
-    font-size: 14px;
-    color: #495057;
+    font-size: 14px !important;
+    color: #495057 !important;
+    text-align: left !important;
+    display: flex !important;
+    justify-content: flex-start !important;
+    align-items: flex-start !important;
+}
+
+/* 强制覆盖 Bootstrap 的 text-center */
+.card-summary .summary-row .summary-item,
+.card-summary .summary-row .summary-item * {
+    text-align: left !important;
 }
 
 /* 箭头图标 */
@@ -258,6 +269,18 @@
     display: none;
     padding: 0;
     background: #ffffff;
+}
+
+/* 托盘分组样式（AJAX 加载） */
+.pallet-section {
+    padding: 8px 16px;
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+.pallet-section:first-child {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
 }
 
 /* 详情网格布局 */
@@ -311,7 +334,8 @@
 
     .summary-item {
         font-size: 13px;
-        white-space: nowrap;
+        white-space: normal;
+        word-break: break-all;
     }
 
     .card-arrow {

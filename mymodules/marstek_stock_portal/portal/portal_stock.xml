@@ -65,12 +65,12 @@
                             <span class="badge bg-primary me-3">共 <t t-esc="pager.get('total', 0)"/> 条</span>
                             <!-- 视图切换按钮 -->
                             <div class="btn-group btn-group-sm" role="group" aria-label="视图切换">
-                                <input type="radio" class="btn-check" name="view_mode" id="view_table" value="table" autocomplete="off"/>
+                                <input type="radio" class="btn-check" name="view_mode" id="view_table" value="table" t-att-checked="'checked' if filters.get('view_mode') == 'table' else None" autocomplete="off"/>
                                 <label class="btn btn-outline-primary" for="view_table" title="表格视图">
                                     <i class="fa fa-table"/>
                                     <span class="d-none d-sm-inline ms-1">表格</span>
                                 </label>
-                                <input type="radio" class="btn-check" name="view_mode" id="view_card" value="card" autocomplete="off"/>
+                                <input type="radio" class="btn-check" name="view_mode" id="view_card" value="card" t-att-checked="'checked' if filters.get('view_mode') != 'table' else None" autocomplete="off"/>
                                 <label class="btn btn-outline-primary" for="view_card" title="卡片视图">
                                     <i class="fa fa-th-large"/>
                                     <span class="d-none d-sm-inline ms-1">卡片</span>

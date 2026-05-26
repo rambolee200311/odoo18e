@@ -66,7 +66,7 @@
                     </div>
                 </div>
 
-                <!-- 数据表格 - 可折叠 -->
+                <!-- 数据查询结果 - 可折叠 -->
                 <div class="card" id="inbound_table_card">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">入库单列表</h5>
@@ -74,12 +74,12 @@
                             <span class="badge bg-primary me-3">共 <t t-esc="pager.get('total', 0)"/> 条</span>
                             <!-- 视图切换按钮 -->
                             <div class="btn-group btn-group-sm" role="group" aria-label="视图切换">
-                                <input type="radio" class="btn-check" name="view_mode" id="view_table" value="table" checked="checked" autocomplete="off"/>
+                                <input type="radio" class="btn-check" name="view_mode" id="view_table" value="table" t-att-checked="'checked' if filters.get('view_mode') == 'table' else None" autocomplete="off"/>
                                 <label class="btn btn-outline-primary" for="view_table" title="表格视图">
                                     <i class="fa fa-table"/>
                                     <span class="d-none d-sm-inline ms-1">表格</span>
                                 </label>
-                                <input type="radio" class="btn-check" name="view_mode" id="view_card" value="card" autocomplete="off"/>
+                                <input type="radio" class="btn-check" name="view_mode" id="view_card" value="card" t-att-checked="'checked' if filters.get('view_mode') != 'table' else None" autocomplete="off"/>
                                 <label class="btn btn-outline-primary" for="view_card" title="卡片视图">
                                     <i class="fa fa-th-large"/>
                                     <span class="d-none d-sm-inline ms-1">卡片</span>
@@ -174,101 +174,47 @@
                             </div>
                         </div>
                         <!-- 卡片视图 -->
-                        <div id="card_view" class="card-body p-3" style="display: none;">
-                            <div class="stock-card-list">
+                        <div id="card_view" class="card-body p-3" style="display: none; text-align: left;">
+                            <div class="stock-card-list" style="text-align: left;">
                                 <t t-foreach="rows" t-as="row">
-                                    <div class="stock-card-item">
+                                    <div class="stock-card-item" t-attf-data-inbound-id="{{ row.get('inbound_id') }}" style="text-align: left;">
                                         <!-- 卡片标题：点击折叠/展开 -->
-                                        <div class="card-item-header" onclick="marstekToggleCard(this)">
-                                            <div class="card-summary">
-                                                <span class="summary-item">
-                                                    <i class="fa fa-file-text-o me-1 text-primary"></i>
-                                                    <t t-esc="row.get('inbound_no', '')"/>
-                                                </span>
-                                                <span class="summary-item">
-                                                    <t t-if="row.get('portal_inbound_status') == 'inbound_confirmed'">
-                                                        <span class="badge bg-info">已确认</span>
-                                                    </t>
-                                                    <t t-elif="row.get('portal_inbound_status') == 'inbound_processing'">
-                                                        <span class="badge bg-warning">处理中</span>
-                                                    </t>
-                                                    <t t-else="">
-                                                        <span class="badge bg-success">已完成</span>
-                                                    </t>
-                                                </span>
+                                        <div class="card-item-header" onclick="marstekToggleInboundCard(this)" style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                            <div class="card-summary" style="display: flex; flex-direction: column; gap: 6px; flex: 1; justify-content: flex-start;">
+                                                <div class="summary-row" style="display: flex; align-items: center; gap: 8px; justify-content: flex-start;">
+                                                    <span class="summary-item" style="display: flex; align-items: center; gap: 4px;">
+                                                        <i class="fa fa-file-text-o me-1 text-primary"></i>
+                                                        <strong>Reference:</strong> <t t-esc="row.get('reference', 'N/A')"/>
+                                                    </span>
+                                                </div>
+                                                <div class="summary-row" style="display: flex; align-items: center; gap: 8px; justify-content: flex-start;">
+                                                    <span class="summary-item" style="display: flex; align-items: center; gap: 4px;">
+                                                        <i class="fa fa-cube me-1 text-info"></i>
+                                                        <strong>Pallet:</strong> <t t-esc="row.get('pallet_summary', 'N/A')"/>
+                                                    </span>
+                                                </div>
+                                                <div class="summary-row" style="display: flex; align-items: center; gap: 8px; justify-content: flex-start;">
+                                                    <span class="summary-item" style="display: flex; align-items: center; gap: 4px;">
+                                                        <i class="fa fa-shopping-cart me-1 text-success"></i>
+                                                        <strong>Product:</strong> <t t-esc="row.get('product_summary', 'N/A')"/>
+                                                    </span>
+                                                    <span class="summary-status">
+                                                        <t t-if="row.get('portal_inbound_status') == 'inbound_confirmed'">
+                                                            <span class="badge bg-info">Confirmed</span>
+                                                        </t>
+                                                        <t t-elif="row.get('portal_inbound_status') == 'inbound_processing'">
+                                                            <span class="badge bg-warning">Processing</span>
+                                                        </t>
+                                                        <t t-else="">
+                                                            <span class="badge bg-success">Shelved</span>
+                                                        </t>
+                                                    </span>
+                                                </div>
                                             </div>
                                             <i class="card-arrow fa fa-chevron-down"></i>
                                         </div>
-                                        <!-- 卡片详情：默认隐藏 -->
-                                        <div class="card-item-details">
-                                            <div class="detail-grid">
-                                                <div class="detail-item">
-                                                    <label>入库单号</label>
-                                                    <span>
-                                                        <a t-if="row.get('inbound_id')" class="text-primary text-decoration-none" t-attf-href="/my/marstek/inbounds/#{row.get('inbound_id')}">
-                                                            <t t-esc="row.get('inbound_no', '')"/>
-                                                        </a>
-                                                        <t t-else=""><t t-esc="row.get('inbound_no', '')"/></t>
-                                                    </span>
-                                                </div>
-                                                <div class="detail-item">
-                                                    <label>客户参考号</label>
-                                                    <span><t t-esc="row.get('reference', '')"/></span>
-                                                </div>
-                                                <div class="detail-item">
-                                                    <label>提单号</label>
-                                                    <span>
-                                                        <a t-if="row.get('bl_no')" class="text-primary text-decoration-none" t-attf-href="/my/marstek/inbounds?bl_no=#{row.get('bl_no', '')}">
-                                                            <t t-esc="row.get('bl_no', '')"/>
-                                                        </a>
-                                                        <t t-else=""><t t-esc="row.get('bl_no', '')"/></t>
-                                                    </span>
-                                                </div>
-                                                <div class="detail-item">
-                                                    <label>柜号</label>
-                                                    <span>
-                                                        <a t-if="row.get('container_no')" class="text-primary text-decoration-none" t-attf-href="/my/marstek/stock?container_no=#{row.get('container_no', '')}">
-                                                            <t t-esc="row.get('container_no', '')"/>
-                                                        </a>
-                                                        <t t-else=""><t t-esc="row.get('container_no', '')"/></t>
-                                                    </span>
-                                                </div>
-                                                <div class="detail-item">
-                                                    <label>入库日期</label>
-                                                    <span><t t-esc="row.get('inbound_date', '')"/></span>
-                                                </div>
-                                                <div class="detail-item">
-                                                    <label>状态</label>
-                                                    <span>
-                                                        <t t-if="row.get('portal_inbound_status') == 'inbound_confirmed'">
-                                                            <span class="badge bg-info">已确认</span>
-                                                        </t>
-                                                        <t t-elif="row.get('portal_inbound_status') == 'inbound_processing'">
-                                                            <span class="badge bg-warning">处理中</span>
-                                                        </t>
-                                                        <t t-else="">
-                                                            <span class="badge bg-success">已完成</span>
-                                                        </t>
-                                                    </span>
-                                                </div>
-                                                <div class="detail-item">
-                                                    <label>总数量</label>
-                                                    <span class="text-success fw-bold"><t t-esc="row.get('total_quantity', 0)"/></span>
-                                                </div>
-                                                <div class="detail-item">
-                                                    <label>货盘数</label>
-                                                    <span><t t-esc="row.get('total_pallets', 0)"/></span>
-                                                </div>
-                                                <div class="detail-item">
-                                                    <label>操作</label>
-                                                    <span>
-                                                        <a t-attf-href="/my/marstek/inbounds/#{row.get('inbound_id')}" class="btn btn-sm btn-outline-primary">
-                                                            查看详情
-                                                        </a>
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
+                                        <!-- 卡片详情：默认隐藏，点击展开时通过 AJAX 加载 -->
+                                        <div class="card-item-details"></div>
                                     </div>
                                 </t>
                                 <t t-if="not rows">
