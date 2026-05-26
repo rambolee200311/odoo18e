@@ -86,6 +86,7 @@ class OutboundOrder(models.Model):
             rows.append({
                 "outbound_id": rec.id,
                 "outbound_no": rec.billno or rec.reference or "",
+                "reference": rec.reference or "",
                 "bl_no": ", ".join(sorted(bls)),
                 "container_no": ", ".join(sorted(containers)),
                 "outbound_date": portal_format_date(rec.picking_PICK_date),
@@ -114,6 +115,7 @@ class OutboundOrder(models.Model):
             lot = detail.lot_id
             rows.append({
                 "outbound_no": order.billno or order.reference or "",
+                "reference": order.reference or "",
                 "bl_no": lot.bill_of_lading or "",
                 "container_no": lot.cntrno or "",
                 "package_name": "",
