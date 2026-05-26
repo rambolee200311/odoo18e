@@ -151,41 +151,57 @@ class InboundOrder(models.Model):
             lazy=False,
         )
 
-        product_ids = [group["product_id"][0] for group in groups if group.get("product_id")]
-        products_by_id = {product.id: product for product in product_env.browse(product_ids)}
+        if not groups and order.stock_picking_id:
+            domain = [
+                ("picking_id", "=", order.stock_picking_id.id),
+                ("result_package_id", "!=", False),
+                ("product_id", "!=", False),
+            ]
+            groups = move_line_env.read_group(
+                domain,
+                ["quantity_sum:sum(quantity)"],
+                ["result_package_id", "product_id"],
+                lazy=False,
+            )
 
-        grouped_rows = {}
+        if groups:
+            product_ids = [group["product_id"][0] for group in groups if group.get("product_id")]
+            products_by_id = {product.id: product for product in product_env.browse(product_ids)}
 
-        for group in groups:
-            package_data = group.get("result_package_id")
-            product_data = group.get("product_id")
+            grouped_rows = {}
 
-            if not package_data or not product_data:
-                continue
+            for group in groups:
+                package_data = group.get("result_package_id")
+                product_data = group.get("product_id")
 
-            package_id = package_data[0]
-            package_name = package_data[1]
-            product_id = product_data[0]
-            product = products_by_id.get(product_id)
+                if not package_data or not product_data:
+                    continue
 
-            package_row = grouped_rows.setdefault(package_id, {
-                "package_name": package_name or "",
-                "container_no": order.cntr_no or "",
-                "bl_no": order.bl_no or "",
-                "total_quantity": 0.0,
-                "products": [],
-            })
+                package_id = package_data[0]
+                package_name = package_data[1]
+                product_id = product_data[0]
+                product = products_by_id.get(product_id)
 
-            quantity = group.get("quantity_sum") or 0.0
+                package_row = grouped_rows.setdefault(package_id, {
+                    "package_name": package_name or "",
+                    "container_no": order.cntr_no or "",
+                    "bl_no": order.bl_no or "",
+                    "total_quantity": 0.0,
+                    "products": [],
+                })
 
-            package_row["products"].append({
-                "product_code": portal_product_code(product) if product else "",
-                "product_name": product.display_name if product else product_data[1],
-                "quantity": quantity,
-            })
-            package_row["total_quantity"] += quantity
+                quantity = group.get("quantity_sum") or 0.0
 
-        return list(grouped_rows.values())
+                package_row["products"].append({
+                    "product_code": portal_product_code(product) if product else "",
+                    "product_name": product.display_name if product else product_data[1],
+                    "quantity": quantity,
+                })
+                package_row["total_quantity"] += quantity
+
+            return list(grouped_rows.values())
+
+        return []
 
 
 
