@@ -222,26 +222,3 @@
 /* ============================================================
    Responsive Adjustments
    ============================================================ */
-
-@media (max-width: 768px) {
-    .portal-card:hover {
-        transform: none;
-    }
-}
-
-/* ============================================================
-   Print Styles (for exporting data)
-   ============================================================ */
-
-@media print {
-    .portal-card,
-    .btn,
-    .marstek-searchbar,
-    .pagination {
-        display: none !important;
-    }
-
-    .marstek-datatable .table {
-        font-size: 12px;
-    }
-}

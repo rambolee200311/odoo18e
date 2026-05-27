@@ -126,25 +126,57 @@
 
         // 更新分页链接
         function updatePagerLinks(viewMode) {
-            document.querySelectorAll('.o_pager a, .pagination a').forEach(function(link) {
-                var href = link.getAttribute('href');
-                if (href && href.indexOf('view_mode=') === -1) {
-                    var separator = href.indexOf('?') === -1 ? '?' : '&';
-                    link.setAttribute('href', href + separator + 'view_mode=' + viewMode);
-                }
+            // Odoo 分页链接选择器 - 覆盖所有可能的样式
+            var selectors = [
+                '.o_pager a',
+                '.o_pager li a', 
+                '.o_pager_value',
+                '.pagination a',
+                '.pager a',
+                '.o_pager form a',
+                'a[href*="/page/"]',
+                '.pager li a'
+            ];
+            
+            selectors.forEach(function(selector) {
+                document.querySelectorAll(selector).forEach(function(link) {
+                    var href = link.getAttribute('href');
+                    if (!href) return;
+                    
+                    try {
+                        var url = new URL(href, window.location.origin);
+                        url.searchParams.set('view_mode', viewMode);
+                        link.setAttribute('href', url.pathname + url.search);
+                    } catch (e) {
+                        // 如果 URL 解析失败，使用字符串操作
+                        var newHref;
+                        if (href.indexOf('view_mode=') !== -1) {
+                            newHref = href.replace(/view_mode=[^&]*/, 'view_mode=' + viewMode);
+                        } else {
+                            var separator = href.indexOf('?') === -1 ? '?' : '&';
+                            newHref = href + separator + 'view_mode=' + viewMode;
+                        }
+                        link.setAttribute('href', newHref);
+                    }
+                });
             });
         }
 
         // 从 URL 参数恢复视图状态
         var savedView = urlParams.get('view_mode');
-        if (savedView === 'card') {
+        if (savedView === 'table') {
+            // 表格视图（URL 明确指定了 table）
+            viewTable.checked = true;
+            tableView.style.display = 'block';
+            cardView.style.display = 'none';
+        } else {
+            // 卡片视图（默认）- 包括 view_mode=card 或无 view_mode 参数
             viewCard.checked = true;
             tableView.style.display = 'none';
             cardView.style.display = 'block';
-            updatePagerLinks('card');
-        } else {
-            updatePagerLinks('table');
         }
+        // 无论哪种情况，都更新分页链接
+        updatePagerLinks(savedView === 'table' ? 'table' : 'card');
 
         // 切换事件
         viewTable.addEventListener('change', function() {
