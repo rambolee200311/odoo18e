@@ -5,7 +5,7 @@
     <!-- =========================================== -->
     <template id="portal_marstek_stock" name="Stock Overview">
         <t t-call="portal.portal_layout">
-            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/marstek', 'name': 'Marstek 库存'}, {'url': None, 'name': '库存总览'}]"/>
+            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/marstek', 'name': 'Marstek Stock'}, {'url': None, 'name': 'Stock Overview'}]"/>
 
             <div class="o_portal_content">
                 <!-- 筛选表单 - 可折叠 -->
@@ -13,7 +13,7 @@
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0 d-inline">
                             <i class="fa fa-filter me-2"/>
-                            库存概览
+                            Stock Overview
                         </h5>
                         <button class="btn btn-link text-decoration-none p-0 border-0" type="button" data-bs-toggle="collapse" data-bs-target="#stock_filter_collapse" aria-expanded="true">
                             <i class="fa fa-chevron-up collapse-icon"/>
@@ -23,33 +23,33 @@
                     <div class="card-body">
                         <form action="/my/marstek/stock" method="get" class="row g-3">
                             <div class="col-12 col-md-6 col-lg-4">
-                                <label for="container_no" class="form-label">柜号</label>
-                                <input type="text" class="form-control" id="container_no" name="container_no" t-attf-value="#{filters.get('container_no', '')}" placeholder="请输入柜号"/>
+                                <label for="container_no" class="form-label">Container No.</label>
+                                <input type="text" class="form-control" id="container_no" name="container_no" t-attf-value="#{filters.get('container_no', '')}" placeholder="Enter container no."/>
                             </div>
                             <div class="col-12 col-md-6 col-lg-4">
-                                <label for="bl_no" class="form-label">提单号</label>
-                                <input type="text" class="form-control" id="bl_no" name="bl_no" t-attf-value="#{filters.get('bl_no', '')}" placeholder="请输入提单号"/>
+                                <label for="bl_no" class="form-label">BL No.</label>
+                                <input type="text" class="form-control" id="bl_no" name="bl_no" t-attf-value="#{filters.get('bl_no', '')}" placeholder="Enter BL no."/>
                             </div>
                             <div class="col-12 col-md-6 col-lg-4">
-                                <label for="product_code" class="form-label">产品编码</label>
-                                <input type="text" class="form-control" id="product_code" name="product_code" t-attf-value="#{filters.get('product_code', '')}" placeholder="请输入产品编码"/>
+                                <label for="product_code" class="form-label">Product Code</label>
+                                <input type="text" class="form-control" id="product_code" name="product_code" t-attf-value="#{filters.get('product_code', '')}" placeholder="Enter product code"/>
                             </div>
                             <div class="col-12 col-md-6 col-lg-4">
-                                <label for="date_from" class="form-label">开始日期</label>
+                                <label for="date_from" class="form-label">Start Date</label>
                                 <input type="date" class="form-control" id="date_from" name="date_from" t-attf-value="#{filters.get('date_from', '')}"/>
                             </div>
                             <div class="col-12 col-md-6 col-lg-4">
-                                <label for="date_to" class="form-label">结束日期</label>
+                                <label for="date_to" class="form-label">End Date</label>
                                 <input type="date" class="form-control" id="date_to" name="date_to" t-attf-value="#{filters.get('date_to', '')}"/>
                             </div>
                             <div class="col-12 d-flex align-items-end">
                                 <button type="submit" class="btn btn-primary me-2">
                                     <i class="fa fa-search me-1"/>
-                                    查询
+                                    Search
                                 </button>
                                 <a href="/my/marstek/stock" class="btn btn-secondary">
                                     <i class="fa fa-refresh me-1"/>
-                                    重置
+                                    Reset
                                 </a>
                             </div>
                         </form>
@@ -60,34 +60,34 @@
                 <!-- 数据表格 - 可折叠 -->
                 <div class="card" id="stock_table_card">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">库存列表</h5>
+                        <h5 class="mb-0">Stock List</h5>
                         <div class="d-flex align-items-center gap-2">
-                            <span class="badge bg-primary me-3">共 <t t-esc="pager.get('total', 0)"/> 条</span>
+                            <span class="badge bg-primary me-3">Total: <t t-esc="pager.get('total', 0)"/></span>
                             <!-- 视图切换按钮 -->
-                            <div class="btn-group btn-group-sm" role="group" aria-label="视图切换">
+                            <div class="btn-group btn-group-sm" role="group" aria-label="View Switch">
                                 <input type="radio" class="btn-check" name="view_mode" id="view_table" value="table" t-att-checked="'checked' if filters.get('view_mode') == 'table' else None" autocomplete="off"/>
-                                <label class="btn btn-outline-primary" for="view_table" title="表格视图">
+                                <label class="btn btn-outline-primary" for="view_table" title="Table View">
                                     <i class="fa fa-table"/>
-                                    <span class="d-none d-sm-inline ms-1">表格</span>
+                                    <span class="d-none d-sm-inline ms-1">Table</span>
                                 </label>
                                 <input type="radio" class="btn-check" name="view_mode" id="view_card" value="card" t-att-checked="'checked' if filters.get('view_mode') != 'table' else None" autocomplete="off"/>
-                                <label class="btn btn-outline-primary" for="view_card" title="卡片视图">
+                                <label class="btn btn-outline-primary" for="view_card" title="Card View">
                                     <i class="fa fa-th-large"/>
-                                    <span class="d-none d-sm-inline ms-1">卡片</span>
+                                    <span class="d-none d-sm-inline ms-1">Card</span>
                                 </label>
                             </div>
                             <!-- 导出按钮 -->
                             <a t-attf-href="/my/marstek/export/stock/csv?container_no=#{filters.get('container_no', '')}&amp;bl_no=#{filters.get('bl_no', '')}&amp;product_code=#{filters.get('product_code', '')}&amp;date_from=#{filters.get('date_from', '')}&amp;date_to=#{filters.get('date_to', '')}"
                                t-attf-class="btn btn-primary export-btn #{'disabled' if not rows else ''}"
-                               t-attf-title="#{'暂无可导出数据' if not rows else '导出 CSV'}">
+                               t-attf-title="#{'No data to export' if not rows else 'Export CSV'}">
                                 <i class="fa fa-file-text-o"/>
-                                <span class="d-none d-sm-inline ms-1">导出 CSV</span>
+                                <span class="d-none d-sm-inline ms-1">Export CSV</span>
                             </a>
                             <a t-attf-href="/my/marstek/export/stock/pdf?container_no=#{filters.get('container_no', '')}&amp;bl_no=#{filters.get('bl_no', '')}&amp;product_code=#{filters.get('product_code', '')}&amp;date_from=#{filters.get('date_from', '')}&amp;date_to=#{filters.get('date_to', '')}"
                                t-attf-class="btn btn-primary export-btn #{'disabled' if not rows else ''}"
-                               t-attf-title="#{'暂无可导出数据' if not rows else '导出 PDF'}">
+                               t-attf-title="#{'No data to export' if not rows else 'Export PDF'}">
                                 <i class="fa fa-file-pdf-o"/>
-                                <span class="d-none d-sm-inline ms-1">导出 PDF</span>
+                                <span class="d-none d-sm-inline ms-1">Export PDF</span>
                             </a>
                             <button class="btn btn-link text-decoration-none p-0 border-0" type="button" data-bs-toggle="collapse" data-bs-target="#stock_table_collapse" aria-expanded="true">
                                 <i class="fa fa-chevron-up collapse-icon"/>
@@ -102,19 +102,19 @@
                                     <thead class="table-light">
                                         <tr>
                                             <th class="text-nowrap">
-                                                <span class="d-none d-md-inline">托盘号</span>
-                                                <span class="d-md-none">托盘</span>
+                                                <span class="d-none d-md-inline">Pallet No.</span>
+                                                <span class="d-md-none">Pallet</span>
                                             </th>
                                             <th class="text-nowrap">
-                                                <span class="d-none d-md-inline">柜号</span>
-                                                <span class="d-md-none">柜号</span>
+                                                <span class="d-none d-md-inline">Container No.</span>
+                                                <span class="d-md-none">Container</span>
                                             </th>
-                                            <th class="text-nowrap">提单号</th>
-                                            <th class="text-nowrap">产品编码</th>
-                                            <th class="text-nowrap">产品名称</th>
-                                            <th class="text-nowrap text-end">数量</th>
-                                            <th class="text-nowrap">库位</th>
-                                            <th class="text-nowrap">入库日期</th>
+                                            <th class="text-nowrap">BL No.</th>
+                                            <th class="text-nowrap">Product Code</th>
+                                            <th class="text-nowrap">Product Name</th>
+                                            <th class="text-nowrap text-end">Qty</th>
+                                            <th class="text-nowrap">Location</th>
+                                            <th class="text-nowrap">Inbound Date</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -142,7 +142,7 @@
                                         </t>
                                         <t t-if="not rows">
                                             <tr>
-                                                <td colspan="8" class="text-center text-muted py-4">暂无数据</td>
+                                                <td colspan="8" class="text-center text-muted py-4">No data found</td>
                                             </tr>
                                         </t>
                                     </tbody>
@@ -163,7 +163,7 @@
                                                 </span>
                                                 <span class="summary-item">
                                                     <i class="fa fa-database me-1 text-success"></i>
-                                                    <t t-esc="row.get('quantity', 0)"/> 件
+                                                    <t t-esc="row.get('quantity', 0)"/> pcs
                                                 </span>
                                             </div>
                                             <i class="card-arrow fa fa-chevron-down"></i>
@@ -172,11 +172,11 @@
                                         <div class="card-item-details">
                                             <div class="detail-grid">
                                                 <div class="detail-item">
-                                                    <label>托盘号</label>
+                                                    <label>Pallet No.</label>
                                                     <span><t t-esc="row.get('package_name', '')"/></span>
                                                 </div>
                                                 <div class="detail-item">
-                                                    <label>柜号</label>
+                                                    <label>Container No.</label>
                                                     <span>
                                                         <a t-if="row.get('container_no')" class="text-primary text-decoration-none" t-attf-href="/my/marstek/container_stock?container_no=#{row.get('container_no', '')}">
                                                             <t t-esc="row.get('container_no', '')"/>
@@ -185,7 +185,7 @@
                                                     </span>
                                                 </div>
                                                 <div class="detail-item">
-                                                    <label>提单号</label>
+                                                    <label>BL No.</label>
                                                     <span>
                                                         <a t-if="row.get('bl_no')" class="text-primary text-decoration-none" t-attf-href="/my/marstek/inbounds?bl_no=#{row.get('bl_no', '')}">
                                                             <t t-esc="row.get('bl_no', '')"/>
@@ -194,23 +194,23 @@
                                                     </span>
                                                 </div>
                                                 <div class="detail-item">
-                                                    <label>产品编码</label>
+                                                    <label>Product Code</label>
                                                     <span><t t-esc="row.get('product_code', '')"/></span>
                                                 </div>
                                                 <div class="detail-item">
-                                                    <label>产品名称</label>
+                                                    <label>Product Name</label>
                                                     <span><t t-esc="row.get('product_name', '')"/></span>
                                                 </div>
                                                 <div class="detail-item">
-                                                    <label>数量</label>
+                                                    <label>Qty</label>
                                                     <span class="text-success fw-bold"><t t-esc="row.get('quantity', 0)"/></span>
                                                 </div>
                                                 <div class="detail-item">
-                                                    <label>库位</label>
+                                                    <label>Location</label>
                                                     <span><t t-esc="row.get('location_name', '')"/></span>
                                                 </div>
                                                 <div class="detail-item">
-                                                    <label>入库日期</label>
+                                                    <label>Inbound Date</label>
                                                     <span><t t-esc="row.get('inbound_date', '')"/></span>
                                                 </div>
                                             </div>
@@ -220,7 +220,7 @@
                                 <t t-if="not rows">
                                     <div class="text-center text-muted py-5">
                                         <i class="fa fa-inbox fa-3x mb-3"></i>
-                                        <p>暂无数据</p>
+                                        <p>No data found</p>
                                     </div>
                                 </t>
                             </div>

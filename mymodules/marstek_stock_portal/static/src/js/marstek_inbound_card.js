@@ -72,8 +72,8 @@
                 var products = pallet.products || [];
                 products.forEach(function(p) {
                     html += '<div class="ms-3 text-muted small">';
-                    html += '商品：' + escapeHtml(p.product_name || p.product_code || 'N/A');
-                    html += ' <span class="text-success">数量：' + formatQuantity(p.quantity) + '</span>';
+                    html += 'Product：' + escapeHtml(p.product_name || p.product_code || 'N/A');
+                    html += ' <span class="text-success"> Number：' + formatQuantity(p.quantity) + '</span>';
                     html += '</div>';
                 });
                 if (index < pallets.length - 1) {
@@ -83,7 +83,7 @@
             });
             html += '<div class="text-center mt-3 pt-2 border-top">';
             html += '<a href="/my/marstek/inbounds/' + inboundId + '" class="btn btn-sm btn-outline-primary">';
-            html += '<i class="fa fa-external-link me-1"></i>查看详情</a>';
+            html += '<i class="fa fa-external-link me-1"></i>Details</a>';
             html += '</div>';
         }
         container.innerHTML = html;

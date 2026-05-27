@@ -5,7 +5,7 @@
     <!-- =========================================== -->
     <template id="portal_marstek_container_stock" name="Container Stock">
             <t t-call="portal.portal_layout">
-            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/marstek', 'name': 'Marstek 库存'}, {'url': None, 'name': '集装箱查询'}]"/>
+            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/marstek', 'name': 'Marstek Stock'}, {'url': None, 'name': 'Container Query'}]"/>
 
             <div class="o_portal_content">
                 <!-- 查询表单 - 可折叠 -->
@@ -13,7 +13,7 @@
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0 d-inline">
                             <i class="fa fa-truck me-2"/>
-                            按柜号查询
+                            Query by Container
                         </h5>
                         <button class="btn btn-link text-decoration-none p-0 border-0" type="button" data-bs-toggle="collapse" data-bs-target="#container_filter_collapse" aria-expanded="true">
                             <i class="fa fa-chevron-up collapse-icon"/>
@@ -23,13 +23,13 @@
                     <div class="card-body">
                         <form action="/my/marstek/container_stock" method="get" class="row g-3">
                             <div class="col-12 col-md-6">
-                                <label for="container_no" class="form-label">柜号 <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="container_no" name="container_no" t-attf-value="#{container_no or ''}" placeholder="请输入柜号" required="1"/>
+                                <label for="container_no" class="form-label">Container No. <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="container_no" name="container_no" t-attf-value="#{container_no or ''}" placeholder="Enter container no." required="1"/>
                             </div>
                             <div class="col-12 d-flex align-items-end">
                                 <button type="submit" class="btn btn-success">
                                     <i class="fa fa-search me-1"/>
-                                    查询
+                                    Search
                                 </button>
                             </div>
                         </form>
@@ -43,21 +43,21 @@
                         <div class="card-header">
                             <h5 class="mb-0">
                                 <i class="fa fa-info-circle me-2"/>
-                                柜号: <t t-esc="stock_result.get('container_no', '')"/>
+                                Container No.: <t t-esc="stock_result.get('container_no', '')"/>
                             </h5>
                         </div>
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-md-4 mb-3">
-                                    <strong>提单号:</strong>
+                                    <strong>BL No.:</strong>
                                     <span class="ms-2"><t t-esc="stock_result.get('bl_no', '')"/></span>
                                 </div>
                                 <div class="col-md-4 mb-3">
-                                    <strong>总数量:</strong>
+                                    <strong>Total Qty:</strong>
                                     <span class="ms-2"><t t-esc="stock_result.get('total_quantity', 0)"/></span>
                                 </div>
                                 <div class="col-md-4 mb-3">
-                                    <strong>货盘数:</strong>
+                                    <strong>Pallets:</strong>
                                     <span class="ms-2"><t t-esc="len(stock_result.get('lines', []))"/></span>
                                 </div>
                             </div>
@@ -67,33 +67,33 @@
                     <!-- 货盘明细 - 可折叠 -->
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">货盘明细</h5>
+                            <h5 class="mb-0">Pallet Details</h5>
                             <div class="d-flex align-items-center gap-2">
                                 <!-- 视图切换按钮 -->
-                                <div class="btn-group btn-group-sm" role="group" aria-label="视图切换">
+                                <div class="btn-group btn-group-sm" role="group" aria-label="View Switch">
                                     <input type="radio" class="btn-check" name="view_mode" id="view_table" value="table" t-att-checked="'checked' if filters.get('view_mode') == 'table' else None" autocomplete="off"/>
-                                    <label class="btn btn-outline-primary" for="view_table" title="表格视图">
+                                    <label class="btn btn-outline-primary" for="view_table" title="Table View">
                                         <i class="fa fa-table"/>
-                                        <span class="d-none d-sm-inline ms-1">表格</span>
+                                        <span class="d-none d-sm-inline ms-1">Table</span>
                                     </label>
                                     <input type="radio" class="btn-check" name="view_mode" id="view_card" value="card" t-att-checked="'checked' if filters.get('view_mode') != 'table' else None" autocomplete="off"/>
-                                    <label class="btn btn-outline-primary" for="view_card" title="卡片视图">
+                                    <label class="btn btn-outline-primary" for="view_card" title="Card View">
                                         <i class="fa fa-th-large"/>
-                                        <span class="d-none d-sm-inline ms-1">卡片</span>
+                                        <span class="d-none d-sm-inline ms-1">Card</span>
                                     </label>
                                 </div>
                                 <!-- 导出按钮 -->
                                 <a t-attf-href="/my/marstek/export/container_stock/csv?container_no=#{container_no or ''}"
                                    t-attf-class="btn btn-primary export-btn #{'disabled' if not rows else ''}"
-                                   t-attf-title="#{'暂无可导出数据' if not rows else '导出 CSV'}">
+                                   t-attf-title="#{'No data to export' if not rows else 'Export CSV'}">
                                     <i class="fa fa-file-text-o"/>
-                                    <span class="d-none d-sm-inline ms-1">导出 CSV</span>
+                                    <span class="d-none d-sm-inline ms-1">Export CSV</span>
                                 </a>
                                 <a t-attf-href="/my/marstek/export/container_stock/pdf?container_no=#{container_no or ''}"
                                    t-attf-class="btn btn-primary export-btn #{'disabled' if not rows else ''}"
-                                   t-attf-title="#{'暂无可导出数据' if not rows else '导出 PDF'}">
+                                   t-attf-title="#{'No data to export' if not rows else 'Export PDF'}">
                                     <i class="fa fa-file-pdf-o"/>
-                                    <span class="d-none d-sm-inline ms-1">导出 PDF</span>
+                                    <span class="d-none d-sm-inline ms-1">Export PDF</span>
                                 </a>
                                 <button class="btn btn-link text-decoration-none p-0 border-0" type="button" data-bs-toggle="collapse" data-bs-target="#container_pallet_collapse" aria-expanded="true">
                                     <i class="fa fa-chevron-up collapse-icon"/>
@@ -107,14 +107,14 @@
                                     <table class="table table-hover mb-0">
                                         <thead class="table-light">
                                             <tr>
-                                                <th>托盘号</th>
-                                                <th>柜号</th>
-                                                <th>提单号</th>
-                                                <th>产品编码</th>
-                                                <th>产品名称</th>
-                                                <th class="text-end">数量</th>
-                                                <th>库位</th>
-                                                <th>入库日期</th>
+                                                <th>Pallet No.</th>
+                                                <th>Container No.</th>
+                                                <th>BL No.</th>
+                                                <th>Product Code</th>
+                                                <th>Product Name</th>
+                                                <th class="text-end">Qty</th>
+                                                <th>Location</th>
+                                                <th>Inbound Date</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -137,7 +137,7 @@
                                             </t>
                                             <t t-if="not rows">
                                                 <tr>
-                                                    <td colspan="8" class="text-center text-muted py-4">暂无数据</td>
+                                                    <td colspan="8" class="text-center text-muted py-4">No data found</td>
                                                 </tr>
                                             </t>
                                         </tbody>
@@ -158,7 +158,7 @@
                                                     </span>
                                                     <span class="summary-item">
                                                         <i class="fa fa-database me-1 text-success"></i>
-                                                        <t t-esc="row.get('quantity', 0)"/> 件
+                                                        <t t-esc="row.get('quantity', 0)"/> pcs
                                                     </span>
                                                 </div>
                                                 <i class="card-arrow fa fa-chevron-down"></i>
@@ -167,11 +167,11 @@
                                             <div class="card-item-details">
                                                 <div class="detail-grid">
                                                     <div class="detail-item">
-                                                        <label>托盘号</label>
+                                                        <label>Pallet No.</label>
                                                         <span><t t-esc="row.get('package_name', '')"/></span>
                                                     </div>
                                                     <div class="detail-item">
-                                                        <label>柜号</label>
+                                                        <label>Container No.</label>
                                                         <span>
                                                             <a t-if="row.get('container_no')" class="text-primary text-decoration-none" t-attf-href="/my/marstek/stock?container_no=#{row.get('container_no', '')}">
                                                                 <t t-esc="row.get('container_no', '')"/>
@@ -180,27 +180,27 @@
                                                         </span>
                                                     </div>
                                                     <div class="detail-item">
-                                                        <label>提单号</label>
+                                                        <label>BL No.</label>
                                                         <span><t t-esc="row.get('bl_no', '')"/></span>
                                                     </div>
                                                     <div class="detail-item">
-                                                        <label>产品编码</label>
+                                                        <label>Product Code</label>
                                                         <span><t t-esc="row.get('product_code', '')"/></span>
                                                     </div>
                                                     <div class="detail-item">
-                                                        <label>产品名称</label>
+                                                        <label>Product Name</label>
                                                         <span><t t-esc="row.get('product_name', '')"/></span>
                                                     </div>
                                                     <div class="detail-item">
-                                                        <label>数量</label>
+                                                        <label>Qty</label>
                                                         <span class="text-success fw-bold"><t t-esc="row.get('quantity', 0)"/></span>
                                                     </div>
                                                     <div class="detail-item">
-                                                        <label>库位</label>
+                                                        <label>Location</label>
                                                         <span><t t-esc="row.get('location_name', '')"/></span>
                                                     </div>
                                                     <div class="detail-item">
-                                                        <label>入库日期</label>
+                                                        <label>Inbound Date</label>
                                                         <span><t t-esc="row.get('inbound_date', '')"/></span>
                                                     </div>
                                                 </div>
@@ -210,7 +210,7 @@
                                     <t t-if="not rows">
                                         <div class="text-center text-muted py-5">
                                             <i class="fa fa-inbox fa-3x mb-3"></i>
-                                            <p>暂无数据</p>
+                                            <p>No data found</p>
                                         </div>
                                     </t>
                                 </div>
@@ -222,7 +222,7 @@
                 <t t-elif="container_no and not stock_result.get('lines')">
                     <div class="alert alert-warning">
                         <i class="fa fa-exclamation-triangle me-2"/>
-                        未找到柜号 '<t t-esc="container_no"/>' 对应的库存数据
+                        No stock data found for container '<t t-esc="container_no"/>'
                     </div>
                 </t>
             </div>
