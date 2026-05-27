@@ -292,3 +292,38 @@ class OutboundOrder(models.Model):
             "total_quantity": sum(product["quantity"] for product in products),
             "products": products,
         }]
+
+    @api.model
+    @api.model
+    def get_outbound_sn_export_rows(self, outbound_id):
+        order = self.get_outbound_order(outbound_id)
+        if not order:
+            return []
+
+        rows = self.get_outbound_detail(outbound_id)
+
+        outbound_date = portal_format_date(
+            order.picking_PICK.date_done
+            or order.picking_PICK_date
+            or order.o_date
+            or order.date
+        )
+
+        result = []
+        for row in rows:
+            if not row.get("sn_code"):
+                continue
+
+            row.update({
+                "project_name": order.project.name or "",
+                "type": order.type or "",
+                "reference": order.reference or "",
+                "outbound_date": outbound_date,
+                "picking_no": order.picking_PICK.name or "",
+            })
+            result.append(row)
+
+        return result
+
+
+
