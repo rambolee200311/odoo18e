@@ -69,7 +69,7 @@
         } else {
             items.forEach(function(item, index) {
                 html += '<div class="pallet-section mb-2">';
-                html += '<div class="fw-bold text-dark"><i class="fa fa-truck me-1"></i>出库单：' + escapeHtml(item.outbound_no || 'N/A') + ' <span class="text-success">(' + formatQuantity(item.total_quantity || 0) + ' 件)</span></div>';
+//                html += '<div class="fw-bold text-dark"><i class="fa fa-truck me-1"></i>出库单：' + escapeHtml(item.outbound_no || 'N/A') + ' <span class="text-success">(' + formatQuantity(item.total_quantity || 0) + ' 件)</span></div>';
                 var products = item.products || [];
                 products.forEach(function(p) {
                     html += '<div class="ms-3 text-muted small">';

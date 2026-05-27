@@ -241,6 +241,14 @@
     justify-content: flex-start !important;
 }
 
+.summary-row {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+    justify-content: flex-start !important;
+}
+
 .summary-item {
     font-size: 14px !important;
     color: #495057 !important;
@@ -248,6 +256,14 @@
     display: flex !important;
     justify-content: flex-start !important;
     align-items: flex-start !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+}
+
+.summary-item strong {
+    white-space: nowrap !important;
+    flex-shrink: 0;
+    margin-right: 4px;
 }
 
 /* 强制覆盖 Bootstrap 的 text-center */
