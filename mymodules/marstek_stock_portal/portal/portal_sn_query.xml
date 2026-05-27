@@ -42,8 +42,8 @@
                                        autofocus="1"/>
                             </div>
                             <div class="col-12 col-md-4 d-flex align-items-end">
-                                <div class="d-grid gap-2 d-md-block">
-                                    <button type="submit" class="btn btn-primary me-2" id="sn_query_btn">
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-primary" id="sn_query_btn">
                                         <i class="fa fa-search me-1"/>
                                         Search
                                     </button>
