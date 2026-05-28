@@ -11,12 +11,12 @@
 
             <xpath expr="//field[@name='inbound_order_product_pallet_ids']/list/field[@name='product_id']"
                    position="after">
-                <field name="unique_identifier" readonly="1"/>
-                <field name="origin_country" required="is_bonded" options="{'no_create': True, 'no_open': True}"/>
-                <field name="goods_value" required="is_bonded"/>
-                <field name="hs_code" readonly="1" required="is_bonded"/>
-                <field name="weight" required="is_bonded"/>
-                <field name="customs_code" readonly="1" required="is_bonded"/>
+                <field name="unique_identifier" readonly="1" optional="show"/>
+                <field name="origin_country" required="is_bonded" options="{'no_create': True, 'no_open': True}" optional="show"/>
+                <field name="goods_value" required="is_bonded" optional="show"/>
+                <field name="hs_code" readonly="1" required="is_bonded" optional="show"/>
+                <field name="weight" required="is_bonded" optional="show"/>
+                <field name="customs_code" readonly="1" required="is_bonded" optional="show"/>
             </xpath>
         </field>
     </record>
