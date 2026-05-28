@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record id="view_chenyang_chemical_inbound_product_import_wizard_form" model="ir.ui.view">
-        <field name="name">chenyang.chemical.inbound.product.import.wizard.form</field>
-        <field name="model">chenyang.chemical.inbound.product.import.wizard</field>
+    <record id="view_inbound_product_import_wizard_form" model="ir.ui.view">
+        <field name="name">inbound.product.import.wizard.form</field>
+        <field name="model">inbound.product.import.wizard</field>
         <field name="arch" type="xml">
             <form string="Import Products" duplicate="false">
                 <group>

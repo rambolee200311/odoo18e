@@ -20,7 +20,7 @@ class InboundOrder(models.Model):
             return {
                 "type": "ir.actions.act_window",
                 "name": _("Import Products"),
-                "res_model": "chenyang.chemical.inbound.product.import.wizard",
+                "res_model": "inbound.product.import.wizard",
                 "view_mode": "form",
                 "views": [(False, "form")],
                 "target": "new",

@@ -19,8 +19,8 @@ except ImportError:
 
 
 class OutboundProductImportWizard(models.TransientModel):
-    _name = "chenyang.chemical.outbound.product.import.wizard"
-    _description = "Chenyang Chemical Outbound Product Import Wizard"
+    _name = "outbound.product.import.wizard"
+    _description = "Outbound Product Import Wizard"
     _order = "id desc"
 
     outbound_order_id = fields.Many2one("world.depot.outbound.order", string="Outbound Order", required=True, readonly=True, index=True, copy=False)
@@ -45,7 +45,7 @@ class OutboundProductImportWizard(models.TransientModel):
             if extension not in (".xlsx", ".xls"):
                 raise UserError(_("Only .xlsx and .xls files are supported."))
 
-            required_headers = ["reference", "pallet_no", "product", "product_ean", "quantity","is_lot","lot_name","m_date","e_date"]
+            required_headers = ["reference", "pallet_no", "de_palletize","product", "product_ean", "quantity","is_lot"]
 
             def cell_to_text(value):
                 if value is None:
@@ -64,6 +64,15 @@ class OutboundProductImportWizard(models.TransientModel):
                 if quantity <= 0:
                     raise UserError(_("Row %s: quantity must be greater than 0.") % row_number)
                 return quantity
+
+            def cell_to_date(value, row_number, field_name):
+                value_text = cell_to_text(value)
+                if not value_text:
+                    return False
+                try:
+                    return fields.Date.to_date(value_text)
+                except ValueError:
+                    raise UserError(_("Row %s: %s must be a valid date YYYY-MM-DD.") % (row_number, field_name))
 
             def append_row(rows, header_map, row_values, row_number):
                 if not any(cell_to_text(value) for value in row_values):
@@ -119,14 +128,18 @@ class OutboundProductImportWizard(models.TransientModel):
                 raise UserError(_("The Excel file has no data rows."))
 
             product_model = rec.env["product.product"].sudo()
-            pallet_data = {}
+            pallet_data_list = []
             for row_number, row_data in rows:
                 reference = cell_to_text(row_data.get("reference"))
                 pallet_no = cell_to_text(row_data.get("pallet_no"))
+                de_palletize = cell_to_text(row_data.get("de_palletize"))
                 product_name = cell_to_text(row_data.get("product"))
                 product_ean = cell_to_text(row_data.get("product_ean"))
                 quantity = cell_to_quantity(row_data.get("quantity"), row_number)
-                serial_numbers = cell_to_text(row_data.get("serial_numbers"))
+                is_lot = cell_to_text(row_data.get("is_lot"))
+                lot_name = cell_to_text(row_data.get("lot_name"))
+                m_date = cell_to_date(row_data.get("m_date"), row_number, "m_date")
+                e_date = cell_to_date(row_data.get("e_date"), row_number, "e_date")
                 pallet_type = cell_to_text(row_data.get("pallet_type"))
                 remark = cell_to_text(row_data.get("remark"))
 
@@ -138,7 +151,14 @@ class OutboundProductImportWizard(models.TransientModel):
                     raise UserError(_("Row %s: product is required.") % row_number)
                 if not product_ean:
                     raise UserError(_("Row %s: product_ean is required.") % row_number)
+                if de_palletize not in ("N", "Y"):
+                    raise UserError(_("Row %s: de_palletize must be N or Y.") % row_number)
 
+                if is_lot not in ("N", "Y"):
+                    raise UserError(_("Row %s: is_lot must be N or Y.") % row_number)
+
+                if is_lot == "Y" and not lot_name:
+                    raise UserError(_("Row %s: lot_name is required when is_lot is Y.") % row_number)
                 product = product_model.search([("barcode", "=", product_ean)], limit=1)
                 if not product:
                     products = product_model.search([("name", "=", product_name)], limit=2)
@@ -148,28 +168,25 @@ class OutboundProductImportWizard(models.TransientModel):
                         raise UserError(_("Row %s: product name matches multiple products.") % row_number)
                     product = products
 
-                if pallet_no not in pallet_data:
-                    pallet_data[pallet_no] = {
-                        "line_source": "import",
-                        "pallet_type": pallet_type,
-                        "pallet_no": pallet_no,
-                        "pallets": 1,
-                        "inbound_order_product_pallet_ids": [],
-                    }
-                elif pallet_type and not pallet_data[pallet_no]["pallet_type"]:
-                    pallet_data[pallet_no]["pallet_type"] = pallet_type
 
-                product_vals = {
-                    "line_source": "import",
+                product_vals =  {
+                    "creation_source": "import",
+                    "pallet_type": pallet_type,
+                    "pallet_no": pallet_no,
+                    "de_palletize": de_palletize,
+                    "pallets": 1,
                     "product_id": product.id,
                     "quantity": quantity,
-                }
-                if remark:
-                    product_vals["remark"] = remark
-                pallet_data[pallet_no]["inbound_order_product_pallet_ids"].append((0, 0, product_vals))
+                    "is_lot": is_lot,
+                    "lot_name": lot_name,
+                    "m_date": m_date,
+                    "e_date": e_date,
+                    "remark": remark,
 
-            inbound_order.write({
-                "inbound_order_product_ids": [(0, 0, vals) for vals in pallet_data.values()],
+                }
+                pallet_data_list.append(product_vals)
+            outbound_order.write({
+                "outbound_order_product_ids": [(0, 0, vals) for vals in pallet_data_list],
             })
 
             return {
@@ -177,15 +194,15 @@ class OutboundProductImportWizard(models.TransientModel):
                 "tag": "display_notification",
                 "params": {
                     "title": _("Import Products"),
-                    "message": _("Imported %s pallets and %s product lines.") % (len(pallet_data), len(rows)),
+                    "message": _("Imported %s product lines.") % len(pallet_data_list),
                     "sticky": False,
                     "next": {
                         "type": "ir.actions.act_window",
-                        "name": _("Inbound Order"),
-                        "res_model": "world.depot.inbound.order",
+                        "name": _("Outbound Order"),
+                        "res_model": "world.depot.outbound.order",
                         "view_mode": "form",
                         "views": [(False, "form")],
-                        "res_id": inbound_order.id,
+                        "res_id": outbound_order.id,
                         "target": "current",
                     },
                 },

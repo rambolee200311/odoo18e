@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_stock_barcode_lite_outbound_order_form_inherit" model="ir.ui.view">
+        <field name="name">stock.barcode.lite.outbound.order.form.inherit</field>
+        <field name="model">world.depot.outbound.order</field>
+        <field name="inherit_id" ref="worlddepot.view_outbound_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="attributes">
+                <attribute name="duplicate">false</attribute>
+            </xpath>
+
+
+            <xpath expr="//field[@name='outbound_order_product_ids']/list/field[@name='product_id']" position="after">
+                <field name="de_palletize" optional="show"/>
+                <field name="is_lot" optional="show"/>
+                <field name="lot_name" optional="show"/>
+                <field name="m_date" optional="show"/>
+                <field name="e_date" optional="show"/>
+            </xpath>
+
+            <xpath expr="//field[@name='outbound_order_product_ids']" position="before">
+                <div class="mb-2">
+                    <button name="action_open_outbound_product_import_wizard"
+                            type="object"
+                            string="Import Products"
+                            class="btn btn-primary"
+                            icon="fa-upload"
+                            invisible="state != 'new'"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+
+    <record id="view_stock_barcode_lite_outbound_order_product_form_inherit" model="ir.ui.view">
+        <field name="name">stock.barcode.lite.outbound.order.product.form.inherit</field>
+        <field name="model">world.depot.outbound.order.product</field>
+        <field name="inherit_id" ref="worlddepot.view_outbound_order_product_standalone_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='pallet_no']" position="after">
+                <field name="de_palletize" readonly="outbound_order_state != 'new'" required="1"/>
+                <field name="is_lot" readonly="outbound_order_state != 'new'" required="1"/>
+                <field name="lot_name" readonly="outbound_order_state != 'new'" required="is_lot == 'Y'"/>
+                <field name="m_date" readonly="outbound_order_state != 'new'"/>
+                <field name="e_date" readonly="outbound_order_state != 'new'"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

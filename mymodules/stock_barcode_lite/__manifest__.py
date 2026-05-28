@@ -11,8 +11,14 @@ Chenyang Chemical warehouse customizations.
     "depends": ["worlddepot"],
     "data": [
         "security/ir.model.access.csv",
-        "views/inbound_product_import_wizard_views.xml",
+
         "views/inbound_order_views.xml",
+        "views/outbound_order_views.xml",
+        "views/menu.xml",
+
+        "wizard/inbound_product_import_wizard_views.xml",
+        "wizard/outbound_product_import_wizard_views.xml",
+
     ],
     "license": "LGPL-3",
     "application": True,
