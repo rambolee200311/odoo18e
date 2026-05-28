@@ -10,7 +10,7 @@ from werkzeug.exceptions import BadRequest, NotFound
 
 class MarstekPortalReport(http.Controller):
 
-    allowed_page_types = ("stock", "container_stock", "inbounds", "outbounds")
+    allowed_page_types = ("stock", "container_stock", "inbounds", "outbounds","outbound_sn")
     allowed_export_formats = ("csv", "pdf")
 
     filter_fields_by_page_type = {
@@ -33,14 +33,15 @@ class MarstekPortalReport(http.Controller):
             "outbound_date_from",
             "outbound_date_to",
         ),
+        "outbound_sn": ("outbound_id",),
     }
 
     csv_headers_by_page_type = {
         "stock": ["Pallet No", "Container No", "BL No", "Product Code", "Product Name", "Quantity", "Location", "Inbound Date"],
         "container_stock": ["Container No", "BL No", "Total Quantity", "Pallet Count", "Pallet No", "Product", "Quantity", "Location", "Inbound Date"],
         "inbounds": ["Inbound No", "Reference", "BL No", "Container No", "Inbound Date", "Status", "Total Quantity", "Pallet Count"],
-        "outbounds": ["Outbound No", "BL No", "Container No", "Outbound Date", "Status", "Total Quantity", "Picking No"],
-    }
+
+        "outbound_sn": ["Outbound Order", "Project", "Type", "Outbound Reference", "Date", "Picking", "Product", "Product Name", "Serial/Lot Name", "Quantity"], }
 
     pdf_report_xmlid_by_page_type = {
         "stock": "marstek_stock_portal.report_marstek_stock_export_pdf",
@@ -77,6 +78,10 @@ class MarstekPortalReport(http.Controller):
             rows = request.env["world.depot.outbound.order"].get_outbound_list(filters)
             return self.outbound_export_lines(rows)
 
+        if page_type == "outbound_sn":
+            outbound_id = int(filters.get("outbound_id") or 0)
+            rows = request.env["world.depot.outbound.order"].get_outbound_sn_export_rows(outbound_id)
+            return self.outbound_sn_export_lines(rows)
         return []
 
     def stock_export_lines(self, rows):
@@ -133,6 +138,19 @@ class MarstekPortalReport(http.Controller):
             row.get("picking_no", ""),
         ] for row in rows]
 
+    def outbound_sn_export_lines(self, rows):
+        return [[
+            row.get("outbound_no", ""),
+            row.get("project_name", ""),
+            row.get("type", ""),
+            row.get("reference", ""),
+            row.get("outbound_date", ""),
+            row.get("picking_no", ""),
+            row.get("product_code", ""),
+            row.get("product_name", ""),
+            row.get("sn_code", ""),
+            row.get("quantity", 0),
+        ] for row in rows]
     def make_csv_response(self, page_type, headers, rows):
         output = io.StringIO()
         writer = csv.writer(output)

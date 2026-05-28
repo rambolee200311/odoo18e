@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_chenyang_chemical_inbound_product_import_wizard_form" model="ir.ui.view">
+        <field name="name">chenyang.chemical.inbound.product.import.wizard.form</field>
+        <field name="model">chenyang.chemical.inbound.product.import.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Import Products" duplicate="false">
+                <group>
+                    <field name="inbound_order_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                    <field name="filename" invisible="1"/>
+                    <field name="file" filename="filename" required="1"/>
+                </group>
+                <footer>
+                    <button name="action_import_excel" type="object" string="Import" class="btn-primary"/>
+                    <button string="Cancel" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

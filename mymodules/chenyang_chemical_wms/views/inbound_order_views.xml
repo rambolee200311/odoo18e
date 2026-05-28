@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_chenyang_chemical_inbound_order_form_inherit" model="ir.ui.view">
+        <field name="name">chenyang.chemical.inbound.order.form.inherit</field>
+        <field name="model">world.depot.inbound.order</field>
+        <field name="inherit_id" ref="worlddepot.view_inbound_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="attributes">
+                <attribute name="duplicate">false</attribute>
+            </xpath>
+            <xpath expr="//field[@name='inbound_order_product_ids']" position="before">
+                <div class="mb-2">
+                    <button name="action_open_inbound_product_import_wizard"
+                            type="object"
+                            string="Import Products"
+                            class="btn btn-primary"
+                            icon="fa-upload"
+                            invisible="state != 'new'"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+<!--    <record id="view_chenyang_chemical_inbound_order_product_tree_inherit" model="ir.ui.view">-->
+<!--        <field name="name">chenyang.chemical.inbound.order.product.tree.inherit</field>-->
+<!--        <field name="model">world.depot.inbound.order.product</field>-->
+<!--        <field name="inherit_id" ref="worlddepot.view_inbound_order_product_tree"/>-->
+<!--        <field name="arch" type="xml">-->
+<!--            <xpath expr="//field[@name='pallet_no']" position="after">-->
+<!--                <field name="creation_source" readonly="1"/>-->
+<!--            </xpath>-->
+<!--        </field>-->
+<!--    </record>-->
+
+<!--    <record id="view_chenyang_chemical_inbound_order_product_form_inherit" model="ir.ui.view">-->
+<!--        <field name="name">chenyang.chemical.inbound.order.product.form.inherit</field>-->
+<!--        <field name="model">world.depot.inbound.order.product</field>-->
+<!--        <field name="inherit_id" ref="worlddepot.view_inbound_order_product_form"/>-->
+<!--        <field name="arch" type="xml">-->
+<!--            <xpath expr="//field[@name='pallet_no']" position="after">-->
+<!--                <field name="creation_source" readonly="1"/>-->
+<!--            </xpath>-->
+<!--            <xpath expr="//field[@name='inbound_order_product_pallet_ids']/list/field[@name='product_id']" position="after">-->
+<!--                <field name="creation_source" readonly="1"/>-->
+<!--            </xpath>-->
+<!--        </field>-->
+<!--    </record>-->
+
+<!--    <record id="view_chenyang_chemical_inbound_order_product_pallet_tree_inherit" model="ir.ui.view">-->
+<!--        <field name="name">chenyang.chemical.inbound.order.product.pallet.tree.inherit</field>-->
+<!--        <field name="model">world.depot.inbound.order.products.pallet</field>-->
+<!--        <field name="inherit_id" ref="worlddepot.view_inbound_order_product_pallet_tree"/>-->
+<!--        <field name="arch" type="xml">-->
+<!--            <xpath expr="//field[@name='product_id']" position="after">-->
+<!--                <field name="creation_source" readonly="1"/>-->
+<!--            </xpath>-->
+<!--        </field>-->
+<!--    </record>-->
+</odoo>
