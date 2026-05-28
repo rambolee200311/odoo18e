@@ -71,7 +71,7 @@
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">Outbound List</h5>
                         <div class="d-flex align-items-center gap-2">
-                            <span class="badge bg-primary me-3">Total: <t t-esc="pager.get('total', 0)"/></span>
+                            <span class="badge bg-primary me-1">Total: <t t-esc="pager.get('total', 0)"/></span>
                             <!-- 视图切换按钮 -->
                             <div class="btn-group btn-group-sm" role="group" aria-label="View Switch">
                                 <input type="radio" class="btn-check" name="view_mode" id="view_table" value="table" t-att-checked="'checked' if filters.get('view_mode') == 'table' else None" autocomplete="off"/>
@@ -87,13 +87,13 @@
                             </div>
                             <!-- 导出按钮 -->
                             <a t-attf-href="/my/marstek/export/outbounds/csv?outbound_no=#{filters.get('outbound_no', '')}&amp;bl_no=#{filters.get('bl_no', '')}&amp;container_no=#{filters.get('container_no', '')}&amp;portal_outbound_status=#{filters.get('portal_outbound_status', '')}&amp;outbound_date_from=#{filters.get('outbound_date_from', '')}&amp;outbound_date_to=#{filters.get('outbound_date_to', '')}"
-                               t-attf-class="btn btn-primary export-btn #{'disabled' if not rows else ''}"
+                               t-attf-class="btn btn-primary btn-sm export-btn #{'disabled' if not rows else ''}"
                                t-attf-title="#{'No data to export' if not rows else 'Export CSV'}">
                                 <i class="fa fa-file-text-o"/>
                                 <span class="d-none d-sm-inline ms-1">Export CSV</span>
                             </a>
                             <a t-attf-href="/my/marstek/export/outbounds/pdf?outbound_no=#{filters.get('outbound_no', '')}&amp;bl_no=#{filters.get('bl_no', '')}&amp;container_no=#{filters.get('container_no', '')}&amp;portal_outbound_status=#{filters.get('portal_outbound_status', '')}&amp;outbound_date_from=#{filters.get('outbound_date_from', '')}&amp;outbound_date_to=#{filters.get('outbound_date_to', '')}"
-                               t-attf-class="btn btn-primary export-btn #{'disabled' if not rows else ''}"
+                               t-attf-class="btn btn-primary btn-sm export-btn #{'disabled' if not rows else ''}"
                                t-attf-title="#{'No data to export' if not rows else 'Export PDF'}">
                                 <i class="fa fa-file-pdf-o"/>
                                 <span class="d-none d-sm-inline ms-1">Export PDF</span>
@@ -306,6 +306,15 @@
                             <t t-if="detail_pager and detail_pager.get('page_count', 1) > 1">
                                 <span class="badge bg-secondary">Total: <t t-esc="detail_pager.get('total', 0)"/></span>
                             </t>
+                            <t t-else="">
+                                <span class="badge bg-secondary">Total: <t t-esc="len(detail_rows)"/></span>
+                            </t>
+                            <!-- 导出SN按钮 -->
+                            <a t-attf-href="/my/marstek/export/outbound_sn/csv?outbound_id=#{order.id if order else ''}"
+                               class="btn btn-primary btn-sm">
+                                <i class="fa fa-download me-1"/>
+                                Export SN
+                            </a>
                             <button class="btn btn-link text-decoration-none p-0 border-0" type="button" data-bs-toggle="collapse" data-bs-target="#outbound_detail_collapse" aria-expanded="true">
                                 <i class="fa fa-chevron-up collapse-icon"/>
                             </button>

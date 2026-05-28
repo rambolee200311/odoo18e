@@ -71,7 +71,7 @@
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">Inbound List</h5>
                         <div class="d-flex align-items-center gap-2">
-                            <span class="badge bg-primary me-3">Total: <t t-esc="pager.get('total', 0)"/></span>
+                            <span class="badge bg-primary me-1">Total: <t t-esc="pager.get('total', 0)"/></span>
                             <!-- 视图切换按钮 -->
                             <div class="btn-group btn-group-sm" role="group" aria-label="View Switch">
                                 <input type="radio" class="btn-check" name="view_mode" id="view_table" value="table" t-att-checked="'checked' if filters.get('view_mode') == 'table' else None" autocomplete="off"/>
