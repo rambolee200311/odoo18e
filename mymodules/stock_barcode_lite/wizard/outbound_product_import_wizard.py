@@ -126,6 +126,7 @@ class OutboundProductImportWizard(models.TransientModel):
                 product_name = cell_to_text(row_data.get("product"))
                 product_ean = cell_to_text(row_data.get("product_ean"))
                 quantity = cell_to_quantity(row_data.get("quantity"), row_number)
+                serial_numbers = cell_to_text(row_data.get("serial_numbers"))
                 pallet_type = cell_to_text(row_data.get("pallet_type"))
                 remark = cell_to_text(row_data.get("remark"))
 
