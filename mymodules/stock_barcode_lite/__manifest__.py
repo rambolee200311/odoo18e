@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 {
-    "name": "Chenyang Chemical WMS",
+    "name": "Stock Barcode Lite",
     "summary": "Chenyang Chemical warehouse customizations",
     "description": """
 Chenyang Chemical warehouse customizations.
