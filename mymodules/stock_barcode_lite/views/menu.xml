@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<record id="action_stock_barcode_lite_inbound_order" model="ir.actions.act_window">
+    <field name="name">Inbound</field>
+    <field name="res_model">world.depot.inbound.order</field>
+    <field name="view_mode">list,form</field>
+</record>
+
+<record id="action_stock_barcode_lite_outbound_order" model="ir.actions.act_window">
+    <field name="name">Outbound</field>
+    <field name="res_model">world.depot.outbound.order</field>
+    <field name="view_mode">list,form</field>
+</record>
+
+<menuitem id="menu_stock_barcode_lite_root"
+          name="Stock Barcode Lite"
+          sequence="50"/>
+
+<menuitem id="menu_stock_barcode_lite_inbound"
+          name="Inbound"
+          parent="menu_stock_barcode_lite_root"
+          action="action_stock_barcode_lite_inbound_order"
+          sequence="10"/>
+
+<menuitem id="menu_stock_barcode_lite_outbound"
+          name="Outbound"
+          parent="menu_stock_barcode_lite_root"
+          action="action_stock_barcode_lite_outbound_order"
+          sequence="20"/>
+</odoo>

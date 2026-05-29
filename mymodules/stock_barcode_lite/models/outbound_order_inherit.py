@@ -4,6 +4,7 @@ from odoo.exceptions import UserError, ValidationError
 
 class OutboundOrderInherit(models.Model):
     _inherit = "world.depot.outbound.order"
+    _order = "id desc"
 
     creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import")], string="Creation Source", default="manual", readonly=True, copy=False)
 
