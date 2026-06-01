@@ -2,4 +2,4 @@
 
 from . import inbound_order
 from . import outbound_order_inherit
-
+from . import stock_quant_package

@@ -4,6 +4,7 @@ from odoo.exceptions import UserError, ValidationError
 
 class OutboundOrderInherit(models.Model):
     _inherit = "world.depot.outbound.order"
+    _order = "id desc"
 
     creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import")], string="Creation Source", default="manual", readonly=True, copy=False)
 
@@ -17,7 +18,7 @@ class OutboundOrderInherit(models.Model):
             return {
                 "type": "ir.actions.act_window",
                 "name": _("Import Products"),
-                "res_model": "chenyang.chemical.outbound.product.import.wizard",
+                "res_model": "outbound.product.import.wizard",
                 "view_mode": "form",
                 "views": [(False, "form")],
                 "target": "new",
@@ -34,6 +35,13 @@ class InboundOrderProduct(models.Model):
     creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import")],
                                        string="Creation Source", default="manual", readonly=True, copy=False)
 
+    de_palletize = fields.Selection([("N", "Full Pallet Outbound"), ("Y", "Depalletize Outbound")],
+                                    string="Depalletize", default="N", copy=False, index=True)
+    is_lot = fields.Selection([("N", "No"), ("Y", "Yes")], string="Is Lot", default="N", copy=False, index=True)
+    lot_name = fields.Char(string="Lot Name", copy=False, index=True)
+    m_date = fields.Date(string="Manufacture Date", copy=False)
+    e_date = fields.Date(string="Expiration Date", copy=False)
+
     @api.constrains("outbound_order_id", "pallet_no")
     def check_pallet_no_unique_by_project(self):
         pallet_model = self.env["world.depot.outbound.order.product"]
@@ -43,6 +51,7 @@ class InboundOrderProduct(models.Model):
             domain = [
                 ("id", "!=", rec.id),
                 ("pallet_no", "=", rec.pallet_no),
+                ("outbound_order_id", "!=", rec.outbound_order_id.id),
                 ("outbound_order_id.project", "=", rec.outbound_order_id.project.id),
                 ("outbound_order_id.state", "!=", "cancel"),
             ]

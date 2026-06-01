@@ -18,6 +18,13 @@
                             invisible="state != 'new'"/>
                 </div>
             </xpath>
+            <xpath expr="//button[@name='action_create_stock_picking']" position="after">
+                <button name="action_main_create_incoming_stock_picking"
+                        type="object"
+                        string="Main Create Receipt"
+                        class="oe_stat_button"
+                        icon="fa-file-text"/>
+            </xpath>
         </field>
     </record>
 

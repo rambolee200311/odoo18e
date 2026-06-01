@@ -19,7 +19,7 @@ except ImportError:
 
 
 class InboundProductImportWizard(models.TransientModel):
-    _name = "chenyang.chemical.inbound.product.import.wizard"
+    _name = "inbound.product.import.wizard"
     _description = "Chenyang Chemical Inbound Product Import Wizard"
     _order = "id desc"
 
@@ -148,7 +148,7 @@ class InboundProductImportWizard(models.TransientModel):
 
                 if pallet_no not in pallet_data:
                     pallet_data[pallet_no] = {
-                        "line_source": "import",
+                        "creation_source": "import",
                         "pallet_type": pallet_type,
                         "pallet_no": pallet_no,
                         "pallets": 1,
@@ -158,7 +158,7 @@ class InboundProductImportWizard(models.TransientModel):
                     pallet_data[pallet_no]["pallet_type"] = pallet_type
 
                 product_vals = {
-                    "line_source": "import",
+                    "creation_source": "import",
                     "product_id": product.id,
                     "quantity": quantity,
                 }
