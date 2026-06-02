@@ -22,6 +22,16 @@ Chenyang Chemical warehouse customizations.
         "wizard/outbound_product_import_wizard_views.xml",
 
     ],
+    "assets": {
+        "web.assets_backend": [
+            "stock_barcode_lite/static/src/main.js",
+            "stock_barcode_lite/static/src/components/homepage.js",
+            "stock_barcode_lite/static/src/components/inbound_flow.js",
+            "stock_barcode_lite/static/src/components/outbound_flow.js",
+            "stock_barcode_lite/static/src/templates.xml",
+            "stock_barcode_lite/static/src/css/stock_barcode_lite.scss",
+        ],
+    },
     "license": "LGPL-3",
     "application": True,
     "installable": True,
