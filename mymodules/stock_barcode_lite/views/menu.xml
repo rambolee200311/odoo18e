@@ -33,8 +33,7 @@
     <menuitem id="menu_stock_barcode_lite_root"
               name="Stock Barcode Lite"
               sequence="50"
-              action="action_stock_barcode_lite_homepage"
-              web_icon="stock_barcode_lite,static/description/icon.png"/>
+              action="action_stock_barcode_lite_homepage" />
 
     <menuitem id="menu_stock_barcode_lite_inbound"
               name="Inbound"
