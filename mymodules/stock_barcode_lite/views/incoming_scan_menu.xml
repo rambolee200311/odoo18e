@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="action_stock_barcode_lite_incoming_scan" model="ir.actions.act_window">
+            <field name="name">Incoming Scan</field>
+            <field name="res_model">stock.barcode.lite.incoming.scan.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_incoming_scan_wizard_form"/>
+            <field name="target">new</field>
+        </record>
+
+        <menuitem id="menu_stock_barcode_lite_incoming_scan"
+                  name="Incoming Scan"
+                  parent="menu_stock_barcode_lite_root"
+                  action="action_stock_barcode_lite_incoming_scan"
+                  sequence="30"/>
+    </data>
+</odoo>
