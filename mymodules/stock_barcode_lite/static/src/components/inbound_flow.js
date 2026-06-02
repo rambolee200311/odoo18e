@@ -39,30 +39,39 @@ export class InboundFlow extends Component {
             loading: false,
         });
 
+        // 获取页面上的扫码输入框 DOM 引用
         this.barcodeInputRef = useRef("barcodeInput");
 
+        // 生命周期：组件挂载完成后执行
         onMounted(async () => {
+            // 监听页面显示/隐藏（切回来自动聚焦）
             this._bindVisibilityChange();
+            // 初始化加载入库单
             await this._initOrder();
             const barcodeInput = this.barcodeInputRef.el;
             if (barcodeInput) {
+                // 监控输入动作
                 barcodeInput.addEventListener("input", this._onBarcodeInput.bind(this));
+                // 监控‘按下’动作
                 barcodeInput.addEventListener("keydown", this._onBarcodeKeydown.bind(this));
+                // 聚焦扫码框
                 barcodeInput.focus();
             }
         });
 
+        // 生命周期：组件销毁前执行（清理事件）
         onWillUnmount(() => {
             this._unbindVisibilityChange();
             const barcodeInput = this.barcodeInputRef.el;
             if (barcodeInput) {
+                // 销毁监听，防止内存泄漏
                 barcodeInput.removeEventListener("input", this._onBarcodeInput.bind(this));
                 barcodeInput.removeEventListener("keydown", this._onBarcodeKeydown.bind(this));
             }
         });
     }
 
-    // 加载
+    // 初始化入库单（从上下文/URL 获取订单）
     async _initOrder() {
         // 从上下文或props获取当前入库单ID！！！！！！！！！！！
         // 暂时通过搜索最新待处理的入库单来演示
@@ -80,10 +89,15 @@ export class InboundFlow extends Component {
         return null;
     }
 
-    // 加载库位对应订单
+
+    /**
+     * 加载入库单数据
+     * @param {number} orderId 入库单ID
+     */
     async loadOrder(orderId) {
         this.state.loading = true;
         try {
+            // ORM 查询：获取订单信息
             const orders = await this.orm.searchRead(
                 "world.depot.inbound.order",
                 [["id", "=", orderId]],
@@ -242,8 +256,9 @@ export class InboundFlow extends Component {
             // 绑定成功，更新前端状态
             loc.bound_pallets.add(barcode);
 
-            // 检查该库位是否全部完成
+
             const remaining = loc.expected_pallets.filter(p => !loc.bound_pallets.has(p)).length;
+            // 当前库位所有托盘扫完 → 标记完成，等待用户点击确认入库
             if (remaining === 0) {
                 loc.is_complete = true;
                 this.showMessage(
@@ -251,7 +266,6 @@ export class InboundFlow extends Component {
                     "success"
                 );
                 this.flashScreen([100, 200, 100], true);
-                this._advanceToNextLocation();
                 return;
             }
 
@@ -301,7 +315,7 @@ export class InboundFlow extends Component {
     }
 
     // ════════════════════════════════════════════
-    // 辅助方法
+    // 跳到下一货位（用于Skip操作）
     // ════════════════════════════════════════════
 
     _advanceToNextLocation() {
@@ -345,19 +359,9 @@ export class InboundFlow extends Component {
             this.showMessage("No inbound order loaded", "danger");
             return;
         }
-        if (!this.isAllComplete) {
-            const remaining = this.state.locations
-                .filter(l => !l.is_complete)
-                .map(l => l.location_code)
-                .join(", ");
-            throw new Error(
-                this.state.locations.filter(l => !l.is_complete).length +
-                " location(s) incomplete: " + remaining
-            );
-        }
         this.state.loading = true;
         try {
-            // 后端需要实现确认入库的方法！！！！！！！！！！！！
+            // 调用后端确认入库的方法！！！！！！！！！！！！
             // await this.orm.call(
             //     "world.depot.inbound.order",
             //     "action_confirm_inbound",
@@ -365,9 +369,11 @@ export class InboundFlow extends Component {
             //     {}
             // );
 
-            this.showMessage("Inbound confirmed! Binding saved.", "success");
+            this.showMessage("Location confirmed!", "success");
             this.flashScreen([100, 300, 100], true);
-            setTimeout(() => this.resetScan(), 2000);
+            // 确认完成后切回扫库位模式，静默等待扫下一个库位
+            this.state.currentLocationIndex = -1;
+            this.state.scanMode = "location";
         } catch (error) {
             throw error;
         } finally {
