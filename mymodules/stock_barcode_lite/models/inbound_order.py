@@ -223,3 +223,5 @@ class InboundOrderProductsPallet(models.Model):
     _inherit = "world.depot.inbound.order.products.pallet"
 
     creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import")], string="Creation Source", default="manual", readonly=True, copy=False)
+    is_lot = fields.Selection([("N", "No"), ("Y", "Yes")], string="Is Lot", default="N", copy=False, index=True)
+    lot_name = fields.Char(string="Lot Name", copy=False, index=True)
