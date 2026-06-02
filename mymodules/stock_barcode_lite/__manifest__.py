@@ -21,7 +21,7 @@ Chenyang Chemical warehouse customizations.
 
         "wizard/inbound_product_import_wizard_views.xml",
         "wizard/outbound_product_import_wizard_views.xml",
-        "views/incoming_scan_menu.xml",
+
 
     ],
     "assets": {

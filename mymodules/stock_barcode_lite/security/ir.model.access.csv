@@ -1,4 +1,4 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_inbound_product_import_wizard,inbound.product.import.wizard,model_inbound_product_import_wizard,,1,1,1,1
 access_outbound_product_import_wizard,outbound.product.import.wizard,model_outbound_product_import_wizard,,1,1,1,1
-access_stock_barcode_lite_incoming_scan_wizard,stock.barcode.lite.incoming.scan.wizard,model_stock_barcode_lite_incoming_scan_wizard,,1,1,1,1
+#access_stock_barcode_lite_incoming_scan_wizard,stock.barcode.lite.incoming.scan.wizard,model_stock_barcode_lite_incoming_scan_wizard,,1,1,1,1
