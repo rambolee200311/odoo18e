@@ -90,89 +90,88 @@ class StockBarcodeLiteScanService(models.AbstractModel):
         )
 
     def process_incoming_package_scan(self, code, package, picking_id=False, current_location_id=False):
-        for rec in self:
-            if not picking_id:
-                return rec.build_scan_result(
-                    "package",
-                    _("Pallet"),
-                    _("Please scan incoming picking first."),
-                    barcode=code,
-                    package_id=package.id,
-                    action_name="missing_picking",
-                    success=False,
-                )
-            picking = rec.env["stock.picking"].sudo().search([
-                ("id", "=", picking_id),
-                ("picking_type_id.code", "=", "incoming"),
-                ("state", "not in", ("done", "cancel")),
-            ], limit=1)
-            if not picking:
-                return rec.build_scan_result(
-                    "package",
-                    _("Pallet"),
-                    _("Done, cancelled, or invalid incoming picking cannot be updated."),
-                    barcode=code,
-                    picking_id=picking_id,
-                    package_id=package.id,
-                    action_name="invalid_picking",
-                    success=False,
-                )
-            if not current_location_id:
-                return rec.build_scan_result(
-                    "package",
-                    _("Pallet"),
-                    _("Please scan location first."),
-                    barcode=code,
-                    picking_id=picking.id,
-                    package_id=package.id,
-                    action_name="missing_location",
-                    success=False,
-                )
-            location = rec.env["stock.location"].sudo().search([
-                ("id", "=", current_location_id),
-                ("usage", "=", "internal"),
-            ], limit=1)
-            if not location:
-                return rec.build_scan_result(
-                    "package",
-                    _("Pallet"),
-                    _("Please scan a valid internal location first."),
-                    barcode=code,
-                    picking_id=picking.id,
-                    location_id=current_location_id,
-                    package_id=package.id,
-                    action_name="invalid_location",
-                    success=False,
-                )
-
-            move_lines = rec.get_package_move_lines(picking, package)
-            if not move_lines:
-                return rec.build_scan_result(
-                    "package",
-                    _("Pallet"),
-                    _("No move lines found for pallet %s in current picking.") % package.name,
-                    barcode=code,
-                    picking_id=picking.id,
-                    location_id=location.id,
-                    package_id=package.id,
-                    action_name="package_not_in_picking",
-                    success=False,
-                )
-
-            updated_count = rec.apply_location_to_package(move_lines, location)
-            return rec.build_scan_result(
+        if not picking_id:
+            return self.build_scan_result(
                 "package",
                 _("Pallet"),
-                _("Pallet %s updated to %s. Move lines: %s") % (package.name, location.display_name, updated_count),
+                _("Please scan incoming picking first."),
+                barcode=code,
+                package_id=package.id,
+                action_name="missing_picking",
+                success=False,
+            )
+        picking = self.env["stock.picking"].sudo().search([
+            ("id", "=", picking_id),
+            ("picking_type_id.code", "=", "incoming"),
+            ("state", "not in", ("done", "cancel")),
+        ], limit=1)
+        if not picking:
+            return self.build_scan_result(
+                "package",
+                _("Pallet"),
+                _("Done, cancelled, or invalid incoming picking cannot be updated."),
+                barcode=code,
+                picking_id=picking_id,
+                package_id=package.id,
+                action_name="invalid_picking",
+                success=False,
+            )
+        if not current_location_id:
+            return self.build_scan_result(
+                "package",
+                _("Pallet"),
+                _("Please scan location first."),
+                barcode=code,
+                picking_id=picking.id,
+                package_id=package.id,
+                action_name="missing_location",
+                success=False,
+            )
+        location = self.env["stock.location"].sudo().search([
+            ("id", "=", current_location_id),
+            ("usage", "=", "internal"),
+        ], limit=1)
+        if not location:
+            return self.build_scan_result(
+                "package",
+                _("Pallet"),
+                _("Please scan a valid internal location first."),
+                barcode=code,
+                picking_id=picking.id,
+                location_id=current_location_id,
+                package_id=package.id,
+                action_name="invalid_location",
+                success=False,
+            )
+
+        move_lines = self.get_package_move_lines(picking, package)
+        if not move_lines:
+            return self.build_scan_result(
+                "package",
+                _("Pallet"),
+                _("No move lines found for pallet %s in current picking.") % package.name,
                 barcode=code,
                 picking_id=picking.id,
                 location_id=location.id,
                 package_id=package.id,
-                action_name="update_package_location",
-                updated_move_line_ids=move_lines.ids,
-                success=True,
+                action_name="package_not_in_picking",
+                success=False,
             )
-        return {}
+
+        updated_count = self.apply_location_to_package(move_lines, location)
+        return self.build_scan_result(
+            "package",
+            _("Pallet"),
+            _("Pallet %s updated to %s. Move lines: %s") % (package.name, location.display_name, updated_count),
+            barcode=code,
+            picking_id=picking.id,
+            location_id=location.id,
+            package_id=package.id,
+            action_name="update_package_location",
+            updated_move_line_ids=move_lines.ids,
+            success=True,
+        )
+
 
     def get_picking_from_barcode(self, code):
 
