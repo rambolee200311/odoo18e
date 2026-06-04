@@ -6,12 +6,12 @@
         <field name="inherit_id" ref="stock.view_picking_form"/>
         <field name="arch" type="xml">
             <xpath expr="//header" position="inside">
-                <button name="action_open_incoming_scan_wizard"
-                        type="object"
-                        string="Incoming Scan"
-                        class="btn-secondary"
-                        icon="fa-barcode"
-                        invisible="picking_type_code != 'incoming' or state in ('done', 'cancel')"/>
+<!--                <button name="action_open_incoming_scan_wizard"-->
+<!--                        type="object"-->
+<!--                        string="Incoming Scan"-->
+<!--                        class="btn-secondary"-->
+<!--                        icon="fa-barcode"-->
+<!--                        invisible="picking_type_code != 'incoming' or state in ('done', 'cancel')"/>-->
             </xpath>
         </field>
     </record>
