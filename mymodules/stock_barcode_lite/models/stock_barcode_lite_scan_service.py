@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from odoo import _, fields, models
+from odoo import _, fields, models,api
 
 
 class StockBarcodeLiteScanService(models.AbstractModel):
     _name = "stock.barcode.lite.scan.service"
     _description = "Stock Barcode Lite Scan Service"
 
+    @api.model
     def process_incoming_scan_barcode(self, code, picking_id=False, current_location_id=False):
 
         code = (code or "").strip()
@@ -89,6 +90,7 @@ class StockBarcodeLiteScanService(models.AbstractModel):
             success=False,
         )
 
+    @api.model
     def process_incoming_package_scan(self, code, package, picking_id=False, current_location_id=False):
         if not picking_id:
             return self.build_scan_result(
@@ -172,7 +174,7 @@ class StockBarcodeLiteScanService(models.AbstractModel):
             success=True,
         )
 
-
+    @api.model
     def get_picking_from_barcode(self, code):
 
         picking_model = self.env["stock.picking"]
@@ -187,7 +189,7 @@ class StockBarcodeLiteScanService(models.AbstractModel):
             picking = picking_model.sudo().search(domain_base + [("ref_1", "=", code)], limit=1)
         return picking
 
-
+    @api.model
     def get_location_from_barcode(self, code):
 
         return self.env["stock.location"].sudo().search([
@@ -195,7 +197,7 @@ class StockBarcodeLiteScanService(models.AbstractModel):
             ("usage", "=", "internal"),
         ], limit=1)
 
-
+    @api.model
     def get_package_from_barcode(self, code):
 
         package_model = self.env["stock.quant.package"]
@@ -204,7 +206,7 @@ class StockBarcodeLiteScanService(models.AbstractModel):
             package = package_model.sudo().search([("name", "=", code)], limit=1)
         return package
 
-
+    @api.model
     def get_package_move_lines(self, picking, package):
 
         return self.env["stock.move.line"].sudo().search([
@@ -212,6 +214,7 @@ class StockBarcodeLiteScanService(models.AbstractModel):
             ("result_package_id", "=", package.id),
         ])
 
+    @api.model
     def apply_location_to_package(self, move_lines, location):
 
         normal_move_lines = self.env["stock.move.line"].browse(move_lines.ids)
@@ -223,7 +226,7 @@ class StockBarcodeLiteScanService(models.AbstractModel):
         })
         return len(normal_move_lines)
 
-
+    @api.model
     def get_incoming_scan_records(self, picking):
         for rec in self:
             if not picking:
@@ -273,6 +276,7 @@ class StockBarcodeLiteScanService(models.AbstractModel):
             }
         return {}
 
+    @api.model
     def get_incoming_scan_state(self, picking_id=False, current_location_id=False, last_scan=None):
         picking = self.env["stock.picking"].sudo().search([("id", "=", picking_id)], limit=1) if picking_id else self.env["stock.picking"]
         location = self.env["stock.location"].sudo().search([("id", "=", current_location_id)], limit=1) if current_location_id else self.env["stock.location"]
@@ -354,7 +358,7 @@ class StockBarcodeLiteScanService(models.AbstractModel):
             "last_scan": last_scan or {},
         }
 
-
+    @api.model
     def format_location_for_scan_state(self, location):
         if not location:
             return {}
@@ -365,6 +369,7 @@ class StockBarcodeLiteScanService(models.AbstractModel):
             "display_name": location.display_name,
         }
 
+    @api.model
     def build_scan_result(self, result_type, barcode_type, message, barcode="",
                           picking_id=False, location_id=False, package_id=False,
                           action_name=False, updated_move_line_ids=None, success=True):
@@ -401,6 +406,7 @@ class StockBarcodeLiteScanService(models.AbstractModel):
             ),
         }
 
+    @api.model
     def get_next_scan_step(self, result_type, picking_id=False, location_id=False):
         if not picking_id:
             return "scan_picking"
