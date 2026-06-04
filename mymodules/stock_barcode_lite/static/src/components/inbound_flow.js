@@ -46,46 +46,71 @@ export class InboundFlow extends Component {
         });
 
         this.barcodeInputRef = useRef("barcodeInput");
-        this._boundOnBarcodeInput = this._onBarcodeInput.bind(this);
-        this._boundOnBarcodeKeydown = this._onBarcodeKeydown.bind(this);
-        this._boundOnVisibilityChange = this._onVisibilityChange.bind(this);
 
         onMounted(async () => {
-            document.addEventListener("visibilitychange", this._boundOnVisibilityChange);
+            this._bindVisibilityChange();
+
+            const barcodeInput = this.barcodeInputRef.el;
+            if (barcodeInput) {
+                // 直接在 input 元素上绑定事件（参照 custom_barcode_outbound）
+                barcodeInput.addEventListener("input", this._onBarcodeInput.bind(this));
+                barcodeInput.addEventListener("keydown", this._onBarcodeKeydown.bind(this));
+                barcodeInput.focus();
+            }
+
             await this._initScanState();
-            this._bindBarcodeInput();
-            this._focusBarcodeInput();
         });
 
         onWillUnmount(() => {
-            document.removeEventListener("visibilitychange", this._boundOnVisibilityChange);
-            this._unbindBarcodeInput();
+            this._unbindVisibilityChange();
+            const barcodeInput = this.barcodeInputRef.el;
+            if (barcodeInput) {
+                barcodeInput.removeEventListener("input", this._onBarcodeInput.bind(this));
+                barcodeInput.removeEventListener("keydown", this._onBarcodeKeydown.bind(this));
+            }
         });
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // 扫码输入绑定
+    // 扫码监听（直接在 input 元素上绑定）
     // ═══════════════════════════════════════════════════════════════
 
-    _bindBarcodeInput() {
-        const input = this.barcodeInputRef.el;
-        if (input) {
-            input.addEventListener("input", this._boundOnBarcodeInput);
-            input.addEventListener("keydown", this._boundOnBarcodeKeydown);
+    /**
+     * 处理扫码输入框的 input 事件
+     * 扫码枪会快速输入字符并以 Enter 结尾
+     */
+    _onBarcodeInput(ev) {
+        const input = ev.target;
+        if (!input) return;
+
+        const value = input.value;
+        console.log("[SBL][input] value=", JSON.stringify(value), "inputType=", ev.inputType);
+
+        if (ev.inputType === "insertLineFeed" || value.includes("\n") || value.includes("\r")) {
+            const barcode = value.replace(/\n/g, "").replace(/\r/g, "").trim();
+            if (barcode) {
+                console.log("[SBL][input] barcode detected:", barcode);
+                input.value = "";
+                this.onBarcodeScanned(barcode);
+            }
         }
     }
 
-    _unbindBarcodeInput() {
-        const input = this.barcodeInputRef.el;
-        if (input) {
-            input.removeEventListener("input", this._boundOnBarcodeInput);
-            input.removeEventListener("keydown", this._boundOnBarcodeKeydown);
-        }
-    }
-
-    _onVisibilityChange() {
-        if (document.visibilityState === "visible") {
-            this._focusBarcodeInput();
+    /**
+     * 处理扫码输入框的 keydown 事件
+     * 检测 Enter 键作为扫码确认
+     */
+    _onBarcodeKeydown(ev) {
+        if (ev.key === "Enter") {
+            ev.preventDefault();
+            const input = ev.target;
+            const barcode = input.value.trim();
+            if (barcode) {
+                console.log("[SBL][keydown] Enter, barcode=", barcode);
+                input.value = "";
+                input.focus();
+                this.onBarcodeScanned(barcode);
+            }
         }
     }
 
@@ -97,56 +122,20 @@ export class InboundFlow extends Component {
         }
     }
 
-    _onBarcodeInput(ev) {
-        const input = this.barcodeInputRef.el;
-        if (!input) return;
-
-        const value = input.value;
-        console.log("[SBL][input] value=", JSON.stringify(value), "inputType=", ev.inputType);
-
-        // 扫码枪通常会在末尾添加 \n、\r 或 \r\n
-        if (value.includes("\n") || value.includes("\r")) {
-            const barcode = value.replace(/[\n\r]/g, "").trim();
-            console.log("[SBL][input] newline detected, barcode=", barcode);
-            if (barcode) {
-                this.onBarcodeScanned(barcode);
+    _bindVisibilityChange() {
+        this._onVisibilityChange = () => {
+            if (document.visibilityState === "visible") {
+                this._focusBarcodeInput();
             }
-            input.value = "";
-            return;
-        }
-
-        // 如果是 insertLineFeed 类型（某些扫码枪）
-        if (ev.inputType === "insertLineFeed" || ev.inputType === "insertParagraph") {
-            const barcode = value.replace(/[\n\r]/g, "").trim();
-            console.log("[SBL][input] insertLineFeed, barcode=", barcode);
-            if (barcode) {
-                this.onBarcodeScanned(barcode);
-            }
-            input.value = "";
-        }
+        };
+        document.addEventListener("visibilitychange", this._onVisibilityChange);
     }
 
-    _onBarcodeKeydown(ev) {
-        console.log("[SBL][keydown] key=", ev.key, "inputType=", ev.inputType);
-        // 大多数扫码枪会发送 Enter 键
-        if (ev.key === "Enter") {
-            ev.preventDefault();
-            ev.stopPropagation();
+    _unbindVisibilityChange() {
+        if (this._onVisibilityChange) {
+            document.removeEventListener("visibilitychange", this._onVisibilityChange);
+            this._onVisibilityChange = null;
         }
-
-        // 使用 setTimeout 确保 input.value 已经更新
-        setTimeout(() => {
-            const input = this.barcodeInputRef.el;
-            if (!input) return;
-
-            const barcode = (input.value || "").replace(/[\n\r]/g, "").trim();
-            console.log("[SBL][keydown] after timeout, value=", JSON.stringify(input.value), "barcode=", barcode);
-            if (barcode && barcode.length >= 3) {
-                this.onBarcodeScanned(barcode);
-            }
-            input.value = "";
-            this._focusBarcodeInput();
-        }, 10);
     }
 
     // ═══════════════════════════════════════════════════════════════
