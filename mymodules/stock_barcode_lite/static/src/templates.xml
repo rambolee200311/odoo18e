@@ -138,18 +138,18 @@
                 <t t-esc="stepHint"/>
             </div>
 
-            <div class="o_sbl_summary row g-2 mb-3">
-                <t t-foreach="summaryCards || []" t-as="card" t-key="card.key">
-                    <div class="col-6 col-md-4">
-                        <div class="card shadow-sm h-100">
-                            <div class="card-body py-2">
-                                <div class="text-muted small"><t t-esc="card.label"/></div>
-                                <div class="fs-5 fw-bold"><t t-esc="card.value"/></div>
-                            </div>
-                        </div>
-                    </div>
-                </t>
-            </div>
+<!--            <div class="o_sbl_summary row g-2 mb-2">-->
+<!--                <t t-foreach="summaryCards || []" t-as="card" t-key="card.key">-->
+<!--                    <div class="col-6 col-md-4">-->
+<!--                        <div class="card shadow-sm h-100">-->
+<!--                            <div class="card-body py-1 px-2">-->
+<!--                                <div class="text-muted small"><t t-esc="card.label"/></div>-->
+<!--                                <div class="fs-6 fw-bold"><t t-esc="card.value"/></div>-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                </t>-->
+<!--            </div>-->
 
             <!-- ═══ 进度条 ═══ -->
             <div class="o_sbl_progress" t-if="state.summary &amp;&amp; state.summary.total_move_lines > 0">
@@ -257,7 +257,7 @@
                     <i class="fa fa-refresh me-1"/>Reset
                 </button>
                 <button class="btn btn-primary flex-fill"
-                        t-if="hasPicking &amp;&amp; isAllComplete"
+                        style="background-color: #0d6efd; border-color: #0d6efd; color: white; display: block !important; visibility: visible !important;"
                         t-on-click="confirmInbound"
                         t-att-disabled="state.loading">
                     <i class="fa fa-check-circle me-1"/>Confirm Inbound

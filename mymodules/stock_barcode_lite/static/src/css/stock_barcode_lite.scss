@@ -39,6 +39,7 @@
     display: flex;
     flex-direction: column;
     height: 100vh;
+    min-height: 100vh;
     overflow: hidden;
 
     .o_sbl_header {
@@ -98,8 +99,8 @@
     .o_sbl_step_hint {
         background: #fff;
         border-bottom: 1px solid #dee2e6;
-        padding: 8px 16px;
-        font-size: 13px;
+        padding: 6px 16px;
+        font-size: 12px;
         color: #6c757d;
         text-align: center;
         flex-shrink: 0;
@@ -107,7 +108,7 @@
 
     .o_barcode_progress,
     .o_sbl_progress {
-        height: 4px;
+        height: 3px;
         background: #e9ecef;
         flex-shrink: 0;
         .progress-bar { transition: width 0.3s ease; }
@@ -117,19 +118,30 @@
     .o_sbl_progress_text {
         display: flex;
         align-items: center;
-        padding: 8px 16px;
-        font-size: 13px;
+        padding: 6px 16px;
+        font-size: 12px;
         color: #6c757d;
         background: #fff;
         border-bottom: 1px solid #dee2e6;
         flex-shrink: 0;
     }
 
+    // 入库流程 summary 卡片 - 固定大小，不被压缩
+    .o_sbl_summary {
+        flex-shrink: 0;
+        .card-body {
+            min-height: unset;
+        }
+    }
+
     .o_barcode_lines,
     .o_sbl_pallets {
         flex: 1;
         overflow-y: auto;
-        padding: 8px 12px;
+        overflow-x: hidden;
+        padding: 8px 12px 60px 12px;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
     }
 
     // ── Inbound line (legacy) ──
@@ -158,8 +170,8 @@
     .o_sbl_pallet {
         background: #fff;
         border: 2px solid #dee2e6;
-        border-radius: 10px;
-        margin-bottom: 10px;
+        border-radius: 8px;
+        margin-bottom: 8px;
         overflow: hidden;
         transition: border-color 0.2s;
 
@@ -176,32 +188,32 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 14px;
+            padding: 8px 12px;
             background: #f8f9fa;
             border-bottom: 1px solid #dee2e6;
         }
         .o_pallet_info {
             display: flex;
             align-items: center;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
             color: #333;
         }
         .o_pallet_qty {
-            font-size: 12px;
+            font-size: 11px;
             color: #6c757d;
         }
     }
 
     // ── Product item ──
     .o_pallet_products {
-        padding: 6px 0;
+        padding: 4px 0;
     }
     .o_pallet_product {
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
-        padding: 8px 14px;
+        padding: 6px 12px;
         border-bottom: 1px solid #f0f0f0;
         transition: background 0.15s;
 
@@ -210,11 +222,11 @@
         &.o_product_done { opacity: 0.7; }
 
         .o_product_info { flex: 1; }
-        .o_product_name { font-size: 14px; font-weight: 500; color: #333; }
-        .o_product_meta { font-size: 12px; margin-top: 2px; }
+        .o_product_name { font-size: 13px; font-weight: 500; color: #333; }
+        .o_product_meta { font-size: 11px; margin-top: 2px; }
         .o_product_qty {
             display: flex; align-items: baseline; gap: 2px;
-            font-size: 18px; font-weight: 700; margin-left: 12px;
+            font-size: 16px; font-weight: 700; margin-left: 10px;
             .o_qty_done { color: #0d6efd; }
         }
         &.o_product_done .o_product_qty .o_qty_done { color: #198754; }
@@ -245,22 +257,34 @@
 // ── Footer ──
 .o_barcode_footer,
 .o_sbl_footer {
-    display: flex;
+    display: flex !important;
     gap: 8px;
-    padding: 10px 12px;
-    background: #fff;
+    padding: 8px 12px;
+    background: #fff !important;
     border-top: 1px solid #dee2e6;
-    flex-shrink: 0;
+    flex-shrink: 0 !important;
+    position: fixed !important;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    min-height: 50px;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0;
 
     .btn {
         flex: 1;
-        padding: 10px;
-        font-size: 14px;
+        padding: 8px;
+        font-size: 13px;
         font-weight: 600;
-        border-radius: 8px;
+        border-radius: 6px;
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
     }
     .btn-success {
-        font-size: 16px;
+        font-size: 14px;
     }
 }
 
@@ -270,13 +294,13 @@
 .o_sbl_picking_card {
     background: #f8f9fa;
     border-bottom: 1px solid #dee2e6;
-    padding: 10px 16px;
+    padding: 8px 16px;
     flex-shrink: 0;
 
     .o_sbl_picking_info {
         display: flex;
         flex-wrap: wrap;
-        gap: 6px 16px;
+        gap: 4px 12px;
         align-items: center;
     }
 
@@ -284,7 +308,7 @@
         display: inline-flex;
         align-items: center;
         gap: 4px;
-        font-size: 13px;
+        font-size: 12px;
     }
 
     .o_picking_label {
@@ -295,7 +319,7 @@
     .o_picking_value {
         color: #333;
         font-weight: 600;
-        max-width: 180px;
+        max-width: 150px;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
@@ -306,8 +330,8 @@
 .o_sbl_location_bar {
     background: #fff3cd;
     border-bottom: 1px solid #ffc107;
-    padding: 8px 16px;
-    font-size: 13px;
+    padding: 6px 16px;
+    font-size: 12px;
     color: #856404;
     display: flex;
     align-items: center;
@@ -333,7 +357,7 @@
 .o_sbl_step_indicator {
     display: flex;
     align-items: center;
-    padding: 12px 16px;
+    padding: 8px 16px;
     background: #fff;
     border-bottom: 1px solid #dee2e6;
     flex-shrink: 0;
@@ -344,17 +368,17 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
-    min-width: 56px;
+    gap: 2px;
+    min-width: 48px;
 
     .o_step_circle {
-        width: 28px;
-        height: 28px;
+        width: 24px;
+        height: 24px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 12px;
+        font-size: 11px;
         font-weight: 700;
         background: #e9ecef;
         color: #6c757d;
@@ -363,7 +387,7 @@
     }
 
     .o_step_label {
-        font-size: 11px;
+        font-size: 10px;
         font-weight: 600;
         color: #6c757d;
         text-transform: uppercase;
@@ -374,7 +398,7 @@
         background: #0d6efd;
         color: #fff;
         border-color: #0d6efd;
-        box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.15);
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
     }
 
     &.active .o_step_label {
@@ -396,8 +420,8 @@
     flex: 1;
     height: 2px;
     background: #dee2e6;
-    margin: 0 6px;
-    margin-bottom: 18px;
+    margin: 0 4px;
+    margin-bottom: 14px;
     transition: background 0.2s;
 
     &.active {
@@ -469,17 +493,17 @@
 .o_pallet_product {
     display: flex;
     align-items: flex-start;
-    gap: 10px;
-    padding: 10px 14px;
+    gap: 8px;
+    padding: 8px 12px;
     border-bottom: 1px solid #f0f0f0;
     transition: background 0.15s;
 
     &:last-child { border-bottom: none; }
 
     .o_product_icon {
-        width: 32px;
-        height: 32px;
-        border-radius: 6px;
+        width: 28px;
+        height: 28px;
+        border-radius: 4px;
         background: #e9ecef;
         display: flex;
         align-items: center;
@@ -496,7 +520,7 @@
 }
 
 .o_product_name {
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 500;
     color: #333;
     line-height: 1.3;
@@ -505,21 +529,21 @@
 .o_product_meta {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 4px;
     align-items: center;
-    font-size: 12px;
+    font-size: 11px;
     color: #6c757d;
-    margin-top: 3px;
+    margin-top: 2px;
 }
 
 .o_meta_code {
     font-weight: 600;
     color: #495057;
     background: #e9ecef;
-    padding: 1px 6px;
+    padding: 1px 4px;
     border-radius: 3px;
     font-family: monospace;
-    font-size: 11px;
+    font-size: 10px;
 }
 
 .o_meta_barcode {
@@ -527,25 +551,25 @@
     align-items: center;
     gap: 2px;
     font-family: monospace;
-    font-size: 11px;
+    font-size: 10px;
     color: #495057;
 }
 
 .o_meta_lot {
     font-family: monospace;
-    font-size: 11px;
+    font-size: 10px;
     color: #856404;
     background: #fff3cd;
-    padding: 1px 6px;
+    padding: 1px 4px;
     border-radius: 3px;
 }
 
 .o_product_location {
-    margin-top: 4px;
-    font-size: 12px;
+    margin-top: 2px;
+    font-size: 11px;
 }
 
-// 产品���量
+// 产品数量
 .o_product_qty {
     display: flex;
     flex-direction: column;
@@ -554,14 +578,14 @@
     flex-shrink: 0;
 
     .o_qty_value {
-        font-size: 18px;
+        font-size: 16px;
         font-weight: 700;
         color: #0d6efd;
         line-height: 1;
     }
 
     .o_qty_label {
-        font-size: 12px;
+        font-size: 11px;
         color: #6c757d;
         margin-top: 2px;
     }
