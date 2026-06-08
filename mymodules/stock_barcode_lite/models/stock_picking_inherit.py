@@ -27,10 +27,10 @@ class StockPicking(models.Model):
             }
         return False
 
-    def button_validate(self):
-        for rec in self:
-            rec.check_incoming_pallet_location_updated()
-        return super().button_validate()
+    # def button_validate(self):
+    #     for rec in self:
+    #         rec.check_incoming_pallet_location_updated()
+    #     return super().button_validate()
 
     def check_incoming_pallet_location_updated(self):
         for rec in self:

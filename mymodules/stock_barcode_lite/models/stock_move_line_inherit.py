@@ -9,3 +9,4 @@ class StockMoveLine(models.Model):
     is_location_updated = fields.Boolean(string="Location Updated", default=False, copy=False, index=True)
     location_updated_by_id = fields.Many2one("res.users", string="Location Updated By", copy=False)
     location_updated_datetime = fields.Datetime(string="Location Updated Datetime", copy=False)
+    inbound_order_product_pallet_id = fields.Many2one("world.depot.inbound.order.products.pallet", string="Inbound Product Detail", copy=False, index=True, ondelete="restrict")

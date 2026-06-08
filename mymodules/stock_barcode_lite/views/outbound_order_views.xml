@@ -12,6 +12,20 @@
 
             <xpath expr="//field[@name='outbound_order_product_ids']/list/field[@name='product_id']" position="after">
                 <field name="de_palletize" optional="show"/>
+                <field name="sunrise_pallet_no" optional="show"/>
+                <field name="product_ean" optional="show"/>
+                <field name="cprojectid" optional="show"/>
+                <field name="ndiscounttaxtype" optional="show"/>
+                <field name="vsourcebillcode" optional="show"/>
+                <field name="vsourcerowno" optional="show"/>
+                <field name="box_type" optional="show"/>
+                <field name="box_qty" optional="show"/>
+                <field name="box_in_qty" optional="show"/>
+                <field name="ninnum" optional="show"/>
+                <field name="u8_aux_qty" optional="show"/>
+                <field name="u8_conversion_rate" optional="show"/>
+                <field name="castunitid" optional="show"/>
+                <field name="u8_aux_uom_name" optional="show"/>
                 <field name="is_lot" optional="show"/>
                 <field name="lot_name" optional="show"/>
                 <field name="m_date" optional="show"/>
@@ -38,7 +52,21 @@
         <field name="inherit_id" ref="worlddepot.view_outbound_order_product_standalone_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='pallet_no']" position="after">
+                <field name="sunrise_pallet_no" readonly="outbound_order_state != 'new'"/>
+                <field name="product_ean" readonly="outbound_order_state != 'new'"/>
                 <field name="de_palletize" readonly="outbound_order_state != 'new'" required="1"/>
+                <field name="cprojectid" readonly="outbound_order_state != 'new'"/>
+                <field name="ndiscounttaxtype" readonly="outbound_order_state != 'new'"/>
+                <field name="vsourcebillcode" readonly="outbound_order_state != 'new'"/>
+                <field name="vsourcerowno" readonly="outbound_order_state != 'new'"/>
+                <field name="box_type" readonly="outbound_order_state != 'new'"/>
+                <field name="box_qty" readonly="outbound_order_state != 'new'"/>
+                <field name="box_in_qty" readonly="outbound_order_state != 'new'"/>
+                <field name="ninnum" readonly="outbound_order_state != 'new'"/>
+                <field name="u8_aux_qty" readonly="outbound_order_state != 'new'"/>
+                <field name="u8_conversion_rate" readonly="outbound_order_state != 'new'"/>
+                <field name="castunitid" readonly="outbound_order_state != 'new'"/>
+                <field name="u8_aux_uom_name" readonly="outbound_order_state != 'new'"/>
                 <field name="is_lot" readonly="outbound_order_state != 'new'" required="1"/>
                 <field name="lot_name" readonly="outbound_order_state != 'new'" required="is_lot == 'Y'"/>
                 <field name="m_date" readonly="outbound_order_state != 'new'"/>
