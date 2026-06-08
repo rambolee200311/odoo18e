@@ -326,21 +326,21 @@ class OutboundOrderBondedUniqueRule(models.Model):
 
 
 
-    def write(self, vals):
-        old_policy_map = {
-            rec.id: (rec.warehouse.id if rec.warehouse else False, rec.bonded_flag or "false")
-            for rec in self
-        }
-        res = super().write(vals)
-        for rec in self:
-            old_policy = old_policy_map.get(rec.id)
-            new_policy = (rec.warehouse.id if rec.warehouse else False, rec.bonded_flag or "false")
-            if rec.state == "new" and old_policy != new_policy:
-                rec.action_clear_all_line_unique_identifier()
-        return res
-
-    def action_clear_all_line_unique_identifier(self):
-        for rec in self:
-            if rec.state != "new":
-                continue
-            rec.write({"outbound_order_product_ids": [(5, 0, 0)]})
+    # def write(self, vals):
+    #     old_policy_map = {
+    #         rec.id: (rec.warehouse.id if rec.warehouse else False, rec.bonded_flag or "false")
+    #         for rec in self
+    #     }
+    #     res = super().write(vals)
+    #     for rec in self:
+    #         old_policy = old_policy_map.get(rec.id)
+    #         new_policy = (rec.warehouse.id if rec.warehouse else False, rec.bonded_flag or "false")
+    #         if rec.state == "new" and old_policy != new_policy:
+    #             rec.action_clear_all_line_unique_identifier()
+    #     return res
+    #
+    # def action_clear_all_line_unique_identifier(self):
+    #     for rec in self:
+    #         if rec.state != "new":
+    #             continue
+    #         rec.write({"outbound_order_product_ids": [(5, 0, 0)]})
