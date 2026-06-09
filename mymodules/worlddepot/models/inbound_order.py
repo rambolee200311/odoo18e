@@ -32,6 +32,7 @@ class InboundOrder(models.Model):
     i_date = fields.Date(string='Inbound Date', tracking=True, readonly=True, help='Real date for inbound operation')
     i_datetime = fields.Datetime(string='Inbound Date', tracking=True, readonly=True)
     project = fields.Many2one('project.project', string='Project', required=True)
+    project_name = fields.Char(string='Project Name', related='project.name', stored=True, tracking=True)
     project_category_id = fields.Many2one(
         related='project.category',
         string='Project Category',
@@ -596,7 +597,7 @@ class InboundOrderProduct(models.Model):
     project = fields.Many2one(related='inbound_order_id.project', string='Project', store=True, readonly=True)
     project_category_id = fields.Many2one(related='project.category', string='Project Category', store=True,
                                           readonly=True)
-
+    project_name = fields.Char(string='Project Name', related='project.name', stored=True, tracking=True)
     pallet_type = fields.Char(string='Pallet Type', help='How many quantity on a pallet', default='')
     pallet_no = fields.Char(string='Pallet No', help='Pallet number for tracking', default='')
     pallets = fields.Float(string='Pallets', required=True, default=1.0)
@@ -746,6 +747,7 @@ class InboundOrderProductsOfPallet(models.Model):
         store=True,
         readonly=True
     )
+    project_name = fields.Char(string='Project Name', related='project.name', stored=True, tracking=True)
     product_id = fields.Many2one(
         'product.product',
         string='Product',
