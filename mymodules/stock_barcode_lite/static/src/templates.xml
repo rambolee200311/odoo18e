@@ -203,6 +203,9 @@
                                 <span class="badge bg-success ms-2" t-if="pallet.is_location_updated">
                                     <i class="fa fa-check me-1"/>Updated
                                 </span>
+                                <span t-if="(pallet.products || []).length > 0" class="o_pallet_product_count">
+                                    (<t t-esc="(pallet.products || []).length"/> items)
+                                </span>
                             </div>
                             <div class="o_pallet_location" t-if="pallet.location_name">
                                 <i class="fa fa-map-marker-alt text-muted me-1"/>
@@ -212,38 +215,39 @@
 
                         <!-- 托盘内产品列表 -->
                         <div class="o_pallet_products">
+                            <t t-if="!(pallet.products || []).length">
+                                <div class="o_sbl_empty_state text-center text-muted py-4">
+                                    <p class="mb-0 small">No products loaded</p>
+                                </div>
+                            </t>
                             <t t-foreach="pallet.products || []" t-as="item" t-key="item.move_line_id">
-                                <div class="o_pallet_product">
-                                    <div class="o_product_icon">
-                                        <i class="fa fa-box-open"/>
-                                    </div>
-                                    <div class="o_product_info">
+                                <div t-attf-class="o_product_subcard {{ pallet.is_location_updated ? 'o_pallet_updated' : '' }}">
+                                    <div class="o_product_row_top">
+                                        <div class="o_product_icon">
+                                            <i class="fa fa-box-open"/>
+                                        </div>
                                         <div class="o_product_name">
                                             <t t-esc="item.product_name"/>
                                         </div>
-                                        <div class="o_product_meta">
-                                            <span t-if="item.default_code" class="o_meta_code">
-                                                <t t-esc="item.default_code"/>
-                                            </span>
-                                            <span t-if="item.product_barcode" class="o_meta_barcode">
-                                                <i class="fa fa-barcode ms-1 me-1"/>
-                                                <t t-esc="item.product_barcode"/>
-                                            </span>
-                                            <span t-if="item.lot" class="o_meta_lot">
-                                                <i class="fa fa-tag ms-1 me-1"/>
-                                                <t t-esc="item.lot"/>
-                                            </span>
-                                        </div>
-                                        <div class="o_product_location text-muted small">
-                                            <i class="fa fa-arrow-right me-1"/>
-                                            <t t-esc="item.dest_location"/>
+                                        <div class="o_product_qty">
+                                            <span class="o_qty_value"><t t-esc="item.qty_done || item.quantity || 0"/></span>
+                                            <span class="o_qty_label">/ <t t-esc="item.quantity || 0"/></span>
                                         </div>
                                     </div>
-                                    <div class="o_product_qty">
-                                        <div class="o_qty_value">
-                                            <t t-esc="item.qty_done || item.quantity || 0"/>
-                                        </div>
-                                        <div class="o_qty_label">/ <t t-esc="item.quantity || 0"/></div>
+                                    <div class="o_product_row_bottom">
+                                        <span t-if="item.default_code" class="o_meta_code"><t t-esc="item.default_code"/></span>
+                                        <span t-if="item.product_barcode" class="o_meta_barcode">
+                                            <i class="fa fa-barcode me-1"/>
+                                            <t t-esc="item.product_barcode"/>
+                                        </span>
+                                        <span t-if="item.lot" class="o_meta_lot">
+                                            <i class="fa fa-tag me-1"/>
+                                            <t t-esc="item.lot"/>
+                                        </span>
+                                        <span t-if="item.dest_location" class="o_product_location">
+                                            <i class="fa fa-arrow-right me-1"/>
+                                            <t t-esc="item.dest_location"/>
+                                        </span>
                                     </div>
                                 </div>
                             </t>
@@ -304,6 +308,42 @@
                 <t t-esc="stepHint"/>
             </div>
 
+            <!-- ═══ 当前货位信息 ═══ -->
+            <div t-if="state.currentLocation" class="o_sbl_location_bar">
+                <i class="fa fa-map-marker text-danger me-1"/>
+                <span class="me-1">Location:</span>
+                <strong class="text-primary"><t t-esc="state.currentLocation.location_barcode"/></strong>
+            </div>
+
+            <!-- ═══ 扫描步骤指示器 ═══ -->
+            <div t-if="state.order" class="o_sbl_step_indicator">
+                <div class="o_step_item" t-attf-class="{ active: state.scanMode === 'step', done: state.scanMode !== 'step' }">
+                    <div class="o_step_circle">
+                        <t t-if="state.scanMode !== 'step'"><i class="fa fa-check"/></t>
+                        <t t-else="">1</t>
+                    </div>
+                    <div class="o_step_label">Step (P/D)</div>
+                </div>
+                <div class="o_step_line" t-attf-class="{ active: ['location', 'pallet', 'product', 'qty', 'sn'].includes(state.scanMode) }"/>
+                <div class="o_step_item" t-attf-class="{ active: ['location', 'pallet', 'product', 'qty', 'sn'].includes(state.scanMode) &amp;&amp; !state.currentLocation }">
+                    <div class="o_step_circle">
+                        <t t-if="state.currentLocation"><i class="fa fa-check"/></t>
+                        <t t-else="">2</t>
+                    </div>
+                    <div class="o_step_label">Location</div>
+                </div>
+                <div class="o_step_line" t-attf-class="{ active: ['pallet', 'product', 'qty', 'sn'].includes(state.scanMode) }"/>
+                <div class="o_step_item" t-attf-class="{ active: ['pallet', 'product', 'qty', 'sn'].includes(state.scanMode) }">
+                    <div class="o_step_circle">3</div>
+                    <div class="o_step_label">Pallet</div>
+                </div>
+                <div class="o_step_line" t-attf-class="{ active: ['product', 'qty', 'sn'].includes(state.scanMode) }"/>
+                <div class="o_step_item" t-attf-class="{ active: ['product', 'qty', 'sn'].includes(state.scanMode) }">
+                    <div class="o_step_circle">4</div>
+                    <div class="o_step_label">Product</div>
+                </div>
+            </div>
+
             <div t-if="state.pallets.length &gt; 0" class="o_sbl_progress">
                 <div class="progress-bar"
                      t-attf-style="width: {{ progressPercent }}%"
@@ -334,6 +374,11 @@
                             <div class="o_pallet_qty">
                                 <t t-esc="(pallet.products || []).reduce((s, p) => s + (p.quantity || 0), 0)"/> items
                             </div>
+                        </div>
+                        <!-- 托盘关联的货位 -->
+                        <div class="o_pallet_location" t-if="pallet.location_barcode">
+                            <i class="fa fa-map-marker-alt text-muted me-1"/>
+                            <span class="small text-muted"><t t-esc="pallet.location_barcode"/></span>
                         </div>
 
                         <div class="o_pallet_products">

@@ -4,18 +4,6 @@ import { useService } from "@web/core/utils/hooks";
 import { Component, useState, useRef, onMounted, onWillUnmount } from "@odoo/owl";
 import { _t } from "@web/core/l10n/translation";
 
-/**
- * Inbound Flow Component - 整托入库流程
- *
- * 扫码流程:
- *  1. 扫入库单 (scan_picking)     → 显示入库单详情和托盘列表
- *  2. 扫货位 (scan_location)     → 选择目标货位
- *  3. 扫托盘 (scan_package)      → 更新托盘的目标货位
- *
- * 后端API:
- *  - process_incoming_scan_barcode(barcode, pickingId, locationId)
- *  - get_incoming_scan_state(pickingId, locationId, lastScan)
- */
 export class InboundFlow extends Component {
     static template = "stock_barcode_lite.InboundPage";
     static props = {};
@@ -46,27 +34,46 @@ export class InboundFlow extends Component {
         });
 
         this.barcodeInputRef = useRef("barcodeInput");
+        this._isProcessing = false;
+
+        // 预先绑定事件处理器，避免 removeEventListener 无法正确移除
+        this._boundBarcodeInput = this._onBarcodeInput.bind(this);
+        this._boundBarcodeKeydown = this._onBarcodeKeydown.bind(this);
+        this._boundBarcodeKeypress = this._onBarcodeKeypress.bind(this);
+        this._boundBarcodeBlur = this._onBarcodeBlur.bind(this);
 
         onMounted(async () => {
+            console.log('[InboundFlow] onMounted called');
             this._bindVisibilityChange();
 
             const barcodeInput = this.barcodeInputRef.el;
+            console.log('[InboundFlow] barcodeInput element:', barcodeInput);
             if (barcodeInput) {
-                // 直接在 input 元素上绑定事件（参照 custom_barcode_outbound）
-                barcodeInput.addEventListener("input", this._onBarcodeInput.bind(this));
-                barcodeInput.addEventListener("keydown", this._onBarcodeKeydown.bind(this));
+                // 直接在 input 元素上绑定事件
+                barcodeInput.addEventListener("input", this._boundBarcodeInput);
+                barcodeInput.addEventListener("keydown", this._boundBarcodeKeydown);
+                barcodeInput.addEventListener("keypress", this._boundBarcodeKeypress);
+                barcodeInput.addEventListener("blur", this._boundBarcodeBlur);
+                barcodeInput.style.imeMode = "disabled";
                 barcodeInput.focus();
+                console.log('[InboundFlow] barcodeInput focused, value:', barcodeInput.value);
+            } else {
+                console.error('[InboundFlow] barcodeInput NOT found!');
             }
 
             await this._initScanState();
+            console.log('[InboundFlow] onMounted complete, state:', JSON.stringify(this.state));
         });
 
         onWillUnmount(() => {
             this._unbindVisibilityChange();
             const barcodeInput = this.barcodeInputRef.el;
             if (barcodeInput) {
-                barcodeInput.removeEventListener("input", this._onBarcodeInput.bind(this));
-                barcodeInput.removeEventListener("keydown", this._onBarcodeKeydown.bind(this));
+                // 使用预绑定的函数引用，确保能正确移除
+                barcodeInput.removeEventListener("input", this._boundBarcodeInput);
+                barcodeInput.removeEventListener("keydown", this._boundBarcodeKeydown);
+                barcodeInput.removeEventListener("keypress", this._boundBarcodeKeypress);
+                barcodeInput.removeEventListener("blur", this._boundBarcodeBlur);
             }
         });
     }
@@ -84,12 +91,11 @@ export class InboundFlow extends Component {
         if (!input) return;
 
         const value = input.value;
-        console.log("[SBL][input] value=", JSON.stringify(value), "inputType=", ev.inputType);
-
+        console.log('[InboundFlow] _onBarcodeInput triggered, value:', value, 'inputType:', ev.inputType);
         if (ev.inputType === "insertLineFeed" || value.includes("\n") || value.includes("\r")) {
             const barcode = value.replace(/\n/g, "").replace(/\r/g, "").trim();
+            console.log('[InboundFlow] Barcode detected (input event):', barcode);
             if (barcode) {
-                console.log("[SBL][input] barcode detected:", barcode);
                 input.value = "";
                 this.onBarcodeScanned(barcode);
             }
@@ -101,12 +107,13 @@ export class InboundFlow extends Component {
      * 检测 Enter 键作为扫码确认
      */
     _onBarcodeKeydown(ev) {
+        console.log('[InboundFlow] _onBarcodeKeydown, key:', ev.key);
         if (ev.key === "Enter") {
             ev.preventDefault();
             const input = ev.target;
             const barcode = input.value.trim();
+            console.log('[InboundFlow] Enter pressed, barcode:', barcode);
             if (barcode) {
-                console.log("[SBL][keydown] Enter, barcode=", barcode);
                 input.value = "";
                 input.focus();
                 this.onBarcodeScanned(barcode);
@@ -114,11 +121,36 @@ export class InboundFlow extends Component {
         }
     }
 
+    _onBarcodeKeypress(ev) {
+        if (ev.key === "Enter" || ev.charCode === 13) {
+            ev.preventDefault();
+            const input = ev.target;
+            const barcode = input.value.trim();
+            if (barcode) {
+                input.value = "";
+                input.focus();
+                this.onBarcodeScanned(barcode);
+            }
+        }
+    }
+
+    _onBarcodeBlur(ev) {
+        console.log('[InboundFlow] _onBarcodeBlur, _isProcessing:', this._isProcessing);
+        if (!this._isProcessing) {
+            console.log('[InboundFlow] Setting timeout to refocus');
+            setTimeout(() => this._focusBarcodeInput(), 0);
+        }
+    }
+
     _focusBarcodeInput() {
+        console.log('[InboundFlow] _focusBarcodeInput called');
         const input = this.barcodeInputRef.el;
         if (input) {
             input.focus();
             input.value = "";
+            console.log('[InboundFlow] Input focused and cleared');
+        } else {
+            console.error('[InboundFlow] Cannot focus - input not found');
         }
     }
 
@@ -148,20 +180,18 @@ export class InboundFlow extends Component {
         const currentLocationId = context.currentLocationId || context.current_location_id || false;
 
         if (!pickingId) {
-            this._setWorkflowState("scan_picking");
+            this.state.nextStep = "scan_picking";
             return;
         }
 
         try {
             this.state.loading = true;
-            console.log("[SBL][loadPicking] calling get_incoming_scan_state, pickingId=", pickingId, "currentLocationId=", currentLocationId);
             const result = await this.orm.call(
                 "stock.barcode.lite.scan.service",
                 "get_incoming_scan_state",
                 [pickingId, currentLocationId || false, {}]
             );
-            console.log("[SBL][loadPicking] get_incoming_scan_state result=", result);
-            this._applyScanResult(result, false);
+            await this._applyScanResult(result, false);
         } catch (error) {
             this.showMessage(this.formatError(error), "danger");
         } finally {
@@ -174,68 +204,80 @@ export class InboundFlow extends Component {
     // ═══════════════════════════════════════════════════════════════
 
     async onBarcodeScanned(barcode) {
-        console.log("[SBL][onBarcodeScanned] START barcode=", barcode);
-        if (!barcode || this.state.loading) {
-            console.log("[SBL][onBarcodeScanned] SKIP - barcode empty or loading");
+        console.log('[InboundFlow] onBarcodeScanned called, barcode:', barcode, '_isProcessing:', this._isProcessing);
+        if (!barcode || this._isProcessing) {
+            console.log('[InboundFlow] Skipped - no barcode or still processing');
             return;
         }
 
+        this._isProcessing = true;
         this.state.loading = true;
+
         try {
             const pickingId = this.state.picking?.id || false;
             const locationId = this.state.currentLocation?.id || false;
-            console.log("[SBL][onBarcodeScanned] calling backend, barcode=", barcode, "pickingId=", pickingId, "locationId=", locationId);
+            console.log('[InboundFlow] Calling backend, pickingId:', pickingId, 'locationId:', locationId);
 
             const result = await this.orm.call(
                 "stock.barcode.lite.scan.service",
                 "process_incoming_scan_barcode",
                 [barcode, pickingId, locationId]
             );
-            console.log("[SBL][onBarcodeScanned] result=", result);
 
-            this._applyScanResult(result, true);
+            console.log('[InboundFlow] Backend result:', result);
+
+            await this._applyScanResult(result, true);
 
             if (result.action?.updated_move_line_ids?.length) {
                 this.state.updatedMoveLineIds = result.action.updated_move_line_ids;
             }
-
         } catch (error) {
-            console.error("[SBL][onBarcodeScanned] ERROR", error);
+            console.error('[InboundFlow] Error:', error);
             this.showMessage(this.formatError(error), "danger");
             this._flashScreen([200, 100, 100], true);
         } finally {
             this.state.loading = false;
+            this._isProcessing = false;
             this._focusBarcodeInput();
         }
     }
 
-    _applyScanResult(result, notify = true) {
-        console.log("[SBL][_applyScanResult] result=", result);
+    async _applyScanResult(result, notify = true) {
+        console.log('[InboundFlow] _applyScanResult called, result:', JSON.stringify(result));
         if (!result) return;
 
         const scanState = result.scan_state || {};
+        console.log('[InboundFlow] scanState:', JSON.stringify(scanState));
 
-        this.state.picking = scanState.picking || null;
-        this.state.currentLocation = scanState.current_location || {};
-        this.state.summary = scanState.summary || this._getEmptySummary();
-        this.state.pallets = scanState.pallets || [];
-        this.state.lastScan = scanState.last_scan || {};
+        // 更新状态 - OWL 会自动响应
+        // 使用展开运算符创建新对象/数组引用，确保响应性检测
+        this.state.picking = scanState.picking ? { ...scanState.picking } : null;
+        this.state.currentLocation = scanState.current_location ? { ...scanState.current_location } : {};
+        this.state.summary = scanState.summary ? { ...scanState.summary } : this._getEmptySummary();
+        
+        // 深度复制 pallets 数组及其内部对象
+        if (scanState.pallets && scanState.pallets.length > 0) {
+            this.state.pallets = scanState.pallets.map(pallet => ({ ...pallet }));
+        } else {
+            this.state.pallets = [];
+        }
+        
+        this.state.lastScan = scanState.last_scan ? { ...scanState.last_scan } : {};
 
-        this._setWorkflowState(result.next_step || "scan_picking");
+        console.log('[InboundFlow] State updated - pallets:', this.state.pallets.length, 'picking:', !!this.state.picking);
+
+        this.state.nextStep = result.next_step || "scan_picking";
+        console.log('[InboundFlow] nextStep set to:', this.state.nextStep);
 
         if (notify && result.message) {
             const msgType = result.success === false ? "danger" : "success";
+            console.log('[InboundFlow] Showing message:', result.message, 'type:', msgType);
             this.showMessage(result.message, msgType);
 
             if (result.success !== false) {
                 this._flashScreen([100, 200, 100], false);
             }
         }
-    }
-
-    _setWorkflowState(nextStep) {
-        console.log("[SBL][_setWorkflowState] nextStep=", nextStep);
-        this.state.nextStep = nextStep || "scan_picking";
     }
 
     _getEmptySummary() {
@@ -290,7 +332,7 @@ export class InboundFlow extends Component {
         this.state.pallets = [];
         this.state.lastScan = {};
         this.state.updatedMoveLineIds = [];
-        this._setWorkflowState("scan_picking");
+        this.state.nextStep = "scan_picking";
         this.showMessage(_t("Scan reset - ready for new picking"), "info");
         this._focusBarcodeInput();
     }
@@ -430,6 +472,46 @@ export class InboundFlow extends Component {
 
     get palletList() {
         return Array.isArray(this.state.pallets) ? this.state.pallets : [];
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 模板使用的 getter（与 QWeb 模板对应）
+    // ═══════════════════════════════════════════════════════════════
+
+    get hasPicking() {
+        return !!this.state.picking;
+    }
+
+    get pickingLabel() {
+        return this.state.picking?.name || "Inbound";
+    }
+
+    get pickingOrigin() {
+        return this.state.picking?.origin || "";
+    }
+
+    get pickingReference() {
+        return this.state.picking?.reference || "";
+    }
+
+    get pickingPartner() {
+        return this.state.picking?.partner || "";
+    }
+
+    get pickingState() {
+        return this.state.picking?.state || "";
+    }
+
+    get hasLocation() {
+        return !!this.state.currentLocation?.id;
+    }
+
+    get currentLocationName() {
+        return this.state.currentLocation?.name || "";
+    }
+
+    get currentLocationBarcode() {
+        return this.state.currentLocation?.barcode || "";
     }
 
     getStateBadgeClass(state) {

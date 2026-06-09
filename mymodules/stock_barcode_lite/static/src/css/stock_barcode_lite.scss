@@ -205,56 +205,133 @@
         }
     }
 
-    // ── Product item ──
-    .o_pallet_products {
-        padding: 4px 0;
-    }
-    .o_pallet_product {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        padding: 6px 12px;
-        border-bottom: 1px solid #f0f0f0;
-        transition: background 0.15s;
-
-        &:last-child { border-bottom: none; }
-        &.o_item_active { background: #e7f1ff; }
-        &.o_product_done { opacity: 0.7; }
-
-        .o_product_info { flex: 1; }
-        .o_product_name { font-size: 13px; font-weight: 500; color: #333; }
-        .o_product_meta { font-size: 11px; margin-top: 2px; }
-        .o_product_qty {
-            display: flex; align-items: baseline; gap: 2px;
-            font-size: 16px; font-weight: 700; margin-left: 10px;
-            .o_qty_done { color: #0d6efd; }
-        }
-        &.o_product_done .o_product_qty .o_qty_done { color: #198754; }
-    }
-
-    // ── SN tags ──
-    .o_sn_list {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 4px;
-        margin-top: 4px;
-    }
-    .o_sn_tag {
-        display: inline-block;
-        font-size: 11px;
-        padding: 2px 6px;
-        background: #e9ecef;
-        color: #495057;
-        border-radius: 4px;
-        font-family: monospace;
-    }
-
-    .o_batch_count {
-        font-size: 12px;
-        font-weight: 600;
-    }
-
-// ── Footer ──
+    // ── Product subcard ──
+    // .o_pallet_products {
+    //     padding: 4px 0;
+    // }
+    // .o_product_subcard {
+    //     display: flex;
+    //     flex-direction: column;
+    //     gap: 6px;
+    //     margin: 4px 10px;
+    //     padding: 10px 12px;
+    //     background: #f8f9fa;
+    //     border: 1px solid #e9ecef;
+    //     border-radius: 6px;
+    //     transition: background 0.15s;
+    //
+    //     &.o_item_active { background: #e7f1ff; border-color: #cfe2ff; }
+    //     &.o_product_done { opacity: 0.65; }
+    //
+    //     .o_product_row_top {
+    //         display: flex;
+    //         justify-content: space-between;
+    //         align-items: center;
+    //         gap: 8px;
+    //     }
+    //
+    //     .o_product_row_bottom {
+    //         display: flex;
+    //         flex-wrap: wrap;
+    //         gap: 5px 10px;
+    //         align-items: center;
+    //         font-size: 11px;
+    //         color: #6c757d;
+    //     }
+    //
+    //     .o_product_icon {
+    //         width: 24px;
+    //         height: 24px;
+    //         border-radius: 4px;
+    //         background: #dee2e6;
+    //         display: flex;
+    //         align-items: center;
+    //         justify-content: center;
+    //         color: #6c757d;
+    //         flex-shrink: 0;
+    //         font-size: 11px;
+    //     }
+    // }
+    //
+    // .o_product_name {
+    //     font-size: 13px;
+    //     font-weight: 500;
+    //     color: #333;
+    //     line-height: 1.3;
+    // }
+    //
+    // .o_meta_code {
+    //     font-weight: 600;
+    //     color: #495057;
+    //     background: #e9ecef;
+    //     padding: 1px 5px;
+    //     border-radius: 3px;
+    //     font-family: monospace;
+    //     font-size: 10px;
+    // }
+    //
+    // .o_meta_barcode {
+    //     display: inline-flex;
+    //     align-items: center;
+    //     gap: 2px;
+    //     font-family: monospace;
+    //     font-size: 10px;
+    //     color: #495057;
+    // }
+    //
+    // .o_meta_lot {
+    //     font-family: monospace;
+    //     font-size: 10px;
+    //     color: #856404;
+    //     background: #fff3cd;
+    //     padding: 1px 5px;
+    //     border-radius: 3px;
+    // }
+    //
+    // .o_product_location {
+    //     font-size: 11px;
+    //     color: #6c757d;
+    // }
+    //
+    // .o_product_qty {
+    //     display: flex;
+    //     align-items: baseline;
+    //     gap: 3px;
+    //     font-size: 15px;
+    //     font-weight: 700;
+    //     flex-shrink: 0;
+    //
+    //     .o_qty_value {
+    //         color: #0d6efd;
+    //         line-height: 1;
+    //     }
+    //
+    //     .o_qty_label {
+    //         font-size: 11px;
+    //         color: #6c757d;
+    //     }
+    // }
+    //
+    // .o_pallet_product.o_product_done .o_product_qty .o_qty_value {
+    //     color: #198754;
+    // }
+    //
+    // .o_sn_list {
+    //     display: flex;
+    //     flex-wrap: wrap;
+    //     gap: 4px;
+    //     margin-top: 4px;
+    // }
+    //
+    // .o_sn_tag {
+    //     display: inline-block;
+    //     font-size: 11px;
+    //     padding: 2px 6px;
+    //     background: #e9ecef;
+    //     color: #495057;
+    //     border-radius: 4px;
+    //     font-family: monospace;
+    // }
 .o_barcode_footer,
 .o_sbl_footer {
     display: flex !important;
@@ -463,6 +540,12 @@
     border-bottom: 1px solid #dee2e6;
     flex-wrap: wrap;
     gap: 6px;
+    cursor: pointer;
+    transition: background 0.15s;
+
+    &:hover {
+        background: #e9ecef;
+    }
 }
 
 .o_pallet_info {
@@ -481,6 +564,18 @@
     white-space: nowrap;
 }
 
+.o_pallet_product_count {
+    font-size: 12px;
+    font-weight: 400;
+    color: #6c757d;
+}
+
+.o_pallet_right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
 .o_pallet_location {
     font-size: 12px;
     color: #6c757d;
@@ -489,34 +584,77 @@
     gap: 3px;
 }
 
-// 产品条目 - 富信息展示
-.o_pallet_product {
+.o_pallet_toggle {
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: #6c757d;
     display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    padding: 8px 12px;
-    border-bottom: 1px solid #f0f0f0;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: all 0.15s;
+    flex-shrink: 0;
+
+    &:hover {
+        background: #dee2e6;
+        color: #495057;
+    }
+
+    &:active {
+        background: #adb5bd;
+    }
+}
+
+// 子卡片（嵌套在产品列表内）
+.o_product_subcard {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 4px 10px;
+    padding: 10px 12px;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
     transition: background 0.15s;
 
-    &:last-child { border-bottom: none; }
+    &.o_item_active {
+        background: #e7f1ff;
+        border-color: #cfe2ff;
+    }
+
+    &.o_product_done {
+        opacity: 0.65;
+    }
+
+    .o_product_row_top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .o_product_row_bottom {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px 10px;
+        align-items: center;
+    }
 
     .o_product_icon {
-        width: 28px;
-        height: 28px;
+        width: 24px;
+        height: 24px;
         border-radius: 4px;
-        background: #e9ecef;
+        background: #dee2e6;
         display: flex;
         align-items: center;
         justify-content: center;
         color: #6c757d;
         flex-shrink: 0;
-        margin-top: 2px;
+        font-size: 11px;
     }
-}
-
-.o_product_info {
-    flex: 1;
-    min-width: 0;
 }
 
 .o_product_name {
@@ -533,14 +671,13 @@
     align-items: center;
     font-size: 11px;
     color: #6c757d;
-    margin-top: 2px;
 }
 
 .o_meta_code {
     font-weight: 600;
     color: #495057;
     background: #e9ecef;
-    padding: 1px 4px;
+    padding: 1px 5px;
     border-radius: 3px;
     font-family: monospace;
     font-size: 10px;
@@ -560,26 +697,24 @@
     font-size: 10px;
     color: #856404;
     background: #fff3cd;
-    padding: 1px 4px;
+    padding: 1px 5px;
     border-radius: 3px;
 }
 
 .o_product_location {
-    margin-top: 2px;
     font-size: 11px;
+    color: #6c757d;
 }
 
-// 产品数量
 .o_product_qty {
     display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    margin-left: 8px;
+    align-items: baseline;
+    gap: 3px;
+    font-size: 15px;
+    font-weight: 700;
     flex-shrink: 0;
 
     .o_qty_value {
-        font-size: 16px;
-        font-weight: 700;
         color: #0d6efd;
         line-height: 1;
     }
@@ -587,8 +722,11 @@
     .o_qty_label {
         font-size: 11px;
         color: #6c757d;
-        margin-top: 2px;
     }
+}
+
+.o_pallet_product.o_product_done .o_product_qty .o_qty_value {
+    color: #198754;
 }
 
 // ── Order info (legacy inbound) ──
