@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sunrise_api_config_list" model="ir.ui.view">
+        <field name="name">sunrise.api.config.list</field>
+        <field name="model">sunrise.api.config</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="active"/>
+                <field name="api_type"/>
+                <field name="url"/>
+                <field name="path_info"/>
+                <field name="usercode"/>
+                <field name="trantype"/>
+                <field name="system"/>
+                <field name="timeout"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sunrise_api_config_form" model="ir.ui.view">
+        <field name="name">sunrise.api.config.form</field>
+        <field name="model">sunrise.api.config</field>
+        <field name="arch" type="xml">
+            <form duplicate="false">
+                <sheet>
+                    <group>
+                        <field name="name" required="1"/>
+                        <field name="active"/>
+                        <field name="api_type" required="1"/>
+                    </group>
+                    <group>
+                        <field name="url" required="1"/>
+                        <field name="data_url" required="1"/>
+                        <field name="path_info" required="1"/>
+                        <field name="usercode" required="1"/>
+                        <field name="password" password="False" required="1"/>
+                        <field name="trantype" required="1"/>
+                        <field name="system" required="1"/>
+                        <field name="timeout"/>
+                    </group>
+                    <group>
+                        <field name="parameters_json"/>
+<!--                        <field name="response_example"/>-->
+                        <field name="description"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_sunrise_api_config_search" model="ir.ui.view">
+        <field name="name">sunrise.api.config.search</field>
+        <field name="model">sunrise.api.config</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="api_type"/>
+                <field name="url"/>
+                <filter name="active" string="Active" domain="[('active', '=', True)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_sunrise_api_log_list" model="ir.ui.view">
+        <field name="name">sunrise.api.log.list</field>
+        <field name="model">sunrise.api.log</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="request_time"/>
+                <field name="request_source"/>
+                <field name="request_path"/>
+                <field name="exception_details"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sunrise_api_log_form" model="ir.ui.view">
+        <field name="name">sunrise.api.log.form</field>
+        <field name="model">sunrise.api.log</field>
+        <field name="arch" type="xml">
+            <form duplicate="false">
+                <sheet>
+                    <group>
+                        <field name="request_source" readonly="1"/>
+                        <field name="request_time" readonly="1"/>
+                        <field name="request_path" readonly="1"/>
+                    </group>
+                    <group>
+                        <field name="request_data" readonly="1"/>
+                        <field name="response_data" readonly="1"/>
+                        <field name="exception_details" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_sunrise_api_log_search" model="ir.ui.view">
+        <field name="name">sunrise.api.log.search</field>
+        <field name="model">sunrise.api.log</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="request_source"/>
+                <field name="request_path"/>
+                <filter name="has_exception" string="Has Exception" domain="[('exception_details', '!=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <data noupdate="1">
+        <record id="action_sunrise_api_config" model="ir.actions.act_window">
+            <field name="name">Sunrise API Config</field>
+            <field name="res_model">sunrise.api.config</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <record id="action_sunrise_api_log" model="ir.actions.act_window">
+            <field name="name">Sunrise API Logs</field>
+            <field name="res_model">sunrise.api.log</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <menuitem id="menu_stock_barcode_lite_configuration"
+                  name="Configuration"
+                  parent="menu_stock_barcode_lite_root"
+                  sequence="90"/>
+
+        <menuitem id="menu_sunrise_api_config"
+                  name="Sunrise API Config"
+                  parent="menu_stock_barcode_lite_configuration"
+                  action="action_sunrise_api_config"
+                  sequence="10"/>
+
+        <menuitem id="menu_sunrise_api_log"
+                  name="Sunrise API Logs"
+                  parent="menu_stock_barcode_lite_configuration"
+                  action="action_sunrise_api_log"
+                  sequence="20"/>
+    </data>
+</odoo>

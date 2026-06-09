@@ -60,7 +60,12 @@
         <t t-set="data_report_margin_top" t-value="0"/>
         <t t-set="data_report_header_spacing" t-value="0"/>
         <t t-call="web.html_container">
-            <style>
+            <t t-foreach="docs" t-as="o">
+                <div class="article"
+                     t-att-data-oe-model="o._name"
+                     t-att-data-oe-id="o.id"
+                     t-att-data-oe-lang="o.env.context.get('lang')">
+                <style>
                 @page {
                     margin-top: 0;
                     margin-bottom: 6mm;
@@ -148,6 +153,13 @@
                     font-size: 28px;
                     font-weight: bold;
                 }
+                .pallet-info-line + .pallet-info-line {
+                    margin-top: 12px;
+                }
+                .pallet-info-label {
+                    display: inline-block;
+                    min-width: 170px;
+                }
                 .pallet-qr {
                     width: 180px;
                     text-align: center;
@@ -176,8 +188,13 @@
                     text-align: right;
                     white-space: nowrap;
                 }
+                .product-table .uom {
+                    width: 130px;
+                    white-space: nowrap;
+                }
                 .product-table .blank {
                     width: 170px;
+                    white-space: nowrap;
                 }
                 img.keep-no-break {
                     display: inline-block;
@@ -186,7 +203,6 @@
                 }
             </style>
 
-            <t t-foreach="docs" t-as="o">
                 <t t-if="o.inbound_order_product_ids">
                     <t t-foreach="o.inbound_order_product_ids" t-as="pallet">
                         <div t-attf-class="page inbound-label-page {{ '' if pallet_index == 0 else 'pallet-label-page' }}">
@@ -195,16 +211,28 @@
                                 <table class="pallet-header">
                                     <thead>
                                         <tr>
-                                            <th>Pallet No</th>
+                                            <th>Pallet Information</th>
                                             <th class="qr-title">QR Code</th>
                                         </tr>
                                     </thead>
                                     <tr>
                                         <td>
-                                            <div class="pallet-no"><span t-field="pallet.pallet_no"/></div>
+                                            <div class="pallet-no">
+                                                <div class="pallet-info-line">
+                                                    <span class="pallet-info-label">Pallet No:</span>
+                                                    <span t-field="pallet.sunrise_pallet_no"/>
+                                                </div>
+                                                <div class="pallet-info-line">
+                                                    <span class="pallet-info-label">Container No:</span>
+                                                    <span t-field="o.cntr_no"/>
+                                                </div>
+                                            </div>
                                         </td>
                                         <td class="pallet-qr">
-                                            <t t-if="pallet.pallet_no">
+                                            <t t-if="pallet.sunrise_pallet_no">
+                                                <div t-field="pallet.sunrise_pallet_no" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 260, 'height': 260, 'img_style': 'width:150px;height:150px;', 'img_class': 'keep-no-break'}"/>
+                                            </t>
+                                            <t t-elif="pallet.pallet_no">
                                                 <div t-field="pallet.pallet_no" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 260, 'height': 260, 'img_style': 'width:150px;height:150px;', 'img_class': 'keep-no-break'}"/>
                                             </t>
                                         </td>
@@ -216,7 +244,12 @@
                                         <tr>
                                             <th>Product</th>
                                             <th>Barcode</th>
-                                            <th class="qty">Quantity</th>
+                                            <th class="qty">
+                                                Quantity (<span t-esc="pallet.inbound_order_product_pallet_ids[:1].castunitid or 'Carton'"/>)
+                                            </th>
+                                            <th class="uom">
+                                                <span t-esc="pallet.inbound_order_product_pallet_ids[:1].u8_aux_uom_name or 'UOM'"/>
+                                            </th>
                                             <th class="blank"></th>
                                         </tr>
                                     </thead>
@@ -227,13 +260,14 @@
                                                     <td><span t-esc="line.product_id.display_name"/></td>
                                                     <td><span t-field="line.product_id.barcode"/></td>
                                                     <td class="qty"><span t-field="line.quantity"/></td>
+                                                    <td class="uom"><span t-field="line.ninnum"/></td>
                                                     <td class="blank"></td>
                                                 </tr>
                                             </t>
                                         </t>
                                         <t t-else="">
                                             <tr>
-                                                <td colspan="4">No product lines.</td>
+                                                <td colspan="5">No product lines.</td>
                                             </tr>
                                         </t>
                                     </tbody>
@@ -248,6 +282,7 @@
                         <div class="pallet-block">No pallet lines.</div>
                     </div>
                 </t>
+                </div>
             </t>
         </t>
     </template>
