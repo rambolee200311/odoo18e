@@ -3,6 +3,7 @@ from . import product_template_inherit
 from . import inbound_order
 from . import inbound_order_sunrise_status
 from . import outbound_order_inherit
+from . import outbound_order_sunrise_status
 from . import sunrise_api
 from . import stock_quant_package
 from . import stock_barcode_lite_scan_service

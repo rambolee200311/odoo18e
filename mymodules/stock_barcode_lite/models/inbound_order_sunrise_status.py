@@ -157,7 +157,7 @@ class InboundOrderSunrise(models.Model):
             headers = {
                 "Content-Type": "application/json",
                 "usercode": config.usercode,
-                "password":self.get_u8c_password(config.password),
+                "password":config.password,
                 "trantype": config.trantype,
                 "system": config.system,
             }
@@ -230,5 +230,14 @@ class InboundOrderSunrise(models.Model):
                 "message": _("Sunrise U8C inbound sync completed."),
                 "type": "success",
                 "sticky": False,
+                "next": {
+                    "type": "ir.actions.act_window",
+                    "name": _("Inbound Order"),
+                    "res_model": "world.depot.inbound.order",
+                    "res_id": self[:1].id,
+                    "view_mode": "form",
+                    "views": [(False, "form")],
+                    "target": "current",
+                },
             },
         }

@@ -9,27 +9,35 @@
                 <attribute name="duplicate">false</attribute>
             </xpath>
 
+            <xpath expr="//button[@name='action_create_picking_PICK']" position="after">
+                <button name="action_sunrise_create_outgoing_stock_picking"
+                        type="object"
+                        string="Sunrise Create outgoing"
+                        class="oe_stat_button"
+                        icon="fa-file-text"
+                        invisible="project_name !='SUNRISE'"/>
+            </xpath>
 
             <xpath expr="//field[@name='outbound_order_product_ids']/list/field[@name='product_id']" position="after">
-                <field name="de_palletize" optional="show"/>
-                <field name="sunrise_pallet_no" optional="show"/>
-                <field name="product_ean" optional="show"/>
+                <field name="de_palletize" optional="show" column_invisible="project_name !='SUNRISE'"/>
+                <field name="sunrise_pallet_no" optional="show" column_invisible="project_name !='SUNRISE'"/>
+                <field name="product_ean" optional="show" column_invisible="project_name !='SUNRISE'"/>
                 <field name="cprojectid" optional="show"/>
-                <field name="ndiscounttaxtype" optional="show"/>
-                <field name="vsourcebillcode" optional="show"/>
-                <field name="vsourcerowno" optional="show"/>
-                <field name="box_type" optional="show"/>
-                <field name="box_qty" optional="show"/>
-                <field name="box_in_qty" optional="show"/>
-                <field name="ninnum" optional="show"/>
-                <field name="u8_aux_qty" optional="show"/>
-                <field name="u8_conversion_rate" optional="show"/>
-                <field name="castunitid" optional="show"/>
-                <field name="u8_aux_uom_name" optional="show"/>
-                <field name="is_lot" optional="show"/>
-                <field name="lot_name" optional="show"/>
-                <field name="m_date" optional="show"/>
-                <field name="e_date" optional="show"/>
+                <field name="ndiscounttaxtype" optional="show" column_invisible="project_name !='SUNRISE'"/>
+                <field name="vsourcebillcode" optional="show" column_invisible="project_name !='SUNRISE'"/>
+                <field name="vsourcerowno" optional="show" column_invisible="project_name !='SUNRISE'"/>
+                <field name="box_type" optional="show" column_invisible="project_name !='SUNRISE'"/>
+                <field name="box_qty" optional="show" column_invisible="project_name !='SUNRISE'"/>
+                <field name="box_in_qty" optional="show" column_invisible="project_name !='SUNRISE'"/>
+                <field name="ninnum" optional="show" column_invisible="project_name !='SUNRISE'"/>
+                <field name="u8_aux_qty" optional="show" column_invisible="project_name !='SUNRISE'"/>
+                <field name="u8_conversion_rate" optional="show" column_invisible="project_name !='SUNRISE'"/>
+                <field name="castunitid" optional="show" column_invisible="project_name !='SUNRISE'"/>
+                <field name="u8_aux_uom_name" optional="show" column_invisible="project_name !='SUNRISE'"/>
+                <field name="is_lot" optional="show" column_invisible="project_name !='SUNRISE'"/>
+                <field name="lot_name" optional="show" column_invisible="project_name !='SUNRISE'"/>
+                <field name="m_date" optional="show" column_invisible="project_name !='SUNRISE'"/>
+                <field name="e_date" optional="show" column_invisible="project_name !='SUNRISE'"/>
             </xpath>
 
             <xpath expr="//field[@name='outbound_order_product_ids']" position="before">
@@ -42,6 +50,22 @@
                             invisible="state != 'new'"/>
                 </div>
             </xpath>
+
+            <xpath expr="//notebook" position="inside">
+                <page string="Sunrise Sync" invisible="project_name !='SUNRISE'">
+                    <group col="2">
+                        <group col="2">
+                            <button name="action_sync_u8c_outbound" type="object" string="Sync U8C Outbound" class="btn btn-primary"/>
+                        </group>
+                        <group col="2">
+                            <field name="set_sunrise_outbound_sync" readonly="1"/>
+                            <field name="set_sunrise_outbound_sync_time" readonly="1"/>
+                            <field name="sunrise_outbound_task_number" readonly="1"/>
+                            <field name="sunrise_outbound_sync_error_msg" readonly="1"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
         </field>
     </record>
 
@@ -52,25 +76,25 @@
         <field name="inherit_id" ref="worlddepot.view_outbound_order_product_standalone_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='pallet_no']" position="after">
-                <field name="sunrise_pallet_no" readonly="outbound_order_state != 'new'"/>
-                <field name="product_ean" readonly="outbound_order_state != 'new'"/>
-                <field name="de_palletize" readonly="outbound_order_state != 'new'" required="1"/>
-                <field name="cprojectid" readonly="outbound_order_state != 'new'"/>
-                <field name="ndiscounttaxtype" readonly="outbound_order_state != 'new'"/>
-                <field name="vsourcebillcode" readonly="outbound_order_state != 'new'"/>
-                <field name="vsourcerowno" readonly="outbound_order_state != 'new'"/>
-                <field name="box_type" readonly="outbound_order_state != 'new'"/>
-                <field name="box_qty" readonly="outbound_order_state != 'new'"/>
-                <field name="box_in_qty" readonly="outbound_order_state != 'new'"/>
-                <field name="ninnum" readonly="outbound_order_state != 'new'"/>
-                <field name="u8_aux_qty" readonly="outbound_order_state != 'new'"/>
-                <field name="u8_conversion_rate" readonly="outbound_order_state != 'new'"/>
-                <field name="castunitid" readonly="outbound_order_state != 'new'"/>
-                <field name="u8_aux_uom_name" readonly="outbound_order_state != 'new'"/>
-                <field name="is_lot" readonly="outbound_order_state != 'new'" required="1"/>
-                <field name="lot_name" readonly="outbound_order_state != 'new'" required="is_lot == 'Y'"/>
-                <field name="m_date" readonly="outbound_order_state != 'new'"/>
-                <field name="e_date" readonly="outbound_order_state != 'new'"/>
+                <field name="sunrise_pallet_no" readonly="outbound_order_state != 'new'" column_invisible="project_name !='SUNRISE'"/>
+                <field name="product_ean" readonly="outbound_order_state != 'new'" column_invisible="project_name !='SUNRISE'"/>
+                <field name="de_palletize" readonly="outbound_order_state != 'new'" column_invisible="project_name !='SUNRISE'"/>
+                <field name="cprojectid" readonly="outbound_order_state != 'new'" column_invisible="project_name !='SUNRISE'"/>
+                <field name="ndiscounttaxtype" readonly="outbound_order_state != 'new'" column_invisible="project_name !='SUNRISE'"/>
+                <field name="vsourcebillcode" readonly="outbound_order_state != 'new'" column_invisible="project_name !='SUNRISE'"/>
+                <field name="vsourcerowno" readonly="outbound_order_state != 'new'" column_invisible="project_name !='SUNRISE'"/>
+                <field name="box_type" readonly="outbound_order_state != 'new'" column_invisible="project_name !='SUNRISE'"/>
+                <field name="box_qty" readonly="outbound_order_state != 'new'" column_invisible="project_name !='SUNRISE'"/>
+                <field name="box_in_qty" readonly="outbound_order_state != 'new'" column_invisible="project_name !='SUNRISE'"/>
+                <field name="ninnum" readonly="outbound_order_state != 'new'" column_invisible="project_name !='SUNRISE'"/>
+                <field name="u8_aux_qty" readonly="outbound_order_state != 'new'" column_invisible="project_name !='SUNRISE'"/>
+                <field name="u8_conversion_rate" readonly="outbound_order_state != 'new'" column_invisible="project_name !='SUNRISE'"/>
+                <field name="castunitid" readonly="outbound_order_state != 'new'" column_invisible="project_name !='SUNRISE'"/>
+                <field name="u8_aux_uom_name" readonly="outbound_order_state != 'new'" column_invisible="project_name !='SUNRISE'"/>
+                <field name="is_lot" readonly="outbound_order_state != 'new'" required="1" column_invisible="project_name !='SUNRISE'"/>
+                <field name="lot_name" readonly="outbound_order_state != 'new'" required="is_lot == 'Y'" column_invisible="project_name !='SUNRISE'"/>
+                <field name="m_date" readonly="outbound_order_state != 'new'" column_invisible="project_name !='SUNRISE'"/>
+                <field name="e_date" readonly="outbound_order_state != 'new'" column_invisible="project_name !='SUNRISE'"/>
             </xpath>
         </field>
     </record>
