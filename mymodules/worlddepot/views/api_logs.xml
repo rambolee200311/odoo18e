@@ -7,10 +7,15 @@
         <field name="arch" type="xml">
             <list>
                 <field name="request_time"/>
+                <field name="project_id"/>
                 <field name="request_source"/>
                 <field name="request_path"/>
                 <field name="request_data"/>
                 <field name="response_data"/>
+                <field name="success"/>
+                <field name="code"/>
+                <field name="msg"/>
+                <field name="data"/>
                 <field name="exception_details"/>
             </list>
         </field>
@@ -22,6 +27,7 @@
         <field name="model">world.depot.api.log</field>
         <field name="arch" type="xml">
             <search>
+                <field name="project_id"/>
                 <field name="request_time"/>
                 <field name="request_source"/>
                 <field name="request_path"/>
