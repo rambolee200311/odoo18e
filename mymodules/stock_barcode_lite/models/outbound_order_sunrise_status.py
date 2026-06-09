@@ -1,21 +1,26 @@
 # -*- coding: utf-8 -*-
 
 import copy
+import hashlib
 import json
 import logging
+from datetime import date, datetime
+
 import requests
 
 from odoo import _, fields, models
 from odoo.exceptions import UserError
-import hashlib
-_logger = logging.getLogger(__name__)
-class InboundOrderSunrise(models.Model):
-    _inherit = "world.depot.inbound.order"
 
-    set_sunrise_inbound_sync = fields.Boolean(string="Set Sunrise Inbound Sync", default=False, copy=False, index=True)
-    set_sunrise_inbound_sync_time = fields.Datetime(string="Sunrise Inbound Sync Time", copy=False)
-    sunrise_inbound_sync_error_msg = fields.Text(string="Sunrise Inbound Sync Error Msg", copy=False)
-    sunrise_inbound_task_number = fields.Char(string="Sunrise Inbound Task Number", copy=False, index=True)
+_logger = logging.getLogger(__name__)
+
+
+class OutboundOrderSunrise(models.Model):
+    _inherit = "world.depot.outbound.order"
+
+    set_sunrise_outbound_sync = fields.Boolean(string="Set Sunrise Outbound Sync", default=False, copy=False, index=True)
+    set_sunrise_outbound_sync_time = fields.Datetime(string="Sunrise Outbound Sync Time", copy=False)
+    sunrise_outbound_sync_error_msg = fields.Text(string="Sunrise Outbound Sync Error Msg", copy=False)
+    sunrise_outbound_task_number = fields.Char(string="Sunrise Outbound Task Number", copy=False, index=True)
 
     def get_sunrise_api_config(self, api_type):
         config_model = self.env["sunrise.api.config"]
@@ -27,15 +32,27 @@ class InboundOrderSunrise(models.Model):
             raise UserError(_("Please configure an active Sunrise U8C %s API config.") % api_type)
         return config
 
-    def get_sunrise_field_value(self, record, field_name, default=False):
-        if not record or field_name not in record._fields:
-            return default
-        value = record[field_name]
-        if hasattr(value, "display_name"):
-            return value.display_name or default
-        return value or default
+    def get_sunrise_date_text(self, value):
+        if not value:
+            return False
+        if isinstance(value, str):
+            return value
+        if isinstance(value, datetime):
+            return fields.Date.to_string(value.date())
+        if isinstance(value, date):
+            return fields.Date.to_string(value)
+        return str(value)
 
-    def get_sunrise_inbound_parentvo(self, config):
+    def get_outbound_sync_picking(self):
+        for rec in self:
+            if not rec.picking_Out:
+                raise UserError(_("Outbound order %s has no outbound picking.") % (rec.billno or rec.reference))
+            if rec.picking_Out.state != "done":
+                raise UserError(_("Outbound picking %s must be done before syncing to U8C.") % rec.picking_Out.name)
+            return rec.picking_Out
+        return False
+
+    def get_sunrise_outbound_parentvo(self, config, rec):
         if not config.parameters_json:
             parameters = {}
         else:
@@ -48,73 +65,94 @@ class InboundOrderSunrise(models.Model):
 
         parent_parameters = parameters.get("parentvo") if isinstance(parameters.get("parentvo"), dict) else {}
         parentvo = {
-            "cbiztype": "CG02",
+            "cbiztype": "XS01",
             "coperatorid": config.usercode,
-            "cwarehouseid": "99",
-            "pk_calbody": "CYJKHL",
-            "pk_corp": "CYJKHL",
-            "cdispatcherid": "101",
+            "cdispatcherid": "201",
         }
-        for key in ("cbiztype", "coperatorid", "cwarehouseid", "pk_calbody", "pk_corp", "cdispatcherid"):
+        for key in ("cbiztype", "coperatorid", "cwarehouseid", "pk_calbody", "pk_corp", "cdispatcherid", "ccustomerid"):
             if key in parameters:
                 parentvo[key] = parameters[key]
         parentvo.update(parent_parameters)
+
+        missing_keys = [key for key in ("cwarehouseid", "pk_calbody", "pk_corp", "ccustomerid") if not parentvo.get(key)]
+        if missing_keys:
+            raise UserError(_("Sunrise outbound parentvo is missing required config keys: %s") % ", ".join(missing_keys))
+
+        delivery_method_map = {
+            "truck": "truck",
+            "pickup": "pickup",
+            "parcel": "parcel",
+        }
+        parentvo.update({
+            "dbilldate": self.get_sunrise_date_text(rec.date),
+            "vnote": rec.load_ref or rec.remark or rec.reference or "",
+            #"vuserdef14": rec.load_ref or "",
+            "vuserdef17": self.get_sunrise_date_text(rec.p_date),
+            #"vuserdef5": delivery_method_map.get(rec.delivery_method, rec.delivery_method or ""),
+            "ccustomerid": self.unload_company.name,
+        })
+        if not parentvo.get("vuserdef6"):
+            parentvo.pop("vuserdef6", None)
         return parentvo, parameters
 
-    def get_u8c_inbound_detail_line(self, move_line):
-        detail_line = move_line.inbound_order_product_pallet_id
+    def get_u8c_outbound_detail_line(self, move_line):
+        detail_line_id = move_line.move_id.outbound_order_product_id
+        if not detail_line_id:
+            raise UserError(_("Move line %s has no outbound product detail for Sunrise sync.") % move_line.id)
+
+        detail_line = self.env["world.depot.outbound.order.product"].sudo().browse(detail_line_id).exists()
         if not detail_line:
-            raise UserError(_("Move line %s has no inbound product detail for Sunrise sync.") % move_line.id)
+            raise UserError(
+                _("Move line %s outbound product detail %s was not found.") % (move_line.id, detail_line_id)
+            )
         return detail_line
 
-    def build_u8c_inbound_payload(self, config=False):
+    def build_u8c_outbound_payload(self, config=False):
         result = []
         for rec in self:
-            api_config = config or rec.get_sunrise_api_config("inbound")
-            parentvo, parameters = rec.get_sunrise_inbound_parentvo(api_config)
-            picking = rec.stock_picking_id
-            if not picking:
-                raise UserError(_("Inbound order %s has no stock picking.") % (rec.billno or rec.reference))
-            if picking.state != "done":
-                raise UserError(_("Inbound picking %s must be done before syncing to U8C.") % picking.name)
-
+            api_config = config or rec.get_sunrise_api_config("outbound")
+            parentvo, parameters = rec.get_sunrise_outbound_parentvo(api_config, rec)
+            picking = rec.get_outbound_sync_picking()
             move_lines = picking.move_line_ids.filtered(lambda line: line.quantity > 0)
             if not move_lines:
-                raise UserError(_("Inbound picking %s has no move lines to sync.") % picking.name)
-
-            parentvo["vuserdef3"] = rec.cntr_no or ""
+                raise UserError(_("Outbound picking %s has no move lines to sync.") % picking.name)
 
             child_parameters = parameters.get("childrenvo") if isinstance(parameters.get("childrenvo"), dict) else {}
             locator_parameters = parameters.get("locator") if isinstance(parameters.get("locator"), dict) else {}
             childrenvo = []
+            biz_date = rec.get_sunrise_date_text(rec.o_date or rec.picking_Out_date or rec.date)
+
             for move_line in move_lines:
-                detail_line = rec.get_u8c_inbound_detail_line(move_line)
+                detail_line = rec.get_u8c_outbound_detail_line(move_line)
                 product = move_line.product_id
                 product_barcode = product.barcode
                 product_barcode = product_barcode.split("-", 1)[0]
                 if not product_barcode:
                     raise UserError(_("Product %s has no internal reference for U8C cinventoryid.") % product.display_name)
-                location_code = detail_line.inbound_order_product_id.pallet_no
+
+                location_code = detail_line.pallet_no
                 if not location_code:
-                    raise UserError(_("Inbound_detail_line%s has no destination location code.") % move_line.id)
+                    raise UserError(_("Move line %s has no source location code for U8C locator.") % move_line.id)
 
                 locator = dict(locator_parameters)
                 locator.update({
                     "cspaceid": location_code,
-                    "ninspacenum": detail_line.ninnum,
-                    "ninspaceassistnum": detail_line.u8_aux_qty,
+                    "noutspacenum": detail_line.ninnum,
                 })
+
                 child = dict(child_parameters)
                 child.update({
                     "cprojectid": detail_line.cprojectid,
-                    "ndiscounttaxtype": detail_line.ndiscounttaxtype,
-                    "cinventoryid": product_barcode,
-                    "castunitid": detail_line.castunitid,
-                    "ninnum": detail_line.ninnum,
-                    "csourcetype": "23",
                     "vsourcebillcode": detail_line.vsourcebillcode,
                     "vsourcerowno": detail_line.vsourcerowno,
+                    "csourcetype": "4331",
+                    "noutnum": detail_line.ninnum,
+                    "nshouldoutnum": detail_line.ninnum,
+                    "cinventoryid": product_barcode,
                     "vbatchcode": move_line.lot_id.name or detail_line.lot_name or "",
+                    "dbizdate": biz_date,
+                    "vnotebody": detail_line.remark or rec.remark or rec.reference or "",
+                    "castunitid": detail_line.castunitid,
                     "locator": [locator],
                 })
                 childrenvo.append(child)
@@ -141,23 +179,18 @@ class InboundOrderSunrise(models.Model):
             "payload": payload,
         }, ensure_ascii=False)
 
-    def get_u8c_password(self, password):
-        return hashlib.md5(
-            (password or "").encode("utf-8")
-        ).hexdigest()
-#按钮入口
-    def action_sync_u8c_inbound(self):
+    def action_sync_u8c_outbound(self):
         if len(self) != 1:
-            raise UserError(_("Please sync one inbound order at a time."))
+            raise UserError(_("Please sync one outbound order at a time."))
+
         log_model = self.env["sunrise.api.log"]
         for rec in self:
-            config = rec.get_sunrise_api_config("inbound")
-            payload = rec.build_u8c_inbound_payload(config=config)
-            request_source = "Sunrise Inbound U8C Sync"
+            config = rec.get_sunrise_api_config("outbound")
+            payload = rec.build_u8c_outbound_payload(config=config)
             headers = {
                 "Content-Type": "application/json",
                 "usercode": config.usercode,
-                "password":config.password,
+                "password": config.password,
                 "trantype": config.trantype,
                 "system": config.system,
             }
@@ -168,6 +201,7 @@ class InboundOrderSunrise(models.Model):
             error_message = False
             exception_details = False
             task_number = False
+
             try:
                 response = requests.post(
                     config.url,
@@ -191,21 +225,21 @@ class InboundOrderSunrise(models.Model):
                             status = "success"
                             task_number = response_data.get("taskNumber") or response_data.get("task_number")
                             rec.write({
-                                "set_sunrise_inbound_sync": True,
-                                "set_sunrise_inbound_sync_time": response_time,
-                                "sunrise_inbound_sync_error_msg": False,
-                                "sunrise_inbound_task_number": task_number,
+                                "set_sunrise_outbound_sync": True,
+                                "set_sunrise_outbound_sync_time": response_time,
+                                "sunrise_outbound_sync_error_msg": False,
+                                "sunrise_outbound_task_number": task_number,
                             })
                         else:
                             error_message = response_data.get("errsomsg") or response.text
                             exception_details = response_data.get("stackTrace") or error_message
-            except Exception  as error:
+            except Exception as error:
                 response_time = fields.Datetime.now()
                 error_message = str(error)
                 exception_details = str(error)
 
-            log = log_model.sudo().create({
-                "request_source": request_source,
+            log = log_model.create({
+                "request_source": "Sunrise Outbound U8C Sync",
                 "request_time": request_time,
                 "request_path": config.url,
                 "request_data": rec.get_sunrise_masked_request_data(headers, payload),
@@ -213,27 +247,28 @@ class InboundOrderSunrise(models.Model):
                 "exception_details": exception_details,
             })
             _logger.error("LOG ID=%s", log.id)
+
             if status != "success":
                 rec.write({
-                    "set_sunrise_inbound_sync": False,
-                    "set_sunrise_inbound_sync_time": response_time or fields.Datetime.now(),
-                    "sunrise_inbound_sync_error_msg": error_message or exception_details,
+                    "set_sunrise_outbound_sync": False,
+                    "set_sunrise_outbound_sync_time": response_time or fields.Datetime.now(),
+                    "sunrise_outbound_sync_error_msg": error_message or exception_details,
                 })
                 self.env.cr.commit()
-                raise UserError(_("Sunrise U8C inbound sync failed: %s") % (error_message or exception_details))
+                raise UserError(_("Sunrise U8C outbound sync failed: %s") % (error_message or exception_details))
 
         return {
             "type": "ir.actions.client",
             "tag": "display_notification",
             "params": {
                 "title": _("Success"),
-                "message": _("Sunrise U8C inbound sync completed."),
+                "message": _("Sunrise U8C outbound sync completed."),
                 "type": "success",
                 "sticky": False,
                 "next": {
                     "type": "ir.actions.act_window",
-                    "name": _("Inbound Order"),
-                    "res_model": "world.depot.inbound.order",
+                    "name": _("Outbound Order"),
+                    "res_model": "world.depot.outbound.order",
                     "res_id": self[:1].id,
                     "view_mode": "form",
                     "views": [(False, "form")],

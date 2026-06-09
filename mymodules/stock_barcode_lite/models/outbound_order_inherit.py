@@ -117,7 +117,6 @@ class OutboundOrderInherit(models.Model):
                     lot = lot_model.sudo().search([
                         ("name", "=", line.lot_name),
                         ("product_id", "=", line.product_id.id),
-                        ("company_id", "=", rec.company_id.id),
                     ], limit=1)
                     if not lot:
                         raise UserError(
@@ -260,7 +259,6 @@ class OutboundOrderInherit(models.Model):
                         lot = lot_model.sudo().search([
                             ("name", "=", line.lot_name),
                             ("product_id", "=", line.product_id.id),
-                            ("company_id", "=", rec.company_id.id),
                         ], limit=1)
 
                     pool_key = (package.id, line.product_id.id, lot.id if lot else False)
@@ -312,8 +310,8 @@ class OutboundOrderInherit(models.Model):
                     created_moves |= move
                     move_map[line.id] = move
 
-                if created_moves:
-                    created_moves._action_confirm(merge=False)
+                # if created_moves:
+                #     created_moves._action_confirm(merge=False)
 
                 for line in rec.outbound_order_product_ids:
                     move = move_map[line.id]
@@ -344,7 +342,7 @@ class OutboundOrderInherit(models.Model):
                             "location_id": bucket["location_id"].id,
                             "location_dest_id": picking.location_dest_id.id,
                             "package_id": package.id,
-                            "result_package_id": package.id if line.de_palletize == "N" else False,
+                            "result_package_id": False,
                             "lot_id": lot.id if lot else (bucket["lot_id"].id if bucket["lot_id"] else False),
                             "owner_id": bucket["owner_id"].id if bucket["owner_id"] else False,
                         })
@@ -364,13 +362,16 @@ class OutboundOrderInherit(models.Model):
 
                     if "locations" in line._fields and location_name_list:
                         line.write({"locations": ", ".join(location_name_list)})
-
                 if created_moves:
-                    created_moves._action_assign()
+                    created_moves.invalidate_recordset(["move_line_ids", "quantity", "state"])
+                    created_moves._action_confirm(merge=False)
+                    created_moves.invalidate_recordset(["move_line_ids", "quantity", "state"])
+                    created_moves._recompute_state()
 
                 rec.write({
                     "picking_PICK": picking.id,
-                    "status": "picking",
+                    "picking_Out":  picking.id,
+                    "status": "outbound",
                 })
 
         return {
@@ -381,6 +382,15 @@ class OutboundOrderInherit(models.Model):
                 "message": _("Sunrise outbound picking created successfully."),
                 "type": "success",
                 "sticky": False,
+                "next": {
+                    "type": "ir.actions.act_window",
+                    "name": _("Outbound Order"),
+                    "res_model": "world.depot.outbound.order",
+                    "res_id": self[:1].id,
+                    "view_mode": "form",
+                    "views": [(False, "form")],
+                    "target": "current",
+                },
             },
         }
 
