@@ -112,6 +112,7 @@ class OutboundOrderSunrise(models.Model):
         for rec in self:
             api_config = config or rec.get_sunrise_api_config("outbound")
             parentvo, parameters = rec.get_sunrise_outbound_parentvo(api_config, rec)
+            parentvo["cwarehouseid"] = rec.cwarehouseid
             picking = rec.get_outbound_sync_picking()
             move_lines = picking.move_line_ids.filtered(lambda line: line.quantity > 0)
             if not move_lines:
@@ -130,13 +131,15 @@ class OutboundOrderSunrise(models.Model):
                 if not product_barcode:
                     raise UserError(_("Product %s has no internal reference for U8C cinventoryid.") % product.display_name)
 
-                location_code = detail_line.pallet_no
-                if not location_code:
-                    raise UserError(_("Move line %s has no source location code for U8C locator.") % move_line.id)
+                cspaceid = detail_line.cspaceid
+                if not cspaceid:
+                    raise UserError(_("Move line %s has no source cspaceid for U8C locator.") % move_line.id)
+
+                pallet_code = detail_line.pallet_no
 
                 locator = dict(locator_parameters)
                 locator.update({
-                    "cspaceid": location_code,
+                    "cspaceid": cspaceid,
                     "noutspacenum": detail_line.ninnum,
                 })
 

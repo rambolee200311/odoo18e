@@ -9,7 +9,7 @@
                 <attribute name="duplicate">false</attribute>
             </xpath>
             <xpath expr="//field[@name='cntr_no']" position="before">
-                    <field name="cwarehouseid" readonly="state != 'new'"/>
+                    <field name="cwarehouseid" readonly="state != 'new'" invisible="project_name !='SUNRISE'"/>
             </xpath>
             <xpath expr="//field[@name='inbound_order_product_ids']" position="before">
                 <div class="mb-2">
