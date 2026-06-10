@@ -10,6 +10,7 @@ class OutboundOrderInherit(models.Model):
 
     creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import")], string="Creation Source", default="manual", readonly=True, copy=False)
     time_slot = fields.Char(string='Expected harvest time period')  # 预计收货时间段
+    cwarehouseid = fields.Char(string="U8C Warehouse ID", copy=False, index=True)
 
     def action_open_outbound_product_import_wizard(self):
         for rec in self:
@@ -423,7 +424,7 @@ class InboundOrderProduct(models.Model):
     u8_conversion_rate = fields.Float(string="U8 Conversion Rate", copy=False)
     castunitid = fields.Char(string="Assistant Unit", copy=False, index=True)
     u8_aux_uom_name = fields.Char(string="U8 Aux UOM Name", copy=False, index=True)
-
+    cspaceid = fields.Char(string="Location Code", copy=False, index=True)#货位号
 
 
     @api.constrains("outbound_order_id", "pallet_no")

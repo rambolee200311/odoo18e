@@ -8,6 +8,9 @@
             <xpath expr="//form" position="attributes">
                 <attribute name="duplicate">false</attribute>
             </xpath>
+            <xpath expr="//field[@name='cntr_no']" position="before">
+                    <field name="cwarehouseid" readonly="state != 'new'" invisible="project_name !='SUNRISE'"/>
+            </xpath>
             <xpath expr="//field[@name='inbound_order_product_ids']" position="before">
                 <div class="mb-2">
                     <button name="action_open_inbound_product_import_wizard"
@@ -79,6 +82,7 @@
                 <field name="ndiscounttaxtype" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="vsourcebillcode" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="vsourcerowno" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="cspaceid" optional="show" column_invisible="parent.project_name != 'SUNRISE'"/>
                 <field name="box_type" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="box_qty" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="box_in_qty" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
@@ -106,6 +110,7 @@
                 <field name="vsourcebillcode" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="vsourcerowno" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="box_type" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="cspaceid" optional="show" column_invisible="parent.project_name != 'SUNRISE'"/>
                 <field name="box_qty" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="castunitid" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="box_in_qty" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>

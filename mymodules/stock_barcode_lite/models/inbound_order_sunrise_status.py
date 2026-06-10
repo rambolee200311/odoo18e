@@ -83,6 +83,7 @@ class InboundOrderSunrise(models.Model):
                 raise UserError(_("Inbound picking %s has no move lines to sync.") % picking.name)
 
             parentvo["vuserdef3"] = rec.cntr_no or ""
+            parentvo["cwarehouseid"] = rec.cwarehouseid
 
             child_parameters = parameters.get("childrenvo") if isinstance(parameters.get("childrenvo"), dict) else {}
             locator_parameters = parameters.get("locator") if isinstance(parameters.get("locator"), dict) else {}
@@ -94,13 +95,14 @@ class InboundOrderSunrise(models.Model):
                 product_barcode = product_barcode.split("-", 1)[0]
                 if not product_barcode:
                     raise UserError(_("Product %s has no internal reference for U8C cinventoryid.") % product.display_name)
-                location_code = detail_line.inbound_order_product_id.pallet_no
-                if not location_code:
-                    raise UserError(_("Inbound_detail_line%s has no destination location code.") % move_line.id)
+                cspaceid = detail_line.cspaceid
+                if not cspaceid:
+                    raise UserError(_("Inbound_detail_line%s has no destination cspaceid.") % move_line.id)
 
+                pallet_code = detail_line.inbound_order_product_id.pallet_no
                 locator = dict(locator_parameters)
                 locator.update({
-                    "cspaceid": location_code,
+                    "cspaceid": cspaceid,
                     "ninspacenum": detail_line.ninnum,
                     "ninspaceassistnum": detail_line.u8_aux_qty,
                 })
@@ -115,6 +117,7 @@ class InboundOrderSunrise(models.Model):
                     "vsourcebillcode": detail_line.vsourcebillcode,
                     "vsourcerowno": detail_line.vsourcerowno,
                     "vbatchcode": move_line.lot_id.name or detail_line.lot_name or "",
+                    "DJZDY001":pallet_code,
                     "locator": [locator],
                 })
                 childrenvo.append(child)

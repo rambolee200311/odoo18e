@@ -24,6 +24,7 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
                 order_type = self.get_required_text(data, "type")
                 self.validate_order_type(order_type, "outbound")
                 products = data.get("products")
+                cwarehouseid = self.get_required_text(data, "cwarehouseid")
                 if not isinstance(products, list) or not products:
                     raise SunriseApiError("4001", "products must be a non-empty array.")
                 if not all(isinstance(line_data, dict) for line_data in products):
@@ -91,6 +92,7 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
                     "reference": reference,
                     "remark": self.get_optional_text(data, "remark"),
                     "project": project.id,
+                    "cwarehouseid": cwarehouseid,
                     #"warehouse": project.warehouse.id if project.warehouse else False,
                     #"pick_type": project.pick_operation_type.id if project.pick_operation_type else False,
                     "creation_source": "api",
@@ -149,6 +151,7 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
         cprojectid = self.get_required_text(line_data, "cprojectid", row_number)
         vsourcebillcode = self.get_required_text(line_data, "vsourcebillcode", row_number)
         vsourcerowno = self.get_required_text(line_data, "vsourcerowno", row_number)
+        cspaceid = self.get_required_text(line_data, "cspaceid", row_number)
         castunitid = self.get_required_text(line_data, "castunitid", row_number)
         u8_aux_uom_name = self.get_required_text(line_data, "u8_aux_uom_name", row_number)
         box_type, box_qty, box_in_qty, ninnum, u8_aux_qty, u8_conversion_rate = self.validate_box_values(line_data, row_number)
@@ -186,6 +189,7 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
                 "ndiscounttaxtype": self.get_optional_text(line_data, "ndiscounttaxtype"),
                 "vsourcebillcode": vsourcebillcode,
                 "vsourcerowno": vsourcerowno,
+                "cspaceid": cspaceid,
                 "box_type": box_type,
                 "box_qty": box_qty,
                 "box_in_qty": box_in_qty,

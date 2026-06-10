@@ -8,6 +8,9 @@
             <xpath expr="//form" position="attributes">
                 <attribute name="duplicate">false</attribute>
             </xpath>
+            <xpath expr="//field[@name='is_adr']" position="before">
+                    <field name="cwarehouseid" readonly="state != 'new'" invisible="project_name !='SUNRISE'"/>
+            </xpath>
 
             <xpath expr="//button[@name='action_create_picking_PICK']" position="after">
                 <button name="action_sunrise_create_outgoing_stock_picking"
@@ -26,6 +29,7 @@
                 <field name="ndiscounttaxtype" optional="show" column_invisible="project_name !='SUNRISE'"/>
                 <field name="vsourcebillcode" optional="show" column_invisible="project_name !='SUNRISE'"/>
                 <field name="vsourcerowno" optional="show" column_invisible="project_name !='SUNRISE'"/>
+                <field name="cspaceid" optional="show" column_invisible="parent.project_name != 'SUNRISE'"/>
                 <field name="box_type" optional="show" column_invisible="project_name !='SUNRISE'"/>
                 <field name="box_qty" optional="show" column_invisible="project_name !='SUNRISE'"/>
                 <field name="box_in_qty" optional="show" column_invisible="project_name !='SUNRISE'"/>
@@ -83,6 +87,7 @@
                 <field name="ndiscounttaxtype" readonly="outbound_order_state != 'new'" column_invisible="project_name !='SUNRISE'"/>
                 <field name="vsourcebillcode" readonly="outbound_order_state != 'new'" column_invisible="project_name !='SUNRISE'"/>
                 <field name="vsourcerowno" readonly="outbound_order_state != 'new'" column_invisible="project_name !='SUNRISE'"/>
+                <field name="cspaceid" optional="show" column_invisible="parent.project_name != 'SUNRISE'"/>
                 <field name="box_type" readonly="outbound_order_state != 'new'" column_invisible="project_name !='SUNRISE'"/>
                 <field name="box_qty" readonly="outbound_order_state != 'new'" column_invisible="project_name !='SUNRISE'"/>
                 <field name="box_in_qty" readonly="outbound_order_state != 'new'" column_invisible="project_name !='SUNRISE'"/>

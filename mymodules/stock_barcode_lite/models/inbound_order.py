@@ -9,7 +9,127 @@ class InboundOrder(models.Model):
     _order = "id desc"
 
     creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import")], string="Creation Source", default="manual", readonly=True, copy=False)
+    cwarehouseid = fields.Char(string="U8C Warehouse ID", copy=False, index=True)
 
+    def action_cancel(self):
+        normal_records = self.env["world.depot.inbound.order"]
+
+        for rec in self:
+            if rec.project.name != "SUNRISE":
+                normal_records |= rec
+                continue
+
+            if rec.state == "cancel":
+                raise UserError(_("This order %s has already been canceled.") % rec.reference)
+
+            picking = rec.stock_picking_id
+            if rec.state == "confirm" and picking:
+                if picking.state == "done":
+                    remaining_qty = rec.get_sunrise_done_inbound_remaining_stock_qty(picking)
+                    if remaining_qty > 0:
+                        raise UserError(
+                            _("Inbound order %s has a done receipt. Please return all received stock manually before cancelling. Remaining stock qty: %s")
+                            % (rec.reference, remaining_qty)
+                        )
+                    rec.action_archive_sunrise_packages_before_cancel()
+                    rec.write({"state": "cancel"})
+                    continue
+
+                try:
+                    picking.unlink()
+                except Exception as error:
+                    raise UserError(
+                        _("Failed to delete stock picking for order %s: %s")
+                        % (rec.reference, str(error))
+                    )
+                rec.action_delete_sunrise_packages_before_cancel()
+            rec.write({"state": "cancel"})
+
+        if normal_records:
+            return super(InboundOrder, normal_records).action_cancel()
+
+        return True
+
+    def action_delete_sunrise_packages_before_cancel(self):
+        quant_model = self.env["stock.quant"]
+
+        for rec in self:
+            for pallet_line in rec.inbound_order_product_ids:
+                package = pallet_line.package_id
+                if not package:
+                    continue
+
+                quant = quant_model.sudo().search([
+                    ("package_id", "=", package.id),
+                    ("quantity", "!=", 0),
+                ], limit=1)
+                if quant:
+                    raise UserError(
+                        _('Pallet No "%s" still has stock and cannot be deleted.')
+                        % (package.name or package.barcode)
+                    )
+
+                pallet_line.write({"package_id": False})
+                package.unlink()
+
+        return True
+
+    def action_archive_sunrise_packages_before_cancel(self):
+        package_model = self.env["stock.quant.package"]
+
+        for rec in self:
+            for pallet_line in rec.inbound_order_product_ids:
+                package = pallet_line.package_id
+                if not package:
+                    continue
+
+                package_name = package.name or package.barcode
+                if not package_name:
+                    continue
+
+                if "-CANCEL-" in package_name:
+                    continue
+
+                archive_name = "%s-CANCEL-%s" % (package_name, rec.billno or rec.reference or rec.id)
+                existing_package = package_model.sudo().search([
+                    "|",
+                    ("name", "=", archive_name),
+                    ("barcode", "=", archive_name),
+                    ("id", "!=", package.id),
+                ], limit=1)
+                if existing_package:
+                    archive_name = "%s-%s" % (archive_name, rec.id)
+
+                package.write({
+                    "name": archive_name,
+                    "barcode": archive_name,
+                })
+
+        return True
+
+    def get_sunrise_done_inbound_remaining_stock_qty(self, picking):
+        quant_model = self.env["stock.quant"]
+        total_qty = 0.0
+
+        move_lines = picking.sudo().move_line_ids.filtered(
+            lambda line: line.result_package_id and line.product_id and line.quantity > 0
+        )
+
+        for move_line in move_lines:
+            domain = [
+                ("package_id", "=", move_line.result_package_id.id),
+                ("product_id", "=", move_line.product_id.id),
+                ("location_id.usage", "=", "internal"),
+                ("quantity", ">", 0),
+            ]
+            if move_line.lot_id:
+                domain.append(("lot_id", "=", move_line.lot_id.id))
+
+            quant_list = quant_model.sudo().search(domain)
+            for quant in quant_list:
+                total_qty += max((quant.quantity or 0.0) - (quant.reserved_quantity or 0.0), 0.0)
+
+        return total_qty
 
 
     def action_open_inbound_product_import_wizard(self):
@@ -116,7 +236,7 @@ class InboundOrder(models.Model):
                             % detail_line.product_id.display_name)
 
         if package_names:
-            existing_package = package_model.sudo().search([
+            existing_package  = package_model.sudo().search([
                 "|",
                 ("name", "in", list(package_names)),
                 ("barcode", "in", list(package_names)),
@@ -124,8 +244,9 @@ class InboundOrder(models.Model):
 
             if existing_package:
                 raise UserError(
-                    _('Pallet No "%s" already exists as a package.')
-                    % (existing_package.name or existing_package.barcode))
+                    _('Pallet No "%s" already exists as a package. Please cancel/archive the old inbound package before creating a new receipt.')
+                    % (existing_package.name or existing_package.barcode)
+                )
         return True
 
 
@@ -188,6 +309,17 @@ class InboundOrder(models.Model):
             for pallet_line in record.inbound_order_product_ids:
                 package_name = pallet_line.sunrise_pallet_no
 
+                package = package_model.sudo().search([
+                    "|",
+                    ("name", "=", package_name),
+                    ("barcode", "=", package_name),
+                ], limit=1)
+
+                if package:
+                    raise UserError(
+                        _('Pallet No "%s" already exists as a package. Please cancel/archive the old inbound package before creating a new receipt.')
+                        % package_name
+                    )
                 package = package_model.create({
                     "name": package_name,
                     "barcode": package_name,
@@ -304,3 +436,4 @@ class InboundOrderProductsPallet(models.Model):
     u8_aux_uom_name = fields.Char(string="U8 Aux UOM Name", copy=False, index=True)
     m_date = fields.Date(string="Manufacture Date", copy=False)
     e_date = fields.Date(string="Expiration Date", copy=False)
+    cspaceid = fields.Char(string="Location Code", copy=False, index=True)
