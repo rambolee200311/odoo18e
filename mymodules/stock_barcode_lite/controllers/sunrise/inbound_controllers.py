@@ -25,6 +25,7 @@ class SunriseInboundController(http.Controller, SunriseControllerMixin):
                 self.validate_order_type(order_type, "inbound")
                 products = data.get("products")
                 cntr_no = self.get_required_text(data, "cntr_no")
+                cwarehouseid = self.get_required_text(data, "cwarehouseid")
                 if not isinstance(products, list) or not products:
                     raise SunriseApiError("4001", "products must be a non-empty array.")
 
@@ -100,6 +101,7 @@ class SunriseInboundController(http.Controller, SunriseControllerMixin):
                     "reference": reference,
                     "bl_no": self.get_optional_text(data, "bl_no"),
                     "cntr_no": self.get_optional_text(data, "cntr_no"),
+                    "cwarehouseid": cwarehouseid,
                     "remark": self.get_optional_text(data, "remark"),
                     "project": project.id,
                     # "warehouse": project.warehouse.id if project.warehouse else False,

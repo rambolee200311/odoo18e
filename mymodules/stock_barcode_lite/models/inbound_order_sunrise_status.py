@@ -83,6 +83,7 @@ class InboundOrderSunrise(models.Model):
                 raise UserError(_("Inbound picking %s has no move lines to sync.") % picking.name)
 
             parentvo["vuserdef3"] = rec.cntr_no or ""
+            parentvo["cwarehouseid"] = rec.cwarehouseid
 
             child_parameters = parameters.get("childrenvo") if isinstance(parameters.get("childrenvo"), dict) else {}
             locator_parameters = parameters.get("locator") if isinstance(parameters.get("locator"), dict) else {}

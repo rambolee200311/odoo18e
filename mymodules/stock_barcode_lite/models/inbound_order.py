@@ -9,6 +9,7 @@ class InboundOrder(models.Model):
     _order = "id desc"
 
     creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import")], string="Creation Source", default="manual", readonly=True, copy=False)
+    cwarehouseid = fields.Char(string="U8C Warehouse ID", copy=False, index=True)
 
     def action_cancel(self):
         normal_records = self.env["world.depot.inbound.order"]
