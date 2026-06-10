@@ -10,6 +10,68 @@ class InboundOrder(models.Model):
 
     creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import")], string="Creation Source", default="manual", readonly=True, copy=False)
 
+    def action_cancel(self):
+        normal_records = self.env["world.depot.inbound.order"]
+
+        for rec in self:
+            if rec.project.name != "SUNRISE":
+                normal_records |= rec
+                continue
+
+            if rec.state == "cancel":
+                raise UserError(_("This order %s has already been canceled.") % rec.reference)
+
+            picking = rec.stock_picking_id
+            if rec.state == "confirm" and picking:
+                if picking.state == "done":
+                    remaining_qty = rec.get_sunrise_done_inbound_remaining_stock_qty(picking)
+                    if remaining_qty > 0:
+                        raise UserError(
+                            _("Inbound order %s has a done receipt. Please return all received stock manually before cancelling. Remaining stock qty: %s")
+                            % (rec.reference, remaining_qty)
+                        )
+
+                    rec.write({"state": "cancel"})
+                    continue
+
+                try:
+                    picking.unlink()
+                except Exception as error:
+                    raise UserError(
+                        _("Failed to delete stock picking for order %s: %s")
+                        % (rec.reference, str(error))
+                    )
+
+            rec.write({"state": "cancel"})
+
+        if normal_records:
+            return super(InboundOrder, normal_records).action_cancel()
+
+        return True
+
+    def get_sunrise_done_inbound_remaining_stock_qty(self, picking):
+        quant_model = self.env["stock.quant"]
+        total_qty = 0.0
+
+        move_lines = picking.sudo().move_line_ids.filtered(
+            lambda line: line.result_package_id and line.product_id and line.quantity > 0
+        )
+
+        for move_line in move_lines:
+            domain = [
+                ("package_id", "=", move_line.result_package_id.id),
+                ("product_id", "=", move_line.product_id.id),
+                ("location_id.usage", "=", "internal"),
+                ("quantity", ">", 0),
+            ]
+            if move_line.lot_id:
+                domain.append(("lot_id", "=", move_line.lot_id.id))
+
+            quant_list = quant_model.sudo().search(domain)
+            for quant in quant_list:
+                total_qty += max((quant.quantity or 0.0) - (quant.reserved_quantity or 0.0), 0.0)
+
+        return total_qty
 
 
     def action_open_inbound_product_import_wizard(self):
@@ -116,16 +178,27 @@ class InboundOrder(models.Model):
                             % detail_line.product_id.display_name)
 
         if package_names:
-            existing_package = package_model.sudo().search([
+            existing_package_list = package_model.sudo().search([
                 "|",
                 ("name", "in", list(package_names)),
                 ("barcode", "in", list(package_names)),
-            ], limit=1)
+            ])
 
-            if existing_package:
-                raise UserError(
-                    _('Pallet No "%s" already exists as a package.')
-                    % (existing_package.name or existing_package.barcode))
+            for package in existing_package_list:
+                quant_list = self.env["stock.quant"].sudo().search([
+                    ("package_id", "=", package.id),
+                    ("location_id.usage", "=", "internal"),
+                    ("quantity", ">", 0),
+                ])
+                remaining_qty = 0.0
+                for quant in quant_list:
+                    remaining_qty += max((quant.quantity or 0.0) - (quant.reserved_quantity or 0.0), 0.0)
+
+                if remaining_qty > 0:
+                    raise UserError(
+                        _('Pallet No "%s" already exists and still has stock. Please return or clear the stock before reusing it.')
+                        % (package.name or package.barcode)
+                    )
         return True
 
 
@@ -188,14 +261,36 @@ class InboundOrder(models.Model):
             for pallet_line in record.inbound_order_product_ids:
                 package_name = pallet_line.sunrise_pallet_no
 
-                package = package_model.create({
-                    "name": package_name,
-                    "barcode": package_name,
-                    "package_use": "disposable",
-                    "billno": record.billno,
-                    "reference": record.reference,
-                    "cntr_no": record.cntr_no,
-                })
+                package = package_model.sudo().search([
+                    "|",
+                    ("name", "=", package_name),
+                    ("barcode", "=", package_name),
+                ], limit=1)
+
+                if package:
+                    quant_list = self.env["stock.quant"].sudo().search([
+                        ("package_id", "=", package.id),
+                        ("location_id.usage", "=", "internal"),
+                        ("quantity", ">", 0),
+                    ])
+                    remaining_qty = 0.0
+                    for quant in quant_list:
+                        remaining_qty += max((quant.quantity or 0.0) - (quant.reserved_quantity or 0.0), 0.0)
+
+                    if remaining_qty > 0:
+                        raise UserError(
+                            _('Pallet No "%s" already exists and still has stock. Please return or clear the stock before reusing it.')
+                            % package_name
+                        )
+                else:
+                    package = package_model.create({
+                        "name": package_name,
+                        "barcode": package_name,
+                        "package_use": "disposable",
+                        "billno": record.billno,
+                        "reference": record.reference,
+                        "cntr_no": record.cntr_no,
+                    })
 
                 pallet_line.write({
                     "package_id": package.id,
