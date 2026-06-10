@@ -10,8 +10,7 @@
             autocorrect="off"
             autocapitalize="off"
             spellcheck="false"
-            readonly="readonly"
-            inputmode="none"
+
         />
 
         <div class="o_sbl_inbound">

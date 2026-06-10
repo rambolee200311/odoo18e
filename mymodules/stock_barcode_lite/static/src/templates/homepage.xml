@@ -13,13 +13,13 @@
                         <div class="card h-100 shadow-sm o_homepage_card o_inbound_card" t-on-click="_onInboundClick">
                             <div class="card-header bg-primary text-white">
                                 <h3 class="mb-0">
-                                    <i class="fa fa-sign-in me-2"/>Inbound
+                                    <i class="fa fa-sign-in me-2"/>Full Pallet Putaway
                                 </h3>
                             </div>
                             <div class="card-body d-flex flex-column">
-                                <p class="text-muted mb-auto">Manage inbound orders and product imports.</p>
+                                <p class="text-muted mb-auto">Receive pallets &amp; complete full pallet putaway operations.</p>
                                 <button class="btn btn-primary mt-3">
-                                    <i class="fa fa-arrow-right me-2"/>Go to Inbound
+                                    <i class="fa fa-arrow-right me-2"/>Go to Inbound (Full Pallet Putaway)
                                 </button>
                             </div>
                         </div>
