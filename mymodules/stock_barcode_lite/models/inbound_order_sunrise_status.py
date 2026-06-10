@@ -117,7 +117,7 @@ class InboundOrderSunrise(models.Model):
                     "vsourcebillcode": detail_line.vsourcebillcode,
                     "vsourcerowno": detail_line.vsourcerowno,
                     "vbatchcode": move_line.lot_id.name or detail_line.lot_name or "",
-                    "DJZDY001":pallet_code,
+                    "vuserdef10":pallet_code,
                     "locator": [locator],
                 })
                 childrenvo.append(child)
