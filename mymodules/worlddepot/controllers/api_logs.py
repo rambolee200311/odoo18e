@@ -105,12 +105,10 @@ def api_logger(func):
         request_source = request.httprequest.remote_addr
         request_time = fields.Datetime.now()
         request_path = request.httprequest.path
-
-        response = func(*args, **kwargs)
-        status = 'success'
-        response_str = json.dumps(response) if response else ''
+        response = None
+        response_str = ""
         exception_details = None
-
+        status = "success"
         log_success = True
         log_code = "200"
         log_msg = ""
