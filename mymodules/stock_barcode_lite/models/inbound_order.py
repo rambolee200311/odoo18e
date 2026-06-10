@@ -304,3 +304,4 @@ class InboundOrderProductsPallet(models.Model):
     u8_aux_uom_name = fields.Char(string="U8 Aux UOM Name", copy=False, index=True)
     m_date = fields.Date(string="Manufacture Date", copy=False)
     e_date = fields.Date(string="Expiration Date", copy=False)
+    cspaceid = fields.Char(string="Location Code", copy=False, index=True)

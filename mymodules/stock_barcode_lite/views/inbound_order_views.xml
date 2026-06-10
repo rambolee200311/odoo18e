@@ -79,6 +79,7 @@
                 <field name="ndiscounttaxtype" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="vsourcebillcode" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="vsourcerowno" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="cspaceid" optional="show" column_invisible="parent.project_name != 'SUNRISE'"/>
                 <field name="box_type" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="box_qty" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="box_in_qty" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
@@ -106,6 +107,7 @@
                 <field name="vsourcebillcode" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="vsourcerowno" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="box_type" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="cspaceid" optional="show" column_invisible="parent.project_name != 'SUNRISE'"/>
                 <field name="box_qty" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="castunitid" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="box_in_qty" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>

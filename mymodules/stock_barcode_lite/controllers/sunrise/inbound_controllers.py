@@ -152,6 +152,7 @@ class SunriseInboundController(http.Controller, SunriseControllerMixin):
         vsourcebillcode = self.get_required_text(line_data, "vsourcebillcode", row_number)
         vsourcerowno = self.get_required_text(line_data, "vsourcerowno", row_number)
         castunitid = self.get_required_text(line_data, "castunitid", row_number)
+        cspaceid = self.get_required_text(line_data, "cspaceid", row_number)
         u8_aux_uom_name = self.get_required_text(line_data, "u8_aux_uom_name", row_number)
         box_type, box_qty, box_in_qty, ninnum, u8_aux_qty, u8_conversion_rate = self.validate_box_values(line_data, row_number)
         is_lot, lot_name = self.validate_lot_values(line_data, row_number)
@@ -171,6 +172,7 @@ class SunriseInboundController(http.Controller, SunriseControllerMixin):
                 "ndiscounttaxtype": ndiscounttaxtype,
                 "vsourcebillcode": vsourcebillcode,
                 "vsourcerowno": vsourcerowno,
+                "cspaceid": cspaceid,
                 "box_type": box_type,
                 "box_qty": box_qty,
                 "box_in_qty": box_in_qty,
