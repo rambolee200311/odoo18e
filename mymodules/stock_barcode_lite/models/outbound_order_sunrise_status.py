@@ -158,15 +158,11 @@ class OutboundOrderSunrise(models.Model):
                 childrenvo.append(child)
 
             result.append({
-                "url": api_config.data_url,
-                "pathInfo": api_config.path_info,
-                "trantype": api_config.trantype,
-                "indata": {
                     "GeneralBillVO": [{
                         "parentvo": parentvo,
                         "childrenvo": childrenvo,
                     }],
-                },
+
             })
         return result[0] if len(result) == 1 else result
 

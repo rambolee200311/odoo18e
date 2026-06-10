@@ -106,17 +106,20 @@ def api_logger(func):
         request_time = fields.Datetime.now()
         request_path = request.httprequest.path
 
+        response = func(*args, **kwargs)
+        status = 'success'
+        response_str = json.dumps(response) if response else ''
+        exception_details = None
+
+        log_success = True
+        log_code = "200"
+        log_msg = ""
+        log_data = ""
+
         # Execute the endpoint function
         try:
             response = func(*args, **kwargs)
-            status = 'success'
-            response_str = json.dumps(response) if response else ''
-            exception_details = None
-
-            log_success = True
-            log_code = "200"
-            log_msg = ""
-            log_data = ""
+            response_str = json.dumps(response, ensure_ascii=False) if response else ''
 
             if isinstance(response, dict):
                 if "success" in response:
@@ -138,10 +141,12 @@ def api_logger(func):
             response_str = ''
             exception_details = str(e)
             response = {
+                'success': False,
                 'error': 'An unexpected error occurred. Please contact support.',
                 'details': exception_details,
                 "code": "SERVER_ERROR",
             }
+            response_str = json.dumps(response, ensure_ascii=False)
             log_success = False
             log_code = "SERVER_ERROR"
             log_msg = exception_details
@@ -162,6 +167,8 @@ def api_logger(func):
                     'request_time': request_time,
                     'request_path': request_path,
                     'request_data': request_data,
+                    'response_data': response_str,
+                    'exception_details': exception_details,
                     'status': status,
                     'project_id': project.id if project else False,
                     "success": log_success,
@@ -170,10 +177,10 @@ def api_logger(func):
                     "data": log_data,
                 }
 
-                if status == 'success':
-                    log_vals['response_data'] = response_str
-                else:
-                    log_vals['exception_details'] = exception_details
+                # if status == 'success':
+                #     log_vals['response_data'] = response_str
+                # else:
+                #     log_vals['exception_details'] = exception_details
 
                 env['world.depot.api.log'].sudo().create(log_vals)
                 cr.commit()
