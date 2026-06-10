@@ -95,9 +95,10 @@ class InboundOrderSunrise(models.Model):
                 product_barcode = product_barcode.split("-", 1)[0]
                 if not product_barcode:
                     raise UserError(_("Product %s has no internal reference for U8C cinventoryid.") % product.display_name)
-                cspaceid = detail_line.inbound_order_product_id.cspaceid
+                cspaceid = detail_line.cspaceid
                 if not cspaceid:
                     raise UserError(_("Inbound_detail_line%s has no destination cspaceid.") % move_line.id)
+
                 pallet_code = detail_line.inbound_order_product_id.pallet_no
                 locator = dict(locator_parameters)
                 locator.update({
