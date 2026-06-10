@@ -185,13 +185,29 @@
         }
 
         .o_pallet_header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
             padding: 8px 12px;
             background: #f8f9fa;
             border-bottom: 1px solid #dee2e6;
+
+            // 第一行：托盘名称 + 折叠箭头
+            .o_pallet_row1 {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 6px;
+            }
+
+            // 第二行：徽章 + 数量 + 货位
+            .o_pallet_row2 {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                flex-wrap: wrap;
+                font-size: 12px;
+                color: #6c757d;
+            }
         }
+
         .o_pallet_info {
             display: flex;
             align-items: center;
@@ -199,9 +215,15 @@
             font-weight: 600;
             color: #333;
         }
+
         .o_pallet_qty {
             font-size: 11px;
             color: #6c757d;
+        }
+
+        .collapse-arrow {
+            color: #6c757d;
+            font-size: 12px;
         }
     }
 
@@ -536,21 +558,33 @@
     padding: 4px 0;
 }
 
-// 托盘头部 - 货位显示
+// 托盘头部 - 两行布局
 .o_pallet_header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     padding: 10px 14px;
     background: #f8f9fa;
     border-bottom: none;
-    flex-wrap: wrap;
-    gap: 6px;
     cursor: pointer;
     transition: background 0.15s;
 
     &:hover {
         background: #e9ecef;
+    }
+
+    // 第一行：托盘名称 + 折叠箭头
+    .o_pallet_row1 {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+    }
+
+    // 第二行：徽章 + 数量 + 货位
+    .o_pallet_row2 {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 6px;
+        flex-wrap: wrap;
     }
 }
 
@@ -559,6 +593,7 @@
     border-bottom: 1px solid #dee2e6;
 }
 
+// 托盘信息（第一行）
 .o_pallet_info {
     display: flex;
     align-items: center;
@@ -567,6 +602,8 @@
     font-weight: 600;
     color: #333;
     min-width: 0;
+    flex: 1;
+    overflow: hidden;
 }
 
 .o_pallet_name {
@@ -581,12 +618,15 @@
     color: #6c757d;
 }
 
+// 折叠箭头（第一行右侧）
 .o_pallet_right {
     display: flex;
     align-items: center;
     gap: 10px;
+    flex-shrink: 0;
 }
 
+// 货位信息（第二行）
 .o_pallet_location {
     font-size: 12px;
     color: #6c757d;
@@ -595,16 +635,16 @@
     gap: 3px;
 }
 
-// 折叠箭头动画
-.o_pallet_header .collapse-arrow {
+// 折叠箭头动画（第一行右侧）
+.o_pallet_right .collapse-arrow {
     transition: transform 0.2s ease;
     color: #6c757d;
     font-size: 12px;
 }
 
 // 展开时箭头旋转
-.o_pallet_header:not(.collapsed) .collapse-arrow,
-.o_pallet_header[aria-expanded="true"] .collapse-arrow {
+.o_pallet_row1:not(.collapsed) .collapse-arrow,
+.o_pallet_row1[aria-expanded="true"] .collapse-arrow {
     transform: rotate(180deg);
 }
 

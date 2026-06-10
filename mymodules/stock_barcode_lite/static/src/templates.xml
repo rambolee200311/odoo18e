@@ -195,24 +195,30 @@
                     <div t-attf-class="o_sbl_pallet {{ pallet.is_location_updated ? 'o_pallet_updated' : '' }}">
                         <!-- 托盘头部 - 点击可展开/折叠 -->
                         <div class="o_pallet_header" data-bs-toggle="collapse" t-attf-data-bs-target="#pallet_products_{{ pallet.package_id }}" aria-expanded="false">
-                            <div class="o_pallet_info">
-                                <i class="fa fa-cube text-secondary me-2"/>
-                                <strong class="o_pallet_name">
-                                    <t t-esc="pallet.package_name || pallet.package_barcode || ('Package ' + pallet.package_id)"/>
-                                </strong>
-                                <span class="badge bg-success ms-2" t-if="pallet.is_location_updated">
+                            <!-- 第一行：托盘名称 + 折叠箭头 -->
+                            <div class="o_pallet_row1">
+                                <div class="o_pallet_info">
+                                    <i class="fa fa-cube text-secondary me-2"/>
+                                    <strong class="o_pallet_name">
+                                        <t t-esc="pallet.package_name || pallet.package_barcode || ('Package ' + pallet.package_id)"/>
+                                    </strong>
+                                </div>
+                                <div class="o_pallet_right">
+                                    <i class="fa fa-chevron-down collapse-arrow"/>
+                                </div>
+                            </div>
+                            <!-- 第二行：徽章 + 数量 + 货位 -->
+                            <div class="o_pallet_row2">
+                                <span class="badge bg-success" t-if="pallet.is_location_updated">
                                     <i class="fa fa-check me-1"/>Updated
                                 </span>
-                                <span t-if="(pallet.products || []).length > 0" class="o_pallet_product_count">
-                                    (<t t-esc="(pallet.products || []).length"/> items)
+                                <span class="o_pallet_product_count">
+                                    <t t-esc="(pallet.products || []).length"/> items
                                 </span>
-                            </div>
-                            <div class="o_pallet_right">
-                                <div class="o_pallet_location" t-if="pallet.location_name">
+                                <span class="o_pallet_location" t-if="pallet.location_name">
                                     <i class="fa fa-map-marker-alt text-muted me-1"/>
                                     <t t-esc="pallet.location_name"/>
-                                </div>
-                                <i class="fa fa-chevron-down collapse-arrow"/>
+                                </span>
                             </div>
                         </div>
 

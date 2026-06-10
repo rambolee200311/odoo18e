@@ -292,18 +292,20 @@ export class InboundFlow extends Component {
     }
 
     // ═══════════════════════════════════════════════════════════════
-    // 操作按钮
+    // 确认操作按钮
     // ═══════════════════════════════════════════════════════════════
 
     async confirmInbound() {
         if (!this.state.picking) {
-            this.showMessage(_t("No picking loaded"), "warning");
+            // 没扫入库单
+            this.showMessage(_t("No picking loaded"), "danger");
             return;
         }
         if (this.state.summary.pending_pallets > 0) {
+            // 托盘有漏扫
             this.showMessage(
                 _t("There are still ") + this.state.summary.pending_pallets + _t(" pallet(s) not updated"),
-                "warning"
+                "danger"
             );
             return;
         }
@@ -315,6 +317,7 @@ export class InboundFlow extends Component {
                 "button_validate",
                 [[this.state.picking.id]]
             );
+            // 上架成功
             this.showMessage(_t("Inbound confirmed successfully!"), "success");
             this._flashScreen([100, 300, 100], true);
             setTimeout(() => this.resetScan(), 2000);
