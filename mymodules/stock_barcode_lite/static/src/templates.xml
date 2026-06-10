@@ -193,8 +193,8 @@
 
                 <t t-foreach="palletList" t-as="pallet" t-key="pallet.package_id">
                     <div t-attf-class="o_sbl_pallet {{ pallet.is_location_updated ? 'o_pallet_updated' : '' }}">
-                        <!-- 托盘头部 -->
-                        <div class="o_pallet_header">
+                        <!-- 托盘头部 - 点击可展开/折叠 -->
+                        <div class="o_pallet_header" data-bs-toggle="collapse" t-attf-data-bs-target="#pallet_products_{{ pallet.package_id }}" aria-expanded="false">
                             <div class="o_pallet_info">
                                 <i class="fa fa-cube text-secondary me-2"/>
                                 <strong class="o_pallet_name">
@@ -207,14 +207,17 @@
                                     (<t t-esc="(pallet.products || []).length"/> items)
                                 </span>
                             </div>
-                            <div class="o_pallet_location" t-if="pallet.location_name">
-                                <i class="fa fa-map-marker-alt text-muted me-1"/>
-                                <t t-esc="pallet.location_name"/>
+                            <div class="o_pallet_right">
+                                <div class="o_pallet_location" t-if="pallet.location_name">
+                                    <i class="fa fa-map-marker-alt text-muted me-1"/>
+                                    <t t-esc="pallet.location_name"/>
+                                </div>
+                                <i class="fa fa-chevron-down collapse-arrow"/>
                             </div>
                         </div>
 
-                        <!-- 托盘内产品列表 -->
-                        <div class="o_pallet_products">
+                        <!-- 托盘内产品列表 - 默认折叠 -->
+                        <div t-attf-id="pallet_products_{{ pallet.package_id }}" class="o_pallet_products collapse">
                             <t t-if="!(pallet.products || []).length">
                                 <div class="o_sbl_empty_state text-center text-muted py-4">
                                     <p class="mb-0 small">No products loaded</p>

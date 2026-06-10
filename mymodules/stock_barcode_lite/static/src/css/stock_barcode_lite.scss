@@ -530,6 +530,12 @@
     }
 }
 
+// 托盘产品列表容器 - 有边框分隔
+.o_pallet_products {
+    border-top: 1px solid #e9ecef;
+    padding: 4px 0;
+}
+
 // 托盘头部 - 货位显示
 .o_pallet_header {
     display: flex;
@@ -537,7 +543,7 @@
     align-items: center;
     padding: 10px 14px;
     background: #f8f9fa;
-    border-bottom: 1px solid #dee2e6;
+    border-bottom: none;
     flex-wrap: wrap;
     gap: 6px;
     cursor: pointer;
@@ -546,6 +552,11 @@
     &:hover {
         background: #e9ecef;
     }
+}
+
+// 托盘展开时，头部下方显示边框
+.o_sbl_pallet:has(.o_pallet_products:not(.collapse)) .o_pallet_header {
+    border-bottom: 1px solid #dee2e6;
 }
 
 .o_pallet_info {
@@ -584,28 +595,17 @@
     gap: 3px;
 }
 
-.o_pallet_toggle {
-    width: 28px;
-    height: 28px;
-    border: none;
-    border-radius: 4px;
-    background: transparent;
+// 折叠箭头动画
+.o_pallet_header .collapse-arrow {
+    transition: transform 0.2s ease;
     color: #6c757d;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    transition: all 0.15s;
-    flex-shrink: 0;
+    font-size: 12px;
+}
 
-    &:hover {
-        background: #dee2e6;
-        color: #495057;
-    }
-
-    &:active {
-        background: #adb5bd;
-    }
+// 展开时箭头旋转
+.o_pallet_header:not(.collapsed) .collapse-arrow,
+.o_pallet_header[aria-expanded="true"] .collapse-arrow {
+    transform: rotate(180deg);
 }
 
 // 子卡片（嵌套在产品列表内）
@@ -658,10 +658,16 @@
 }
 
 .o_product_name {
+    flex: 1;
+    min-width: 0;
     font-size: 13px;
     font-weight: 500;
     color: #333;
     line-height: 1.3;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .o_product_meta {
