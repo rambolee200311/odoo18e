@@ -7,25 +7,6 @@ from odoo.exceptions import UserError
 class StockPicking(models.Model):
     _inherit = "stock.picking"
 
-    def action_open_incoming_scan_wizard(self):
-        for rec in self:
-            if rec.picking_type_id.code != "incoming":
-                raise UserError(_("Only incoming pickings can use incoming scan."))
-            if rec.state in ("done", "cancel"):
-                raise UserError(_("Done or cancelled pickings cannot use incoming scan."))
-            wizard = self.env["stock.barcode.lite.incoming.scan.wizard"].create({
-                "picking_id": rec.id,
-                "message": _("Incoming picking %s selected.") % rec.name,
-            })
-            return {
-                "type": "ir.actions.act_window",
-                "name": _("Incoming Scan"),
-                "res_model": "stock.barcode.lite.incoming.scan.wizard",
-                "view_mode": "form",
-                "res_id": wizard.id,
-                "target": "new",
-            }
-        return False
 
     # def button_validate(self):
     #     for rec in self:
