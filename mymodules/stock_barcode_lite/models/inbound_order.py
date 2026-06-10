@@ -30,7 +30,7 @@ class InboundOrder(models.Model):
                             _("Inbound order %s has a done receipt. Please return all received stock manually before cancelling. Remaining stock qty: %s")
                             % (rec.reference, remaining_qty)
                         )
-
+                    rec.action_archive_sunrise_packages_before_cancel()
                     rec.write({"state": "cancel"})
                     continue
 
@@ -41,11 +41,68 @@ class InboundOrder(models.Model):
                         _("Failed to delete stock picking for order %s: %s")
                         % (rec.reference, str(error))
                     )
-
+                rec.action_delete_sunrise_packages_before_cancel()
             rec.write({"state": "cancel"})
 
         if normal_records:
             return super(InboundOrder, normal_records).action_cancel()
+
+        return True
+
+    def action_delete_sunrise_packages_before_cancel(self):
+        quant_model = self.env["stock.quant"]
+
+        for rec in self:
+            for pallet_line in rec.inbound_order_product_ids:
+                package = pallet_line.package_id
+                if not package:
+                    continue
+
+                quant = quant_model.sudo().search([
+                    ("package_id", "=", package.id),
+                    ("quantity", "!=", 0),
+                ], limit=1)
+                if quant:
+                    raise UserError(
+                        _('Pallet No "%s" still has stock and cannot be deleted.')
+                        % (package.name or package.barcode)
+                    )
+
+                pallet_line.write({"package_id": False})
+                package.unlink()
+
+        return True
+
+    def action_archive_sunrise_packages_before_cancel(self):
+        package_model = self.env["stock.quant.package"]
+
+        for rec in self:
+            for pallet_line in rec.inbound_order_product_ids:
+                package = pallet_line.package_id
+                if not package:
+                    continue
+
+                package_name = package.name or package.barcode
+                if not package_name:
+                    continue
+
+                if "-CANCEL-" in package_name:
+                    continue
+
+                archive_name = "%s-CANCEL-%s" % (package_name, rec.billno or rec.reference or rec.id)
+                existing_package = package_model.sudo().search([
+                    "|",
+                    ("name", "=", archive_name),
+                    ("barcode", "=", archive_name),
+                    ("id", "!=", package.id),
+                ], limit=1)
+                if existing_package:
+                    archive_name = "%s-%s" % (archive_name, rec.id)
+
+                package.write({
+                    "name": archive_name,
+                    "barcode": archive_name,
+                })
 
         return True
 
@@ -178,27 +235,17 @@ class InboundOrder(models.Model):
                             % detail_line.product_id.display_name)
 
         if package_names:
-            existing_package_list = package_model.sudo().search([
+            existing_package  = package_model.sudo().search([
                 "|",
                 ("name", "in", list(package_names)),
                 ("barcode", "in", list(package_names)),
-            ])
+            ], limit=1)
 
-            for package in existing_package_list:
-                quant_list = self.env["stock.quant"].sudo().search([
-                    ("package_id", "=", package.id),
-                    ("location_id.usage", "=", "internal"),
-                    ("quantity", ">", 0),
-                ])
-                remaining_qty = 0.0
-                for quant in quant_list:
-                    remaining_qty += max((quant.quantity or 0.0) - (quant.reserved_quantity or 0.0), 0.0)
-
-                if remaining_qty > 0:
-                    raise UserError(
-                        _('Pallet No "%s" already exists and still has stock. Please return or clear the stock before reusing it.')
-                        % (package.name or package.barcode)
-                    )
+            if existing_package:
+                raise UserError(
+                    _('Pallet No "%s" already exists as a package. Please cancel/archive the old inbound package before creating a new receipt.')
+                    % (existing_package.name or existing_package.barcode)
+                )
         return True
 
 
@@ -268,29 +315,18 @@ class InboundOrder(models.Model):
                 ], limit=1)
 
                 if package:
-                    quant_list = self.env["stock.quant"].sudo().search([
-                        ("package_id", "=", package.id),
-                        ("location_id.usage", "=", "internal"),
-                        ("quantity", ">", 0),
-                    ])
-                    remaining_qty = 0.0
-                    for quant in quant_list:
-                        remaining_qty += max((quant.quantity or 0.0) - (quant.reserved_quantity or 0.0), 0.0)
-
-                    if remaining_qty > 0:
-                        raise UserError(
-                            _('Pallet No "%s" already exists and still has stock. Please return or clear the stock before reusing it.')
-                            % package_name
-                        )
-                else:
-                    package = package_model.create({
-                        "name": package_name,
-                        "barcode": package_name,
-                        "package_use": "disposable",
-                        "billno": record.billno,
-                        "reference": record.reference,
-                        "cntr_no": record.cntr_no,
-                    })
+                    raise UserError(
+                        _('Pallet No "%s" already exists as a package. Please cancel/archive the old inbound package before creating a new receipt.')
+                        % package_name
+                    )
+                package = package_model.create({
+                    "name": package_name,
+                    "barcode": package_name,
+                    "package_use": "disposable",
+                    "billno": record.billno,
+                    "reference": record.reference,
+                    "cntr_no": record.cntr_no,
+                })
 
                 pallet_line.write({
                     "package_id": package.id,
