@@ -22,6 +22,10 @@ class OutboundOrderSunrise(models.Model):
     sunrise_outbound_sync_error_msg = fields.Text(string="Sunrise Outbound Sync Error Msg", copy=False)
     sunrise_outbound_task_number = fields.Char(string="Sunrise Outbound Task Number", copy=False, index=True)
 
+    set_sunrise_pickup_delivery_sync = fields.Boolean(string="Set Sunrise Pickup Delivery Sync", default=False, copy=False, index=True)
+    set_sunrise_pickup_delivery_sync_time = fields.Datetime(string="Sunrise Pickup Delivery Sync Time", copy=False)
+    sunrise_pickup_delivery_sync_error_msg = fields.Text(string="Sunrise Pickup Delivery Sync Error Msg", copy=False)
+
     def get_sunrise_api_config(self, api_type):
         config_model = self.env["sunrise.api.config"]
         config = config_model.sudo().search([
@@ -69,27 +73,31 @@ class OutboundOrderSunrise(models.Model):
             "coperatorid": config.usercode,
             "cdispatcherid": "201",
         }
-        for key in ("cbiztype", "coperatorid", "cwarehouseid", "pk_calbody", "pk_corp", "cdispatcherid", "ccustomerid"):
+        for key in ("cbiztype", "coperatorid", "cwarehouseid", "pk_calbody", "pk_corp", "cdispatcherid"):
             if key in parameters:
                 parentvo[key] = parameters[key]
         parentvo.update(parent_parameters)
-
-        missing_keys = [key for key in ("cwarehouseid", "pk_calbody", "pk_corp", "ccustomerid") if not parentvo.get(key)]
+        parentvo.update({
+            "cwarehouseid": rec.cwarehouseid,
+            "ccustomerid": self.ccustomerid,
+        })
+        missing_keys = [key for key in ("cwarehouseid", "pk_calbody", "pk_corp") if not parentvo.get(key)]
         if missing_keys:
             raise UserError(_("Sunrise outbound parentvo is missing required config keys: %s") % ", ".join(missing_keys))
 
         delivery_method_map = {
-            "truck": "truck",
-            "pickup": "pickup",
-            "parcel": "parcel",
+            "truck": "02",
+            "pickup": "01",
+            "parcel": "02",
         }
+        delivery_method = delivery_method_map.get(rec.delivery_method, rec.delivery_method or "")
         parentvo.update({
             "dbilldate": self.get_sunrise_date_text(rec.date),
             "vnote": rec.load_ref or rec.remark or rec.reference or "",
             #"vuserdef14": rec.load_ref or "",
             "vuserdef17": self.get_sunrise_date_text(rec.p_date),
-            #"vuserdef5": delivery_method_map.get(rec.delivery_method, rec.delivery_method or ""),
-            "ccustomerid": self.unload_company.name,
+            "vuserdef5": delivery_method,
+
         })
         if not parentvo.get("vuserdef6"):
             parentvo.pop("vuserdef6", None)
@@ -112,7 +120,7 @@ class OutboundOrderSunrise(models.Model):
         for rec in self:
             api_config = config or rec.get_sunrise_api_config("outbound")
             parentvo, parameters = rec.get_sunrise_outbound_parentvo(api_config, rec)
-            parentvo["cwarehouseid"] = rec.cwarehouseid
+            #parentvo["cwarehouseid"] = rec.cwarehouseid
             picking = rec.get_outbound_sync_picking()
             move_lines = picking.move_line_ids.filtered(lambda line: line.quantity > 0)
             if not move_lines:
@@ -156,6 +164,7 @@ class OutboundOrderSunrise(models.Model):
                     "dbizdate": biz_date,
                     "vnotebody": detail_line.remark or rec.remark or rec.reference or "",
                     "castunitid": detail_line.castunitid,
+                    "vuserdef10": pallet_code,
                     "locator": [locator],
                 })
                 childrenvo.append(child)
@@ -262,6 +271,132 @@ class OutboundOrderSunrise(models.Model):
             "params": {
                 "title": _("Success"),
                 "message": _("Sunrise U8C outbound sync completed."),
+                "type": "success",
+                "sticky": False,
+                "next": {
+                    "type": "ir.actions.act_window",
+                    "name": _("Outbound Order"),
+                    "res_model": "world.depot.outbound.order",
+                    "res_id": self[:1].id,
+                    "view_mode": "form",
+                    "views": [(False, "form")],
+                    "target": "current",
+                },
+            },
+        }
+
+    def action_sync_u8c_pickup_delivery(self):
+        if len(self) != 1:
+            raise UserError(_("Please sync one outbound order at a time."))
+
+        log_model = self.env["sunrise.api.log"]
+
+        for rec in self:
+            if rec.delivery_method != "pickup":
+                raise UserError(_("Only pickup outbound orders can sync pickup delivery info."))
+            if not rec.load_ref:
+                raise UserError(_("Pickup code is required."))
+            if not rec.p_date:
+                raise UserError(_("Pickup date is required."))
+            if not rec.time_slot:
+                raise UserError(_("Pickup time slot is required."))
+            config = rec.get_sunrise_api_config("pickup_delivery")
+            payload =  {
+                    "billvo": [
+                      {
+                        "childrenvo": [
+                          {
+                            "nnumber": "11",
+                            "vsourcereceivecode": "11",
+                            "vsourcerowno": "11",
+                            "vsourcetype": "11"
+                          }
+                        ],
+                        "parentvo": {
+                          "coperatorid": "11",
+                          "pk_corp": "11",
+                          "vnote": "wmsWriteBackFhd",
+                          "vreceivecode": rec.csalereceiveid,
+                          "vdef7": rec.load_ref,
+                          "vdef8": rec.get_sunrise_date_text(rec.p_date),
+                          "vdef17": rec.time_slot
+                        }
+                      }
+                    ]
+                  }
+            headers = {
+                "Content-Type": "application/json",
+                "usercode": config.usercode,
+                "password": config.password,
+                "trantype": config.trantype,
+                "system": config.system,
+            }
+
+            request_time = fields.Datetime.now()
+            response_time = False
+            response_text = False
+            status = "failed"
+            error_message = False
+            exception_details = False
+
+            try:
+                response = requests.post(
+                    config.url,
+                    headers=headers,
+                    json=payload,
+                    timeout=config.timeout or 10,
+                )
+                response_time = fields.Datetime.now()
+                response_text = response.text
+
+                if response.status_code != 200:
+                    error_message = response.text
+                    exception_details = "HTTP %s" % response.status_code
+                else:
+                    try:
+                        response_data = response.json() if response.text else {}
+                    except ValueError as error:
+                        error_message = response.text
+                        exception_details = str(error)
+                    else:
+                        if response_data.get("status") == "success":
+                            status = "success"
+                            rec.write({
+                                "set_sunrise_pickup_delivery_sync": True,
+                                "set_sunrise_pickup_delivery_sync_time": response_time,
+                                "sunrise_pickup_delivery_sync_error_msg": False,
+                            })
+                        else:
+                            error_message = response_data.get("errormsg") or response.text
+                            exception_details = response_data.get("stackTrace") or error_message
+            except Exception as error:
+                response_time = fields.Datetime.now()
+                error_message = str(error)
+                exception_details = str(error)
+
+            log_model.create({
+                "request_source": "Sunrise Pickup Delivery Sync",
+                "request_time": request_time,
+                "request_path": config.url,
+                "request_data": rec.get_sunrise_masked_request_data(headers, payload),
+                "response_data": response_text,
+                "exception_details": exception_details,
+            })
+
+            if status != "success":
+                rec.write({
+                    "set_sunrise_pickup_delivery_sync": False,
+                    "set_sunrise_pickup_delivery_sync_time": response_time or fields.Datetime.now(),
+                    "sunrise_pickup_delivery_sync_error_msg": error_message or exception_details,
+                })
+                raise UserError(_("Sunrise pickup delivery sync failed: %s") % (error_message or exception_details))
+
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Success"),
+                "message": _("Sunrise pickup delivery info synced."),
                 "type": "success",
                 "sticky": False,
                 "next": {

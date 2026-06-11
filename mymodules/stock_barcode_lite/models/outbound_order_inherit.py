@@ -11,6 +11,101 @@ class OutboundOrderInherit(models.Model):
     creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import")], string="Creation Source", default="manual", readonly=True, copy=False)
     time_slot = fields.Char(string='Expected harvest time period')  # 预计收货时间段
     cwarehouseid = fields.Char(string="U8C Warehouse ID", copy=False, index=True)
+    csalereceiveid = fields.Char(string="Sale Receive ID", copy=False)
+    ccustomerid = fields.Char(string="U8C Customer ID", copy=False)
+
+    def action_cancel(self):
+        normal_records = self.env["world.depot.outbound.order"]
+
+        for rec in self:
+            if rec.project.name != "SUNRISE":
+                normal_records |= rec
+                continue
+
+            if rec.state == "cancel":
+                raise UserError(_("This order %s has already been canceled.") % rec.reference)
+
+            picking_list = rec.get_sunrise_outbound_cancel_picking_list()
+
+            done_picking_list = picking_list.filtered(lambda picking: picking.state == "done")
+            if done_picking_list:
+                rec.validate_sunrise_outbound_returned_before_cancel(done_picking_list)
+                rec.write({"state": "cancel"})
+                continue
+
+            for picking in picking_list:
+                try:
+                    picking.unlink()
+                except Exception as error:
+                    raise UserError(
+                        _("Failed to delete stock picking for order %s: %s")
+                        % (rec.reference, str(error))
+                    )
+
+            rec.write({"state": "cancel"})
+
+        if normal_records:
+            return super(OutboundOrderInherit, normal_records).action_cancel()
+
+        return True
+
+    def get_sunrise_outbound_cancel_picking_list(self):
+        picking_model = self.env["stock.picking"]
+
+        result = picking_model
+        for rec in self:
+            if rec.picking_PICK:
+                result |= rec.picking_PICK
+            if rec.picking_Out:
+                result |= rec.picking_Out
+
+            search_picking_list = picking_model.sudo().search([
+                ("outbound_order_id", "=", rec.id),
+                ("state", "!=", "cancel"),
+            ])
+            result |= search_picking_list
+
+        return result
+
+    def validate_sunrise_outbound_returned_before_cancel(self, picking_list):
+        move_model = self.env["stock.move"]
+
+        for rec in self:
+            for picking in picking_list:
+                done_move_list = picking.move_ids_without_package.filtered(
+                    lambda move: move.state == "done"
+                                 and move.product_id
+                                 and move.product_uom_qty > 0
+                                 and not move.origin_returned_move_id
+                )
+
+                for move in done_move_list:
+                    returned_move_list = move_model.sudo().search([
+                        ("origin_returned_move_id", "=", move.id),
+                        ("state", "=", "done"),
+                    ])
+
+                    returned_qty = 0.0
+                    for returned_move in returned_move_list:
+                        returned_qty += returned_move.product_uom._compute_quantity(
+                            returned_move.product_uom_qty,
+                            move.product_uom,
+                            rounding_method="HALF-UP",
+                        )
+
+                    if returned_qty < move.product_uom_qty:
+                        raise UserError(
+                            _("Outbound order %s has done picking %s. Please return product %s before cancelling. Required return qty: %s, Returned qty: %s")
+                            % (
+                                rec.reference,
+                                picking.name,
+                                move.product_id.display_name,
+                                move.product_uom_qty,
+                                returned_qty,
+                            )
+                        )
+
+        return True
 
     def action_open_outbound_product_import_wizard(self):
         for rec in self:

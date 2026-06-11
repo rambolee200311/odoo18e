@@ -10,7 +10,7 @@ class SunriseApiConfig(models.Model):
 
     name = fields.Char(string="Name", required=True, index=True)
     active = fields.Boolean(string="Active", default=True)
-    api_type = fields.Selection([("inbound", "Inbound"), ("outbound", "Outbound")], string="API Type", required=True, index=True)
+    api_type = fields.Selection([("inbound", "Inbound"), ("outbound", "Outbound"),("pickup_delivery", "Pickup Delivery")], string="API Type", required=True, index=True)
     url = fields.Char(string="API URL", required=True)
     data_url = fields.Char(string="Data URL", required=True)
     path_info = fields.Char(string="Path Info", required=True, default="ic.purchasein.save.sign")

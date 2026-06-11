@@ -12,7 +12,7 @@ class OutboundOrder(models.Model):
     #inbound_confirm_mrn_ids = fields.Many2many("bonded.mrn.master", compute="_compute_inbound_confirm_mrn_ids",compute_sudo=True)
 
     unique_identifier = fields.Char(string='Unique Identifier', tracking=True, copy=False, index=True, readonly=True)
-    bonded_flag = fields.Selection([("true", "bonded"), ("false", "Non-bonded")], string="Bonded Flag", index=True)
+    bonded_flag = fields.Selection([("true", "bonded"), ("false", "Non-bonded")], string="Bonded Flag",default='false', index=True)
     customs_document_id = fields.Many2one("bonded.customs.document", string="Customs Document", index=True,
                                           tracking=True, copy=False)
 

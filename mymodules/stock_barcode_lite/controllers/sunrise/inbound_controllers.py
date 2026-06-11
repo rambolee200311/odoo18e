@@ -26,6 +26,10 @@ class SunriseInboundController(http.Controller, SunriseControllerMixin):
                 products = data.get("products")
                 cntr_no = self.get_required_text(data, "cntr_no")
                 cwarehouseid = self.get_required_text(data, "cwarehouseid")
+                if order_type == "service":
+                    source_sale_delivery_reference = self.get_required_text(data, "source_sale_delivery_reference")
+                else:
+                    source_sale_delivery_reference = self.get_optional_text(data, "source_sale_delivery_reference")
                 if not isinstance(products, list) or not products:
                     raise SunriseApiError("4001", "products must be a non-empty array.")
 
@@ -102,6 +106,7 @@ class SunriseInboundController(http.Controller, SunriseControllerMixin):
                     "bl_no": self.get_optional_text(data, "bl_no"),
                     "cntr_no": self.get_optional_text(data, "cntr_no"),
                     "cwarehouseid": cwarehouseid,
+                    "source_sale_delivery_reference": source_sale_delivery_reference,
                     "remark": self.get_optional_text(data, "remark"),
                     "project": project.id,
                     # "warehouse": project.warehouse.id if project.warehouse else False,
@@ -132,12 +137,10 @@ class SunriseInboundController(http.Controller, SunriseControllerMixin):
             ], order="id desc", limit=1)
             if not order:
                 raise SunriseApiError("2002", 'Inbound order "%s" was not found.' % reference)
-            if order.state != "new":
-                raise SunriseApiError("2003", 'Only new inbound order "%s" can be cancelled.' % reference)
             if order.state == "new":
                 if order.stock_picking_id.state =='done':
                     raise UserError ("You cannot cancel a done picking")
-            order.write({"state": "cancel"})
+            order.action_cancel()
             return self.success_response(order)
         except SunriseApiError as error:
             return self.error_response(error.code, error.message)
