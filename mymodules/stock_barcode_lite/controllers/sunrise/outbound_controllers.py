@@ -322,7 +322,7 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
         return request.env["res.partner"].create({
             "name": partner_name,
             "street": self.get_required_text(data, "street"),
-            "zip": self.get_required_text(data, "zip"),
+            "zip": self.get_optional_text(data, "zip"),
             "city": self.get_optional_text(data, "city"),
             "country_id": country.id if country else False,
             "phone": self.get_required_text(data, "phone"),
