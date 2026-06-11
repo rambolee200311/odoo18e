@@ -137,7 +137,7 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
                 raise SunriseApiError("2002", 'Outbound order "%s" was not found.' % reference)
             if order.state != "new":
                 raise SunriseApiError("2003", 'Only new outbound order "%s" can be cancelled.' % reference)
-            order.write({"state": "cancel"})
+            order.action_cancel()
             return self.success_response(order)
         except SunriseApiError as error:
             return self.error_response(error.code, error.message)

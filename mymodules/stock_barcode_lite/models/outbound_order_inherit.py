@@ -73,7 +73,10 @@ class OutboundOrderInherit(models.Model):
         for rec in self:
             for picking in picking_list:
                 done_move_list = picking.move_ids_without_package.filtered(
-                    lambda move: move.state == "done" and move.product_id and move.product_uom_qty > 0
+                    lambda move: move.state == "done"
+                                 and move.product_id
+                                 and move.product_uom_qty > 0
+                                 and not move.origin_returned_move_id
                 )
 
                 for move in done_move_list:
