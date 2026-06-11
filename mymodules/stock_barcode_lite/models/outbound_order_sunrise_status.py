@@ -294,6 +294,8 @@ class OutboundOrderSunrise(models.Model):
         for rec in self:
             if rec.delivery_method != "pickup":
                 raise UserError(_("Only pickup outbound orders can sync pickup delivery info."))
+            if  rec.state != "confirm":
+                raise UserError(_("Only confirm outbound orders can sync pickup delivery info."))
             if not rec.load_ref:
                 raise UserError(_("Pickup code is required."))
             if not rec.p_date:
@@ -313,8 +315,8 @@ class OutboundOrderSunrise(models.Model):
                           }
                         ],
                         "parentvo": {
-                          "coperatorid": "11",
-                          "pk_corp": "11",
+                          "coperatorid": "15315509893",
+                          "pk_corp": "CYJKHL",
                           "vnote": "wmsWriteBackFhd",
                           "vreceivecode": rec.csalereceiveid,
                           "vdef7": rec.load_ref,
