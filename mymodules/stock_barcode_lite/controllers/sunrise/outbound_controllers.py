@@ -104,7 +104,7 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
                     "load_ref": self.get_required_text(data, "load_ref"),
                     "unload_company": partner.id,
                     "delivery_street": self.get_required_text(data, "street"),
-                    "delivery_zip": self.get_required_text(data, "zip"),
+                    "delivery_zip": self.get_optional_text(data, "zip"),
                     "delivery_city": self.get_optional_text(data, "city"),
                     "delivery_country_id": country.id if country else False,
                     "delivery_phone": self.get_required_text(data, "phone"),
