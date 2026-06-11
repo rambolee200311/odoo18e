@@ -10,6 +10,7 @@ class InboundOrder(models.Model):
 
     creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import")], string="Creation Source", default="manual", readonly=True, copy=False)
     cwarehouseid = fields.Char(string="U8C Warehouse ID", copy=False, index=True)
+    source_sale_delivery_reference = fields.Char(string="Source Sale Delivery Reference", copy=False, index=True)
 
     def action_cancel(self):
         normal_records = self.env["world.depot.inbound.order"]
