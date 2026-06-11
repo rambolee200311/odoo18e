@@ -81,16 +81,16 @@
                     <group>
 
 
-                            <group string="Pickup Info Sync" col="2" invisible="delivery_method != 'pickup'">
+<!--                            <group string="Pickup Info Sync" col="2" invisible="delivery_method != 'pickup'">-->
 <!--                                <button name="action_sync_u8c_pickup_delivery"-->
 <!--                                        type="object"-->
 <!--                                        string="Sync Pickup Info"-->
 <!--                                        class="btn btn-primary"/>-->
 
-                                <field name="set_sunrise_pickup_delivery_sync" readonly="1"/>
-                                <field name="set_sunrise_pickup_delivery_sync_time" readonly="1"/>
-                                <field name="sunrise_pickup_delivery_sync_error_msg" readonly="1"/>
-                            </group>
+<!--                                <field name="set_sunrise_pickup_delivery_sync" readonly="1"/>-->
+<!--                                <field name="set_sunrise_pickup_delivery_sync_time" readonly="1"/>-->
+<!--                                <field name="sunrise_pickup_delivery_sync_error_msg" readonly="1"/>-->
+<!--                            </group>-->
                         </group>
                     </page>
             </xpath>
