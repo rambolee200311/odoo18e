@@ -391,6 +391,7 @@ class OutboundOrderSunrise(models.Model):
                     "set_sunrise_pickup_delivery_sync_time": response_time or fields.Datetime.now(),
                     "sunrise_pickup_delivery_sync_error_msg": error_message or exception_details,
                 })
+                self.env.cr.commit()
                 raise UserError(_("Sunrise pickup delivery sync failed: %s") % (error_message or exception_details))
 
         return {
