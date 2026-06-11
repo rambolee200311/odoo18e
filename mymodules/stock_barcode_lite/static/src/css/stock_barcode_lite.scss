@@ -8,8 +8,8 @@
     width: 1px;
     height: 1px;
     opacity: 0;
-    pointer-events: none;
     z-index: -1;
+    // 移除 pointer-events: none，确保输入框能接收键盘事件
 }
 
 .o_stock_barcode_lite_homepage {

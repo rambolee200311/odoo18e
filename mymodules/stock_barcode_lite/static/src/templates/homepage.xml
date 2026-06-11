@@ -20,7 +20,7 @@
                             <div class="card-body d-flex flex-column">
                                 <p class="text-muted mb-auto">Receive pallets &amp; complete full pallet putaway operations.</p>
                                 <button class="btn btn-primary mt-3">
-                                    <i class="fa fa-arrow-right me-2"/>Go to Full Pallet Putaway
+                                    <i class="fa fa-arrow-right me-2"/>Go
                                 </button>
                             </div>
                         </div>
@@ -36,13 +36,13 @@
                         <div class="card h-100 shadow-sm o_homepage_card o_outbound_whole_card" t-on-click="_onOutboundWholeClick">
                             <div class="card-header bg-success text-white">
                                 <h3 class="mb-0">
-                                    <i class="fa fa-sign-out me-2"/>Full Pallet Outbound
+                                    <i class="fa fa-sign-out me-2"/>Full Pallet Pick
                                 </h3>
                             </div>
                             <div class="card-body d-flex flex-column">
                                 <p class="text-muted mb-auto">Direct full pallet picking &amp; shipment for bulk orders.</p>
                                 <button class="btn btn-success mt-3">
-                                    <i class="fa fa-arrow-right me-2"/>Go to Full Pallet Pick
+                                    <i class="fa fa-arrow-right me-2"/>Go
                                 </button>
                             </div>
                         </div>
@@ -51,13 +51,13 @@
                         <div class="card h-100 shadow-sm o_homepage_card o_outbound_break_card" t-on-click="_onOutboundBreakClick">
                             <div class="card-header bg-warning text-dark">
                                 <h3 class="mb-0">
-                                    <i class="fa fa-sign-out me-2"/>Break Bulk Outbound
+                                    <i class="fa fa-sign-out me-2"/>Break Bulk Pick
                                 </h3>
                             </div>
                             <div class="card-body d-flex flex-column">
                                 <p class="text-muted mb-auto">Break pallets &amp; pick single items from mixed pallets.</p>
                                 <button class="btn btn-warning mt-3">
-                                    <i class="fa fa-arrow-right me-2"/>Go to Break Bulk Pick
+                                    <i class="fa fa-arrow-right me-2"/>Go
                                 </button>
                             </div>
                         </div>

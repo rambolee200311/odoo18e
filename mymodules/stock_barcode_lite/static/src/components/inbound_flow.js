@@ -13,6 +13,8 @@ export class InboundFlow extends Component {
         this.notification = useService("notification");
         this.action = useService("action");
 
+        this.barcodeInputRef = useRef("barcodeInput");
+
         this.state = useState({
             loading: false,
             message: "",
@@ -33,49 +35,52 @@ export class InboundFlow extends Component {
             updatedMoveLineIds: [],
         });
 
-        this.barcodeInputRef = useRef("barcodeInput");
+        // 扫码输入缓冲
+        this._scanBuffer = "";
+        this._scanTimer = null;
         this._isProcessing = false;
-
-        // 预先绑定事件处理器，避免 removeEventListener 无法正确移除
-        this._boundBarcodeInput = this._onBarcodeInput.bind(this);
-        this._boundBarcodeKeydown = this._onBarcodeKeydown.bind(this);
-        this._boundBarcodeKeypress = this._onBarcodeKeypress.bind(this);
-        this._boundBarcodeBlur = this._onBarcodeBlur.bind(this);
+        this._isPDA = this._detectPDA();
 
         onMounted(async () => {
-            console.log('[InboundFlow] onMounted called');
+            console.log('[InboundFlow] onMounted');
             this._bindVisibilityChange();
-
             const barcodeInput = this.barcodeInputRef.el;
-            console.log('[InboundFlow] barcodeInput element:', barcodeInput);
             if (barcodeInput) {
-                // 直接在 input 元素上绑定事件
-                barcodeInput.addEventListener("input", this._boundBarcodeInput);
-                barcodeInput.addEventListener("keydown", this._boundBarcodeKeydown);
-                barcodeInput.addEventListener("keypress", this._boundBarcodeKeypress);
-                barcodeInput.addEventListener("blur", this._boundBarcodeBlur);
-                barcodeInput.style.imeMode = "disabled";
-                barcodeInput.focus();
-                console.log('[InboundFlow] barcodeInput focused, value:', barcodeInput.value);
-            } else {
-                console.error('[InboundFlow] barcodeInput NOT found!');
+                barcodeInput.addEventListener("input", this._onBarcodeInput.bind(this));
+                barcodeInput.addEventListener("keydown", this._onBarcodeKeydown.bind(this));
+                barcodeInput.addEventListener("keypress", this._onBarcodeKeypress.bind(this));
+                barcodeInput.addEventListener("blur", this._onBarcodeBlur.bind(this));
+                // 初始化时聚焦输入框
+                this._focusBarcodeInput();
             }
-
             await this._initScanState();
-            console.log('[InboundFlow] onMounted complete, state:', JSON.stringify(this.state));
+            console.log('[InboundFlow] onMounted complete');
         });
 
         onWillUnmount(() => {
             this._unbindVisibilityChange();
             const barcodeInput = this.barcodeInputRef.el;
             if (barcodeInput) {
-                // 使用预绑定的函数引用，确保能正确移除
-                barcodeInput.removeEventListener("input", this._boundBarcodeInput);
-                barcodeInput.removeEventListener("keydown", this._boundBarcodeKeydown);
-                barcodeInput.removeEventListener("keypress", this._boundBarcodeKeypress);
-                barcodeInput.removeEventListener("blur", this._boundBarcodeBlur);
+                barcodeInput.removeEventListener("input", this._onBarcodeInput.bind(this));
+                barcodeInput.removeEventListener("keydown", this._onBarcodeKeydown.bind(this));
+                barcodeInput.removeEventListener("keypress", this._onBarcodeKeypress.bind(this));
+                barcodeInput.removeEventListener("blur", this._onBarcodeBlur.bind(this));
             }
+            this._clearScanTimer();
         });
+    }
+
+    /**
+     * 检测是否为PDA设备
+     */
+    _detectPDA() {
+        const hasTouchScreen = (
+            'ontouchstart' in window ||
+            navigator.maxTouchPoints > 0 ||
+            window.matchMedia('(pointer: coarse)').matches
+        );
+        const isDesktop = window.matchMedia('(min-width: 1024px)').matches && !hasTouchScreen;
+        return !isDesktop;
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -92,6 +97,8 @@ export class InboundFlow extends Component {
 
         const value = input.value;
         console.log('[InboundFlow] _onBarcodeInput triggered, value:', value, 'inputType:', ev.inputType);
+        
+        // 处理包含换行符的情况
         if (ev.inputType === "insertLineFeed" || value.includes("\n") || value.includes("\r")) {
             const barcode = value.replace(/\n/g, "").replace(/\r/g, "").trim();
             console.log('[InboundFlow] Barcode detected (input event):', barcode);
@@ -115,7 +122,6 @@ export class InboundFlow extends Component {
             console.log('[InboundFlow] Enter pressed, barcode:', barcode);
             if (barcode) {
                 input.value = "";
-                input.focus();
                 this.onBarcodeScanned(barcode);
             }
         }
@@ -128,14 +134,14 @@ export class InboundFlow extends Component {
             const barcode = input.value.trim();
             if (barcode) {
                 input.value = "";
-                input.focus();
                 this.onBarcodeScanned(barcode);
             }
         }
     }
 
     _onBarcodeBlur(ev) {
-        console.log('[InboundFlow] _onBarcodeBlur, _isProcessing:', this._isProcessing);
+        console.log('[InboundFlow] _onBarcodeBlur, _isProcessing:', this._isProcessing, '_isPDA:', this._isPDA);
+        // PDA模式下也自动聚焦，确保扫码枪输入能被捕获
         if (!this._isProcessing) {
             console.log('[InboundFlow] Setting timeout to refocus');
             setTimeout(() => this._focusBarcodeInput(), 0);
@@ -347,6 +353,13 @@ export class InboundFlow extends Component {
     // ═══════════════════════════════════════════════════════════════
     // 辅助方法
     // ═══════════════════════════════════════════════════════════════
+
+    _clearScanTimer() {
+        if (this._scanTimer) {
+            clearTimeout(this._scanTimer);
+            this._scanTimer = null;
+        }
+    }
 
     showMessage(text, type = "info") {
         this.state.message = text;
