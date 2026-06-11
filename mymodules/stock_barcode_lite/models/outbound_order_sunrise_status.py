@@ -299,21 +299,30 @@ class OutboundOrderSunrise(models.Model):
                 raise UserError(_("Pickup date is required."))
             if not rec.time_slot:
                 raise UserError(_("Pickup time slot is required."))
-
-            # source_bill_codes = rec.outbound_order_product_ids.sudo().mapped("vsourcebillcode")
-            # source_bill_codes = list(set(code for code in source_bill_codes if code))
-            # if not source_bill_codes:
-            #     raise UserError(_("Source delivery bill code is required."))
-            # if len(source_bill_codes) > 1:
-            #     raise UserError(_("Only one source delivery bill can be synced at a time."))
-            vsourcebillcode = rec.reference
             config = rec.get_sunrise_api_config("pickup_delivery")
-            payload = {
-                "vsourcebillcode": vsourcebillcode,
-                "thm": rec.load_ref,
-                "thrq": rec.get_sunrise_date_text(rec.p_date),
-                "thsj": rec.time_slot,
-            }
+            payload =  {
+                    "billvo": [
+                      {
+                        "childrenvo": [
+                          {
+                            "nnumber": "11",
+                            "vsourcereceivecode": "11",
+                            "vsourcerowno": "11",
+                            "vsourcetype": "11"
+                          }
+                        ],
+                        "parentvo": {
+                          "coperatorid": "11",
+                          "pk_corp": "11",
+                          "vnote": "wmsWriteBackFhd",
+                          "vreceivecode": rec.csalereceiveid,
+                          "vdef7": rec.load_ref,
+                          "vdef8": rec.get_sunrise_date_text(rec.p_date),
+                          "vdef17": rec.time_slot
+                        }
+                      }
+                    ]
+                  }
             headers = {
                 "Content-Type": "application/json",
                 "usercode": config.usercode,
@@ -357,7 +366,7 @@ class OutboundOrderSunrise(models.Model):
                                 "sunrise_pickup_delivery_sync_error_msg": False,
                             })
                         else:
-                            error_message = response_data.get("errsomsg") or response.text
+                            error_message = response_data.get("errormsg") or response.text
                             exception_details = response_data.get("stackTrace") or error_message
             except Exception as error:
                 response_time = fields.Datetime.now()
