@@ -77,7 +77,9 @@ class OutboundOrderSunrise(models.Model):
             if key in parameters:
                 parentvo[key] = parameters[key]
         parentvo.update(parent_parameters)
-
+        parentvo.update({
+            "cwarehouseid": rec.cwarehouseid,
+        })
         missing_keys = [key for key in ("cwarehouseid", "pk_calbody", "pk_corp", "ccustomerid") if not parentvo.get(key)]
         if missing_keys:
             raise UserError(_("Sunrise outbound parentvo is missing required config keys: %s") % ", ".join(missing_keys))
@@ -117,7 +119,7 @@ class OutboundOrderSunrise(models.Model):
         for rec in self:
             api_config = config or rec.get_sunrise_api_config("outbound")
             parentvo, parameters = rec.get_sunrise_outbound_parentvo(api_config, rec)
-            parentvo["cwarehouseid"] = rec.cwarehouseid
+            #parentvo["cwarehouseid"] = rec.cwarehouseid
             picking = rec.get_outbound_sync_picking()
             move_lines = picking.move_line_ids.filtered(lambda line: line.quantity > 0)
             if not move_lines:
