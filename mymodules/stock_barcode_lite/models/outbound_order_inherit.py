@@ -11,6 +11,7 @@ class OutboundOrderInherit(models.Model):
     creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import")], string="Creation Source", default="manual", readonly=True, copy=False)
     time_slot = fields.Char(string='Expected harvest time period')  # 预计收货时间段
     cwarehouseid = fields.Char(string="U8C Warehouse ID", copy=False, index=True)
+    csalereceiveid = fields.Char(string="Sale Receive ID", copy=False)
 
     def action_open_outbound_product_import_wizard(self):
         for rec in self:

@@ -10,6 +10,10 @@
             </xpath>
             <xpath expr="//field[@name='is_adr']" position="before">
                     <field name="cwarehouseid" readonly="state != 'new'" invisible="project_name !='SUNRISE'"/>
+                <field name="csalereceiveid" readonly="1" invisible="project_name != 'SUNRISE'"/>
+            </xpath>
+            <xpath expr="//field[@name='delivery_method']" position="after">
+                    <field name="time_slot" readonly="state != 'new'" required="delivery_method == 'pickup' and project_name == 'SUNRISE'"  invisible="project_name !='SUNRISE'or delivery_method != 'pickup'"/>
             </xpath>
 
             <xpath expr="//button[@name='action_create_picking_PICK']" position="after">
@@ -56,19 +60,39 @@
             </xpath>
 
             <xpath expr="//notebook" position="inside">
-                <page string="Sunrise Sync" invisible="project_name !='SUNRISE'">
-                    <group col="2">
-                        <group col="2">
-                            <button name="action_sync_u8c_outbound" type="object" string="Sync U8C Outbound" class="btn btn-primary"/>
+                    <page string="Sunrise Sync" invisible="project_name != 'SUNRISE'">
+                        <group string="Outbound Sync" col="2">
+                            <group col="2">
+                                    <div class="oe_button_box" name="button_box">
+                                <button name="action_sync_u8c_outbound"
+                                        type="object"
+                                        string="Sync U8C Outbound"
+                                        class="btn btn-primary"/>
+                                    </div>
+                                <field name="set_sunrise_outbound_sync" readonly="1"/>
+                            </group>
+                            <group col="2">
+
+                                <field name="set_sunrise_outbound_sync_time" readonly="1"/>
+                                <field name="sunrise_outbound_task_number" readonly="1"/>
+                                <field name="sunrise_outbound_sync_error_msg" readonly="1"/>
+                            </group>
                         </group>
-                        <group col="2">
-                            <field name="set_sunrise_outbound_sync" readonly="1"/>
-                            <field name="set_sunrise_outbound_sync_time" readonly="1"/>
-                            <field name="sunrise_outbound_task_number" readonly="1"/>
-                            <field name="sunrise_outbound_sync_error_msg" readonly="1"/>
+                    <group>
+
+
+                            <group string="Pickup Info Sync" col="2" invisible="delivery_method != 'pickup'">
+                                <button name="action_sync_u8c_pickup_delivery"
+                                        type="object"
+                                        string="Sync Pickup Info"
+                                        class="btn btn-primary"/>
+
+                                <field name="set_sunrise_pickup_delivery_sync" readonly="1"/>
+                                <field name="set_sunrise_pickup_delivery_sync_time" readonly="1"/>
+                                <field name="sunrise_pickup_delivery_sync_error_msg" readonly="1"/>
+                            </group>
                         </group>
-                    </group>
-                </page>
+                    </page>
             </xpath>
         </field>
     </record>
