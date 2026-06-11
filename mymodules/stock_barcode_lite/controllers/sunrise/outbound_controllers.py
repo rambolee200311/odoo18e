@@ -309,7 +309,9 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
         return candidate_packages
 
     def get_delivery_method(self, data):
-        delivery_method = self.get_required_text(data, "delivery_method")
+        delivery_method = self.get_optional_text(data, "delivery_method")
+        if not delivery_method:
+            return False
         if delivery_method not in ("truck", "pickup", "parcel"):
             raise SunriseApiError("4001", "delivery_method must be truck, pickup, or parcel.")
         return delivery_method
