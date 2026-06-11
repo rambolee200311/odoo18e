@@ -13,9 +13,32 @@
 }
 
 .o_stock_barcode_lite_homepage {
-    padding: 20px;
     max-width: 900px;
     margin: 0 auto;
+    padding: 16px 16px 80px 16px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+
+    .section-header {
+        padding: 12px 4px 6px 4px;
+    }
+
+    .section-title {
+        font-weight: 700;
+        color: #212529;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 14px;
+        margin: 0;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #212529;
+        display: inline-block;
+    }
 
     .o_homepage_card {
         cursor: pointer;
