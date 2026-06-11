@@ -25,6 +25,7 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
                 self.validate_order_type(order_type, "outbound")
                 products = data.get("products")
                 cwarehouseid = self.get_required_text(data, "cwarehouseid")
+                csalereceiveid = self.get_required_text(data, "csalereceiveid")
                 if not isinstance(products, list) or not products:
                     raise SunriseApiError("4001", "products must be a non-empty array.")
                 if not all(isinstance(line_data, dict) for line_data in products):
@@ -88,11 +89,12 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
                 order_vals = {
                     "type": order_type,
                     "date": self.get_date_value(data, "date", required=True),
-                    "p_date": self.get_date_value(data, "p_date", required=True),
+                    "p_date": self.get_date_value(data, "p_date", required=False),
                     "reference": reference,
                     "remark": self.get_optional_text(data, "remark"),
                     "project": project.id,
                     "cwarehouseid": cwarehouseid,
+                    "csalereceiveid": csalereceiveid,
                     #"warehouse": project.warehouse.id if project.warehouse else False,
                     #"pick_type": project.pick_operation_type.id if project.pick_operation_type else False,
                     "creation_source": "api",
