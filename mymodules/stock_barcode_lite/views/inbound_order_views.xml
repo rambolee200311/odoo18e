@@ -55,7 +55,7 @@
                                 type="object"
                                 string="Sync U8C Service Return"
                                 class="btn btn-primary"
-                                invisible="type != 'service'"/>
+                                invisible="1"/>
                     </group>
                 </page>
             </xpath>
