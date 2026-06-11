@@ -73,14 +73,15 @@ class OutboundOrderSunrise(models.Model):
             "coperatorid": config.usercode,
             "cdispatcherid": "201",
         }
-        for key in ("cbiztype", "coperatorid", "cwarehouseid", "pk_calbody", "pk_corp", "cdispatcherid", "ccustomerid"):
+        for key in ("cbiztype", "coperatorid", "cwarehouseid", "pk_calbody", "pk_corp", "cdispatcherid"):
             if key in parameters:
                 parentvo[key] = parameters[key]
         parentvo.update(parent_parameters)
         parentvo.update({
             "cwarehouseid": rec.cwarehouseid,
+            "ccustomerid": self.ccustomerid,
         })
-        missing_keys = [key for key in ("cwarehouseid", "pk_calbody", "pk_corp", "ccustomerid") if not parentvo.get(key)]
+        missing_keys = [key for key in ("cwarehouseid", "pk_calbody", "pk_corp") if not parentvo.get(key)]
         if missing_keys:
             raise UserError(_("Sunrise outbound parentvo is missing required config keys: %s") % ", ".join(missing_keys))
 
@@ -96,7 +97,7 @@ class OutboundOrderSunrise(models.Model):
             #"vuserdef14": rec.load_ref or "",
             "vuserdef17": self.get_sunrise_date_text(rec.p_date),
             "vuserdef5": delivery_method,
-            "ccustomerid": self.unload_company.name,
+
         })
         if not parentvo.get("vuserdef6"):
             parentvo.pop("vuserdef6", None)

@@ -26,6 +26,7 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
                 products = data.get("products")
                 cwarehouseid = self.get_required_text(data, "cwarehouseid")
                 csalereceiveid = self.get_required_text(data, "csalereceiveid")
+                ccustomerid = self.get_required_text(data, "ccustomerid")
                 if not isinstance(products, list) or not products:
                     raise SunriseApiError("4001", "products must be a non-empty array.")
                 if not all(isinstance(line_data, dict) for line_data in products):
@@ -95,6 +96,7 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
                     "project": project.id,
                     "cwarehouseid": cwarehouseid,
                     "csalereceiveid": csalereceiveid,
+                    "ccustomerid": ccustomerid,
                     #"warehouse": project.warehouse.id if project.warehouse else False,
                     #"pick_type": project.pick_operation_type.id if project.pick_operation_type else False,
                     "creation_source": "api",
