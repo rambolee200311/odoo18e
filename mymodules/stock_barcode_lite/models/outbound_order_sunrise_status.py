@@ -79,7 +79,7 @@ class OutboundOrderSunrise(models.Model):
         parentvo.update(parent_parameters)
         parentvo.update({
             "cwarehouseid": rec.cwarehouseid,
-            "ccustomerid": self.ccustomerid,
+            "ccustomerid": rec.ccustomerid,
         })
         missing_keys = [key for key in ("cwarehouseid", "pk_calbody", "pk_corp") if not parentvo.get(key)]
         if missing_keys:

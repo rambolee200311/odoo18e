@@ -54,6 +54,7 @@ class SunriseInboundController(http.Controller, SunriseControllerMixin):
                     sunrise_pallet_numbers.add(parsed_line["sunrise_pallet_no"])
                 if len(vsourcebillcodes) != 1:
                     raise SunriseApiError("4001", "All product lines must use the same vsourcebillcode.")
+                vsourcebillcode = list(vsourcebillcodes)[0]
                 #传过来的托
                 existing_pallet = request.env["world.depot.inbound.order.product"].sudo().search([
                     ("pallet_no", "in", list(raw_pallet_numbers)),
@@ -107,6 +108,7 @@ class SunriseInboundController(http.Controller, SunriseControllerMixin):
                     "cntr_no": self.get_optional_text(data, "cntr_no"),
                     "cwarehouseid": cwarehouseid,
                     "source_sale_delivery_reference": source_sale_delivery_reference,
+                    "vsourcebillcode": vsourcebillcode,
                     "remark": self.get_optional_text(data, "remark"),
                     "project": project.id,
                     # "warehouse": project.warehouse.id if project.warehouse else False,
