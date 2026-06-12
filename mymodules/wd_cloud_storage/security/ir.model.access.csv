@@ -18,3 +18,4 @@ access_s3_operation_log_admin,s3.operation.log admin,model_s3_operation_log,wd_c
 
 
 access_s3_create_folder_wizard_user,s3.create.folder.wizard user,model_s3_create_folder_wizard,base.group_user,1,1,1,1
+access_s3_rename_file_wizard_user,s3.rename.file.wizard user,model_s3_rename_file_wizard,base.group_user,1,1,1,1

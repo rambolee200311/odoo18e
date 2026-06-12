@@ -25,7 +25,7 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
                 self.validate_order_type(order_type, "outbound")
                 products = data.get("products")
                 cwarehouseid = self.get_required_text(data, "cwarehouseid")
-                csalereceiveid = self.get_required_text(data, "csalereceiveid")
+                vsourcebillcode = self.get_required_text(data, "vsourcebillcode")
                 ccustomerid = self.get_required_text(data, "ccustomerid")
                 if not isinstance(products, list) or not products:
                     raise SunriseApiError("4001", "products must be a non-empty array.")
@@ -54,7 +54,7 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
                 pallet_de_palletize_map = {}
                 stock_checks = {}
                 for index, line_data in enumerate(products, start=1):
-                    parsed_line = self.prepare_outbound_product_line(line_data, index, project)
+                    parsed_line = self.prepare_outbound_product_line(line_data, index, project, vsourcebillcode)
                     sunrise_pallet_no = parsed_line["sunrise_pallet_no"]
                     de_palletize = parsed_line["product_vals"]["de_palletize"]
                     if sunrise_pallet_no in pallet_de_palletize_map and pallet_de_palletize_map[sunrise_pallet_no] != de_palletize:
@@ -95,7 +95,7 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
                     "remark": self.get_optional_text(data, "remark"),
                     "project": project.id,
                     "cwarehouseid": cwarehouseid,
-                    "csalereceiveid": csalereceiveid,
+                    "vsourcebillcode": vsourcebillcode,
                     "ccustomerid": ccustomerid,
                     #"warehouse": project.warehouse.id if project.warehouse else False,
                     #"pick_type": project.pick_operation_type.id if project.pick_operation_type else False,
@@ -145,7 +145,7 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
             _logger.exception("Unexpected Sunrise outbound cancel error: %s", error)
             return self.error_response("5000", str(error))
 
-    def prepare_outbound_product_line(self, line_data, row_number, project):
+    def prepare_outbound_product_line(self, line_data, row_number, project, order_vsourcebillcode):
         product_code = self.get_required_text(line_data, "product", row_number)
         product_ean = self.get_optional_text(line_data, "product_ean")
         pallet_no = self.get_required_text(line_data, "pallet_no", row_number)
@@ -154,6 +154,15 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
             raise SunriseApiError("4001", self.format_field_error("de_palletize", "must be N or Y", row_number))
         cprojectid = self.get_required_text(line_data, "cprojectid", row_number)
         vsourcebillcode = self.get_required_text(line_data, "vsourcebillcode", row_number)
+        if vsourcebillcode != order_vsourcebillcode:
+            raise SunriseApiError(
+                "4001",
+                self.format_field_error(
+                    "vsourcebillcode",
+                    'must equal order vsourcebillcode "%s"' % order_vsourcebillcode,
+                    row_number,
+                ),
+            )
         vsourcerowno = self.get_required_text(line_data, "vsourcerowno", row_number)
         cspaceid = self.get_required_text(line_data, "cspaceid", row_number)
         castunitid = self.get_required_text(line_data, "castunitid", row_number)

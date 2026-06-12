@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <odoo>
-    <data noupdate="1">
+    <data>
         <record id="action_s3_stored_file" model="ir.actions.act_window">
             <field name="name">Cloud Files</field>
             <field name="res_model">s3.stored.file</field>
-            <field name="view_mode">list,form</field>
+            <field name="view_mode">kanban,list,form</field>
             <field name="search_view_id" ref="wd_cloud_storage.view_s3_stored_file_search"/>
             <field name="domain">[('is_active', '=', True), ('state', 'in', ['stored', 'recycled'])]</field>
         </record>
@@ -40,7 +40,7 @@
             <field name="view_mode">list,form</field>
         </record>
 
-        <menuitem id="menu_wd_cloud_storage_root" name="Cloud Storage" sequence="65" groups="base.group_user"/>
+        <menuitem id="menu_wd_cloud_storage_root" name="Cloud Storage" sequence="65" groups="base.group_user" web_icon="wd_cloud_storage,static/src/img/img.png"/>
         <menuitem id="menu_wd_cloud_storage_file" name="Cloud Files" parent="menu_wd_cloud_storage_root"
                   action="action_s3_stored_file" sequence="10" groups="base.group_user"/>
         <menuitem id="menu_wd_cloud_storage_recycle" name="Recycle Bin" parent="menu_wd_cloud_storage_root"

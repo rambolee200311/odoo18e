@@ -32,8 +32,8 @@ class S3RecycleEntry(models.Model):
 
     @api.depends('deletion_datetime')
     def _compute_expiry_datetime(self):
-        config_model = self.env['s3.config']
-        retention_days = config_model.get_recycle_retention_days()
+        config_model = self.env['s3.config'].search([], limit=1, order='id desc')
+        retention_days = config_model.retention_days
         for rec in self:
             rec.expiry_datetime = rec.deletion_datetime + timedelta(days=retention_days) if rec.deletion_datetime else False
 #回收站动态算剩余天数

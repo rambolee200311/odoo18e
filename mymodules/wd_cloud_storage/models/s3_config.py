@@ -2,15 +2,18 @@ import mimetypes
 
 try:
     import boto3
+    from botocore.config import Config as BotoConfig
     from botocore.exceptions import BotoCoreError, ClientError
 except ImportError:
     boto3 = None
+    BotoConfig = None
     BotoCoreError = Exception
     ClientError = Exception
 
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
+s3_client_cache = {}
 
 class S3Config(models.Model):
     _name = 's3.config'
@@ -33,6 +36,7 @@ class S3Config(models.Model):
     global_attachment_to_cloud = fields.Boolean(string='Store All Attachments In Cloud', default=False)
     attachment_prefix = fields.Char(string='Attachment Prefix', required=True, default='odoo-attachments/')
     company_id = fields.Many2one('res.company', string='Company', required=True, default=lambda self: self.env.company, index=True, readonly=True)
+    retention_days  = fields.Integer(string='Retention Days', required=True, default=90)
 
     def normalize_prefix_text(self, prefix_text, default_prefix):
         value_text = (prefix_text or default_prefix or '').strip()
@@ -82,6 +86,9 @@ class S3Config(models.Model):
             if vals.get('company_id') and vals.get('company_id') != rec.company_id.id:
                 raise ValidationError('Company cannot be changed.')
         result = super().write(vals)
+        if any(key in vals for key in ('s3_access_key', 's3_secret_key', 's3_region', 's3_bucket')):
+            s3_client_cache.clear()
+
         if any(key in vals for key in ('prefix_public', 'prefix_temp', 'prefix_recycle')):
             self.env['s3.node'].ensure_base_nodes()
         return result
@@ -93,10 +100,7 @@ class S3Config(models.Model):
         if not config:
             raise UserError('Please configure cloud storage first.')
         return config
-   # 回收站天数
-    @api.model
-    def get_recycle_retention_days(self):
-        return 90
+
 
     @api.model
     def get_s3_client(self):
@@ -105,7 +109,23 @@ class S3Config(models.Model):
             raise UserError('Please install boto3 and botocore first.')
         if not all([config.s3_access_key, config.s3_secret_key, config.s3_region, config.s3_bucket]):
             raise UserError('S3 access key, secret key, region and bucket are required.')
-        return boto3.client('s3', aws_access_key_id=config.s3_access_key, aws_secret_access_key=config.s3_secret_key, region_name=config.s3_region)
+
+        cache_key = (config.id, config.s3_access_key, config.s3_region, config.s3_bucket)
+        client = s3_client_cache.get(cache_key)
+        if client:
+            return client
+
+        client_kwargs = {
+            'aws_access_key_id': config.s3_access_key,
+            'aws_secret_access_key': config.s3_secret_key,
+            'region_name': config.s3_region,
+        }
+        if BotoConfig:
+            client_kwargs['config'] = BotoConfig(connect_timeout=5, read_timeout=60, max_pool_connections=20)
+
+        client = boto3.client('s3', **client_kwargs)
+        s3_client_cache[cache_key] = client
+        return client
 
     @api.model
     def check_upload_rule(self, file_size, file_name, mimetype=''):

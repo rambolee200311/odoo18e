@@ -294,6 +294,8 @@ class OutboundOrderSunrise(models.Model):
         for rec in self:
             if rec.delivery_method != "pickup":
                 raise UserError(_("Only pickup outbound orders can sync pickup delivery info."))
+            if  rec.state != "confirm":
+                raise UserError(_("Only confirm outbound orders can sync pickup delivery info."))
             if not rec.load_ref:
                 raise UserError(_("Pickup code is required."))
             if not rec.p_date:
@@ -313,10 +315,10 @@ class OutboundOrderSunrise(models.Model):
                           }
                         ],
                         "parentvo": {
-                          "coperatorid": "11",
-                          "pk_corp": "11",
+                          "coperatorid": "15315509893",
+                          "pk_corp": "CYJKHL",
                           "vnote": "wmsWriteBackFhd",
-                          "vreceivecode": rec.csalereceiveid,
+                          "vreceivecode": rec.reference,
                           "vdef7": rec.load_ref,
                           "vdef8": rec.get_sunrise_date_text(rec.p_date),
                           "vdef17": rec.time_slot
@@ -359,12 +361,13 @@ class OutboundOrderSunrise(models.Model):
                         error_message = response.text
                         exception_details = str(error)
                     else:
-                        if response_data.get("status") == "success":
+                        success_message = response_data.get("errormsg") or ""
+                        if "提货信息成功回写到发货单上" in success_message:
                             status = "success"
                             rec.write({
                                 "set_sunrise_pickup_delivery_sync": True,
                                 "set_sunrise_pickup_delivery_sync_time": response_time,
-                                "sunrise_pickup_delivery_sync_error_msg": False,
+                                "sunrise_pickup_delivery_sync_error_msg": error_message or exception_details,
                             })
                         else:
                             error_message = response_data.get("errormsg") or response.text
@@ -389,6 +392,7 @@ class OutboundOrderSunrise(models.Model):
                     "set_sunrise_pickup_delivery_sync_time": response_time or fields.Datetime.now(),
                     "sunrise_pickup_delivery_sync_error_msg": error_message or exception_details,
                 })
+                self.env.cr.commit()
                 raise UserError(_("Sunrise pickup delivery sync failed: %s") % (error_message or exception_details))
 
         return {

@@ -21,11 +21,21 @@
         'views/s3_operation_log_views.xml',
         'views/res_users_inherit_views.xml',
         'wizard/s3_create_folder_wizard_views.xml',
+        'wizard/s3_rename_file_wizard_views.xml',
     ],
     'assets': {
         'web.assets_backend': [
             'wd_cloud_storage/static/src/views/wd_cloud_storage_list_controller.js',
             'wd_cloud_storage/static/src/views/wd_cloud_storage_list_controller.xml',
+
+            'wd_cloud_storage/static/src/views/wd_cloud_storage_file_viewer.js',
+            'wd_cloud_storage/static/src/views/wd_cloud_storage_file_viewer.xml',
+            'wd_cloud_storage/static/src/views/wd_cloud_storage_kanban_renderer.js',
+            'wd_cloud_storage/static/src/views/wd_cloud_storage_kanban_renderer.xml',
+            'wd_cloud_storage/static/src/views/wd_cloud_storage_kanban_controller.js',
+            'wd_cloud_storage/static/src/views/wd_cloud_storage_kanban_controller.xml',
+            'wd_cloud_storage/static/src/views/wd_cloud_storage_kanban.scss',
+
         ],
     },
 
