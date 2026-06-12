@@ -318,7 +318,7 @@ class OutboundOrderSunrise(models.Model):
                           "coperatorid": "15315509893",
                           "pk_corp": "CYJKHL",
                           "vnote": "wmsWriteBackFhd",
-                          "vreceivecode": rec.csalereceiveid,
+                          "vreceivecode": rec.reference,
                           "vdef7": rec.load_ref,
                           "vdef8": rec.get_sunrise_date_text(rec.p_date),
                           "vdef17": rec.time_slot

@@ -9,8 +9,8 @@
                 <attribute name="duplicate">false</attribute>
             </xpath>
             <xpath expr="//field[@name='is_adr']" position="before">
+                <field name="vsourcebillcode" readonly="1" invisible="project_name != 'SUNRISE'"/>
                 <field name="cwarehouseid" readonly="state != 'new'" invisible="project_name !='SUNRISE'"/>
-                <field name="csalereceiveid" readonly="1" invisible="project_name != 'SUNRISE'"/>
                 <field name="ccustomerid" readonly="state != 'new'" invisible="project_name != 'SUNRISE'"/>
             </xpath>
             <xpath expr="//field[@name='delivery_method']" position="after">
