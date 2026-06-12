@@ -85,12 +85,13 @@ class OutboundOrderSunrise(models.Model):
         if missing_keys:
             raise UserError(_("Sunrise outbound parentvo is missing required config keys: %s") % ", ".join(missing_keys))
 
-        delivery_method_map = {
-            "truck": "02",
-            "pickup": "01",
-            "parcel": "02",
+        if rec.u8c_delivery_method not in ("wd", "pickup"):
+            raise UserError(_("U8C delivery method must be wd or pickup."))
+        u8c_delivery_method_map = {
+            "wd": "泛鼎",
+            "pickup": "自提"
         }
-        delivery_method = delivery_method_map.get(rec.delivery_method, rec.delivery_method or "")
+        delivery_method = u8c_delivery_method_map.get(rec.u8c_delivery_method, rec.u8c_delivery_method or "")
         parentvo.update({
             "dbilldate": self.get_sunrise_date_text(rec.date),
             "vnote": rec.load_ref or rec.remark or rec.reference or "",
@@ -292,8 +293,8 @@ class OutboundOrderSunrise(models.Model):
         log_model = self.env["sunrise.api.log"]
 
         for rec in self:
-            if rec.delivery_method != "pickup":
-                raise UserError(_("Only pickup outbound orders can sync pickup delivery info."))
+            if rec.u8c_delivery_method != "pickup":
+                raise UserError(_("Only U8C pickup outbound orders can sync pickup delivery info."))
             if  rec.state != "confirm":
                 raise UserError(_("Only confirm outbound orders can sync pickup delivery info."))
             if not rec.load_ref:
