@@ -120,9 +120,19 @@ class S3StoredFile(models.Model):
                 converted_domain.append(item)
         return converted_domain
 
+    def has_node_filter(self, domain):
+        for item in domain or []:
+            if isinstance(item, (list, tuple)) and len(item) >= 3 and item[0] == 'node_id':
+                return True
+            if isinstance(item, list) and self.has_node_filter(item):
+                return True
+        return False
+
     @api.model
     def web_search_read(self, domain, specification, offset=0, limit=None, order=None, count_limit=None):
         domain = self.convert_node_child_domain(domain)
+        if not self.has_node_filter(domain):
+            domain = list(domain or []) + [('state', '=', 'stored')]
         return super().web_search_read(domain, specification, offset=offset, limit=limit, order=order,
                                        count_limit=count_limit)
     @api.model
@@ -201,14 +211,15 @@ class S3StoredFile(models.Model):
         file_data = records.read(['id', 'name', 'size', 'mimetype', 'upload_datetime', 'owner_id', 'state'])
         return {'files': file_data, 'total': total, 'page': page, 'total_pages': (total + limit - 1) // limit}
 
-    def build_download_disposition(self, file_name):
+    def build_content_disposition(self, file_name, inline=False):
         file_name_text = (file_name or 'download.bin').strip().replace('\\', '_').replace('"', '')
         ascii_name = file_name_text.encode('ascii', 'ignore').decode('ascii').strip() or 'download.bin'
         utf8_name = quote(file_name_text, safe='')
-        return f"attachment; filename=\"{ascii_name}\"; filename*=UTF-8''{utf8_name}"
+        disposition_type = 'inline' if inline else 'attachment'
+        return f"{disposition_type}; filename=\"{ascii_name}\"; filename*=UTF-8''{utf8_name}"
 
     @api.model
-    def generate_presigned_url(self, file_id):
+    def generate_presigned_url(self, file_id, inline=False, write_log=True):
         file_model = self.env['s3.stored.file'].sudo()
         file_rec = file_model.search([('id', '=', file_id), ('is_active', '=', True)], limit=1, order='id desc')
         if not file_rec:
@@ -218,20 +229,62 @@ class S3StoredFile(models.Model):
         config_model = self.env['s3.config']
         config = config_model.get_current_config()
         client = config_model.get_s3_client()
-        content_disposition = self.build_download_disposition(file_record.name)
+        content_disposition = self.build_content_disposition(file_record.name, inline=inline)
         try:
-            url = client.generate_presigned_url('get_object',
-                                                Params={'Bucket': config.s3_bucket,
-                                                        'Key': file_record.s3_key,
-                                                        'ResponseContentDisposition': content_disposition,},
-                                                ExpiresIn=config.presigned_url_expiry * 60)
+            url = client.generate_presigned_url(
+                'get_object',
+                Params={
+                    'Bucket': config.s3_bucket,
+                    'Key': file_record.s3_key,
+                    'ResponseContentDisposition': content_disposition,
+                },
+                ExpiresIn=config.presigned_url_expiry * 60,
+            )
         except (BotoCoreError, ClientError) as error:
-            raise UserError(f'Generate download url failed: {error}') from error
-        log_model = self.env['s3.operation.log']
-        operate_type_model = self.env['s3.operate.type'].sudo()
-        download_operate_type = operate_type_model.search([('code', '=', 'download')], limit=1, order='id desc')
-        log_model.create_log_line({'operate_type_id': download_operate_type.id if download_operate_type else False, 'file_name': file_record.name, 'file_path': file_record.s3_key, 'operate_result': 'success'})
+            raise UserError(f'Generate file url failed: {error}') from error
+
+        if write_log:
+            log_model = self.env['s3.operation.log']
+            operate_type_model = self.env['s3.operate.type'].sudo()
+            download_operate_type = operate_type_model.search([('code', '=', 'download')], limit=1, order='id desc')
+            log_model.create_log_line({
+                'operate_type_id': download_operate_type.id if download_operate_type else False,
+                'file_name': file_record.name,
+                'file_path': file_record.s3_key,
+                'operate_result': 'success',
+            })
         return url
+
+    @api.model
+    def get_file_viewer_payload(self, file_id):
+        file_model = self.env['s3.stored.file'].sudo()
+        file_rec = file_model.search([('id', '=', file_id), ('is_active', '=', True)], limit=1, order='id desc')
+        if not file_rec:
+            raise UserError('File does not exist.')
+
+        file_record = self.browse(file_rec.id)
+        file_record.check_node_access('read')
+        mimetype = file_record.mimetype or 'application/octet-stream'
+
+        is_viewable = (
+                mimetype.startswith('image/')
+                or mimetype == 'application/pdf'
+                or mimetype.startswith('text/')
+                or mimetype.startswith('video/')
+        )
+
+        return {
+            'id': file_record.id,
+            'display_name': file_record.name,
+            'mimetype': mimetype,
+
+            # 'preview_url': self.generate_presigned_url(file_record.id, inline=True, write_log=False),
+            # 'download_url': self.generate_presigned_url(file_record.id, inline=False, write_log=False),
+
+            'preview_url': f'/wd_cloud_storage/content/{file_record.id}?download=0',
+            'download_url': f'/wd_cloud_storage/content/{file_record.id}?download=1',
+            'is_viewable': is_viewable,
+        }
 
     def action_download_file(self):
         action_result = False
@@ -241,6 +294,47 @@ class S3StoredFile(models.Model):
             url = rec.generate_presigned_url(rec.id)
             action_result = {'type': 'ir.actions.act_url', 'url': url, 'target': 'self'}
         return action_result
+
+    def action_rename_file(self, new_name):
+        config_model = self.env['s3.config']
+        config = config_model.get_current_config()
+        client = config_model.get_s3_client()
+        log_model = self.env['s3.operation.log']
+        operate_type_model = self.env['s3.operate.type'].sudo()
+        rename_operate_type = operate_type_model.search([('code', '=', 'rename')], limit=1, order='id desc')
+
+        clean_name = (new_name or '').strip()
+        if not clean_name:
+            raise UserError('File name cannot be empty.')
+
+        for rec in self:
+            if rec.state != 'stored' or not rec.is_active:
+                raise UserError('Only stored file can be renamed.')
+
+            rec.check_node_access('rename')
+
+            old_key = rec.s3_key
+            safe_name = rec.sanitize_file_name(clean_name)
+            key_prefix = old_key.rsplit('/', 1)[0] if '/' in old_key else rec.node_id.s3_key.rstrip('/')
+            new_key = f'{key_prefix}/{safe_name}'
+
+            try:
+                if new_key != old_key:
+                    client.copy_object(Bucket=config.s3_bucket, CopySource={'Bucket': config.s3_bucket, 'Key': old_key},
+                                       Key=new_key)
+                    client.delete_object(Bucket=config.s3_bucket, Key=old_key)
+            except (BotoCoreError, ClientError) as error:
+                log_model.create_log_line({'operate_type_id': rename_operate_type.id if rename_operate_type else False,
+                                           'file_name': clean_name, 'file_path': old_key, 'original_path': old_key,
+                                           'operate_result': 'fail', 'error_message': str(error)})
+                raise UserError(f'Rename file failed: {error}') from error
+
+            rec.write({'name': clean_name, 's3_key': new_key})
+            log_model.create_log_line(
+                {'operate_type_id': rename_operate_type.id if rename_operate_type else False, 'file_name': clean_name,
+                 'file_path': new_key, 'original_path': old_key, 'operate_result': 'success'})
+
+        return True
 
     def action_move_to_recycle_bin(self, delete_reason=''):
         config_model = self.env['s3.config']
@@ -285,4 +379,17 @@ class S3StoredFile(models.Model):
                 'state': 'recycled',
             })
             log_model.create_log_line({'operate_type_id': delete_operate_type.id if delete_operate_type else False, 'file_name': rec.name, 'file_path': recycle_key, 'original_path': rec.s3_key, 'operate_result': 'success', 'delete_reason': delete_reason})
+        return True
+
+
+    def action_restore_from_recycle(self):
+        recycle_model_sudo = self.env['s3.recycle.entry'].sudo()
+        for rec in self:
+            if rec.state != 'recycled' or not rec.is_active:
+                raise UserError('Only recycled file can be restored.')
+            recycle_entry_sudo = recycle_model_sudo.search([('file_id', '=', rec.id), ('state', '=', 'active')], limit=1, order='id desc')
+            if not recycle_entry_sudo:
+                raise UserError('Recycle entry does not exist.')
+            recycle_entry = self.env['s3.recycle.entry'].browse(recycle_entry_sudo.id)
+            recycle_entry.action_restore()
         return True

@@ -33,6 +33,7 @@
                             <field name="s3_region" required="1" />
                             <field name="s3_bucket" required="1" />
                             <field name="presigned_url_expiry" required="1" />
+                            <field name="retention_days" required="1"/>
                             <field name="company_id" required="1" readonly="1" options="{'no_create': True, 'no_open': True}" />
                         </group>
                         <group>
