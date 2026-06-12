@@ -9,12 +9,14 @@
                 <attribute name="duplicate">false</attribute>
             </xpath>
             <xpath expr="//field[@name='is_adr']" position="before">
-                    <field name="cwarehouseid" readonly="state != 'new'" invisible="project_name !='SUNRISE'"/>
+                <field name="cwarehouseid" readonly="state != 'new'" invisible="project_name !='SUNRISE'"/>
                 <field name="csalereceiveid" readonly="1" invisible="project_name != 'SUNRISE'"/>
                 <field name="ccustomerid" readonly="state != 'new'" invisible="project_name != 'SUNRISE'"/>
             </xpath>
             <xpath expr="//field[@name='delivery_method']" position="after">
-                    <field name="time_slot" readonly="state != 'new'" required="delivery_method == 'pickup' and project_name == 'SUNRISE'"  invisible="project_name !='SUNRISE'or delivery_method != 'pickup'"/>
+                <field name="time_slot" readonly="state != 'new'"
+                       required="delivery_method == 'pickup' and project_name == 'SUNRISE'"
+                       invisible="project_name !='SUNRISE'or delivery_method != 'pickup'"/>
             </xpath>
 
             <xpath expr="//button[@name='action_create_picking_PICK']" position="after">
@@ -61,39 +63,37 @@
             </xpath>
 
             <xpath expr="//notebook" position="inside">
-                    <page string="Sunrise Sync" invisible="project_name != 'SUNRISE'">
-                        <group string="Outbound Sync" col="2">
-                            <group col="2">
-                                    <div class="oe_button_box" name="button_box">
+                <page string="Sunrise Sync" invisible="project_name != 'SUNRISE'">
+                    <group string="Outbound Sync" col="2">
+                        <group col="2">
+                            <div class="oe_button_box" name="button_box">
                                 <button name="action_sync_u8c_outbound"
                                         type="object"
                                         string="Sync U8C Outbound"
                                         class="btn btn-primary"/>
-                                    </div>
-                                <field name="set_sunrise_outbound_sync" readonly="1"/>
-                            </group>
-                            <group col="2">
-
-                                <field name="set_sunrise_outbound_sync_time" readonly="1"/>
-                                <field name="sunrise_outbound_task_number" readonly="1"/>
-                                <field name="sunrise_outbound_sync_error_msg" readonly="1"/>
-                            </group>
+                            </div>
+                            <field name="set_sunrise_outbound_sync" readonly="1"/>
                         </group>
-                    <group>
+                        <group col="2">
 
-
-                            <group string="Pickup Info Sync" col="2" invisible="delivery_method != 'pickup'">
-                                <button name="action_sync_u8c_pickup_delivery"
-                                        type="object"
-                                        string="Sync Pickup Info"
-                                        class="btn btn-primary"/>
-
-                                <field name="set_sunrise_pickup_delivery_sync" readonly="1"/>
-                                <field name="set_sunrise_pickup_delivery_sync_time" readonly="1"/>
-                                <field name="sunrise_pickup_delivery_sync_error_msg" readonly="1"/>
-                            </group>
+                            <field name="set_sunrise_outbound_sync_time" readonly="1"/>
+                            <field name="sunrise_outbound_task_number" readonly="1"/>
+                            <field name="sunrise_outbound_sync_error_msg" readonly="1"/>
                         </group>
-                    </page>
+                    </group>
+                    <group string="Pickup Info Sync" col="2" invisible="delivery_method != 'pickup'">
+
+                        <button name="action_sync_u8c_pickup_delivery"
+                                type="object"
+                                string="Sync Pickup Info"
+                                class="oe_highlight"/>
+
+                        <field name="set_sunrise_pickup_delivery_sync" readonly="1"/>
+
+                        <field name="set_sunrise_pickup_delivery_sync_time" readonly="1"/>
+                        <field name="sunrise_pickup_delivery_sync_error_msg" readonly="1"/>
+
+                    </group></page>
             </xpath>
         </field>
     </record>
@@ -105,26 +105,45 @@
         <field name="inherit_id" ref="worlddepot.view_outbound_order_product_standalone_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='pallet_no']" position="after">
-                <field name="sunrise_pallet_no" readonly="outbound_order_state != 'new'" column_invisible="parent.project_name !='SUNRISE'"/>
-                <field name="product_ean" readonly="outbound_order_state != 'new'" column_invisible="parent.project_name !='SUNRISE'"/>
-                <field name="de_palletize" readonly="outbound_order_state != 'new'" column_invisible="parent.project_name !='SUNRISE'"/>
-                <field name="cprojectid" readonly="outbound_order_state != 'new'" column_invisible="parent.project_name !='SUNRISE'"/>
-                <field name="ndiscounttaxtype" readonly="outbound_order_state != 'new'" column_invisible="parent.project_name !='SUNRISE'"/>
-                <field name="vsourcebillcode" readonly="outbound_order_state != 'new'" column_invisible="parent.project_name !='SUNRISE'"/>
-                <field name="vsourcerowno" readonly="outbound_order_state != 'new'" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="sunrise_pallet_no" readonly="outbound_order_state != 'new'"
+                       column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="product_ean" readonly="outbound_order_state != 'new'"
+                       column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="de_palletize" readonly="outbound_order_state != 'new'"
+                       column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="cprojectid" readonly="outbound_order_state != 'new'"
+                       column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="ndiscounttaxtype" readonly="outbound_order_state != 'new'"
+                       column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="vsourcebillcode" readonly="outbound_order_state != 'new'"
+                       column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="vsourcerowno" readonly="outbound_order_state != 'new'"
+                       column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="cspaceid" optional="show" column_invisible="parent.project_name != 'SUNRISE'"/>
-                <field name="box_type" readonly="outbound_order_state != 'new'" column_invisible="parent.project_name !='SUNRISE'"/>
-                <field name="box_qty" readonly="outbound_order_state != 'new'" column_invisible="parent.project_name !='SUNRISE'"/>
-                <field name="box_in_qty" readonly="outbound_order_state != 'new'" column_invisible="parent.project_name !='SUNRISE'"/>
-                <field name="ninnum" readonly="outbound_order_state != 'new'" column_invisible="parent.project_name !='SUNRISE'"/>
-                <field name="u8_aux_qty" readonly="outbound_order_state != 'new'" column_invisible="parent.project_name !='SUNRISE'"/>
-                <field name="u8_conversion_rate" readonly="outbound_order_state != 'new'" column_invisible="parent.project_name !='SUNRISE'"/>
-                <field name="castunitid" readonly="outbound_order_state != 'new'" column_invisible="parent.project_name !='SUNRISE'"/>
-                <field name="u8_aux_uom_name" readonly="outbound_order_state != 'new'" column_invisible="parent.project_name !='SUNRISE'"/>
-                <field name="is_lot" readonly="outbound_order_state != 'new'" required="1" column_invisible="parent.project_name !='SUNRISE'"/>
-                <field name="lot_name" readonly="outbound_order_state != 'new'" required="is_lot == 'Y'" column_invisible="parent.project_name !='SUNRISE'"/>
-                <field name="m_date" readonly="outbound_order_state != 'new'" column_invisible="parent.project_name !='SUNRISE'"/>
-                <field name="e_date" readonly="outbound_order_state != 'new'" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="box_type" readonly="outbound_order_state != 'new'"
+                       column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="box_qty" readonly="outbound_order_state != 'new'"
+                       column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="box_in_qty" readonly="outbound_order_state != 'new'"
+                       column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="ninnum" readonly="outbound_order_state != 'new'"
+                       column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="u8_aux_qty" readonly="outbound_order_state != 'new'"
+                       column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="u8_conversion_rate" readonly="outbound_order_state != 'new'"
+                       column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="castunitid" readonly="outbound_order_state != 'new'"
+                       column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="u8_aux_uom_name" readonly="outbound_order_state != 'new'"
+                       column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="is_lot" readonly="outbound_order_state != 'new'" required="1"
+                       column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="lot_name" readonly="outbound_order_state != 'new'" required="is_lot == 'Y'"
+                       column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="m_date" readonly="outbound_order_state != 'new'"
+                       column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="e_date" readonly="outbound_order_state != 'new'"
+                       column_invisible="parent.project_name !='SUNRISE'"/>
             </xpath>
         </field>
     </record>

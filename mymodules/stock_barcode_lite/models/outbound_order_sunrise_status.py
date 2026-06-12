@@ -361,12 +361,13 @@ class OutboundOrderSunrise(models.Model):
                         error_message = response.text
                         exception_details = str(error)
                     else:
-                        if response_data.get("status") == "success":
+                        success_message = response_data.get("errormsg") or ""
+                        if "提货信息成功回写到发货单上" in success_message:
                             status = "success"
                             rec.write({
                                 "set_sunrise_pickup_delivery_sync": True,
                                 "set_sunrise_pickup_delivery_sync_time": response_time,
-                                "sunrise_pickup_delivery_sync_error_msg": False,
+                                "sunrise_pickup_delivery_sync_error_msg": error_message or exception_details,
                             })
                         else:
                             error_message = response_data.get("errormsg") or response.text
