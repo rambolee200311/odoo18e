@@ -13,7 +13,8 @@ class OutboundOrderInherit(models.Model):
     cwarehouseid = fields.Char(string="U8C Warehouse ID", copy=False, index=True)
     vsourcebillcode = fields.Char(string="Source Bill Code", copy=False, index=True)
     ccustomerid = fields.Char(string="U8C Customer ID", copy=False)
-
+    u8c_delivery_method = fields.Selection([("pickup", "Pickup"), ("wd", "WD Transport")], string="U8C Delivery Method",
+                                           copy=False)
     def action_cancel(self):
         normal_records = self.env["world.depot.outbound.order"]
 

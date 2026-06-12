@@ -14,9 +14,10 @@
                 <field name="ccustomerid" readonly="state != 'new'" invisible="project_name != 'SUNRISE'"/>
             </xpath>
             <xpath expr="//field[@name='delivery_method']" position="after">
-                <field name="time_slot" readonly="state != 'new'"
-                       required="delivery_method == 'pickup' and project_name == 'SUNRISE'"
-                       invisible="project_name !='SUNRISE'or delivery_method != 'pickup'"/>
+                <field name="u8c_delivery_method" readonly="state == 'cancel'" required="project_name == 'SUNRISE'" invisible="project_name != 'SUNRISE'"/>
+                <field name="time_slot" readonly="state == 'cancel'"
+                       required="u8c_delivery_method  == 'pickup' and project_name == 'SUNRISE'"
+                       invisible="project_name !='SUNRISE'or u8c_delivery_method  != 'pickup'"/>
             </xpath>
 
             <xpath expr="//button[@name='action_create_picking_PICK']" position="after">
@@ -81,7 +82,7 @@
                             <field name="sunrise_outbound_sync_error_msg" readonly="1"/>
                         </group>
                     </group>
-                    <group string="Pickup Info Sync" col="2" invisible="delivery_method != 'pickup'">
+                    <group string="Pickup Info Sync" col="2" invisible="u8c_delivery_method  != 'pickup'">
 
                         <button name="action_sync_u8c_pickup_delivery"
                                 type="object"

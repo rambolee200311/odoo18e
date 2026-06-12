@@ -27,6 +27,12 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
                 cwarehouseid = self.get_required_text(data, "cwarehouseid")
                 vsourcebillcode = self.get_required_text(data, "vsourcebillcode")
                 ccustomerid = self.get_required_text(data, "ccustomerid")
+                u8c_delivery_method = self.get_required_text(data, "u8c_delivery_method").lower()
+                if u8c_delivery_method not in ("pickup", "wd"):
+                    raise SunriseApiError("4001", "u8c_delivery_method must be pickup or wd.")
+                delivery_method = self.get_delivery_method(data)
+                if not delivery_method and u8c_delivery_method == "pickup":
+                    delivery_method = "pickup"
                 if not isinstance(products, list) or not products:
                     raise SunriseApiError("4001", "products must be a non-empty array.")
                 if not all(isinstance(line_data, dict) for line_data in products):
@@ -97,10 +103,11 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
                     "cwarehouseid": cwarehouseid,
                     "vsourcebillcode": vsourcebillcode,
                     "ccustomerid": ccustomerid,
+                    "u8c_delivery_method": u8c_delivery_method,
                     #"warehouse": project.warehouse.id if project.warehouse else False,
                     #"pick_type": project.pick_operation_type.id if project.pick_operation_type else False,
                     "creation_source": "api",
-                    "delivery_method": self.get_delivery_method(data),
+                    "delivery_method": delivery_method,
                     "load_ref": self.get_required_text(data, "load_ref"),
                     "unload_company": partner.id,
                     "delivery_street": self.get_required_text(data, "street"),
