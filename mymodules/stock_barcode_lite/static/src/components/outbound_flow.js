@@ -9,9 +9,9 @@ import { _t } from "@web/core/l10n/translation";
  *
  * 扫码流程：
  *  ─────────────────────────────────────────────────────────────────────
- *  整托出库: 步骤码(P) → 托盘条码 → [系统自动填充SN/批次/数量] → 完成
- *  拆托出库: 步骤码(D) → 托盘条码 → 产品条码 → [SN(多个) | 批次号] → 完成
- *  循环: → 托盘条码 → 产品条码 → [SN(多个) | 批次号] → ... → 完成
+ *  整托出库: 步骤码(P) → 货位条码 → 托盘条码 → [系统自动填充SN/批次/数量] → 完成
+ *  拆托出库: 步骤码(D) → 货位条码 → 托盘条码 → 产品条码 → [SN(多个) | 批次号] → 完成
+ *  循环: → 货位条码 → 托盘条码 → 产品条码 → [SN(多个) | 批次号] → ... → 完成
  *  ─────────────────────────────────────────────────────────────────────
  *  完成所有托盘后，确认出库
  */
@@ -29,7 +29,8 @@ export class OutboundFlow extends Component {
             pallets: [],          // [{pallet_no, products:[{id,product_*,quantity,qty_done,sn_list:[],lot_id}], mode, is_complete}]
             currentPalletIndex: -1,
             currentItemIndex: -1, // 拆托模式下当前产品索引
-            scanMode: "order",   // "order" | "step" | "pallet" | "product" | "qty" | "sn"
+            scanMode: "order",   // "order" | "step" | "location" | "pallet" | "product" | "qty" | "sn"
+            currentLocation: null, // 当前货位信息 {location_id, location_name, location_barcode}
             message: "",
             messageType: "info",
             loading: false,
@@ -115,6 +116,7 @@ export class OutboundFlow extends Component {
             switch (this.state.scanMode) {
                 case "order":    await this.scanOrder(barcode);    break;
                 case "step":     await this.scanStep(barcode);     break;
+                case "location": await this.scanLocation(barcode); break;
                 case "pallet":   await this.scanPallet(barcode);   break;
                 case "product":  await this.scanProduct(barcode);  break;
                 case "qty":      await this.scanQty(barcode);      break;
@@ -228,18 +230,37 @@ export class OutboundFlow extends Component {
         }
 
         this.state._lastStepCode = code;
-        this.state.scanMode = "pallet";
+        // 整托和拆托都需要先扫货位
+        this.state.scanMode = "location";
 
         const modeLabel = code === "P" ? _t("Whole Pallet") : _t("Disassembly");
         this.showMessage(
-            _t("Mode: ") + modeLabel + " — scan pallet barcode",
+            _t("Mode: ") + modeLabel + " — scan location barcode",
             "info"
         );
         this.flashScreen();
     }
 
     // ════════════════════════════════════════════
-    // 阶段3: 扫托盘
+    // 阶段3: 扫货位
+    // ════════════════════════════════════════════
+    async scanLocation(barcode) {
+        // 货位扫码后记录，然后进入托盘扫描
+        this.state.currentLocation = {
+            location_barcode: barcode,
+            location_name: barcode,  // 后端会验证并填充完整名称
+        };
+
+        this.state.scanMode = "pallet";
+        this.showMessage(
+            _t("Location [") + barcode + "] — scan pallet barcode",
+            "info"
+        );
+        this.flashScreen();
+    }
+
+    // ════════════════════════════════════════════
+    // 阶段4: 扫托盘
     // ════════════════════════════════════════════
     async scanPallet(barcode) {
         const pallet = this.state.pallets.find(p => p.pallet_no === barcode);
@@ -256,6 +277,8 @@ export class OutboundFlow extends Component {
 
         const lastCode = this.state._lastStepCode || "D";
         pallet.mode = lastCode === "P" ? "whole" : "disassembly";
+        // 记录该托盘关联的货位
+        pallet.location_barcode = this.state.currentLocation?.location_barcode || null;
 
         if (pallet.mode === "whole") {
             // ══ 整托模式：系统自动填充 → 完成 ══
@@ -471,9 +494,11 @@ export class OutboundFlow extends Component {
         if (nextIndex !== -1) {
             this.state.currentPalletIndex = nextIndex;
             this.state.currentItemIndex = -1;
-            this.state.scanMode = "pallet";
+            // 回到货位扫描阶段
+            this.state.scanMode = "location";
+            this.state.currentLocation = null;
             this.showMessage(
-                _t("Next pallet [") + this.state.pallets[nextIndex].pallet_no + "] — scan barcode",
+                _t("Next pallet [") + this.state.pallets[nextIndex].pallet_no + "] — scan location",
                 "info"
             );
         } else {
@@ -481,6 +506,7 @@ export class OutboundFlow extends Component {
             this.state.currentItemIndex = -1;
             this.state.scanMode = "step";
             this.state._lastStepCode = null;
+            this.state.currentLocation = null;
             if (this.isAllComplete) {
                 this.showMessage(_t("All pallets complete! Confirm outbound."), "success");
             }
@@ -528,9 +554,10 @@ export class OutboundFlow extends Component {
     }
 
     /**
-     * 跳过当前托盘
+     * 跳过当前托盘（需要重新扫货位）
      */
     skipCurrentPallet() {
+        this.state.currentLocation = null;
         this._advanceToNextPallet();
     }
 
@@ -586,6 +613,7 @@ export class OutboundFlow extends Component {
         this.state.currentPalletIndex = -1;
         this.state.currentItemIndex = -1;
         this.state.scanMode = "order";
+        this.state.currentLocation = null;
         this.state.message = "";
         this.state.totalScanned = 0;
         this.state.totalRequired = 0;
@@ -652,6 +680,7 @@ export class OutboundFlow extends Component {
         const map = {
             order:   "Scan Outbound Order",
             step:    "Scan Step Code (P / D)",
+            location: "Scan Location Barcode",
             pallet:  "Scan Pallet Barcode",
             product: "Scan Product Barcode",
             qty:     "Scan SN or Count (+1)",

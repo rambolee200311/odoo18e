@@ -8,14 +8,37 @@
     width: 1px;
     height: 1px;
     opacity: 0;
-    pointer-events: none;
     z-index: -1;
+    // 移除 pointer-events: none，确保输入框能接收键盘事件
 }
 
 .o_stock_barcode_lite_homepage {
-    padding: 20px;
     max-width: 900px;
     margin: 0 auto;
+    padding: 16px 16px 80px 16px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+
+    .section-header {
+        padding: 12px 4px 6px 4px;
+    }
+
+    .section-title {
+        font-weight: 700;
+        color: #212529;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 14px;
+        margin: 0;
+        padding-bottom: 8px;
+        border-bottom: 2px solid #212529;
+        display: inline-block;
+    }
 
     .o_homepage_card {
         cursor: pointer;
@@ -39,6 +62,7 @@
     display: flex;
     flex-direction: column;
     height: 100vh;
+    min-height: 100vh;
     overflow: hidden;
 
     .o_sbl_header {
@@ -98,8 +122,8 @@
     .o_sbl_step_hint {
         background: #fff;
         border-bottom: 1px solid #dee2e6;
-        padding: 8px 16px;
-        font-size: 13px;
+        padding: 6px 16px;
+        font-size: 12px;
         color: #6c757d;
         text-align: center;
         flex-shrink: 0;
@@ -107,7 +131,7 @@
 
     .o_barcode_progress,
     .o_sbl_progress {
-        height: 4px;
+        height: 3px;
         background: #e9ecef;
         flex-shrink: 0;
         .progress-bar { transition: width 0.3s ease; }
@@ -117,19 +141,30 @@
     .o_sbl_progress_text {
         display: flex;
         align-items: center;
-        padding: 8px 16px;
-        font-size: 13px;
+        padding: 6px 16px;
+        font-size: 12px;
         color: #6c757d;
         background: #fff;
         border-bottom: 1px solid #dee2e6;
         flex-shrink: 0;
     }
 
+    // 入库流程 summary 卡片 - 固定大小，不被压缩
+    .o_sbl_summary {
+        flex-shrink: 0;
+        .card-body {
+            min-height: unset;
+        }
+    }
+
     .o_barcode_lines,
     .o_sbl_pallets {
         flex: 1;
         overflow-y: auto;
-        padding: 8px 12px;
+        overflow-x: hidden;
+        padding: 8px 12px 60px 12px;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
     }
 
     // ── Inbound line (legacy) ──
@@ -158,8 +193,8 @@
     .o_sbl_pallet {
         background: #fff;
         border: 2px solid #dee2e6;
-        border-radius: 10px;
-        margin-bottom: 10px;
+        border-radius: 8px;
+        margin-bottom: 8px;
         overflow: hidden;
         transition: border-color 0.2s;
 
@@ -173,103 +208,602 @@
         }
 
         .o_pallet_header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 14px;
+            padding: 8px 12px;
             background: #f8f9fa;
             border-bottom: 1px solid #dee2e6;
+
+            // 第一行：托盘名称 + 折叠箭头
+            .o_pallet_row1 {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 6px;
+            }
+
+            // 第二行：徽章 + 数量 + 货位
+            .o_pallet_row2 {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                flex-wrap: wrap;
+                font-size: 12px;
+                color: #6c757d;
+            }
         }
+
         .o_pallet_info {
             display: flex;
             align-items: center;
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
             color: #333;
         }
+
         .o_pallet_qty {
-            font-size: 12px;
+            font-size: 11px;
             color: #6c757d;
         }
-    }
 
-    // ── Product item ──
-    .o_pallet_products {
-        padding: 6px 0;
-    }
-    .o_pallet_product {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        padding: 8px 14px;
-        border-bottom: 1px solid #f0f0f0;
-        transition: background 0.15s;
-
-        &:last-child { border-bottom: none; }
-        &.o_item_active { background: #e7f1ff; }
-        &.o_product_done { opacity: 0.7; }
-
-        .o_product_info { flex: 1; }
-        .o_product_name { font-size: 14px; font-weight: 500; color: #333; }
-        .o_product_meta { font-size: 12px; margin-top: 2px; }
-        .o_product_qty {
-            display: flex; align-items: baseline; gap: 2px;
-            font-size: 18px; font-weight: 700; margin-left: 12px;
-            .o_qty_done { color: #0d6efd; }
+        .collapse-arrow {
+            color: #6c757d;
+            font-size: 12px;
         }
-        &.o_product_done .o_product_qty .o_qty_done { color: #198754; }
     }
 
-    // ── SN tags ──
-    .o_sn_list {
+    // ── Product subcard ──
+    // .o_pallet_products {
+    //     padding: 4px 0;
+    // }
+    // .o_product_subcard {
+    //     display: flex;
+    //     flex-direction: column;
+    //     gap: 6px;
+    //     margin: 4px 10px;
+    //     padding: 10px 12px;
+    //     background: #f8f9fa;
+    //     border: 1px solid #e9ecef;
+    //     border-radius: 6px;
+    //     transition: background 0.15s;
+    //
+    //     &.o_item_active { background: #e7f1ff; border-color: #cfe2ff; }
+    //     &.o_product_done { opacity: 0.65; }
+    //
+    //     .o_product_row_top {
+    //         display: flex;
+    //         justify-content: space-between;
+    //         align-items: center;
+    //         gap: 8px;
+    //     }
+    //
+    //     .o_product_row_bottom {
+    //         display: flex;
+    //         flex-wrap: wrap;
+    //         gap: 5px 10px;
+    //         align-items: center;
+    //         font-size: 11px;
+    //         color: #6c757d;
+    //     }
+    //
+    //     .o_product_icon {
+    //         width: 24px;
+    //         height: 24px;
+    //         border-radius: 4px;
+    //         background: #dee2e6;
+    //         display: flex;
+    //         align-items: center;
+    //         justify-content: center;
+    //         color: #6c757d;
+    //         flex-shrink: 0;
+    //         font-size: 11px;
+    //     }
+    // }
+    //
+    // .o_product_name {
+    //     font-size: 13px;
+    //     font-weight: 500;
+    //     color: #333;
+    //     line-height: 1.3;
+    // }
+    //
+    // .o_meta_code {
+    //     font-weight: 600;
+    //     color: #495057;
+    //     background: #e9ecef;
+    //     padding: 1px 5px;
+    //     border-radius: 3px;
+    //     font-family: monospace;
+    //     font-size: 10px;
+    // }
+    //
+    // .o_meta_barcode {
+    //     display: inline-flex;
+    //     align-items: center;
+    //     gap: 2px;
+    //     font-family: monospace;
+    //     font-size: 10px;
+    //     color: #495057;
+    // }
+    //
+    // .o_meta_lot {
+    //     font-family: monospace;
+    //     font-size: 10px;
+    //     color: #856404;
+    //     background: #fff3cd;
+    //     padding: 1px 5px;
+    //     border-radius: 3px;
+    // }
+    //
+    // .o_product_location {
+    //     font-size: 11px;
+    //     color: #6c757d;
+    // }
+    //
+    // .o_product_qty {
+    //     display: flex;
+    //     align-items: baseline;
+    //     gap: 3px;
+    //     font-size: 15px;
+    //     font-weight: 700;
+    //     flex-shrink: 0;
+    //
+    //     .o_qty_value {
+    //         color: #0d6efd;
+    //         line-height: 1;
+    //     }
+    //
+    //     .o_qty_label {
+    //         font-size: 11px;
+    //         color: #6c757d;
+    //     }
+    // }
+    //
+    // .o_pallet_product.o_product_done .o_product_qty .o_qty_value {
+    //     color: #198754;
+    // }
+    //
+    // .o_sn_list {
+    //     display: flex;
+    //     flex-wrap: wrap;
+    //     gap: 4px;
+    //     margin-top: 4px;
+    // }
+    //
+    // .o_sn_tag {
+    //     display: inline-block;
+    //     font-size: 11px;
+    //     padding: 2px 6px;
+    //     background: #e9ecef;
+    //     color: #495057;
+    //     border-radius: 4px;
+    //     font-family: monospace;
+    // }
+.o_barcode_footer,
+.o_sbl_footer {
+    display: flex !important;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #fff !important;
+    border-top: 1px solid #dee2e6;
+    flex-shrink: 0 !important;
+    position: fixed !important;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    min-height: 50px;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0;
+
+    .btn {
+        flex: 1;
+        padding: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        border-radius: 6px;
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    .btn-success {
+        font-size: 14px;
+    }
+}
+
+// ═══ 入库流程专属样式 ═══
+
+// 入库单信息卡片
+.o_sbl_picking_card {
+    background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    padding: 8px 16px;
+    flex-shrink: 0;
+
+    .o_sbl_picking_info {
         display: flex;
         flex-wrap: wrap;
+        gap: 4px 12px;
+        align-items: center;
+    }
+
+    .o_picking_row {
+        display: inline-flex;
+        align-items: center;
         gap: 4px;
-        margin-top: 4px;
-    }
-    .o_sn_tag {
-        display: inline-block;
-        font-size: 11px;
-        padding: 2px 6px;
-        background: #e9ecef;
-        color: #495057;
-        border-radius: 4px;
-        font-family: monospace;
-    }
-
-    .o_batch_count {
         font-size: 12px;
+    }
+
+    .o_picking_label {
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    .o_picking_value {
+        color: #333;
         font-weight: 600;
+        max-width: 150px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
+}
 
-    // ── Footer ──
-    .o_barcode_footer,
-    .o_sbl_footer {
+// 当前货位提示栏
+.o_sbl_location_bar {
+    background: #fff3cd;
+    border-bottom: 1px solid #ffc107;
+    padding: 6px 16px;
+    font-size: 12px;
+    color: #856404;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+// 扫描模式标签
+.o_sbl_scan_mode {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 14px;
+    background: #e9ecef;
+    color: #495057;
+    white-space: nowrap;
+
+    &.o_mode_scan_picking  { background: #d1ecf1; color: #0c5460; }
+    &.o_mode_scan_location { background: #fff3cd; color: #856404; }
+    &.o_mode_scan_package  { background: #d4edda; color: #155724; }
+}
+
+// 步骤条
+.o_sbl_step_indicator {
+    display: flex;
+    align-items: center;
+    padding: 8px 16px;
+    background: #fff;
+    border-bottom: 1px solid #dee2e6;
+    flex-shrink: 0;
+    gap: 0;
+}
+
+.o_step_item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    min-width: 48px;
+
+    .o_step_circle {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
         display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 700;
+        background: #e9ecef;
+        color: #6c757d;
+        border: 2px solid #dee2e6;
+        transition: all 0.2s;
+    }
+
+    .o_step_label {
+        font-size: 10px;
+        font-weight: 600;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    &.active .o_step_circle {
+        background: #0d6efd;
+        color: #fff;
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
+    }
+
+    &.active .o_step_label {
+        color: #0d6efd;
+    }
+
+    &.done .o_step_circle {
+        background: #198754;
+        color: #fff;
+        border-color: #198754;
+    }
+
+    &.done .o_step_label {
+        color: #198754;
+    }
+}
+
+.o_step_line {
+    flex: 1;
+    height: 2px;
+    background: #dee2e6;
+    margin: 0 4px;
+    margin-bottom: 14px;
+    transition: background 0.2s;
+
+    &.active {
+        background: #198754;
+    }
+}
+
+// 空状态
+.o_sbl_empty_state {
+    padding: 32px 16px;
+
+    i.fa {
+        opacity: 0.25;
+        font-size: 64px;
+    }
+
+    p {
+        margin: 0;
+    }
+}
+
+// 托盘卡片 - 已完成
+.o_sbl_pallet.o_pallet_updated {
+    border-color: #198754;
+    background: #f8fdf9;
+
+    .o_pallet_header {
+        background: #e8f5e9;
+    }
+}
+
+// 托盘产品列表容器 - 有边框分隔
+.o_pallet_products {
+    border-top: 1px solid #e9ecef;
+    padding: 4px 0;
+}
+
+// 托盘头部 - 两行布局
+.o_pallet_header {
+    padding: 10px 14px;
+    background: #f8f9fa;
+    border-bottom: none;
+    cursor: pointer;
+    transition: background 0.15s;
+
+    &:hover {
+        background: #e9ecef;
+    }
+
+    // 第一行：托盘名称 + 折叠箭头
+    .o_pallet_row1 {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
         gap: 8px;
-        padding: 10px 12px;
-        background: #fff;
-        border-top: 1px solid #dee2e6;
+    }
+
+    // 第二行：徽章 + 数量 + 货位
+    .o_pallet_row2 {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 6px;
+        flex-wrap: wrap;
+    }
+}
+
+// 托盘展开时，头部下方显示边框
+.o_sbl_pallet:has(.o_pallet_products:not(.collapse)) .o_pallet_header {
+    border-bottom: 1px solid #dee2e6;
+}
+
+// 托盘信息（第一行）
+.o_pallet_info {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #333;
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
+}
+
+.o_pallet_name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.o_pallet_product_count {
+    font-size: 12px;
+    font-weight: 400;
+    color: #6c757d;
+}
+
+// 折叠箭头（第一行右侧）
+.o_pallet_right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+// 货位信息（第二行）
+.o_pallet_location {
+    font-size: 12px;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+// 折叠箭头动画（第一行右侧）
+.o_pallet_right .collapse-arrow {
+    transition: transform 0.2s ease;
+    color: #6c757d;
+    font-size: 12px;
+}
+
+// 展开时箭头旋转
+.o_pallet_row1:not(.collapsed) .collapse-arrow,
+.o_pallet_row1[aria-expanded="true"] .collapse-arrow {
+    transform: rotate(180deg);
+}
+
+// 子卡片（嵌套在产品列表内）
+.o_product_subcard {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 4px 10px;
+    padding: 10px 12px;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    transition: background 0.15s;
+
+    &.o_item_active {
+        background: #e7f1ff;
+        border-color: #cfe2ff;
+    }
+
+    &.o_product_done {
+        opacity: 0.65;
+    }
+
+    .o_product_row_top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .o_product_row_bottom {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px 10px;
+        align-items: center;
+    }
+
+    .o_product_icon {
+        width: 24px;
+        height: 24px;
+        border-radius: 4px;
+        background: #dee2e6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6c757d;
         flex-shrink: 0;
+        font-size: 11px;
+    }
+}
 
-        .btn {
-            flex: 1;
-            padding: 10px;
-            font-size: 14px;
-            font-weight: 600;
-            border-radius: 8px;
-        }
-        .btn-success {
-            font-size: 16px;
-        }
+.o_product_name {
+    flex: 1;
+    min-width: 0;
+    font-size: 13px;
+    font-weight: 500;
+    color: #333;
+    line-height: 1.3;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.o_product_meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
+    font-size: 11px;
+    color: #6c757d;
+}
+
+.o_meta_code {
+    font-weight: 600;
+    color: #495057;
+    background: #e9ecef;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-family: monospace;
+    font-size: 10px;
+}
+
+.o_meta_barcode {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    font-family: monospace;
+    font-size: 10px;
+    color: #495057;
+}
+
+.o_meta_lot {
+    font-family: monospace;
+    font-size: 10px;
+    color: #856404;
+    background: #fff3cd;
+    padding: 1px 5px;
+    border-radius: 3px;
+}
+
+.o_product_location {
+    font-size: 11px;
+    color: #6c757d;
+}
+
+.o_product_qty {
+    display: flex;
+    align-items: baseline;
+    gap: 3px;
+    font-size: 15px;
+    font-weight: 700;
+    flex-shrink: 0;
+
+    .o_qty_value {
+        color: #0d6efd;
+        line-height: 1;
     }
 
-    // ── Order info (legacy inbound) ──
-    .o_order_info {
-        padding: 12px 16px;
-        background: #f8f9fa;
-        border-bottom: 1px solid #dee2e6;
-        .o_order_name { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
-        .o_order_details { font-size: 14px; color: #6c757d; }
+    .o_qty_label {
+        font-size: 11px;
+        color: #6c757d;
     }
+}
+
+.o_pallet_product.o_product_done .o_product_qty .o_qty_value {
+    color: #198754;
+}
+
+// ── Order info (legacy inbound) ──
+.o_order_info {
+    padding: 12px 16px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    .o_order_name { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+    .o_order_details { font-size: 14px; color: #6c757d; }
+}
 }

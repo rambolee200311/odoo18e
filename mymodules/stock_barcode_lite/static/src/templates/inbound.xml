@@ -1,49 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <templates>
-    <!-- 首页 - 两个菜单块 -->
-    <t t-name="stock_barcode_lite.Homepage">
-        <div class="o_stock_barcode_lite_homepage">
-            <div class="container-fluid py-4">
-                <div class="text-center mb-4">
-                    <h1 class="display-6">Stock Barcode Lite</h1>
-                    <p class="text-muted">Select a workflow to continue</p>
-                </div>
-                <div class="row justify-content-center g-4">
-                    <div class="col-md-5 col-lg-4">
-                        <div class="card h-100 shadow-sm o_homepage_card o_inbound_card" t-on-click="_onInboundClick">
-                            <div class="card-header bg-primary text-white">
-                                <h3 class="mb-0">
-                                    <i class="fa fa-sign-in me-2"/>Inbound
-                                </h3>
-                            </div>
-                            <div class="card-body d-flex flex-column">
-                                <p class="text-muted mb-auto">Manage inbound orders and product imports.</p>
-                                <button class="btn btn-primary mt-3">
-                                    <i class="fa fa-arrow-right me-2"/>Go to Inbound
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-5 col-lg-4">
-                        <div class="card h-100 shadow-sm o_homepage_card o_outbound_card" t-on-click="_onOutboundClick">
-                            <div class="card-header bg-success text-white">
-                                <h3 class="mb-0">
-                                    <i class="fa fa-sign-out me-2"/>Outbound
-                                </h3>
-                            </div>
-                            <div class="card-body d-flex flex-column">
-                                <p class="text-muted mb-auto">Manage outbound orders and product exports.</p>
-                                <button class="btn btn-success mt-3">
-                                    <i class="fa fa-arrow-right me-2"/>Go to Outbound
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </t>
-
     <!-- 入库流程页面 -->
     <t t-name="stock_barcode_lite.InboundPage">
         <input
@@ -54,6 +10,8 @@
             autocorrect="off"
             autocapitalize="off"
             spellcheck="false"
+            inputmode="none"
+            touch-action="none"
         />
 
         <div class="o_sbl_inbound">
@@ -137,19 +95,6 @@
                 <i class="fa fa-qrcode me-2"/>
                 <t t-esc="stepHint"/>
             </div>
-
-<!--            <div class="o_sbl_summary row g-2 mb-2">-->
-<!--                <t t-foreach="summaryCards || []" t-as="card" t-key="card.key">-->
-<!--                    <div class="col-6 col-md-4">-->
-<!--                        <div class="card shadow-sm h-100">-->
-<!--                            <div class="card-body py-1 px-2">-->
-<!--                                <div class="text-muted small"><t t-esc="card.label"/></div>-->
-<!--                                <div class="fs-6 fw-bold"><t t-esc="card.value"/></div>-->
-<!--                            </div>-->
-<!--                        </div>-->
-<!--                    </div>-->
-<!--                </t>-->
-<!--            </div>-->
 
             <!-- ═══ 进度条 ═══ -->
             <div class="o_sbl_progress" t-if="state.summary &amp;&amp; state.summary.total_move_lines > 0">
@@ -277,160 +222,6 @@
                 </button>
                 <button class="btn btn-secondary" t-on-click="exit">
                     <i class="fa fa-home me-1"/>Home
-                </button>
-            </div>
-        </div>
-    </t>
-
-    <!-- 出库流程页面 -->
-    <t t-name="stock_barcode_lite.OutboundPage">
-        <input
-            t-ref="barcodeInput"
-            type="text"
-            class="o_hidden_barcode_input"
-            autocomplete="off"
-            autocorrect="off"
-            autocapitalize="off"
-            spellcheck="false"
-        />
-
-        <div class="o_sbl_outbound">
-            <div class="o_sbl_header">
-                <button type="button" class="btn btn-secondary o_exit_btn me-2" t-on-click="exit" title="Back">
-                    <i class="oi oi-chevron-left"/>
-                </button>
-                <div class="o_sbl_header_title">
-                    <span class="fa fa-truck me-1"/>
-                    <t t-if="state.order" t-esc="state.order.reference"/>
-                    <t t-else="">Outbound</t>
-                </div>
-                <div class="o_sbl_header_mode" t-attf-class="o_mode_{{ state.scanMode }}">
-                    <t t-esc="scanModeLabel"/>
-                </div>
-            </div>
-
-            <div t-if="state.message" t-attf-class="o_sbl_alert alert alert-{{ state.messageType }}">
-                <t t-esc="state.message"/>
-            </div>
-
-            <div t-if="stepHint" class="o_sbl_step_hint">
-                <t t-esc="stepHint"/>
-            </div>
-
-            <!-- ═══ 当前货位信息 ═══ -->
-            <div t-if="state.currentLocation" class="o_sbl_location_bar">
-                <i class="fa fa-map-marker text-danger me-1"/>
-                <span class="me-1">Location:</span>
-                <strong class="text-primary"><t t-esc="state.currentLocation.location_barcode"/></strong>
-            </div>
-
-            <!-- ═══ 扫描步骤指示器 ═══ -->
-            <div t-if="state.order" class="o_sbl_step_indicator">
-                <div class="o_step_item" t-attf-class="{ active: state.scanMode === 'step', done: state.scanMode !== 'step' }">
-                    <div class="o_step_circle">
-                        <t t-if="state.scanMode !== 'step'"><i class="fa fa-check"/></t>
-                        <t t-else="">1</t>
-                    </div>
-                    <div class="o_step_label">Step (P/D)</div>
-                </div>
-                <div class="o_step_line" t-attf-class="{ active: ['location', 'pallet', 'product', 'qty', 'sn'].includes(state.scanMode) }"/>
-                <div class="o_step_item" t-attf-class="{ active: ['location', 'pallet', 'product', 'qty', 'sn'].includes(state.scanMode) &amp;&amp; !state.currentLocation }">
-                    <div class="o_step_circle">
-                        <t t-if="state.currentLocation"><i class="fa fa-check"/></t>
-                        <t t-else="">2</t>
-                    </div>
-                    <div class="o_step_label">Location</div>
-                </div>
-                <div class="o_step_line" t-attf-class="{ active: ['pallet', 'product', 'qty', 'sn'].includes(state.scanMode) }"/>
-                <div class="o_step_item" t-attf-class="{ active: ['pallet', 'product', 'qty', 'sn'].includes(state.scanMode) }">
-                    <div class="o_step_circle">3</div>
-                    <div class="o_step_label">Pallet</div>
-                </div>
-                <div class="o_step_line" t-attf-class="{ active: ['product', 'qty', 'sn'].includes(state.scanMode) }"/>
-                <div class="o_step_item" t-attf-class="{ active: ['product', 'qty', 'sn'].includes(state.scanMode) }">
-                    <div class="o_step_circle">4</div>
-                    <div class="o_step_label">Product</div>
-                </div>
-            </div>
-
-            <div t-if="state.pallets.length &gt; 0" class="o_sbl_progress">
-                <div class="progress-bar"
-                     t-attf-style="width: {{ progressPercent }}%"
-                     t-attf-class="bg-{{ progressPercent === 100 ? 'success' : 'primary' }}"/>
-            </div>
-            <div t-if="state.pallets.length &gt; 0" class="o_sbl_progress_text">
-                <span><t t-esc="progressPercent"/>%</span>
-                <span class="ms-2"><t t-esc="state.totalScanned"/> / <t t-esc="state.totalRequired"/></span>
-                <span class="ms-auto badge" t-attf-class="{{ isAllComplete ? 'bg-success' : 'bg-secondary' }}">
-                    <t t-if="isAllComplete">All Done</t>
-                    <t t-else=""><t t-esc="state.pallets.filter(p => !p.is_complete).length"/> left</t>
-                </span>
-            </div>
-
-            <div class="o_sbl_pallets">
-                <t t-foreach="state.pallets || []" t-as="pallet" t-key="pallet.pallet_no">
-                    <div t-attf-class="o_sbl_pallet {{ pallet.is_complete ? 'o_pallet_done' : '' }} {{ state.currentPalletIndex === state.pallets.indexOf(pallet) ? 'o_pallet_active' : '' }}">
-                        <div class="o_pallet_header">
-                            <div class="o_pallet_info">
-                                <span class="fa fa-cube me-1"/>
-                                <strong><t t-esc="pallet.pallet_no"/></strong>
-                                <span class="badge bg-dark ms-1" t-if="pallet.mode === 'whole'">Whole</span>
-                                <span class="badge bg-warning text-dark ms-1" t-if="pallet.mode === 'disassembly'">Disassembly</span>
-                                <span class="badge bg-success ms-1" t-if="pallet.is_complete">
-                                    <i class="fa fa-check"/> Done
-                                </span>
-                            </div>
-                            <div class="o_pallet_qty">
-                                <t t-esc="(pallet.products || []).reduce((s, p) => s + (p.quantity || 0), 0)"/> items
-                            </div>
-                        </div>
-                        <!-- 托盘关联的货位 -->
-                        <div class="o_pallet_location" t-if="pallet.location_barcode">
-                            <i class="fa fa-map-marker-alt text-muted me-1"/>
-                            <span class="small text-muted"><t t-esc="pallet.location_barcode"/></span>
-                        </div>
-
-                        <div class="o_pallet_products">
-                            <t t-foreach="pallet.products || []" t-as="item" t-key="item.id">
-                                <div t-attf-class="o_pallet_product {{ (item.qty_done || 0) &gt;= item.quantity ? 'o_product_done' : '' }} {{ state.currentPalletIndex === state.pallets.indexOf(pallet) &amp;&amp; state.currentItemIndex === pallet.products.indexOf(item) ? 'o_item_active' : '' }}">
-                                    <div class="o_product_info">
-                                        <div class="o_product_name">
-                                            <t t-esc="item.product_name"/>
-                                        </div>
-                                        <div class="o_product_meta text-muted small">
-                                            <span t-if="item.product_code"><t t-esc="item.product_code"/></span>
-                                            <span t-if="item.product_barcode"> / <t t-esc="item.product_barcode"/></span>
-                                        </div>
-                                        <div t-if="item.sn_list &amp;&amp; item.sn_list.length &gt; 0" class="o_sn_list mt-1">
-                                            <t t-foreach="item.sn_list || []" t-as="sn" t-key="sn">
-                                                <span class="o_sn_tag"><t t-esc="sn"/></span>
-                                            </t>
-                                        </div>
-                                    </div>
-                                    <div class="o_product_qty">
-                                        <span><t t-esc="item.qty_done || 0"/> / <t t-esc="item.quantity || 0"/></span>
-                                    </div>
-                                </div>
-                            </t>
-                        </div>
-                    </div>
-                </t>
-            </div>
-
-            <div t-if="!state.order &amp;&amp; !state.loading" class="o_sbl_empty_state">
-                <div class="text-center text-muted p-4">
-                    <i class="fa fa-inbox fa-3x mb-3"/>
-                    <p>No outbound order loaded.</p>
-                    <p class="small">Please select an outbound order from the menu.</p>
-                </div>
-            </div>
-
-            <div class="o_sbl_footer">
-                <button t-if="state.order" class="btn btn-secondary" t-on-click="resetScan">
-                    <i class="fa fa-refresh me-1"/>Reset
-                </button>
-                <button t-if="state.order" class="btn btn-success flex-fill" t-on-click="confirmOutbound" t-att-disabled="state.loading">
-                    <i class="fa fa-check me-1"/>Confirm Outbound
                 </button>
             </div>
         </div>

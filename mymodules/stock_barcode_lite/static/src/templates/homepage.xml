@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates>
+<!-- 首页 - Inbound + Outbound -->
+    <t t-name="stock_barcode_lite.Homepage">
+        <div class="o_stock_barcode_lite_homepage">
+            <div class="container-fluid py-4">
+
+                <!-- Inbound -->
+                <div class="section-header">
+                    <h5 class="section-title">Inbound</h5>
+                </div>
+                <div class="row justify-content-center g-4">
+                    <div class="col-md-5 col-lg-4">
+                        <div class="card h-100 shadow-sm o_homepage_card o_inbound_card" t-on-click="_onInboundClick">
+                            <div class="card-header bg-primary text-white">
+                                <h3 class="mb-0">
+                                    <i class="fa fa-sign-in me-2"/>Full Pallet Putaway
+                                </h3>
+                            </div>
+                            <div class="card-body d-flex flex-column">
+                                <p class="text-muted mb-auto">Receive pallets &amp; complete full pallet putaway operations.</p>
+                                <button class="btn btn-primary mt-3">
+                                    <i class="fa fa-arrow-right me-2"/>Go
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Outbound -->
+                <div class="section-header">
+                    <h5 class="section-title">Outbound</h5>
+                </div>
+                <div class="row justify-content-center g-4">
+                    <div class="col-md-5 col-lg-4">
+                        <div class="card h-100 shadow-sm o_homepage_card o_outbound_whole_card" t-on-click="_onOutboundWholeClick">
+                            <div class="card-header bg-success text-white">
+                                <h3 class="mb-0">
+                                    <i class="fa fa-sign-out me-2"/>Full Pallet Pick
+                                </h3>
+                            </div>
+                            <div class="card-body d-flex flex-column">
+                                <p class="text-muted mb-auto">Direct full pallet picking &amp; shipment for bulk orders.</p>
+                                <button class="btn btn-success mt-3">
+                                    <i class="fa fa-arrow-right me-2"/>Go
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-5 col-lg-4">
+                        <div class="card h-100 shadow-sm o_homepage_card o_outbound_break_card" t-on-click="_onOutboundBreakClick">
+                            <div class="card-header bg-warning text-dark">
+                                <h3 class="mb-0">
+                                    <i class="fa fa-sign-out me-2"/>Break Bulk Pick
+                                </h3>
+                            </div>
+                            <div class="card-body d-flex flex-column">
+                                <p class="text-muted mb-auto">Break pallets &amp; pick single items from mixed pallets.</p>
+                                <button class="btn btn-warning mt-3">
+                                    <i class="fa fa-arrow-right me-2"/>Go
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </t>
+</templates>

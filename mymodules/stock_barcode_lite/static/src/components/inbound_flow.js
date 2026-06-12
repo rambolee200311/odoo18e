@@ -2,21 +2,8 @@
 
 import { useService } from "@web/core/utils/hooks";
 import { Component, useState, useRef, onMounted, onWillUnmount } from "@odoo/owl";
+import { _t } from "@web/core/l10n/translation";
 
-/**
- * Inbound Flow Component
- *
- * 扫码流程：
- *  ─────────────────────────────────────────────────────────────────────
- *  入库: 扫库位号 → 扫托盘号(可多个) → 下一库位 → 确认入库
- *  ─────────────────────────────────────────────────────────────────────
- *
- * 核心逻辑：
- *  1. 扫库位号 → 激活该库位，加载该库位待绑定的托盘列表
- *  2. 扫托盘号 → 调用后端API，验证并绑定托盘到当前库位
- *  3. 库位内所有托盘绑定完成 → 自动跳转到下一库位
- *  4. 所有库位完成 → 可点击确认入库
- */
 export class InboundFlow extends Component {
     static template = "stock_barcode_lite.InboundPage";
     static props = {};
@@ -26,102 +13,150 @@ export class InboundFlow extends Component {
         this.notification = useService("notification");
         this.action = useService("action");
 
-        this.state = useState({
-            /** 当前入库单ID（由后端传入或从上下文获取） */
-            order: null,
-            orderId: null,
-            /** locations: [{ location_code, expected_pallets: [], bound_pallets: Set, is_complete: false }] */
-            locations: [],
-            currentLocationIndex: -1,
-            scanMode: "location",  // "location" | "pallet"
-            message: "",
-            messageType: "info",
-            loading: false,
-        });
-
-        // 获取页面上的扫码输入框 DOM 引用
         this.barcodeInputRef = useRef("barcodeInput");
 
-        // 生命周期：组件挂载完成后执行
-        onMounted(async () => {
-            // 监听页面显示/隐藏（切回来自动聚焦）
-            this._bindVisibilityChange();
-            // 初始化加载入库单
-            await this._initOrder();
-            const barcodeInput = this.barcodeInputRef.el;
-            if (barcodeInput) {
-                // 监控输入动作
-                barcodeInput.addEventListener("input", this._onBarcodeInput.bind(this));
-                // 监控‘按下’动作
-                barcodeInput.addEventListener("keydown", this._onBarcodeKeydown.bind(this));
-                // 聚焦扫码框
-                barcodeInput.focus();
-            }
+        this.state = useState({
+            loading: false,
+            message: "",
+            messageType: "info",
+            nextStep: "scan_picking",
+            pallets: [],
+            picking: null,
+            currentLocation: {},
+            summary: {
+                total_pallets: 0,
+                updated_pallets: 0,
+                pending_pallets: 0,
+                total_move_lines: 0,
+                updated_move_lines: 0,
+                pending_move_lines: 0,
+            },
+            lastScan: {},
+            updatedMoveLineIds: [],
         });
 
-        // 生命周期：组件销毁前执行（清理事件）
+        // 扫码输入缓冲
+        this._scanBuffer = "";
+        this._scanTimer = null;
+        this._isProcessing = false;
+        this._isPDA = this._detectPDA();
+
+        onMounted(async () => {
+            console.log('[InboundFlow] onMounted');
+            this._bindVisibilityChange();
+            const barcodeInput = this.barcodeInputRef.el;
+            if (barcodeInput) {
+                barcodeInput.addEventListener("input", this._onBarcodeInput.bind(this));
+                barcodeInput.addEventListener("keydown", this._onBarcodeKeydown.bind(this));
+                barcodeInput.addEventListener("keypress", this._onBarcodeKeypress.bind(this));
+                barcodeInput.addEventListener("blur", this._onBarcodeBlur.bind(this));
+                // 初始化时聚焦输入框
+                this._focusBarcodeInput();
+            }
+            await this._initScanState();
+            console.log('[InboundFlow] onMounted complete');
+        });
+
         onWillUnmount(() => {
             this._unbindVisibilityChange();
             const barcodeInput = this.barcodeInputRef.el;
             if (barcodeInput) {
-                // 销毁监听，防止内存泄漏
                 barcodeInput.removeEventListener("input", this._onBarcodeInput.bind(this));
                 barcodeInput.removeEventListener("keydown", this._onBarcodeKeydown.bind(this));
+                barcodeInput.removeEventListener("keypress", this._onBarcodeKeypress.bind(this));
+                barcodeInput.removeEventListener("blur", this._onBarcodeBlur.bind(this));
             }
+            this._clearScanTimer();
         });
     }
 
-    // 初始化入库单（从上下文/URL 获取订单）
-    async _initOrder() {
-        // 从上下文或props获取当前入库单ID！！！！！！！！！！！
-        // 暂时通过搜索最新待处理的入库单来演示
-        // 实际使用时应该从URL参数或context传入
-        const activeId = await this._getActiveOrderId();
-        if (activeId) {
-            await this.loadOrder(activeId);
+    /**
+     * 检测是否为PDA设备
+     */
+    _detectPDA() {
+        const hasTouchScreen = (
+            'ontouchstart' in window ||
+            navigator.maxTouchPoints > 0 ||
+            window.matchMedia('(pointer: coarse)').matches
+        );
+        const isDesktop = window.matchMedia('(min-width: 1024px)').matches && !hasTouchScreen;
+        return !isDesktop;
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 扫码监听（直接在 input 元素上绑定）
+    // ═══════════════════════════════════════════════════════════════
+
+    /**
+     * 处理扫码输入框的 input 事件
+     * 扫码枪会快速输入字符并以 Enter 结尾
+     */
+    _onBarcodeInput(ev) {
+        const input = ev.target;
+        if (!input) return;
+
+        const value = input.value;
+        console.log('[InboundFlow] _onBarcodeInput triggered, value:', value, 'inputType:', ev.inputType);
+        
+        // 处理包含换行符的情况
+        if (ev.inputType === "insertLineFeed" || value.includes("\n") || value.includes("\r")) {
+            const barcode = value.replace(/\n/g, "").replace(/\r/g, "").trim();
+            console.log('[InboundFlow] Barcode detected (input event):', barcode);
+            if (barcode) {
+                input.value = "";
+                this.onBarcodeScanned(barcode);
+            }
         }
     }
 
-    async _getActiveOrderId() {
-        // 实现从上下文获取当前入库单ID！！！！！！！！！！！！！！
-        // 例如从 actionMenager 或 context 获取
-        // 目前返回 null，等待后端配合传参
-        return null;
+    /**
+     * 处理扫码输入框的 keydown 事件
+     * 检测 Enter 键作为扫码确认
+     */
+    _onBarcodeKeydown(ev) {
+        console.log('[InboundFlow] _onBarcodeKeydown, key:', ev.key);
+        if (ev.key === "Enter") {
+            ev.preventDefault();
+            const input = ev.target;
+            const barcode = input.value.trim();
+            console.log('[InboundFlow] Enter pressed, barcode:', barcode);
+            if (barcode) {
+                input.value = "";
+                this.onBarcodeScanned(barcode);
+            }
+        }
     }
 
+    _onBarcodeKeypress(ev) {
+        if (ev.key === "Enter" || ev.charCode === 13) {
+            ev.preventDefault();
+            const input = ev.target;
+            const barcode = input.value.trim();
+            if (barcode) {
+                input.value = "";
+                this.onBarcodeScanned(barcode);
+            }
+        }
+    }
 
-    /**
-     * 加载入库单数据
-     * @param {number} orderId 入库单ID
-     */
-    async loadOrder(orderId) {
-        this.state.loading = true;
-        try {
-            // ORM 查询：获取订单信息
-            const orders = await this.orm.searchRead(
-                "world.depot.inbound.order",
-                [["id", "=", orderId]],
-                ["id", "reference", "state"],
-                { limit: 1 }
-            );
-            if (orders.length === 0) {
-                throw new Error("Inbound order not found");
-            }
-            const order = orders[0];
-            if (order.state === "done" || order.state === "cancel") {
-                throw new Error("Inbound order state is " + order.state);
-            }
-            this.state.order = order;
-            this.state.orderId = orderId;
-            await this.loadLocations(orderId);
-            this.showMessage(
-                "Loaded " + order.reference + " — " + this.state.locations.length + " location(s)",
-                "success"
-            );
-        } catch (error) {
-            this.showMessage(this.formatError(error), "danger");
-        } finally {
-            this.state.loading = false;
+    _onBarcodeBlur(ev) {
+        console.log('[InboundFlow] _onBarcodeBlur, _isProcessing:', this._isProcessing, '_isPDA:', this._isPDA);
+        // PDA模式下也自动聚焦，确保扫码枪输入能被捕获
+        if (!this._isProcessing) {
+            console.log('[InboundFlow] Setting timeout to refocus');
+            setTimeout(() => this._focusBarcodeInput(), 0);
+        }
+    }
+
+    _focusBarcodeInput() {
+        console.log('[InboundFlow] _focusBarcodeInput called');
+        const input = this.barcodeInputRef.el;
+        if (input) {
+            input.focus();
+            input.value = "";
+            console.log('[InboundFlow] Input focused and cleared');
+        } else {
+            console.error('[InboundFlow] Cannot focus - input not found');
         }
     }
 
@@ -141,52 +176,28 @@ export class InboundFlow extends Component {
         }
     }
 
-    _focusBarcodeInput() {
-        const input = this.barcodeInputRef.el;
-        if (input) {
-            input.focus();
-            input.value = "";
-        }
-    }
+    // ═══════════════════════════════════════════════════════════════
+    // 初始化
+    // ═══════════════════════════════════════════════════════════════
 
-    // 触发 识别码信息
-    _onBarcodeInput(ev) {
-        const input = ev.target;
-        const value = input.value;
-        if (ev.inputType === "insertLineFeed" || value.includes("\n")) {
-            const barcode = value.replace(/\n/g, "").replace(/\r/g, "").trim();
-            if (barcode) {
-                this.onBarcodeScanned(barcode);
-            }
-            input.value = "";
-        }
-    }
+    async _initScanState() {
+        const context = this.props?.action?.context || {};
+        const pickingId = context.pickingId || context.picking_id || false;
+        const currentLocationId = context.currentLocationId || context.current_location_id || false;
 
-    // 触发 识别码信息
-    _onBarcodeKeydown(ev) {
-        if (ev.key === "Enter") {
-            ev.preventDefault();
-            const input = ev.target;
-            const barcode = input.value.trim();
-            if (barcode) {
-                this.onBarcodeScanned(barcode);
-            }
-            input.value = "";
-            input.focus();
+        if (!pickingId) {
+            this.state.nextStep = "scan_picking";
+            return;
         }
-    }
 
-    // 扫描
-    async onBarcodeScanned(barcode) {
-        if (!barcode || this.state.loading) return;
-        this.state.loading = true;
         try {
-            switch (this.state.scanMode) {
-                // 扫库位
-                case "location": await this.scanLocation(barcode); break;
-                // 扫托盘
-                case "pallet":  await this.scanPallet(barcode);  break;
-            }
+            this.state.loading = true;
+            const result = await this.orm.call(
+                "stock.barcode.lite.scan.service",
+                "get_incoming_scan_state",
+                [pickingId, currentLocationId || false, {}]
+            );
+            await this._applyScanResult(result, false);
         } catch (error) {
             this.showMessage(this.formatError(error), "danger");
         } finally {
@@ -194,217 +205,174 @@ export class InboundFlow extends Component {
         }
     }
 
-    // ════════════════════════════════════════════
-    // 阶段1: 扫库位号
-    // ════════════════════════════════════════════
-    async scanLocation(barcode) {
-        if (!this.state.orderId) {
-            throw new Error("No inbound order loaded. Please load an order first.");
-        }
+    // ═══════════════════════════════════════════════════════════════
+    // 扫码核心
+    // ═══════════════════════════════════════════════════════════════
 
-        // 验证库位是否存在于当前订单中
-        const loc = this.state.locations.find(l => l.location_code === barcode);
-        if (!loc) {
-            throw new Error("Location " + barcode + " not found in this order");
-        }
-        if (loc.is_complete) {
-            throw new Error("Location " + barcode + " already complete");
-        }
-
-        const index = this.state.locations.indexOf(loc);
-        this.state.currentLocationIndex = index;
-        this.state.scanMode = "pallet";
-        const remaining = loc.expected_pallets.filter(p => !loc.bound_pallets.has(p)).length;
-        this.showMessage(
-            "Location [" + loc.location_code + "] — " + remaining + " pallet(s) to bind",
-            "success"
-        );
-        this.flashScreen();
-    }
-
-    // ════════════════════════════════════════════
-    // 阶段2: 扫托盘号（调用后端API绑定）
-    // ════════════════════════════════════════════
-    async scanPallet(barcode) {
-        const loc = this.state.locations[this.state.currentLocationIndex];
-        if (!loc) {
-            throw new Error("No location selected");
-        }
-
-        // 检查是否已经绑定过
-        if (loc.bound_pallets.has(barcode)) {
-            throw new Error("Pallet " + barcode + " already scanned in this location");
-        }
-
-        // 检查托盘是否在该库位的预期列表中
-        if (!loc.expected_pallets.includes(barcode)) {
-            throw new Error("Pallet " + barcode + " not expected in location [" + loc.location_code + "]");
-        }
-
-        // 调用后端API进行绑定
-        try {
-            await this.orm.call(
-                "world.depot.inbound.order",
-                "action_bind_pallet_to_location",
-                [this.state.orderId],
-                {
-                    location_code: loc.location_code,
-                    pallet_no: barcode,
-                }
-            );
-
-            // 绑定成功，更新前端状态
-            loc.bound_pallets.add(barcode);
-
-
-            const remaining = loc.expected_pallets.filter(p => !loc.bound_pallets.has(p)).length;
-            // 当前库位所有托盘扫完 → 标记完成，等待用户点击确认入库
-            if (remaining === 0) {
-                loc.is_complete = true;
-                this.showMessage(
-                    "Location [" + loc.location_code + "] complete!",
-                    "success"
-                );
-                this.flashScreen([100, 200, 100], true);
-                return;
-            }
-
-            this.showMessage(
-                "Pallet [" + barcode + "] bound — " + remaining + " pallet(s) remaining",
-                "success"
-            );
-            this.flashScreen();
-
-        } catch (error) {
-            // 后端返回的错误
-            throw error;
-        }
-    }
-
-    // ════════════════════════════════════════════
-    // 加载库位和托盘数据
-    // ════════════════════════════════════════════
-    async loadLocations(orderId) {
-        const lines = await this.orm.searchRead(
-            "world.depot.inbound.order.product",
-            [["inbound_order_id", "=", orderId]],
-            ["id", "pallet_no", "location_code"],
-            { limit: 2000 }
-        );
-
-        // 按库位号分组，记录每个库位预期绑定的托盘
-        const locMap = new Map();
-        for (const line of lines) {
-            const lc = line.location_code || "";
-            if (!locMap.has(lc)) {
-                locMap.set(lc, {
-                    location_code: lc,
-                    expected_pallets: [],   // 该库位预期要绑定的托盘列表
-                    bound_pallets: new Set(), // 已扫描绑定成功的托盘
-                    is_complete: false,
-                });
-            }
-            const palletNo = line.pallet_no || "";
-            if (palletNo && !locMap.get(lc).expected_pallets.includes(palletNo)) {
-                locMap.get(lc).expected_pallets.push(palletNo);
-            }
-        }
-
-        this.state.locations = Array.from(locMap.values());
-        this.state.currentLocationIndex = -1;
-    }
-
-    // ════════════════════════════════════════════
-    // 跳到下一货位（用于Skip操作）
-    // ════════════════════════════════════════════
-
-    _advanceToNextLocation() {
-        const nextIndex = this.state.locations.findIndex(
-            (l, i) => i > this.state.currentLocationIndex && !l.is_complete
-        );
-        if (nextIndex !== -1) {
-            this.state.currentLocationIndex = nextIndex;
-            this.state.scanMode = "pallet";
-            const loc = this.state.locations[nextIndex];
-            const remaining = loc.expected_pallets.filter(p => !loc.bound_pallets.has(p)).length;
-            this.showMessage(
-                "Next location [" + loc.location_code + "] — " + remaining + " pallet(s)",
-                "info"
-            );
-        } else {
-            this.state.currentLocationIndex = -1;
-            this.state.scanMode = "location";
-            if (this.isAllComplete) {
-                this.showMessage("All locations complete! Confirm inbound.", "success");
-            }
-        }
-    }
-
-    /**
-     * 跳过当前库位
-     */
-    skipCurrentLocation() {
-        const loc = this.state.locations[this.state.currentLocationIndex];
-        if (loc) {
-            loc.is_complete = true;
-        }
-        this._advanceToNextLocation();
-    }
-
-    /**
-     * 确认入库 - 调用后端方法完成入库
-     */
-    async confirmInbound() {
-        if (!this.state.orderId) {
-            this.showMessage("No inbound order loaded", "danger");
+    async onBarcodeScanned(barcode) {
+        console.log('[InboundFlow] onBarcodeScanned called, barcode:', barcode, '_isProcessing:', this._isProcessing);
+        if (!barcode || this._isProcessing) {
+            console.log('[InboundFlow] Skipped - no barcode or still processing');
             return;
         }
+
+        this._isProcessing = true;
+        this.state.loading = true;
+
+        try {
+            const pickingId = this.state.picking?.id || false;
+            const locationId = this.state.currentLocation?.id || false;
+            console.log('[InboundFlow] Calling backend, pickingId:', pickingId, 'locationId:', locationId);
+
+            const result = await this.orm.call(
+                "stock.barcode.lite.scan.service",
+                "process_incoming_scan_barcode",
+                [barcode, pickingId, locationId]
+            );
+
+            console.log('[InboundFlow] Backend result:', result);
+
+            await this._applyScanResult(result, true);
+
+            if (result.action?.updated_move_line_ids?.length) {
+                this.state.updatedMoveLineIds = result.action.updated_move_line_ids;
+            }
+        } catch (error) {
+            console.error('[InboundFlow] Error:', error);
+            this.showMessage(this.formatError(error), "danger");
+            this._flashScreen([200, 100, 100], true);
+        } finally {
+            this.state.loading = false;
+            this._isProcessing = false;
+            this._focusBarcodeInput();
+        }
+    }
+
+    async _applyScanResult(result, notify = true) {
+        console.log('[InboundFlow] _applyScanResult called, result:', JSON.stringify(result));
+        if (!result) return;
+
+        const scanState = result.scan_state || {};
+        console.log('[InboundFlow] scanState:', JSON.stringify(scanState));
+
+        // 更新状态 - OWL 会自动响应
+        // 使用展开运算符创建新对象/数组引用，确保响应性检测
+        this.state.picking = scanState.picking ? { ...scanState.picking } : null;
+        this.state.currentLocation = scanState.current_location ? { ...scanState.current_location } : {};
+        this.state.summary = scanState.summary ? { ...scanState.summary } : this._getEmptySummary();
+        
+        // 深度复制 pallets 数组及其内部对象
+        if (scanState.pallets && scanState.pallets.length > 0) {
+            this.state.pallets = scanState.pallets.map(pallet => ({ ...pallet }));
+        } else {
+            this.state.pallets = [];
+        }
+        
+        this.state.lastScan = scanState.last_scan ? { ...scanState.last_scan } : {};
+
+        console.log('[InboundFlow] State updated - pallets:', this.state.pallets.length, 'picking:', !!this.state.picking);
+
+        this.state.nextStep = result.next_step || "scan_picking";
+        console.log('[InboundFlow] nextStep set to:', this.state.nextStep);
+
+        if (notify && result.message) {
+            const msgType = result.success === false ? "danger" : "success";
+            console.log('[InboundFlow] Showing message:', result.message, 'type:', msgType);
+            this.showMessage(result.message, msgType);
+
+            if (result.success !== false) {
+                this._flashScreen([100, 200, 100], false);
+            }
+        }
+    }
+
+    _getEmptySummary() {
+        return {
+            total_pallets: 0,
+            updated_pallets: 0,
+            pending_pallets: 0,
+            total_move_lines: 0,
+            updated_move_lines: 0,
+            pending_move_lines: 0,
+        };
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 确认操作按钮
+    // ═══════════════════════════════════════════════════════════════
+
+    async confirmInbound() {
+        if (!this.state.picking) {
+            // 没扫入库单
+            this.showMessage(_t("No picking loaded"), "danger");
+            return;
+        }
+        if (this.state.summary.pending_pallets > 0) {
+            // 托盘有漏扫
+            this.showMessage(
+                _t("There are still ") + this.state.summary.pending_pallets + _t(" pallet(s) not updated"),
+                "danger"
+            );
+            return;
+        }
+
         this.state.loading = true;
         try {
-            // 调用后端确认入库的方法！！！！！！！！！！！！
-            // await this.orm.call(
-            //     "world.depot.inbound.order",
-            //     "action_confirm_inbound",
-            //     [this.state.orderId],
-            //     {}
-            // );
-
-            this.showMessage("Location confirmed!", "success");
-            this.flashScreen([100, 300, 100], true);
-            // 确认完成后切回扫库位模式，静默等待扫下一个库位
-            this.state.currentLocationIndex = -1;
-            this.state.scanMode = "location";
+            await this.orm.call(
+                "stock.picking",
+                "button_validate",
+                [[this.state.picking.id]]
+            );
+            // 上架成功
+            this.showMessage(_t("Inbound confirmed successfully!"), "success");
+            this._flashScreen([100, 300, 100], true);
+            setTimeout(() => this.resetScan(), 2000);
         } catch (error) {
-            throw error;
+            this.showMessage(this.formatError(error), "danger");
         } finally {
             this.state.loading = false;
         }
     }
 
     resetScan() {
-        this.state.order = null;
-        this.state.orderId = null;
-        this.state.locations = [];
-        this.state.currentLocationIndex = -1;
-        this.state.scanMode = "location";
-        this.state.message = "";
+        this.state.picking = null;
+        this.state.currentLocation = {};
+        this.state.summary = this._getEmptySummary();
+        this.state.pallets = [];
+        this.state.lastScan = {};
+        this.state.updatedMoveLineIds = [];
+        this.state.nextStep = "scan_picking";
+        this.showMessage(_t("Scan reset - ready for new picking"), "info");
+        this._focusBarcodeInput();
     }
 
     exit() {
         this.action.doAction("stock_barcode_lite_homepage");
     }
 
+    // ═══════════════════════════════════════════════════════════════
+    // 辅助方法
+    // ═══════════════════════════════════════════════════════════════
+
+    _clearScanTimer() {
+        if (this._scanTimer) {
+            clearTimeout(this._scanTimer);
+            this._scanTimer = null;
+        }
+    }
+
     showMessage(text, type = "info") {
         this.state.message = text;
         this.state.messageType = type;
-        setTimeout(() => {
+        clearTimeout(this._messageTimer);
+        this._messageTimer = setTimeout(() => {
             if (this.state.message === text) {
                 this.state.message = "";
             }
-        }, 3500);
+        }, 4000);
     }
 
-    flashScreen(pattern, repeat) {
+    _flashScreen(pattern, repeat) {
         if ("vibrate" in navigator) {
             navigator.vibrate(repeat ? pattern : 100);
         }
@@ -417,44 +385,172 @@ export class InboundFlow extends Component {
                 ? err.data.message.replace(/^odoo\.exceptions\.[^:]+:\s*/, "")
                 : "") ||
             err?.message ||
-            "Unknown error"
+            _t("Unknown error")
         );
     }
 
-    // ── 计算属性 ─────────────────────────────────
+    // ═══════════════════════════════════════════════════════════════
+    // 计算属性
+    // ═══════════════════════════════════════════════════════════════
 
-    get progressPercent() {
-        if (!this.state.locations.length) return 0;
-        const done = this.state.locations.filter(l => l.is_complete).length;
-        return Math.round((done / this.state.locations.length) * 100);
+    get hasPicking() {
+        return !!this.state.picking;
     }
 
-    get isAllComplete() {
-        return (
-            this.state.locations.length > 0 &&
-            this.state.locations.every(l => l.is_complete)
-        );
+    get hasLocation() {
+        return !!this.state.currentLocation?.id;
     }
 
-    get currentLocation() {
-        if (this.state.currentLocationIndex < 0) return null;
-        return this.state.locations[this.state.currentLocationIndex] || null;
+    get pickingLabel() {
+        return this.state.picking?.name || "";
+    }
+
+    get pickingOrigin() {
+        return this.state.picking?.origin || "";
+    }
+
+    get pickingReference() {
+        return this.state.picking?.reference || "";
+    }
+
+    get pickingPartner() {
+        return this.state.picking?.partner || "";
+    }
+
+    get pickingState() {
+        return this.state.picking?.state || "";
+    }
+
+    get currentLocationName() {
+        return this.state.currentLocation?.display_name ||
+               this.state.currentLocation?.name ||
+               "";
+    }
+
+    get currentLocationBarcode() {
+        return this.state.currentLocation?.barcode || "";
+    }
+
+    get isScanPickingStep() {
+        return this.state.nextStep === "scan_picking";
+    }
+
+    get isScanLocationStep() {
+        return this.state.nextStep === "scan_location";
+    }
+
+    get isScanPackageStep() {
+        return this.state.nextStep === "scan_package";
     }
 
     get scanModeLabel() {
         const map = {
-            location: "Scan Location Code",
-            pallet:   "Scan Pallet Barcode",
+            scan_picking: _t("Scan incoming picking"),
+            scan_location: _t("Scan location"),
+            scan_package: _t("Scan pallet"),
         };
-        return map[this.state.scanMode] || this.state.scanMode;
+        return map[this.state.nextStep] || _t("Scan barcode");
     }
 
-    /**
-     * 获取当前库位剩余待绑定的托盘数量
-     */
-    get remainingPalletsCount() {
-        const loc = this.currentLocation;
-        if (!loc) return 0;
-        return loc.expected_pallets.filter(p => !loc.bound_pallets.has(p)).length;
+    get stepHint() {
+        const hints = {
+            scan_picking: _t("Scan the incoming picking barcode to start"),
+            scan_location: _t("Scan a storage location barcode"),
+            scan_package: _t("Scan a pallet barcode to update its location"),
+        };
+        return hints[this.state.nextStep] || "";
+    }
+
+    get summaryCards() {
+        const s = this.state.summary || {};
+        return [
+            { key: "total_pallets", label: _t("Total Pallets"), value: s.total_pallets || 0, icon: "fa-cubes" },
+            { key: "updated_pallets", label: _t("Updated"), value: s.updated_pallets || 0, icon: "fa-check-circle", class: "text-success" },
+            { key: "pending_pallets", label: _t("Pending"), value: s.pending_pallets || 0, icon: "fa-clock", class: "text-warning" },
+            { key: "total_move_lines", label: _t("Move Lines"), value: s.total_move_lines || 0, icon: "fa-arrows-alt-v" },
+            { key: "updated_move_lines", label: _t("Processed"), value: s.updated_move_lines || 0, icon: "fa-check", class: "text-success" },
+            { key: "pending_move_lines", label: _t("Remaining"), value: s.pending_move_lines || 0, icon: "fa-hourglass-half", class: "text-warning" },
+        ];
+    }
+
+    get progressPercent() {
+        const s = this.state.summary || {};
+        const total = s.total_move_lines || 0;
+        const done = s.updated_move_lines || 0;
+        if (!total) return 0;
+        return Math.round((done / total) * 100);
+    }
+
+    get isAllComplete() {
+        return (this.state.summary?.pending_pallets || 0) === 0 &&
+               (this.state.summary?.total_pallets || 0) > 0;
+    }
+
+    get palletList() {
+        return Array.isArray(this.state.pallets) ? this.state.pallets : [];
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 模板使用的 getter（与 QWeb 模板对应）
+    // ═══════════════════════════════════════════════════════════════
+
+    get hasPicking() {
+        return !!this.state.picking;
+    }
+
+    get pickingLabel() {
+        return this.state.picking?.name || "Inbound";
+    }
+
+    get pickingOrigin() {
+        return this.state.picking?.origin || "";
+    }
+
+    get pickingReference() {
+        return this.state.picking?.reference || "";
+    }
+
+    get pickingPartner() {
+        return this.state.picking?.partner || "";
+    }
+
+    get pickingState() {
+        return this.state.picking?.state || "";
+    }
+
+    get hasLocation() {
+        return !!this.state.currentLocation?.id;
+    }
+
+    get currentLocationName() {
+        return this.state.currentLocation?.name || "";
+    }
+
+    get currentLocationBarcode() {
+        return this.state.currentLocation?.barcode || "";
+    }
+
+    getStateBadgeClass(state) {
+        const map = {
+            draft: "bg-secondary",
+            waiting: "bg-warning text-dark",
+            confirmed: "bg-info",
+            assigned: "bg-primary",
+            done: "bg-success",
+            cancel: "bg-danger",
+        };
+        return map[state] || "bg-secondary";
+    }
+
+    getStateLabel(state) {
+        const map = {
+            draft: _t("Draft"),
+            waiting: _t("Waiting"),
+            confirmed: _t("Confirmed"),
+            assigned: _t("Ready"),
+            done: _t("Done"),
+            cancel: _t("Cancelled"),
+        };
+        return map[state] || state;
     }
 }
