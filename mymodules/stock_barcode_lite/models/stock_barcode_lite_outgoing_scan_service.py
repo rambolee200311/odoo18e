@@ -802,8 +802,6 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
             ("state", "not in", ("done", "cancel")),
         ]
         picking = picking_model.sudo().search(domain_base + [("name", "=", code)], limit=1)
-        if not picking:
-            picking = picking_model.sudo().search(domain_base + [("origin", "=", code)], limit=1)
         return picking
 
     @api.model
