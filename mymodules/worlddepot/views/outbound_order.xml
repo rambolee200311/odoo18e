@@ -223,7 +223,7 @@
                                 </list>
                             </field>
                         </page>
-                        <page string="Hoymiles APIs" groups="account.group_project_hoymiles">
+                        <page string="Hoymiles APIs" groups="account.group_project_hoymiles" invisible="project_name != 'HOYMILES'">
                             <group string="Start Operatoin" col="2">
                                 <group col="2">
                                     <div class="oe_button_box" name="button_box">
