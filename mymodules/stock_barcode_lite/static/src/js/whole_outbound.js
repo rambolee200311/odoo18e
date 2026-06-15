@@ -7,6 +7,7 @@ import { _t } from "@web/core/l10n/translation";
 /**
  * Whole Pallet Outbound Flow
  *
+ * 整托出库：
  * 扫码流程：
  *  ─────────────────────────────────────────────────────────────────────
  *  1. Order   : 扫出库单 picking name

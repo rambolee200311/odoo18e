@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <templates>
+    <!--（旧模板）-->
     <!-- 首页 - 两个菜单块 -->
     <t t-name="stock_barcode_lite.Homepage">
         <div class="o_stock_barcode_lite_homepage">
