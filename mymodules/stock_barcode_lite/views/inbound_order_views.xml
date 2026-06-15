@@ -9,6 +9,7 @@
                 <attribute name="duplicate">false</attribute>
             </xpath>
             <xpath expr="//field[@name='cntr_no']" position="before">
+                    <field name="vsourcebillcode" readonly="state != 'new'" invisible="project_name != 'SUNRISE'"/>
                     <field name="cwarehouseid" readonly="state != 'new'" invisible="project_name !='SUNRISE'"/>
                     <field name="source_sale_delivery_reference" readonly="state != 'new'" required="type == 'service' and project_name == 'SUNRISE'" invisible="project_name !='SUNRISE' or type != 'service'"/>
             </xpath>

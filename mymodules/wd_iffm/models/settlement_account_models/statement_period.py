@@ -109,9 +109,9 @@ class StatementPeriod(models.Model):
                     clearance_time_field = 'clearance_finish_datetime'
                     additional_time_field = 'actual_datetime'
             else:
-                handover_time_field = 'eta_datetime'
-                clearance_time_field = 'eta_datetime'
-                additional_time_field = 'eta_datetime'
+                handover_time_field = 'eta'
+                clearance_time_field = 'eta'
+                additional_time_field = 'eta'
 
             # 基础时间域
             base_domain = [('state', '=', 'close'),('project_id', '=', rec.project_id.id)]

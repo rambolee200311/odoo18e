@@ -156,7 +156,7 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
         product_code = self.get_required_text(line_data, "product", row_number)
         product_ean = self.get_optional_text(line_data, "product_ean")
         pallet_no = self.get_required_text(line_data, "pallet_no", row_number)
-        de_palletize = self.get_required_text(line_data, "de_palletize", row_number).upper()
+        de_palletize = self.get_optional_text(line_data, "de_palletize").upper() or "Y"
         if de_palletize not in ("N", "Y"):
             raise SunriseApiError("4001", self.format_field_error("de_palletize", "must be N or Y", row_number))
         cprojectid = self.get_required_text(line_data, "cprojectid", row_number)
