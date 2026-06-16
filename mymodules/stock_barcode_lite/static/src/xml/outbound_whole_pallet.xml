@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates>
+    <!-- 整托出库页面 - 货位 -> 托盘 -> 确认出库 -->
+    <t t-name="stock_barcode_lite.WholePalletOutboundPage">
+        <input
+            t-ref="barcodeInput"
+            type="text"
+            class="o_hidden_barcode_input"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+            inputmode="none"
+            touch-action="none"
+        />
+
+        <div class="o_sbl_inbound">
+            <!-- Header -->
+            <div class="o_sbl_header">
+                <button type="button" class="btn btn-link text-dark p-1" t-on-click="exit" title="Home">
+                    <i class="fa fa-arrow-left"/>
+                </button>
+                <div class="o_sbl_header_title">
+                    <i class="fa fa-truck text-primary me-1"/>
+                    <t t-if="state.order">
+                        <t t-esc="state.order.reference"/>
+                    </t>
+                    <t t-else="">Full Pallet Pick</t>
+                </div>
+                <div class="o_sbl_scan_mode" t-attf-class="o_mode_{{ state.nextStep }}">
+                    <t t-esc="scanModeLabel"/>
+                </div>
+            </div>
+
+            <!-- 提示条 -->
+            <div t-if="state.message" t-attf-class="o_sbl_alert alert alert-{{ state.messageType }}">
+                <t t-esc="state.message"/>
+            </div>
+
+            <!-- 当前货位信息 -->
+            <div t-if="hasLocation" class="o_sbl_location_bar">
+                <i class="fa fa-map-marker text-danger me-1"/>
+                <span class="me-1">Location:</span>
+                <strong class="text-primary"><t t-esc="currentLocationName"/></strong>
+                <span class="text-muted ms-1" t-if="currentLocationBarcode">(<t t-esc="currentLocationBarcode"/>)</span>
+            </div>
+
+            <!-- ═══ 扫描提示步骤条：Order -> Location -> Pallet ═══ -->
+            <div class="o_sbl_step_indicator">
+                <div class="o_step_item" t-attf-class="{ active: isScanOrderStep, done: hasOrder }">
+                    <div class="o_step_circle">
+                        <t t-if="hasOrder"><i class="fa fa-check"/></t>
+                        <t t-else="">1</t>
+                    </div>
+                    <div class="o_step_label">Order</div>
+                </div>
+                <div class="o_step_line" t-attf-class="{ active: hasOrder }"/>
+                <div class="o_step_item" t-attf-class="{ active: isScanLocationStep, done: hasLocation }">
+                    <div class="o_step_circle">
+                        <t t-if="hasLocation"><i class="fa fa-check"/></t>
+                        <t t-else="">2</t>
+                    </div>
+                    <div class="o_step_label">Location</div>
+                </div>
+                <div class="o_step_line" t-attf-class="{ active: hasLocation }"/>
+                <div class="o_step_item" t-attf-class="{ active: isScanPalletStep }">
+                    <div class="o_step_circle">3</div>
+                    <div class="o_step_label">Pallet</div>
+                </div>
+            </div>
+
+            <!-- 扫描提示 -->
+            <div class="o_sbl_step_hint">
+                <i class="fa fa-qrcode me-2"/>
+                <t t-esc="stepHint"/>
+            </div>
+
+            <!-- 进度条 -->
+            <div class="o_sbl_progress" t-if="state.summary &amp;&amp; state.summary.total_pallets > 0">
+                <div class="progress">
+                    <div class="progress-bar"
+                         t-attf-style="width: {{ progressPercent }}%"
+                         t-attf-class="bg-{{ progressPercent === 100 ? 'success' : 'primary' }}"/>
+                </div>
+            </div>
+            <div class="o_sbl_progress_text" t-if="state.summary &amp;&amp; state.summary.total_pallets > 0">
+                <span class="me-2">
+                    <i class="fa fa-tasks me-1"/>
+                    <t t-esc="progressPercent"/>%
+                </span>
+                <span class="me-2">
+                    <t t-esc="state.summary.updated_pallets || 0"/> / <t t-esc="state.summary.total_pallets || 0"/> pallets
+                </span>
+                <span class="ms-auto">
+                    <span class="badge" t-attf-class="{{ isAllComplete ? 'bg-success' : 'bg-warning text-dark' }}">
+                        <t t-if="isAllComplete">
+                            <i class="fa fa-check-circle me-1"/>All Done
+                        </t>
+                        <t t-else="">
+                            <t t-esc="state.summary.pending_pallets || 0"/> pallets pending
+                        </t>
+                    </span>
+                </span>
+            </div>
+
+            <!-- 托盘列表 -->
+            <div class="o_sbl_pallets">
+                <t t-if="palletList.length === 0 &amp;&amp; !state.loading">
+                    <div class="o_sbl_empty_state text-center text-muted py-5">
+                        <i class="fa fa-inbox fa-4x mb-3 d-block opacity-25"/>
+                        <p class="mb-1 fw-bold">No Pallets Loaded</p>
+                        <p class="small">
+                            <t t-if="isScanLocationStep">Scan location barcode to start</t>
+                            <t t-else="">Scan pallets to update</t>
+                        </p>
+                    </div>
+                </t>
+
+                <t t-foreach="palletList" t-as="pallet" t-key="pallet.id">
+                    <div t-attf-class="o_sbl_pallet {{ pallet.is_complete ? 'o_pallet_updated' : '' }}">
+                        <!-- 托盘头部 -->
+                        <div class="o_pallet_header" data-bs-toggle="collapse" t-attf-data-bs-target="#pallet_products_{{ pallet.id }}" aria-expanded="false">
+                            <div class="o_pallet_row1">
+                                <div class="o_pallet_info">
+                                    <i class="fa fa-cube text-secondary me-2"/>
+                                    <strong class="o_pallet_name">
+                                        <t t-esc="pallet.name || pallet.barcode || ('Pallet ' + pallet.id)"/>
+                                    </strong>
+                                </div>
+                                <div class="o_pallet_right">
+                                    <span class="badge bg-success" t-if="pallet.is_complete">
+                                        <i class="fa fa-check me-1"/>Done
+                                    </span>
+                                    <i class="fa fa-chevron-down collapse-arrow"/>
+                                </div>
+                            </div>
+                            <div class="o_pallet_row2">
+                                <span class="o_pallet_product_count">
+                                    <t t-esc="(pallet.products || []).length"/> items
+                                </span>
+                                <span class="o_pallet_location" t-if="pallet.location_name">
+                                    <i class="fa fa-map-marker-alt text-muted me-1"/>
+                                    <t t-esc="pallet.location_name"/>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- 托盘内产品列表 - 默认折叠 -->
+                        <div t-attf-id="pallet_products_{{ pallet.id }}" class="o_pallet_products collapse">
+                            <t t-if="!(pallet.products || []).length">
+                                <div class="o_sbl_empty_state text-center text-muted py-4">
+                                    <p class="mb-0 small">No products loaded</p>
+                                </div>
+                            </t>
+                            <t t-foreach="pallet.products || []" t-as="item" t-key="item.id">
+                                <div t-attf-class="o_product_subcard {{ pallet.is_complete ? 'o_pallet_updated' : '' }}">
+                                    <div class="o_product_row_top">
+                                        <div class="o_product_icon">
+                                            <i class="fa fa-box-open"/>
+                                        </div>
+                                        <div class="o_product_name">
+                                            <t t-esc="item.product_name"/>
+                                        </div>
+                                        <div class="o_product_qty">
+                                            <span class="o_qty_value"><t t-esc="item.qty_done || item.quantity || 0"/></span>
+                                            <span class="o_qty_label">/ <t t-esc="item.quantity || 0"/></span>
+                                        </div>
+                                    </div>
+                                    <div class="o_product_row_bottom">
+                                        <span t-if="item.default_code" class="o_meta_code"><t t-esc="item.default_code"/></span>
+                                        <span t-if="item.product_barcode" class="o_meta_barcode">
+                                            <i class="fa fa-barcode me-1"/>
+                                            <t t-esc="item.product_barcode"/>
+                                        </span>
+                                    </div>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+                </t>
+            </div>
+
+            <!-- Footer -->
+            <div class="o_sbl_footer">
+                <button class="btn btn-outline-secondary" t-on-click="resetScan" t-att-disabled="state.loading">
+                    <i class="fa fa-refresh me-1"/>Reset
+                </button>
+                <button class="btn btn-primary flex-fill"
+                        style="background-color: #0d6efd; border-color: #0d6efd; color: white; display: block !important; visibility: visible !important;"
+                        t-on-click="confirmOutbound"
+                        t-att-disabled="state.loading || !isAllComplete">
+                    <i class="fa fa-check-circle me-1"/>Confirm Outbound
+                </button>
+                <button class="btn btn-secondary" t-on-click="exit">
+                    <i class="fa fa-home me-1"/>Home
+                </button>
+            </div>
+        </div>
+    </t>
+</templates>

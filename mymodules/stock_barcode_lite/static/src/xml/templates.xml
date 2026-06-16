@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <templates>
+    <!--（旧模板）-->
     <!-- 首页 - 两个菜单块 -->
     <t t-name="stock_barcode_lite.Homepage">
         <div class="o_stock_barcode_lite_homepage">
@@ -54,6 +55,7 @@
             autocorrect="off"
             autocapitalize="off"
             spellcheck="false"
+            readonly="readonly"
         />
 
         <div class="o_sbl_inbound">
@@ -353,17 +355,31 @@
                 </div>
             </div>
 
-            <div t-if="state.pallets.length &gt; 0" class="o_sbl_progress">
-                <div class="progress-bar"
-                     t-attf-style="width: {{ progressPercent }}%"
-                     t-attf-class="bg-{{ progressPercent === 100 ? 'success' : 'primary' }}"/>
+            <!-- ═══ 进度条 ═══ -->
+            <div class="o_sbl_progress" t-if="state.totalRequired > 0">
+                <div class="progress">
+                    <div class="progress-bar"
+                         t-attf-style="width: {{ progressPercent }}%"
+                         t-attf-class="bg-{{ progressPercent === 100 ? 'success' : 'primary' }}"/>
+                </div>
             </div>
-            <div t-if="state.pallets.length &gt; 0" class="o_sbl_progress_text">
-                <span><t t-esc="progressPercent"/>%</span>
-                <span class="ms-2"><t t-esc="state.totalScanned"/> / <t t-esc="state.totalRequired"/></span>
-                <span class="ms-auto badge" t-attf-class="{{ isAllComplete ? 'bg-success' : 'bg-secondary' }}">
-                    <t t-if="isAllComplete">All Done</t>
-                    <t t-else=""><t t-esc="state.pallets.filter(p => !p.is_complete).length"/> left</t>
+            <div class="o_sbl_progress_text" t-if="state.totalRequired > 0">
+                <span class="me-2">
+                    <i class="fa fa-tasks me-1"/>
+                    <t t-esc="progressPercent"/>%
+                </span>
+                <span class="me-2">
+                    <t t-esc="state.totalScanned || 0"/> / <t t-esc="state.totalRequired || 0"/> items
+                </span>
+                <span class="ms-auto">
+                    <span class="badge" t-attf-class="{{ isAllComplete ? 'bg-success' : 'bg-warning text-dark' }}">
+                        <t t-if="isAllComplete">
+                            <i class="fa fa-check-circle me-1"/>All Done
+                        </t>
+                        <t t-else="">
+                            <t t-esc="state.pallets.filter(p => !p.is_complete).length || 0"/> pallets pending
+                        </t>
+                    </span>
                 </span>
             </div>
 

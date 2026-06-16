@@ -42,7 +42,6 @@ export class InboundFlow extends Component {
         this._isPDA = this._detectPDA();
 
         onMounted(async () => {
-            console.log('[InboundFlow] onMounted');
             this._bindVisibilityChange();
             const barcodeInput = this.barcodeInputRef.el;
             if (barcodeInput) {
@@ -54,7 +53,7 @@ export class InboundFlow extends Component {
                 this._focusBarcodeInput();
             }
             await this._initScanState();
-            console.log('[InboundFlow] onMounted complete');
+            console.log('[InboundFlow] mounted');
         });
 
         onWillUnmount(() => {
@@ -96,12 +95,10 @@ export class InboundFlow extends Component {
         if (!input) return;
 
         const value = input.value;
-        console.log('[InboundFlow] _onBarcodeInput triggered, value:', value, 'inputType:', ev.inputType);
-        
+
         // 处理包含换行符的情况
         if (ev.inputType === "insertLineFeed" || value.includes("\n") || value.includes("\r")) {
             const barcode = value.replace(/\n/g, "").replace(/\r/g, "").trim();
-            console.log('[InboundFlow] Barcode detected (input event):', barcode);
             if (barcode) {
                 input.value = "";
                 this.onBarcodeScanned(barcode);
@@ -114,12 +111,10 @@ export class InboundFlow extends Component {
      * 检测 Enter 键作为扫码确认
      */
     _onBarcodeKeydown(ev) {
-        console.log('[InboundFlow] _onBarcodeKeydown, key:', ev.key);
         if (ev.key === "Enter") {
             ev.preventDefault();
             const input = ev.target;
             const barcode = input.value.trim();
-            console.log('[InboundFlow] Enter pressed, barcode:', barcode);
             if (barcode) {
                 input.value = "";
                 this.onBarcodeScanned(barcode);
@@ -140,23 +135,17 @@ export class InboundFlow extends Component {
     }
 
     _onBarcodeBlur(ev) {
-        console.log('[InboundFlow] _onBarcodeBlur, _isProcessing:', this._isProcessing, '_isPDA:', this._isPDA);
         // PDA模式下也自动聚焦，确保扫码枪输入能被捕获
         if (!this._isProcessing) {
-            console.log('[InboundFlow] Setting timeout to refocus');
             setTimeout(() => this._focusBarcodeInput(), 0);
         }
     }
 
     _focusBarcodeInput() {
-        console.log('[InboundFlow] _focusBarcodeInput called');
         const input = this.barcodeInputRef.el;
         if (input) {
             input.focus();
             input.value = "";
-            console.log('[InboundFlow] Input focused and cleared');
-        } else {
-            console.error('[InboundFlow] Cannot focus - input not found');
         }
     }
 
@@ -210,9 +199,7 @@ export class InboundFlow extends Component {
     // ═══════════════════════════════════════════════════════════════
 
     async onBarcodeScanned(barcode) {
-        console.log('[InboundFlow] onBarcodeScanned called, barcode:', barcode, '_isProcessing:', this._isProcessing);
         if (!barcode || this._isProcessing) {
-            console.log('[InboundFlow] Skipped - no barcode or still processing');
             return;
         }
 
@@ -222,7 +209,6 @@ export class InboundFlow extends Component {
         try {
             const pickingId = this.state.picking?.id || false;
             const locationId = this.state.currentLocation?.id || false;
-            console.log('[InboundFlow] Calling backend, pickingId:', pickingId, 'locationId:', locationId);
 
             const result = await this.orm.call(
                 "stock.barcode.lite.scan.service",
@@ -230,15 +216,13 @@ export class InboundFlow extends Component {
                 [barcode, pickingId, locationId]
             );
 
-            console.log('[InboundFlow] Backend result:', result);
-
             await this._applyScanResult(result, true);
 
             if (result.action?.updated_move_line_ids?.length) {
                 this.state.updatedMoveLineIds = result.action.updated_move_line_ids;
             }
         } catch (error) {
-            console.error('[InboundFlow] Error:', error);
+            console.error('[InboundFlow] scan error:', error);
             this.showMessage(this.formatError(error), "danger");
             this._flashScreen([200, 100, 100], true);
         } finally {
@@ -249,11 +233,9 @@ export class InboundFlow extends Component {
     }
 
     async _applyScanResult(result, notify = true) {
-        console.log('[InboundFlow] _applyScanResult called, result:', JSON.stringify(result));
         if (!result) return;
 
         const scanState = result.scan_state || {};
-        console.log('[InboundFlow] scanState:', JSON.stringify(scanState));
 
         // 更新状态 - OWL 会自动响应
         // 使用展开运算符创建新对象/数组引用，确保响应性检测
@@ -267,17 +249,12 @@ export class InboundFlow extends Component {
         } else {
             this.state.pallets = [];
         }
-        
+
         this.state.lastScan = scanState.last_scan ? { ...scanState.last_scan } : {};
-
-        console.log('[InboundFlow] State updated - pallets:', this.state.pallets.length, 'picking:', !!this.state.picking);
-
         this.state.nextStep = result.next_step || "scan_picking";
-        console.log('[InboundFlow] nextStep set to:', this.state.nextStep);
 
         if (notify && result.message) {
             const msgType = result.success === false ? "danger" : "success";
-            console.log('[InboundFlow] Showing message:', result.message, 'type:', msgType);
             this.showMessage(result.message, msgType);
 
             if (result.success !== false) {
@@ -488,46 +465,6 @@ export class InboundFlow extends Component {
 
     get palletList() {
         return Array.isArray(this.state.pallets) ? this.state.pallets : [];
-    }
-
-    // ═══════════════════════════════════════════════════════════════
-    // 模板使用的 getter（与 QWeb 模板对应）
-    // ═══════════════════════════════════════════════════════════════
-
-    get hasPicking() {
-        return !!this.state.picking;
-    }
-
-    get pickingLabel() {
-        return this.state.picking?.name || "Inbound";
-    }
-
-    get pickingOrigin() {
-        return this.state.picking?.origin || "";
-    }
-
-    get pickingReference() {
-        return this.state.picking?.reference || "";
-    }
-
-    get pickingPartner() {
-        return this.state.picking?.partner || "";
-    }
-
-    get pickingState() {
-        return this.state.picking?.state || "";
-    }
-
-    get hasLocation() {
-        return !!this.state.currentLocation?.id;
-    }
-
-    get currentLocationName() {
-        return this.state.currentLocation?.name || "";
-    }
-
-    get currentLocationBarcode() {
-        return this.state.currentLocation?.barcode || "";
     }
 
     getStateBadgeClass(state) {
