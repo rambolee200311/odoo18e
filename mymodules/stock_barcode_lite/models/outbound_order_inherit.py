@@ -13,8 +13,12 @@ class OutboundOrderInherit(models.Model):
     cwarehouseid = fields.Char(string="U8C Warehouse ID", copy=False, index=True)
     vsourcebillcode = fields.Char(string="Source Bill Code", copy=False, index=True)
     ccustomerid = fields.Char(string="U8C Customer ID", copy=False)
-    u8c_delivery_method = fields.Selection([("pickup", "Pickup"), ("wd", "WD Transport")], string="U8C Delivery Method",
-                                           copy=False)
+    u8c_delivery_method = fields.Selection([("pickup", "Pickup"), ("wd", "WD Transport")], string="U8C Delivery Method", copy=False)
+
+    whole_pallet_picking_id = fields.Many2one("stock.picking", string="Whole Pallet Picking",copy=False,index=True)
+    partial_pallet_picking_id = fields.Many2one("stock.picking", string="Partial Pallet Picking",copy=False, index=True)
+    outgoing_picking_lines = fields.One2many("stock.picking", "outbound_order_id", string="Outgoing Pickings")
+
     def action_cancel(self):
         normal_records = self.env["world.depot.outbound.order"]
 
@@ -27,14 +31,13 @@ class OutboundOrderInherit(models.Model):
                 raise UserError(_("This order %s has already been canceled.") % rec.reference)
 
             picking_list = rec.get_sunrise_outbound_cancel_picking_list()
-
             done_picking_list = picking_list.filtered(lambda picking: picking.state == "done")
+            not_done_picking_list = picking_list - done_picking_list
+
             if done_picking_list:
                 rec.validate_sunrise_outbound_returned_before_cancel(done_picking_list)
-                rec.write({"state": "cancel"})
-                continue
 
-            for picking in picking_list:
+            for picking in not_done_picking_list:
                 try:
                     picking.unlink()
                 except Exception as error:
@@ -43,7 +46,13 @@ class OutboundOrderInherit(models.Model):
                         % (rec.reference, str(error))
                     )
 
-            rec.write({"state": "cancel"})
+            rec.write({
+                "state": "cancel",
+                "whole_pallet_picking_id": False,
+                "partial_pallet_picking_id": False,
+                "picking_PICK": False ,
+                "picking_Out": False,
+            })
 
         if normal_records:
             return super(OutboundOrderInherit, normal_records).action_cancel()
@@ -52,19 +61,14 @@ class OutboundOrderInherit(models.Model):
 
     def get_sunrise_outbound_cancel_picking_list(self):
         picking_model = self.env["stock.picking"]
-
         result = picking_model
-        for rec in self:
-            if rec.picking_PICK:
-                result |= rec.picking_PICK
-            if rec.picking_Out:
-                result |= rec.picking_Out
 
-            search_picking_list = picking_model.sudo().search([
+        for rec in self:
+            picking_list = picking_model.sudo().search([
                 ("outbound_order_id", "=", rec.id),
                 ("state", "!=", "cancel"),
-            ])
-            result |= search_picking_list
+            ], order="id")
+            result |= picking_list
 
         return result
 
@@ -79,6 +83,7 @@ class OutboundOrderInherit(models.Model):
                                  and move.product_uom_qty > 0
                                  and not move.origin_returned_move_id
                 )
+
 
                 for move in done_move_list:
                     returned_move_list = move_model.sudo().search([
@@ -105,7 +110,6 @@ class OutboundOrderInherit(models.Model):
                                 returned_qty,
                             )
                         )
-
         return True
 
     def action_open_outbound_product_import_wizard(self):
@@ -263,53 +267,274 @@ class OutboundOrderInherit(models.Model):
                             available_qty,
                         )
                     )
-
-            # for package_id, mode in package_mode_map.items():
-            #     if mode != "N":
-            #         continue
-            #
-            #     package_quant_list = quant_model.sudo().search([
-            #         ("package_id", "=", package_id),
-            #         ("location_id.usage", "=", "internal"),
-            #     ])
-            #
-            #     package_available_map = {}
-            #     for quant in package_quant_list:
-            #         available_qty = max(quant.quantity - quant.reserved_quantity, 0.0)
-            #         if float_compare(available_qty, 0.0, precision_rounding=quant.product_id.uom_id.rounding) <= 0:
-            #             continue
-            #         key = (quant.product_id.id, quant.lot_id.id if quant.lot_id else False)
-            #         package_available_map[key] = package_available_map.get(key, 0.0) + available_qty
-            #
-            #     order_available_map = {}
-            #     for demand_key, demand_qty in demand_map.items():
-            #         demand_package_id, product_id, lot_id = demand_key
-            #         if demand_package_id != package_id:
-            #             continue
-            #         key = (product_id, lot_id)
-            #         order_available_map[key] = order_available_map.get(key, 0.0) + demand_qty
-            #
-            #     if set(package_available_map.keys()) != set(order_available_map.keys()):
-            #         package = package_model.sudo().browse(package_id)
-            #         raise UserError(
-            #             _('Pallet "%s" is full-pallet outbound, so all stock on the pallet must be included.')
-            #             % (package.name or package.barcode)
-            #         )
-            #
-            #     for key, available_qty in package_available_map.items():
-            #         product_id, lot_id = key
-            #         product = self.env["product.product"].sudo().browse(product_id)
-            #         demand_qty = order_available_map.get(key, 0.0)
-            #         if float_compare(available_qty, demand_qty, precision_rounding=product.uom_id.rounding) != 0:
-            #             package = package_model.sudo().browse(package_id)
-            #             raise UserError(
-            #                 _('Pallet "%s" is full-pallet outbound. Product "%s" quantity must equal pallet stock. Required: %s, Pallet Stock: %s')
-            #                 % (package.name or package.barcode, product.display_name, demand_qty, available_qty)
-            #             )
-
         return True
 
+
+
     def action_sunrise_create_outgoing_stock_picking(self):
+        self.validate_sunrise_outgoing_stock_picking()
+
+        picking_model = self.env["stock.picking"]
+        group_model = self.env["procurement.group"]
+        move_model = self.env["stock.move"]
+        move_line_model = self.env["stock.move.line"]
+        package_model = self.env["stock.quant.package"]
+        lot_model = self.env["stock.lot"]
+        quant_model = self.env["stock.quant"]
+
+        for rec in self:
+            with self.env.cr.savepoint():
+                group = group_model.sudo().search([("name", "=", rec.billno)], limit=1)
+                if not group:
+                    group = group_model.create({"name": rec.billno})
+
+                line_meta_map = {}
+                package_demand_map = {}
+                package_stock_map = {}
+                pool_map = {}
+
+                for line in rec.outbound_order_product_ids:
+                    package = package_model.sudo().search([
+                        "|",
+                        ("name", "=", line.sunrise_pallet_no),
+                        ("barcode", "=", line.sunrise_pallet_no),
+                    ], limit=1)
+
+                    lot = False
+                    if line.is_lot == "Y":
+                        lot = lot_model.sudo().search([
+                            ("name", "=", line.lot_name),
+                            ("product_id", "=", line.product_id.id),
+                        ], limit=1)
+
+                    demand_key = (line.product_id.id, lot.id if lot else False)
+                    package_demand_map.setdefault(package.id, {})
+                    if demand_key not in package_demand_map[package.id]:
+                        package_demand_map[package.id][demand_key] = {
+                            "product": line.product_id,
+                            "quantity": 0.0,
+                        }
+                    package_demand_map[package.id][demand_key]["quantity"] += line.quantity
+
+                    line_meta_map[line.id] = {
+                        "package": package,
+                        "lot": lot,
+                        "demand_key": demand_key,
+                        "pool_key": (package.id, line.product_id.id, lot.id if lot else False),
+                    }
+
+                for package_id in package_demand_map:
+                    stock_map = {}
+                    location_ids = set()
+                    quant_list = quant_model.sudo().search([
+                        ("package_id", "=", package_id),
+                        ("location_id.usage", "=", "internal"),
+                        ("quantity", ">", 0),
+                    ], order="location_id, product_id, lot_id, in_date asc, id asc")
+
+                    for quant in quant_list:
+                        stock_key = (quant.product_id.id, quant.lot_id.id if quant.lot_id else False)
+                        if stock_key not in stock_map:
+                            stock_map[stock_key] = {
+                                "product": quant.product_id,
+                                "quantity": 0.0,
+                            }
+                        stock_map[stock_key]["quantity"] += quant.quantity or 0.0
+                        location_ids.add(quant.location_id.id)
+
+                    package_stock_map[package_id] = {
+                        "stock_map": stock_map,
+                        "location_ids": location_ids,
+                    }
+
+                package_mode_map = {}
+                for package_id, demand_map in package_demand_map.items():
+                    stock_data = package_stock_map.get(package_id, {})
+                    stock_map = stock_data.get("stock_map", {})
+                    location_ids = stock_data.get("location_ids", set())
+                    is_whole_pallet = True
+
+                    if set(stock_map.keys()) != set(demand_map.keys()):
+                        is_whole_pallet = False
+
+                    if is_whole_pallet and len(location_ids) > 1:
+                        package = package_model.sudo().browse(package_id)
+                        raise UserError(_('Pallet "%s" stock is split across multiple locations.') % (package.name or package.barcode))
+
+                    if is_whole_pallet:
+                        for stock_key, stock_line in stock_map.items():
+                            product = stock_line["product"]
+                            demand_qty = demand_map[stock_key]["quantity"]
+                            stock_qty = stock_line["quantity"]
+                            if float_compare(stock_qty, demand_qty, precision_rounding=product.uom_id.rounding) != 0:
+                                is_whole_pallet = False
+                                break
+
+                    package_mode_map[package_id] = "whole_pallet" if is_whole_pallet else "partial_pallet"
+
+                for line in rec.outbound_order_product_ids:
+                    meta = line_meta_map[line.id]
+                    pool_key = meta["pool_key"]
+                    if pool_key in pool_map:
+                        continue
+
+                    package = meta["package"]
+                    lot = meta["lot"]
+                    quant_domain = [
+                        ("package_id", "=", package.id),
+                        ("product_id", "=", line.product_id.id),
+                        ("location_id.usage", "=", "internal"),
+                    ]
+                    if lot:
+                        quant_domain.append(("lot_id", "=", lot.id))
+
+                    quant_list = quant_model.sudo().search(quant_domain, order="in_date asc, id asc")
+                    bucket_list = []
+                    for quant in quant_list:
+                        available_qty = max((quant.quantity or 0.0) - (quant.reserved_quantity or 0.0), 0.0)
+                        if float_compare(available_qty, 0.0, precision_rounding=line.product_id.uom_id.rounding) <= 0:
+                            continue
+                        bucket_list.append({
+                            "location_id": quant.location_id,
+                            "owner_id": quant.owner_id,
+                            "lot_id": quant.lot_id,
+                            "remaining_qty": available_qty,
+                        })
+                    pool_map[pool_key] = bucket_list
+
+                picking_map = {}
+                for scan_mode in ("whole_pallet", "partial_pallet"):
+                    mode_lines = rec.outbound_order_product_ids.filtered(
+                        lambda line: package_mode_map.get(line_meta_map[line.id]["package"].id) == scan_mode
+                    )
+                    if not mode_lines:
+                        continue
+
+                    picking = picking_model.create({
+                        "picking_type_id": rec.pick_type.id,
+                        "location_id": rec.pick_type.default_location_src_id.id,
+                        "location_dest_id": rec.pick_type.default_location_dest_id.id,
+                        "origin": rec.billno,
+                        "partner_id": rec.unload_company.id,
+                        "outbound_order_id": rec.id,
+                        "scheduled_date": rec.p_date,
+                        "planning_date": rec.p_date,
+                        "ref_1": rec.reference,
+                        "load_ref": rec.load_ref,
+                        "group_id": group.id,
+                        "owner_id": rec.owner.id if rec.owner else False,
+                        "outbound_scan_mode": scan_mode,
+                        "project_id": rec.project.id if rec.project else False,
+                    })
+                    picking_map[scan_mode] = picking
+
+                    move_map = {}
+                    created_moves = self.env["stock.move"]
+
+                    for line in mode_lines:
+                        move = move_model.create({
+                            "name": line.product_id.display_name,
+                            "product_id": line.product_id.id,
+                            "product_uom_qty": line.quantity,
+                            "product_uom": line.product_id.uom_id.id,
+                            "picking_id": picking.id,
+                            "location_id": picking.location_id.id,
+                            "location_dest_id": picking.location_dest_id.id,
+                            "outbound_order_product_id": line.id,
+                            "group_id": group.id,
+                        })
+                        created_moves |= move
+                        move_map[line.id] = move
+
+                    for line in mode_lines:
+                        move = move_map[line.id]
+                        meta = line_meta_map[line.id]
+                        package = meta["package"]
+                        lot = meta["lot"]
+                        bucket_list = pool_map.get(meta["pool_key"], [])
+
+                        remaining_qty = line.quantity
+                        location_name_list = []
+
+                        for bucket in bucket_list:
+                            if float_compare(remaining_qty, 0.0, precision_rounding=line.product_id.uom_id.rounding) <= 0:
+                                break
+                            if float_compare(bucket["remaining_qty"], 0.0, precision_rounding=line.product_id.uom_id.rounding) <= 0:
+                                continue
+
+                            take_qty = min(bucket["remaining_qty"], remaining_qty)
+
+                            move_line_model.create({
+                                "picking_id": picking.id,
+                                "move_id": move.id,
+                                "product_id": line.product_id.id,
+                                "product_uom_id": line.product_id.uom_id.id,
+                                "quantity": take_qty,
+                                "location_id": bucket["location_id"].id,
+                                "location_dest_id": picking.location_dest_id.id,
+                                "package_id": package.id,
+                                "result_package_id": False,
+                                "lot_id": lot.id if lot else (bucket["lot_id"].id if bucket["lot_id"] else False),
+                                "owner_id": bucket["owner_id"].id if bucket["owner_id"] else False,
+                            })
+
+                            bucket["remaining_qty"] -= take_qty
+                            remaining_qty -= take_qty
+
+                            if bucket["location_id"].complete_name and bucket["location_id"].complete_name not in location_name_list:
+                                location_name_list.append(bucket["location_id"].complete_name)
+
+                        if float_compare(remaining_qty, 0.0, precision_rounding=line.product_id.uom_id.rounding) > 0:
+                            raise UserError(
+                                _('Insufficient stock while creating picking for product "%s". Shortfall: %s')
+                                % (line.product_id.display_name, remaining_qty)
+                            )
+
+                        if "locations" in line._fields and location_name_list:
+                            line.write({"locations": ", ".join(location_name_list)})
+
+                    if created_moves:
+                        created_moves.invalidate_recordset(["move_line_ids", "quantity", "state"])
+                        created_moves._action_confirm(merge=False)
+                        created_moves.invalidate_recordset(["move_line_ids", "quantity", "state"])
+                        created_moves._recompute_state()
+
+                whole_picking = picking_map.get("whole_pallet")
+                partial_picking = picking_map.get("partial_pallet")
+                first_picking = whole_picking or partial_picking
+
+                rec.write({
+                    "whole_pallet_picking_id": whole_picking.id if whole_picking else False,
+                    "partial_pallet_picking_id": partial_picking.id if partial_picking else False,
+                    "picking_PICK": whole_picking.id if whole_picking else first_picking.id,
+                    "picking_Out": partial_picking.id if partial_picking else first_picking.id,
+                    "status": "outbound",
+                })
+
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Success"),
+                "message": _("Sunrise outbound picking created successfully."),
+                "type": "success",
+                "sticky": False,
+                "next": {
+                    "type": "ir.actions.act_window",
+                    "name": _("Outbound Order"),
+                    "res_model": "world.depot.outbound.order",
+                    "res_id": self[:1].id,
+                    "view_mode": "form",
+                    "views": [(False, "form")],
+                    "target": "current",
+                },
+            },
+        }
+
+
+
+
+    def action_sunrise_create_outgoing_stock_picking_total(self):
         self.validate_sunrise_outgoing_stock_picking()
 
         picking_model = self.env["stock.picking"]

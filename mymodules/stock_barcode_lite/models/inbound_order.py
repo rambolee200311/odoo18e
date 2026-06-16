@@ -275,6 +275,7 @@ class InboundOrder(models.Model):
                 "ref_1": record.reference,
                 "planning_date": record.date,
                 "owner_id": record.owner.id,
+                "project_id": record.project.id if record.project else False,
             })
 
             product_move_data = {}

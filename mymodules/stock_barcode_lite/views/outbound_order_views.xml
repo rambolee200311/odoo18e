@@ -13,6 +13,12 @@
                 <field name="cwarehouseid" readonly="state != 'new'" invisible="project_name !='SUNRISE'"/>
                 <field name="ccustomerid" readonly="state != 'new'" invisible="project_name != 'SUNRISE'"/>
             </xpath>
+
+            <xpath expr="//field[@name='confirm_time_server']" position="after">
+                <field name="whole_pallet_picking_id" readonly="1" invisible="project_name != 'SUNRISE'"/>
+                <field name="partial_pallet_picking_id" readonly="1" invisible="project_name !='SUNRISE'"/>
+                <field name="outgoing_picking_lines" readonly="1" invisible="project_name != 'SUNRISE'" widget="many2many_tags"/>
+            </xpath>
             <xpath expr="//field[@name='delivery_method']" position="after">
                 <field name="u8c_delivery_method" readonly="state == 'cancel'" required="project_name == 'SUNRISE'" invisible="project_name != 'SUNRISE'"/>
                 <field name="time_slot" readonly="state == 'cancel'"

@@ -3,15 +3,17 @@
 from odoo import _, models
 from odoo.exceptions import UserError
 from odoo.tools.float_utils import float_compare
-
+from odoo import api, fields, models
 
 class StockPicking(models.Model):
     _inherit = "stock.picking"
 
+    outbound_scan_mode = fields.Selection([("whole_pallet", "Whole Pallet"), ("partial_pallet", "Partial Pallet")],
+                                          string="Outbound Scan Mode", copy=False, index=True)
+    project_name = fields.Char(string='Project Name', related='project_id.name',stored=True)
 
     def button_validate(self):
-        for rec in self:
-            rec.check_outgoing_pallet_scan_completed()
+        #for rec in self:
         return super().button_validate()
 
     def check_incoming_pallet_location_updated(self):
