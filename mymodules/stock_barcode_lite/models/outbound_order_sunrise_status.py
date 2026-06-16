@@ -48,13 +48,23 @@ class OutboundOrderSunrise(models.Model):
         return str(value)
 
     def get_outbound_sync_picking(self):
+        picking_model = self.env["stock.picking"]
         for rec in self:
-            if not rec.picking_Out:
+            picking_list = picking_model.sudo().search([
+                ("outbound_order_id", "=", rec.id),
+                ("picking_type_id.code", "=", "outgoing"),
+                ("state", "!=", "cancel"),
+            ], order="id")
+
+            if not picking_list:
                 raise UserError(_("Outbound order %s has no outbound picking.") % (rec.billno or rec.reference))
-            if rec.picking_Out.state != "done":
-                raise UserError(_("Outbound picking %s must be done before syncing to U8C.") % rec.picking_Out.name)
-            return rec.picking_Out
-        return False
+
+            not_done_picking_list = picking_list.filtered(lambda picking: picking.state != "done")
+            if not_done_picking_list:
+                raise UserError(_("Outbound pickings must be done before syncing to U8C: %s")% ", ".join(not_done_picking_list.mapped("name")))
+            return picking_list
+
+        return picking_model
 
     def get_sunrise_outbound_parentvo(self, config, rec):
         if not config.parameters_json:
@@ -122,21 +132,25 @@ class OutboundOrderSunrise(models.Model):
             api_config = config or rec.get_sunrise_api_config("outbound")
             parentvo, parameters = rec.get_sunrise_outbound_parentvo(api_config, rec)
             #parentvo["cwarehouseid"] = rec.cwarehouseid
-            picking = rec.get_outbound_sync_picking()
-            move_lines = picking.move_line_ids.filtered(lambda line: line.quantity > 0)
+            picking_list = rec.get_outbound_sync_picking()
+            move_lines = picking_list.mapped("move_line_ids").filtered(
+                lambda line: line.quantity > 0 and line.state != "cancel")
             if not move_lines:
-                raise UserError(_("Outbound picking %s has no move lines to sync.") % picking.name)
+                raise UserError(_("Outbound pickings %s have no move lines to sync.")% ", ".join(picking_list.mapped("name")))
+
 
             child_parameters = parameters.get("childrenvo") if isinstance(parameters.get("childrenvo"), dict) else {}
             locator_parameters = parameters.get("locator") if isinstance(parameters.get("locator"), dict) else {}
             childrenvo = []
-            biz_date = rec.get_sunrise_date_text(rec.o_date or rec.picking_Out_date or rec.date)
+
+            done_date_list = [picking.date_done for picking in picking_list if picking.date_done]
+            last_done_date = max(done_date_list) if done_date_list else False
+            biz_date = rec.get_sunrise_date_text(rec.o_date or rec.picking_Out_date or last_done_date or rec.date)
 
             for move_line in move_lines:
                 detail_line = rec.get_u8c_outbound_detail_line(move_line)
                 product = move_line.product_id
-                product_barcode = product.barcode
-                product_barcode = product_barcode.split("-", 1)[0]
+                product_barcode = (product.barcode or "").split("-", 1)[0]
                 if not product_barcode:
                     raise UserError(_("Product %s has no internal reference for U8C cinventoryid.") % product.display_name)
 

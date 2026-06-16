@@ -1094,6 +1094,22 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
                 "products": products,
             })
 
+        related_pending_picking_names = []
+        if picking.outbound_order_id:
+            related_picking_list = self.env["stock.picking"].sudo().search([
+                ("outbound_order_id", "=", picking.outbound_order_id.id),
+                ("picking_type_id.code", "=", "outgoing"),
+                ("state", "!=", "cancel"),
+                ("id", "!=", picking.id),
+            ], order="id")
+            for related_picking in related_picking_list:
+                related_package_lines = related_picking.move_line_ids.filtered(
+                    lambda line: line.package_id and line.quantity > 0 and line.state != "cancel"
+                )
+                if related_package_lines and not all(
+                        self.is_outgoing_line_complete(line) for line in related_package_lines):
+                    related_pending_picking_names.append(related_picking.name)
+
         total_pallets = len(packages)
         return {
             "picking": {
@@ -1104,6 +1120,7 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
                 "partner": picking.partner_id.display_name or "",
                 "state": picking.state,
                 "picking_type_code": picking.picking_type_code,
+                "outbound_scan_mode": picking.outbound_scan_mode or "",
             },
             "current_location": self.format_location_for_scan_state(location),
             "current_pallet": self.format_package_for_outgoing_scan_state(package),
@@ -1116,6 +1133,12 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
                 "total_quantity": total_qty,
                 "scanned_quantity": scanned_qty,
                 "remaining_quantity": max(total_qty - scanned_qty, 0.0),
+                "related_pending_picking_names": related_pending_picking_names,
+                "related_pending_picking_count": len(related_pending_picking_names),
+                "related_picking_message": (
+                    _("Related outgoing picking not completed: %s") % ", ".join(related_pending_picking_names)
+                    if related_pending_picking_names else ""
+                ),
             },
             "pallets": pallet_data,
             "last_scan": last_scan or {},
