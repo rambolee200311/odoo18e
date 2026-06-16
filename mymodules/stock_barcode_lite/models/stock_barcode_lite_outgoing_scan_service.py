@@ -75,7 +75,6 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
             )
 
         operation = pending_operation or self.infer_outgoing_operation(
-            code,
             picking_id=picking_id,
             current_location_id=current_location_id,
             current_package_id=current_package_id,
