@@ -18,11 +18,16 @@
     padding: 16px 16px 80px 16px;
     position: fixed;
     top: 0;
-    left: 0;
     right: 0;
     bottom: 0;
+    left: 50px;  /* 避开侧边栏 - 使用 left 而非 margin-left */
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
+    pointer-events: none;  /* 允许点击穿透到侧边栏菜单 */
+
+    * {
+        pointer-events: auto;  /* 恢复内部元素的点击能力 */
+    }
 
     .section-header {
         padding: 12px 4px 6px 4px;
