@@ -55,6 +55,12 @@
               action="action_stock_barcode_lite_homepage"
               web_icon="stock_barcode_lite,static/description/img.png"/>
 
+
+    <menuitem id="menu_stock_barcode_lite_configuration"
+              name="Configuration"
+              parent="menu_stock_barcode_lite_root"
+              sequence="90"/>
+
     <menuitem id="menu_stock_barcode_lite_homepage"
               name="Homepage"
               parent="menu_stock_barcode_lite_root"
