@@ -49,6 +49,12 @@
         <field name="target">main</field>
     </record>
 
+    <record id="action_stock_barcode_lite_outbound_disassembly" model="ir.actions.client">
+        <field name="name">Break Bulk Outbound (New)</field>
+        <field name="tag">stock_barcode_lite_outbound_disassembly</field>
+        <field name="target">main</field>
+    </record>
+
     <menuitem id="menu_stock_barcode_lite_root"
               name="Chen Yang Stock Management"
               sequence="50"
