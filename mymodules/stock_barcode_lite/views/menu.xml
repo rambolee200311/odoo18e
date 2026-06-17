@@ -50,9 +50,10 @@
     </record>
 
     <menuitem id="menu_stock_barcode_lite_root"
-              name="Stock Barcode Lite"
+              name="Chen Yang Stock Management"
               sequence="50"
-              action="action_stock_barcode_lite_homepage" />
+              action="action_stock_barcode_lite_homepage"
+              web_icon="stock_barcode_lite,static/description/img.png"/>
 
     <menuitem id="menu_stock_barcode_lite_inbound"
               name="Inbound"
