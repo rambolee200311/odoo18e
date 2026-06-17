@@ -177,6 +177,17 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
         box_type, box_qty, box_in_qty, ninnum, u8_aux_qty, u8_conversion_rate = self.validate_box_values(line_data, row_number)
         is_lot, lot_name = self.validate_lot_values(line_data, row_number)
         product = self.get_sunrise_product_variant(product_code, box_type, box_in_qty, project)
+        if product.tracking == "lot" and is_lot != "Y":
+            raise SunriseApiError(
+                "4001",
+                self.format_field_error("is_lot", "must be Y for lot-tracked product", row_number),
+            )
+
+        if product.tracking != "lot" and is_lot != "N":
+            raise SunriseApiError(
+                "4001",
+                self.format_field_error("is_lot", "must be N for non-lot-tracked product", row_number),
+            )
         inbound_cntr_no = self.get_optional_text(line_data, "inbound_cntr_no")
         package = self.find_outbound_package(
             inbound_cntr_no,
