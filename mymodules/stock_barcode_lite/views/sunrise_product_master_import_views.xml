@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sunrise_product_master_import_list" model="ir.ui.view">
+        <field name="name">stock.barcode.lite.sunrise.product.master.import.list</field>
+        <field name="model">stock.barcode.lite.sunrise.product.master.import</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="filename"/>
+                <field name="state"/>
+                <field name="success_count"/>
+                <field name="failed_count"/>
+                <field name="remark"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sunrise_product_master_import_form" model="ir.ui.view">
+        <field name="name">stock.barcode.lite.sunrise.product.master.import.form</field>
+        <field name="model">stock.barcode.lite.sunrise.product.master.import</field>
+        <field name="arch" type="xml">
+            <form duplicate="false">
+                <header>
+                    <button name="action_import_sunrise_product_master" type="object" string="Import" class="btn-primary" invisible="state != 'draft'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,done,partial,failed"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" required="1" readonly="state != 'draft'"/>
+                            <field name="sheet_name" readonly="state != 'draft'" placeholder="Example: 片剂"/>
+                            <field name="file" filename="filename" required="1" readonly="state != 'draft'"/>
+                            <field name="filename" invisible="1"/>
+                        </group>
+                        <group>
+                            <field name="success_count" readonly="1"/>
+                            <field name="failed_count" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="remark" readonly="state != 'draft'"/>
+                        <field name="message" readonly="1"/>
+                    </group>
+                    <notebook>
+                        <page name="lines" string="Import Lines">
+                            <field name="line_ids" readonly="1">
+                                <list>
+                                    <field name="sheet_name"/>
+                                    <field name="row_number"/>
+                                    <field name="code_type"/>
+                                    <field name="product_code"/>
+                                    <field name="counterpart_code"/>
+                                    <field name="product_name"/>
+                                    <field name="english_name"/>
+                                    <field name="chinese_spec"/>
+                                    <field name="english_spec"/>
+                                    <field name="description"/>
+                                    <field name="category_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="tracking"/>
+                                    <field name="attribute_name"/>
+                                    <field name="attribute_value_name"/>
+                                    <field name="main_uom_name"/>
+                                    <field name="aux_uom_name"/>
+                                    <field name="uom_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="uom_po_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="uom_conversion_rate"/>
+                                    <field name="shelf_life_months"/>
+                                    <field name="shelf_life_years"/>
+                                    <field name="tax_name"/>
+                                    <field name="tax_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="product_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="state"/>
+                                    <field name="remark"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_sunrise_product_master_import_search" model="ir.ui.view">
+        <field name="name">stock.barcode.lite.sunrise.product.master.import.search</field>
+        <field name="model">stock.barcode.lite.sunrise.product.master.import</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="filename"/>
+                <field name="state"/>
+                <filter name="state_done" string="Done" domain="[('state', '=', 'done')]"/>
+                <filter name="state_partial" string="Partial" domain="[('state', '=', 'partial')]"/>
+                <filter name="state_failed" string="Failed" domain="[('state', '=', 'failed')]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_sunrise_product_master_import_line_list" model="ir.ui.view">
+        <field name="name">stock.barcode.lite.sunrise.product.master.import.line.list</field>
+        <field name="model">stock.barcode.lite.sunrise.product.master.import.line</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="import_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="state"/>
+                <field name="sheet_name"/>
+                <field name="row_number"/>
+                <field name="code_type"/>
+                <field name="product_code"/>
+                <field name="counterpart_code"/>
+                <field name="product_name"/>
+                <field name="english_name"/>
+                <field name="chinese_spec"/>
+                <field name="english_spec"/>
+                <field name="main_uom_name"/>
+                <field name="aux_uom_name"/>
+                <field name="uom_conversion_rate"/>
+                <field name="shelf_life_months"/>
+                <field name="shelf_life_years"/>
+                <field name="tax_name"/>
+                <field name="uom_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="tax_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="product_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="is_shared_semi_finished_suspected"/>
+                <field name="remark"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sunrise_product_master_import_line_form" model="ir.ui.view">
+        <field name="name">stock.barcode.lite.sunrise.product.master.import.line.form</field>
+        <field name="model">stock.barcode.lite.sunrise.product.master.import.line</field>
+        <field name="arch" type="xml">
+            <form duplicate="false">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="import_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="state" readonly="1"/>
+                            <field name="sheet_name" readonly="1"/>
+                            <field name="row_number" readonly="1"/>
+                            <field name="code_type" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="product_code" readonly="1"/>
+                            <field name="counterpart_code" readonly="1"/>
+                            <field name="product_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="category_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="tracking" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="product_name" readonly="1"/>
+                            <field name="english_name" readonly="1"/>
+                            <field name="chinese_spec" readonly="1"/>
+                            <field name="english_spec" readonly="1"/>
+                            <field name="description" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="attribute_name" readonly="1"/>
+                            <field name="attribute_value_name" readonly="1"/>
+                            <field name="main_uom_name" readonly="1"/>
+                            <field name="aux_uom_name" readonly="1"/>
+                            <field name="uom_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="uom_po_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="uom_conversion_rate" readonly="1"/>
+                            <field name="shelf_life_months" readonly="1"/>
+                            <field name="shelf_life_years" readonly="1"/>
+                            <field name="tax_name" readonly="1"/>
+                            <field name="tax_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="is_shared_semi_finished_suspected" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="remark" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_sunrise_product_master_import_line_search" model="ir.ui.view">
+        <field name="name">stock.barcode.lite.sunrise.product.master.import.line.search</field>
+        <field name="model">stock.barcode.lite.sunrise.product.master.import.line</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="import_id"/>
+                <field name="product_code"/>
+                <field name="counterpart_code"/>
+                <field name="product_name"/>
+                <field name="english_name"/>
+                <field name="sheet_name"/>
+                <field name="tax_name"/>
+                <field name="aux_uom_name"/>
+                <field name="product_id"/>
+                <field name="is_shared_semi_finished_suspected"/>
+                <filter name="state_success" string="Success" domain="[('state', '=', 'success')]"/>
+                <filter name="state_failed" string="Failed" domain="[('state', '=', 'failed')]"/>
+                <filter name="shared_semi_finished_suspected" string="Suspected Shared Semi Finished" domain="[('is_shared_semi_finished_suspected', '=', True)]"/>
+                <filter name="code_type_finished" string="Finished" domain="[('code_type', '=', 'finished')]"/>
+                <filter name="code_type_semi_finished" string="Semi Finished" domain="[('code_type', '=', 'semi_finished')]"/>
+                <separator/>
+                <filter name="group_import" string="Import" context="{'group_by': 'import_id'}"/>
+                <filter name="group_state" string="State" context="{'group_by': 'state'}"/>
+                <filter name="group_shared_semi_finished_suspected" string="Suspected Shared Semi Finished" context="{'group_by': 'is_shared_semi_finished_suspected'}"/>
+                <filter name="group_sheet" string="Sheet" context="{'group_by': 'sheet_name'}"/>
+                <filter name="group_code_type" string="Code Type" context="{'group_by': 'code_type'}"/>
+                <filter name="group_tax" string="Tax" context="{'group_by': 'tax_name'}"/>
+                <filter name="group_uom" string="Auxiliary UOM" context="{'group_by': 'aux_uom_name'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_product_template_form_sunrise_product_master" model="ir.ui.view">
+        <field name="name">product.template.form.sunrise.product.master</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='categ_id']" position="after">
+                <field name="category_name" invisible="1"/>
+                <field name="sunrise_english_name" invisible="category_name != 'SUNRISE'"/>
+                <field name="sunrise_main_uom_name" invisible="category_name != 'SUNRISE'"/>
+                <field name="sunrise_uom_conversion_rate" invisible="category_name != 'SUNRISE'"/>
+                <field name="sunrise_shelf_life_months" invisible="category_name != 'SUNRISE'"/>
+                <field name="sunrise_shelf_life_years" invisible="category_name != 'SUNRISE'"/>
+            </xpath>
+        </field>
+    </record>
+
+
+        <record id="action_sunrise_product_master_import" model="ir.actions.act_window">
+            <field name="name">Sunrise Product Master Imports</field>
+            <field name="res_model">stock.barcode.lite.sunrise.product.master.import</field>
+            <field name="view_mode">list,form</field>
+        </record>
+
+        <record id="action_sunrise_product_master_import_line" model="ir.actions.act_window">
+            <field name="name">Sunrise Product Master Import Lines</field>
+            <field name="res_model">stock.barcode.lite.sunrise.product.master.import.line</field>
+            <field name="view_mode">list</field>
+            <field name="search_view_id" ref="view_sunrise_product_master_import_line_search"/>
+        </record>
+
+        <menuitem id="menu_sunrise_product_master_import"
+                  name="Sunrise Product Master Imports"
+                  parent="menu_stock_barcode_lite_configuration"
+                  action="action_sunrise_product_master_import"
+                  sequence="30"/>
+
+        <menuitem id="menu_sunrise_product_master_import_line"
+                  name="Sunrise Product Master Import Lines"
+                  parent="menu_stock_barcode_lite_configuration"
+                  action="action_sunrise_product_master_import_line"
+                  sequence="31"/>
+
+</odoo>
