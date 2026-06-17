@@ -54,13 +54,13 @@
                                 type="object"
                                 string="Check Available"
                                 class="oe_stat_button" icon="fa-check-square"
-                                invisible="project_name =='LINGLONG'"/>
+                                invisible="project_name in ('LINGLONG', 'SUNRISE')"/>
 
                         <button name="action_check_available_linglong"
                                 type="object"
                                 string="Check Available"
                                 class="oe_stat_button" icon="fa-check-square"
-                                invisible="project_name !='LINGLONG'"/>
+                                invisible="project_name !='LINGLONG' or project_name == 'SUNRISE'"/>
 
                         <button name="view_outbound_order_product_details"
                                 type="object"
@@ -71,18 +71,19 @@
                                 type="object"
                                 string="Create Picking"
                                 class="oe_stat_button" icon="fa-file-text"
-                                invisible="project_name =='LINGLONG'"/>
+                                invisible="project_name in ('LINGLONG', 'SUNRISE')"/>
 
                         <button name="action_create_picking_PICK_linglong"
                                 type="object"
                                 string="Create Picking"
                                 class="oe_stat_button" icon="fa-file-text"
-                                invisible="project_name !='LINGLONG'"/>
+                                invisible="project_name != 'LINGLONG' or project_name == 'SUNRISE'"/>
 
                         <button name="action_create_cmr"
                                 type="object"
                                 string="Create CMR"
-                                class="oe_stat_button" icon="fa-film"/>
+                                class="oe_stat_button" icon="fa-film"
+                                invisible="project_name == 'SUNRISE'"/>
                         <button name="view_outbound_order_sn_details"
                                 type="object"
                                 string="View SN"
@@ -365,7 +366,7 @@
         <field name="view_mode">list,form</field>
         <field name="view_id" ref="view_outbound_order_tree"/>
         <field name="context">{'search_default_state_not_cancel': 1}</field>
-        <field name="domain">[]</field>
+        <field name="domain">[('project.name', '!=', 'SUNRISE')]</field>
     </record>
 
     <!-- outbound product lines tree view -->

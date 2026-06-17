@@ -127,7 +127,8 @@
                         <button name="action_create_stock_picking"
                                 type="object"
                                 string="Create Receipt"
-                                class="oe_stat_button" icon="fa-file-text"/>
+                                class="oe_stat_button" icon="fa-file-text"
+                                invisible="project_name == 'SUNRISE'"/>
                         <!--<button name="action_set_status_to_confirmed"
                                 type="object"
                                 string="Confirm Status"
@@ -343,7 +344,7 @@
         <field name="view_mode">list,form</field> <!-- Corrected view_mode -->
         <field name="view_id" ref="view_inbound_order_tree"/>
         <field name="context">{'search_default_state_not_cancel': 1}</field>
-        <field name="domain">[]</field>
+        <field name="domain">[('project.name', '!=', 'SUNRISE')]</field>
     </record>
      <record id="action_inbound_order_products_pallet" model="ir.actions.act_window">
         <field name="name">Inbound Pallet Products</field>
