@@ -1,3 +1,6 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_world_deport_dashboard,access_world_deport_dashboard,model_world_deport_dashboard,,1,1,1,1
 
+access_hoymiles_api_logs_user,hoymiles.api.logs user,model_hoymiles_api_logs,,1,1,1,1
+access_hoymiles_api_urls_admin,hoymiles.api.urls admin,model_hoymiles_api_urls,,1,1,1,1
+access_hoymiles_token_utils_admin,hoymiles.token.utils admin,model_hoymiles_token_utils,,1,1,1,1

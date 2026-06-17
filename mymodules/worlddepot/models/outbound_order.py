@@ -1551,6 +1551,7 @@ class OutboundOrderProduct(models.Model):
     project = fields.Many2one(related='outbound_order_id.project', string='Project', store=True, readonly=True)
     project_category_id = fields.Many2one(related='project.category', string='Project Category', store=True,
                                           readonly=True)
+    project_name = fields.Char(string='Project Name', related='project.name', stored=True, tracking=True)
     cntr_no = fields.Char(string='Container No', required=False, tracking=True)
     product_id = fields.Many2one('product.product', string='Product', required=True, tracking=True,
                                  domain="[('categ_id', '=', project_category_id)]")

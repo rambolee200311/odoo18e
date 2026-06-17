@@ -50,7 +50,7 @@
         <field name="name">inbound.order.product.form</field>
         <field name="model">world.depot.inbound.order.product</field>
         <field name="arch" type="xml">
-            <form string="Inbound Order Pallets">
+            <form string="Inbound Order Pallets" class="worlddepot_required_highlight">
                 <sheet>
                     <div class="oe_title">
                          <h1>
@@ -97,12 +97,12 @@
         <field name="name">inbound.order.form</field>
         <field name="model">world.depot.inbound.order</field>
         <field name="arch" type="xml">
-            <form string="Inbound Order" class="o_inbound_order">
+            <form string="Inbound Order" class="o_inbound_order worlddepot_required_highlight" >
                 <header>
                     <button name="save_record" type="object" string="Save" class="btn-primary" invisible="state!='new'"/>
                     <button name="action_confirm" type="object" string="Confirm" class="btn-primary" invisible="state!='new'"/>
                     <button name="action_unconfirm" type="object" string="UnConfirm" class="btn-primary" invisible="state!='confirm'"/>
-                    <button name="action_cancel" type="object" string="Cancel" class="btn-secondary" invisible="state!='new'"/>
+                    <button name="action_cancel" type="object" string="Cancel" class="btn-secondary" invisible="state not in ['new', 'confirm']"/>
                     <field name="state" widget="statusbar" statusbar_visible="new,confirm"/>
                     <widget name="web_ribbon" title="CANCEL" bg_color="bg-danger" invisible="state!='cancel'"/>
                 </header>
@@ -127,7 +127,8 @@
                         <button name="action_create_stock_picking"
                                 type="object"
                                 string="Create Receipt"
-                                class="oe_stat_button" icon="fa-file-text"/>
+                                class="oe_stat_button" icon="fa-file-text"
+                                invisible="project_name == 'SUNRISE'"/>
                         <!--<button name="action_set_status_to_confirmed"
                                 type="object"
                                 string="Confirm Status"
@@ -143,7 +144,7 @@
                     </div>
                     <group col="2">
                         <group col="2" string="Main">
-                            <field name="type"/>
+                            <field name="type" readonly="state!='new'"/>
                             <field name="reference" readonly="state!='new'"/>
                             <field name="date" readonly="state!='new'"/>
                             <field name="a_date" readonly="state!='new'"/>
@@ -224,7 +225,7 @@
                                 </group>
                             </group>
                         </page>-->
-                        <page string="Hoymiles APIs" groups="account.group_project_hoymiles">
+                        <page string="Hoymiles APIs" groups="account.group_project_hoymiles" invisible="project_name != 'HOYMILES'">
                             <group string="Confirm Status" col="2">
                                 <group col="2">
                                     <div class="oe_button_box" name="button_box">
@@ -322,7 +323,7 @@
         <field name="view_mode">list,form</field> <!-- Corrected view_mode -->
         <field name="view_id" ref="view_inbound_order_tree"/>
         <field name="context">{'search_default_state_not_cancel': 1}</field>
-        <field name="domain">[]</field>
+        <field name="domain">[('project.name', '!=', 'SUNRISE')]</field>
     </record>
      <record id="action_inbound_order_products_pallet" model="ir.actions.act_window">
         <field name="name">Inbound Pallet Products</field>

@@ -32,6 +32,7 @@ class InboundOrder(models.Model):
     i_date = fields.Date(string='Inbound Date', tracking=True, readonly=True, help='Real date for inbound operation')
     i_datetime = fields.Datetime(string='Inbound Date', tracking=True, readonly=True)
     project = fields.Many2one('project.project', string='Project', required=True)
+    project_name = fields.Char(string='Project Name', related='project.name', stored=True, tracking=True)
     project_category_id = fields.Many2one(
         related='project.category',
         string='Project Category',
@@ -152,9 +153,26 @@ class InboundOrder(models.Model):
     inbound_order_charge_ids = fields.One2many('world.depot.inbound.order.charge',
                                                'inbound_order_id',
                                                string='Inbound Order Charges')
-    
+
     #是否入保税仓
     is_bonded = fields.Boolean(string='Bonded Warehouse', default=False, tracking=True)
+
+    @api.constrains("project", "reference", "state")
+    def check_reference_unique_by_project(self):
+        inbound_model = self.env["world.depot.inbound.order"]
+        for rec in self:
+            if not rec.project or not rec.reference or rec.state == "cancel":
+                continue
+            domain = [
+                ("id", "!=", rec.id),
+                ("project", "=", rec.project.id),
+                ("reference", "=", rec.reference),
+                ("state", "!=", "cancel"),
+            ]
+            if inbound_model.sudo().search(domain, limit=1):
+                raise ValidationError(
+                    _('The reference "%s" already exists for this project.') % rec.reference
+                )
 
     # Compute adr dgd charge
     @api.depends('is_adr')
@@ -579,7 +597,7 @@ class InboundOrderProduct(models.Model):
     project = fields.Many2one(related='inbound_order_id.project', string='Project', store=True, readonly=True)
     project_category_id = fields.Many2one(related='project.category', string='Project Category', store=True,
                                           readonly=True)
-
+    project_name = fields.Char(string='Project Name', related='project.name', stored=True, tracking=True)
     pallet_type = fields.Char(string='Pallet Type', help='How many quantity on a pallet', default='')
     pallet_no = fields.Char(string='Pallet No', help='Pallet number for tracking', default='')
     pallets = fields.Float(string='Pallets', required=True, default=1.0)
@@ -729,6 +747,7 @@ class InboundOrderProductsOfPallet(models.Model):
         store=True,
         readonly=True
     )
+    project_name = fields.Char(string='Project Name', related='project.name', stored=True, tracking=True)
     product_id = fields.Many2one(
         'product.product',
         string='Product',

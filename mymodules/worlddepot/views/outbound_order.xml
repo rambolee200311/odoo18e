@@ -24,7 +24,7 @@
         <field name="name">outbound.order.form</field>
         <field name="model">world.depot.outbound.order</field>
         <field name="arch" type="xml">
-            <form string="Outbound Order">
+            <form string="Outbound Order" class="worlddepot_required_highlight">
                 <header>
                     <!-- groups="panexLogi.groups_panex_finance_manager"-->
                     <button name="action_confirm" type="object" string="Confirm" class="btn-primary"
@@ -32,13 +32,7 @@
                     <button name="action_unconfirm" type="object" string="UnConfirm" class="btn-primary"
                             invisible="state!='confirm'"/>
                     <button name="action_cancel" type="object" string="Cancel" class="btn-secondary"
-                            invisible="state!='new'"/>
-                    <button name="action_prepare_recreate_picking"
-                            type="object"
-                            string="Prepare Recreate Picking"
-                            class="btn-secondary"
-                            invisible="1"
-                            groups="base.group_system"/>
+                            invisible="state not in ['new', 'confirm']"/>
                     <field name="state" widget="statusbar" statusbar_visible="new,confirm"/>
                     <widget name="web_ribbon" title="CANCEL" bg_color="bg-danger" invisible="state!='cancel'"/>
                 </header>
@@ -60,13 +54,13 @@
                                 type="object"
                                 string="Check Available"
                                 class="oe_stat_button" icon="fa-check-square"
-                                invisible="project_name =='LINGLONG'"/>
+                                invisible="project_name in ('LINGLONG', 'SUNRISE')"/>
 
                         <button name="action_check_available_linglong"
                                 type="object"
                                 string="Check Available"
                                 class="oe_stat_button" icon="fa-check-square"
-                                invisible="project_name !='LINGLONG'"/>
+                                invisible="project_name !='LINGLONG' or project_name == 'SUNRISE'"/>
 
                         <button name="view_outbound_order_product_details"
                                 type="object"
@@ -77,18 +71,19 @@
                                 type="object"
                                 string="Create Picking"
                                 class="oe_stat_button" icon="fa-file-text"
-                                invisible="project_name =='LINGLONG'"/>
+                                invisible="project_name in ('LINGLONG', 'SUNRISE')"/>
 
                         <button name="action_create_picking_PICK_linglong"
                                 type="object"
                                 string="Create Picking"
                                 class="oe_stat_button" icon="fa-file-text"
-                                invisible="project_name !='LINGLONG'"/>
+                                invisible="project_name != 'LINGLONG' or project_name == 'SUNRISE'"/>
 
                         <button name="action_create_cmr"
                                 type="object"
                                 string="Create CMR"
-                                class="oe_stat_button" icon="fa-film"/>
+                                class="oe_stat_button" icon="fa-film"
+                                invisible="project_name == 'SUNRISE'"/>
                         <button name="view_outbound_order_sn_details"
                                 type="object"
                                 string="View SN"
@@ -153,10 +148,11 @@
                         </page>
                         <page string="Products">
                             <field name="outbound_order_product_ids"
-                                   context="{'default_outbound_order_id': id}" readonly="0" options="{'no_open': True}">>
+                                   context="{'default_outbound_order_id': id}" readonly="state == 'confirm'" options="{'no_open': True}">>
                                 <list editable="bottom" open_form_view="0">
                                     <button name="action_open_line_form" type="object" string="open" class="oe_stat_button"/>
                                     <field name="product_id" width="400"/>
+                                    <field name="pallet_no"/>
                                     <field name="adr"/>
                                     <field name="un_number"/>
                                     <field name="pallets"/>
@@ -228,7 +224,7 @@
                                 </list>
                             </field>
                         </page>
-                        <page string="Hoymiles APIs" groups="account.group_project_hoymiles">
+                        <page string="Hoymiles APIs" groups="account.group_project_hoymiles" invisible="project_name != 'HOYMILES'">
                             <group string="Start Operatoin" col="2">
                                 <group col="2">
                                     <div class="oe_button_box" name="button_box">
@@ -370,7 +366,7 @@
         <field name="view_mode">list,form</field>
         <field name="view_id" ref="view_outbound_order_tree"/>
         <field name="context">{'search_default_state_not_cancel': 1}</field>
-        <field name="domain">[]</field>
+        <field name="domain">[('project.name', '!=', 'SUNRISE')]</field>
     </record>
 
     <!-- outbound product lines tree view -->
@@ -403,6 +399,8 @@
                 <sheet>
                     <group >
                         <field name="product_id" readonly="outbound_order_state != 'new'"/>
+                        <field name="pallet_no" readonly="outbound_order_state != 'new'"/>
+                        <field name="pallet_type" readonly="outbound_order_state != 'new'"/>
                         <field name="adr" readonly="outbound_order_state != 'new'"/>
                         <field name="un_number" readonly="outbound_order_state != 'new'"/>
                         <field name="pallets" readonly="outbound_order_state != 'new'"/>
