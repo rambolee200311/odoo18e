@@ -17,17 +17,16 @@
     max-width: 900px;
     margin: 0 auto;
     padding: 16px 16px 80px 16px;
-    position: fixed;
-    top: 50px;  /* 避开顶部导航栏 */
-    right: 0;
-    bottom: 0;
-    left: 50px;  /* 避开侧边栏 */
+    min-height: calc(100vh - 50px);  /* PC端避开顶部导航栏 */
+    box-sizing: border-box;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
-    pointer-events: none;  /* 允许点击穿透到侧边栏菜单 */
 
-    * {
-        pointer-events: auto;  /* 恢复内部元素的点击能力 */
+    // PDA设备全屏显示，顶部间距更小
+    @media (max-width: 768px), (pointer: coarse) {
+        min-height: 100vh;
+        padding: 0 16px 80px 16px;  /* 移除顶部padding */
+        margin-top: -25px;  /* pda显示缩短上方空间 */
     }
 
     .section-header {
