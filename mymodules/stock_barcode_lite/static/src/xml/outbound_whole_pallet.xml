@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <templates>
-    <!-- 整托出库页面 - 货位 -> 托盘 -> 确认出库 -->
+    <!-- 整托出库页面 - 货位 -> 托盘 -> 确认出库 (Backend-driven) -->
     <t t-name="stock_barcode_lite.WholePalletOutboundPage">
         <input
             t-ref="barcodeInput"
@@ -22,8 +22,8 @@
                 </button>
                 <div class="o_sbl_header_title">
                     <i class="fa fa-truck text-primary me-1"/>
-                    <t t-if="state.order">
-                        <t t-esc="state.order.reference"/>
+                    <t t-if="orderReference">
+                        <t t-esc="orderReference"/>
                     </t>
                     <t t-else="">Full Pallet Pick</t>
                 </div>
@@ -35,6 +35,23 @@
             <!-- 提示条 -->
             <div t-if="state.message" t-attf-class="o_sbl_alert alert alert-{{ state.messageType }}">
                 <t t-esc="state.message"/>
+            </div>
+
+            <!-- 出库单信息 -->
+            <div t-if="hasOrder" class="o_sbl_order_info">
+                <div class="o_order_row1">
+                    <span class="o_order_origin">
+                        <t t-if="orderOrigin"><t t-esc="orderOrigin"/></t>
+                    </span>
+                    <span class="o_order_partner">
+                        <i class="fa fa-user me-1"/>
+                        <t t-esc="orderPartner"/>
+                    </span>
+                </div>
+                <div class="o_order_row2" t-if="relatedPickingMessage">
+                    <i class="fa fa-exclamation-triangle text-warning me-1"/>
+                    <span class="text-warning"><t t-esc="relatedPickingMessage"/></span>
+                </div>
             </div>
 
             <!-- 当前货位信息 -->
@@ -89,7 +106,7 @@
                     <t t-esc="progressPercent"/>%
                 </span>
                 <span class="me-2">
-                    <t t-esc="state.summary.updated_pallets || 0"/> / <t t-esc="state.summary.total_pallets || 0"/> pallets
+                    <t t-esc="state.summary.completed_pallets || 0"/> / <t t-esc="state.summary.total_pallets || 0"/> pallets
                 </span>
                 <span class="ms-auto">
                     <span class="badge" t-attf-class="{{ isAllComplete ? 'bg-success' : 'bg-warning text-dark' }}">
@@ -116,20 +133,24 @@
                     </div>
                 </t>
 
-                <t t-foreach="palletList" t-as="pallet" t-key="pallet.id">
+                <t t-foreach="palletList" t-as="pallet" t-key="pallet.package_id">
                     <div t-attf-class="o_sbl_pallet {{ pallet.is_complete ? 'o_pallet_updated' : '' }}">
                         <!-- 托盘头部 -->
-                        <div class="o_pallet_header" data-bs-toggle="collapse" t-attf-data-bs-target="#pallet_products_{{ pallet.id }}" aria-expanded="false">
+                        <div class="o_pallet_header" data-bs-toggle="collapse" t-attf-data-bs-target="#pallet_products_{{ pallet.package_id }}" aria-expanded="false">
                             <div class="o_pallet_row1">
                                 <div class="o_pallet_info">
                                     <i class="fa fa-cube text-secondary me-2"/>
                                     <strong class="o_pallet_name">
-                                        <t t-esc="pallet.name || pallet.barcode || ('Pallet ' + pallet.id)"/>
+                                        <t t-esc="pallet.package_name || pallet.package_barcode || ('Pallet ' + pallet.package_id)"/>
                                     </strong>
                                 </div>
                                 <div class="o_pallet_right">
                                     <span class="badge bg-success" t-if="pallet.is_complete">
                                         <i class="fa fa-check me-1"/>Done
+                                    </span>
+                                    <span class="badge" t-attf-class="{{ pallet.can_ship_whole ? 'bg-info' : 'bg-warning text-dark' }}" t-if="!pallet.is_complete">
+                                        <t t-if="pallet.can_ship_whole">Whole</t>
+                                        <t t-else="">Partial</t>
                                     </span>
                                     <i class="fa fa-chevron-down collapse-arrow"/>
                                 </div>
@@ -146,13 +167,13 @@
                         </div>
 
                         <!-- 托盘内产品列表 - 默认折叠 -->
-                        <div t-attf-id="pallet_products_{{ pallet.id }}" class="o_pallet_products collapse">
+                        <div t-attf-id="pallet_products_{{ pallet.package_id }}" class="o_pallet_products collapse">
                             <t t-if="!(pallet.products || []).length">
                                 <div class="o_sbl_empty_state text-center text-muted py-4">
                                     <p class="mb-0 small">No products loaded</p>
                                 </div>
                             </t>
-                            <t t-foreach="pallet.products || []" t-as="item" t-key="item.id">
+                            <t t-foreach="pallet.products || []" t-as="item" t-key="item.move_line_id">
                                 <div t-attf-class="o_product_subcard {{ pallet.is_complete ? 'o_pallet_updated' : '' }}">
                                     <div class="o_product_row_top">
                                         <div class="o_product_icon">
@@ -162,7 +183,7 @@
                                             <t t-esc="item.product_name"/>
                                         </div>
                                         <div class="o_product_qty">
-                                            <span class="o_qty_value"><t t-esc="item.qty_done || item.quantity || 0"/></span>
+                                            <span class="o_qty_value"><t t-esc="item.scanned_quantity || 0"/></span>
                                             <span class="o_qty_label">/ <t t-esc="item.quantity || 0"/></span>
                                         </div>
                                     </div>
@@ -171,6 +192,13 @@
                                         <span t-if="item.product_barcode" class="o_meta_barcode">
                                             <i class="fa fa-barcode me-1"/>
                                             <t t-esc="item.product_barcode"/>
+                                        </span>
+                                        <span t-if="item.lot" class="o_meta_lot">
+                                            <i class="fa fa-tag me-1"/>
+                                            <t t-esc="item.lot"/>
+                                        </span>
+                                        <span class="o_meta_uom">
+                                            <t t-esc="item.uom"/>
                                         </span>
                                     </div>
                                 </div>
