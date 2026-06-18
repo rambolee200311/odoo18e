@@ -360,8 +360,8 @@
         <field name="arch" type="xml">
             <xpath expr="//page[@name='operations']" position="inside">
                 <group>
-                    <field name="inbound_order_id" string="Inbound Order" invisible="picking_type_code!='incoming'"/>
-                    <field name="outbound_order_id" string="Outbound Order" invisible="picking_type_code=='incoming'"/>
+                    <field name="inbound_order_id" string="Inbound Order" invisible="picking_type_code!='incoming'" readonly="1"/>
+                    <field name="outbound_order_id" string="Outbound Order" invisible="picking_type_code=='incoming'" readonly="1"/>
                 </group>
             </xpath>
         </field>

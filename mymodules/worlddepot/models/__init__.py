@@ -37,6 +37,7 @@ from . import outbound_order_charge
 from . import my_dashboard
 #from . import my_stock_report
 from . import my_stock_report_linglong
+from . import outbound_recreate_picking_ready
 from . import transfer_order
 from . import transfer_order_status
 from . import transfer_order_create_picking

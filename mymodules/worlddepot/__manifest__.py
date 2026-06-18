@@ -5,7 +5,7 @@
     'summary': "Logistics and Supply Chain Management System",
 
     'description': """
-    Logistics and Supply Chain Management System for World Depot
+ Logistics and Supply Chain Management System for World Depot
     """,
 
     'author': "World Depot B.V.",
@@ -25,7 +25,7 @@
         'security/ir.model.access.csv',
         #'views/views.xml',
         #'views/templates.xml',
-        #'vies/my_partner.xml',        
+        #'vies/my_partner.xml',
         'views/location_type.xml',
         'views/my_project.xml',
         'views/my_stock.xml',
@@ -57,7 +57,7 @@
         'views/outbound_order_charge.xml',
         'views/my_dashboard.xml',
         'views/my_route.xml',
-        'views/my_stock_report_linglong_views.xml',        
+        'views/my_stock_report_linglong_views.xml',
         'views/inbound_order_deepseek_checker.xml',
         'views/outbound_order_deepseek_checker.xml',
         #'views/my_excel_template.xml',
