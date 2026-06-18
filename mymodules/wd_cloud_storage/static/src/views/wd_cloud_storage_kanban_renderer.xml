@@ -6,7 +6,7 @@
         </xpath>
 
         <xpath expr="//div[hasclass('o_kanban_renderer')]" position="inside">
-<!--            <WdCloudStorageFileViewer previewStore="props.previewStore"/>-->
+            <WdCloudStorageFileViewer previewStore="props.previewStore"/>
         </xpath>
     </t>
 </templates>
