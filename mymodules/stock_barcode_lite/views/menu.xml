@@ -54,28 +54,18 @@
               sequence="50"
               action="action_stock_barcode_lite_homepage"
               web_icon="stock_barcode_lite,static/description/img.png"/>
+
+
     <menuitem id="menu_stock_barcode_lite_configuration"
               name="Configuration"
               parent="menu_stock_barcode_lite_root"
               sequence="90"/>
 
-    <menuitem id="menu_stock_barcode_lite_inbound"
-              name="Inbound"
+    <menuitem id="menu_stock_barcode_lite_homepage"
+              name="Homepage"
               parent="menu_stock_barcode_lite_root"
-              action="action_stock_barcode_lite_inbound"
-              sequence="10"/>
-
-    <menuitem id="menu_stock_barcode_lite_outbound_whole"
-              name="Full Pallet Pick"
-              parent="menu_stock_barcode_lite_root"
-              action="action_stock_barcode_lite_outbound_whole"
+              action="action_stock_barcode_lite_homepage"
               sequence="20"/>
-
-    <menuitem id="menu_stock_barcode_lite_outbound"
-              name="Break Bulk Pick"
-              parent="menu_stock_barcode_lite_root"
-              action="action_stock_barcode_lite_outbound"
-              sequence="30"/>
 
     <menuitem id="menu_stock_barcode_lite_sunrise_inbound_order"
               name="Sunrise Inbound Orders"

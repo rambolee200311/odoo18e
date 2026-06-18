@@ -5,6 +5,7 @@ from . import inbound_order_sunrise_status
 from . import outbound_order_inherit
 from . import outbound_order_sunrise_status
 from . import sunrise_api
+from . import sunrise_product_master_import
 from . import stock_quant_package
 from . import stock_barcode_lite_scan_service
 from . import stock_barcode_lite_outgoing_scan_service
