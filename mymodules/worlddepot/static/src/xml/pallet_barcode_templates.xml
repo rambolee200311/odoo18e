@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!-- Template for the pallet scan button -->
+    <template id="pallet_scan_button" name="PalletScanButton">
+        <button class="btn btn-primary o_pallet_scan_btn">
+            <i class="fa fa-barcode"/> <t t-esc="props.label"/>
+        </button>
+    </template>
+
+    <!-- Override the PackageBarcode component to include our button -->
+    <template id="package_barcode_override" name="PackageBarcodeOverride" inherit_id="stock_barcode.package_barcode">
+        <xpath expr="//div[@class='o_package_name']" position="after">
+            <t t-if="widget.enablePalletScanning">
+                <PalletScanButton label="'Scan Pallet'"/>
+            </t>
+        </xpath>
+    </template>
+
+</templates>

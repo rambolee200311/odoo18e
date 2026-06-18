@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_stock_barcode_lite_picking_form_inherit" model="ir.ui.view">
+        <field name="name">stock.barcode.lite.picking.form.inherit</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='location_id']" position="after">
+                <field name="project_name" readonly="1" invisible="1"/>
+<!--                <field name="project_id" readonly="1"/>-->
+                <field name="outbound_scan_mode" readonly="1" invisible="project_name !='SUNRISE' or picking_type_code != 'outgoing'"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

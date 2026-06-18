@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_chenyang_chemical_inbound_order_form_inherit" model="ir.ui.view">
+        <field name="name">chenyang.chemical.inbound.order.form.inherit</field>
+        <field name="model">world.depot.inbound.order</field>
+        <field name="inherit_id" ref="worlddepot.view_inbound_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="attributes">
+                <attribute name="duplicate">false</attribute>
+            </xpath>
+            <xpath expr="//field[@name='cntr_no']" position="before">
+                    <field name="vsourcebillcode" readonly="state != 'new'" invisible="project_name != 'SUNRISE'"/>
+                    <field name="cwarehouseid" readonly="state != 'new'" invisible="project_name !='SUNRISE'"/>
+                    <field name="source_sale_delivery_reference" readonly="state != 'new'" required="type == 'service' and project_name == 'SUNRISE'" invisible="project_name !='SUNRISE' or type != 'service'"/>
+            </xpath>
+            <xpath expr="//field[@name='inbound_order_product_ids']" position="before">
+                <div class="mb-2">
+                    <button name="action_open_inbound_product_import_wizard"
+                            type="object"
+                            string="Import Products"
+                            class="btn btn-primary"
+                            icon="fa-upload"
+                            invisible="state != 'new' or project_name !='SUNRISE'"/>
+                </div>
+            </xpath>
+            <xpath expr="//button[@name='action_create_stock_picking']" position="after">
+                <button name="action_sunrise_create_incoming_stock_picking"
+                        type="object"
+                        string="Sunrise Create Receipt"
+                        class="oe_stat_button"
+                        icon="fa-file-text"
+                        invisible="project_name !='SUNRISE'"/>
+            </xpath>
+            <xpath expr="//field[@name='inbound_order_product_ids']/list/field[@name='pallet_no']" position="after">
+                <field name="sunrise_pallet_no" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Sunrise Sync" invisible="project_name !='SUNRISE'">
+                    <group>
+                        <group>
+                            <field name="set_sunrise_inbound_sync" readonly="1"/>
+                            <field name="set_sunrise_inbound_sync_time" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="sunrise_inbound_task_number" readonly="1"/>
+                            <field name="sunrise_inbound_sync_error_msg" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <button name="action_sync_u8c_inbound"
+                                type="object"
+                                string="Sync U8C Inbound"
+                                class="btn btn-primary"
+                                invisible="type == 'service'"/>
+                        <button name="action_sync_u8c_service_return"
+                                type="object"
+                                string="Sync U8C Service Return"
+                                class="btn btn-primary"
+                                invisible="1"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+<!--    <record id="view_chenyang_chemical_inbound_order_product_tree_inherit" model="ir.ui.view">-->
+<!--        <field name="name">chenyang.chemical.inbound.order.product.tree.inherit</field>-->
+<!--        <field name="model">world.depot.inbound.order.product</field>-->
+<!--        <field name="inherit_id" ref="worlddepot.view_inbound_order_product_tree"/>-->
+<!--        <field name="arch" type="xml">-->
+<!--            <xpath expr="//field[@name='pallet_no']" position="after">-->
+<!--                <field name="creation_source" readonly="1"/>-->
+<!--            </xpath>-->
+<!--        </field>-->
+<!--    </record>-->
+
+    <record id="view_chenyang_chemical_inbound_order_product_form_inherit" model="ir.ui.view">
+        <field name="name">chenyang.chemical.inbound.order.product.form.inherit</field>
+        <field name="model">world.depot.inbound.order.product</field>
+        <field name="inherit_id" ref="worlddepot.view_inbound_order_product_form"/>
+        <field name="arch" type="xml">
+<!--            <xpath expr="//field[@name='pallet_no']" position="after">-->
+<!--                <field name="creation_source" readonly="1"/>-->
+<!--            </xpath>-->
+            <xpath expr="//field[@name='pallet_no']" position="after">
+                <field name="sunrise_pallet_no" readonly="1" column_invisible="parent.project_name !='SUNRISE'"/>
+            </xpath>
+            <xpath expr="//field[@name='inbound_order_product_pallet_ids']/list/field[@name='product_id']" position="after">
+                <field name="cprojectid" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="ndiscounttaxtype" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="vsourcebillcode" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="vsourcerowno" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="cspaceid" optional="show" column_invisible="parent.project_name != 'SUNRISE'"/>
+                <field name="box_type" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="box_qty" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="box_in_qty" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="u8_aux_qty" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="u8_conversion_rate" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="ninnum" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="castunitid" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="u8_aux_uom_name" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="is_lot" readonly="1" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="lot_name" readonly="1" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="m_date" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="e_date" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_chenyang_chemical_inbound_order_product_pallet_tree_inherit" model="ir.ui.view">
+        <field name="name">chenyang.chemical.inbound.order.product.pallet.tree.inherit</field>
+        <field name="model">world.depot.inbound.order.products.pallet</field>
+        <field name="inherit_id" ref="worlddepot.view_inbound_order_product_pallet_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='product_id']" position="after">
+                <field name="cprojectid" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="ndiscounttaxtype" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="vsourcebillcode" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="vsourcerowno" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="box_type" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="cspaceid" optional="show" column_invisible="parent.project_name != 'SUNRISE'"/>
+                <field name="box_qty" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="castunitid" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="box_in_qty" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="u8_aux_uom_name" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="u8_aux_qty" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="u8_conversion_rate" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="ninnum" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="is_lot" readonly="1" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="lot_name" readonly="1" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="m_date" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="e_date" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

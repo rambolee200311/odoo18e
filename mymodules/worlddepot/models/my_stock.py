@@ -75,7 +75,7 @@ class StockPicking(models.Model):
         comodel_name='world.depot.outbound.order',
         string='Outbound Order',
         help='Reference to the related Outbound Order',
-        readonly=True
+    
     )
     load_ref = fields.Char(string='Loading Reference', required=False, help='Reference for the Delivery')
 

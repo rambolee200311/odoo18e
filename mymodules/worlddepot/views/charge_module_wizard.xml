@@ -1,0 +1,55 @@
+<odoo>
+    <data>
+        <!-- List view for charge items -->
+        <record id="view_charge_module_items_list" model="ir.ui.view">
+            <field name="name">charge.module.items.list</field>
+            <field name="model">world.depot.charge.module.item</field>
+            <field name="arch" type="xml">
+                <list string="Module Items">
+                    <field name="charge_item_id"/>
+                    <field name="quantity"/>
+                    <field name="charge_unit_name"/>
+                    <field name="charge_unit_id"/>
+                    <field name="unit_price"/>
+                    <field name="amount"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_world_depot_charge_module_selector_form" model="ir.ui.view">
+            <field name="name">world.depot.charge.module.selector.form</field>
+            <field name="model">worlddepot.charge.module.selector</field>
+            <field name="arch" type="xml">
+                <form string="Select Charge Module">
+                    <sheet>
+                        <group>
+                            <field name="module_id" required="1"/>
+                            <field name="type"/>
+                        </group>                        
+                        <group>
+                            <field name="description" readonly="1"/>
+                        </group>
+                        <group>
+                            <label string="Module Items" for="charge_item_ids" class="o_form_label"/>
+                            <field name="charge_item_ids" readonly="1" nolabel="1"/>
+                        </group>
+                        <group>
+                            <field name="operation" widget="radio" options="{'horizontal': true}"/>
+                        </group>
+                        <footer>
+                            <button string="Apply" type="object" name="apply_to" class="btn-primary"/>
+                            <button string="Cancel" class="btn-secondary" special="cancel"/>
+                        </footer>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_world_depot_charge_module_selector" model="ir.actions.act_window">
+            <field name="name">Select Charge Module</field>
+            <field name="res_model">worlddepot.charge.module.selector</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+    </data>
+</odoo>
