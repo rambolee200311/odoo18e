@@ -550,9 +550,9 @@ class OutboundOrder(models.Model):
             }
         
         return True
-
-
-
+        
+        
+        
     #LINGLONG 专用创建出库调拨单
     def action_create_picking_PICK_linglong(self):
         """
