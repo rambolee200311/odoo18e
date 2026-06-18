@@ -82,7 +82,7 @@ class StockPicking(models.Model):
         comodel_name='world.depot.outbound.order',
         string='Outbound Order',
         help='Reference to the related Outbound Order',
-        readonly=True
+    
     )
     transfer_order_id = fields.Many2one(
         comodel_name='world.depot.transfer.order',

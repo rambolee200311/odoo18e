@@ -7,7 +7,7 @@
         <field name="arch" type="xml">
             <!-- Add Reverse Validate button in header when picking is done -->
             <xpath expr="//header" position="inside">
-<!--                <button name="button_reverse_validate" type="object" string="Reverse Validate" class="btn-secondary" invisible="state!='done'" groups="stock.group_stock_manager,base.group_system"/>-->
+                <!--<button name="button_reverse_validate" type="object" string="Reverse Validate" class="btn-secondary" invisible="state!='done'" groups="stock.group_stock_manager,base.group_system"/>-->
                 <button name="action_force_validate" type="object" string="Force Validate" class="btn-secondary" invisible="state=='done'" groups="stock.group_stock_manager,base.group_system"/>          
             </xpath>
             <xpath expr="//sheet/group" position="inside">
