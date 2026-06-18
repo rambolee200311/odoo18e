@@ -59,7 +59,7 @@ class MyStockReportLinglong(models.Model):
         if self.products_ids:
             self.products_ids.unlink()
 
-        category_id = 11 # linglong id
+        category_id = 11
         temp_data = {}
         
         # Get correct date ranges
