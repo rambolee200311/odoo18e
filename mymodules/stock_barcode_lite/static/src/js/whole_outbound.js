@@ -215,6 +215,34 @@ export class WholePalletOutboundPage extends Component {
 
             await this._applyScanResult(result, true);
 
+            // 检查 picking 的出库扫描模式，如果不是 whole_pallet 则中断流程
+            if (result.next_step !== "scan_picking") {
+                const scanState = result.scan_state || {};
+                const scanMode = scanState.picking?.outbound_scan_mode;
+                if (scanMode && scanMode !== "whole_pallet") {
+                    this.showMessage(
+                        _t("This picking requires scan mode: ") + scanMode + _t(", but this page only supports whole_pallet mode. Please use the correct scanning page."),
+                        "danger"
+                    );
+                    this._flashScreen([200, 100, 100], true);
+
+                    // 重置数据
+                    this.state.order = null;
+                    this.state.pallets = [];
+                    this.state.currentLocation = {};
+                    this.state.currentPallet = {};
+                    this.state.currentProduct = {};
+                    this.state.currentLot = {};
+                    this.state.nextStep = "scan_picking";
+                    this.state.summary = this._getEmptySummary();
+                    this.state.lastScan = {};
+                    this.state.updatedMoveLineIds = [];
+                    this._focusBarcodeInput();
+
+                    return;
+                }
+            }
+
             if (result.action?.updated_move_line_ids?.length) {
                 this.state.updatedMoveLineIds = result.action.updated_move_line_ids;
             }

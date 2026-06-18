@@ -62,7 +62,7 @@
                 <span class="text-muted ms-1" t-if="currentLocationBarcode">(<t t-esc="currentLocationBarcode"/>)</span>
             </div>
 
-            <!-- ═══ 扫描提示步骤条：Order -> Location -> Pallet -> [Product] ═══ -->
+            <!-- ═══ 扫描提示步骤条：Order -> Location -> Pallet -> [Product] [Lot] [Quantity] ═══ -->
             <div class="o_sbl_step_indicator">
                 <div class="o_step_item" t-attf-class="{ active: isScanOrderStep, done: hasOrder }">
                     <div class="o_step_circle">
@@ -84,10 +84,20 @@
                     <div class="o_step_circle">3</div>
                     <div class="o_step_label">Pallet</div>
                 </div>
-                <div class="o_step_line" t-attf-class="{ active: isScanProductStep || isScanLotStep }"/>
-                <div class="o_step_item" t-attf-class="{ active: isScanProductStep || isScanLotStep }">
+                <div class="o_step_line" t-attf-class="{ active: isScanProductStep || isScanLotStep || isScanQuantityStep }"/>
+                <div class="o_step_item" t-attf-class="{ active: isScanProductStep }">
                     <div class="o_step_circle">4</div>
                     <div class="o_step_label">Product</div>
+                </div>
+                <div class="o_step_line" t-attf-class="{ active: isScanLotStep || isScanQuantityStep }"/>
+                <div class="o_step_item" t-attf-class="{ active: isScanLotStep }">
+                    <div class="o_step_circle">5</div>
+                    <div class="o_step_label">Lot/SN</div>
+                </div>
+                <div class="o_step_line" t-attf-class="{ active: isScanQuantityStep }"/>
+                <div class="o_step_item" t-attf-class="{ active: isScanQuantityStep }">
+                    <div class="o_step_circle">6</div>
+                    <div class="o_step_label">Quantity</div>
                 </div>
             </div>
 
@@ -95,6 +105,39 @@
             <div class="o_sbl_step_hint">
                 <i class="fa fa-qrcode me-2"/>
                 <t t-esc="stepHint"/>
+            </div>
+
+            <!-- 数量输入 -->
+            <div t-if="isScanQuantityStep" class="o_sbl_quantity_panel card mb-3">
+                <div class="card-body">
+                    <div class="o_quantity_context mb-2">
+                        <span class="badge bg-info me-1">Product</span>
+                        <strong><t t-esc="state.currentProduct?.display_name || state.currentProduct?.name || ''"/></strong>
+                        <span class="text-muted ms-2" t-if="state.currentProduct?.default_code">
+                            (<t t-esc="state.currentProduct.default_code"/>)
+                        </span>
+                        <span class="badge bg-secondary ms-2" t-if="state.currentLot?.name">Lot: <t t-esc="state.currentLot.name"/></span>
+                    </div>
+                    <div class="input-group">
+                        <input
+                            type="number"
+                            step="any"
+                            min="0"
+                            class="form-control"
+                            placeholder="Quantity"
+                            t-att-value="state.quantityInput"
+                            t-on-input="onQuantityInput"
+                            t-on-keydown="submitQuantity"
+                            autofocus="autofocus"
+                        />
+                        <button class="btn btn-primary"
+                                style="background-color: #0d6efd; border-color: #0d6efd; color: white;"
+                                t-on-click="submitQuantity"
+                                t-att-disabled="state.loading">
+                            <i class="fa fa-check me-1"/>Confirm
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <!-- 进度条 -->

@@ -56,6 +56,7 @@ export class DisassemblyOutboundPage extends Component {
             updatedMoveLineIds: [],
             currentProductIndex: -1,  // 当前正在处理的产品索引
             isDisassemblyMode: false, // 是否处于拆托模式
+            quantityInput: "",        // 数量输入缓冲
         });
 
         // 扫码输入缓冲
@@ -205,6 +206,15 @@ export class DisassemblyOutboundPage extends Component {
         this.state.loading = true;
 
         try {
+            if (this.state.nextStep === "input_quantity") {
+                this.showMessage(
+                    _t("Please use the quantity input to confirm the scanned quantity."),
+                    "warning"
+                );
+                this._focusBarcodeInput();
+                return;
+            }
+
             const pickingId = this.state.order?.id || false;
             const locationId = this.state.currentLocation?.id || false;
             const packageId = this.state.currentPallet?.id || false;
@@ -218,6 +228,35 @@ export class DisassemblyOutboundPage extends Component {
             );
 
             await this._applyScanResult(result, true);
+
+            // 检查 picking 的出库扫描模式，如果不是 partial_pallet 则中断流程
+            if (result.next_step !== "scan_picking") {
+                const scanMode = this.state.order?.outbound_scan_mode;
+                if (scanMode && scanMode !== "partial_pallet") {
+                    this.showMessage(
+                        _t("This picking requires scan mode: ") + scanMode + _t(", but this page only supports partial_pallet mode. Please use the correct scanning page."),
+                        "danger"
+                    );
+                    this._flashScreen([200, 100, 100], true);
+
+                    // 重置数据
+                    this.state.order = null;
+                    this.state.pallets = [];
+                    this.state.currentLocation = {};
+                    this.state.currentPallet = {};
+                    this.state.currentProduct = {};
+                    this.state.currentLot = {};
+                    this.state.nextStep = "scan_picking";
+                    this.state.summary = this._getEmptySummary();
+                    this.state.lastScan = {};
+                    this.state.updatedMoveLineIds = [];
+                    this.state.currentProductIndex = -1;
+                    this.state.isDisassemblyMode = false;
+                    this._focusBarcodeInput();
+
+                    return;
+                }
+            }
 
             if (result.action?.updated_move_line_ids?.length) {
                 this.state.updatedMoveLineIds = result.action.updated_move_line_ids;
@@ -286,6 +325,28 @@ export class DisassemblyOutboundPage extends Component {
         // 判断是否进入拆托模式（需要扫产品）
         this.state.isDisassemblyMode = this.state.nextStep === "scan_product";
 
+        // 数量输入模式需要保留当前 product/lot 上下文，避免前端误清空
+        if (result.next_step === "input_quantity") {
+            this.state.currentProduct = scanState.current_product
+                ? { ...scanState.current_product }
+                : this.state.currentProduct;
+            this.state.currentLot = scanState.current_lot
+                ? { ...scanState.current_lot }
+                : this.state.currentLot;
+            this.state.quantityInput = "";
+        }
+
+        // 离开数量输入模式时，清理当前产品/批次，避免下次复用错误上下文
+        if (this.state.nextStep !== "input_quantity") {
+            this.state.currentProduct = scanState.current_product
+                ? { ...scanState.current_product }
+                : {};
+            this.state.currentLot = scanState.current_lot
+                ? { ...scanState.current_lot }
+                : {};
+            this.state.quantityInput = "";
+        }
+
         // 提示用户
         if (notify && result.message) {
             const msgType = result.success === false ? "danger" : "success";
@@ -294,6 +355,75 @@ export class DisassemblyOutboundPage extends Component {
             if (result.success !== false) {
                 this._flashScreen([100, 200, 100], false);
             }
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 数量提交
+    // ═══════════════════════════════════════════════════════════════
+
+    onQuantityInput(ev) {
+        this.state.quantityInput = ev.target.value;
+    }
+
+    async submitQuantity(ev) {
+        console.log("[submitQuantity] called", {
+            eventType: ev?.type,
+            eventKey: ev?.key,
+            hasProduct: !!this.state.currentProduct?.id,
+            productId: this.state.currentProduct?.id,
+            qtyRaw: this.state.quantityInput,
+        });
+        if (ev && ev.type === "keydown" && ev.key !== "Enter") {
+            console.log("[submitQuantity] ignored non-Enter keydown");
+            return;
+        }
+        if (ev) {
+            ev.preventDefault();
+        }
+        if (!this.state.currentProduct?.id) {
+            this.showMessage(_t("Please scan product first"), "warning");
+            console.warn("[submitQuantity] blocked: no currentProduct");
+            return;
+        }
+        const qty = parseFloat(this.state.quantityInput || "0");
+        this.state.quantityInput = "";
+        if (!qty || qty <= 0) {
+            this.showMessage(_t("Please input a valid positive quantity."), "danger");
+            this._flashScreen([200, 100, 100], true);
+            this._focusBarcodeInput();
+            return;
+        }
+
+        this._isProcessing = true;
+        this.state.loading = true;
+        try {
+            const result = await this.orm.call(
+                "stock.barcode.lite.scan.service",
+                "process_outgoing_quantity_scan",
+                [
+                    "",
+                    qty,
+                    this.state.order?.id || false,
+                    this.state.currentLocation?.id || false,
+                    this.state.currentPallet?.id || false,
+                    this.state.currentProduct?.id || false,
+                    this.state.currentLot?.id || false,
+                    false,
+                ]
+            );
+            await this._applyScanResult(result, true);
+            if (result.action?.updated_move_line_ids?.length) {
+                this.state.updatedMoveLineIds = result.action.updated_move_line_ids;
+            }
+        } catch (error) {
+            console.error("[DisassemblyOutbound] quantity error:", error);
+            this.showMessage(this.formatError(error), "danger");
+            this._flashScreen([200, 100, 100], true);
+        } finally {
+            this.state.loading = false;
+            this._isProcessing = false;
+            this._focusBarcodeInput();
         }
     }
 
@@ -347,6 +477,7 @@ export class DisassemblyOutboundPage extends Component {
         this.state.updatedMoveLineIds = [];
         this.state.currentProductIndex = -1;
         this.state.isDisassemblyMode = false;
+        this.state.quantityInput = "";
         this._focusBarcodeInput();
     }
 
@@ -440,6 +571,10 @@ export class DisassemblyOutboundPage extends Component {
         return this.state.nextStep === "scan_lot";
     }
 
+    get isScanQuantityStep() {
+        return this.state.nextStep === "input_quantity";
+    }
+
     get scanModeLabel() {
         const map = {
             scan_picking: _t("Scan Order"),
@@ -447,6 +582,7 @@ export class DisassemblyOutboundPage extends Component {
             scan_pallet: _t("Scan Pallet"),
             scan_product: _t("Scan Product"),
             scan_lot: _t("Scan Lot/SN"),
+            input_quantity: _t("Input Quantity"),
         };
         return map[this.state.nextStep] || _t("Scan Barcode");
     }
@@ -458,6 +594,7 @@ export class DisassemblyOutboundPage extends Component {
             scan_pallet: _t("Scan pallet barcode - system will detect whole or disassembly"),
             scan_product: _t("Scan product barcode from the current pallet"),
             scan_lot: _t("Scan serial number or lot number"),
+            input_quantity: _t("Input quantity for the current product/lot"),
         };
         return hints[this.state.nextStep] || "";
     }
