@@ -8,7 +8,12 @@ import { Component, useState } from "@odoo/owl";
  */
 export class Homepage extends Component {
     static template = "stock_barcode_lite.Homepage";
-    static props = {};
+    static props = {
+        action: Object,
+        actionId: Number,
+        updateActionState: Function,
+        className: String,
+    };
 
     setup() {
         this.action = useService("action");
