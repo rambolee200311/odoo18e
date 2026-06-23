@@ -809,7 +809,7 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
         picking_model = self.env["stock.picking"]
         domain_base = [
             ("picking_type_id.code", "=", "outgoing"),
-            ("state", "not in", ("cancel")),
+            ("state", "not in", ("cancel",)),
         ]
         picking = picking_model.sudo().search(domain_base + [("name", "=", code)], limit=1)
         return picking
