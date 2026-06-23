@@ -34,6 +34,12 @@
                     <button name="action_cancel" type="object" string="Cancel" class="btn-secondary"
                             invisible="state not in ['new', 'confirm']"/>
                     <field name="state" widget="statusbar" statusbar_visible="new,confirm"/>
+                    <button name="action_prepare_recreate_picking"
+                            type="object"
+                            string="Prepare Recreate Picking"
+                            class="btn-secondary"
+                            invisible="1"
+                            groups="base.group_system"/>
                     <widget name="web_ribbon" title="CANCEL" bg_color="bg-danger" invisible="state!='cancel'"/>
                 </header>
                 <sheet>

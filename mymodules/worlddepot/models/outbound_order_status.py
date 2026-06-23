@@ -142,7 +142,7 @@ class OutboundOrderStatus(models.Model):
                         url.url,
                         headers=headers,
                         data=json.dumps(payload),
-                        timeout=10
+                        timeout=60
                     )
 
                     if response.status_code == 200:
@@ -276,7 +276,7 @@ class OutboundOrderStatus(models.Model):
                         url.url,
                         headers=headers,
                         data=json.dumps(payload),
-                        timeout=10
+                        timeout=60
                     )
 
                     if response.status_code == 200:
@@ -550,7 +550,7 @@ class OutboundOrderStatus(models.Model):
                         url.url,
                         headers=headers,
                         data=json.dumps(payload),
-                        timeout=10
+                        timeout=60
                     )
 
                     if response.status_code == 200:
@@ -686,7 +686,7 @@ class OutboundOrderStatus(models.Model):
                         url.url,
                         headers=headers,
                         data=json.dumps(payload),
-                        timeout=10
+                        timeout=60
                     )
 
                     if response.status_code == 200:
@@ -875,7 +875,7 @@ class OutboundOrderStatus(models.Model):
                         url.url,
                         headers=headers,
                         data=json.dumps(payload),
-                        timeout=10
+                        timeout=60
                     )
 
                     if response.status_code == 200:
