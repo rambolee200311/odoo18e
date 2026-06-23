@@ -177,6 +177,17 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
                 action_name="missing_picking",
                 success=False,
             )
+        if picking.state == "done":
+            return self.build_outgoing_scan_result(
+                "error",
+                _("Error"),
+                _("Outgoing picking %s is already done.") % picking.name,
+                barcode=code,
+                picking_id=picking.id,
+                pending_operation=pending_operation,
+                action_name="picking_already_done",
+                success=False,
+            )
         return self.build_outgoing_scan_result(
             "picking",
             _("Outgoing Picking"),
@@ -798,7 +809,7 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
         picking_model = self.env["stock.picking"]
         domain_base = [
             ("picking_type_id.code", "=", "outgoing"),
-            ("state", "not in", ("done", "cancel")),
+            ("state", "not in", ("cancel")),
         ]
         picking = picking_model.sudo().search(domain_base + [("name", "=", code)], limit=1)
         return picking
