@@ -10,14 +10,20 @@
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
 
-    // PDA设备全屏显示，顶部间距更小
+    // PDA设备全屏显示，顶部间距更小，底部 padding 压缩确保首屏能显示完
     @media (max-width: 768px), (pointer: coarse) {
         min-height: 100vh;
-        padding: 0 16px 80px 16px;  /* 移除顶部padding */
+        min-height: 100dvh;  // 移动端动态视口，更稳定地适配各类 PDA 浏览器
+        height: 100vh;
+        height: 100dvh;
+        padding: 0 16px 16px 16px;  // 底部从 80px 降到 16px，避免占用过多垂直空间
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
     }
 
     .section-header {
-        padding: 12px 4px 6px 4px;
+        padding: 8px 4px 4px 4px;
     }
 
     .section-title {

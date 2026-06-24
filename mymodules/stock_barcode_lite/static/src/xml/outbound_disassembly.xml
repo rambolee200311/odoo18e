@@ -241,13 +241,37 @@
                                             <i class="fa fa-barcode me-1"/>
                                             <t t-esc="item.product_barcode"/>
                                         </span>
-                                        <span t-if="item.lot" class="o_meta_lot">
-                                            <i class="fa fa-tag me-1"/>
-                                            <t t-esc="item.lot"/>
-                                        </span>
                                         <span class="o_meta_uom">
                                             <t t-esc="item.uom"/>
                                         </span>
+                                    </div>
+                                    <!-- 批次/SN 卡片 -->
+                                    <div t-if="item.lot" class="o_lot_card mt-2">
+                                        <div class="o_lot_card_header">
+                                            <i class="fa fa-tag me-1"/>
+                                            <span class="o_lot_name"><t t-esc="item.lot"/></span>
+                                            <span class="o_lot_qty ms-auto">
+                                                <t t-esc="item.scanned_quantity || 0"/> / <t t-esc="item.quantity || 0"/>
+                                            </span>
+                                        </div>
+                                        <div class="o_lot_card_body">
+                                            <div class="o_lot_progress">
+                                                <div class="progress" style="height: 6px;">
+                                                    <div class="progress-bar bg-success"
+                                                         t-attf-style="width: {{ item.quantity ? Math.min((item.scanned_quantity || 0) / item.quantity * 100, 100) : 0 }}%"/>
+                                                </div>
+                                            </div>
+                                            <div class="o_lot_status mt-1">
+                                                <t t-if="item.is_complete">
+                                                    <span class="badge bg-success"><i class="fa fa-check me-1"/>Complete</span>
+                                                </t>
+                                                <t t-else="">
+                                                    <span class="badge bg-warning text-dark">
+                                                        <t t-esc="Math.max((item.quantity || 0) - (item.scanned_quantity || 0), 0)"/> remaining
+                                                    </span>
+                                                </t>
+                                            </div>
+                                        </div>
                                     </div>
                                     <!-- 已扫描的SN列表 -->
                                     <div t-if="item.serial_numbers &amp;&amp; item.serial_numbers.length > 0" class="o_sn_list mt-2">
@@ -269,9 +293,9 @@
                     <i class="fa fa-refresh me-1"/>Reset
                 </button>
                 <button class="btn btn-primary flex-fill"
-                        style="background-color: #0d6efd; border-color: #0d6efd; color: white; display: block !important; visibility: visible !important;"
-                        t-on-click="confirmOutbound"
-                        t-att-disabled="state.loading || !isAllComplete">
+                    style="background-color: #0d6efd; border-color: #0d6efd; color: white; display: block !important; visibility: visible !important;"
+                    t-on-click="confirmOutbound"
+                    t-att-disabled="state.loading">
                     <i class="fa fa-check-circle me-1"/>Confirm Outbound
                 </button>
                 <button class="btn btn-secondary" t-on-click="exit">

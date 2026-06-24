@@ -61,17 +61,21 @@ export class WholePalletOutboundPage extends Component {
         this._isPDA = this._detectPDA();
 
         this.barcodeInputRef = useRef("barcodeInput");
+        this.scrollContainerRef = useRef("palletsContainer");
 
         onMounted(async () => {
             console.log("[WholePalletOutbound] mounted");
             this._bindKeyListener();
             this._bindVisibilityChange();
+            this._bindGlobalInteractionListener();
+            this._bindCollapseEvents();
             this._focusBarcodeInput();
         });
 
         onWillUnmount(() => {
             this._unbindKeyListener();
             this._unbindVisibilityChange();
+            this._unbindGlobalInteractionListener();
             this._clearScanTimer();
         });
     }
@@ -170,6 +174,107 @@ export class WholePalletOutboundPage extends Component {
             document.removeEventListener("visibilitychange", this._onVisibilityChange);
             this._onVisibilityChange = null;
         }
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // 全局交互监听 - PDA模式修复焦点丢失问题
+    // ═══════════════════════════════════════════════════════════════
+
+    _bindGlobalInteractionListener() {
+        // 点击页面任意位置时恢复输入框焦点 (PDA模式)
+        this._onGlobalClick = () => {
+            if (this._isPDA) {
+                this._focusBarcodeInput();
+            }
+        };
+        document.addEventListener("click", this._onGlobalClick);
+
+        // 滚动停止后恢复焦点
+        this._onScrollStop = () => {
+            if (this._scrollTimer) {
+                clearTimeout(this._scrollTimer);
+            }
+            this._scrollTimer = setTimeout(() => {
+                if (this._isPDA) {
+                    this._focusBarcodeInput();
+                }
+            }, 150);
+        };
+
+        const scrollContainer = this.scrollContainerRef?.el;
+        if (scrollContainer) {
+            scrollContainer.addEventListener("scroll", this._onScrollStop);
+        }
+
+        // 触摸开始时也尝试恢复焦点
+        this._onTouchStart = () => {
+            if (this._isPDA) {
+                this._focusBarcodeInput();
+            }
+        };
+        document.addEventListener("touchstart", this._onTouchStart, { passive: true });
+    }
+
+    _unbindGlobalInteractionListener() {
+        if (this._onGlobalClick) {
+            document.removeEventListener("click", this._onGlobalClick);
+            this._onGlobalClick = null;
+        }
+        if (this._onScrollStop) {
+            const scrollContainer = this.scrollContainerRef?.el;
+            if (scrollContainer) {
+                scrollContainer.removeEventListener("scroll", this._onScrollStop);
+            }
+            this._onScrollStop = null;
+        }
+        if (this._onTouchStart) {
+            document.removeEventListener("touchstart", this._onTouchStart);
+            this._onTouchStart = null;
+        }
+        if (this._scrollTimer) {
+            clearTimeout(this._scrollTimer);
+            this._scrollTimer = null;
+        }
+    }
+
+    // 监听Bootstrap折叠展开事件
+    _bindCollapseEvents() {
+        // 等待DOM完全渲染后再绑定
+        this._waitForPalletsReady();
+    }
+
+    _waitForPalletsReady() {
+        const checkAndBind = () => {
+            const collapseElements = document.querySelectorAll(".o_pallet_products");
+            if (collapseElements.length > 0) {
+                this._bindCollapseListeners(collapseElements);
+            } else {
+                // 最多重试10次，每次间隔100ms
+                if (!this._collapseBindAttempts) {
+                    this._collapseBindAttempts = 0;
+                }
+                this._collapseBindAttempts++;
+                if (this._collapseBindAttempts < 10) {
+                    setTimeout(checkAndBind, 100);
+                }
+            }
+        };
+        setTimeout(checkAndBind, 0);
+    }
+
+    _bindCollapseListeners(elements) {
+        elements.forEach(el => {
+            el.addEventListener("shown.bs.collapse", () => {
+                if (this._isPDA) {
+                    this._focusBarcodeInput();
+                }
+            });
+            el.addEventListener("hidden.bs.collapse", () => {
+                if (this._isPDA) {
+                    this._focusBarcodeInput();
+                }
+            });
+        });
     }
 
     _clearScanTimer() {
