@@ -99,8 +99,8 @@
                 <field name="ninnum" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="castunitid" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="u8_aux_uom_name" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
-                <field name="is_lot" readonly="1" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
-                <field name="lot_name" readonly="1" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="is_lot"  optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="lot_name" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="m_date" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="e_date" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
             </xpath>
@@ -126,8 +126,8 @@
                 <field name="u8_aux_qty" optional="show" invisible="project_name != 'SUNRISE'"/>
                 <field name="u8_conversion_rate" optional="show" invisible="project_name != 'SUNRISE'"/>
                 <field name="ninnum" optional="show" invisible="project_name != 'SUNRISE'"/>
-                <field name="is_lot" readonly="1" optional="show" invisible="project_name != 'SUNRISE'"/>
-                <field name="lot_name" readonly="1" optional="show" invisible="project_name != 'SUNRISE'"/>
+                <field name="is_lot" optional="show" invisible="project_name != 'SUNRISE'"/>
+                <field name="lot_name"  optional="show" invisible="project_name != 'SUNRISE'"/>
                 <field name="m_date" optional="show" invisible="project_name != 'SUNRISE'"/>
                 <field name="e_date" optional="show" invisible="project_name != 'SUNRISE'"/>
             </xpath>
