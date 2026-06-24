@@ -83,7 +83,7 @@
 <!--                <field name="creation_source" readonly="1"/>-->
 <!--            </xpath>-->
             <xpath expr="//field[@name='pallet_no']" position="after">
-                <field name="sunrise_pallet_no" readonly="1" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="sunrise_pallet_no" readonly="1" invisible="project_name != 'SUNRISE'"/>
             </xpath>
             <xpath expr="//field[@name='inbound_order_product_pallet_ids']/list/field[@name='product_id']" position="after">
                 <field name="cprojectid" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
@@ -113,23 +113,23 @@
         <field name="inherit_id" ref="worlddepot.view_inbound_order_product_pallet_tree"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='product_id']" position="after">
-                <field name="cprojectid" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
-                <field name="ndiscounttaxtype" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
-                <field name="vsourcebillcode" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
-                <field name="vsourcerowno" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
-                <field name="box_type" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
-                <field name="cspaceid" optional="show" column_invisible="parent.project_name != 'SUNRISE'"/>
-                <field name="box_qty" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
-                <field name="castunitid" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
-                <field name="box_in_qty" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
-                <field name="u8_aux_uom_name" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
-                <field name="u8_aux_qty" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
-                <field name="u8_conversion_rate" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
-                <field name="ninnum" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
-                <field name="is_lot" readonly="1" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
-                <field name="lot_name" readonly="1" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
-                <field name="m_date" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
-                <field name="e_date" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="cprojectid" optional="show" invisible="project_name != 'SUNRISE'"/>
+                <field name="ndiscounttaxtype" optional="show" invisible="project_name != 'SUNRISE'"/>
+                <field name="vsourcebillcode" optional="show" invisible="project_name != 'SUNRISE'"/>
+                <field name="vsourcerowno" optional="show" invisible="project_name != 'SUNRISE'"/>
+                <field name="box_type" optional="show" invisible="project_name != 'SUNRISE'"/>
+                <field name="cspaceid" optional="show" invisible="project_name != 'SUNRISE'"/>
+                <field name="box_qty" optional="show" invisible="project_name != 'SUNRISE'"/>
+                <field name="castunitid" optional="show" invisible="project_name != 'SUNRISE'"/>
+                <field name="box_in_qty" optional="show" invisible="project_name != 'SUNRISE'"/>
+                <field name="u8_aux_uom_name" optional="show" invisible="project_name != 'SUNRISE'"/>
+                <field name="u8_aux_qty" optional="show" invisible="project_name != 'SUNRISE'"/>
+                <field name="u8_conversion_rate" optional="show" invisible="project_name != 'SUNRISE'"/>
+                <field name="ninnum" optional="show" invisible="project_name != 'SUNRISE'"/>
+                <field name="is_lot" readonly="1" optional="show" invisible="project_name != 'SUNRISE'"/>
+                <field name="lot_name" readonly="1" optional="show" invisible="project_name != 'SUNRISE'"/>
+                <field name="m_date" optional="show" invisible="project_name != 'SUNRISE'"/>
+                <field name="e_date" optional="show" invisible="project_name != 'SUNRISE'"/>
             </xpath>
         </field>
     </record>

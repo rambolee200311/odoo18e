@@ -5,7 +5,7 @@ import os
 from io import BytesIO
 
 from odoo import _, fields, models
-
+from odoo.exceptions import UserError
 try:
     import openpyxl
 except ImportError:
@@ -618,3 +618,77 @@ class SunriseProductMasterImportLine(models.Model):
     is_shared_semi_finished_suspected = fields.Boolean(string="Suspected Shared Semi Finished", default=False, copy=False, index=True)
     state = fields.Selection([("success", "Success"), ("failed", "Failed")], string="State", default="failed", copy=False, index=True)
     remark = fields.Text(string="Remark", copy=False)
+
+    def action_retry_import(self):
+        success_count = 0
+        failed_count = 0
+        import_records = self.mapped("import_id")
+        product_model = self.env["product.product"]
+
+        for rec in self:
+            if rec.state != "failed":
+                raise UserError(_("Only failed import lines can be retried."))
+            if not rec.import_id:
+                raise UserError(_("The import record is required."))
+
+            rec.import_id.write({
+                "message": _("Retrying product code %s...") % rec.product_code,
+            })
+
+            existing_product = product_model.sudo().with_context(active_test=False).search([
+                ("barcode", "=", rec.product_code),
+            ], limit=1)
+
+            if existing_product:
+                new_remark = _('Retry failed: product code "%s" already exists.') % rec.product_code
+                rec.write({
+                    "product_id": existing_product.id,
+                    "remark": "%s\n%s" % (rec.remark, new_remark) if rec.remark else new_remark,
+                })
+                failed_count += 1
+                continue
+
+            try:
+                with self.env.cr.savepoint():
+                    product = rec.import_id.create_sunrise_product_from_import_line(rec)
+            except Exception as error:
+                _logger.exception(
+                    "Retry Sunrise product import failed. line=%s code=%s",
+                    rec.id,
+                    rec.product_code,
+                )
+                new_remark = _("Retry failed: %s") % str(error)
+                rec.write({
+                    "state": "failed",
+                    "remark": "%s\n%s" % (rec.remark, new_remark) if rec.remark else new_remark,
+                })
+                failed_count += 1
+            else:
+                new_remark = _("Imported successfully after retry.")
+                rec.write({
+                    "state": "success",
+                    "product_id": product.id,
+                    "is_shared_semi_finished_suspected": False,
+                    "remark": "%s\n%s" % (rec.remark, new_remark) if rec.remark else new_remark,
+                })
+                success_count += 1
+
+        import_records.update_sunrise_product_import_result()
+
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Retry Product Import"),
+                "message": _("Retry finished. Success: %(success)s, Failed: %(failed)s") % {
+                    "success": success_count,
+                    "failed": failed_count,
+                },
+                "type": "success" if not failed_count else "warning",
+                "sticky": False,
+                "next": {
+                    "type": "ir.actions.client",
+                    "tag": "reload",
+                },
+            },
+        }
