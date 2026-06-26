@@ -189,6 +189,7 @@
                         domain="[('u8c_delivery_method', '=', 'wd')]"/>
 
                 <group expand="0" string="Group By">
+                    <filter string="Active Orders" name="state_not_cancel" domain="[('state', '!=', 'cancel')]"/>
                     <filter string="State" name="group_state" context="{'group_by': 'state'}"/>
                     <filter string="U8C Delivery Method" name="group_u8c_delivery_method"
                             context="{'group_by': 'u8c_delivery_method'}"/>

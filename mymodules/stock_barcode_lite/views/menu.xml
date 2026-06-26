@@ -4,8 +4,8 @@
         <field name="name">Sunrise Inbound Orders</field>
         <field name="res_model">world.depot.inbound.order</field>
         <field name="view_mode">list,form</field>
-        <field name="domain">[('project.name', '=', 'SUNRISE'), ('state', '!=', 'cancel')]</field>
-        <field name="context">{'default_project_name': 'SUNRISE'}</field>
+        <field name="domain">[('project.name', '=', 'SUNRISE')]</field>
+        <field name="context">{'default_project_name': 'SUNRISE','search_default_state_not_cancel': 1}</field>
         <field name="search_view_id" ref="view_stock_barcode_lite_sunrise_inbound_order_search"/>
     </record>
 
@@ -13,8 +13,8 @@
         <field name="name">Sunrise Outbound Orders</field>
         <field name="res_model">world.depot.outbound.order</field>
         <field name="view_mode">list,form</field>
-        <field name="domain">[('project.name', '=', 'SUNRISE'), ('state', '!=', 'cancel')]</field>
-        <field name="context">{'default_project_name': 'SUNRISE'}</field>
+        <field name="domain">[('project.name', '=', 'SUNRISE')]</field>
+        <field name="context">{'default_project_name': 'SUNRISE','search_default_state_not_cancel': 1}</field>
         <field name="search_view_id" ref="view_stock_barcode_lite_sunrise_outbound_order_search"/>
     </record>
 

@@ -149,6 +149,7 @@
                 <field name="cntr_no"/>
                 <field name="stock_picking_id"/>
                 <group expand="0" string="Group By">
+                    <filter string="Active Orders" name="state_not_cancel" domain="[('state', '!=', 'cancel')]"/>
                     <filter string="State" name="group_state" context="{'group_by': 'state'}"/>
 
                     <filter string="Source Bill Code" name="group_vsourcebillcode"
