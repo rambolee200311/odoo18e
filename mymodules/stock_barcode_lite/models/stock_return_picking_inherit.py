@@ -1,6 +1,7 @@
 from odoo import models
 from odoo.tools.float_utils import float_compare, float_is_zero
-
+from odoo import _, models
+from odoo.exceptions import UserError
 
 class StockReturnPickingInherit(models.TransientModel):
     _inherit = "stock.return.picking"
@@ -75,12 +76,24 @@ class StockReturnPickingInherit(models.TransientModel):
             qty = min(remaining_qty, original_line.quantity)
             if float_is_zero(qty, precision_rounding=rounding):
                 continue
+            package_quant_list = self.env["stock.quant"].sudo().search([
+                ("package_id", "=", original_line.package_id.id),
+                ("location_id.usage", "=", "internal"),
+                ("quantity", ">", 0),
+            ])
+            package_location_list = package_quant_list.mapped("location_id")
+
+            if len(package_location_list) > 1:
+                raise UserError(_("Pallet %s has stock in multiple locations.") % original_line.package_id.name)
+
+            location_dest = package_location_list[:1] or original_line.location_id
 
             allocations.append({
                 "package_id": original_line.package_id.id,
                 "lot_id": original_line.lot_id.id if original_line.lot_id else False,
                 "owner_id": original_line.owner_id.id if original_line.owner_id else False,
                 "quantity": qty,
+                "location_dest_id": location_dest.id,
             })
             remaining_qty -= qty
 
@@ -110,7 +123,7 @@ class StockReturnPickingInherit(models.TransientModel):
             "product_id": return_move.product_id.id,
             "product_uom_id": return_move.product_uom.id,
             "location_id": return_move.location_id.id,
-            "location_dest_id": return_move.location_dest_id.id,
+            "location_dest_id": allocation["location_dest_id"],
             "lot_id": allocation["lot_id"],
             "owner_id": allocation["owner_id"],
             "quantity": allocation["quantity"],

@@ -6,6 +6,7 @@
         <field name="view_mode">list,form</field>
         <field name="domain">[('project.name', '=', 'SUNRISE'), ('state', '!=', 'cancel')]</field>
         <field name="context">{'default_project_name': 'SUNRISE'}</field>
+        <field name="search_view_id" ref="view_stock_barcode_lite_sunrise_inbound_order_search"/>
     </record>
 
     <record id="action_stock_barcode_lite_sunrise_outbound_order" model="ir.actions.act_window">
@@ -14,6 +15,7 @@
         <field name="view_mode">list,form</field>
         <field name="domain">[('project.name', '=', 'SUNRISE'), ('state', '!=', 'cancel')]</field>
         <field name="context">{'default_project_name': 'SUNRISE'}</field>
+        <field name="search_view_id" ref="view_stock_barcode_lite_sunrise_outbound_order_search"/>
     </record>
 
     <record id="action_api_log_sunrise_get_wms" model="ir.actions.act_window">
