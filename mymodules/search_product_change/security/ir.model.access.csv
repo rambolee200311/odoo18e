@@ -1,2 +1,4 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_product_template_batch_search_wizard,access_product_template_batch_search_wizard,model_product_template_batch_search_wizard,,1,1,1,1
+"modify_lot_name_model_access","Modify Lot Name Access","model_modify_lot_name",,1,1,1,1
+access_modify_lot_name_line,Modify Lot Name Line Access,model_modify_lot_name_line,,1,1,1,1
