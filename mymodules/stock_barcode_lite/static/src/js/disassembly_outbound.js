@@ -70,13 +70,17 @@ export class DisassemblyOutboundPage extends Component {
         onMounted(async () => {
             console.log("[DisassemblyOutbound] mounted");
             this._bindKeyListener();
+            this._bindFocusGuard();
             this._bindVisibilityChange();
+            this._bindGlobalKeyListener();
             this._focusBarcodeInput();
         });
 
         onWillUnmount(() => {
             this._unbindKeyListener();
+            this._unbindFocusGuard();
             this._unbindVisibilityChange();
+            this._unbindGlobalKeyListener();
             this._clearScanTimer();
         });
     }
@@ -101,6 +105,7 @@ export class DisassemblyOutboundPage extends Component {
 
     _onBarcodeInput(ev) {
         const input = ev.target;
+        console.log("[BarcodeMonitor] _onBarcodeInput activeElement:", document.activeElement === input, "value:", JSON.stringify(input?.value), "inputType:", ev.inputType);
         if (!input) return;
 
         const value = input.value;
@@ -114,6 +119,7 @@ export class DisassemblyOutboundPage extends Component {
     }
 
     _onBarcodeKeydown(ev) {
+        console.log("[BarcodeMonitor] _onBarcodeKeydown key:", ev.key, "activeElement:", document.activeElement === this.barcodeInputRef.el, "value:", JSON.stringify(ev.target?.value));
         if (ev.key === "Enter") {
             ev.preventDefault();
             const input = ev.target;
@@ -126,20 +132,79 @@ export class DisassemblyOutboundPage extends Component {
     }
 
     _onBarcodeBlur(ev) {
-        if (!this._isProcessing && !this._isPDA && !this.isScanQuantityStep) {
+        if (!this._isProcessing && !this.isScanQuantityStep) {
             setTimeout(() => this._focusBarcodeInput(), 0);
         }
     }
 
+    _bindFocusGuard() {
+        const container = this.el;
+        if (!container) return;
+
+        this._onFocusOut = (ev) => {
+            const related = ev.relatedTarget;
+            const isInputElement = related && (
+                related.tagName === "INPUT" ||
+                related.tagName === "TEXTAREA" ||
+                related.isContentEditable
+            );
+            const shouldRefocus = !isInputElement && !this.isScanQuantityStep && !this._isProcessing;
+
+            if (shouldRefocus) {
+                requestAnimationFrame(() => {
+                    this._focusBarcodeInput();
+                });
+            }
+        };
+
+        this._onDocumentPointerDown = (ev) => {
+            const toggle = ev.target.closest?.('[data-bs-toggle="collapse"]') || ev.target.closest?.('.o_pallet_header');
+            if (!toggle) return;
+            if (this.isScanQuantityStep || this._isProcessing) return;
+        };
+
+        this._onDocumentPointerUp = (ev) => {
+            const toggle = ev.target.closest?.('[data-bs-toggle="collapse"]') || ev.target.closest?.('.o_pallet_header');
+            if (!toggle) return;
+            if (this.isScanQuantityStep || this._isProcessing) return;
+
+            setTimeout(() => {
+                this._focusBarcodeInput();
+            }, 100);
+        };
+
+        container.addEventListener("focusout", this._onFocusOut);
+        document.addEventListener("pointerdown", this._onDocumentPointerDown);
+        document.addEventListener("pointerup", this._onDocumentPointerUp);
+    }
+
+    _unbindFocusGuard() {
+        if (this._onFocusOut) {
+            this.el?.removeEventListener("focusout", this._onFocusOut);
+            this._onFocusOut = null;
+        }
+        if (this._onDocumentPointerDown) {
+            document.removeEventListener("pointerdown", this._onDocumentPointerDown);
+            this._onDocumentPointerDown = null;
+        }
+        if (this._onDocumentPointerUp) {
+            document.removeEventListener("pointerup", this._onDocumentPointerUp);
+            this._onDocumentPointerUp = null;
+        }
+    }
+
     _focusBarcodeInput() {
-        // 在输入数量步骤时，不要抢夺焦点到隐藏的barcode input
         if (this.isScanQuantityStep) {
+            console.log("[BarcodeMonitor] _focusBarcodeInput skipped - quantity step");
             return;
         }
         const input = this.barcodeInputRef.el;
         if (input) {
             input.focus();
             input.value = "";
+            console.log("[BarcodeMonitor] _focusBarcodeInput focused. document.activeElement:", document.activeElement === input);
+        } else {
+            console.warn("[BarcodeMonitor] _focusBarcodeInput input missing");
         }
     }
 
@@ -153,6 +218,9 @@ export class DisassemblyOutboundPage extends Component {
 
         if (!this._isPDA) {
             input.focus();
+            console.log("[BarcodeMonitor] _bindKeyListener desktop focus applied");
+        } else {
+            console.log("[BarcodeMonitor] _bindKeyListener PDA mode - deferred focus");
         }
     }
 
@@ -163,10 +231,57 @@ export class DisassemblyOutboundPage extends Component {
         input.removeEventListener("input", this._onBarcodeInput.bind(this));
         input.removeEventListener("keydown", this._onBarcodeKeydown.bind(this));
         input.removeEventListener("blur", this._onBarcodeBlur.bind(this));
+        console.log("[BarcodeMonitor] _unbindKeyListener removed listeners");
+    }
+
+    _bindGlobalKeyListener() {
+        this._onGlobalKeyDown = (ev) => {
+            const target = ev.target;
+            if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) {
+                return;
+            }
+
+            if (ev.key.length > 1 && ev.key !== "Enter") {
+                return;
+            }
+
+            const input = this.barcodeInputRef.el;
+            if (!input) return;
+
+            if (ev.key === "Enter") {
+                ev.preventDefault();
+                const barcode = input.value.trim();
+                if (barcode) {
+                    input.value = "";
+                    this.onBarcodeScanned(barcode);
+                }
+            } else {
+                input.value += ev.key;
+                if (input.value.includes("\n") || input.value.includes("\r")) {
+                    const barcode = input.value.replace(/\n/g, "").replace(/\r/g, "").trim();
+                    if (barcode) {
+                        input.value = "";
+                        this.onBarcodeScanned(barcode);
+                    }
+                }
+            }
+        };
+
+        document.addEventListener("keydown", this._onGlobalKeyDown);
+        console.log("[BarcodeMonitor] _bindGlobalKeyListener added");
+    }
+
+    _unbindGlobalKeyListener() {
+        if (this._onGlobalKeyDown) {
+            document.removeEventListener("keydown", this._onGlobalKeyDown);
+            this._onGlobalKeyDown = null;
+            console.log("[BarcodeMonitor] _unbindGlobalKeyListener removed");
+        }
     }
 
     _bindVisibilityChange() {
         this._onVisibilityChange = () => {
+            console.log("[BarcodeMonitor] visibilitychange:", document.visibilityState, "activeElementBefore:", document.activeElement?.tagName, document.activeElement?.className);
             if (document.visibilityState === "visible") {
                 this._focusBarcodeInput();
             }
@@ -178,6 +293,7 @@ export class DisassemblyOutboundPage extends Component {
         if (this._onVisibilityChange) {
             document.removeEventListener("visibilitychange", this._onVisibilityChange);
             this._onVisibilityChange = null;
+            console.log("[BarcodeMonitor] _unbindVisibilityChange removed listener");
         }
     }
 
@@ -554,6 +670,13 @@ export class DisassemblyOutboundPage extends Component {
             // 更新界面
             await this._applyScanResult(result, false);
 
+            if (this.state.nextStep === "input_quantity") {
+                const qtyInput = document.querySelector('.o_sbl_quantity_panel input[type="number"]');
+                if (qtyInput) qtyInput.focus();
+            } else {
+                requestAnimationFrame(() => this._focusBarcodeInput());
+            }
+
             // 从更新后的 pallets 获取最新的 scanned_quantity
             let scannedQty = 0;
             if (currentMoveLineId) {
@@ -595,10 +718,6 @@ export class DisassemblyOutboundPage extends Component {
         } finally {
             this.state.loading = false;
             this._isProcessing = false;
-            setTimeout(() => {
-                const qtyInput = document.querySelector('.o_sbl_quantity_panel input[type="number"]');
-                if (qtyInput) qtyInput.focus();
-            }, 50);
         }
     }
 

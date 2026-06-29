@@ -240,6 +240,10 @@
         font-size: 13px;
         font-weight: 600;
         border-radius: 6px;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
     .btn-success {
         font-size: 14px;
