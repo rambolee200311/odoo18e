@@ -314,15 +314,15 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
 
         if self.are_outgoing_lines_completed(move_lines):
             return self.build_outgoing_scan_result(
-                "pallet",
-                _("Pallet"),
+                "error",
+                _("Error"),
                 _("Pallet %s is already scanned.") % (package.name or package.barcode),
                 barcode=code,
                 picking_id=picking.id,
                 location_id=current_location_id,
                 pending_operation=False,
                 action_name="pallet_already_scanned",
-                success=True,
+                success=False,
             )
 
         stock_data = self.get_package_stock_set(package)
