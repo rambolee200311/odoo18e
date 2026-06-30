@@ -1,0 +1,68 @@
+<odoo>
+    <record id="view_bonded_customs_document_list" model="ir.ui.view">
+        <field name="name">bonded.customs.document.list</field>
+        <field name="model">bonded.customs.document</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="customs_document_number"/>
+                <field name="customs_document_type"/>
+                <field name="unique_identifier"/>
+                <field name="customs_status"/>
+                <field name="t1_document_number"/>
+                <field name="t1_status"/>
+                <field name="t1_closed_date"/>
+
+            </list>
+        </field>
+    </record>
+
+    <record id="view_bonded_customs_document_form" model="ir.ui.view">
+        <field name="name">bonded.customs.document.form</field>
+        <field name="model">bonded.customs.document</field>
+        <field name="arch" type="xml">
+            <form string="Customs Document" duplicate="0">
+                <sheet>
+                    <group>
+                        <field name="customs_document_number" required="1"/>
+                        <field name="customs_document_type"/>
+                        <field name="inbound_order_id" readonly="1"/>
+                        <field name="unique_identifier" readonly="1"/>
+                        <field name="inbound_reference" readonly="1"/>
+                        <field name="customs_status" required="1"/>
+                        <field name="t1_document_number"/>
+                        <field name="t1_status"/>
+                        <field name="t1_closed_date" readonly="t1_status != 'closed'" required="t1_status == 'closed'"/>
+                    </group>
+                </sheet>
+                  <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_bonded_customs_document_search" model="ir.ui.view">
+        <field name="name">bonded.customs.document.search</field>
+        <field name="model">bonded.customs.document</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="customs_document_number"/>
+                <field name="unique_identifier"/>
+                <field name="inbound_order_id"/>
+                <field name="inbound_reference"/>
+                <field name="customs_status"/>
+                <field name="t1_document_number"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_bonded_customs_document" model="ir.actions.act_window">
+        <field name="name">Customs Document</field>
+        <field name="res_model">bonded.customs.document</field>
+        <field name="view_mode">list,form</field>
+    </record>
+ <menuitem id="menu_bonded_root" name="Bonded Management" parent="worlddepot.world_depot_logi_menu" sequence="800"/>
+    <menuitem id="menu_bonded_customs_document" name="Customs Document"
+              parent="bonded_mange.menu_bonded_root" action="action_bonded_customs_document"
+              sequence="982"/>
+
+
+</odoo>

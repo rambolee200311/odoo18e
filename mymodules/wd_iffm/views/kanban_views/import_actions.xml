@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 首页动作 - 复用现有的提单表单视图 -->
+    <record id="action_home_page" model="ir.actions.act_window">
+        <field name="name">首页</field>
+        <field name="res_model">world.depot.waybill</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="wd_iffm.view_world_depot_waybill_form"/>
+        <field name="target">current</field>
+    </record>
+
+    <!-- 进口提单看板动作 -->
+    <record id="action_import_bill_kanban" model="ir.actions.act_window">
+        <field name="name">进口提单看板</field>
+        <field name="res_model">world.depot.waybill</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('state', '!=', 'cancel')]</field>
+        <field name="view_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('wd_iffm.view_waybill_kanban_level1')}),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('wd_iffm.view_world_depot_waybill_tree')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('wd_iffm.view_world_depot_waybill_form')})
+            ]"/>
+        <field name="context">{'search_default_group_by_state': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                暂无进口提单数据
+            </p>
+            <p>
+                点击"创建"按钮添加新的进口提单
+            </p>
+        </field>
+    </record>
+    
+    <!-- 作业进度看板动作 -->
+<!--    <record id="action_job_progress_kanban" model="ir.actions.act_window">-->
+<!--        <field name="name">作业进度看板</field>-->
+<!--        <field name="res_model">world.depot.waybill</field>-->
+<!--        <field name="view_mode">form,list</field>-->
+<!--        <field name="view_id" ref="wd_iffm.view_world_depot_waybill_form"/>-->
+<!--        <field name="target">current</field>-->
+<!--        <field name="domain">[]</field>-->
+<!--        <field name="context">{}</field>-->
+<!--        <field name="help" type="html">-->
+<!--            <p class="o_view_nocontent_smiling_face">-->
+<!--                暂无作业数据-->
+<!--            </p>-->
+<!--        </field>-->
+<!--    </record>-->
+
+    <!-- 打开作业看板卡片视图 -->
+    <record id="action_open_workbench_board_card" model="ir.actions.act_window">
+        <field name="name">提单作业看板</field>
+        <field name="res_model">operation.workbench.card</field>
+        <field name="view_mode">kanban</field>
+        <field name="view_ids" eval="[(5, 0, 0), (0, 0, {'view_mode': 'kanban', 'view_id': ref('wd_iffm.view_operation_workbench_card_kanban')})]"/>
+        <field name="domain">[('active', '=', True)]</field>
+        <field name="context">{'group_by': 'lane_id'}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                暂无作业数据
+            </p>
+            <p>
+                从提单看板中点击提单卡片进入作业看板
+            </p>
+        </field>
+    </record>
+
+    <record id="action_world_depot_waybill_form_detail" model="ir.actions.act_window">
+        <field name="name">作业详情</field>
+        <field name="res_model">world.depot.waybill</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="view_id" ref="wd_iffm.view_world_depot_waybill_form"/>
+<!--        <field name="context">{'active_id': active_id}</field> -->
+    </record>
+</odoo>

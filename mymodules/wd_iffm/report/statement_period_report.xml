@@ -1,0 +1,40 @@
+<odoo>
+    <data noupdate="1">
+
+        <record id="paperformat_statement_period" model="report.paperformat">
+            <field name="name">Statement Period A4</field>
+            <field name="default" eval="False"/>
+            <field name="format">A4</field>
+            <field name="orientation">Portrait</field>
+            <field name="margin_top">10</field>
+            <field name="margin_bottom">10</field>
+            <field name="margin_left">7</field>
+            <field name="margin_right">7</field>
+            <field name="header_line" eval="False"/>
+            <field name="dpi">90</field>
+        </record>
+
+
+<!--        <record id="action_report_statement_period" model="ir.actions.report">-->
+<!--            <field name="name">Statement Period Report</field>-->
+<!--            <field name="model">statement.period</field>-->
+<!--            <field name="report_type">qweb-pdf</field>-->
+<!--            <field name="report_name">wd_iffm.report_statement_period</field>-->
+<!--            <field name="report_file">wd_iffm.report_statement_period</field>-->
+<!--            <field name="paperformat_id" ref="wd_iffm.paperformat_statement_period"/>-->
+<!--            <field name="print_report_name">'Statement-%s' % (object.name or '')</field>-->
+
+<!--            <field name="binding_model_id" ref="wd_iffm.model_statement_period"/>-->
+<!--            <field name="binding_type">report</field>-->
+<!--        </record>-->
+
+               <record id="action_statement_period_export_xlsx" model="ir.actions.server">
+            <field name="name">Export XLSX</field>
+            <field name="model_id" ref="wd_iffm.model_statement_period"/>
+            <field name="binding_model_id" ref="wd_iffm.model_statement_period"/>
+            <field name="binding_type">action</field>
+            <field name="state">code</field>
+            <field name="code">action = records.action_export_statement_xlsx()</field>
+        </record>
+    </data>
+</odoo>

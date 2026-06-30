@@ -1,0 +1,42 @@
+<odoo>
+    <record id="view_world_depot_inbound_customs_wizard_form" model="ir.ui.view">
+        <field name="name">world.depot.inbound.customs.wizard.form</field>
+        <field name="model">world.depot.inbound.customs.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Edit Customs Status" duplicate="0">
+                <sheet>
+                    <group>
+                        <field name="inbound_order_id" options="{'no_create': True, 'no_open': True}" readonly="1"/>
+                        <field name="customs_status" required="1"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="actionApplyInboundCustoms" type="object" string="Apply" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_world_depot_inbound_t1_wizard_form" model="ir.ui.view">
+        <field name="name">world.depot.inbound.t1.wizard.form</field>
+        <field name="model">world.depot.inbound.t1.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Edit T1 Info" duplicate="0">
+                <sheet>
+                    <group>
+                        <field name="inbound_order_id" options="{'no_create': True, 'no_open': True}" readonly="1"/>
+                        <field name="t1_document_number"/>
+                        <field name="t1_status" required="1"/>
+                        <field name="t1_closed_date" readonly="t1_status != 'closed'" required="t1_status == 'closed'"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="actionApplyInboundT1" type="object" string="Apply" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

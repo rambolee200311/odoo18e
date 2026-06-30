@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 看板父菜单（容器菜单） -->
+    <menuitem id="menu_kanban_root"
+              name="看板"
+              parent="menu_wd_charge_root"
+              sequence="1"/>
+
+    <!-- 货代工作台菜单 -->
+    <menuitem id="menu_wd_workbench"
+              name="货代工作台"
+              action="action_wd_iffm_workbench"
+              parent="menu_kanban_root"
+              sequence="1"/>
+
+    <!-- 进口提单看板菜单 -->
+    <menuitem id="menu_import_bill_kanban"
+              name="进口提单看板"
+              action="action_import_bill_kanban"
+              parent="menu_kanban_root"
+              sequence="2"/>
+</odoo>

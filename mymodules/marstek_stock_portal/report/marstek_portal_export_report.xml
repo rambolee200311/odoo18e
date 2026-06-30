@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="paperformat_marstek_portal_export_a4" model="report.paperformat">
+            <field name="name">Marstek Portal Export A4</field>
+            <field name="default" eval="False"/>
+            <field name="format">A4</field>
+            <field name="orientation">Landscape</field>
+            <field name="margin_top">10</field>
+            <field name="margin_bottom">10</field>
+            <field name="margin_left">6</field>
+            <field name="margin_right">6</field>
+            <field name="dpi">90</field>
+        </record>
+
+        <record id="action_report_marstek_stock_export_pdf" model="ir.actions.report">
+            <field name="name">Marstek Stock Export PDF</field>
+            <field name="model">res.users</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">marstek_stock_portal.report_marstek_stock_export_pdf</field>
+            <field name="report_file">marstek_stock_portal.report_marstek_stock_export_pdf</field>
+            <field name="paperformat_id" ref="marstek_stock_portal.paperformat_marstek_portal_export_a4"/>
+        </record>
+
+        <record id="action_report_marstek_container_stock_export_pdf" model="ir.actions.report">
+            <field name="name">Marstek Container Stock Export PDF</field>
+            <field name="model">res.users</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">marstek_stock_portal.report_marstek_container_stock_export_pdf</field>
+            <field name="report_file">marstek_stock_portal.report_marstek_container_stock_export_pdf</field>
+            <field name="paperformat_id" ref="marstek_stock_portal.paperformat_marstek_portal_export_a4"/>
+        </record>
+
+        <record id="action_report_marstek_inbounds_export_pdf" model="ir.actions.report">
+            <field name="name">Marstek Inbounds Export PDF</field>
+            <field name="model">res.users</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">marstek_stock_portal.report_marstek_inbounds_export_pdf</field>
+            <field name="report_file">marstek_stock_portal.report_marstek_inbounds_export_pdf</field>
+            <field name="paperformat_id" ref="marstek_stock_portal.paperformat_marstek_portal_export_a4"/>
+        </record>
+
+        <record id="action_report_marstek_outbounds_export_pdf" model="ir.actions.report">
+            <field name="name">Marstek Outbounds Export PDF</field>
+            <field name="model">res.users</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">marstek_stock_portal.report_marstek_outbounds_export_pdf</field>
+            <field name="report_file">marstek_stock_portal.report_marstek_outbounds_export_pdf</field>
+            <field name="paperformat_id" ref="marstek_stock_portal.paperformat_marstek_portal_export_a4"/>
+        </record>
+    </data>
+</odoo>

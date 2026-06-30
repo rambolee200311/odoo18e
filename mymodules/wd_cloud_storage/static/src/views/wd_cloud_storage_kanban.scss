@@ -1,0 +1,39 @@
+.o_wd_cloud_storage_kanban {
+    .o_kanban_renderer {
+        padding: 16px;
+    }
+
+    .o_kanban_record {
+        min-width: 280px;
+        max-width: 340px;
+        margin: 0 12px 16px 0;
+    }
+
+    .o_wd_cloud_storage_kanban_card {
+        border: 1px solid #d8dadd;
+        background: #ffffff;
+        min-height: 320px;
+    }
+
+    .o_wd_cloud_storage_kanban_preview {
+        height: 180px;
+        border-bottom: 1px solid #d8dadd;
+        background: #f8f9fa;
+    }
+
+    .o_wd_cloud_storage_kanban_icon {
+        width: 96px;
+        height: 96px;
+        object-fit: contain;
+    }
+
+    .o_wd_cloud_storage_kanban_body {
+        padding: 16px;
+    }
+
+    .o_wd_cloud_storage_kanban_title {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+}

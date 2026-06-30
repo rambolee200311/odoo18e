@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="view_import_pickup_requirement_list" model="ir.ui.view">
+            <field name="name">import.pickup.requirement.list</field>
+            <field name="model">import.pickup.requirement</field>
+            <field name="arch" type="xml">
+                <list string="Pickup Requirement" default_order="id desc">
+                    <field name="name"/>
+                    <field name="waybill_id"/>
+                    <field name="terminal_a"/>
+                    <field name="pickup_scene"/>
+                    <field name="pickup_request_datetime"/>
+                    <field name="state"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_import_pickup_requirement_form" model="ir.ui.view">
+            <field name="name">import.pickup.requirement.form</field>
+            <field name="model">import.pickup.requirement</field>
+            <field name="arch" type="xml">
+                <form string="Pickup Requirement" duplicate="false">
+                    <header>
+                        <button name="action_submit" string="Submit" type="object" class="btn-primary"
+                                invisible="state != 'draft'"/>
+                        <button name="action_set_planned" string="Set Planned" type="object"
+                                invisible="state != 'submitted'"/>
+                        <button name="action_set_completed" string="Set Completed" type="object"
+                                invisible="state != 'planned'"/>
+                        <button name="action_cancel" string="Cancel" type="object"
+                                invisible="state not in ('draft', 'submitted')"/>
+                        <field name="state" widget="statusbar"
+                               statusbar_visible="draft,submitted,planned,completed,cancelled"/>
+                    </header>
+                    <sheet>
+                        <group>
+                            <group string="Base Info">
+                                <field name="name" readonly="1"/>
+                                <field name="waybill_id" required="1" readonly="state != 'draft'"
+                                       options="{'no_create': True, 'no_open': True}"/>
+                                <field name="terminal_a" readonly="1"/>
+                                <field name="pickup_request_datetime" required="1" readonly="state != 'draft'"/>
+                                <field name="pickup_scene" required="1" readonly="state != 'draft'"/>
+                            </group>
+
+                            <group string="General">
+                                <field name="warehouse_contact_id" readonly="state != 'draft'"
+                                       invisible="pickup_scene != 'to_our_warehouse'"
+                                       options="{'no_create': True, 'no_open': True}"/>
+
+                                <field name="contact_info" readonly="state != 'draft'"
+                                 invisible="pickup_scene != 'to_our_warehouse'"/>
+                                <field name="pickup_requirements" readonly="state != 'draft'"/>
+                                <field name="cancel_reason" readonly="state not in ('draft', 'submitted')"
+                                       invisible="state != 'cancelled'"/>
+                            </group>
+                        </group>
+
+                        <group string="Scene Details">
+                            <!-- Scene 1 -->
+                            <field name="warehouse_id" readonly="state != 'draft'"
+                                   invisible="pickup_scene != 'to_our_warehouse'"
+                                   options="{'no_create': True, 'no_open': True}"/>
+
+                            <!-- Scene 2 -->
+                            <field name="delivery_country_id" readonly="state != 'draft'"
+                                   invisible="pickup_scene != 'to_customer_address'"
+                                   options="{'no_create': True, 'no_open': True}"/>
+                            <field name="delivery_city" readonly="state != 'draft'"
+                                   invisible="pickup_scene != 'to_customer_address'"/>
+                            <field name="delivery_zip" readonly="state != 'draft'"
+                                   invisible="pickup_scene != 'to_customer_address'"/>
+                            <field name="delivery_street" readonly="state != 'draft'"
+                                   invisible="pickup_scene != 'to_customer_address'"/>
+                            <field name="delivery_contact_id" readonly="state != 'draft'"
+                                   invisible="pickup_scene != 'to_customer_address'"/>
+                            <field name="delivery_phone" readonly="state != 'draft'"
+                                   invisible="pickup_scene != 'to_customer_address'"/>
+                            <field name="delivery_requirement" readonly="state != 'draft'"
+                                   invisible="pickup_scene != 'to_customer_address'"/>
+
+                            <!-- Scene 3 -->
+                            <field name="self_pickup_contact_id" readonly="state != 'draft'"
+                                   invisible="pickup_scene != 'customer_self_pickup'"/>
+                            <field name="self_pickup_phone" readonly="state != 'draft'"
+                                   invisible="pickup_scene != 'customer_self_pickup'"/>
+                            <field name="self_pickup_remark" readonly="state != 'draft'"
+                                   invisible="pickup_scene != 'customer_self_pickup'"/>
+                        </group>
+
+                        <notebook>
+                            <page string="Container Lines">
+                                <field name="container_lines" readonly="state != 'draft'">
+                                    <list editable="bottom">
+                                        <field name="waybill_container_id"
+                                               options="{'no_create': True, 'no_open': True}"
+                                        />
+                                        <field name="container_number"/>
+                                        <field name="container_type"/>
+                                        <field name="weight"/>
+                                        <field name="state" readonly="1"/>
+                                    </list>
+                                </field>
+                            </page>
+
+                        </notebook>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_import_pickup_requirement_search" model="ir.ui.view">
+            <field name="name">import.pickup.requirement.search</field>
+            <field name="model">import.pickup.requirement</field>
+            <field name="arch" type="xml">
+                <search string="Pickup Requirement">
+                    <field name="name"/>
+                    <field name="waybill_id"/>
+                    <field name="terminal_a"/>
+                    <field name="pickup_scene"/>
+                    <field name="state"/>
+                    <filter string="Draft" name="filter_draft" domain="[('state', '=', 'draft')]"/>
+                    <filter string="Submitted" name="filter_submitted" domain="[('state', '=', 'submitted')]"/>
+                    <filter string="Planned" name="filter_planned" domain="[('state', '=', 'planned')]"/>
+                    <filter string="Completed" name="filter_completed" domain="[('state', '=', 'completed')]"/>
+                    <filter string="Cancelled" name="filter_cancelled" domain="[('state', '=', 'cancelled')]"/>
+                    <group expand="0" string="Group By">
+                        <filter string="State" name="group_state" context="{'group_by': 'state'}"/>
+                        <filter string="Pickup Scene" name="group_pickup_scene" context="{'group_by': 'pickup_scene'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <record id="action_import_pickup_requirement" model="ir.actions.act_window">
+            <field name="name">Pickup Requirement</field>
+            <field name="res_model">import.pickup.requirement</field>
+            <field name="view_mode">list,form</field>
+            <field name="search_view_id" ref="view_import_pickup_requirement_search"/>
+        </record>
+
+        <menuitem id="menu_import_pickup_requirement_root"
+                  name="Pickup Requirement"
+                  parent="menu_wd_charge_root"
+                  sequence="60"/>
+
+        <menuitem id="menu_import_pickup_requirement"
+                  name="Pickup Requirement"
+                  parent="menu_import_pickup_requirement_root"
+                  action="action_import_pickup_requirement"
+                  sequence="10"/>
+
+    </data>
+</odoo>

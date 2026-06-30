@@ -1,0 +1,17 @@
+<odoo>
+    <record id="view_project_form_inherit_quotation" model="ir.ui.view">
+    <field name="name">project.form.inherit.quotation</field>
+    <field name="model">project.project</field>
+    <field name="inherit_id" ref="project.edit_project"/>
+    <field name="arch" type="xml">
+
+        <xpath expr="//field[@name='date_start']" position="after">
+            <field name="quotation_id" required="1"
+             domain="[('state', '=','active')]"/>
+            <field name="payment_company_id" options="{'no_create': True, 'no_open': True}" domain="[('is_payment','=',True)]"/>
+            <field name="allowed_user_ids" widget="many2many_tags"/>
+        </xpath>
+
+    </field>
+</record>
+</odoo>

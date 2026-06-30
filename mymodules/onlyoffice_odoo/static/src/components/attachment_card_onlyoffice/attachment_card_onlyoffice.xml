@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- -->
+<!-- (c) Copyright Ascensio System SIA 2024 -->
+<!-- -->
+<templates xml:space="preserve">
+    <t t-inherit="mail.AttachmentList" t-inherit-mode="extension" owl="1">
+    <xpath expr="//div[hasclass('o-mail-AttachmentCard-aside')]" position="before">
+      <div
+        class="o-mail-AttachmentCard-aside position-relative rounded-end overflow-hidden"
+        t-att-class="{ 'o-hasMultipleActions d-flex flex-column': attachment.isDeletable and !env.inComposer }"
+        title="Open in ONLYOFFICE"
+      >
+        <button
+          t-if="onlyofficeCanOpen(attachment)"
+          t-on-click="() => this.openOnlyoffice(attachment)"
+          class="btn d-flex justify-content-center align-items-center w-100 h-100 rounded-0"
+          t-attf-class="bg-300"
+        >
+          <img src="/onlyoffice_odoo/static/svg/edit.svg" role="img" />
+        </button>
+      </div>
+    </xpath>
+  </t>
+</templates>

@@ -1,0 +1,60 @@
+<odoo>
+    <record id="view_clearance_statement_period_form" model="ir.ui.view">
+        <field name="name">clearance.statement.period.form</field>
+        <field name="model">operation.order.clearance</field>
+        <field name="arch" type="xml">
+            <form string="Clearance Charge Details">
+                <sheet>
+                    <group>
+                        <field name="name" readonly="1"/>
+                        <field name="waybill_id" readonly="1"/>
+                        <field name="container_nums"/>
+<!--                        <field name="clearance_datetime" readonly="1"/>-->
+                        <field name="currency_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="amount_total_change"/>
+                        <field name="manual_amount_total_change" readonly="statement_period_id_state =='expense_confirmed'"/>
+                    </group>
+                    <group string="Charges">
+                        <field name="charge_line_ids" readonly="1">
+                        </field>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_period_clearance_charge_line_list" model="ir.ui.view">
+        <field name="name">period.clearance.charge.line.list</field>
+        <field name="model">operation.order.clearance.charge.line</field>
+        <field name="arch" type="xml">
+                        <list create="false" delete="false" editable="top">
+                <field name="charge_item_id" options="{'no_create': True, 'no_open': True}"
+                       domain="[('operation_type', '=', 'handover'), ('is_leaf', '=', True)]" required="1"/>
+                <field name="qty"/>
+                <field name="unit_price"/>
+                <field name="amount_total"/>
+                <field name="manual_amount_total"/>
+                <field name="remark"/>
+            </list>
+
+        </field>
+    </record>
+    
+<!--<record id="action_clearance_charge_line_list" model="ir.actions.act_window">-->
+<!--    <field name="name">Clearance Charge Lines</field>-->
+<!--    <field name="res_model">operation.order.clearance.charge.line</field>-->
+<!--    <field name="view_mode">list</field>-->
+<!--    <field name="view_id" ref="view_period_clearance_charge_line_list"/>-->
+<!--    <field name="target">current</field>-->
+<!--    <field name="context">{'active_id': active_id}</field>-->
+<!--</record>-->
+
+
+<!--    <record id="action_clearance_statement_period_form" model="ir.actions.act_window">-->
+<!--        <field name="name">Clearance Charge Details</field>-->
+<!--        <field name="res_model">operation.order.clearance</field>-->
+<!--        <field name="view_mode">form</field>-->
+<!--        <field name="view_id" ref="view_clearance_statement_period_form"/>-->
+<!--        <field name="target">current</field>-->
+<!--        <field name="context">{'active_id': active_id}</field>-->
+<!--    </record>-->
+</odoo>

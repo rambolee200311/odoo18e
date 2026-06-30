@@ -18,12 +18,14 @@ Long description of module's purpose
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base','product','stock'],
+    'depends': ['base','product','stock','worlddepot'],
 
     # always loaded
     'data': [
         'security/ir.model.access.csv',
+        'security/stock_security.xml',
         'views/views.xml',
+        'views/modify_lot_name_views.xml',
 
     ],
     'license': 'LGPL-3',

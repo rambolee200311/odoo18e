@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="wd_cloud_storage.WdCloudStorageKanbanView" t-inherit="web.KanbanView" t-inherit-mode="primary">
+        <xpath expr="//t[@t-set-slot='control-panel-create-button']" position="replace">
+            <t t-set-slot="control-panel-create-button">
+                <div class="btn-group" t-if="props.showButtons and show_new_menu">
+                    <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                        New
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li t-if="state.can_upload">
+                            <button type="button" class="dropdown-item" t-on-click="on_click_upload">Upload</button>
+                        </li>
+                        <li t-if="state.can_create_folder">
+                            <button type="button" class="dropdown-item"
+                                    t-on-click="on_click_create_folder">New Folder</button>
+                        </li>
+                    </ul>
+                    <input t-if="state.can_upload" type="file" class="d-none" t-ref="uploadInput"
+                           t-on-change="on_upload_file_change"/>
+                </div>
+            </t>
+        </xpath>
+
+        <xpath expr="//Layout/t[@t-component='props.Renderer']" position="attributes">
+    <attribute name="previewStore">preview_state.preview_store</attribute>
+
+</xpath>
+
+        <xpath expr="//Layout" position="inside">
+    <t t-set-slot="control-panel-selection-actions">
+        <div t-if="state.selected_count" class="d-flex align-items-center gap-1">
+            <t t-call="web.ListView.Selection">
+                <t t-set="isDomainSelected" t-value="false"/>
+                <t t-set="isPageSelected" t-value="false"/>
+                <t t-set="nbSelected" t-value="state.selected_count"/>
+            </t>
+
+            <div class="btn-group ms-1">
+                <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown"
+                        aria-expanded="false">
+                    <i class="fa fa-gear me-1"/>
+                    Action
+                </button>
+                <ul class="dropdown-menu">
+    <li t-if="state.selected_state === 'stored'">
+        <button type="button" class="dropdown-item" t-on-click="on_click_move_selected_to_recycle">
+            <i class="fa fa-trash me-1"/>
+            Move to Recycle Bin
+        </button>
+    </li>
+                    <li t-if="state.selected_state === 'stored'">
+        <button type="button" class="dropdown-item" t-on-click="on_click_rename_selected">
+            <i class="fa fa-edit me-1"/>
+            Rename
+        </button>
+    </li>
+                    <li t-if="state.selected_state === 'recycled'">
+        <button type="button" class="dropdown-item" t-on-click="on_click_restore_selected">
+            <i class="fa fa-history me-1"/>
+            Restore
+        </button>
+    </li>
+</ul>
+            </div>
+
+            <button type="button" class="btn btn-secondary" t-on-click="on_click_download_selected">
+                <i class="fa fa-download me-1"/>
+                Download
+            </button>
+        </div>
+    </t>
+</xpath>
+        <xpath expr="//t[@t-set-slot='layout-actions']" position="replace">
+    <t t-set-slot="layout-actions">
+        <SearchBar t-if="!state.selected_count" toggler="searchBarToggler"/>
+    </t>
+</xpath>
+    </t>
+</templates>

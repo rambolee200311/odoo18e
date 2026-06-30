@@ -1,0 +1,45 @@
+{
+    'name': 'Cloud Storage',
+    'version': '18.0.1.0.0',
+    'summary': 'AWS S3 cloud storage for Odoo internal usage.',
+    'author': 'World Depot B.V.',
+    'category': 'Tools',
+    'depends': ['base', 'base_setup', 'web', 'mail','hr'],
+    'external_dependencies': {'python': ['boto3', 'botocore']},
+    'data': [
+        'security/security.xml',
+        'security/ir.model.access.csv',
+        'data/s3_node_type_data.xml',
+        'data/s3_operate_type_data.xml',
+        'data/s3_cron_data.xml',
+        'data/menu_action_data.xml',
+        'views/s3_config_views.xml',
+        'views/s3_node_views.xml',
+        'views/s3_permission_views.xml',
+        'views/s3_stored_file_views.xml',
+        'views/s3_recycle_entry_views.xml',
+        'views/s3_operation_log_views.xml',
+        'views/res_users_inherit_views.xml',
+        'wizard/s3_create_folder_wizard_views.xml',
+        'wizard/s3_rename_file_wizard_views.xml',
+    ],
+    'assets': {
+        'web.assets_backend': [
+            'wd_cloud_storage/static/src/views/wd_cloud_storage_list_controller.js',
+            'wd_cloud_storage/static/src/views/wd_cloud_storage_list_controller.xml',
+
+            'wd_cloud_storage/static/src/views/wd_cloud_storage_file_viewer.js',
+            'wd_cloud_storage/static/src/views/wd_cloud_storage_file_viewer.xml',
+            'wd_cloud_storage/static/src/views/wd_cloud_storage_kanban_renderer.js',
+            'wd_cloud_storage/static/src/views/wd_cloud_storage_kanban_renderer.xml',
+            'wd_cloud_storage/static/src/views/wd_cloud_storage_kanban_controller.js',
+            'wd_cloud_storage/static/src/views/wd_cloud_storage_kanban_controller.xml',
+            'wd_cloud_storage/static/src/views/wd_cloud_storage_kanban.scss',
+
+        ],
+    },
+
+    'installable': True,
+    'application': True,
+    'license': 'LGPL-3',
+}

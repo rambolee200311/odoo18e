@@ -1,0 +1,46 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_charge_quotation,charge.quotation,model_charge_quotation,,1,1,1,1
+access_charge_quotation_line,charge.quotation.line,model_charge_quotation_line,,1,1,1,1
+access_world_depot_waybill_user,world.depot.waybill user,model_world_depot_waybill,,1,1,1,1
+
+access_world_depot_waybill_other_docs_manager,world.depot.waybill.other.docs manager,model_world_depot_waybill_other_docs,,1,1,1,1
+
+access_world_depot_waybill_container_manager,world.depot.waybill.container manager,model_world_depot_waybill_container,,1,1,1,1
+
+access_world_depot_waybill_packing_list_manager,world.depot.waybill.packing.list manager,model_world_depot_waybill_packing_list,,1,1,1,1
+access_world_depot_port_node,access.world.depot.port.node,model_world_depot_port_node,,1,1,1,1
+access_operation_workbench_card_user,operation.workbench.card user,model_operation_workbench_card,,1,1,1,1
+access_operation_workbench_lane_user,operation.workbench.lane user,model_operation_workbench_lane,,1,1,1,1
+
+
+access_operation_order_handover,operation.order.handover,model_operation_order_handover,,1,1,1,1
+access_operation_order_handover_invoice_line,access_operation_order_handover_invoice_line,model_operation_order_handover_invoice_line,,1,1,1,1
+access_operation_order_handover_attachment_line,operation.order.handover.attachment.line,model_operation_order_handover_attachment_line,,1,1,1,1
+access_operation_order_handover_charge_line,operation.order.handover.charge.line,model_operation_order_handover_charge_line,,1,1,1,1
+access_operation_order_handover_cost_line,operation.order.handover.cost.line,model_operation_order_handover_cost_line,,1,1,1,1
+access_charge_quotation_add_wizard,charge.quotation.add.wizard,model_charge_quotation_add_wizard,,1,1,1,1
+access_charge_quotation_add_wizard_line,charge.quotation.add.wizard.line,model_charge_quotation_add_wizard_line,,1,1,1,1
+access_waybill_arrival_wizard,waybill.arrival.wizard,model_waybill_arrival_wizard,,1,1,1,1
+access_waybill_create_clearance_wizard,access_waybill_create_clearance_wizard,model_waybill_create_clearance_wizard,,1,1,1,1
+access_clearance_reclearance_wizard,access.clearance.reclearance.wizard,model_clearance_reclearance_wizard,,1,1,1,1
+ccess_portbase_waybill_import_wizard_user,portbase.waybill.import.wizard user,model_portbase_waybill_import_wizard,,1,1,1,1
+
+access_operation_order_clearance,operation.order.clearance,model_operation_order_clearance,,1,1,1,1
+access_operation_order_clearance_invoice_line,operation.order.clearance.invoice.line,model_operation_order_clearance_invoice_line,,1,1,1,1
+access_operation_order_clearance_attachment_line,operation.order.clearance.attachment.line,model_operation_order_clearance_attachment_line,,1,1,1,1
+access_operation_order_clearance_charge_line,operation.order.clearance.charge.line,model_operation_order_clearance_charge_line,,1,1,1,1
+access_operation_order_clearance_cost_line,operation.order.clearance.cost.line,model_operation_order_clearance_cost_line,,1,1,1,1
+access_operation_order_clearance_container_line_user,Operation Order Container Line User,model_operation_order_clearance_container_line,,1,1,1,1
+
+access_statement_period_user,access.statement.period.user,model_statement_period,,1,1,1,1
+
+
+access_import_pickup_requirement_user,access.import.pickup.requirement.user,model_import_pickup_requirement,,1,1,1,1
+access_pickup_container_line_user,access.pickup.container.line.user,model_pickup_container_line,,1,1,1,1
+
+
+access_operation_workbench_dashboard_data_user,operation.workbench.dashboard.data user,model_operation_workbench_dashboard_data,,1,1,1,1
+access_operation_workbench_alert_rule_user,operation.workbench.alert.rule user,model_operation_workbench_alert_rule,,1,1,1,1
+access_operation_blocking_reason_user,operation.blocking.reason user,model_operation_blocking_reason,,1,1,1,1
+
+access_portbase_webhook_log_user,portbase.webhook.log user,model_portbase_webhook_log,,1,1,1,1

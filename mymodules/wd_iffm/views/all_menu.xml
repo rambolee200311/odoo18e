@@ -1,0 +1,18 @@
+<odoo>
+
+    <menuitem id="menu_wd_charge_root" name="Import Freight Forwarder Management" sequence="10" web_icon="wd_iffm,static/src/img/img.png"/>
+
+
+
+    <menuitem id="charge_account_menu" name="Charge Management" parent="menu_wd_charge_root" sequence="60"/>
+
+    <menuitem id="charge_item_menu" name="Charge Management" parent="charge_account_menu"
+              action="worlddepot.action_world_depot_charge_item" sequence="10"/>
+
+      <menuitem id="menu_chart_of_accounts_readonly"
+              name="Chart of Accounts"
+              parent="charge_account_menu"
+              action="account.action_account_form"
+              sequence="20"/>
+
+</odoo>

@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="operation_order_handover_view_list" model="ir.ui.view">
+        <field name="name">operation.order.handover.view.list</field>
+        <field name="model">operation.order.handover</field>
+        <field name="arch" type="xml">
+            <list string="Handover Orders" create="false">
+
+                <field name="name"/>
+                <field name="parent_id"/>
+                <field name="waybill_id"/>
+                <field name="project_id"/>
+                <field name="shipping_line_id"/>
+                <field name="container_qty"/>
+                <field name="state"/>
+                <field name="eta"/>
+                <field name="create_date"/>
+            </list>
+        </field>
+    </record>
+
+
+    <!-- Form -->
+    <record id="view_operation_order_handover_form" model="ir.ui.view">
+        <field name="name">operation.order.handover.form</field>
+        <field name="model">operation.order.handover</field>
+        <field name="priority">10</field>
+        <field name="arch" type="xml">
+            <form string="Handover" duplicate="false" create="false" class="wd_iffm_required_highlight">
+                <header>
+                    <button name="action_releasing" type="object" string="Releasing" class="btn-secondary"
+                            invisible="state not in ('paying','paid')"/>
+                    <button name="action_released" type="object" string="Released" class="btn-secondary"
+                            invisible="state != 'releasing'"/>
+                    <button name="action_close" type="object" string="Close" class="btn-success"
+                            invisible="state != 'released'"/>
+                    <button name="action_recompute_state" type="object" string="Recompute State"
+
+                            invisible="state in ('releasing','released','close','cancelled')"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="open,paying,paid,releasing,released,close"/>
+                </header>
+
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_create_child_handover"
+                                type="object"
+                                string="Create Child Handover"
+                                class="oe_stat_button"
+                                icon="fa-film"/>
+
+                    </div>
+                    <group string="Base Info">
+                        <group>
+                            <field name="waybill_id" required="1" readonly="1"/>
+                            <field name="container_qty" required="1" readonly="state != 'open'"/>
+                     <field name="is_handover_overdue" readonly="1" invisible="1"/>
+
+                            <field name="overdue_blocking_reason_id" required="is_handover_overdue"
+                                   invisible="is_handover_overdue == False"/>
+                            <field name="overdue_reason_note"
+                                   required="overdue_blocking_reason_id and overdue_blocking_reason_short_name == 'Others + Exp'"
+                                   invisible="not (overdue_blocking_reason_id and overdue_blocking_reason_short_name == 'Others + Exp')"/>
+
+                            <field name="overdue_handle_result" required="is_handover_overdue"
+                                   invisible="is_handover_overdue == False"/>
+                            <field name="overdue_result_note"
+                                   required="overdue_handle_result == 'other'"
+                                   invisible="overdue_handle_result != 'other'"/>
+                        </group>
+
+
+                        <group>
+                            <field name="bl_number" readonly="1"/>
+                            <field name="hbl_number" readonly="1"/>
+                            <field name="obl_number" readonly="1"/>
+                        </group>
+
+                    </group>
+
+                    <group string="DO">
+                        <group>
+                            <field name="do_no" readonly="state == 'close'"/>
+                        </group>
+                        <group>
+                            <field name="bl_release_type" readonly="state in ('close','released')"/>
+                            <field name="do_issue_datetime" readonly="state in ('released','close')"
+                                   required="state == 'releasing'"/>
+                        </group>
+
+                    </group>
+                    <group>
+                        <field name="remark" readonly="state == 'close'"/>
+                    </group>
+
+                    <notebook>
+
+                        <!-- Tab 1: Charge / Cost -->
+                        <page string="Charge / Cost">
+
+                            <!-- Vendor Invoice Lines -->
+                            <field name="invoice_line_ids" context="{'default_handover_id': id}"
+                                   readonly="state == 'close'">
+                                <list>
+                                    <field name="shipping_line_id"/>
+                                    <field name="vendor_invoice_id"/>
+                                    <field name="invoice_date"/>
+                                    <field name="amount_total"/>
+
+                                    <field name="payment_state"/>
+                                </list>
+                            </field>
+
+                            <!-- Charges -->
+                            <group string="Charges" invisible="state not in ('close','released')">
+                                <field name="charge_line_ids" readonly="state == 'close'">
+                                    <list editable="bottom">
+                                        <field name="charge_item_id" options="{'no_create': True, 'no_open': True}"
+                                               domain="[('operation_type', '=','handover'),('is_leaf','=',True)]"
+                                               required="1"/>
+                                        <field name="is_fixed_fee" readonly="1"/>
+                                        <field name="qty" readonly="is_fixed_fee"/>
+                                        <field name="unit_price" readonly="is_fixed_fee"/>
+                                        <field name="amount_total" sum="Total Amount"/>
+                                        <field name="manual_amount_total" sum="Manual Total"/>
+                                        <field name="remark"/>
+                                    </list>
+                                </field>
+                            </group>
+                        </page>
+
+                        <!-- Tab 2: Documents -->
+                        <page string="Documents">
+                            <field name="attachment_line_ids">
+                                <list editable="bottom">
+                                    <field name="doc_type"/>
+                                    <field name="name"/>
+                                    <field name="file" widget="binary"/>
+                                    <field name="upload_time"/>
+                                    <field name="upload_user_id"/>
+                                    <field name="remark"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Containers">
+                            <field name="container_line_ids">
+                                <list>
+                                    <field name="container_number"/>
+                                    <field name="container_type"/>
+                                    <field name="weight"/>
+                                </list>
+                            </field>
+                        </page>
+
+                    </notebook>
+
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+
+    <record id="view_operation_order_handover_child_form" model="ir.ui.view">
+        <field name="name">operation.order.handover.child.form</field>
+        <field name="model">operation.order.handover</field>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <form string="Child Handover" duplicate="false" create="false">
+                <header>
+
+                    <button name="action_close" type="object" string="Close" class="btn-success"
+                            invisible="state == 'close'"/>
+                    <button name="action_recompute_state" type="object" string="Recompute State"
+                            invisible="state == 'close'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="open,paying,paid,close"/>
+                </header>
+
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/>
+                            <span class="text-muted" invisible="parent_id == False">
+                                (Child Handover)
+                            </span></h1>
+                    </div>
+                    <group string="Base Info">
+                        <group>
+                            <field name="waybill_id" required="1" readonly="1"/>
+                            <field name="parent_id" readonly="1"
+                                   context="{'form_view_ref': 'wd_iffm.operation_order_clearance_form_view'}"/>
+                            <field name="container_qty" required="1" readonly="1"/>
+                            <field name="extra_reason" required="1"/>
+                            <field name="extra_remark"
+                                   invisible="extra_reason != 'other'"
+                                   required="extra_reason == 'other'"/>
+                            <field name="actual_datetime" required="1"/>
+
+
+                        </group>
+
+
+                        <group>
+                            <field name="bl_number" readonly="1"/>
+                            <field name="hbl_number" readonly="1"/>
+                            <field name="obl_number" readonly="1"/>
+                        </group>
+
+                    </group>
+
+                    <group string="DO">
+                        <group>
+                            <field name="do_no" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="bl_release_type" readonly="1"/>
+                            <field name="do_issue_datetime" readonly="1"
+                                   required="state == 'releasing'"/>
+                        </group>
+
+                    </group>
+                    <group>
+                        <field name="remark" readonly="state == 'close'"/>
+                    </group>
+
+                    <notebook>
+
+                        <!-- Tab 1: Charge / Cost -->
+                        <page string="Charge / Cost">
+
+                            <!-- Vendor Invoice Lines -->
+                            <field name="invoice_line_ids" context="{'default_handover_id': id}"
+                                   readonly="state == 'close'">
+                                <list>
+                                    <field name="shipping_line_id"/>
+                                    <field name="vendor_invoice_id"/>
+                                    <field name="invoice_date"/>
+                                    <field name="amount_total"/>
+
+                                    <field name="payment_state"/>
+                                </list>
+                            </field>
+
+                            <!-- Charges -->
+                            <group string="Charges">
+                                <field name="charge_line_ids" readonly="state == 'close'">
+                                    <list editable="bottom">
+                                        <field name="charge_item_id" options="{'no_create': True, 'no_open': True}"
+                                               domain="[('operation_type', '=','handover'),('is_leaf','=',True)]"
+                                               required="1"/>
+                                        <field name="qty"/>
+                                        <field name="unit_price"/>
+                                        <field name="amount_total" sum="Total Amount"/>
+                                        <field name="manual_amount_total" sum="Manual Total"/>
+                                        <field name="remark"/>
+                                    </list>
+                                </field>
+                            </group>
+                        </page>
+
+                        <!-- Tab 2: Documents -->
+                        <page string="Documents">
+                            <field name="attachment_line_ids" readonly="1">
+                                <list editable="bottom">
+                                    <field name="doc_type"/>
+                                    <field name="name"/>
+                                    <field name="file" widget="binary"/>
+                                    <field name="upload_time"/>
+                                    <field name="upload_user_id"/>
+                                    <field name="remark"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <!-- Tab 3: Containers (read only from waybill) -->
+                        <page string="Containers">
+                            <field name="container_line_ids">
+                                <list>
+                                    <field name="container_number"/>
+                                    <field name="container_type"/>
+                                    <field name="weight"/>
+                                </list>
+                            </field>
+                        </page>
+
+                    </notebook>
+
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_operation_order_child_handover_search" model="ir.ui.view">
+        <field name="name">operation.order.child.handover.search</field>
+        <field name="model">operation.order.handover</field>
+        <field name="arch" type="xml">
+            <search>
+                <filter string="Group By Parent"
+                        name="group_by_parent"
+                        context="{'group_by': 'parent_id'}"/>
+            </search>
+        </field>
+    </record>
+
+
+    <record id="operation_order_handover_action" model="ir.actions.act_window">
+        <field name="name">Handover Orders</field>
+        <field name="res_model">operation.order.handover</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('parent_id', '=', False)]</field>
+        <field name="view_ids" eval="[
+        (5, 0, 0),
+        (0, 0, {'view_mode': 'list', 'view_id': ref('operation_order_handover_view_list')}),
+        (0, 0, {'view_mode': 'form', 'view_id': ref('view_operation_order_handover_form')})
+    ]"/>
+    </record>
+
+    <record id="operation_order_child_handover_action" model="ir.actions.act_window">
+        <field name="name">Child Handover Orders</field>
+        <field name="res_model">operation.order.handover</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_operation_order_child_handover_search"/>
+        <field name="context">{'search_default_group_by_parent': 1}</field>
+        <field name="domain">[('parent_id', '!=', False)]</field>
+        <field name="view_ids" eval="[
+        (5, 0, 0),
+        (0, 0, {'view_mode': 'list', 'view_id': ref('operation_order_handover_view_list')}),
+        (0, 0, {'view_mode': 'form', 'view_id': ref('view_operation_order_handover_child_form')})
+    ]"/>
+    </record>
+
+
+    <menuitem id="menu_operation_handover_root" name="Operations" parent="menu_wd_charge_root"
+              sequence="20"/>
+    <menuitem id="menu_operation_handover" name="Handover" parent="menu_operation_handover_root"
+              action="operation_order_handover_action" sequence="10"/>
+    <menuitem id="menu_operation_handover_child" name="Child Handover" parent="menu_operation_handover_root"
+              action="operation_order_child_handover_action" sequence="15"/>
+</odoo>

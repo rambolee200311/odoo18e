@@ -1,0 +1,38 @@
+<odoo>
+    <data noupdate="1">
+        <record id="param_portbase_track_requests_url" model="ir.config_parameter">
+            <field name="key">portbase-track-requests</field>
+            <field name="value">https://api.cargo-controller.pcs.portbase.com/public/track-requests</field>
+        </record>
+
+        <record id="param_portbase_tracked_bls_url" model="ir.config_parameter">
+            <field name="key">portbase-tracked-bls</field>
+            <field name="value">https://api.cargo-controller.pcs.portbase.com/public/tracked-bls</field>
+        </record>
+
+        <record id="param_portbase_access_key_id" model="ir.config_parameter">
+            <field name="key">portbase-access-key-id</field>
+            <field name="value">demo_access_key</field>
+        </record>
+
+        <record id="param_portbase_secret_access_key" model="ir.config_parameter">
+            <field name="key">portbase-secret-access-key</field>
+            <field name="value">demo_secret_key</field>
+        </record>
+
+        <record id="param_portbase_access_key_id_wde" model="ir.config_parameter">
+            <field name="key">portbase-access-key-id_wde</field>
+            <field name="value">demo_access_key_wde</field>
+        </record>
+
+        <record id="param_portbase_secret_access_key_wde" model="ir.config_parameter">
+            <field name="key">portbase-secret-access-key_wde</field>
+            <field name="value">demo_secret_key_wde</field>
+        </record>
+        <record id="param_portbase_webhook_url" model="ir.config_parameter">
+            <field name="key">portbase_webhook_url</field>
+            <field name="value">demo_webhook_url</field>
+        </record>
+
+    </data>
+</odoo>

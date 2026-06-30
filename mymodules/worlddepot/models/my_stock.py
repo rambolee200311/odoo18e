@@ -37,6 +37,12 @@ class StockLocation(models.Model):
     
     #是否入保税仓
     is_bonded = fields.Boolean(string='Bonded Warehouse', default=False, tracking=True)
+    # 新增库位类型
+    location_type=fields.Many2one(
+        comodel_name='stock.location.type',
+        string='Extra Type',
+        help='Type of the stock location'
+    )
 
     def _get_removal_strategy_order(self, removal_strategy):
         if removal_strategy == 'fifo':
@@ -55,7 +61,8 @@ class StockMove(models.Model):
         store=True
     )
     outbound_order_product_id = fields.Integer('Outbound Order ProductID')
-    
+    transfer_order_line_id = fields.Integer('Transfer Order Line ID')
+
 
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
@@ -76,6 +83,12 @@ class StockPicking(models.Model):
         string='Outbound Order',
         help='Reference to the related Outbound Order',
     
+    )
+    transfer_order_id = fields.Many2one(
+        comodel_name='world.depot.transfer.order',
+        string='Transfer Order',
+        help='Reference to the related Transfer Order',
+        readonly=True
     )
     load_ref = fields.Char(string='Loading Reference', required=False, help='Reference for the Delivery')
 

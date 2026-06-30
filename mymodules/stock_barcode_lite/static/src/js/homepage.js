@@ -18,8 +18,8 @@ export class Homepage extends Component {
         this.action.doAction("stock_barcode_lite_inbound");
     }
 
-    _onOutboundClick() {
-        this.action.doAction("stock_barcode_lite_outbound");
+    _onOutboundBreakClick() {
+        this.action.doAction("stock_barcode_lite_outbound_disassembly");
     }
 
     _onOutboundWholeClick() {

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="wd_cloud_storage.KanbanRenderer" t-inherit="web.KanbanRenderer" t-inherit-mode="primary">
+        <xpath expr="//div[hasclass('o_kanban_renderer')]" position="attributes">
+            <attribute name="class" add="position-relative" separator=" "/>
+        </xpath>
+
+        <xpath expr="//div[hasclass('o_kanban_renderer')]" position="inside">
+            <WdCloudStorageFileViewer previewStore="props.previewStore"/>
+        </xpath>
+    </t>
+</templates>

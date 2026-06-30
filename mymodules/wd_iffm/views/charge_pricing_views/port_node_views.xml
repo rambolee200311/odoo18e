@@ -1,0 +1,64 @@
+<odoo>
+    <record id="view_world_depot_port_node_list" model="ir.ui.view">
+        <field name="name">world.depot.port.node.list</field>
+        <field name="model">world.depot.port.node</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="node_type"/>
+                <field name="country_id"/>
+            </list>
+        </field>
+    </record>
+
+
+    <record id="view_world_depot_port_node_form" model="ir.ui.view">
+        <field name="name">world.depot.port.node.form</field>
+        <field name="model">world.depot.port.node</field>
+        <field name="arch" type="xml">
+            <form class="wd_iffm_required_highlight">
+                <sheet>
+                    <group>
+                        <field name="node_type" required="1"/>
+                        <field name="name" required="1"/>
+                        <field name="terminal_code" required="1"/>
+                        <field name="country_id" required="1"
+                               options="{'no_create': True, 'no_open': False}"/>
+                        <field name="parent_id" required="node_type == 'terminal'"
+                               options="{'no_create': True, 'no_open': True}" domain="[('node_type','=','port')]"
+                        invisible="node_type=='port'"/>
+                        <field name="terminal_address"/>
+<!--                        <field name="address"/>-->
+                        <field name="street"/>
+                        <field name="zip"/>
+                        <field name="city"/>
+                        <field name="state"/>
+                        <field name="phone"/>
+                        <field name="mobile"/>
+                        <field name="remark"/>
+
+
+
+                        <!--                <field name="child_lines" widget="one2many_list" readonly="1"/>-->
+                    </group>
+                </sheet>
+
+            </form>
+
+
+        </field>
+    </record>
+
+
+    <record id="action_world_depot_port_node" model="ir.actions.act_window">
+        <field name="name">Port And Terminal</field>
+        <field name="res_model">world.depot.port.node</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_wd_base_config" name="Basic Configuration" parent="menu_wd_charge_root" sequence="860"/>
+
+    <menuitem id="menu_world_depot_port_node" name="Port And Terminal" parent="menu_wd_base_config"
+              action="action_world_depot_port_node" sequence="10"/>
+
+</odoo>

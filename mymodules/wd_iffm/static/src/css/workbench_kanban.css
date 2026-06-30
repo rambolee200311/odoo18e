@@ -1,0 +1,458 @@
+/* ========================================
+   进口货代 wd_iffm — 看板样式
+   仅作用于视图 arch 中声明了 class="wd_iffm_kanban" 的看板，
+   避免通过 web.assets_backend 污染项目等标准模块看板。
+   ======================================== */
+
+/* 根容器（与 <kanban class="wd_iffm_kanban"> 对应） */
+.o_kanban_view.wd_iffm_kanban {
+    padding: 10px;
+    background-color: #f5f5f5;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_column,
+.o_kanban_view.wd_iffm_kanban .o_kanban_group {
+    min-width: 300px;
+    max-width: 380px;
+    margin: 0 8px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+    border: 1px solid #e0e0e0;
+}
+
+.o_kanban_view.wd_iffm_kanban.wd_iffm_waybill_kanban .o_column,
+.o_kanban_view.wd_iffm_kanban.wd_iffm_waybill_kanban .o_kanban_group {
+    min-width: 400px;
+    max-width: 600px;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_column_header,
+.o_kanban_view.wd_iffm_kanban .o_kanban_group_header {
+    font-weight: 600;
+    padding: 12px 15px;
+    border-bottom: 1px solid #e0e0e0;
+    background-color: #f8f9fa;
+    border-radius: 8px 8px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_column .o_kanban_header_title {
+    font-size: 14px;
+    color: #333;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_column .o_kanban_header_title:before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #4caf50;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_column .o_kanban_quick_create {
+    margin: 10px;
+}
+
+/* 卡片：外层 article 仅间距 */
+.o_kanban_view.wd_iffm_kanban .o_kanban_record,
+.o_kanban_view.wd_iffm_kanban .o_kanban_group .o_kanban_record {
+    margin: 0 0 10px;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    background: transparent;
+    position: relative;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_kanban_record:last-child,
+.o_kanban_view.wd_iffm_kanban .o_kanban_group .o_kanban_record:last-child {
+    margin-bottom: 0;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_kanban_record .oe_kanban_card,
+.o_kanban_view.wd_iffm_kanban .o_kanban_group .o_kanban_record .oe_kanban_card {
+    margin: 0;
+    padding: 0;
+    border-radius: 6px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+    background-color: #ffffff;
+    border: 1px solid #dee2e6;
+    position: relative;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_kanban_record:hover .oe_kanban_card,
+.o_kanban_view.wd_iffm_kanban .o_kanban_group .o_kanban_record:hover .oe_kanban_card {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border-color: #ced4da;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_kanban_record.dragging {
+    opacity: 0.5;
+    transform: rotate(3deg);
+}
+
+.o_kanban_view.wd_iffm_kanban .o_column.drag-over,
+.o_kanban_view.wd_iffm_kanban .o_kanban_group.drag-over {
+    background-color: #f0f8ff;
+    border: 2px dashed #3498db;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_kanban_card_header,
+.o_kanban_view.wd_iffm_kanban .o_kanban_group .o_kanban_card_header,
+.o_kanban_view.wd_iffm_kanban .oe_kanban_card .o_kanban_card_header {
+    padding: 10px 12px;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_kanban_card_header_title,
+.o_kanban_view.wd_iffm_kanban .o_kanban_group .o_kanban_card_header_title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_kanban_card_header_tags,
+.o_kanban_view.wd_iffm_kanban .o_kanban_group .o_kanban_card_header_tags {
+    display: flex;
+    gap: 4px;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_kanban_card_header_tag {
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_kanban_tag_pill,
+.o_kanban_view.wd_iffm_kanban .o_kanban_group .o_kanban_tag_pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 11px;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_kanban_group[data-state="done"],
+.o_kanban_view.wd_iffm_kanban .o_kanban_group[data-state="cancel"] {
+    opacity: 0.8;
+}
+
+/* 泳道折叠样式 */
+.o_kanban_view.wd_iffm_kanban .o_kanban_group.o_kanban_group_collapsed {
+    min-height: auto !important;
+    height: auto;
+    max-height: 50px;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_kanban_group.o_kanban_group_collapsed .o_kanban_group_content {
+    display: none !important;
+    visibility: hidden;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_kanban_group.o_kanban_group_collapsed .oe_kanban_card {
+    display: none !important;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_kanban_group.o_kanban_group_collapsed .o_kanban_group_header {
+    border-bottom: none;
+    background-color: #f8f9fa;
+    min-height: 40px;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_tag_new {
+    background-color: #e3f2fd;
+    color: #1565c0;
+    border: 1px solid #bbdefb;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_tag_confirm {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #c8e6c9;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_tag_cancel {
+    background-color: #ffebee;
+    color: #c62828;
+    border: 1px solid #ffcdd2;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_kanban_status_dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_dot_new {
+    background-color: #2196f3;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_dot_confirm {
+    background-color: #4caf50;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_dot_cancel {
+    background-color: #f44336;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_dot_open { background-color: #ff9800; }
+.o_kanban_view.wd_iffm_kanban .o_dot_paying { background-color: #ffc107; }
+.o_kanban_view.wd_iffm_kanban .o_dot_paid { background-color: #2196f3; }
+.o_kanban_view.wd_iffm_kanban .o_dot_releasing,
+.o_kanban_view.wd_iffm_kanban .o_dot_clearancing { background-color: #9c27b0; }
+.o_kanban_view.wd_iffm_kanban .o_dot_released,
+.o_kanban_view.wd_iffm_kanban .o_dot_clearanced { background-color: #3f51b5; }
+.o_kanban_view.wd_iffm_kanban .o_dot_close { background-color: #4caf50; }
+.o_kanban_view.wd_iffm_kanban .o_dot_cancelled { background-color: #757575; }
+
+.o_kanban_view.wd_iffm_kanban .o_tag_open { background-color: #fff3e0; color: #e65100; border: 1px solid #ffe0b2; }
+.o_kanban_view.wd_iffm_kanban .o_tag_paying { background-color: #fff8e1; color: #f57f17; border: 1px solid #ffecb3; }
+.o_kanban_view.wd_iffm_kanban .o_tag_paid { background-color: #e3f2fd; color: #1565c0; border: 1px solid #bbdefb; }
+.o_kanban_view.wd_iffm_kanban .o_tag_releasing,
+.o_kanban_view.wd_iffm_kanban .o_tag_clearancing { background-color: #f3e5f5; color: #6a1b9a; border: 1px solid #e1bee7; }
+.o_kanban_view.wd_iffm_kanban .o_tag_released,
+.o_kanban_view.wd_iffm_kanban .o_tag_clearanced { background-color: #e8eaf6; color: #283593; border: 1px solid #c5cae9; }
+.o_kanban_view.wd_iffm_kanban .o_tag_close { background-color: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+.o_kanban_view.wd_iffm_kanban .o_tag_cancelled { background-color: #eceff1; color: #455a64; border: 1px solid #cfd8dc; }
+
+.o_kanban_view.wd_iffm_kanban .o_kanban_card_content,
+.o_kanban_view.wd_iffm_kanban .o_kanban_group .o_kanban_card_content {
+    padding: 10px 12px;
+    margin-bottom: 12px;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_kanban_card_footer,
+.o_kanban_view.wd_iffm_kanban .o_kanban_group .o_kanban_card_footer {
+    padding: 0 12px 10px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_card_forecast {
+    background-color: #f8f9fa;
+    border-left: 3px solid #6c757d;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_card_handover {
+    background-color: #e3f2fd;
+    border-left: 3px solid #2196f3;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_card_clearance {
+    background-color: #e8f5e8;
+    border-left: 3px solid #4caf50;
+}
+
+.o_kanban_view.wd_iffm_kanban .state-open { border-right: 3px solid #ffc107; }
+.o_kanban_view.wd_iffm_kanban .state-paying { border-right: 3px solid #ff9800; }
+.o_kanban_view.wd_iffm_kanban .state-paid { border-right: 3px solid #2196f3; }
+.o_kanban_view.wd_iffm_kanban .state-releasing { border-right: 3px solid #9c27b0; }
+.o_kanban_view.wd_iffm_kanban .state-released { border-right: 3px solid #3f51b5; }
+.o_kanban_view.wd_iffm_kanban .state-close { border-right: 3px solid #4caf50; }
+.o_kanban_view.wd_iffm_kanban .state-cancelled { border-right: 3px solid #f44336; }
+
+.o_kanban_view.wd_iffm_kanban .o_column_header .column-count,
+.o_kanban_view.wd_iffm_kanban .o_kanban_group_header .column-count {
+    background-color: #e0e0e0;
+    border-radius: 10px;
+    padding: 2px 6px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #666;
+    min-width: 18px;
+    text-align: center;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_kanban_counter {
+    background-color: #e0e0e0;
+    color: #333;
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 10px;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_kanban_group_buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_kanban_group_content {
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 8px;
+    background-color: #fafafa;
+    border-radius: 6px;
+    border: 2px dashed transparent;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_kanban_group_content:hover {
+    border-color: #007bff;
+}
+
+.o_kanban_view.wd_iffm_kanban .card-content {
+    margin-bottom: 8px;
+}
+
+.o_kanban_view.wd_iffm_kanban .card-content .field {
+    margin-bottom: 4px;
+    font-size: 12px;
+    display: flex;
+    align-items: flex-start;
+}
+
+.o_kanban_view.wd_iffm_kanban .card-content .field-label {
+    font-weight: 500;
+    color: #666;
+    margin-right: 6px;
+    min-width: 50px;
+    flex-shrink: 0;
+    font-size: 11px;
+}
+
+.o_kanban_view.wd_iffm_kanban .card-content .field-value {
+    color: #333;
+    flex-grow: 1;
+    word-break: break-word;
+    font-size: 11px;
+}
+
+.o_kanban_view.wd_iffm_kanban .progress-bar {
+    height: 3px;
+    background-color: #e0e0e0;
+    border-radius: 1.5px;
+    margin-top: 8px;
+    overflow: hidden;
+}
+
+.o_kanban_view.wd_iffm_kanban .progress-bar .progress {
+    height: 100%;
+    border-radius: 1.5px;
+    transition: width 0.3s ease;
+}
+
+.o_kanban_view.wd_iffm_kanban .progress-bar .progress.new,
+.o_kanban_view.wd_iffm_kanban .progress-bar .progress.o_progress_state_new {
+    background-color: #2196f3;
+    width: 33%;
+}
+
+.o_kanban_view.wd_iffm_kanban .progress-bar .progress.confirm,
+.o_kanban_view.wd_iffm_kanban .progress-bar .progress.o_progress_state_confirm {
+    background-color: #4caf50;
+    width: 66%;
+}
+
+.o_kanban_view.wd_iffm_kanban .progress-bar .progress.cancel,
+.o_kanban_view.wd_iffm_kanban .progress-bar .progress.o_progress_state_cancel {
+    background-color: #9e9e9e;
+    width: 100%;
+}
+
+.o_kanban_view.wd_iffm_kanban .progress-bar .progress.open {
+    background-color: #ffc107;
+    width: 20%;
+}
+
+.o_kanban_view.wd_iffm_kanban .progress-bar .progress.paying {
+    background-color: #ff9800;
+    width: 40%;
+}
+
+.o_kanban_view.wd_iffm_kanban .progress-bar .progress.paid {
+    background-color: #2196f3;
+    width: 60%;
+}
+
+.o_kanban_view.wd_iffm_kanban .progress-bar .progress.releasing,
+.o_kanban_view.wd_iffm_kanban .progress-bar .progress.clearancing {
+    background-color: #9c27b0;
+    width: 80%;
+}
+
+.o_kanban_view.wd_iffm_kanban .progress-bar .progress.released,
+.o_kanban_view.wd_iffm_kanban .progress-bar .progress.clearanced {
+    background-color: #3f51b5;
+    width: 90%;
+}
+
+.o_kanban_view.wd_iffm_kanban .progress-bar .progress.close {
+    background-color: #4caf50;
+    width: 100%;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_kanban_card_progress_bar {
+    height: 4px;
+    background-color: #e0e0e0;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_kanban_quick_create {
+    margin: 8px;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_kanban_quick_create button {
+    width: 100%;
+    padding: 6px 10px;
+    border: 1px dashed #ced4da;
+    border-radius: 4px;
+    background-color: #f8f9fa;
+    color: #6c757d;
+    font-size: 11px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_kanban_quick_create button:hover {
+    background-color: #e9ecef;
+    border-color: #adb5bd;
+    color: #495057;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_kanban_record .oe_kanban_card .btn.btn-sm,
+.o_kanban_view.wd_iffm_kanban .o_kanban_group .o_kanban_record .oe_kanban_card .btn.btn-sm {
+    font-size: 0.8125rem;
+}
+
+@media (max-width: 768px) {
+    .o_kanban_view.wd_iffm_kanban .o_column,
+    .o_kanban_view.wd_iffm_kanban .o_kanban_group {
+        min-width: 260px;
+        max-width: 100%;
+    }
+}
+
+.o_kanban_view.wd_iffm_kanban.o_kanban_large_column .o_column {
+    min-width: 350px;
+    max-width: 400px;
+}
+
+.o_kanban_view.wd_iffm_kanban.o_kanban_small_column .o_column {
+    min-width: 280px;
+    max-width: 320px;
+}

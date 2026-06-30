@@ -1,0 +1,99 @@
+<odoo>
+    <template id="report_statement_period">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2>Statement Period: <span t-esc="o.name"/></h2>
+
+                        <p>
+                            <strong>Project:</strong> <span t-esc="o.project_id.display_name"/><br/>
+                            <strong>Period:</strong>
+                            <span t-esc="o.date_start"/> ~ <span t-esc="o.date_end"/><br/>
+                            <strong>Currency:</strong> <span t-esc="o.currency_id.name"/><br/>
+                            <strong>State:</strong> <span t-esc="o.state"/>
+                        </p>
+
+                        <h3>Summary</h3>
+                        <table class="table table-sm o_main_table">
+                            <thead>
+                                <tr>
+                                    <th>Description</th>
+                                    <th class="text-end">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Total Handover Amount</td>
+                                    <td class="text-end">
+                                        <span t-esc="o.handover_total_amount"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Total Clearance Amount</td>
+                                    <td class="text-end">
+                                        <span t-esc="o.clearance_total_amount"/>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <h3>Handover Orders</h3>
+                        <table class="table table-sm o_main_table">
+                            <thead>
+                                <tr>
+                                    <th>Waybill</th>
+                                    <th>Name</th>
+                                    <th>Container</th>
+                                    <th>Date</th>
+                                    <th class="text-end">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="o.handover_order_lines" t-as="l">
+                                    <td><span t-esc="l.waybill_id.display_name"/></td>
+                                    <td><span t-esc="l.name"/></td>
+                                    <td><span t-esc="l.container_nums"/></td>
+<!--                                    <td><span t-esc="l.handover_datetime"/></td>-->
+                                    <td class="text-end">
+                                        <span t-esc="(l.manual_amount_total_change if (l.manual_amount_total_change or 0.0) > 0 else l.amount_total_change)"/>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <h3>Clearance Orders</h3>
+                        <table class="table table-sm o_main_table">
+                            <thead>
+                                <tr>
+                                    <th>Waybill</th>
+                                    <th>Name</th>
+                                    <th>Container</th>
+                                    <th>Date</th>
+                                    <th class="text-end">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="o.clearance_order_lines" t-as="c">
+                                    <td><span t-esc="c.waybill_id.display_name"/></td>
+                                    <td><span t-esc="c.name"/></td>
+                                    <td><span t-esc="c.container_nums"/></td>
+                                    <td><span t-esc="c.clearance_datetime"/></td>
+                                    <td class="text-end">
+                                        <span t-esc="c.amount_total_change"/>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- 报表入口：把 model / docs 绑定起来 -->
+    <template id="report_statement_period_document">
+        <t t-call="wd_iffm.report_statement_period"/>
+    </template>
+</odoo>

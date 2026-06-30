@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- operation.workbench.card 看板视图 -->
+    <record id="view_operation_workbench_card_kanban" model="ir.ui.view">
+        <field name="name">operation.workbench.card.kanban</field>
+        <field name="model">operation.workbench.card</field>
+        <field name="arch" type="xml">
+                <kanban default_group_by="lane_id" js_class="workbench_kanban" class="wd_iffm_kanban"
+                        records_draggable="1" quick_create="0"
+                        group_create="1" group_edit="1" group_delete="1" groups_draggable="1">
+                <field name="name"/>
+                <field name="waybill_id"/>
+                <field name="lane_code"/>
+                <field name="lane_id"/>
+                <field name="source_model"/>
+                <field name="source_id"/>
+                <field name="is_main"/>
+                <field name="display_state"/>
+                <field name="extra_data"/>
+                <field name="waybill_state"/>
+                <field name="handover_state"/>
+                <field name="clearance_state"/>
+
+
+                <templates>
+                    <!-- 卡片主体 -->
+                    <t t-name="card">
+                        <div class="oe_kanban_card"
+                             t-att-data-id="record.id.raw_value"
+                             t-att-data-waybill-id="record.waybill_id.raw_value"
+                             t-att-data-lane="record.lane_code.raw_value">
+                            <!-- 卡片头部 -->
+                            <div class="o_kanban_card_header d-flex align-items-start gap-1">
+                                <div class="o_kanban_card_header_title flex-grow-1 min-w-0">
+                                    <field name="name"/>
+                                </div>
+<!--                                <div class="o_kanban_card_header_tags">-->
+<!--                                    &lt;!&ndash; 根据 lane 显示对应状态流程 &ndash;&gt;-->
+<!--                                    &lt;!&ndash; waybill: new -> confirm -> done &ndash;&gt;-->
+<!--                                    <div t-if="record.lane_code.raw_value == 'waybill'" class="d-flex align-items-center gap-1 flex-wrap">-->
+<!--                                        <span t-attf-class="{{ record.display_state.raw_value == 'new' ? 'badge text-bg-primary' : (record.display_state.raw_value == 'confirm' or record.display_state.raw_value == 'done' ? 'text-success' : 'badge text-bg-secondary') }}">-->
+<!--                                            <t t-if="record.display_state.raw_value == 'confirm' or record.display_state.raw_value == 'done'"><i class="fa fa-check fw-bold me-1"/> </t>New-->
+<!--                                        </span>-->
+<!--                                        <span t-attf-class="{{ record.display_state.raw_value == 'confirm' ? 'badge text-bg-warning' : (record.display_state.raw_value == 'done' ? 'text-success' : 'badge text-bg-secondary') }}">-->
+<!--                                            <t t-if="record.display_state.raw_value == 'done'"><i class="fa fa-check fw-bold me-1"/> </t>Confirm-->
+<!--                                        </span>-->
+<!--                                        <span t-attf-class="{{ record.display_state.raw_value == 'done' ? 'badge text-bg-success' : 'badge text-bg-secondary' }}">Done</span>-->
+<!--                                        <span t-if="record.display_state.raw_value == 'cancel'" class="badge text-bg-danger">Cancelled</span>-->
+<!--                                    </div>-->
+<!--                                </div>-->
+                            </div>
+
+                            <!-- 卡片内容 -->
+                            <div class="o_kanban_card_content">
+                                <!-- 预报卡片内容 -->
+                                <div t-if="record.lane_code.raw_value == 'waybill'">
+                                    <div class="o_kanban_card_content_row">
+                                        <span class="text-muted">B/L: </span>
+                                        <span t-esc="record.extra_data.raw_value.bl_number or ''"/>
+                                    </div>
+                                    <div class="o_kanban_card_content_row">
+                                        <span class="text-muted">HBL: </span>
+                                        <span t-esc="record.extra_data.raw_value.hbl_number or ''"/>
+                                    </div>
+                                    <div class="o_kanban_card_content_row">
+                                        <span class="text-muted">MBL: </span>
+                                        <span t-esc="record.extra_data.raw_value.obl_number or '0'"/>
+                                    </div>
+                                    <div class="o_kanban_card_content_row">
+                                        <span class="text-muted">Container Number: </span>
+                                        <span t-esc="record.extra_data.raw_value.container_number or '未绑定'"/>
+                                    </div>
+                                    <div class="o_kanban_card_content_row">
+                                        <span class="text-muted">Bill No: </span>
+<!--                                        <span t-esc="record.extra_data.raw_value.billno or record.extra_data.raw_value.bl_number or record.extra_data.raw_value.hbl_number or 'N/A'"/>-->
+                                        <span t-esc="record.extra_data.raw_value.billno or 'N/A'"/>
+                                    </div>
+                                </div>
+                                <!-- 换单卡片内容 -->
+                                <div t-if="record.lane_code.raw_value == 'handover'">
+                                    <div class="o_kanban_card_content_row">
+                                        <span class="text-muted">B/L: </span>
+                                        <span t-esc="record.extra_data.raw_value.bl_number or ''"/>
+                                    </div>
+                                    <div class="o_kanban_card_content_row">
+                                        <span class="text-muted">HBL: </span>
+                                        <span t-esc="record.extra_data.raw_value.hbl_number or ''"/>
+                                    </div>
+                                    <div class="o_kanban_card_content_row">
+                                        <span class="text-muted">MBL: </span>
+                                        <span t-esc="record.extra_data.raw_value.obl_number or '0'"/>
+                                    </div>
+                                    <div class="o_kanban_card_content_row">
+                                        <span class="text-muted">Container Number: </span>
+                                        <span t-esc="record.extra_data.raw_value.container_nums or '0'"/>
+                                    </div>
+                                    <div class="o_kanban_card_content_row">
+                                        <span class="text-muted">Issue Date: </span>
+                                        <span t-esc="record.extra_data.raw_value.do_issue_datetime || ''"/>
+                                    </div>
+                                </div>
+                                <!-- 清关卡片内容 -->
+                                <div t-if="record.lane_code.raw_value == 'clearance'">
+                                    <div class="o_kanban_card_content_row">
+                                        <span class="text-muted">B/L: </span>
+                                        <span t-esc="record.extra_data.raw_value.bl_number or ''"/>
+                                    </div>
+                                    <div class="o_kanban_card_content_row">
+                                        <span class="text-muted">HBL: </span>
+                                        <span t-esc="record.extra_data.raw_value.hbl_number or ''"/>
+                                    </div>
+                                    <div class="o_kanban_card_content_row">
+                                        <span class="text-muted">MBL: </span>
+                                        <span t-esc="record.extra_data.raw_value.obl_number or ''"/>
+                                    </div>
+                                    <div class="o_kanban_card_content_row">
+                                        <span class="text-muted">Container Number: </span>
+                                        <span t-esc="record.extra_data.raw_value.container_nums or '0'"/>
+                                    </div>
+                                    <div class="o_kanban_card_content_row">
+                                        <span class="text-muted">Clearance Date: </span>
+                                        <span t-esc="record.extra_data.raw_value.clearance_finish_datetime || ''"/>
+                                    </div>
+                                </div>
+                                <!-- 备注 -->
+                                <div class="text-muted small" t-if="record.extra_data.raw_value.extra_remark">
+                                    <i class="fa fa-comment-o"/> <t t-esc="record.extra_data.raw_value.extra_remark"/>
+                                </div>
+                            </div>
+
+                            <!-- 换单-进度状态条 -->
+<!--                            <div t-if="record.lane_code.raw_value == 'handover'" class="o_kanban_progress_bar breadcrumb p-1 mb-1">-->
+<!--                                <span t-attf-class="{{ record.display_state.raw_value == 'open' ? 'badge text-bg-primary' : (['paying','paid','releasing','released','close'].includes(record.display_state.raw_value) ? 'text-success' : 'text-muted') }}">-->
+<!--                                    <t t-if="['paying','paid','releasing','released','close'].includes(record.display_state.raw_value)"><i class="fa fa-check"/></t> Open-->
+<!--                                </span>-->
+<!--                                <span class="text-muted">→</span>-->
+<!--                                <span t-attf-class="{{ record.display_state.raw_value == 'paying' ? 'badge text-bg-warning' : (['paid','releasing','released','close'].includes(record.display_state.raw_value) ? 'text-success' : 'text-muted') }}">-->
+<!--                                    <t t-if="['paid','releasing','released','close'].includes(record.display_state.raw_value)"><i class="fa fa-check"/></t> Paying-->
+<!--                                </span>-->
+<!--                                <span class="text-muted">→</span>-->
+<!--                                <span t-attf-class="{{ record.display_state.raw_value == 'paid' ? 'badge text-bg-info' : (['releasing','released','close'].includes(record.display_state.raw_value) ? 'text-success' : 'text-muted') }}">-->
+<!--                                    <t t-if="['releasing','released','close'].includes(record.display_state.raw_value)"><i class="fa fa-check"/></t> Paid-->
+<!--                                </span>-->
+<!--                                <span class="text-muted">→</span>-->
+<!--                                <span t-attf-class="{{ record.display_state.raw_value == 'releasing' ? 'badge text-bg-warning' : (['released','close'].includes(record.display_state.raw_value) ? 'text-success' : 'text-muted') }}">-->
+<!--                                    <t t-if="['released','close'].includes(record.display_state.raw_value)"><i class="fa fa-check"/></t> Releasing-->
+<!--                                </span>-->
+<!--                                <span class="text-muted">→</span>-->
+<!--                                <span t-attf-class="{{ record.display_state.raw_value == 'released' ? 'badge text-bg-info' : (record.display_state.raw_value == 'close' ? 'text-success' : 'text-muted') }}">-->
+<!--                                    <t t-if="record.display_state.raw_value == 'close'"><i class="fa fa-check"/></t> Released-->
+<!--                                </span>-->
+<!--                                <span class="text-muted">→</span>-->
+<!--                                <span t-attf-class="{{ record.display_state.raw_value == 'close' ? 'badge text-bg-success' : 'text-muted' }}">Close</span>-->
+<!--                                <span t-if="record.display_state.raw_value == 'cancelled'" class="badge text-bg-danger ms-2">Cancelled</span>-->
+<!--                            </div>-->
+
+                            <!-- 清关-进度状态条 -->
+<!--                            <div t-if="record.lane_code.raw_value == 'clearance'" class="o_kanban_progress_bar breadcrumb p-1 mb-1">-->
+<!--                                <span t-attf-class="{{ record.display_state.raw_value == 'open' ? 'badge text-bg-primary' : (['paying','paid','clearancing','clearanced','close'].includes(record.display_state.raw_value) ? 'text-success' : 'text-muted') }}">-->
+<!--                                    <t t-if="['paying','paid','clearancing','clearanced','close'].includes(record.display_state.raw_value)"><i class="fa fa-check"/></t> Open-->
+<!--                                </span>-->
+<!--                                <span class="text-muted">→</span>-->
+<!--                                <span t-attf-class="{{ record.display_state.raw_value == 'paying' ? 'badge text-bg-warning' : (['paid','clearancing','clearanced','close'].includes(record.display_state.raw_value) ? 'text-success' : 'text-muted') }}">-->
+<!--                                    <t t-if="['paid','clearancing','clearanced','close'].includes(record.display_state.raw_value)"><i class="fa fa-check"/></t> Paying-->
+<!--                                </span>-->
+<!--                                <span class="text-muted">→</span>-->
+<!--                                <span t-attf-class="{{ record.display_state.raw_value == 'paid' ? 'badge text-bg-info' : (['clearancing','clearanced','close'].includes(record.display_state.raw_value) ? 'text-success' : 'text-muted') }}">-->
+<!--                                    <t t-if="['clearancing','clearanced','close'].includes(record.display_state.raw_value)"><i class="fa fa-check"/></t> Paid-->
+<!--                                </span>-->
+<!--                                <span class="text-muted">→</span>-->
+<!--                                <span t-attf-class="{{ record.display_state.raw_value == 'clearancing' ? 'badge text-bg-warning' : (['clearanced','close'].includes(record.display_state.raw_value) ? 'text-success' : 'text-muted') }}">-->
+<!--                                    <t t-if="['clearanced','close'].includes(record.display_state.raw_value)"><i class="fa fa-check"/></t> Clearancing-->
+<!--                                </span>-->
+<!--                                <span class="text-muted">→</span>-->
+<!--                                <span t-attf-class="{{ record.display_state.raw_value == 'clearanced' ? 'badge text-bg-info' : (record.display_state.raw_value == 'close' ? 'text-success' : 'text-muted') }}">-->
+<!--                                    <t t-if="record.display_state.raw_value == 'close'"><i class="fa fa-check"/></t> Clearanced-->
+<!--                                </span>-->
+<!--                                <span class="text-muted">→</span>-->
+<!--                                <span t-attf-class="{{ record.display_state.raw_value == 'close' ? 'badge text-bg-success' : 'text-muted' }}">Close</span>-->
+<!--                                <span t-if="record.display_state.raw_value == 'cancelled'" class="badge text-bg-danger ms-2">Cancelled</span>-->
+<!--                            </div>-->
+
+
+                            <!-- 预报-进度状态条 -->
+                            <div t-if="record.lane_code.raw_value == 'waybill'" class="o_kanban_statusbar mb-1">
+                                <field name="waybill_state" widget="statusbar" readonly="1"/>
+                            </div>
+
+                            <!-- 换单-进度状态条 -->
+                            <div t-if="record.lane_code.raw_value == 'handover'" class="o_kanban_statusbar mb-1">
+                                <field name="handover_state" statusbar_visible="open,paid,released,close" widget="statusbar" readonly="1" />
+                            </div>
+
+                             <!-- 清关-进度状态条 -->
+                             <div t-if="record.lane_code.raw_value == 'clearance'" class="o_kanban_statusbar mb-1">
+                                 <field name="clearance_state" statusbar_visible="open,paid,clearanced,close" widget="statusbar" readonly="1" />
+                             </div>
+
+                            <!-- 卡片底部 -->
+                            <div class="o_kanban_card_footer">
+                                <button type="object" name="action_model_form_views" class="btn btn-sm btn-secondary">
+                                    Details
+                                </button>
+                                <button t-if="record.is_main.raw_value and record.lane_code.raw_value != 'waybill'" type="object" name="action_card_create_child" class="btn btn-sm btn-light border">
+                                    + Child
+                                </button>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+</odoo>

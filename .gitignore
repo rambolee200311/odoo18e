@@ -1,29 +1,33 @@
 ############################
-# Ignore everything
+# 先默认忽略全部
 ############################
 *
 
 ############################
-# Allow essentials
+# 保留 gitignore
 ############################
 !.gitignore
-!README.md
 
 ############################
-# Allow custom modules
+# 保留 mymodules 目录和内容
 ############################
 !mymodules/
 !mymodules/**
 
 ############################
-# Python
+# 重新忽略 Python cache
+# 注意：这些必须放在 !mymodules/** 后面
 ############################
 __pycache__/
+**/__pycache__/
 *.py[cod]
 *.pyo
+mymodules/**/__pycache__/
+mymodules/**/*.py[cod]
+mymodules/**/*.pyo
 
 ############################
-# Odoo runtime
+# Odoo runtime / cache
 ############################
 *.log
 *.sqlite
@@ -39,9 +43,13 @@ venv/
 .env/
 
 ############################
-# IDE
+# IDE / OS
 ############################
 .idea/
 .vscode/
 .DS_Store
 
+############################
+# 不管 README
+############################
+README.md

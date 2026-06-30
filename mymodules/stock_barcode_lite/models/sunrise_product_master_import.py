@@ -5,7 +5,7 @@ import os
 from io import BytesIO
 
 from odoo import _, fields, models
-
+from odoo.exceptions import UserError
 try:
     import openpyxl
 except ImportError:
@@ -244,7 +244,7 @@ class SunriseProductMasterImport(models.Model):
         workbook = openpyxl.load_workbook(BytesIO(file_content), read_only=True, data_only=True)
         rows = []
         target_sheet_name = self.cell_to_text(self.sheet_name)
-        core_fields = ["finished_code", "semi_finished_code", "product_name", "aux_uom_name", "tax_name"]
+        core_fields = ["finished_code", "product_name", "english_name", "aux_uom_name", "tax_name"]
 
         for sheet in workbook.worksheets:
             sheet_name = self.cell_to_text(sheet.title)
@@ -410,22 +410,22 @@ class SunriseProductMasterImport(models.Model):
                 "counterpart_code": semi_finished_code,
             })
             line_values_list.append(values)
-        if semi_finished_code:
-            values = dict(base_values)
-            values.update({
-                "code_type": "semi_finished",
-                "product_code": semi_finished_code,
-                "counterpart_code": finished_code,
-            })
-            line_values_list.append(values)
+        # if semi_finished_code:
+        #     values = dict(base_values)
+        #     values.update({
+        #         "code_type": "semi_finished",
+        #         "product_code": semi_finished_code,
+        #         "counterpart_code": finished_code,
+        #     })
+        #     line_values_list.append(values)
         return line_values_list
 
     def create_sunrise_product_from_import_line(self, line):
         self.ensure_one()
         if not line.product_code:
             raise ValueError(_("Product code is required."))
-        if not line.product_name:
-            raise ValueError(_("Product name is required."))
+        if not line.product_name and not line.english_name:
+            raise ValueError(_("Chinese product name or English product name is required."))
         if not line.aux_uom_name:
             raise ValueError(_("Auxiliary UOM is required."))
         if not line.tax_name:
@@ -437,7 +437,7 @@ class SunriseProductMasterImport(models.Model):
         template_model = self.env["product.template"]
 
         template = template_model.create({
-            "name": line.product_name,
+            "name": line.english_name or line.product_name,
             "categ_id": line.category_id.id,
             "tracking": "lot",
             "type": "consu",
@@ -446,6 +446,7 @@ class SunriseProductMasterImport(models.Model):
             "uom_id": uom.id,
             "uom_po_id": uom.id,
             "taxes_id": [(6, 0, [tax.id])],
+            "sunrise_chinese_name": line.product_name,
             "sunrise_english_name": line.english_name,
             "sunrise_main_uom_name": line.main_uom_name,
             "sunrise_uom_conversion_rate": line.uom_conversion_rate,
@@ -596,7 +597,7 @@ class SunriseProductMasterImportLine(models.Model):
     code_type = fields.Selection([("finished", "Finished"), ("semi_finished", "Semi Finished")], string="Code Type", copy=False, index=True)
     product_code = fields.Char(string="Product Code", copy=False, index=True)
     counterpart_code = fields.Char(string="Counterpart Code", copy=False, index=True)
-    product_name = fields.Char(string="Product Name", copy=False)
+    product_name = fields.Char(string="Chinese Product Name", copy=False)
     english_name = fields.Char(string="English Name", copy=False)
     chinese_spec = fields.Char(string="Chinese Spec", copy=False)
     english_spec = fields.Char(string="English Spec", copy=False)
@@ -618,3 +619,78 @@ class SunriseProductMasterImportLine(models.Model):
     is_shared_semi_finished_suspected = fields.Boolean(string="Suspected Shared Semi Finished", default=False, copy=False, index=True)
     state = fields.Selection([("success", "Success"), ("failed", "Failed")], string="State", default="failed", copy=False, index=True)
     remark = fields.Text(string="Remark", copy=False)
+    is_retry_success = fields.Boolean(string="Retry Success", default=False, copy=False, index=True)
+    def action_retry_import(self):
+        success_count = 0
+        failed_count = 0
+        import_records = self.mapped("import_id")
+        product_model = self.env["product.product"]
+
+        for rec in self:
+            if rec.state != "failed":
+                raise UserError(_("Only failed import lines can be retried."))
+            if not rec.import_id:
+                raise UserError(_("The import record is required."))
+
+            rec.import_id.write({
+                "message": _("Retrying product code %s...") % rec.product_code,
+            })
+
+            existing_product = product_model.sudo().with_context(active_test=False).search([
+                ("barcode", "=", rec.product_code),
+            ], limit=1)
+
+            if existing_product:
+                new_remark = _('Retry failed: product code "%s" already exists.') % rec.product_code
+                rec.write({
+                    "product_id": existing_product.id,
+                    "remark": "%s\n%s" % (rec.remark, new_remark) if rec.remark else new_remark,
+                })
+                failed_count += 1
+                continue
+
+            try:
+                with self.env.cr.savepoint():
+                    product = rec.import_id.create_sunrise_product_from_import_line(rec)
+            except Exception as error:
+                _logger.exception(
+                    "Retry Sunrise product import failed. line=%s code=%s",
+                    rec.id,
+                    rec.product_code,
+                )
+                new_remark = _("Retry failed: %s") % str(error)
+                rec.write({
+                    "state": "failed",
+                    "remark": "%s\n%s" % (rec.remark, new_remark) if rec.remark else new_remark,
+                })
+                failed_count += 1
+            else:
+                new_remark = _("Imported successfully after retry.")
+                rec.write({
+                    "state": "success",
+                    "product_id": product.id,
+                    "is_shared_semi_finished_suspected": False,
+                    "remark": "%s\n%s" % (rec.remark, new_remark) if rec.remark else new_remark,
+                    "is_retry_success": True,
+                })
+                success_count += 1
+
+        import_records.update_sunrise_product_import_result()
+
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Retry Product Import"),
+                "message": _("Retry finished. Success: %(success)s, Failed: %(failed)s") % {
+                    "success": success_count,
+                    "failed": failed_count,
+                },
+                "type": "success" if not failed_count else "warning",
+                "sticky": False,
+                "next": {
+                    "type": "ir.actions.client",
+                    "tag": "reload",
+                },
+            },
+        }

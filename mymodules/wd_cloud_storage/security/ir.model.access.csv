@@ -1,0 +1,21 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_s3_config_user,s3.config user,model_s3_config,base.group_user,1,0,0,0
+access_s3_config_admin,s3.config admin,model_s3_config,wd_cloud_storage.group_wd_cloud_storage_admin,1,1,1,1
+access_s3_node_type_user,s3.node.type user,model_s3_node_type,base.group_user,1,0,0,0
+access_s3_node_type_admin,s3.node.type admin,model_s3_node_type,wd_cloud_storage.group_wd_cloud_storage_admin,1,1,1,1
+access_s3_operate_type_user,s3.operate.type user,model_s3_operate_type,base.group_user,1,0,0,0
+access_s3_operate_type_admin,s3.operate.type admin,model_s3_operate_type,wd_cloud_storage.group_wd_cloud_storage_admin,1,1,1,1
+access_s3_node_user,s3.node user,model_s3_node,base.group_user,1,1,1,0
+access_s3_node_admin,s3.node admin,model_s3_node,wd_cloud_storage.group_wd_cloud_storage_admin,1,1,1,1
+access_s3_permission_user,s3.permission user,model_s3_permission,base.group_user,1,0,0,0
+access_s3_permission_admin,s3.permission admin,model_s3_permission,wd_cloud_storage.group_wd_cloud_storage_admin,1,1,1,1
+access_s3_stored_file_user,s3.stored.file user,model_s3_stored_file,base.group_user,1,1,1,0
+access_s3_stored_file_admin,s3.stored.file admin,model_s3_stored_file,wd_cloud_storage.group_wd_cloud_storage_admin,1,1,1,1
+access_s3_recycle_entry_user,s3.recycle.entry user,model_s3_recycle_entry,base.group_user,1,1,1,0
+access_s3_recycle_entry_admin,s3.recycle.entry admin,model_s3_recycle_entry,wd_cloud_storage.group_wd_cloud_storage_admin,1,1,1,1
+access_s3_operation_log_user,s3.operation.log user,model_s3_operation_log,base.group_user,1,0,1,0
+access_s3_operation_log_admin,s3.operation.log admin,model_s3_operation_log,wd_cloud_storage.group_wd_cloud_storage_admin,1,1,1,1
+
+
+access_s3_create_folder_wizard_user,s3.create.folder.wizard user,model_s3_create_folder_wizard,base.group_user,1,1,1,1
+access_s3_rename_file_wizard_user,s3.rename.file.wizard user,model_s3_rename_file_wizard,base.group_user,1,1,1,1

@@ -6,10 +6,10 @@
         <field name="inherit_id" ref="stock.view_quant_package_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='location_id']" position="after">
-                <field name="barcode"/>
-                <field name="billno"/>
-                <field name="reference"/>
-                <field name="cntr_no"/>
+                <field name="barcode" optional="show" readonly="1"/>
+                <field name="billno" optional="show" readonly="1"/>
+                <field name="reference" optional="show" readonly="1"/>
+                <field name="cntr_no" optional="show" readonly="1"/>
             </xpath>
         </field>
     </record>
@@ -20,10 +20,10 @@
         <field name="inherit_id" ref="stock.view_quant_package_tree"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='location_id']" position="after">
-                <field name="barcode"/>
-                <field name="billno"/>
-                <field name="reference"/>
-                <field name="cntr_no"/>
+                <field name="barcode" optional="show" readonly="1"/>
+                <field name="billno" optional="show" readonly="1"/>
+                <field name="reference" optional="show" readonly="1"/>
+                <field name="cntr_no" optional="show" readonly="1"/>
             </xpath>
         </field>
     </record>
