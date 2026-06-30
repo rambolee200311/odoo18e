@@ -613,4 +613,34 @@ export class WholePalletOutboundPage extends Component {
     get relatedPendingPickingCount() {
         return this.state.summary?.related_pending_picking_count || 0;
     }
+
+    get pickingDisplayName() {
+        return this.state.order?.name || this.state.order?.display_name || this.state.order?.reference || "";
+    }
+
+    get pickingStateLabel() {
+        const stateMap = {
+            draft: "Draft",
+            waiting: "Waiting",
+            confirmed: "Confirmed",
+            assigned: "Ready",
+            done: "Done",
+            cancel: "Cancelled",
+        };
+        const state = this.state.order?.state || "";
+        return stateMap[state] || state;
+    }
+
+    get pickingStateBadgeClass() {
+        const state = this.state.order?.state || "";
+        const classMap = {
+            draft: "secondary",
+            waiting: "warning text-dark",
+            confirmed: "info",
+            assigned: "primary",
+            done: "success",
+            cancel: "danger",
+        };
+        return classMap[state] || "secondary";
+    }
 }

@@ -396,3 +396,41 @@
     .o_order_name { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
     .o_order_details { font-size: 14px; color: #6c757d; }
 }
+
+// ── 出库单信息条 ──
+.o_sbl_picking_bar {
+    background: #e8f4fc;
+    border-bottom: 1px solid #b6d4e9;
+    padding: 8px 16px;
+    flex-shrink: 0;
+
+    .o_picking_info_row {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 6px;
+        font-size: 13px;
+    }
+
+    .o_picking_label {
+        color: #495057;
+        font-weight: 500;
+    }
+
+    .o_picking_name {
+        font-size: 14px;
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .o_picking_extra {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 4px;
+        font-size: 11px;
+        color: #6c757d;
+    }
+}
