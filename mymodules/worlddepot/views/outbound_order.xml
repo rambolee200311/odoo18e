@@ -32,7 +32,7 @@
                     <button name="action_unconfirm" type="object" string="UnConfirm" class="btn-primary"
                             invisible="state!='confirm'"/>
                     <button name="action_cancel" type="object" string="Cancel" class="btn-secondary"
-                            invisible="state not in ['new', 'confirm']"/>
+                            invisible="state not in ['confirm']"/>
                     <field name="state" widget="statusbar" statusbar_visible="new,confirm"/>
                     <button name="action_prepare_recreate_picking"
                             type="object"

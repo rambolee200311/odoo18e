@@ -23,7 +23,7 @@ class OutboundOrderInherit(models.Model):
         normal_records = self.env["world.depot.outbound.order"]
 
         for rec in self:
-            if rec.project.name != "SUNRISE":
+            if rec.project.name not in ("SUNRISE", "HOYMILES"):
                 normal_records |= rec
                 continue
 
