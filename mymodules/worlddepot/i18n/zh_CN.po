@@ -2659,7 +2659,7 @@ msgstr "订单类型"
 #: model:ir.ui.menu,name:worlddepot.outbound_order_menu
 #: model:ir.ui.menu,name:worlddepot.transfer_order_menu
 msgid "Orders"
-msgstr "入库订单"
+msgstr "订单"
 
 #. module: worlddepot
 #: model:ir.ui.menu,name:worlddepot.outbound_order_sn_detail_menu
