@@ -235,6 +235,7 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='categ_id']" position="after">
                 <field name="category_name" invisible="1"/>
+                <field name="sunrise_product_category_name" invisible="0"/>
                 <field name="sunrise_chinese_name" invisible="category_name != 'SUNRISE'"/>
                 <field name="sunrise_english_name" invisible="category_name != 'SUNRISE'"/>
                 <field name="sunrise_main_uom_name" invisible="category_name != 'SUNRISE'"/>
