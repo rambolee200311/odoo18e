@@ -2,13 +2,12 @@
 
 import { useService } from "@web/core/utils/hooks";
 import { Component, useState } from "@odoo/owl";
-import { standardActionServiceProps } from "@web/webclient/actions/action_service";
 /**
  * Stock Barcode Lite - Homepage Component
  */
 export class Homepage extends Component {
     static template = "stock_barcode_lite.Homepage";
-    static props = { ...standardActionServiceProps };
+    static props = {};
 
     setup() {
         this.action = useService("action");
