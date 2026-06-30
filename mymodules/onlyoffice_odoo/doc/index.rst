@@ -29,3 +29,36 @@ If you have any questions or suggestions regarding the ONLYOFFICE app for Odoo, 
 .. _self-hosted version: https://www.onlyoffice.com/download-docs.aspx
 .. _ONLYOFFICE Docs: https://www.onlyoffice.com/docs-registration.aspx
 .. _config file: https://api.onlyoffice.com/docs/docs-api/additional-api/signature/
+
+
+1. 核心地址参数（最关键）
+
+ONLYOFFICE Docs address (外部地址)
+
+作用：这是给浏览器看的。当用户点击编辑文档时，浏览器需要通过这个地址去加载 OnlyOffice 编辑器界面。
+
+填法：填你的云端或 Ngrok 公网地址（如 https://office.beesmartsys.eu或你的 Ngrok 域名）。
+
+Server address for internal requests from ONLYOFFICE Docs (回调地址)
+
+作用：这是给云端 OnlyOffice 服务器看的。文档编辑完后，OnlyOffice 需要把修改后的文件数据“回传”给 Odoo，它就通过这个地址找你。
+
+填法：必须填 Odoo 的真实可访问地址。如果填 127.0.0.1或 localhost，云服务器是找不到你本机的。在开发环境中，这里必须填你的 Ngrok 公网域名（不带端口），因为它是唯一能让外网访问到你本地 8089 端口的通道。
+
+2. 安全认证参数 (JWT)
+
+ONLYOFFICE Docs secret key / JWT Header
+
+作用：为了防止数据被篡改，云端 OnlyOffice 在回调 Odoo 时会带一个签名（Token）。Odoo 需要用这个 Secret key来验证签名是否合法。如果不一致，Odoo 会拒绝接收文件。
+
+填法：两端（Odoo 设置和 OnlyOffice 配置文件 local.json）必须完全一致。
+
+3. 辅助参数
+
+Disable certificate verification
+
+作用：自签名证书或某些内网环境的 HTTPS 证书可能不被信任。勾选此项可以跳过 SSL 证书校验，避免因证书报错导致连接中断。
+
+Connect to demo ONLYOFFICE Docs server
+
+作用：提供一个公共测试服务器。勾选后，上面的地址配置会暂时失效，直接连官方Demo。主要用于无服务器的快速测试，生产环境绝对不能用。
