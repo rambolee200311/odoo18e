@@ -186,38 +186,17 @@
                             </field>
                         </page>
                         <page string="Charges">
-                             <form>
-                                <header>
-                                    <h2>Charges Details</h2>
-                                    <div class="oe_button_box" name="button_box">
-                                        <button name="action_open_charge_module_wizard"
-                                            type="object"
-                                            string="Charge Module"
-                                            class="oe_stat_button" icon="fa-calculator"
-                                            invisible="state=='cancel'"/>
-                                    </div>
-                                </header>
-                                <sheet>
-                                    <group col="4">
-                                        <field name="charge_year" string="Charge Year" widget="integer" options="{'format': 0}"/>
-                                        <field name="charge_month" string="Charge Month" widget="integer" options="{'format': 0}"/>
-                                    </group>
-                                    <group col="2">
-                                        <field name="total_amount" readonly="1"/>
-                                    </group>
-                                    <field name="inbound_order_charge_ids" readonly="state=='cancel'">
-                                        <list>
-                                            <field name="charge_item_id"/>
-                                            <field name="quantity" sum="Total Quantity"/>
-                                            <field name="charge_unit_name"/>
-                                            <field name="charge_unit_id"/>
-                                            <field name="unit_price"/>
-                                            <field name="amount" sum="Total Amount"/>
-                                            <field name="currency_id"/>
-                                        </list>
-                                    </field>
-                                </sheet>
-                            </form>
+                              <field name="inbound_order_charge_ids" readonly="state=='cancel'">
+                                <list>
+                                    <field name="charge_item_id"/>
+                                    <field name="quantity" sum="Total Quantity"/>
+                                    <field name="charge_unit_name"/>
+                                    <field name="charge_unit_id"/>
+                                    <field name="unit_price"/>
+                                    <field name="amount" sum="Total Amount"/>
+                                    <field name="currency_id"/>
+                                </list>
+                            </field>
                         </page>
                         <page string="Documents">
                             <field name="inbound_order_doc_ids" readonly="state=='cancel'">

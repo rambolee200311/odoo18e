@@ -1,9 +1,0 @@
-<odoo noupdate="1">
-
-    <record id="group_customs_admin" model="res.groups">
-        <field name="name">Customs administrator</field>
-        <field name="category_id" ref="base.module_category_inventory"/>
-        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
-    </record>
-
-</odoo>

@@ -422,7 +422,7 @@ class InboundOrderProductsPallet(models.Model):
 
     creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import")], string="Creation Source", default="manual", readonly=True, copy=False)
     product_ean = fields.Char(string="Product EAN", copy=False, index=True)
-    is_lot = fields.Selection([("N", "No"), ("Y", "Yes")], string="Is Lot", default="Y", copy=False, index=True)
+    is_lot = fields.Selection([("N", "No"), ("Y", "Yes")], string="Is Lot", default="N", copy=False, index=True)
     lot_name = fields.Char(string="Lot Name", copy=False, index=True)
 
     cprojectid = fields.Char(string="Contract No", copy=False, index=True)
