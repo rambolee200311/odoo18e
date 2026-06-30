@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sunrise_order_import_list" model="ir.ui.view">
+        <field name="name">stock.barcode.lite.sunrise.order.import.list</field>
+        <field name="model">stock.barcode.lite.sunrise.order.import</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="import_type"/>
+                <field name="inbound_order_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="outbound_order_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="filename"/>
+                <field name="state"/>
+                <field name="total_count"/>
+                <field name="success_count"/>
+                <field name="failed_count"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sunrise_order_import_form" model="ir.ui.view">
+        <field name="name">stock.barcode.lite.sunrise.order.import.form</field>
+        <field name="model">stock.barcode.lite.sunrise.order.import</field>
+        <field name="arch" type="xml">
+            <form duplicate="false">
+                <header>
+                    <button name="action_retry_failed_lines" type="object" string="Retry Failed Lines"
+                            class="btn-primary" invisible="failed_count == 0"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,done,partial,failed"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" required="1" readonly="1"/>
+                            <field name="import_type" required="1" readonly="1"/>
+                            <field name="filename" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="inbound_order_id" readonly="1" invisible="import_type != 'inbound'" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="outbound_order_id" readonly="1" invisible="import_type != 'outbound'" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="total_count" readonly="1"/>
+                            <field name="success_count" readonly="1"/>
+                            <field name="failed_count" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="message" readonly="1"/>
+                    </group>
+                    <notebook>
+                        <page name="lines" string="Import Lines">
+                            <field name="import_line_ids">
+                                <list create="false" delete="false">
+                                    <field name="row_number"/>
+                                    <field name="state"/>
+                                    <field name="error_msg"/>
+                                    <field name="reference"/>
+                                    <field name="cntr_no"/>
+                                    <field name="inbound_cntr_no"/>
+                                    <field name="product"/>
+                                    <field name="pallet_no"/>
+                                    <field name="sunrise_pallet_no"/>
+                                    <field name="lot_name"/>
+                                    <field name="box_qty"/>
+                                    <field name="box_in_qty"/>
+                                    <field name="box_type"/>
+                                    <field name="ninnum"/>
+                                    <field name="vsourcebillcode"/>
+                                    <field name="vsourcerowno"/>
+                                    <field name="created_inbound_detail_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="created_outbound_line_id" options="{'no_create': True, 'no_open': True}"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_sunrise_order_import_search" model="ir.ui.view">
+        <field name="name">stock.barcode.lite.sunrise.order.import.search</field>
+        <field name="model">stock.barcode.lite.sunrise.order.import</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="filename"/>
+                <field name="import_type"/>
+                <field name="inbound_order_id"/>
+                <field name="outbound_order_id"/>
+                <field name="state"/>
+                <filter name="state_done" string="Done" domain="[('state', '=', 'done')]"/>
+                <filter name="state_partial" string="Partial" domain="[('state', '=', 'partial')]"/>
+                <filter name="state_failed" string="Failed" domain="[('state', '=', 'failed')]"/>
+                <separator/>
+                <filter name="group_import_type" string="Import Type" context="{'group_by': 'import_type'}"/>
+                <filter name="group_state" string="State" context="{'group_by': 'state'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_sunrise_order_import_line_list" model="ir.ui.view">
+        <field name="name">stock.barcode.lite.sunrise.order.import.line.list</field>
+        <field name="model">stock.barcode.lite.sunrise.order.import.line</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="import_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="import_type"/>
+                <field name="row_number"/>
+                <field name="state"/>
+                <field name="error_msg"/>
+                <field name="reference"/>
+                <field name="cntr_no"/>
+                <field name="inbound_cntr_no"/>
+                <field name="cwarehouseid"/>
+                <field name="product"/>
+                <field name="product_name"/>
+                <field name="product_ean"/>
+                <field name="pallet_no"/>
+                <field name="sunrise_pallet_no"/>
+                <field name="lot_name"/>
+                <field name="box_qty"/>
+                <field name="box_in_qty"/>
+                <field name="box_type"/>
+                <field name="ninnum"/>
+                <field name="u8_aux_qty"/>
+                <field name="u8_conversion_rate"/>
+                <field name="vsourcebillcode"/>
+                <field name="vsourcerowno"/>
+                <field name="created_inbound_detail_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="created_outbound_line_id" options="{'no_create': True, 'no_open': True}"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sunrise_order_import_line_form" model="ir.ui.view">
+        <field name="name">stock.barcode.lite.sunrise.order.import.line.form</field>
+        <field name="model">stock.barcode.lite.sunrise.order.import.line</field>
+        <field name="arch" type="xml">
+            <form duplicate="false">
+                <header>
+                    <button name="action_retry_import" type="object" string="Retry Import"
+                            class="btn-primary" invisible="state != 'failed'"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="import_id" required="1" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="import_type" readonly="1"/>
+                            <field name="row_number" readonly="1"/>
+                            <field name="state" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="inbound_order_id" readonly="1" invisible="import_type != 'inbound'" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="outbound_order_id" readonly="1" invisible="import_type != 'outbound'" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="product_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="created_inbound_pallet_id" readonly="1" invisible="import_type != 'inbound'" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="created_inbound_detail_id" readonly="1" invisible="import_type != 'inbound'" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="created_outbound_line_id" readonly="1" invisible="import_type != 'outbound'" options="{'no_create': True, 'no_open': True}"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="error_msg" readonly="1"/>
+                    </group>
+                    <group string="Order">
+                        <group>
+                            <field name="reference" required="state == 'failed'" readonly="state == 'success'"/>
+                            <field name="cntr_no" required="state == 'failed' and import_type == 'inbound'" readonly="state == 'success'" invisible="import_type != 'inbound'"/>
+                            <field name="inbound_cntr_no" readonly="state == 'success'" invisible="import_type != 'outbound'"/>
+                            <field name="cwarehouseid" required="state == 'failed'" readonly="state == 'success'"/>
+                            <field name="vsourcebillcode" required="state == 'failed'" readonly="state == 'success'"/>
+                            <field name="vsourcerowno" required="state == 'failed'" readonly="state == 'success'"/>
+                        </group>
+                        <group>
+                            <field name="cprojectid" required="state == 'failed'" readonly="state == 'success'"/>
+                            <field name="ndiscounttaxtype" required="state == 'failed' and import_type == 'inbound'" readonly="state == 'success'"/>
+                            <field name="cspaceid" required="state == 'failed'" readonly="state == 'success'"/>
+                            <field name="de_palletize" readonly="state == 'success'" invisible="import_type != 'outbound'"/>
+                            <field name="remark" readonly="state == 'success'"/>
+                        </group>
+                    </group>
+                    <group string="Product">
+                        <group>
+                            <field name="product" required="state == 'failed'" readonly="state == 'success'"/>
+                            <field name="product_name" readonly="state == 'success'"/>
+                            <field name="product_ean" readonly="state == 'success'"/>
+                            <field name="pallet_no" required="state == 'failed'" readonly="state == 'success'"/>
+                            <field name="sunrise_pallet_no" readonly="1"/>
+                            <field name="lot_name" readonly="state == 'success'"/>
+                        </group>
+                        <group>
+                            <field name="is_lot" required="state == 'failed'" readonly="state == 'success'"/>
+                            <field name="m_date" readonly="state == 'success'"/>
+                            <field name="e_date" readonly="state == 'success'"/>
+                        </group>
+                    </group>
+                    <group string="Quantity">
+                        <group>
+                            <field name="box_type" required="state == 'failed'" readonly="state == 'success'"/>
+                            <field name="box_qty" required="state == 'failed'" readonly="state == 'success'"/>
+                            <field name="box_in_qty" required="state == 'failed'" readonly="state == 'success'"/>
+                            <field name="ninnum" required="state == 'failed'" readonly="state == 'success'"/>
+                        </group>
+                        <group>
+                            <field name="castunitid" required="state == 'failed'" readonly="state == 'success'"/>
+                            <field name="u8_aux_uom_name" required="state == 'failed'" readonly="state == 'success'"/>
+                            <field name="u8_aux_qty" required="state == 'failed'" readonly="state == 'success'"/>
+                            <field name="u8_conversion_rate" required="state == 'failed'" readonly="state == 'success'"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_sunrise_order_import_line_search" model="ir.ui.view">
+        <field name="name">stock.barcode.lite.sunrise.order.import.line.search</field>
+        <field name="model">stock.barcode.lite.sunrise.order.import.line</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="import_id"/>
+                <field name="import_type"/>
+                <field name="reference"/>
+                <field name="product"/>
+                <field name="pallet_no"/>
+                <field name="sunrise_pallet_no"/>
+                <field name="lot_name"/>
+                <field name="state"/>
+                <filter name="state_success" string="Success" domain="[('state', '=', 'success')]"/>
+                <filter name="state_failed" string="Failed" domain="[('state', '=', 'failed')]"/>
+                <separator/>
+                <filter name="group_import" string="Import" context="{'group_by': 'import_id'}"/>
+                <filter name="group_import_type" string="Import Type" context="{'group_by': 'import_type'}"/>
+                <filter name="group_state" string="State" context="{'group_by': 'state'}"/>
+            </search>
+        </field>
+    </record>
+
+    <data noupdate="1">
+        <record id="action_sunrise_order_import" model="ir.actions.act_window">
+            <field name="name">Sunrise Order Imports</field>
+            <field name="res_model">stock.barcode.lite.sunrise.order.import</field>
+            <field name="view_mode">list,form</field>
+            <field name="search_view_id" ref="view_sunrise_order_import_search"/>
+        </record>
+
+        <record id="action_sunrise_order_import_line" model="ir.actions.act_window">
+            <field name="name">Sunrise Order Import Lines</field>
+            <field name="res_model">stock.barcode.lite.sunrise.order.import.line</field>
+            <field name="view_mode">list,form</field>
+            <field name="search_view_id" ref="view_sunrise_order_import_line_search"/>
+        </record>
+
+        <menuitem id="menu_sunrise_order_import"
+                  name="Sunrise Order Imports"
+                  parent="menu_stock_barcode_lite_root"
+                  action="action_sunrise_order_import"
+                  sequence="45"/>
+    </data>
+</odoo>
