@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_s3_stored_file_list" model="ir.ui.view">
+        <field name="name">s3.stored.file.list</field>
+        <field name="model">s3.stored.file</field>
+        <field name="arch" type="xml">
+            <list js_class="wd_cloud_storage_list" create="false">
+                <field name="name"/>
+                <field name="node_id"/>
+                <field name="size"/>
+                <field name="mimetype"/>
+                <field name="owner_id"/>
+                <field name="upload_datetime"/>
+                <field name="state"/>
+                <field name="is_active"/>
+            </list>
+        </field>
+    </record>
+
+
+    <record id="view_s3_stored_file_kanban" model="ir.ui.view">
+        <field name="name">s3.stored.file.kanban</field>
+        <field name="model">s3.stored.file</field>
+        <field name="arch" type="xml">
+            <kanban js_class="wd_cloud_storage_kanban" create="false" records_draggable="false">
+                <field name="name"/>
+                <field name="node_id"/>
+                <field name="size"/>
+                <field name="mimetype"/>
+                <field name="owner_id"/>
+                <field name="upload_datetime"/>
+                <field name="state"/>
+                <templates>
+                <t t-name="card">
+                        <t t-set="icon_src" t-value="
+    record.mimetype.raw_value &amp;&amp; record.mimetype.raw_value.startsWith('image/') ? '/web/static/img/mimetypes/image.svg' :
+    record.mimetype.raw_value === 'application/pdf' ? '/web/static/img/mimetypes/pdf.svg' :
+    record.mimetype.raw_value &amp;&amp; (record.mimetype.raw_value.includes('sheet') || record.mimetype.raw_value.includes('excel') || record.mimetype.raw_value.includes('csv')) ? '/web/static/img/mimetypes/spreadsheet.svg' :
+    record.mimetype.raw_value &amp;&amp; (record.mimetype.raw_value.includes('presentation') || record.mimetype.raw_value.includes('powerpoint')) ? '/web/static/img/mimetypes/presentation.svg' :
+    record.mimetype.raw_value &amp;&amp; record.mimetype.raw_value.startsWith('text/') ? '/web/static/img/mimetypes/text.svg' :
+    record.mimetype.raw_value &amp;&amp; (record.mimetype.raw_value.includes('zip') || record.mimetype.raw_value.includes('rar') || record.mimetype.raw_value.includes('tar') || record.mimetype.raw_value.includes('7z')) ? '/web/static/img/mimetypes/archive.svg' :
+    '/web/static/img/mimetypes/document.svg'
+"/>
+                        <div class="o_kanban_record oe_kanban_global_click h-100">
+                            <div class="o_wd_cloud_storage_kanban_card d-flex flex-column h-100">
+                                <div class="o_wd_cloud_storage_kanban_preview d-flex align-items-center justify-content-center">
+                                    <img t-att-src="icon_src" t-att-alt="record.name.value"
+                                         class="o_wd_cloud_storage_kanban_icon"/>
+                                </div>
+                                <div class="o_wd_cloud_storage_kanban_body d-flex flex-column flex-grow-1">
+                                    <div class="o_wd_cloud_storage_kanban_title text-truncate"
+                                         t-att-title="record.name.value">
+                                        <field name="name"/>
+                                    </div>
+                                    <div class="text-muted small mb-1">Node: <field name="node_id"/></div>
+                                    <div class="text-muted small mb-1">Size: <field name="size"/></div>
+                                    <div class="text-muted small mb-1">Type: <field name="mimetype"/></div>
+                                    <div class="text-muted small mb-1">Owner: <field name="owner_id"/></div>
+                                    <div class="text-muted small mb-2">Upload: <field name="upload_datetime"/></div>
+                                    <div class="mt-auto">
+                                        <span class="badge text-bg-secondary"><field name="state"/></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+
+    <record id="view_s3_stored_file_form" model="ir.ui.view">
+        <field name="name">s3.stored.file.form</field>
+        <field name="model">s3.stored.file</field>
+        <field name="arch" type="xml">
+            <form string="Cloud File" duplicate="false">
+                <header>
+                    <button name="action_download_file" string="Download" type="object" class="btn-primary"
+                            invisible="state != 'stored'"/>
+                    <button name="action_move_to_recycle_bin" string="Move To Recycle" type="object"
+                            class="btn-secondary" invisible="state != 'stored'"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" required="0" readonly="1"/>
+                            <field name="node_id" required="1" readonly="1"
+                                   options="{'no_create': True, 'no_open': True}"/>
+                            <field name="owner_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <!--                            <field name="company_id" required="1" readonly="1" options="{'no_create': True, 'no_open': True}" />-->
+                            <field name="state" readonly="1"/>
+                            <field name="is_active" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="s3_key" readonly="1"/>
+                            <field name="size" readonly="1"/>
+                            <field name="mimetype" readonly="1"/>
+                            <field name="checksum" readonly="1"/>
+                            <field name="upload_datetime" readonly="1"/>
+                            <field name="upload_filename"/>
+                            <field name="upload_datas" filename="upload_filename"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_s3_stored_file_search" model="ir.ui.view">
+        <field name="name">s3.stored.file.search</field>
+        <field name="model">s3.stored.file</field>
+        <field name="arch" type="xml">
+            <search string="Cloud Files">
+                <field name="name"/>
+                <field name="owner_id"/>
+                <searchpanel>
+                    <field name="node_id" string="Folders"/>
+                </searchpanel>
+            </search>
+        </field>
+    </record>
+
+</odoo>

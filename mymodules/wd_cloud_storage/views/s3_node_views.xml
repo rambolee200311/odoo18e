@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <record id="view_s3_node_list" model="ir.ui.view">
+        <field name="name">s3.node.list</field>
+        <field name="model">s3.node</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name" />
+                <field name="node_type_id" />
+                <field name="s3_key" />
+                <field name="user_id" />
+                <field name="parent_id" />
+                <field name="is_active" />
+                <field name="company_id" />
+            </list>
+        </field>
+    </record>
+
+    <record id="view_s3_node_form" model="ir.ui.view">
+        <field name="name">s3.node.form</field>
+        <field name="model">s3.node</field>
+        <field name="arch" type="xml">
+            <form string="Cloud Node" duplicate="false">
+<!--                <header>-->
+<!--                    <button name="action_prepare_my_space" string="Prepare My Space" type="object" class="btn-secondary" />-->
+<!--                </header>-->
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" required="1" />
+                            <field name="node_type_id" required="1" options="{'no_create': True, 'no_open': True}" />
+                            <field name="s3_key" required="1" />
+                            <field name="parent_id" options="{'no_create': True, 'no_open': True}" />
+                            <field name="user_id" options="{'no_create': True, 'no_open': True}" />
+                            <field name="company_id" required="1" readonly="1" options="{'no_create': True, 'no_open': True}" />
+                            <field name="is_active" />
+                            <field name="description" />
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Permissions">
+                            <field name="permission_lines" readonly="1">
+                                <list>
+                                    <field name="grantee_type" />
+                                    <field name="user_id" />
+                                    <field name="group_id" />
+                                    <field name="department_id" />
+                                    <field name="permission_level" />
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Files">
+                            <field name="file_lines" readonly="1">
+                                <list>
+                                    <field name="name" />
+                                    <field name="owner_id" />
+                                    <field name="size" />
+                                    <field name="state" />
+                                    <field name="upload_datetime" />
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

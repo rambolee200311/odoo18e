@@ -61,17 +61,21 @@ export class WholePalletOutboundPage extends Component {
         this._isPDA = this._detectPDA();
 
         this.barcodeInputRef = useRef("barcodeInput");
+        this.scrollContainerRef = useRef("palletsContainer");
 
         onMounted(async () => {
             console.log("[WholePalletOutbound] mounted");
             this._bindKeyListener();
             this._bindVisibilityChange();
+            this._bindGlobalInteractionListener();
+            this._bindCollapseEvents();
             this._focusBarcodeInput();
         });
 
         onWillUnmount(() => {
             this._unbindKeyListener();
             this._unbindVisibilityChange();
+            this._unbindGlobalInteractionListener();
             this._clearScanTimer();
         });
     }
@@ -172,6 +176,107 @@ export class WholePalletOutboundPage extends Component {
         }
     }
 
+    // ═══════════════════════════════════════════════════════════════
+    // 全局交互监听 - PDA模式修复焦点丢失问题
+    // ═══════════════════════════════════════════════════════════════
+
+    _bindGlobalInteractionListener() {
+        // 点击页面任意位置时恢复输入框焦点 (PDA模式)
+        this._onGlobalClick = () => {
+            if (this._isPDA) {
+                this._focusBarcodeInput();
+            }
+        };
+        document.addEventListener("click", this._onGlobalClick);
+
+        // 滚动停止后恢复焦点
+        this._onScrollStop = () => {
+            if (this._scrollTimer) {
+                clearTimeout(this._scrollTimer);
+            }
+            this._scrollTimer = setTimeout(() => {
+                if (this._isPDA) {
+                    this._focusBarcodeInput();
+                }
+            }, 150);
+        };
+
+        const scrollContainer = this.scrollContainerRef?.el;
+        if (scrollContainer) {
+            scrollContainer.addEventListener("scroll", this._onScrollStop);
+        }
+
+        // 触摸开始时也尝试恢复焦点
+        this._onTouchStart = () => {
+            if (this._isPDA) {
+                this._focusBarcodeInput();
+            }
+        };
+        document.addEventListener("touchstart", this._onTouchStart, { passive: true });
+    }
+
+    _unbindGlobalInteractionListener() {
+        if (this._onGlobalClick) {
+            document.removeEventListener("click", this._onGlobalClick);
+            this._onGlobalClick = null;
+        }
+        if (this._onScrollStop) {
+            const scrollContainer = this.scrollContainerRef?.el;
+            if (scrollContainer) {
+                scrollContainer.removeEventListener("scroll", this._onScrollStop);
+            }
+            this._onScrollStop = null;
+        }
+        if (this._onTouchStart) {
+            document.removeEventListener("touchstart", this._onTouchStart);
+            this._onTouchStart = null;
+        }
+        if (this._scrollTimer) {
+            clearTimeout(this._scrollTimer);
+            this._scrollTimer = null;
+        }
+    }
+
+    // 监听Bootstrap折叠展开事件
+    _bindCollapseEvents() {
+        // 等待DOM完全渲染后再绑定
+        this._waitForPalletsReady();
+    }
+
+    _waitForPalletsReady() {
+        const checkAndBind = () => {
+            const collapseElements = document.querySelectorAll(".o_pallet_products");
+            if (collapseElements.length > 0) {
+                this._bindCollapseListeners(collapseElements);
+            } else {
+                // 最多重试10次，每次间隔100ms
+                if (!this._collapseBindAttempts) {
+                    this._collapseBindAttempts = 0;
+                }
+                this._collapseBindAttempts++;
+                if (this._collapseBindAttempts < 10) {
+                    setTimeout(checkAndBind, 100);
+                }
+            }
+        };
+        setTimeout(checkAndBind, 0);
+    }
+
+    _bindCollapseListeners(elements) {
+        elements.forEach(el => {
+            el.addEventListener("shown.bs.collapse", () => {
+                if (this._isPDA) {
+                    this._focusBarcodeInput();
+                }
+            });
+            el.addEventListener("hidden.bs.collapse", () => {
+                if (this._isPDA) {
+                    this._focusBarcodeInput();
+                }
+            });
+        });
+    }
+
     _clearScanTimer() {
         if (this._scanTimer) {
             clearTimeout(this._scanTimer);
@@ -214,6 +319,34 @@ export class WholePalletOutboundPage extends Component {
             );
 
             await this._applyScanResult(result, true);
+
+            // 检查 picking 的出库扫描模式，如果不是 whole_pallet 则中断流程
+            if (result.next_step !== "scan_picking") {
+                const scanState = result.scan_state || {};
+                const scanMode = scanState.picking?.outbound_scan_mode;
+                if (scanMode && scanMode !== "whole_pallet") {
+                    this.showMessage(
+                        _t("This picking requires scan mode: ") + scanMode + _t(", but this page only supports whole_pallet mode. Please use the correct scanning page."),
+                        "danger"
+                    );
+                    this._flashScreen([200, 100, 100], true);
+
+                    // 重置数据
+                    this.state.order = null;
+                    this.state.pallets = [];
+                    this.state.currentLocation = {};
+                    this.state.currentPallet = {};
+                    this.state.currentProduct = {};
+                    this.state.currentLot = {};
+                    this.state.nextStep = "scan_picking";
+                    this.state.summary = this._getEmptySummary();
+                    this.state.lastScan = {};
+                    this.state.updatedMoveLineIds = [];
+                    this._focusBarcodeInput();
+
+                    return;
+                }
+            }
 
             if (result.action?.updated_move_line_ids?.length) {
                 this.state.updatedMoveLineIds = result.action.updated_move_line_ids;

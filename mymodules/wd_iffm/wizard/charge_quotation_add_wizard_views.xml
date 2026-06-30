@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_charge_quotation_add_wizard_form" model="ir.ui.view">
+        <field name="name">charge.quotation.add.wizard.form</field>
+        <field name="model">charge.quotation.add.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Batch Add" duplicate="false">
+                <sheet>
+                    <group>
+                        <field name="quotation_id" readonly="1"
+                               options="{'no_create': True, 'no_open': True}"/>
+                        <field name="tab_category" required="1" readonly="1"/>
+                        <field name="currency_id" required="1"
+                               options="{'no_create': True, 'no_open': True}"/>
+                    </group>
+
+                    <field name="wizard_lines">
+                        <list editable="bottom">
+
+                            <field name="charge_item_id" required="1"
+                                   options="{'no_create': True, 'no_open': True}"
+                                   domain="[('tab_category', '=',  parent.tab_category),('is_leaf','=',True)]"/>
+                            <field name="is_fixed_fee"/>
+                            <field name="unit_price"/>
+                            <field name="remark"/>
+                        </list>
+                    </field>
+
+                    <footer>
+                        <button name="action_confirm" string="Confirm" type="object" class="btn-primary"/>
+                        <button string="Cancel" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_charge_quotation_add_wizard" model="ir.actions.act_window">
+        <field name="name">Batch Add</field>
+        <field name="res_model">charge.quotation.add.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_quotation_id': active_id}</field>
+    </record>
+
+</odoo>

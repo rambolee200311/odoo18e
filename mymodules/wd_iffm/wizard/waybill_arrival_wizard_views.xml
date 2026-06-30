@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <record id="view_waybill_arrival_wizard_form" model="ir.ui.view">
+            <field name="name">waybill.arrival.wizard.form</field>
+            <field name="model">waybill.arrival.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Cargo Arrival Confirmation" create="false" edit="true" duplicate="false">
+                    <sheet>
+                        <group>
+                            <field name="ata" required="1"/>
+<!--                            <field name="terminal_port" required="1" options="{'no_create': True, 'no_open': True}"/>-->
+<!--                            <field name="terminal_a" required="1" options="{'no_create': True, 'no_open': True}"/>-->
+                            <field name="terminal_id" required="1" options="{'no_create': True, 'no_open': True}" domain="[('node_type', '=', 'terminal')]"/>
+                        </group>
+                    </sheet>
+                    <footer>
+                        <button name="action_confirm" string="Confirm" type="object" class="btn-primary"/>
+                        <button string="Cancel" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+    </data>
+</odoo>

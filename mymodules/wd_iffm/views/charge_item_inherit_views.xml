@@ -1,0 +1,17 @@
+<odoo>
+    <record id="view_world_depot_charge_item_form_inherit_account" model="ir.ui.view">
+        <field name="name">charge.item.form.inherit.account</field>
+        <field name="model">world.depot.charge.item</field>
+        <field name="inherit_id" ref="worlddepot.view_world_depot_charge_item_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='parent_id']" position="after">
+                <field name="account_account_id" options="{'no_create': True}"
+                       domain="[('account_category', '=','expense')]"/>
+                <field name="tab_category" required="1"/>
+                <field name="is_leaf"/>
+                <field name="operation_type"/>
+                <field name="charge_based_on_max"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

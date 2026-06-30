@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Transfer Order tree view -->
+        <record id="view_transfer_order_tree" model="ir.ui.view">
+            <field name="name">world.depot.transfer.order.tree</field>
+            <field name="model">world.depot.transfer.order</field>
+            <field name="arch" type="xml">
+                <list string="Transfer Orders">
+                    <field name="from_location_type"/>
+                    <field name="to_location_type"/>
+                    <field name="billno"/>
+                    <field name="date"/>
+                    <field name="project"/>
+                    <field name="reference"/>
+                    <field name="warehouse"/>
+                    <field name="state"/>
+                    <field name="stock_picking_id"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- Transfer Order form view -->
+        <record id="view_transfer_order_form" model="ir.ui.view">
+            <field name="name">world.depot.transfer.order.form</field>
+            <field name="model">world.depot.transfer.order</field>
+            <field name="arch" type="xml">
+                <form string="Transfer Order">
+                    <header>
+                        <button string="Confirm" type="object" name="action_confirm" class="btn-primary"
+                                invisible="state!='new'"/>
+                        <button string="Unconfirm" type="object" name="action_unconfirm" invisible="state!='confirm'"/>
+                        <button string="Cancel" type="object" name="action_cancel" invisible="state!='new'"/>
+                        <button string="Save" class="btn-default" special="save"/>
+                        <button string="Close" class="btn-secondary" special="cancel"/>
+                        <field name="state" widget="statusbar" statusbar_visible="new,confirm"/>
+                        <widget name="web_ribbon" title="CANCEL" bg_color="bg-danger" invisible="state!='cancel'"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                Transfer Order
+                            </h1>
+                            <h1>
+                                <field name="billno" readonly="1"/>
+                            </h1>
+                        </div>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="action_create_stock_picking"
+                                    type="object"
+                                    string="Create Picking"
+                                    class="oe_stat_button" icon="fa-file-text"/>
+                        </div>
+                        <group col="2">
+                            <group col="2">
+                                <field name="from_location_type"/>
+                                <field name="to_location_type"/>
+                                <field name="date"/>
+                                <field name="t_date"/>
+                                <field name="project"/>
+                                <field name="owner" readonly="1"/>
+                                <field name="project_category_id" readonly="1"/>
+                            </group>
+                            <group col="2">
+                                <field name="reference"/>
+                                <field name="state" invisible="1"/>
+                                <field name="warehouse"  readonly="state in ['cancel', 'confirm']" required="1"/>
+
+                                <field name="pick_type" readonly="state in ['cancel', 'confirm']"  required="1"/>
+                                <field name="stock_picking_id" readonly="1"/>
+                            </group>
+                        </group>
+
+                        <notebook>
+                            <page string="Lines">
+                                <field name="line_ids">
+                                    <list editable="bottom">
+                                        <field name="product"/>
+                                        <field name="quantity"/>
+                                        <field name="location_from"/>
+                                        <field name="location_to"/>
+                                        <field name="remark"/>
+                                    </list>
+                                </field>
+                            </page>
+
+                            <page string="Documents">
+                                <field name="doc_ids">
+                                    <list editable="bottom">
+                                        <field name="doc_type"/>
+                                        <field name="filename"/>
+                                        <field name="description"/>
+                                    </list>
+                                </field>
+                            </page>
+
+                            <page string="Charges">
+                                <field name="charge_ids">
+                                    <list editable="bottom">
+                                        <field name="charge_item_id"/>
+                                        <field name="quantity"/>
+                                        <field name="charge_unit_id"/>
+                                        <field name="unit_price"/>
+                                        <field name="amount"/>
+                                    </list>
+                                </field>
+                            </page>
+
+                            <page string="Notes">
+                                <field name="remark"/>
+                                <field name="remark1"/>
+                            </page>
+                            <page string="Hoymiles APIs">
+                            <group string="Transfer Result" col="2">
+                                <group col="2">
+                                    <div class="oe_button_box" name="button_box">
+                                        <button name="action_set_transfer_result_sync"
+                                                type="object"
+                                                string="Transfer Result"
+                                                class="oe_stat_button" icon="fa-film"/>
+                                    </div>
+                                    <field name="set_transfer_result_sync" string="success" readonly="1"/>
+                                </group>
+                                <group col="2">
+                                    <field name="set_transfer_result_sync_time" string="time" readonly="1"/>
+                                    <field name="transfer_result_sync_error_msg" string="error" readonly="1"
+                                           widget="text"/>
+                                </group>
+                            </group>
+                            </page>
+                        </notebook>
+
+                        <group>
+                            <field name="confirm_user_id" readonly="1"/>
+                            <field name="confirm_time_user_tz" readonly="1"/>
+                            <field name="confirm_time_server" readonly="1"/>
+                        </group>
+                    </sheet>
+                    <chatter/>
+                </form>
+            </field>
+        </record>
+
+        <!-- Transfer Order search view -->
+        <record id="view_transfer_order_search" model="ir.ui.view">
+            <field name="name">world.depot.transfer.order.search</field>
+            <field name="model">world.depot.transfer.order</field>
+            <field name="arch" type="xml">
+                <search string="Search Transfer Orders">
+                    <field name="billno"/>
+                    <field name="date"/>
+                    <field name="project"/>
+                    <field name="reference"/>
+                    <field name="warehouse"/>
+                    <filter name="filter_state_new" string="New" domain="[['state','=','new']]"/>
+                    <filter name="filter_state_confirm" string="Confirmed" domain="[['state','=','confirm']]"/>
+                    <filter name="filter_state_cancel" string="Cancelled" domain="[['state','=','cancel']]"/>
+                </search>
+            </field>
+        </record>
+
+        <!-- Action and menu -->
+        <record id="action_transfer_order" model="ir.actions.act_window">
+            <field name="name">Transfer Orders</field>
+            <field name="res_model">world.depot.transfer.order</field>
+            <field name="view_mode">list,form</field>
+        </record>
+    </data>
+</odoo>

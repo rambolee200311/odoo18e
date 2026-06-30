@@ -1,0 +1,166 @@
+<odoo>
+    <!-- Form View -->
+    <record id="view_device_cert_bind_form" model="ir.ui.view">
+        <field name="name">device.cert.bind.form</field>
+        <field name="model">device.cert.bind</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <!-- Send Certificate Button: Visible when state is 'draft' or 'active' AND cert_file exists -->
+                    <button
+                        name="action_send_certificate"
+                        string="Send Certificate"
+                        type="object"
+                        class="btn-primary"
+                    />
+                    <!-- View Password Button: Visible when state is 'active' or 'inactive' AND password_encrypted exists -->
+                    <button
+                        name="action_view_password"
+                        string="View Password"
+                        type="object"
+                        class="btn-warning"
+                        invisible="(state!='active' and state!='inactive') or not password_encrypted"
+                        group="base.group_system"
+                    />
+                    <separator/>
+                    <!-- Activate Button: Visible when state is NOT 'active' -->
+                    <button
+                        name="action_activate"
+                        string="Activate"
+                        type="object"
+                        class="btn-success"
+                        invisible="state=='active'"
+                    />
+                    <!-- Deactivate Button: Visible when state IS 'active' -->
+                    <button
+                        name="action_deactivate"
+                        string="Deactivate"
+                        type="object"
+                        class="btn-secondary"
+                        invisible="state!='active'"
+                    />
+                    <!-- Revoke Button: Visible when state is NOT 'revoked' -->
+                    <button
+                        name="action_revoke"
+                        string="Revoke"
+                        type="object"
+                        class="btn-danger"
+                        invisible="state=='revoked'"
+                    />
+                    <!-- Status Indicator -->
+                    <field name="state" widget="statusbar" statusbar_visible="draft,active,inactive,revoked" class="oe_right"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box"/>
+                    <div class="oe_title">
+                        <label for="cert_serial" string="Certificate Serial" invisible="not cert_serial"/>
+                        <h1>
+                            Certification Management
+                        </h1>
+                        <!-- <h1>
+                            <field name="cert_serial" class="oe_inline"/>
+                        </h1>
+                        <label for="device_id" string="Device Fingerprint" invisible="not device_id"/>
+                        <h2>
+                            <field name="device_id" class="oe_inline"/>
+                        </h2> -->
+                    </div>
+                    <group>
+                        <group string="Basic Information" col="2">
+                            <field name="device_id" readonly="1"/>
+                            <field name="cert_serial" readonly="1"/>
+                            <field name="user_email"/>
+                            <field name="ip_address" readonly="1"/>
+                        </group>
+                        <group string="Status Information" col="2">
+                            <field name="state" readonly="1"/>
+                            <field name="create_date" readonly="1"/>
+                            <field name="update_date" readonly="1"/>
+                            <field name="is_placeholder" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <group string="Certificate &amp; Password Management">
+                        <group string="Certificate File" col="2">
+                            <field name="cert_filename" readonly="1"/>
+                            <field name="cert_file" filename="cert_filename" widget="binary" readonly="1"/>
+                        </group>
+                        <group string="Password Audit" col="2">
+                            <field name="password_last_viewed" readonly="1"/>
+                            <field name="password_viewed_by" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Mail Logs">
+                            <field name="mail_log_ids" readonly="1">
+                                <list>
+                                    <field name="create_date"/>
+                                    <field name="email"/>
+                                    <field name="sent_by"/>
+                                    <field name="status"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Status Logs">
+                            <field name="status_log_ids" readonly="1">
+                                <list>
+                                    <field name="create_date"/>
+                                    <field name="old_state"/>
+                                    <field name="new_state"/>
+                                    <field name="done_by"/>
+                                    <field name="notes"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- List View -->
+    <record id="view_device_cert_bind_tree" model="ir.ui.view">
+        <field name="name">device.cert.bind.tree</field>
+        <field name="model">device.cert.bind</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="device_id"/>
+                <field name="cert_serial"/>
+                <field name="user_email"/>
+                <field name="state"/>
+                <field name="is_placeholder"/>
+                <field name="create_date"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Search View -->
+    <record id="view_device_cert_bind_search" model="ir.ui.view">
+        <field name="name">device.cert.bind.search</field>
+        <field name="model">device.cert.bind</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="device_id"/>
+                <field name="cert_serial"/>
+                <field name="user_email"/>
+                <filter name="active" string="Active" domain="[('state','=','active')]"/>
+                <filter name="inactive" string="Inactive" domain="[('state','=','inactive')]"/>
+                <filter name="revoked" string="Revoked" domain="[('state','=','revoked')]"/>
+                <filter name="placeholder" string="Pending Binding" domain="[('is_placeholder','=',True)]"/>
+                <separator/>
+                <filter name="my_records" string="My Records" domain="[('create_uid','=',uid)]"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Window Action -->
+    <record id="action_device_cert_bind" model="ir.actions.act_window">
+        <field name="name">Device-Certificate Bindings</field>
+        <field name="res_model">device.cert.bind</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_device_cert_bind_search"/>
+    </record>
+
+   
+</odoo>

@@ -1,0 +1,21 @@
+flowchart TD
+Start([开始计费]) --> BaseFee[基础清关费<br>（默认包含1箱+1个HS编码）]
+BaseFee --> CheckContainer{检查箱数}
+
+CheckContainer -->|箱数>1| ExtraContainer[计算额外箱费<br>（箱数-1）× 单价]
+CheckContainer -->|箱数=1| CheckHS
+
+ExtraContainer --> CheckHS{检查HS编码总数}
+
+CheckHS -->|HS总数>1| ExtraHS[计算额外HS编码费<br>（HS总数-1）× 单价]
+CheckHS -->|HS总数=1| SumFee
+
+ExtraHS --> SumFee[汇总费用<br>基础清关费 + 额外箱费 + 额外HS编码费]
+
+SumFee --> SpecialCheck{是否有特殊费用？<br>（如查验、商检等）}
+
+SpecialCheck -->|是| AddSpecial[加上特殊处理费]
+SpecialCheck -->|否| FinalFee
+
+AddSpecial --> FinalFee[生成最终账单]
+FinalFee --> End([费用计算结束])

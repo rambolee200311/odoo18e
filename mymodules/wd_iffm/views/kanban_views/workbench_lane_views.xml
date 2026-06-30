@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_operation_workbench_lane_tree" model="ir.ui.view">
+        <field name="name">operation.workbench.lane.list</field>
+        <field name="model">operation.workbench.lane</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_operation_workbench_lane_form" model="ir.ui.view">
+        <field name="name">operation.workbench.lane.form</field>
+        <field name="model">operation.workbench.lane</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="code"/>
+                        </group>
+                        <group>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_operation_workbench_lane" model="ir.actions.act_window">
+        <field name="name">Workbench Lane</field>
+        <field name="res_model">operation.workbench.lane</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_operation_workbench_lane" name="Workbench Lane Management"
+              parent="menu_wd_base_config" action="action_operation_workbench_lane"
+              sequence="99" groups="base.group_user"/>
+</odoo>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Client Action: 进口货代首页 -->
+    <record id="action_wd_iffm_workbench" model="ir.actions.client">
+        <field name="name">进口货代首页</field>
+        <field name="tag">wd_iffm_workbench</field>
+        <field name="target">current</field>
+    </record>
+
+    <!-- Calendar视图: 按ETA日期显示提单 -->
+    <record id="view_waybill_calendar" model="ir.ui.view">
+        <field name="name">world.depot.waybill.calendar</field>
+        <field name="model">world.depot.waybill</field>
+        <field name="arch" type="xml">
+            <calendar date_start="eta" string="预计到港时间" mode="month">
+                <field name="bl_number"/>
+                <field name="hbl_number"/>
+                <field name="obl_number"/>
+                <field name="state"/>
+                <field name="project"/>
+            </calendar>
+        </field>
+    </record>
+
+    <!-- 菜单结构 -->
+    <menuitem id="menu_wd_iffm_root" name="进口货代管理" sequence="10"/>
+
+<!--    <menuitem id="menu_wd_iffm_dashboard"-->
+<!--              name="工作台"-->
+<!--              parent="menu_wd_iffm_root"-->
+<!--              action="action_wd_iffm_workbench"-->
+<!--              sequence="1"/>-->
+
+    <!-- 原有首页仪表盘模板保留（供HTTP控制器使用） -->
+<!--    <template id="dashboard_template" name="首页仪表盘">-->
+<!--        <t t-call="web.layout">-->
+<!--            <t t-set="title">进口货代 - 首页仪表盘</t>-->
+<!--            <div class="wd-dashboard" style="padding: 20px; background-color: #f5f5f5; min-height: 100vh;">-->
+<!--                <h2 class="mb-4"><i class="fa fa-ship me-2"/>进口货代管理系统</h2>-->
+<!--                <p class="text-muted mb-4">请通过菜单 "进口货代管理 > 工作台" 访问新版本首页</p>-->
+<!--                <div class="alert alert-info">-->
+<!--                    <i class="fa fa-info-circle me-2"/>新版本首页采用现代化的看板视图，支持Tab切换和视图嵌入。-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </t>-->
+<!--    </template>-->
+</odoo>

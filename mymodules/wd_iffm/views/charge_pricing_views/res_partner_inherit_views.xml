@@ -1,0 +1,40 @@
+<odoo>
+    <record id="view_partner_form_inherit_eori_vat_tax" model="ir.ui.view">
+        <field name="name">res.partner.form.inherit.eori.vat.tax</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='vat']/.." position="after">
+                <label for="eu_eori_no"/>
+                <div class="o_row">
+                    <field name="eu_eori_no"/>
+                </div>
+
+<!--                <label for="vat_tax_no"/>-->
+<!--                <div class="o_row">-->
+<!--                    <field name="vat_tax_no"/>-->
+<!--                </div>-->
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Role">
+                    <group col="2">
+                        <group>
+                            <field name="is_shipping_line"/>
+                            <field name="is_exporter"/>
+                            <field name="is_importer"/>
+                        </group>
+                        <group>
+                            <field name="is_customs_broker"/>
+                            <field name="is_notify_party"/>
+                            <field name="is_payment"/>
+                            <field name="is_receipt"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+
+
+        </field>
+    </record>
+
+</odoo>

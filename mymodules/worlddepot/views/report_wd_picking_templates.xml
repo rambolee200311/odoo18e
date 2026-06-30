@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="wd_picking_report">
+        <t t-call="web.html_container">
+            <t t-call="web.external_layout">
+
+                <style>
+                    /* Keep product blocks together by using a table row (less likely to be split) */
+                    .product-table, .product-table tbody, .product-table tr, .product-table td {
+                        page-break-inside: avoid;
+                        break-inside: avoid;
+                        -webkit-column-break-inside: avoid;
+                    }
+                    /* Keep lot blocks together as well */
+                    .lot-table, .lot-table tbody, .lot-table tr, .lot-table td {
+                        page-break-inside: avoid;
+                        break-inside: avoid;
+                        -webkit-column-break-inside: avoid;
+                    }
+                    /* Make barcode images less likely to be split */
+                    img.keep-no-break {
+                        display: inline-block;
+                        page-break-inside: avoid;
+                        break-inside: avoid;
+                        -webkit-column-break-inside: avoid;
+                    }
+                    /* Ensure the overall page wrapper doesn't overlay the external footer */
+                    .page {
+                        position: relative;
+                        page-break-after: always;
+                        margin-bottom: 40px;
+                    }
+                </style>
+
+                <t t-foreach="docs" t-as="o">
+                    <div class="page" style="font-family: Arial, sans-serif; padding: 20px; position: relative;">
+
+                        <!-- Header -->
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;border-bottom:2px solid #333;padding-bottom:12px;page-break-after:avoid;">
+                            <div style="flex:1;">
+                                <h1 style="margin:0 0 6px 0;color:#333;font-size:24px;">Stock Picking Report</h1>
+                                <div style="color:#666;font-size:16px;">Picking: <span t-field="o.name" style="color:#2c3e50;font-weight:bold;"/></div>
+                                <div style="margin-top:10px;font-size:13px;color:#444;">
+                                    <table style="border-collapse:collapse;">
+                                        <tr>
+                                            <td style="padding:3px 10px 3px 0;font-weight:bold;">Status:</td>
+                                            <td style="padding:3px 10px 3px 0;"><span t-field="o.state"/></td>
+                                            <td style="padding:3px 10px 3px 0;font-weight:bold;">Type:</td>
+                                            <td style="padding:3px 0;"><span t-field="o.picking_type_id.name"/></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div style="text-align:center;margin-left:20px;page-break-inside:avoid;">
+                                <div t-field="o.name" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 200, 'height': 200, 'img_style': 'width:140px;height:140px;', 'img_class': 'keep-no-break'}"/>
+                                <div style="margin-top:8px;font-weight:bold;font-size:13px;color:#2c3e50;"><span t-field="o.name"/></div>
+                            </div>
+                        </div>
+
+                        <!-- Products list -->
+                        <div style="margin-top:12px;">
+                            <h3 style="background:#000;color:#fff;padding:10px;margin:0 0 12px 0;border-radius:4px;font-size:14px;">Products List</h3>
+
+                            <t t-foreach="o.move_ids_without_package" t-as="move">
+                                <!-- Use a table with one row per product to avoid splitting inside a long block -->
+                                <table class="product-table" style="width:100%;border-collapse:collapse;margin-bottom:12px;border-radius:4px;overflow:visible;border:1px solid #ddd;border-top:0;">
+                                    <tbody>
+                                        <tr>
+                                            <td style="width:200px;vertical-align:top;padding:12px;border-right:1px solid #eee;text-align:center;">
+                                                <t t-if="move.product_id.barcode">
+                                                    <div t-field="move.product_id.barcode" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 160, 'height': 160, 'img_style': 'width:120px;height:120px;', 'img_class': 'keep-no-break'}"/>
+                                                    <div style="margin-top:6px;font-weight:bold;font-size:12px;">Product QR Code</div>
+                                                </t>
+                                                <t t-else="">
+                                                    <div style="color:#999;font-size:13px;padding:20px;">No Product Barcode</div>
+                                                </t>
+                                            </td>
+                                            <td style="vertical-align:top;padding:12px;">
+                                                <div style="background:#2c3e50;color:#fff;padding:8px;border-radius:4px;margin-bottom:8px;">
+                                                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                                                        <div>
+                                                            <strong style="font-size:15px;"><span t-field="move.product_id.display_name"/></strong>
+                                                            <div style="font-size:12px;opacity:0.85;">Code: <span t-field="move.product_id.default_code"/></div>
+                                                        </div>
+                                                        <div style="text-align:right;font-size:16px;font-weight:bold;">Qty: <span t-field="move.product_uom_qty"/> <span t-field="move.product_uom.name"/></div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Lots / serials rendered as an inner table row set to avoid splits -->
+                                                <t t-if="move.move_line_ids">
+                                                    <table class="lot-table" style="width:100%;border-collapse:collapse;margin-top:6px;">
+                                                        <tbody>
+                                                            <tr>
+                                                                <td style="padding:6px 0 6px 0;font-size:13px;color:#333;font-weight:bold;">Lot/Serial Numbers:</td>
+                                                            </tr>
+                                                            <t t-foreach="move.move_line_ids" t-as="line">
+                                                                <tr>
+                                                                    <td style="padding:8px 0;border-radius:4px;background:#f8f9fa;margin-bottom:8px;border-left:4px solid #3498db;">
+                                                                        <table style="width:100%;border-collapse:collapse;">
+                                                                            <tr>
+                                                                                <td style="width:100px;text-align:center;vertical-align:middle;padding-right:12px;">
+                                                                                    <t t-if="line.lot_id or line.lot_name">
+                                                                                        <t t-if="line.lot_id">
+                                                                                            <div t-field="line.lot_id.name" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 100, 'height': 100, 'img_style': 'width:80px;height:80px;', 'img_class': 'keep-no-break'}"/>
+                                                                                        </t>
+                                                                                        <t t-elif="line.lot_name">
+                                                                                            <div t-field="line.lot_name" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 100, 'height': 100, 'img_style': 'width:80px;height:80px;', 'img_class': 'keep-no-break'}"/>
+                                                                                        </t>
+                                                                                        <div style="font-size:10px;margin-top:6px;">Lot QR</div>
+                                                                                    </t>
+                                                                                    <t t-else="">
+                                                                                        <div style="color:#999;font-size:11px;">No Lot</div>
+                                                                                    </t>
+                                                                                </td>
+                                                                                <td style="vertical-align:middle;padding-left:10px;">
+                                                                                    <div style="font-weight:bold;margin-bottom:5px;">
+                                                                                        <t t-if="line.lot_id"><span t-field="line.lot_id.name"/></t>
+                                                                                        <t t-elif="line.lot_name"><span t-field="line.lot_name"/></t>
+                                                                                        <t t-else="">No Lot/Serial</t>
+                                                                                    </div>
+                                                                                    <div style="font-size:12px;color:#666;">
+                                                                                        <strong>Quantity:</strong> <span t-field="line.qty_done"/> |
+                                                                                        <strong>From:</strong> <span t-field="line.location_id.name"/> |
+                                                                                        <strong>To:</strong> <span t-field="line.location_dest_id.name"/>
+                                                                                    </div>
+                                                                                </td>
+                                                                            </tr>
+                                                                        </table>
+                                                                    </td>
+                                                                </tr>
+                                                            </t>
+                                                        </tbody>
+                                                    </table>
+                                                </t>
+                                                <t t-else="">
+                                                    <div style="color:#999;font-style:italic;text-align:center;padding:18px;">No lot/serial information available</div>
+                                                </t>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </t>
+                        </div>
+
+                        <!-- Summary (no footer here; external_layout will render company footer and page numbers) -->
+                        <div style="background:#34495e;color:white;padding:12px;margin-top:18px;border-radius:4px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;">
+                                <div style="font-size:15px;font-weight:bold;">Summary</div>
+                                <div style="font-size:13px;">
+                                    Total Products: <span style="font-weight:bold;" t-esc="len(o.move_ids_without_package)"/> |
+                                    Total Quantity: <span style="font-weight:bold;" t-esc="sum(move.product_uom_qty for move in o.move_ids_without_package)"/>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </t>
+
+            </t>
+        </t>
+    </template>
+
+</odoo>

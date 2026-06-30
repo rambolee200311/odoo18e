@@ -1,0 +1,37 @@
+<odoo>
+        <record id="view_portbase_waybill_import_wizard_form" model="ir.ui.view">
+            <field name="name">portbase.waybill.import.wizard.form</field>
+            <field name="model">portbase.waybill.import.wizard</field>
+            <field name="arch" type="xml">
+                <form string="Portbase Waybill Import" duplicate="false">
+                    <sheet>
+                        <group>
+                            <field name="project_id" required="1" options="{'no_create': True, 'no_open': True}" />
+                            <field name="bl_number" required="1"/>
+                            <field name="container_number" required="1"/>
+<!--                            <field name="tracking_id" readonly="1"/>-->
+<!--                            <field name="waybill_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>-->
+<!--                            <field name="sync_message" readonly="1"/>-->
+                        </group>
+                    </sheet>
+                    <footer>
+                        <button name="action_subscribe_and_sync" type="object" string="Subscribe And Sync" class="btn-primary"/>
+                        <button string="Cancel" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+
+
+
+        <record id="action_portbase_waybill_import_wizard" model="ir.actions.act_window">
+            <field name="name">Portbase Waybill Import</field>
+            <field name="res_model">portbase.waybill.import.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+
+        <menuitem id="menu_portbase_waybill_import_wizard" name="Portbase Waybill Import"
+                  parent="waybill_logi_menu" action="action_portbase_waybill_import_wizard" sequence="5"/>
+</odoo>

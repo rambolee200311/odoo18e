@@ -1,0 +1,12 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_bonded_customs_mrn_audit_log_user,bonded.customs.mrn.audit.log user,model_bonded_customs_mrn_audit_log,,1,1,1,0
+access_bonded_mrn_regulatory_report_user,bonded.mrn.regulatory.report user,model_bonded_mrn_regulatory_report,,1,1,1,1
+
+access_bonded_mrn_stock_query_user,bonded.mrn.stock.query user,model_bonded_mrn_stock_query,,1,1,1,1
+access_bonded_mrn_stock_query_line_user,bonded.mrn.stock.query.line user,model_bonded_mrn_stock_query_line,,1,1,1,1
+access_bonded_mrn_master_user,access.bonded.mrn.master.user,model_bonded_mrn_master,,1,1,1,1
+
+access_bonded_identifier_stock_ledger_user,access.bonded.identifier.stock.ledger.user,model_bonded_identifier_stock_ledger,,1,1,1,1
+
+
+access_bonded_customs_document_user,access.bonded.customs.document.user,model_bonded_customs_document,,1,1,1,1

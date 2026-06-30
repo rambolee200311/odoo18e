@@ -1,0 +1,35 @@
+.wd_iffm_required_highlight label.o_required_modifier,
+.wd_iffm_required_highlight .o_required_modifier > label {
+    color: #b42318 !important;
+    font-weight: 700;
+}
+
+.wd_iffm_required_highlight .o_required_modifier .o_input,
+.wd_iffm_required_highlight .o_required_modifier input,
+.wd_iffm_required_highlight .o_required_modifier textarea,
+.wd_iffm_required_highlight .o_required_modifier select {
+    border-left: 4px solid #d92d20 !important;
+    background-color: #fff6f5 !important;
+}
+
+.wd_iffm_required_highlight label.o_required_modifier::after {
+    content: " *";
+    color: #d92d20;
+    font-weight: 800;
+}
+
+/* Editable one2many/list inputs: keep value visible, move highlight to the cell. */
+.wd_iffm_required_highlight td.o_data_cell .o_required_modifier .o_input,
+.wd_iffm_required_highlight td.o_data_cell .o_required_modifier input,
+.wd_iffm_required_highlight td.o_data_cell .o_required_modifier textarea,
+.wd_iffm_required_highlight td.o_data_cell .o_required_modifier select {
+    border-left: 0 !important;
+    box-shadow: none !important;
+    background-color: transparent !important;
+    padding-left: 0 !important;
+    color: inherit !important;
+}
+
+.wd_iffm_required_highlight td.o_data_cell:has(.o_required_modifier) {
+    background-color: #fff6f5 !important;
+}

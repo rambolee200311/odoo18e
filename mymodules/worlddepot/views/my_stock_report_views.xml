@@ -1,0 +1,56 @@
+<odoo>
+    <!-- Tree (list) view for StockReportContainer -->
+    <record id="view_world_depot_stock_report_tree" model="ir.ui.view">
+        <field name="name">world.depot.store.report.container.tree</field>
+        <field name="model">world.depot.store.report.container</field>
+        <field name="arch" type="xml">
+            <list string="Stock Report Container">
+                <header>
+                    <button name="action_refresh_report" type="object" string="Refresh Report" class="oe_highlight"/>
+                </header>
+                <field name="product_category_id"/>
+                <field name="container_id"/>
+                <field name="product_id"/>                
+                <field name="product_uom_id"/>
+                <field name="product_barcode"/>
+                <field name="inbound_quantity"/>
+                <field name="outbound_quantity"/>
+                <field name="output_quantity"/>
+                <field name="onhand_quantity"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Search view -->
+    <record id="view_world_depot_stock_report_search" model="ir.ui.view">
+        <field name="name">world.depot.store.report.container.search</field>
+        <field name="model">world.depot.store.report.container</field>
+        <field name="arch" type="xml">
+            <search string="Search Stock Report Container">
+                <field name="product_category_id"/>
+                <field name="container_id"/>
+                <field name="product_id"/>                
+                <field name="product_barcode"/>
+                <separator/>
+                <field name="inbound_quantity"/>
+                <field name="outbound_quantity"/>
+                <field name="output_quantity"/>
+                <field name="onhand_quantity"/>
+                <group string="Group By">
+                    <filter string="Category" name="group_by_category" context="{'group_by': 'product_category_id'}"/>
+                    <filter string="Container" name="group_by_container" context="{'group_by': 'container_id'}"/>
+                    <filter string="Product" name="group_by_product" context="{'group_by': 'product_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action to open the report -->
+    <record id="action_world_depot_stock_report" model="ir.actions.act_window">
+        <field name="name">Stock Report Containers</field>
+        <field name="res_model">world.depot.store.report.container</field>
+        <field name="view_mode">list,search</field>
+        <field name="view_id" ref="view_world_depot_stock_report_tree"/>
+         <field name="search_view_id" ref="view_world_depot_stock_report_search"/>
+    </record>
+</odoo>

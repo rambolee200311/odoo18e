@@ -1,0 +1,251 @@
+// Stock Barcode Lite - Common Styles
+
+// 隐藏的扫码输入框
+.o_hidden_barcode_input {
+    position: fixed;
+    left: -9999px;
+    top: 0;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    z-index: -1;
+    // 移除 pointer-events: none，确保输入框能接收键盘事件
+}
+
+// Inbound/Outbound 通用布局
+.o_stock_barcode_lite_inbound,
+.o_stock_barcode_lite_outbound,
+.o_sbl_outbound,
+.o_sbl_inbound {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    min-height: 100vh;
+    overflow: hidden;
+
+    .o_sbl_header {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        background: #fff;
+        border-bottom: 1px solid #dee2e6;
+        flex-shrink: 0;
+
+        .o_exit_btn,
+        .o_exit {
+            padding: 4px 10px;
+        }
+
+        .o_barcode_title,
+        .o_sbl_header_title {
+            font-size: 18px;
+            font-weight: 600;
+            flex: 1;
+            color: #333;
+        }
+
+        .o_sbl_header_mode {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 12px;
+            background: #e9ecef;
+            color: #495057;
+
+            &.o_mode_step { background: #fff3cd; color: #856404; }
+            &.o_mode_pallet { background: #d1ecf1; color: #0c5460; }
+            &.o_mode_product, &.o_mode_qty { background: #d4edda; color: #155724; }
+            &.o_mode_sn { background: #f8d7da; color: #721c24; }
+            &.o_mode_order { background: #e9ecef; color: #495057; }
+        }
+    }
+
+    .o_notification,
+    .o_sbl_alert {
+        margin: 0;
+        padding: 10px 16px;
+        border-radius: 0;
+        border: none;
+        font-size: 14px;
+        font-weight: 500;
+        text-align: center;
+        flex-shrink: 0;
+    }
+
+    .alert-success { background-color: #d4edda; color: #155724; }
+    .alert-danger  { background-color: #f8d7da; color: #721c24; }
+    .alert-warning { background-color: #fff3cd; color: #856404; }
+    .alert-info    { background-color: #d1ecf1; color: #0c5460; }
+
+    .o_sbl_step_hint {
+        background: #fff;
+        border-bottom: 1px solid #dee2e6;
+        padding: 6px 16px;
+        font-size: 12px;
+        color: #6c757d;
+        text-align: center;
+        flex-shrink: 0;
+    }
+
+    .o_barcode_progress,
+    .o_sbl_progress {
+        height: 3px;
+        background: #e9ecef;
+        flex-shrink: 0;
+        .progress-bar { transition: width 0.3s ease; }
+    }
+
+    .o_barcode_progress_text,
+    .o_sbl_progress_text {
+        display: flex;
+        align-items: center;
+        padding: 6px 16px;
+        font-size: 12px;
+        color: #6c757d;
+        background: #fff;
+        border-bottom: 1px solid #dee2e6;
+        flex-shrink: 0;
+    }
+
+    // 入库流程 summary 卡片 - 固定大小，不被压缩
+    .o_sbl_summary {
+        flex-shrink: 0;
+        .card-body {
+            min-height: unset;
+        }
+    }
+
+    .o_barcode_lines,
+    .o_sbl_pallets {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 8px 12px 70px 12px;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+    }
+
+    // ── Inbound line (legacy) ──
+    .o_barcode_line {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        margin-bottom: 8px;
+        background: #fff;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        &.o_line_completed { border-color: #198754; background: #f8fdf9; }
+        .o_line_info { flex: 1; }
+        .o_line_product { font-size: 15px; font-weight: 500; }
+        .o_line_location { font-size: 13px; margin-top: 4px; }
+        .o_line_qty {
+            display: flex; align-items: center; gap: 4px; font-size: 16px; font-weight: 600;
+            .o_qty_done { color: #0d6efd; }
+            .o_qty_sep { color: #6c757d; }
+            .o_qty_reserved { color: #6c757d; }
+        }
+    }
+
+    // ── Pallet card ──
+    .o_sbl_pallet {
+        background: #fff;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        overflow: hidden;
+        transition: border-color 0.2s;
+
+        &.o_pallet_active {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
+        }
+        &.o_pallet_done {
+            border-color: #198754;
+            opacity: 0.85;
+        }
+
+        .o_pallet_header {
+            padding: 8px 12px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            cursor: pointer;
+            user-select: none;
+            -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+
+            .o_pallet_row1 {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 6px;
+            }
+
+            .o_pallet_row2 {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                flex-wrap: wrap;
+                font-size: 12px;
+                color: #6c757d;
+            }
+        }
+
+        .o_pallet_info {
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .o_pallet_qty {
+            font-size: 11px;
+            color: #6c757d;
+        }
+
+        .o_pallet_products {
+            margin-bottom: 0;
+        }
+
+        .collapse-arrow {
+            color: #6c757d;
+            font-size: 12px;
+            transition: transform 0.2s;
+        }
+    }
+}
+
+// 底部按钮栏
+.o_barcode_footer,
+.o_sbl_footer {
+    display: flex !important;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #fff !important;
+    border-top: 1px solid #dee2e6;
+    flex-shrink: 0 !important;
+    position: fixed !important;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    min-height: 50px;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0;
+
+    .btn {
+        flex: 1;
+        padding: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        border-radius: 6px;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .btn-success {
+        font-size: 14px;
+    }
+}

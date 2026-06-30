@@ -1,0 +1,107 @@
+<odoo>
+    <record id="view_bonded_customs_mrn_audit_log_list" model="ir.ui.view">
+        <field name="name">bonded.customs.mrn.audit.log.list</field>
+        <field name="model">bonded.customs.mrn.audit.log</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0" duplicate="0">
+                <field name="operation_time"/>
+                <field name="user_id"/>
+                <field name="action_type"/>
+                <field name="model_name"/>
+                <field name="res_id"/>
+                <field name="field_name"/>
+                <field name="old_value"/>
+                <field name="new_value"/>
+                <field name="mrn_id" readonly="1"/>
+                <field name="inbound_order_id"/>
+                <field name="picking_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_bonded_customs_mrn_audit_log_form" model="ir.ui.view">
+        <field name="name">bonded.customs.mrn.audit.log.form</field>
+        <field name="model">bonded.customs.mrn.audit.log</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="0" delete="0" duplicate="0">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="operation_time" readonly="1"/>
+                            <field name="user_id" readonly="1"/>
+                            <field name="action_type" readonly="1"/>
+                            <field name="model_name" readonly="1"/>
+                            <field name="res_id" readonly="1"/>
+                            <field name="field_name" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="old_value" readonly="1"/>
+                            <field name="new_value" readonly="1"/>
+                            <field name="customs_status_old" readonly="1"/>
+                            <field name="customs_status_new" readonly="1"/>
+                            <field name="mrn_status_old" readonly="1"/>
+                            <field name="mrn_status_new" readonly="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="mrn_id" readonly="1"/>
+                            <field name="inbound_order_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="picking_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                        </group>
+                        <group>
+                            <field name="move_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="quant_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="product_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="change_reason" readonly="1"/>
+                        <field name="operation_remark" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_bonded_customs_mrn_audit_log_search" model="ir.ui.view">
+        <field name="name">bonded.customs.mrn.audit.log.search</field>
+        <field name="model">bonded.customs.mrn.audit.log</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="mrn_id" readonly="1"/>
+                <field name="model_name"/>
+                <field name="field_name"/>
+                <field name="user_id"/>
+                <field name="operation_time"/>
+                <field name="inbound_order_id"/>
+                <field name="picking_id"/>
+            </search>
+        </field>
+    </record>
+
+ <record id="action_bonded_customs_mrn_audit_log" model="ir.actions.act_window">
+            <field name="name">Customs MRN Audit Log</field>
+            <field name="res_model">bonded.customs.mrn.audit.log</field>
+            <field name="view_mode">list,form</field>
+            <field name="search_view_id" ref="bonded_mange.view_bonded_customs_mrn_audit_log_search"/>
+        </record>
+
+<!--        <menuitem id="menu_bonded_customs_mrn_audit_log" name="Customs MRN Audit Log"-->
+<!--                  parent="worlddepot.menu_world_depot_configuration" action="action_bonded_customs_mrn_audit_log"-->
+<!--                  sequence="980"/>-->
+
+        <record id="action_customs_mrn_selection_dictionary" model="ir.actions.act_window">
+            <field name="name">Customs/MRN Selection Dictionary</field>
+            <field name="res_model">ir.model.fields.selection</field>
+            <field name="view_mode">list,form</field>
+            <field name="domain">[('field_id.name', 'in', ['customs_status', 'mrn_status'])]</field>
+        </record>
+
+<!--        <menuitem id="menu_customs_mrn_selection_dictionary" name="Customs/MRN Selection Dictionary"-->
+<!--                  parent="bonded_mange.menu_bonded_root" action="action_customs_mrn_selection_dictionary"-->
+<!--                  sequence="981"-->
+<!--                  groups="base.group_system"-->
+<!--        />-->
+
+</odoo>
