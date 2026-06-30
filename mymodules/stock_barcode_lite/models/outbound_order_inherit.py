@@ -11,19 +11,19 @@ class OutboundOrderInherit(models.Model):
     creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import")], string="Creation Source", default="manual", readonly=True, copy=False)
     time_slot = fields.Char(string='Expected harvest time period')  # 预计收货时间段
     cwarehouseid = fields.Char(string="U8C Warehouse ID", copy=False, index=True)
-    vsourcebillcode = fields.Char(string="Source Bill Code", copy=False, index=True)
+    vsourcebillcode = fields.Char(string="Source Bill Code", copy=False, index=True, tracking=True)
     ccustomerid = fields.Char(string="U8C Customer ID", copy=False)
-    u8c_delivery_method = fields.Selection([("pickup", "Pickup"), ("wd", "WD Transport")], string="U8C Delivery Method", copy=False)
+    u8c_delivery_method = fields.Selection([("pickup", "Pickup"), ("wd", "WD Transport")], string="U8C Delivery Method", copy=False, tracking=True)
 
     whole_pallet_picking_id = fields.Many2one("stock.picking", string="Whole Pallet Picking",copy=False,index=True)
     partial_pallet_picking_id = fields.Many2one("stock.picking", string="Partial Pallet Picking",copy=False, index=True)
-    outgoing_picking_lines = fields.One2many("stock.picking", "outbound_order_id", string="Outgoing Pickings")
+    outgoing_picking_lines = fields.One2many("stock.picking", "outbound_order_id", string="Outgoing Pickings", tracking=True)
 
     def action_cancel(self):
         normal_records = self.env["world.depot.outbound.order"]
 
         for rec in self:
-            if rec.project.name != "SUNRISE":
+            if rec.project.name not in ("SUNRISE", "HOYMILES"):
                 normal_records |= rec
                 continue
 
@@ -724,28 +724,28 @@ class InboundOrderProduct(models.Model):
 
     creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import")],
                                        string="Creation Source", default="manual", readonly=True, copy=False)
-    sunrise_pallet_no = fields.Char(string="Sunrise Pallet No", copy=False, index=True)
+    sunrise_pallet_no = fields.Char(string="Sunrise Pallet No", copy=False, index=True, tracking=True)
     product_ean = fields.Char(string="Product EAN", copy=False, index=True)
 
     de_palletize = fields.Selection([("N", "Full Pallet Outbound"), ("Y", "Depalletize Outbound")],
                                     string="Depalletize", default="N", copy=False, index=True)
     is_lot = fields.Selection([("N", "No"), ("Y", "Yes")], string="Is Lot", default="N", copy=False, index=True)
-    lot_name = fields.Char(string="Lot Name", copy=False, index=True)
+    lot_name = fields.Char(string="Lot Name", copy=False, index=True, tracking=True)
     m_date = fields.Date(string="Manufacture Date", copy=False)
     e_date = fields.Date(string="Expiration Date", copy=False)
     cprojectid = fields.Char(string="Contract No", copy=False, index=True)
-    ndiscounttaxtype = fields.Char(string="Tax Deduction Type", copy=False, index=True)
+    ndiscounttaxtype = fields.Char(string="Tax Deduction Type", copy=False, index=True, tracking=True)
     vsourcebillcode = fields.Char(string="Source Bill Code", copy=False, index=True)
-    vsourcerowno = fields.Char(string="Source Row No", copy=False, index=True)
+    vsourcerowno = fields.Char(string="Source Row No", copy=False, index=True, tracking=True)
     box_type = fields.Selection([("full", "Full"), ("partial", "Partial")], string="Box Type", copy=False, index=True)
-    box_qty = fields.Integer(string="Box Qty", copy=False)
-    ninnum = fields.Float(string="Received Units", copy=False)
-    box_in_qty = fields.Float(string="Box In Qty", copy=False)
+    box_qty = fields.Integer(string="Box Qty", copy=False, tracking=True)
+    ninnum = fields.Float(string="Received Units", copy=False, tracking=True)
+    box_in_qty = fields.Float(string="Box In Qty", copy=False, tracking=True)
     u8_aux_qty = fields.Float(string="U8 Aux Qty", copy=False)
     u8_conversion_rate = fields.Float(string="U8 Conversion Rate", copy=False)
     castunitid = fields.Char(string="Assistant Unit", copy=False, index=True)
     u8_aux_uom_name = fields.Char(string="U8 Aux UOM Name", copy=False, index=True)
-    cspaceid = fields.Char(string="Location Code", copy=False, index=True)#货位号
+    cspaceid = fields.Char(string="Location Code", copy=False, index=True, tracking=True)#货位号
 
 
     @api.constrains("outbound_order_id", "pallet_no")

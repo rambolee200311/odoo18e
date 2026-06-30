@@ -177,6 +177,17 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
                 action_name="missing_picking",
                 success=False,
             )
+        if picking.state == "done":
+            return self.build_outgoing_scan_result(
+                "error",
+                _("Error"),
+                _("Outgoing picking %s is already done.") % picking.name,
+                barcode=code,
+                picking_id=picking.id,
+                pending_operation=pending_operation,
+                action_name="picking_already_done",
+                success=False,
+            )
         return self.build_outgoing_scan_result(
             "picking",
             _("Outgoing Picking"),
@@ -303,15 +314,15 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
 
         if self.are_outgoing_lines_completed(move_lines):
             return self.build_outgoing_scan_result(
-                "pallet",
-                _("Pallet"),
+                "error",
+                _("Error"),
                 _("Pallet %s is already scanned.") % (package.name or package.barcode),
                 barcode=code,
                 picking_id=picking.id,
                 location_id=current_location_id,
                 pending_operation=False,
                 action_name="pallet_already_scanned",
-                success=True,
+                success=False,
             )
 
         stock_data = self.get_package_stock_set(package)
@@ -601,23 +612,23 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
             )
 
         if product.tracking == "lot" and not lot:
-            auto_lot = self.get_single_remaining_lot(picking, package, product)
-            if auto_lot:
-                lot = auto_lot
-            else:
-                return self.build_outgoing_scan_result(
-                    "error",
-                    _("Error"),
-                    _("Please scan lot before quantity."),
-                    barcode=code,
-                    picking_id=picking.id,
-                    location_id=current_location_id,
-                    package_id=package.id,
-                    product_id=product.id,
-                    pending_operation=pending_operation,
-                    action_name="missing_lot",
-                    success=False,
-                )
+            # auto_lot = self.get_single_remaining_lot(picking, package, product)
+            # if auto_lot:
+            #     lot = auto_lot
+            #else:
+            return self.build_outgoing_scan_result(
+                "error",
+                _("Error"),
+                _("Please scan lot before quantity."),
+                barcode=code,
+                picking_id=picking.id,
+                location_id=current_location_id,
+                package_id=package.id,
+                product_id=product.id,
+                pending_operation=pending_operation,
+                action_name="missing_lot",
+                success=False,
+            )
 
         scan_qty = self.parse_outgoing_quantity(quantity)
         if scan_qty is False:
@@ -798,7 +809,7 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
         picking_model = self.env["stock.picking"]
         domain_base = [
             ("picking_type_id.code", "=", "outgoing"),
-            ("state", "not in", ("done", "cancel")),
+            ("state", "not in", ("cancel",)),
         ]
         picking = picking_model.sudo().search(domain_base + [("name", "=", code)], limit=1)
         return picking

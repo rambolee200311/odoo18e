@@ -21,7 +21,8 @@
         <field name="arch" type="xml">
             <form duplicate="false">
                 <header>
-                    <button name="action_import_sunrise_product_master" type="object" string="Import" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_import_sunrise_product_master" type="object" string="Import"
+                            class="btn-primary" invisible="state != 'draft'"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,done,partial,failed"/>
                 </header>
                 <sheet>
@@ -105,9 +106,11 @@
                 <field name="sheet_name"/>
                 <field name="row_number"/>
                 <field name="code_type"/>
+
                 <field name="product_code"/>
                 <field name="counterpart_code"/>
                 <field name="product_name"/>
+                <field name="is_retry_success" optional="show"/>
                 <field name="english_name"/>
                 <field name="chinese_spec"/>
                 <field name="english_spec"/>
@@ -121,6 +124,7 @@
                 <field name="tax_id" options="{'no_create': True, 'no_open': True}"/>
                 <field name="product_id" options="{'no_create': True, 'no_open': True}"/>
                 <field name="is_shared_semi_finished_suspected"/>
+
                 <field name="remark"/>
             </list>
         </field>
@@ -131,6 +135,13 @@
         <field name="model">stock.barcode.lite.sunrise.product.master.import.line</field>
         <field name="arch" type="xml">
             <form duplicate="false">
+                <header>
+                    <button name="action_retry_import"
+                            type="object"
+                            string="Retry Import"
+                            class="btn-primary"
+                            invisible="state != 'failed'"/>
+                </header>
                 <sheet>
                     <group>
                         <group>
@@ -141,8 +152,8 @@
                             <field name="code_type" readonly="1"/>
                         </group>
                         <group>
-                            <field name="product_code" readonly="1"/>
-                            <field name="counterpart_code" readonly="1"/>
+                            <field name="product_code" readonly="state =='success'"/>
+                            <field name="counterpart_code" readonly="state =='success'"/>
                             <field name="product_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                             <field name="category_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                             <field name="tracking" readonly="1"/>
@@ -194,15 +205,21 @@
                 <field name="aux_uom_name"/>
                 <field name="product_id"/>
                 <field name="is_shared_semi_finished_suspected"/>
+                <filter string="Retry Success"
+                        name="is_retry_success"
+                        domain="[('is_retry_success', '=', True)]"/>
                 <filter name="state_success" string="Success" domain="[('state', '=', 'success')]"/>
                 <filter name="state_failed" string="Failed" domain="[('state', '=', 'failed')]"/>
-                <filter name="shared_semi_finished_suspected" string="Suspected Shared Semi Finished" domain="[('is_shared_semi_finished_suspected', '=', True)]"/>
+                <filter name="shared_semi_finished_suspected" string="Suspected Shared Semi Finished"
+                        domain="[('is_shared_semi_finished_suspected', '=', True)]"/>
                 <filter name="code_type_finished" string="Finished" domain="[('code_type', '=', 'finished')]"/>
-                <filter name="code_type_semi_finished" string="Semi Finished" domain="[('code_type', '=', 'semi_finished')]"/>
+                <filter name="code_type_semi_finished" string="Semi Finished"
+                        domain="[('code_type', '=', 'semi_finished')]"/>
                 <separator/>
                 <filter name="group_import" string="Import" context="{'group_by': 'import_id'}"/>
                 <filter name="group_state" string="State" context="{'group_by': 'state'}"/>
-                <filter name="group_shared_semi_finished_suspected" string="Suspected Shared Semi Finished" context="{'group_by': 'is_shared_semi_finished_suspected'}"/>
+                <filter name="group_shared_semi_finished_suspected" string="Suspected Shared Semi Finished"
+                        context="{'group_by': 'is_shared_semi_finished_suspected'}"/>
                 <filter name="group_sheet" string="Sheet" context="{'group_by': 'sheet_name'}"/>
                 <filter name="group_code_type" string="Code Type" context="{'group_by': 'code_type'}"/>
                 <filter name="group_tax" string="Tax" context="{'group_by': 'tax_name'}"/>
@@ -218,6 +235,8 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='categ_id']" position="after">
                 <field name="category_name" invisible="1"/>
+                <field name="sunrise_product_category_name" invisible="0"/>
+                <field name="sunrise_chinese_name" invisible="category_name != 'SUNRISE'"/>
                 <field name="sunrise_english_name" invisible="category_name != 'SUNRISE'"/>
                 <field name="sunrise_main_uom_name" invisible="category_name != 'SUNRISE'"/>
                 <field name="sunrise_uom_conversion_rate" invisible="category_name != 'SUNRISE'"/>
@@ -228,29 +247,31 @@
     </record>
 
 
-        <record id="action_sunrise_product_master_import" model="ir.actions.act_window">
-            <field name="name">Sunrise Product Master Imports</field>
-            <field name="res_model">stock.barcode.lite.sunrise.product.master.import</field>
-            <field name="view_mode">list,form</field>
-        </record>
+    <record id="action_sunrise_product_master_import" model="ir.actions.act_window">
+        <field name="name">Sunrise Product Master Imports</field>
+        <field name="res_model">stock.barcode.lite.sunrise.product.master.import</field>
+        <field name="view_mode">list,form</field>
+    </record>
 
-        <record id="action_sunrise_product_master_import_line" model="ir.actions.act_window">
-            <field name="name">Sunrise Product Master Import Lines</field>
-            <field name="res_model">stock.barcode.lite.sunrise.product.master.import.line</field>
-            <field name="view_mode">list</field>
-            <field name="search_view_id" ref="view_sunrise_product_master_import_line_search"/>
-        </record>
+    <record id="action_sunrise_product_master_import_line" model="ir.actions.act_window">
+        <field name="name">Sunrise Product Master Import Lines</field>
+        <field name="res_model">stock.barcode.lite.sunrise.product.master.import.line</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_sunrise_product_master_import_line_search"/>
+    </record>
 
-        <menuitem id="menu_sunrise_product_master_import"
-                  name="Sunrise Product Master Imports"
-                  parent="menu_stock_barcode_lite_configuration"
-                  action="action_sunrise_product_master_import"
-                  sequence="30"/>
+    <menuitem id="menu_sunrise_product_master_import"
+              name="Sunrise Product Master Imports"
+              parent="menu_stock_barcode_lite_configuration"
+              action="action_sunrise_product_master_import"
+              sequence="30"
+              groups="base.group_system"/>
 
-        <menuitem id="menu_sunrise_product_master_import_line"
-                  name="Sunrise Product Master Import Lines"
-                  parent="menu_stock_barcode_lite_configuration"
-                  action="action_sunrise_product_master_import_line"
-                  sequence="31"/>
+    <menuitem id="menu_sunrise_product_master_import_line"
+              name="Sunrise Product Master Import Lines"
+              parent="menu_stock_barcode_lite_configuration"
+              action="action_sunrise_product_master_import_line"
+              sequence="31"
+              groups="base.group_system"/>
 
 </odoo>

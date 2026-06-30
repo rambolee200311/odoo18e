@@ -3,7 +3,7 @@
 <!-- 首页 - Inbound + Outbound -->
     <t t-name="stock_barcode_lite.Homepage">
         <div class="o_stock_barcode_lite_homepage">
-            <div class="container-fluid py-4">
+            <div class="container-fluid py-2">
 
                 <!-- Inbound -->
                 <div class="section-header">
@@ -48,8 +48,7 @@
                         </div>
                     </div>
                     <div class="col-md-5 col-lg-4">
-<!--                        <div class="card h-100 shadow-sm o_homepage_card o_outbound_break_card" t-on-click="_onOutboundBreakClick">-->
-                        <div class="card h-100 shadow-sm o_homepage_card o_outbound_break_card">
+                        <div class="card h-100 shadow-sm o_homepage_card o_outbound_break_card" t-on-click="_onOutboundBreakClick">
                             <div class="card-header bg-warning text-dark">
                                 <h3 class="mb-0">
                                     <i class="fa fa-sign-out me-2"/>Break Bulk Pick

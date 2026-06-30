@@ -7,32 +7,40 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='location_id']" position="after">
                 <field name="project_name" readonly="1" invisible="1"/>
-<!--                <field name="project_id" readonly="1"/>-->
-                <field name="outbound_scan_mode" readonly="1" invisible="project_name !='SUNRISE' or picking_type_code != 'outgoing'"/>
+                <!--                <field name="project_id" readonly="1"/>-->
+                <field name="outbound_scan_mode" readonly="1"
+                       invisible="project_name !='SUNRISE' or picking_type_code != 'outgoing'"/>
             </xpath>
+            <xpath expr="//header" position="inside">
+                <button name="chenyang_force_button_validate" type="object" string="Chenyang Force Validate"
+                        confirm="Are you sure you want to validate without scan checks?"
+                        class="btn-secondary" invisible="1"
+                        groups="base.group_system"/>
+            </xpath>
+
         </field>
     </record>
 
 
     <record id="view_stock_move_line_detailed_operation_list_inherit_stock_barcode_lite" model="ir.ui.view">
-    <field name="name">stock.move.line.detailed.operation.list.inherit.stock.barcode.lite</field>
-    <field name="model">stock.move.line</field>
-    <field name="inherit_id" ref="stock.view_stock_move_line_detailed_operation_tree"/>
-    <field name="arch" type="xml">
-        <xpath expr="//list/field[@name='quantity']" position="after">
-            <field name="outbound_scanned_quantity"
-                   string="Outbound Scanned Quantity"
-                   readonly="1"
-                   column_invisible="context.get('picking_code') != 'outgoing'"/>
-            <field name="is_outbound_scanned"
-                   string="Outbound Scanned"
-                   readonly="1"
-                   column_invisible="context.get('picking_code') != 'outgoing'"/>
-            <field name="is_location_updated"
-                   string="Location Updated"
-                   readonly="1"
-                   column_invisible="context.get('picking_code') != 'incoming'"/>
-        </xpath>
-    </field>
-</record>
+        <field name="name">stock.move.line.detailed.operation.list.inherit.stock.barcode.lite</field>
+        <field name="model">stock.move.line</field>
+        <field name="inherit_id" ref="stock.view_stock_move_line_detailed_operation_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list/field[@name='quantity']" position="after">
+                <field name="outbound_scanned_quantity"
+                       string="Outbound Scanned Quantity"
+                       readonly="1"
+                       column_invisible="context.get('picking_code') != 'outgoing'"/>
+                <field name="is_outbound_scanned"
+                       string="Outbound Scanned"
+                       readonly="1"
+                       column_invisible="context.get('picking_code') != 'outgoing'"/>
+                <field name="is_location_updated"
+                       string="Location Updated"
+                       readonly="1"
+                       column_invisible="context.get('picking_code') != 'incoming'"/>
+            </xpath>
+        </field>
+    </record>
 </odoo>
