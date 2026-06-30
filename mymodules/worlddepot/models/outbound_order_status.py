@@ -795,9 +795,21 @@ class OutboundOrderStatus(models.Model):
                             "serials": []
                         }
                 picks=self.env['stock.picking'].search([('outbound_order_id','=',order.id),('state','=','done')])
+                outbounds = order.env['stock.picking'].sudo().browse()
                 for pick in picks:
-                    outbounds = self.env['stock.picking'].search(
+                    current_outbound_list = self.env['stock.picking'].search(
                         [('origin', '=', pick.name), ('picking_type_code', '=', 'outgoing')])
+                    if not current_outbound_list :
+                        current_outbound_list = pick.move_ids.move_dest_ids.picking_id.filtered(
+                            lambda picking: picking.picking_type_code == 'outgoing' and picking.state != 'cancel'
+                        )
+                    if not current_outbound_list :
+                        current_outbound_list = order.env['stock.picking'].sudo().search([
+                            ('picking_type_code', '=', 'outgoing'),
+                            ('state', '!=', 'cancel'),
+                            ('move_ids.move_orig_ids.picking_id', '=', pick.id),
+                        ])
+                    outbounds |=current_outbound_list
                     local_time = self.get_local_time('NL', outbounds[0].date_done if outbounds else None)
                     if order.outbound_result_sync_time_user:
                         local_time = order.outbound_result_sync_time_user
