@@ -32,14 +32,14 @@
                     <button name="action_unconfirm" type="object" string="UnConfirm" class="btn-primary"
                             invisible="state!='confirm'"/>
                     <button name="action_cancel" type="object" string="Cancel" class="btn-secondary"
-                            invisible="state not in ['new', 'confirm']"/>
+                            invisible="state not in ['confirm']"/>
                     <field name="state" widget="statusbar" statusbar_visible="new,confirm"/>
                     <button name="action_prepare_recreate_picking"
                             type="object"
                             string="Prepare Recreate Picking"
                             class="btn-secondary"
-                            invisible="1"
-                            groups="base.group_system"/>
+                            invisible="0"
+                            groups="search_product_change.group_hoymiles_stock_manager"/>
                     <widget name="web_ribbon" title="CANCEL" bg_color="bg-danger" invisible="state!='cancel'"/>
                 </header>
                 <sheet>
