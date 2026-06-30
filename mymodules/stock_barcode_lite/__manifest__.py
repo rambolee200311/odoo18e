@@ -20,6 +20,7 @@ Chenyang Chemical warehouse customizations.
         "views/menu.xml",
         "views/sunrise_api_views.xml",
         "views/sunrise_product_master_import_views.xml",
+        "views/sunrise_order_import_views.xml",
         "views/stock_quant_package_inherit_views.xml",
         'views/product_views.xml',
 

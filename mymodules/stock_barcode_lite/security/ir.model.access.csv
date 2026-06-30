@@ -5,3 +5,5 @@ access_sunrise_api_config,sunrise.api.config,model_sunrise_api_config,,1,1,1,1
 access_sunrise_api_log,sunrise.api.log,model_sunrise_api_log,,1,1,1,1
 access_sunrise_product_master_import,stock.barcode.lite.sunrise.product.master.import,model_stock_barcode_lite_sunrise_product_master_import,,1,1,1,1
 access_sunrise_product_master_import_line,stock.barcode.lite.sunrise.product.master.import.line,model_stock_barcode_lite_sunrise_product_master_import_line,,1,1,1,1
+access_sunrise_order_import,stock.barcode.lite.sunrise.order.import,model_stock_barcode_lite_sunrise_order_import,,1,1,1,1
+access_sunrise_order_import_line,stock.barcode.lite.sunrise.order.import.line,model_stock_barcode_lite_sunrise_order_import_line,,1,1,1,1

@@ -12,6 +12,7 @@ class ProductTemplateInherit(models.Model):
     sunrise_shelf_life_months = fields.Integer(string="Sunrise Shelf Life Months", copy=False)
     sunrise_shelf_life_years = fields.Integer(string="Sunrise Shelf Life Years", copy=False)
     category_name = fields.Char(string="Sunrise Category Name", related="categ_id.name", store=True)
+    sunrise_product_category_name = fields.Char(string="Sunrise Product Category", copy=False, index=True)#类别
 
     #sunrise_code = fields.Char(string='Sunrise Code')
     #sunrise_category_name = fields.Char(string="Sunrise Category Name", related="categ_id.name", store=True)

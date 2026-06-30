@@ -382,6 +382,7 @@ class SunriseProductMasterImport(models.Model):
             "english_spec": english_spec,
             "description": description,
             "category_id": category.id,
+            "sunrise_product_category_name": row.get("sheet_name", ""),
             "tracking": "lot",
             "attribute_name": "包装规格",
             "attribute_value_name": "标准包装",
@@ -439,6 +440,7 @@ class SunriseProductMasterImport(models.Model):
         template = template_model.create({
             "name": line.english_name or line.product_name,
             "categ_id": line.category_id.id,
+            "sunrise_product_category_name": line.sunrise_product_category_name,
             "tracking": "lot",
             "type": "consu",
             "is_storable": True,
@@ -620,6 +622,9 @@ class SunriseProductMasterImportLine(models.Model):
     state = fields.Selection([("success", "Success"), ("failed", "Failed")], string="State", default="failed", copy=False, index=True)
     remark = fields.Text(string="Remark", copy=False)
     is_retry_success = fields.Boolean(string="Retry Success", default=False, copy=False, index=True)
+    sunrise_product_category_name = fields.Char(string="Sunrise Product Category", copy=False, index=True)
+
+
     def action_retry_import(self):
         success_count = 0
         failed_count = 0

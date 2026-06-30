@@ -2,7 +2,6 @@
 
 import { useService } from "@web/core/utils/hooks";
 import { Component, useState } from "@odoo/owl";
-
 /**
  * Stock Barcode Lite - Homepage Component
  */
