@@ -121,7 +121,7 @@
             </div>
 
             <!-- 托盘列表 -->
-            <div class="o_sbl_pallets" t-ref="palletsContainer">
+            <div class="o_sbl_pallets">
                 <t t-if="palletList.length === 0 &amp;&amp; !state.loading">
                     <div class="o_sbl_empty_state text-center text-muted py-5">
                         <i class="fa fa-inbox fa-4x mb-3 d-block opacity-25"/>
@@ -213,11 +213,11 @@
                 <button class="btn btn-outline-secondary" t-on-click="resetScan" t-att-disabled="state.loading">
                     <i class="fa fa-refresh me-1"/>Reset
                 </button>
-                <button class="btn btn-primary"
-                        style="background-color: #0d6efd; border-color: #0d6efd; color: white; display: block !important; visibility: visible !important; flex: 1.5;"
+                <button class="btn btn-primary flex-fill"
+                        style="background-color: #0d6efd; border-color: #0d6efd; color: white; display: block !important; visibility: visible !important;"
                         t-on-click="confirmOutbound"
-                        t-att-disabled="state.loading">
-                    <i class="fa fa-check-circle me-1"/>Confirm
+                        t-att-disabled="state.loading || !isAllComplete">
+                    <i class="fa fa-check-circle me-1"/>Confirm Outbound
                 </button>
                 <button class="btn btn-secondary" t-on-click="exit">
                     <i class="fa fa-home me-1"/>Home

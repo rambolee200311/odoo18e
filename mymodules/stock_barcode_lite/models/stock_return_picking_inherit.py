@@ -1,7 +1,6 @@
 from odoo import models
 from odoo.tools.float_utils import float_compare, float_is_zero
-from odoo import _, models
-from odoo.exceptions import UserError
+
 
 class StockReturnPickingInherit(models.TransientModel):
     _inherit = "stock.return.picking"
@@ -62,7 +61,6 @@ class StockReturnPickingInherit(models.TransientModel):
         rounding = return_move.product_uom.rounding or return_move.product_id.uom_id.rounding
         remaining_qty = return_move.product_uom_qty
         allocations = []
-        package_location_map = {}
 
         original_lines = original_move.move_line_ids.filtered(
             lambda line: line.product_id == return_move.product_id
@@ -77,35 +75,16 @@ class StockReturnPickingInherit(models.TransientModel):
             qty = min(remaining_qty, original_line.quantity)
             if float_is_zero(qty, precision_rounding=rounding):
                 continue
-            package = original_line.package_id
-            if package.id not in package_location_map:
-                package_quant_list = self.env["stock.quant"].sudo().search([
-                    ("package_id", "=", original_line.package_id.id),
-                    ("location_id.usage", "=", "internal"),
-                    ("quantity", ">", 0),
-                ])
-                package_location_list = package_quant_list.mapped("location_id")
-
-                if len(package_location_list) > 1:
-                    raise UserError(_("Pallet %s has stock in multiple locations.") % original_line.package_id.name)
-
-                package_location_map[package.id] = package_location_list[:1].id or original_line.location_id.id
 
             allocations.append({
                 "package_id": original_line.package_id.id,
                 "lot_id": original_line.lot_id.id if original_line.lot_id else False,
                 "owner_id": original_line.owner_id.id if original_line.owner_id else False,
                 "quantity": qty,
-                "location_dest_id": package_location_map[package.id],
             })
             remaining_qty -= qty
-        if not float_is_zero(remaining_qty, precision_rounding=rounding):
-            raise UserError(
-                _("Return quantity %s for product %s is greater than original package move lines.")
-                % (return_move.product_uom_qty, return_move.product_id.display_name)
-            )
-        return allocations
 
+        return allocations
 
     def sync_return_move_lines_to_packages(self, return_move, allocations):
         move_line_model = self.env["stock.move.line"]
@@ -131,7 +110,7 @@ class StockReturnPickingInherit(models.TransientModel):
             "product_id": return_move.product_id.id,
             "product_uom_id": return_move.product_uom.id,
             "location_id": return_move.location_id.id,
-            "location_dest_id": allocation["location_dest_id"],
+            "location_dest_id": return_move.location_dest_id.id,
             "lot_id": allocation["lot_id"],
             "owner_id": allocation["owner_id"],
             "quantity": allocation["quantity"],

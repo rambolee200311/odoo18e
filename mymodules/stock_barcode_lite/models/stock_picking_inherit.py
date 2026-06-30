@@ -12,18 +12,8 @@ class StockPicking(models.Model):
                                           string="Outbound Scan Mode", copy=False, index=True)
     project_name = fields.Char(string='Project Name', related='project_id.name',stored=True)
 
-    def chenyang_force_button_validate(self):
-        return self.with_context(
-            skip_chenyang_scan_validation=True,
-        ).button_validate()
-
-
     def button_validate(self):
-        skip_scan_validation = self.env.context.get("skip_chenyang_scan_validation")
-        if not skip_scan_validation:
-            for rec in self:
-                rec.check_incoming_pallet_location_updated()
-                rec.check_outgoing_pallet_scan_completed()
+        #for rec in self:
         return super().button_validate()
 
     def check_incoming_pallet_location_updated(self):

@@ -1,15 +1,3 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-world.deport.dashboard_rule,world.deport.dashboard_rule,model_world_deport_dashboard,,1,1,1,1
-stock.location.type_rule,stock.location.type_name,model_stock_location_type,,1,1,1,1
-world.depot.transfer.order_rule,world.depot.transfer.order_name,model_world_depot_transfer_order,,1,1,1,1
-world.depot.transfer.order.line_rule,world.depot.transfer.order.line_name,model_world_depot_transfer_order_line,,1,1,1,1
-world.depot.transfer.order.docs_rule,world.depot.transfer.order.docs_name,model_world_depot_transfer_order_docs,,1,1,1,1
-world.depot.transfer.order.charge_rule,world.depot.transfer.order.charge_name,model_world_depot_transfer_order_charge,,1,1,1,1
+access_world_deport_dashboard,access_world_deport_dashboard,model_world_deport_dashboard,,1,1,1,1
 
-access_hoymiles_api_logs_user,hoymiles.api.logs user,model_hoymiles_api_logs,,1,1,1,1
-access_hoymiles_api_urls_admin,hoymiles.api.urls admin,model_hoymiles_api_urls,,1,1,1,1
-access_hoymiles_token_utils_admin,hoymiles.token.utils admin,model_hoymiles_token_utils,,1,1,1,1
-
-access_world_depot_charge_module,world.depot.charge.module,model_world_depot_charge_module,,1,1,1,1
-access_world_depot_charge_module_item,world.depot.charge.module.item,model_world_depot_charge_module_item,,1,1,1,1
-access_worlddepot_charge_module_selector,worlddepot.charge.module.selector,model_worlddepot_charge_module_selector,,1,1,1,1

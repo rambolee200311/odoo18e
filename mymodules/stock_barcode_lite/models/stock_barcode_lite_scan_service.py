@@ -24,38 +24,24 @@ class StockBarcodeLiteScanService(models.AbstractModel):
             )
         if not picking_id:
             picking = self.get_picking_from_barcode(code)
-            if not picking:
+            if picking:
                 return self.build_scan_result(
-                    "error",
-                    _("Error"),
-                    _("Please scan incoming picking first."),
-                    barcode=code,
-                    picking_id=False,
-                    location_id=False,
-                    action_name="missing_picking",
-                    success=False,
-                )
-
-            if picking.state == "done":
-                return self.build_scan_result(
-                    "error",
-                    _("Error"),
-                    _("Incoming picking %s is already done.") % picking.name,
+                    "picking",
+                    _("Incoming Picking"),
+                    _("Incoming picking %s selected.") % picking.name,
                     barcode=code,
                     picking_id=picking.id,
                     location_id=current_location_id,
-                    action_name="picking_already_done",
-                    success=False,
+                    action_name="select_picking",
+                    success=True,
                 )
             return self.build_scan_result(
-                "picking",
-                _("Incoming Picking"),
-                _("Incoming picking %s selected.") % picking.name,
+                "error", _("Error"), _("Please scan incoming picking first."),
                 barcode=code,
-                picking_id=picking.id,
-                location_id=current_location_id,
-                action_name="select_picking",
-                success=True,
+                picking_id=False,
+                location_id=False,
+                action_name="missing_picking",
+                success=False,
             )
         if not current_location_id:
             location = self.get_location_from_barcode(code)
@@ -194,10 +180,13 @@ class StockBarcodeLiteScanService(models.AbstractModel):
         picking_model = self.env["stock.picking"]
         domain_base = [
             ("picking_type_id.code", "=", "incoming"),
-            ("state", "not in", ("cancel",)),
+            ("state", "not in", ("done", "cancel")),
         ]
         picking = picking_model.sudo().search(domain_base + [("name", "=", code)], limit=1)
-
+        if not picking:
+            picking = picking_model.sudo().search(domain_base + [("origin", "=", code)], limit=1)
+        if not picking:
+            picking = picking_model.sudo().search(domain_base + [("ref_1", "=", code)], limit=1)
         return picking
 
     @api.model
