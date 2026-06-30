@@ -3,7 +3,7 @@
 <!-- 首页 - Inbound + Outbound -->
     <t t-name="stock_barcode_lite.Homepage">
         <div class="o_stock_barcode_lite_homepage">
-            <div class="container-fluid py-4">
+            <div class="container-fluid py-2">
 
                 <!-- Inbound -->
                 <div class="section-header">
