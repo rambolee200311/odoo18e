@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="mst_dynamic_o2m_preview.DynamicOne2ManyPreview">
+        <div class="o_dynamic_o2m_preview">
+            <t t-if="state.loading">
+                <span class="o_dynamic_o2m_empty">Loading...</span>
+            </t>
+            <t t-elif="state.totalCount === 0">
+                <span class="o_dynamic_o2m_empty">No lines</span>
+            </t>
+            <t t-else="">
+                <!-- 默认只显示行数+下拉箭头，点击展开/收起 -->
+                <div class="o_dynamic_o2m_more" style="cursor: pointer;" t-on-click.stop="toggleExpand">
+                    <t t-esc="toggleText"/>
+                </div>
+
+                <!-- 只有点击展开后，才渲染明细表格 -->
+                <t t-if="state.isExpanded">
+                    <div class="o_dynamic_o2m_scroll" 
+                        style="margin-top: 6px; max-height: 260px; overflow-y: auto;">
+                        <table class="o_dynamic_o2m_table" t-att-style="'min-width:' + tableMinWidth">
+                            <thead>
+                                <tr>
+                                    <t t-foreach="columns" t-as="column" t-key="column.name">
+                                        <th t-att-style="'width:' + cellWidth">
+                                            <t t-esc="column.label"/>
+                                        </th>
+                                    </t>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="state.allLines" t-as="line" t-key="line.id">
+                                    <tr>
+                                        <t t-foreach="columns" t-as="column" t-key="column.name">
+                                            <td t-att-class="getCellClass(line, column)"
+                                                t-att-title="getCellValue(line, column)"
+                                                t-att-style="'width:' + cellWidth">
+                                                <t t-esc="getCellValue(line, column)"/>
+                                            </td>
+                                        </t>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </div>
+    </t>
+</templates>

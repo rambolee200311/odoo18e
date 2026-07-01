@@ -1,0 +1,24 @@
+<odoo>
+    <record id="view_order_tree_inherit_mst" model="ir.ui.view">
+        <field name="name">sale.order.list.inherit.mst</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_tree"/>
+        <field name="arch" type="xml">
+
+            <!-- Add field after customer -->
+            <xpath expr="//field[@name='invoice_status']" position="after">
+                <field name="order_line"
+                       widget="dynamic_one2many_preview"
+                       options="{
+                           'fields': ['product_id', 'product_uom_qty', 'product_uom'],
+                           'labels': ['Product', 'Qty', 'UOM'],
+                           'max_rows': 7,
+                           'column_width': 140,
+                           'wrap_text_length': 25,
+                           'wrap_fields': ['product_id']
+                       }"/>
+            </xpath>
+
+        </field>
+    </record>
+</odoo>

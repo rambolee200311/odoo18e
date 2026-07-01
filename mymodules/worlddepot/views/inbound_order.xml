@@ -308,6 +308,16 @@
                 <field name="is_bonded" optional="show"/>
                 <field name="state" optional="show"/>
                 <field name="remark" optional="show"/>
+                <field name="inbound_order_product_ids"
+                       widget="dynamic_one2many_preview"
+                       options="{
+                           'fields': ['product_description','pallets', 'pallet_no'],
+                           'labels': ['Products','Pallets', 'Pallet NO'],
+                           'max_rows': 7,
+                           'column_width': 80,
+                           'wrap_text_length': 25,
+                           'wrap_fields': ['product_description']
+                       }"/>
             </list>
         </field>
     </record>

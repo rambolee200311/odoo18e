@@ -1,0 +1,19 @@
+.o_list_renderer {
+    .o_column_reorder_header {
+        > div {
+            align-items: center;
+        }
+
+        .o_column_reorder_handle {
+            flex: 0 0 auto;
+            cursor: grab;
+            opacity: 0.35;
+            transition: opacity 0.15s ease-in-out;
+        }
+
+        &:hover .o_column_reorder_handle,
+        &.ui-sortable-helper .o_column_reorder_handle {
+            opacity: 1;
+        }
+    }
+}

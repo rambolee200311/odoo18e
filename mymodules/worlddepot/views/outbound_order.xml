@@ -12,6 +12,16 @@
                 <field name="p_date" optional="show"/>
                 <field name="owner" optional="show"/>
                 <field name="project" optional="show"/>
+                <field name="outbound_order_product_ids"
+                       widget="dynamic_one2many_preview"
+                       options="{
+                           'fields': ['product_id','quantity'],
+                           'labels': ['Product','Quantity'],
+                           'max_rows': 7,
+                           'column_width': 100,
+                           'wrap_text_length': 25,
+                           'wrap_fields': ['product_id']
+                       }"/>
                 <field name="unload_company" optional="show"/>
                 <field name="load_ref" optional="show"/>
                 <field name="state" optional="show"/>

@@ -1,0 +1,25 @@
+<odoo>
+
+    <record id="view_account_move_tree_inherit_dynamic_o2m_preview" model="ir.ui.view">
+        <field name="name">account.move.list.dynamic.o2m.preview</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_invoice_tree"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//field[@name='status_in_payment']" position="after">
+                <field name="invoice_line_ids"
+                       string="Invoice/Bill Lines"
+                       widget="dynamic_one2many_preview"
+                       options="{
+                           'fields': ['product_id', 'quantity', 'product_uom_id', 'price_unit'],
+                           'labels': ['Product', 'Qty', 'UOM', 'Unit Price'],
+                           'max_rows': 7,
+                           'column_width': 140,
+                           'wrap_text_length': 25,
+                           'wrap_fields': ['product_id']
+                       }"/>
+            </xpath>
+
+        </field>
+    </record>
+</odoo>

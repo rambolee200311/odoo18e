@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <t t-name="column_reorder_tspl.ListRenderer" t-inherit="web.ListRenderer" t-inherit-mode="extension">
+        <xpath expr="//t[@t-foreach='columns']/th[@t-if=&quot;column.type === 'field'&quot;]" position="attributes">
+            <attribute name="t-att-class">(getColumnClass(column) + ' opacity-trigger-hover w-print-auto o_column_reorder_header').trim()</attribute>
+            <attribute name="t-att-data-column-id">column.id</attribute>
+        </xpath>
+        <xpath expr="//t[@t-foreach='columns']/th[@t-if=&quot;column.type === 'field'&quot;]//span[contains(@class, 'text-truncate')]" position="before">
+            <span
+                t-if="column.hasLabel"
+                class="o_column_reorder_handle fa fa-bars text-muted me-2"
+                t-on-click.stop.prevent="() => {}"
+                aria-label="Reorder column"
+                role="button"
+            />
+        </xpath>
+    </t>
+
+    <t t-name="column_reorder_tspl.FileUploadListRenderer" t-inherit="account.FileUploadListRenderer" t-inherit-mode="extension">
+        <xpath expr="//t[@t-foreach='columns']/th[@t-if=&quot;column.type === 'field'&quot;]" position="attributes">
+            <attribute name="t-att-class">(getColumnClass(column) + ' opacity-trigger-hover w-print-auto o_column_reorder_header').trim()</attribute>
+            <attribute name="t-att-data-column-id">column.id</attribute>
+        </xpath>
+        <xpath expr="//t[@t-foreach='columns']/th[@t-if=&quot;column.type === 'field'&quot;]//span[contains(@class, 'text-truncate')]" position="before">
+            <span
+                t-if="column.hasLabel"
+                class="o_column_reorder_handle fa fa-bars text-muted me-2"
+                t-on-click.stop.prevent="() => {}"
+                aria-label="Reorder column"
+                role="button"
+            />
+        </xpath>
+    </t>
+
+    <t t-name="column_reorder_tspl.SaleListRenderer" t-inherit="sale.SaleListRenderer" t-inherit-mode="extension">
+        <xpath expr="//t[@t-foreach='columns']/th[@t-if=&quot;column.type === 'field'&quot;]" position="attributes">
+            <attribute name="t-att-class">(getColumnClass(column) + ' opacity-trigger-hover w-print-auto o_column_reorder_header').trim()</attribute>
+            <attribute name="t-att-data-column-id">column.id</attribute>
+        </xpath>
+        <xpath expr="//t[@t-foreach='columns']/th[@t-if=&quot;column.type === 'field'&quot;]//span[contains(@class, 'text-truncate')]" position="before">
+            <span
+                t-if="column.hasLabel"
+                class="o_column_reorder_handle fa fa-bars text-muted me-2"
+                t-on-click.stop.prevent="() => {}"
+                aria-label="Reorder column"
+                role="button"
+            />
+        </xpath>
+    </t>
+
+</templates>

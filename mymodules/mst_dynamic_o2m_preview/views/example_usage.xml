@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!--
+        Example Usage
+
+        In any parent model list view, use the widget like below.
+        Replace model, inherited view, field names, and columns based on your requirement.
+
+        Example:
+
+        <field name="hotel_checkin_checkout_history_ids"
+               widget="dynamic_one2many_preview"
+               options="{
+                   'fields': ['date', 'check_in_datetime', 'check_out_datetime'],
+                   'labels': ['Date', 'Check In', 'Check Out'],
+                   'max_rows': 3
+               }"/>
+    -->
+
+</odoo>

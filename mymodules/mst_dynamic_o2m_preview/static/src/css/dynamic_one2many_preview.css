@@ -1,0 +1,94 @@
+.o_dynamic_o2m_preview {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    padding: 4px 0;
+}
+
+.o_dynamic_o2m_scroll {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.o_dynamic_o2m_table {
+    border-collapse: collapse;
+    font-size: 12px;
+    background: #ffffff;
+    table-layout: fixed;
+}
+
+.o_dynamic_o2m_table th {
+    background: #f3f4f6;
+    color: #333333;
+    font-weight: 600;
+    padding: 5px 8px;
+    border: 1px solid #dddddd;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.o_dynamic_o2m_table td {
+    padding: 5px 8px;
+    border: 1px solid #dddddd;
+    vertical-align: top;
+}
+
+.o_dynamic_o2m_cell {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.o_dynamic_o2m_cell_wrap {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: unset !important;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    line-height: 1.35;
+    max-height: 70px;
+}
+
+.o_dynamic_o2m_empty {
+    color: #777777;
+    font-size: 12px;
+    font-style: italic;
+}
+
+.o_dynamic_o2m_more {
+    margin-top: 4px;
+    font-size: 11px;
+    color: #666666;
+}
+
+/* Better adjustment inside list view */
+.o_list_view .o_dynamic_o2m_preview {
+    min-width: 320px;
+    max-width: 100%;
+}
+
+.o_list_view .o_dynamic_o2m_table {
+    max-width: 100%;
+}
+/* 新增展开收起按钮样式 */
+.o_dynamic_o2m_toggle {
+    font-size: 12px;
+    padding: 3px 8px;
+    margin-top: 4px;
+    color: #007bff;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+}
+.o_dynamic_o2m_toggle:hover {
+    text-decoration: underline;
+}
+.o_dynamic_o2m_table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
