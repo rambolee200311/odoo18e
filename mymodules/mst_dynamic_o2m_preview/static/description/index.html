@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Odoo Dynamic One2many Preview Widget Module | Dynamic One2many Preview Widget</title>
+    <meta name="description" content="Odoo Dynamic One2many Preview Widget Module for Odoo 18 helps users preview One2many records directly inside parent list views with flexible XML configuration." />
+    <meta name="keywords" content="Odoo 18 One2many Widget, Odoo List View Preview, Dynamic One2many Preview, Odoo Backend Widget, One2many List View, Sales Order Line Preview, Odoo Productivity Tool" />
+  <meta charset="UTF-8"/>
+
+  <link rel="canonical" href="https://mindsparktechnologies.com/odoo"/>
+
+  <meta property="og:title" content="Odoo Dynamic One2many Preview Widget Module | Dynamic One2many Preview Widget"/>
+
+  <meta property="og:description" content="Odoo Dynamic One2many Preview Widget Module helps users preview One2many child records directly inside parent list views with configurable fields, labels, row limits, column width, and text wrapping support." />
+
+  <meta property="og:type" content="website"/>
+
+  <meta property="og:url" content="https://mindsparktechnologies.com/odoo"/>
+
+  <meta property="og:image" content="https://mindsparktechnologies.com/odoo/asset/screenshots/image.png" />
+
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Dynamic One2many Preview Widget",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Odoo 18",
+      "description": "",
+      "offers": {
+        "@type": "Offer",
+        "price": "0.0",
+        "priceCurrency": "USD"
+      },
+      "author": {
+        "@type": "Organization",
+        "name": "Mind Spark Technologies",
+        "url": "https://mindsparktechnologies.com"
+      }
+    }
+    </script>
+</head>
+
+<section
+        style="width:100%;max-width:1180px;margin:0 auto;padding:0 14px;font-family:Arial,Helvetica,sans-serif;color:#2b2b2b;box-sizing:border-box;line-height:1.5;">
+
+    <!-- HEADER -->
+    <div style="width:100%;margin:18px auto 26px;background:#ffffff;border:1px solid #e8e8e8;border-radius:12px;padding:26px 32px;box-sizing:border-box;box-shadow:0 4px 18px rgba(0,0,0,0.04);">
+
+        <!-- LEFT LOGO -->
+         <div style="display:inline-block;vertical-align:middle;width:35%;min-width:260px;box-sizing:border-box;text-align:left;padding:6px 10px;">
+            <img src="https://mlnks.in/Mst/dynamic_o2m_preview_v18"
+               alt="Mind Spark Technologies"
+               style="width:100%;height:auto;display:inline-block;border:0;vertical-align:middle;"/>
+        </div>
+        <div style="display:inline-block;vertical-align:middle;width:10%;min-width:260px;box-sizing:border-box;text-align:center;padding:6px 10px;">
+            <img src="./asset/header/v18.webp"
+                 alt="Odoo 18 Certified"
+                 style="max-width:155px;width:100%;height:auto;display:inline-block;border:0;"/>
+        </div>
+
+        <!-- RIGHT SUPPORT + AVAILABILITY -->
+        <div style="display:inline-block;vertical-align:middle;width:40%;min-width:280px;box-sizing:border-box;text-align:right;padding:6px 10px;">
+            <!-- SUPPORTS -->
+            <div style="margin:0 0 14px;white-space:normal;text-align:right;">
+              <span style="display:inline-block;font-size:16px;font-weight:800;color:#555;margin:5px 10px 5px 0;vertical-align:middle;">
+                  Supports:
+              </span>
+              <span style="display:inline-block;background-color:#75499a;color:#ffffff;font-size:15px;font-weight:800;padding:10px 28px;border-radius:28px;margin:4px;min-width:140px;text-align:center;box-sizing:border-box;vertical-align:middle;border:1px solid #75499a;">
+                  Community
+              </span>
+              <span style="display:inline-block;background-color:#8d3f7b;color:#ffffff;font-size:15px;font-weight:800;padding:10px 28px;border-radius:28px;margin:4px;min-width:140px;text-align:center;box-sizing:border-box;vertical-align:middle;border:1px solid #8d3f7b;">
+                  Enterprise
+              </span>
+            </div>
+            <!-- AVAILABILITY -->
+            <div style="white-space:normal;text-align:right;">
+              <span style="display:inline-block;font-size:16px;font-weight:800;color:#555;margin:5px 10px 5px 0;vertical-align:middle;">
+                  Availability:
+              </span>
+              <span style="display:inline-block;border:1px solid #e6e6e6;background-color:#ffffff;color:#333;font-size:15px;font-weight:600;padding:9px 18px;border-radius:26px;margin:4px;min-width:142px;text-align:center;box-sizing:border-box;vertical-align:middle;">
+                  Odoo.sh
+              </span>
+              <span style="display:inline-block;border:1px solid #e6e6e6;background-color:#ffffff;color:#333;font-size:15px;font-weight:600;padding:9px 18px;border-radius:26px;margin:4px;min-width:142px;text-align:center;box-sizing:border-box;vertical-align:middle;">
+                  On Premise
+              </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- HERO BANNER -->
+    <div style="width:100%;margin:18px 0 44px;text-align:center;box-sizing:border-box;">
+        <img src="./asset/screenshots/Dynamic O2m Widget App.png" alt="Odoo Dynamic O2M Widget Preview"
+             style="width:100%;max-width:100%;height:auto;display:block;border:0;border-radius:18px;box-shadow:0 12px 34px rgba(0,0,0,0.12);"/>
+    </div>
+
+    <!-- INTRO SECTION -->
+    <div style="width:100%;margin:24px 0 46px;text-align:center;box-sizing:border-box;">
+        <div style="border:1px solid #e6e6e6;border-radius:15px;background:#fff;background-image:linear-gradient(180deg,rgba(176,19,123,0.14) 0%,#fff 65%);padding:24px 32px;box-sizing:border-box;">
+            <div style="display:inline-block;vertical-align:middle;width:69%;min-width:300px;box-sizing:border-box;padding:16px 18px;text-align:left;">
+                <h2 style="font-size:34px;line-height:1.18;font-weight:800;color:#222;margin:0 0 18px;">Odoo Dynamic One2many Preview Widget Module | Dynamic One2many Preview Widget</h2>
+                <p style="font-size:16px;line-height:1.85;color:#555;margin:0;">Odoo Dynamic One2many Preview Widget Module helps users preview One2many records directly inside parent list views with flexible XML configuration.</p>
+                <br>
+            </div>
+<!--            <div style="display:inline-block;vertical-align:middle;width:29%;min-width:280px;box-sizing:border-box;padding:16px 18px;text-align:center;">-->
+<!--                <a href="https://youtu.be/XOjyJZdEWTY" target="_blank"-->
+<!--                   style="display:inline-block;text-decoration:none;margin:8px 14px 14px;vertical-align:middle;">-->
+<!--                    <img src="./asset/header/watch_demo.png" alt="Watch Odoo GST Validation Demo"-->
+<!--                         style="max-width:190px;width:100%;height:auto;display:block;border:0;"/>-->
+<!--                </a>-->
+<!--            </div>-->
+        </div>
+    </div>
+
+    <!-- SECTION 1 -->
+    <div style="width:100%;background:#f8f8f8;border:1px solid #eeeeee;border-radius:20px;padding:28px;box-sizing:border-box;margin:22px 0 52px;box-shadow:0 6px 22px rgba(0,0,0,0.04);">
+        <div style="display:inline-block;vertical-align:middle;width:58%;min-width:300px;box-sizing:border-box;padding:10px;">
+            <img src="./asset/screenshots/odoo_dynamic_o2m_preview_wid_app.png" alt="Odoo Dynamic One2many Preview App"
+                 style="width:100%;height:auto;display:block;border:1px solid #e6e6e6;border-radius:14px;"/>
+        </div>
+        <div style="display:inline-block;vertical-align:middle;width:41%;min-width:280px;box-sizing:border-box;padding:22px;">
+            <h2 style="font-size:32px;line-height:1.18;font-weight:800;color:#8B4E7B;margin:0 0 16px;">1. Module Installation</h2>
+            <p style="font-size:16px;line-height:1.85;color:#444;margin:0;">install the Dynamic One2many Preview Widget module from the Odoo Apps menu. After installation, the widget can be configured in the required list view by adding the One2many field and applying the widget name in the XML configuration.</p>
+        </div>
+    </div>
+
+    <!-- SECTION 2 -->
+    <div style="width:100%;background:#f8f8f8;border:1px solid #eeeeee;border-radius:20px;padding:28px;box-sizing:border-box;margin:22px 0 52px;box-shadow:0 6px 22px rgba(0,0,0,0.04);">
+        <div style="display:inline-block;vertical-align:middle;width:41%;min-width:280px;box-sizing:border-box;padding:22px;">
+            <h2 style="font-size:32px;line-height:1.18;font-weight:800;color:#8B4E7B;margin:0 0 16px;">2.Sales order line list view</h2>
+            <p style="font-size:16px;line-height:1.85;color:#444;margin:0;">In this example, we are using the Sales Order list view. Normally, users need to open each Sales Order to check the related order line details. But with this widget, the selected One2many records can be previewed directly inside the parent list view itself.</p>
+        </div>
+        <div style="display:inline-block;vertical-align:middle;width:58%;min-width:300px;box-sizing:border-box;padding:10px;">
+            <img src="./asset/screenshots/Sales order list view.png" alt="Salesorder List view"
+                 style="width:100%;height:auto;display:block;border:1px solid #e6e6e6;border-radius:14px;"/>
+        </div>
+    </div>
+
+    <!-- SECTION 3 -->
+    <div style="width:100%;background:#f8f8f8;border:1px solid #eeeeee;border-radius:20px;padding:28px;box-sizing:border-box;margin:22px 0 52px;box-shadow:0 6px 22px rgba(0,0,0,0.04);">
+        <div style="display:inline-block;vertical-align:middle;width:58%;min-width:300px;box-sizing:border-box;padding:10px;">
+            <img src="./asset/screenshots/Orderlines Overview.png" alt="Order lines Overview"
+                 style="width:100%;height:auto;display:block;border:1px solid #e6e6e6;border-radius:14px;"/>
+        </div>
+        <div style="display:inline-block;vertical-align:middle;width:41%;min-width:280px;box-sizing:border-box;padding:22px;">
+            <h2 style="font-size:32px;line-height:1.18;font-weight:800;color:#8B4E7B;margin:0 0 16px;">Orderlines  Overview</h2>
+            <p style="font-size:16px;line-height:1.85;color:#444;margin:0;">Odoo list views are designed to overview multiple records at once, and this widget improves that experience by showing related line details without opening the form view. This helps keep the list view clean, readable, and user-friendly. The user can quickly understand the order details without navigating into each individual Sales Order.</p>
+        </div>
+    </div>
+
+    <!-- Technical Configuration -->
+    <div style="width:100%;margin:24px 0 56px;box-sizing:border-box;">
+
+        <h2 style="font-size:34px;line-height:1.2;font-weight:800;color:#333;margin:0 0 22px;text-align:center;">
+            Technical Configuration
+        </h2>
+
+        <p style="font-size:16px;line-height:1.85;color:#444;margin:0 0 28px;text-align:center;max-width:980px;margin-left:auto;margin-right:auto;">
+            From the backend, users can define which fields need to be displayed in the preview table.
+            Custom labels, column widths, text wrapping, and the maximum number of rows can also be configured easily.
+            Since One2many fields display multiple related records of the current record, this widget is useful for showing
+            child records such as Sales Order Lines, Invoice Lines, Purchase Lines, and Delivery Lines in a clean table format.
+        </p>
+
+        <div style="background:#f8f6f8;border:1px solid #e5dce5;border-radius:14px;padding:28px;margin:0 auto 32px;max-width:1000px;box-sizing:border-box;">
+            <h3 style="font-size:24px;line-height:1.3;font-weight:700;color:#875A7B;margin:0 0 18px;">
+                Backend Configuration Steps
+            </h3>
+
+            <ol style="font-size:16px;line-height:1.9;color:#444;margin:0;padding-left:22px;">
+                <li>Keep the One2many field in the parent list view.</li>
+                <li>Add the widget to the One2many field.</li>
+                <li>Set the widget name as <strong>dynamic_one2many_preview</strong>.</li>
+                <li>Add the required XML options such as fields, labels, max rows, column width, and text wrapping.</li>
+            </ol>
+        </div>
+
+        <div style="max-width:1000px;margin:0 auto;box-sizing:border-box;">
+            <h3 style="font-size:24px;line-height:1.3;font-weight:700;color:#333;margin:0 0 18px;">
+                Option Details
+            </h3>
+
+            <table style="width:100%;border-collapse:collapse;font-size:15px;color:#444;background:#fff;border:1px solid #e5e7eb;">
+                <thead>
+                    <tr>
+                        <th style="background-color:#875A7B;color:#fff;text-align:left;padding:14px;border:1px solid #875A7B;width:25%;">
+                            Option
+                        </th>
+                        <th style="background-color:#875A7B;color:#fff;text-align:left;padding:14px;border:1px solid #875A7B;">
+                            Description
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="padding:14px;border:1px solid #e5e7eb;font-weight:700;">fields</td>
+                        <td style="padding:14px;border:1px solid #e5e7eb;">
+                            Define which fields need to be displayed in the One2many preview list.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:14px;border:1px solid #e5e7eb;font-weight:700;">labels</td>
+                        <td style="padding:14px;border:1px solid #e5e7eb;">
+                            Define custom labels for the selected fields.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:14px;border:1px solid #e5e7eb;font-weight:700;">max_rows</td>
+                        <td style="padding:14px;border:1px solid #e5e7eb;">
+                            Set the maximum number of One2many rows to be displayed in the list view.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:14px;border:1px solid #e5e7eb;font-weight:700;">column_width</td>
+                        <td style="padding:14px;border:1px solid #e5e7eb;">
+                            Set a fixed width for each preview column.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:14px;border:1px solid #e5e7eb;font-weight:700;">wrap_text_length</td>
+                        <td style="padding:14px;border:1px solid #e5e7eb;">
+                            Set the character limit after which long text should wrap.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:14px;border:1px solid #e5e7eb;font-weight:700;">wrap_fields</td>
+                        <td style="padding:14px;border:1px solid #e5e7eb;">
+                            Define the specific fields where text wrapping should be applied.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+        <!-- Technical Configuration Image -->
+    <div style="width:100%;margin:0 0 56px;box-sizing:border-box;text-align:center;">
+        <h2 style="font-size:34px;line-height:1.2;font-weight:800;color:#333;margin:0 0 22px;text-align:center;">
+            Configuration Preview
+        </h2>
+        <p style="font-size:16px;line-height:1.85;color:#444;margin:0 auto 28px;text-align:center;max-width:900px;">
+            The below screenshot shows how the Dynamic One2many Preview Widget displays configured child records directly inside the parent list view.
+        </p>
+        <div style="max-width:1000px;margin:0 auto;box-sizing:border-box;border:1px solid #e5e7eb;border-radius:14px;padding:14px;background:#ffffff;box-shadow:0 8px 24px rgba(0,0,0,0.08);">
+            <img src="./asset/screenshots/technical configuration.png"
+                 alt="Dynamic One2many Preview Widget Configuration Preview"
+                 style="width:100%;max-width:100%;height:auto;border-radius:10px;display:block;margin:0 auto;">
+        </div>
+    </div>
+
+    <!-- KEY FEATURES -->
+    <div style="width:100%;margin:24px 0 56px;box-sizing:border-box;">
+    <h2 style="font-size:34px;line-height:1.2;font-weight:800;color:#333;margin:0 0 22px;text-align:center;">
+        Key Features
+    </h2>
+
+    <ul style="font-size:16px;line-height:1.9;color:#444;margin:0;padding-left:24px;">
+        <li>Dynamic One2many Preview</li>
+        <li>Reusable Widget</li>
+        <li>Clean List View Experience</li>
+        <li>Row Limit Control</li>
+    </ul>
+</div>
+
+<!-- BENEFITS -->
+<div style="width:100%;margin:24px 0 56px;box-sizing:border-box;">
+    <h2 style="font-size:34px;line-height:1.2;font-weight:800;color:#333;margin:0 0 22px;text-align:center;">
+        Benefits
+    </h2>
+
+    <ul style="font-size:16px;line-height:1.9;color:#444;margin:0;padding-left:24px;">
+        <li>View One2many records directly in the list view.</li>
+        <li>Save time without opening each parent record.</li>
+        <li>Improve daily work productivity.</li>
+        <li>Quickly check line-level details.</li>
+        <li>View products, quantities, UOM, prices, and statuses easily.</li>
+        <li>Keep the list view clean and simple.</li>
+        <li>Control how many rows are displayed.</li>
+        <li>Configure fields and labels from the backend.</li>
+        <li>Use it for Sales, Purchase, Invoice, Inventory, and Helpdesk.</li>
+        <li>Help users make faster decisions from one screen.</li>
+    </ul>
+</div>
+
+    <div style="
+    margin:18px 0 28px;
+    padding:22px 28px;
+    border-radius:18px;
+    background:linear-gradient(135deg,#fdf7fb,#f7f7ff);
+    border:1px solid #e9d7e4;
+    box-shadow:0 8px 24px rgba(0,0,0,0.06);
+    color:#000000 !important;
+">
+
+        <h3 style="
+        margin:0 0 12px;
+        font-size:24px;
+        font-weight:800;
+        color:#8B4E7B;
+        line-height:1.3;
+    ">
+            Odoo Compatibility & Support
+        </h3>
+
+        <p style="
+        margin:0 0 12px;
+        font-size:16px;
+        line-height:1.9;
+        color:#555555;
+    ">
+            Fully compatible with <b>Odoo 18 Community & Enterprise Editions</b>.
+            Support for other Odoo versions is also available based on your business requirements.
+        </p>
+
+        <p style="
+        margin:0 0 12px;
+        font-size:16px;
+        line-height:1.9;
+        color:#555555;
+    ">
+            Includes <b>FREE 90 Days Support</b> for installation guidance, bug fixes,
+            and functional assistance related to the module.
+        </p>
+
+        <p style="
+        margin:0;
+        font-size:16px;
+        line-height:1.9;
+        color:#555555;
+    ">
+            Our team also provides customization support and feature enhancement services
+            based on your business workflow requirements.
+        </p>
+
+    </div>
+
+    <!-- FAQ -->
+    <div style="padding:10px 0 55px !important;">
+        <div style="border:1px solid #ececec !important;border-radius:24px !important;background-color:#fbfbfb !important;padding:40px 42px !important;box-shadow:0 10px 28px rgba(0,0,0,0.05) !important;">
+
+            <h2 style="margin:0 0 22px !important;font-size:34px !important;line-height:1.2 !important;font-weight:900 !important;color:#8B4E7B !important;text-align:center !important;">
+                Frequently Asked Questions
+            </h2>
+
+            <!-- FAQ 1 -->
+            <div style="margin-bottom:18px !important;">
+                <h3 style="margin:0 0 8px !important;font-size:22px !important;line-height:1.3 !important;color:#000000 !important;">
+                    What is the purpose of this module?
+                </h3>
+                <p style="margin:0 !important;font-size:16px !important;line-height:1.8 !important;color:#555555 !important;">
+                    This module helps users preview One2many child records directly inside the parent list view. It reduces extra clicks and saves time during daily Odoo operations.
+                </p>
+            </div>
+
+            <!-- FAQ 2 -->
+            <div style="margin-bottom:18px !important;">
+                <h3 style="margin:0 0 8px !important;font-size:22px !important;line-height:1.3 !important;color:#000000 !important;">
+                    Can I choose which fields should be displayed?
+                </h3>
+
+                <p style="margin:0 !important;font-size:16px !important;line-height:1.8 !important;color:#555555 !important;">
+                    Yes. You can configure the fields using XML options. You can also define custom labels, row limits, column widths, and text wrapping options.
+                </p>
+            </div>
+
+            <!-- FAQ 3 -->
+            <div style="margin-bottom:18px !important;">
+                <h3 style="margin:0 0 8px !important;font-size:22px !important;line-height:1.3 !important;color:#000000 !important;">
+                    Where can this widget be used?
+                </h3>
+
+                <p style="margin:0 !important;font-size:16px !important;line-height:1.8 !important;color:#555555 !important;">
+                    This widget can be used in Sales Orders, Purchase Orders, Invoices, Inventory Transfers, Helpdesk Tickets, and custom Odoo models that contain One2many fields.
+                </p>
+            </div>
+
+            <!-- FAQ 4 -->
+            <div style="margin-bottom:18px !important;">
+                <h3 style="margin:0 0 8px !important;font-size:22px !important;line-height:1.3 !important;color:#000000 !important;">
+                    Does this module change any existing Odoo workflow?
+                </h3>
+
+                <p style="margin:0 !important;font-size:16px !important;line-height:1.8 !important;color:#555555 !important;">
+                    No. This module only improves the list view preview experience. It does not change the standard Odoo workflow, records, or business logic.
+                </p>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- DEMO CTA - SIMPLE SAFE VERSION -->
+    <div style="width:100%;margin:24px 0 46px;text-align:center;box-sizing:border-box;">
+        <div style="border:1px solid #e6e6e6;border-radius:15px;background:#fff;background-image:linear-gradient(180deg,rgba(176,19,123,0.14) 0%,#fff 65%);padding:42px 5px;box-sizing:border-box;">
+            <div style="display:inline-block;vertical-align:middle;width:54%;min-width:331px;box-sizing:border-box;padding:8px 14px;text-align:left;">
+                <h2 style="font-size:36px;line-height:1.2;font-weight:900;color:#1f2933;margin:0 0 18px;letter-spacing:1px;">
+                    <span style="background:#b0137b;border-radius:8px;">BOOK</span> YOUR<br/>PERSONALIZED DEMO
+                </h2>
+                <p style="font-size:17px;line-height:1.8;color:#8B4E7B;font-weight:800;margin:0 0 24px;">We are
+                    available 24/7 for your service.<br/>Contact Us Today!</p>
+                <div style="margin-top:20px;">
+                <span style="display:block;font-size:14px;line-height:1.8;color:#75499a;font-weight:800;margin:6px 0;">
+                    <img src="./asset/footer/phone_icon.png" alt="Call"
+                         style="width:18px;height:18px;display:inline-block;vertical-align:middle;margin-right:10px;border:0;">
+                    USA - +1 407 574 8760
+                </span>
+                    <span style="display:block;font-size:14px;line-height:1.8;color:#75499a;font-weight:800;margin:6px 0;">
+                  <img src="./asset/footer/phone_icon.png" alt="Call"
+                       style="width:18px;height:18px;display:inline-block;vertical-align:middle;margin-right:10px;border:0;">
+                   IND - +91 98433 77486
+                </span>
+                    <span style="display:block;font-size:14px;line-height:1.8;color:#75499a;font-weight:800;margin:6px 0;word-break:break-word;">
+                    <img src="./asset/footer/mail_icon.png" alt="Mail"
+                         style="width:18px;height:18px;display:inline-block;vertical-align:middle;margin-right:10px;border:0;">
+                    <a href="mailto:odooapps@mindsparktechnologies.com" style="color:#75499a;text-decoration:none;">odooapps@mindsparktechnologies.com</a>
+                </span>
+                </div>
+            </div>
+            <div style="display:inline-block;vertical-align:middle;width:45%;min-width:280px;box-sizing:border-box;padding:8px 14px;text-align:center;">
+                <a href="tel:+919843377486"
+                   style="display:block;background:#b0137b;color:#ffffff;text-decoration:none;font-size:16px;font-weight:800;border-radius:28px;padding:14px 28px;margin:10px auto;text-align:center;width:220px;box-sizing:border-box;border:1px solid #b0137b;transition:all 0.3s ease;background-image:linear-gradient(135deg,#b0137b 0%,#7a0f60 100%);">
+                    <img src="./asset/footer/phone_icon.png" alt="Call"
+                         style="width:18px;height:18px;display:inline-block;vertical-align:middle;margin-right:10px;border:0;">
+                    <span style="vertical-align:middle;">CALL US</span>
+                </a>
+                <a href="mailto:odooapps@mindsparktechnologies.com"
+                   style="display:block;background:#8d3f7b;color:#ffffff;text-decoration:none;font-size:16px;font-weight:800;border-radius:28px;padding:14px 28px;margin:10px auto;text-align:center;width:220px;box-sizing:border-box;border:1px solid #8d3f7b;transition:all 0.3s ease;background-image:linear-gradient(135deg,#8d3f7b 0%,#5e2a52 100%);">
+                    <img src="./asset/footer/mail_icon.png" alt="Mail"
+                         style="width:18px;height:18px;display:inline-block;vertical-align:middle;margin-right:10px;border:0;">
+                    <span style="vertical-align:middle;">SEND MAIL</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- STATS -->
+    <div style="width:100%;margin:24px 0 46px;text-align:center;box-sizing:border-box;">
+        <h2 style="font-size:34px;line-height:1.25;font-weight:800;color:#333;margin:0 0 30px;">What Makes Us The Best
+            Choice</h2>
+        <div style="text-align:center;">
+            <div style="display:inline-block;vertical-align:top;width:24.5%;min-width:210px;box-sizing:border-box;padding:10px;text-align:left;">
+                <div style="border:1px solid #e6e6e6;border-radius:15px;background:#fff;background-image:linear-gradient(180deg,rgba(176,19,123,0.14) 0%,#fff 65%);padding:24px;box-sizing:border-box;min-height:190px;">
+                    <h3 style="font-size:21px;font-weight:900;color:#222;margin:0 0 10px;">APPS</h3>
+                    <p style="font-size:14px;line-height:1.65;font-weight:700;color:#b0137b;margin:0;">Custom Odoo apps
+                        for smarter workflows.</p>
+                    <div style="font-size:42px;font-weight:900;color:#a11d7d;margin-top:28px;">150+</div>
+                </div>
+            </div>
+            <div style="display:inline-block;vertical-align:top;width:24.5%;min-width:210px;box-sizing:border-box;padding:10px;text-align:left;">
+                <div style="border:1px solid #e6e6e6;border-radius:15px;background:#fff;background-image:linear-gradient(180deg,rgba(176,19,123,0.14) 0%,#fff 65%);padding:24px;box-sizing:border-box;min-height:190px;">
+                    <h3 style="font-size:21px;font-weight:900;color:#222;margin:0 0 10px;">CLIENTS</h3>
+                    <p style="font-size:14px;line-height:1.65;font-weight:700;color:#b0137b;margin:0;">Trusted by
+                        businesses worldwide.</p>
+                    <div style="font-size:42px;font-weight:900;color:#a11d7d;margin-top:28px;">530+</div>
+                </div>
+            </div>
+            <div style="display:inline-block;vertical-align:top;width:24.5%;min-width:210px;box-sizing:border-box;padding:10px;text-align:left;">
+                <div style="border:1px solid #e6e6e6;border-radius:15px;background:#fff;background-image:linear-gradient(180deg,rgba(176,19,123,0.14) 0%,#fff 65%);padding:24px;box-sizing:border-box;min-height:190px;">
+                    <h3 style="font-size:21px;font-weight:900;color:#222;margin:0 0 10px;">PRODUCTS</h3>
+                    <p style="font-size:14px;line-height:1.65;font-weight:700;color:#b0137b;margin:0;">Ready-to-use,
+                        high-quality modules.</p>
+                    <div style="font-size:42px;font-weight:900;color:#a11d7d;margin-top:28px;">40+</div>
+                </div>
+            </div>
+            <div style="display:inline-block;vertical-align:top;width:24.5%;min-width:210px;box-sizing:border-box;padding:10px;text-align:left;">
+                <div style="border:1px solid #e6e6e6;border-radius:15px;background:#fff;background-image:linear-gradient(180deg,rgba(176,19,123,0.14) 0%,#fff 65%);padding:24px;box-sizing:border-box;min-height:190px;">
+                    <h3 style="font-size:21px;font-weight:900;color:#222;margin:0 0 10px;">PROJECTS</h3>
+                    <p style="font-size:14px;line-height:1.65;font-weight:700;color:#b0137b;margin:0;">Delivered with
+                        precision and expertise.</p>
+                    <div style="font-size:42px;font-weight:900;color:#a11d7d;margin-top:28px;">750+</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</section>
+</html>

@@ -1,0 +1,23 @@
+<odoo>
+    <record id="view_purchase_order_tree_inherit_dynamic_o2m_preview" model="ir.ui.view">
+        <field name="name">purchase.order.list.dynamic.o2m.preview</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_view_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='invoice_status']" position="after">
+                <field name="order_line"
+                       string="Purchase Lines"
+                       widget="dynamic_one2many_preview"
+                       options="{
+                           'fields': ['product_id', 'product_qty', 'product_uom', 'price_unit'],
+                           'labels': ['Product', 'Qty', 'UOM', 'Unit Price'],
+                           'max_rows': 7,
+                           'column_width': 140,
+                           'wrap_text_length': 25,
+                           'wrap_fields': ['product_id']
+                       }"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
