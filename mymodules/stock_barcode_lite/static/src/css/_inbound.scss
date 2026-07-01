@@ -256,8 +256,7 @@
 }
 
 // 展开时箭头旋转
-.o_pallet_row1:not(.collapsed) .collapse-arrow,
-.o_pallet_row1[aria-expanded="true"] .collapse-arrow {
+.o_pallet_header[aria-expanded="true"] .collapse-arrow {
     transform: rotate(180deg);
 }
 
