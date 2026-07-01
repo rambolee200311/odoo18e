@@ -13,6 +13,7 @@ Chenyang Chemical warehouse customizations.
         "security/ir.model.access.csv",
 
         "reports/inbound_pallet_label_report.xml",
+        "reports/outbound_lot_code_label_report.xml",
 
         "views/inbound_order_views.xml",
         "views/outbound_order_views.xml",
