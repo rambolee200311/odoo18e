@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+        <record id="paperformat_outbound_pallet_label" model="report.paperformat">
+            <field name="name">Outbound Pallet Label A4</field>
+            <field name="default" eval="False"/>
+            <field name="format">A4</field>
+            <field name="orientation">Portrait</field>
+            <field name="margin_top">0</field>
+            <field name="margin_bottom">6</field>
+            <field name="margin_left">6</field>
+            <field name="margin_right">6</field>
+            <field name="header_line" eval="False"/>
+            <field name="header_spacing">0</field>
+            <field name="dpi">90</field>
+        </record>
+
+
+    <record id="action_report_outbound_lot_code_label" model="ir.actions.report">
+        <field name="name">Outbound Lot Code Labels</field>
+        <field name="model">world.depot.outbound.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">stock_barcode_lite.report_outbound_lot_code_label</field>
+        <field name="report_file">stock_barcode_lite.report_outbound_lot_code_label</field>
+        <field name="print_report_name">'Outbound Lot Labels - %s' % (object.vsourcebillcode or object.billno or object.reference or object.id)</field>
+        <field name="paperformat_id" ref="paperformat_outbound_pallet_label"/>
+        <field name="binding_model_id" ref="worlddepot.model_world_depot_outbound_order"/>
+        <field name="binding_type">report</field>
+    </record>
+
+   <template id="report_outbound_lot_code_label">
+    <t t-call="web.html_container">
+        <t t-foreach="docs" t-as="o">
+            <t t-call="web.basic_layout">
+            <t t-set="lines" t-value="o.outbound_order_product_ids"/>
+            <t t-foreach="range(0, len(lines), 4)" t-as="page_start">
+                <div class="page label-page">
+                    <style>
+                        .label-page {
+                            padding: 6mm;
+                            font-family: "Noto Sans CJK SC", "Microsoft YaHei", "SimSun", Arial, sans-serif;
+                        }
+
+                        .label-table {
+                            width: 100%;
+                            border-collapse: separate;
+                            border-spacing: 5mm;
+                            table-layout: fixed;
+                        }
+
+                        .label-cell {
+                            width: 50%;
+                            height: 135mm;
+                            vertical-align: top;
+                            padding: 0;
+                        }
+
+                        .label-card {
+                            position: relative;
+                            height: 128mm;
+                            border: 1.5px solid #1b4eff;
+                            box-sizing: border-box;
+                            overflow: hidden;
+                        }
+
+                        .product-name {
+                            position: absolute;
+                            left: 8mm;
+                            top: 12mm;
+                            width: 55mm;
+                            font-size: 18px;
+                            font-weight: 700;
+                            line-height: 1.25;
+                        }
+
+                        .spec-text {
+                            position: absolute;
+                            left: 8mm;
+                            top: 58mm;
+                            width: 60mm;
+                            font-size: 17px;
+                            font-weight: 700;
+                            line-height: 1.4;
+                        }
+
+                        .product-qr {
+                            position: absolute;
+                            right: 8mm;
+                            top: 10mm;
+                            width: 34mm;
+                            text-align: center;
+                            font-size: 10px;
+                            font-weight: 600;
+                        }
+
+                        .lot-qr {
+                            position: absolute;
+                            left: 8mm;
+                            bottom: 8mm;
+                            width: 38mm;
+                            text-align: center;
+                            font-size: 10px;
+                            font-weight: 600;
+                        }
+
+                        .lot-info {
+                            position: absolute;
+                            right: 8mm;
+                            bottom: 18mm;
+                            width: 52mm;
+                            font-size: 16px;
+                            font-weight: 700;
+                            line-height: 2.0;
+                        }
+
+                        .qr-caption {
+                            margin-top: 1mm;
+                        }
+                    </style>
+
+                    <table class="label-table">
+                        <tr>
+                            <td class="label-cell">
+                                <t t-if="page_start &lt; len(lines)">
+                                    <t t-call="stock_barcode_lite.report_outbound_lot_code_label_card">
+                                        <t t-set="line" t-value="lines[page_start]"/>
+                                    </t>
+                                </t>
+                            </td>
+                            <td class="label-cell">
+                                <t t-if="page_start + 1 &lt; len(lines)">
+                                    <t t-call="stock_barcode_lite.report_outbound_lot_code_label_card">
+                                        <t t-set="line" t-value="lines[page_start + 1]"/>
+                                    </t>
+                                </t>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="label-cell">
+                                <t t-if="page_start + 2 &lt; len(lines)">
+                                    <t t-call="stock_barcode_lite.report_outbound_lot_code_label_card">
+                                        <t t-set="line" t-value="lines[page_start + 2]"/>
+                                    </t>
+                                </t>
+                            </td>
+                            <td class="label-cell">
+                                <t t-if="page_start + 3 &lt; len(lines)">
+                                    <t t-call="stock_barcode_lite.report_outbound_lot_code_label_card">
+                                        <t t-set="line" t-value="lines[page_start + 3]"/>
+                                    </t>
+                                </t>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </t>
+        </t>
+    </t>
+       </t>
+</template>
+
+<template id="report_outbound_lot_code_label_card">
+    <t t-set="product_code" t-value="line.product_id.default_code or line.product_id.barcode or ''"/>
+    <t t-set="lot_code" t-value="line.lot_name or ''"/>
+    <div class="label-card">
+        <div class="product-name">
+            <span t-field="line.product_id.display_name"/>
+        </div>
+
+        <div class="spec-text">
+            Specification:
+            <span t-esc="line.box_in_qty"/>
+            <span t-esc="line.u8_aux_uom_name or ''"/>
+        </div>
+
+        <div class="product-qr">
+            <span t-out="product_code"
+                  t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 140, 'height': 140, 'img_style': 'width:30mm;height:30mm;'}"/>
+            <div class="qr-caption">Product QR Code</div>
+        </div>
+
+        <div class="lot-qr">
+            <span t-out="lot_code"
+                  t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 150, 'height': 150, 'img_style': 'width:34mm;height:34mm;'}"/>
+            <div class="qr-caption">Lot QR Code</div>
+        </div>
+
+        <div class="lot-info">
+            <div>Lot No: <span t-esc="line.lot_name or ''"/></div>
+            <div>MFG Date: <span t-esc="line.m_date or ''"/></div>
+            <div>EXP Date: <span t-esc="line.e_date or ''"/></div>
+        </div>
+    </div>
+</template>
+
+
+
+</odoo>
