@@ -37,29 +37,38 @@
                 <t t-esc="state.message"/>
             </div>
 
-            <!-- 出库单信息 -->
-            <div t-if="hasOrder" class="o_sbl_order_info">
-                <div class="o_order_row1">
-                    <span class="o_order_origin">
-                        <t t-if="orderOrigin"><t t-esc="orderOrigin"/></t>
-                    </span>
-                    <span class="o_order_partner">
-                        <i class="fa fa-user me-1"/>
-                        <t t-esc="orderPartner"/>
-                    </span>
-                </div>
-                <div class="o_order_row2" t-if="relatedPickingMessage">
-                    <i class="fa fa-exclamation-triangle text-warning me-1"/>
-                    <span class="text-warning"><t t-esc="relatedPickingMessage"/></span>
-                </div>
-            </div>
-
             <!-- 当前货位信息 -->
             <div t-if="hasLocation" class="o_sbl_location_bar">
                 <i class="fa fa-map-marker text-danger me-1"/>
                 <span class="me-1">Location:</span>
                 <strong class="text-primary"><t t-esc="currentLocationName"/></strong>
                 <span class="text-muted ms-1" t-if="currentLocationBarcode">(<t t-esc="currentLocationBarcode"/>)</span>
+            </div>
+
+            <!-- 当前Picking信息 -->
+            <div t-if="hasOrder" class="o_sbl_picking_bar">
+                <div class="o_picking_info_row">
+                    <span class="o_picking_label">
+                        <i class="fa fa-clipboard-list text-primary me-1"/>
+                        Current Picking:
+                    </span>
+                    <span class="o_picking_name text-primary fw-bold">
+                        <t t-esc="pickingDisplayName"/>
+                    </span>
+                    <span class="o_picking_state badge ms-2" t-attf-class="bg-{{ pickingStateBadgeClass }}">
+                        <t t-esc="pickingStateLabel"/>
+                    </span>
+                </div>
+                <div class="o_picking_extra" t-if="orderOrigin || orderPartner">
+<!--                    <span t-if="orderOrigin" class="me-3">-->
+<!--                        <i class="fa fa-link text-muted me-1"/>-->
+<!--                        <t t-esc="orderOrigin"/>-->
+<!--                    </span>-->
+                    <span t-if="orderPartner">
+                        <i class="fa fa-user text-muted me-1"/>
+                        <t t-esc="orderPartner"/>
+                    </span>
+                </div>
             </div>
 
             <!-- ═══ 扫描提示步骤条：Order -> Location -> Pallet ═══ -->
