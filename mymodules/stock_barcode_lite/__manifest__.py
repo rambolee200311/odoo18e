@@ -11,6 +11,7 @@ Chenyang Chemical warehouse customizations.
     "depends": ["worlddepot", "account"],
     "data": [
         "security/ir.model.access.csv",
+        'security/security.xml',
 
         "reports/inbound_pallet_label_report.xml",
         "reports/outbound_lot_code_label_report.xml",
