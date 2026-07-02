@@ -36,7 +36,7 @@ class BondedMrnMaster(models.Model):
         return (code or "").strip().upper()
 
     def getMrnRegexPattern(self):
-        return r"^[A-Z]{2}[A-Z0-9]{16}$"
+        return r"^[0-9]{2}[A-Z]{2}[A-Z0-9]{14}$"
 
 
     @api.onchange("code")
@@ -52,4 +52,4 @@ class BondedMrnMaster(models.Model):
         for rec in self:
             code = rec.actionNormalizeMrnCode(rec.code)
             if code and not regex.fullmatch(code):
-                raise ValidationError(_("MRN format invalid. It must be 18 chars: 2-letter country code + 16 uppercase alphanumeric chars."))
+                raise ValidationError(_("MRN format invalid. It must be 18 chars: 2 digits year + 2-letter country code + 14 uppercase alphanumeric chars."))
