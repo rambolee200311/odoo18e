@@ -4788,7 +4788,7 @@ msgstr "世界仓库仪表板"
 
 #. module: worlddepot
 #: model:ir.ui.menu,name:worlddepot.world_depot_logi_menu
-msgid "WorldDepot"
+msgid "WD EUROPE"
 msgstr "仓储订单管理"
 
 #. module: worlddepot

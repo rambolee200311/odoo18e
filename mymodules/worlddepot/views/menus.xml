@@ -2,7 +2,7 @@
 <odoo>
     <data>
         <!-- menu -->
-        <menuitem id="world_depot_logi_menu" name="WorldDepot" sequence="10" action="action_world_depot_dashboard"/>
+        <menuitem id="world_depot_logi_menu" name="WD EUROPE" sequence="10" action="action_world_depot_dashboard"/>
 
         <menuitem id="inbound_logi_menu" name="Inbound" parent="world_depot_logi_menu" sequence="200" />
         <menuitem id="inbound_order_menu" name="Orders" parent="inbound_logi_menu" sequence="201" action="action_inbound_order"/>

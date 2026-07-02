@@ -380,6 +380,15 @@ class InboundOrder(models.Model):
                 "message": _("Stock picking created successfully."),
                 "type": "success",
                 "sticky": False,
+                "next": {
+                    "type": "ir.actions.act_window",
+                    "name": _("Inbound Order"),
+                    "res_model": "world.depot.inbound.order",
+                    "res_id": self[:1].id,
+                    "view_mode": "form",
+                    "views": [(False, "form")],
+                    "target": "current",
+                },
             },
         }
 
