@@ -51,16 +51,24 @@ class StockPicking(models.Model):
 
     def check_cmr_sign_time_before_done(self):
         for rec in self:
-            if rec.picking_type_code in ("outgoing",) and (not rec.cmr_sign_time or not rec.cmr_sign_file):
-                raise UserError(_("CMR sign time and signed CMR file are required when transfer is Done (outgoing)."))
+            if rec.picking_type_code != "outgoing":
+                continue
+            if rec.get_required_is_bonded_by_picking() is not True:
+                continue
+            if not rec.cmr_sign_time or not rec.cmr_sign_file:
+                raise UserError(
+                    _("CMR sign time and signed CMR file are required when bonded outbound transfer is Done."))
 
-    @api.constrains("state", "picking_type_id", "cmr_sign_time")
+    @api.constrains("state", "picking_type_id", "cmr_sign_time", "cmr_sign_file", "outbound_order_id", "bonded_flag")
     def check_cmr_sign_time_when_done(self):
         for rec in self:
-            if rec.state == "done" and rec.picking_type_code in (
-            "outgoing",) and not rec.cmr_sign_time and not rec.cmr_sign_file:
+            if rec.state != "done" or rec.picking_type_code != "outgoing":
+                continue
+            if rec.get_required_is_bonded_by_picking() is not True:
+                continue
+            if not rec.cmr_sign_time or not rec.cmr_sign_file:
                 raise ValidationError(
-                    _("CMR sign time and signed CMR file are required when transfer is Done (outgoing)."))
+                    _("CMR sign time and signed CMR file are required when bonded outbound transfer is Done."))
 
     def action_sync_identifier_to_move_line_from_picking(self):
         for rec in self:
