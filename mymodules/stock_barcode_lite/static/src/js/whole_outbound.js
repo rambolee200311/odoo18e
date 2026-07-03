@@ -495,11 +495,15 @@ export class WholePalletOutboundPage extends Component {
         this.state.message = text;
         this.state.messageType = type;
         clearTimeout(this._messageTimer);
-        this._messageTimer = setTimeout(() => {
-            if (this.state.message === text) {
-                this.state.message = "";
-            }
-        }, 4000);
+
+        // 错误消息保持到下一次扫码，不自动消失
+        if (type !== "danger") {
+            this._messageTimer = setTimeout(() => {
+                if (this.state.message === text) {
+                    this.state.message = "";
+                }
+            }, 4000);
+        }
     }
 
     _flashScreen(pattern, repeat) {
