@@ -64,7 +64,6 @@ export class WholePalletOutboundPage extends Component {
         this.scrollContainerRef = useRef("palletsContainer");
 
         onMounted(async () => {
-            console.log("[WholePalletOutbound] mounted");
             this._bindKeyListener();
             this._bindVisibilityChange();
             this._bindGlobalInteractionListener();
@@ -84,14 +83,33 @@ export class WholePalletOutboundPage extends Component {
     // 设备检测
     // ═══════════════════════════════════════════════════════════════
 
+//    _detectPDA() {
+//        const hasTouchScreen = (
+//            "ontouchstart" in window ||
+//            navigator.maxTouchPoints > 0 ||
+//            window.matchMedia("(pointer: coarse)").matches
+//        );
+//        const isDesktop = window.matchMedia("(min-width: 1024px)").matches && !hasTouchScreen;
+//        return !isDesktop;
+//    }
+
     _detectPDA() {
+        // 精确指向设备（鼠标、触控笔）→ 不可能是PDA扫码枪
+        const hasFinePointer = window.matchMedia('(pointer: fine)').matches;
+        // 支持hover（鼠标悬停）→ 不可能是PDA扫码枪
+        const hasHover = window.matchMedia('(hover: hover)').matches;
+        // 小屏幕（≤ 768px 宽）→ 可能是手持PDA
+        const isSmallScreen = window.matchMedia('(max-width: 768px)').matches;
+        // 触屏可用
         const hasTouchScreen = (
-            "ontouchstart" in window ||
+            'ontouchstart' in window ||
             navigator.maxTouchPoints > 0 ||
-            window.matchMedia("(pointer: coarse)").matches
+            window.matchMedia('(pointer: coarse)').matches
         );
-        const isDesktop = window.matchMedia("(min-width: 1024px)").matches && !hasTouchScreen;
-        return !isDesktop;
+
+        // PDA只有在小屏、触屏、无精确指针、无hover的设备上才判定为真
+        // 从而排除桌面、大屏平板、触屏笔记本
+        return isSmallScreen && hasTouchScreen && !hasFinePointer && !hasHover;
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -289,16 +307,8 @@ export class WholePalletOutboundPage extends Component {
     // ═══════════════════════════════════════════════════════════════
 
     async onBarcodeScanned(barcode) {
-        console.log("╔═══════════════════════════════════════════════════════");
-        console.log("║ [WholePalletOutbound] BARCODE SCANNED");
-        console.log("║ ──────────────────────────────────────────────────────");
-        console.log("║ Barcode:", barcode);
-        console.log("║ Current Step:", this.state.nextStep);
-        console.log("║ Is Processing:", this._isProcessing);
-        console.log("╚═══════════════════════════════════════════════════════");
 
         if (!barcode || this._isProcessing) {
-            console.log("[WholePalletOutbound] Skipped - no barcode or still processing");
             return;
         }
 
