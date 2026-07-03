@@ -850,22 +850,22 @@ class InboundOrderProduct(models.Model):
     cspaceid = fields.Char(string="Location Code", copy=False, index=True, tracking=True)#货位号
 
 
-    @api.constrains("outbound_order_id", "pallet_no")
-    def check_pallet_no_unique_by_project(self):
-        pallet_model = self.env["world.depot.outbound.order.product"]
-        for rec in self:
-            if not rec.pallet_no or not rec.outbound_order_id or rec.outbound_order_id.state == "cancel":
-                continue
-            domain = [
-                ("id", "!=", rec.id),
-                ("pallet_no", "=", rec.pallet_no),
-                ("outbound_order_id", "!=", rec.outbound_order_id.id),
-                ("outbound_order_id.project", "=", rec.outbound_order_id.project.id),
-                ("outbound_order_id.state", "!=", "cancel"),
-            ]
-            existing = pallet_model.sudo().search(domain, limit=1)
-            if existing:
-                raise ValidationError(
-                    _('Pallet No "%s" already exists in outbound order "%s" for this project.')
-                    % (rec.pallet_no, existing.outbound_order_id.billno or existing.outbound_order_id.reference)
-                )
+    # @api.constrains("outbound_order_id", "pallet_no")
+    # def check_pallet_no_unique_by_project(self):
+    #     pallet_model = self.env["world.depot.outbound.order.product"]
+    #     for rec in self:
+    #         if not rec.pallet_no or not rec.outbound_order_id or rec.outbound_order_id.state == "cancel":
+    #             continue
+    #         domain = [
+    #             ("id", "!=", rec.id),
+    #             ("pallet_no", "=", rec.pallet_no),
+    #             ("outbound_order_id", "!=", rec.outbound_order_id.id),
+    #             ("outbound_order_id.project", "=", rec.outbound_order_id.project.id),
+    #             ("outbound_order_id.state", "!=", "cancel"),
+    #         ]
+    #         existing = pallet_model.sudo().search(domain, limit=1)
+    #         if existing:
+    #             raise ValidationError(
+    #                 _('Pallet No "%s" already exists in outbound order "%s" for this project.')
+    #                 % (rec.pallet_no, existing.outbound_order_id.billno or existing.outbound_order_id.reference)
+    #             )

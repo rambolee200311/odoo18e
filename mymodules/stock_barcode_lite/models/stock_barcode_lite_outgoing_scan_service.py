@@ -306,8 +306,11 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
                 barcode=code,
                 picking_id=picking.id,
                 location_id=current_location_id,
-                package_id=package.id,
+                package_id=False,
+                product_id=False,
+                lot_id=False,
                 pending_operation=pending_operation,
+                next_step="scan_pallet",
                 action_name="pallet_not_in_picking",
                 success=False,
             )
@@ -334,8 +337,11 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
                 barcode=code,
                 picking_id=picking.id,
                 location_id=current_location_id,
-                package_id=package.id,
+                package_id=False,
+                product_id=False,
+                lot_id=False,
                 pending_operation=pending_operation,
+                next_step="scan_pallet",
                 action_name="pallet_no_stock",
                 success=False,
             )
@@ -348,8 +354,11 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
                 barcode=code,
                 picking_id=picking.id,
                 location_id=current_location_id,
-                package_id=package.id,
+                package_id=False,
+                product_id=False,
+                lot_id=False,
                 pending_operation=pending_operation,
+                next_step="scan_pallet",
                 action_name="pallet_multiple_locations",
                 success=False,
             )
@@ -357,14 +366,36 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
         can_whole, reason = self.can_ship_whole_package(picking, package)
         if can_whole:
             updated_lines = self.apply_whole_package_scan(move_lines, stock_data["location"])
+
+            move_line_model = self.env["stock.move.line"]
+            picking_lines = move_line_model.sudo().search([
+                ("picking_id", "=", picking.id),
+                ("package_id", "!=", False),
+                ("quantity", ">", 0),
+            ], order="id")
+            picking_done = self.are_outgoing_lines_completed(picking_lines)
+
+            if picking_done:
+                next_step = "validate"
+                message = _("All products scanned. Please validate outgoing picking.")
+            else:
+                next_step = "scan_pallet"
+                message = _("Pallet %s scanned as whole pallet. Please scan next pallet.") % (
+                        package.name or package.barcode
+                )
+
             return self.build_outgoing_scan_result(
                 "pallet",
                 _("Pallet"),
-                _("Pallet %s scanned as whole pallet.") % (package.name or package.barcode),
+                message,
                 barcode=code,
                 picking_id=picking.id,
                 location_id=current_location_id,
+                package_id=False,
+                product_id=False,
+                lot_id=False,
                 pending_operation=False,
+                next_step=next_step,
                 action_name="scan_whole_pallet",
                 updated_move_line_ids=updated_lines.ids,
                 success=True,
@@ -457,18 +488,11 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
 
         lot_id = False
         if product.tracking == "lot":
-            lot_ids = list(set(lines.mapped("lot_id").ids))
-            if len(lot_ids) == 1:
-                lot_id = lot_ids[0]
-                next_step = "input_quantity"
-                message = _("Product %s selected. Lot was auto-selected.") % product.display_name
-            else:
-                next_step = "scan_lot"
-                message = _("Product %s selected. Please scan lot.") % product.display_name
+            next_step = "scan_lot"
+            message = _("Product %s selected. Please scan lot.") % product.display_name
         else:
             next_step = "input_quantity"
             message = _("Product %s selected. Please input quantity.") % product.display_name
-
         return self.build_outgoing_scan_result(
             "product",
             _("Product"),
@@ -527,7 +551,9 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
                 location_id=current_location_id,
                 package_id=package.id,
                 product_id=product.id,
+                lot_id=False,
                 pending_operation=pending_operation,
+                next_step="scan_lot",
                 action_name="lot_multiple_matches",
                 success=False,
             )
@@ -541,7 +567,9 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
                 location_id=current_location_id,
                 package_id=package.id,
                 product_id=product.id,
+                lot_id=False,
                 pending_operation=pending_operation,
+                next_step="scan_lot",
                 action_name="lot_not_found",
                 success=False,
             )
@@ -558,8 +586,9 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
                 location_id=current_location_id,
                 package_id=package.id,
                 product_id=product.id,
-                lot_id=lot.id,
+                lot_id=False,
                 pending_operation=pending_operation,
+                next_step="scan_lot",
                 action_name="lot_not_in_pallet_demand",
                 success=False,
             )
@@ -627,7 +656,9 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
                 location_id=current_location_id,
                 package_id=package.id,
                 product_id=product.id,
+                lot_id=False,
                 pending_operation=pending_operation,
+                next_step="scan_lot",
                 action_name="missing_lot",
                 success=False,
             )
@@ -703,21 +734,44 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
             )
 
         updated_lines = self.apply_partial_package_scan(lines, scan_qty, stock_location)
+
+        move_line_model = self.env["stock.move.line"]
         package_lines = self.get_outgoing_package_move_lines(picking, package)
         package_done = self.are_outgoing_lines_completed(package_lines)
+
+        picking_lines = move_line_model.sudo().search([
+            ("picking_id", "=", picking.id),
+            ("package_id", "!=", False),
+            ("quantity", ">", 0),
+        ], order="id")
+        picking_done = self.are_outgoing_lines_completed(picking_lines)
+
+        if picking_done:
+            next_step = "validate"
+            package_id = False
+            message = _("All products scanned. Please validate outgoing picking.")
+        elif package_done:
+            next_step = "scan_pallet"
+            package_id = False
+            message = _("Pallet %s completed. Please scan next pallet.") % (package.name or package.barcode)
+        else:
+            next_step = "scan_product"
+            package_id = package.id
+            message = _("Scanned %s of %s on pallet %s.") % (
+            scan_qty, product.display_name, package.name or package.barcode)
 
         return self.build_outgoing_scan_result(
             "quantity",
             _("Quantity"),
-            _("Scanned %s of %s on pallet %s.") % (scan_qty, product.display_name, package.name or package.barcode),
+            message,
             barcode=code,
             picking_id=picking.id,
             location_id=current_location_id,
-            package_id=False if package_done else package.id,
+            package_id=package_id,
             product_id=False,
             lot_id=False,
             pending_operation=False,
-            next_step="scan_pallet" if package_done else "scan_product",
+            next_step=next_step,
             action_name="scan_partial_quantity",
             updated_move_line_ids=updated_lines.ids,
             success=True,
