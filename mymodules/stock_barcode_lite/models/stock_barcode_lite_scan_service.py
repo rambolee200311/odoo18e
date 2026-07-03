@@ -175,17 +175,31 @@ class StockBarcodeLiteScanService(models.AbstractModel):
             )
 
         updated_count = self.apply_location_to_package(move_lines, location)
+
+        package_lines = picking.move_line_ids.filtered(lambda line: line.result_package_id)
+        all_updated = bool(package_lines) and all(package_lines.mapped("is_location_updated"))
+
+        if all_updated:
+            next_step = "validate"
+            message = _("All pallets updated. Please validate incoming picking.")
+        else:
+            next_step = "scan_package"
+            message = _("Pallet %s updated to %s. Move lines: %s") % (
+                package.name, location.display_name, updated_count
+            )
+
         return self.build_scan_result(
             "package",
             _("Pallet"),
-            _("Pallet %s updated to %s. Move lines: %s") % (package.name, location.display_name, updated_count),
+            message,
             barcode=code,
             picking_id=picking.id,
             location_id=location.id,
-            package_id=package.id,
+            package_id=False if all_updated else package.id,
             action_name="update_package_location",
             updated_move_line_ids=move_lines.ids,
             success=True,
+            next_step=next_step,
         )
 
     @api.model
@@ -383,7 +397,7 @@ class StockBarcodeLiteScanService(models.AbstractModel):
     @api.model
     def build_scan_result(self, result_type, barcode_type, message, barcode="",
                           picking_id=False, location_id=False, package_id=False,
-                          action_name=False, updated_move_line_ids=None, success=True):
+                          action_name=False, updated_move_line_ids=None, success=True, next_step=False):
 
         #picking = rec.env["stock.picking"].sudo().search([("id", "=", picking_id)], limit=1) if picking_id else rec.env["stock.picking"]
         last_scan = {
@@ -399,7 +413,7 @@ class StockBarcodeLiteScanService(models.AbstractModel):
             "barcode": barcode or "",
             "barcode_type": barcode_type,
             "message": message,
-            "next_step": self.get_next_scan_step(result_type, picking_id, location_id),
+            "next_step": next_step or self.get_next_scan_step(result_type, picking_id, location_id),
             "current": {
                 "picking_id": picking_id,
                 "location_id": location_id,
@@ -424,5 +438,5 @@ class StockBarcodeLiteScanService(models.AbstractModel):
         if not location_id:
             return "scan_location"
         if result_type == "location":
-            return "scan_pallet"
-        return "scan_pallet"
+            return "scan_package"
+        return "scan_package"
