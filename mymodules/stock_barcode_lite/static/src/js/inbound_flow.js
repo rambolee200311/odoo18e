@@ -53,7 +53,7 @@ export class InboundFlow extends Component {
                 this._focusBarcodeInput();
             }
             await this._initScanState();
-            console.log('[InboundFlow] mounted');
+
         });
 
         onWillUnmount(() => {

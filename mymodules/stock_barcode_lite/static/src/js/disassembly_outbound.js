@@ -68,7 +68,6 @@ export class DisassemblyOutboundPage extends Component {
         this.barcodeInputRef = useRef("barcodeInput");
 
         onMounted(async () => {
-            console.log("[DisassemblyOutbound] mounted");
             this._bindKeyListener();
             this._bindFocusGuard();
             this._bindVisibilityChange();
@@ -105,7 +104,6 @@ export class DisassemblyOutboundPage extends Component {
 
     _onBarcodeInput(ev) {
         const input = ev.target;
-        console.log("[BarcodeMonitor] _onBarcodeInput activeElement:", document.activeElement === input, "value:", JSON.stringify(input?.value), "inputType:", ev.inputType);
         if (!input) return;
 
         const value = input.value;
@@ -119,7 +117,6 @@ export class DisassemblyOutboundPage extends Component {
     }
 
     _onBarcodeKeydown(ev) {
-        console.log("[BarcodeMonitor] _onBarcodeKeydown key:", ev.key, "activeElement:", document.activeElement === this.barcodeInputRef.el, "value:", JSON.stringify(ev.target?.value));
         if (ev.key === "Enter") {
             ev.preventDefault();
             const input = ev.target;
@@ -195,14 +192,12 @@ export class DisassemblyOutboundPage extends Component {
 
     _focusBarcodeInput() {
         if (this.isScanQuantityStep) {
-            console.log("[BarcodeMonitor] _focusBarcodeInput skipped - quantity step");
             return;
         }
         const input = this.barcodeInputRef.el;
         if (input) {
             input.focus();
             input.value = "";
-            console.log("[BarcodeMonitor] _focusBarcodeInput focused. document.activeElement:", document.activeElement === input);
         } else {
             console.warn("[BarcodeMonitor] _focusBarcodeInput input missing");
         }
@@ -218,7 +213,6 @@ export class DisassemblyOutboundPage extends Component {
 
         if (!this._isPDA) {
             input.focus();
-            console.log("[BarcodeMonitor] _bindKeyListener desktop focus applied");
         } else {
             console.log("[BarcodeMonitor] _bindKeyListener PDA mode - deferred focus");
         }
@@ -231,7 +225,6 @@ export class DisassemblyOutboundPage extends Component {
         input.removeEventListener("input", this._onBarcodeInput.bind(this));
         input.removeEventListener("keydown", this._onBarcodeKeydown.bind(this));
         input.removeEventListener("blur", this._onBarcodeBlur.bind(this));
-        console.log("[BarcodeMonitor] _unbindKeyListener removed listeners");
     }
 
     _bindGlobalKeyListener() {
@@ -268,20 +261,17 @@ export class DisassemblyOutboundPage extends Component {
         };
 
         document.addEventListener("keydown", this._onGlobalKeyDown);
-        console.log("[BarcodeMonitor] _bindGlobalKeyListener added");
     }
 
     _unbindGlobalKeyListener() {
         if (this._onGlobalKeyDown) {
             document.removeEventListener("keydown", this._onGlobalKeyDown);
             this._onGlobalKeyDown = null;
-            console.log("[BarcodeMonitor] _unbindGlobalKeyListener removed");
         }
     }
 
     _bindVisibilityChange() {
         this._onVisibilityChange = () => {
-            console.log("[BarcodeMonitor] visibilitychange:", document.visibilityState, "activeElementBefore:", document.activeElement?.tagName, document.activeElement?.className);
             if (document.visibilityState === "visible") {
                 this._focusBarcodeInput();
             }
@@ -293,7 +283,6 @@ export class DisassemblyOutboundPage extends Component {
         if (this._onVisibilityChange) {
             document.removeEventListener("visibilitychange", this._onVisibilityChange);
             this._onVisibilityChange = null;
-            console.log("[BarcodeMonitor] _unbindVisibilityChange removed listener");
         }
     }
 
@@ -309,23 +298,6 @@ export class DisassemblyOutboundPage extends Component {
     // ═══════════════════════════════════════════════════════════════
 
     async onBarcodeScanned(barcode) {
-        console.log("╔═══════════════════════════════════════════════════════");
-        console.log("║ [DisassemblyOutbound] BARCODE SCANNED");
-        console.log("║ ──────────────────────────────────────────────────────");
-        console.log("║ Barcode:", barcode);
-        console.log("║ Current Step:", this.state.nextStep);
-        console.log("║ Is Processing:", this._isProcessing);
-        console.log("║ ──────────────────────────────────────────────────────");
-        console.log("║ currentOrder.id:", this.state.order?.id);
-        console.log("║ currentLocation.id:", this.state.currentLocation?.id);
-        console.log("║ currentPallet.id:", this.state.currentPallet?.id);
-        console.log("║ currentPallet.name:", this.state.currentPallet?.name);
-        console.log("║ currentProduct.id:", this.state.currentProduct?.id);
-        console.log("║ currentProduct.name:", this.state.currentProduct?.name);
-        console.log("║ currentLot.id:", this.state.currentLot?.id);
-        console.log("║ pallets count:", this.state.pallets?.length || 0);
-        console.log("╚═══════════════════════════════════════════════════════");
-
         if (!barcode || this._isProcessing) {
             console.log("[DisassemblyOutbound] Skipped - no barcode or still processing");
             return;
@@ -350,29 +322,11 @@ export class DisassemblyOutboundPage extends Component {
             const productId = this.state.currentProduct?.id || false;
             const lotId = this.state.currentLot?.id || false;
 
-            console.log("[DisassemblyOutbound] Sending to backend:");
-            console.log("  - barcode:", barcode);
-            console.log("  - pickingId:", pickingId);
-            console.log("  - locationId:", locationId);
-            console.log("  - packageId:", packageId);
-            console.log("  - productId:", productId);
-            console.log("  - lotId:", lotId);
-
             const result = await this.orm.call(
                 "stock.barcode.lite.scan.service",
                 "process_outgoing_scan_barcode",
                 [barcode, pickingId, locationId, packageId, productId, lotId, false, false]
             );
-
-            console.log("[DisassemblyOutbound] Received from backend:");
-            console.log("  - result.success:", result.success);
-            console.log("  - result.type:", result.type);
-            console.log("  - result.message:", result.message);
-            console.log("  - result.next_step:", result.next_step);
-            console.log("  - result.scan_state.picking:", result.scan_state?.picking?.id, result.scan_state?.picking?.name);
-            console.log("  - result.scan_state.current_pallet:", result.scan_state?.current_pallet);
-            console.log("  - result.scan_state.current_product:", result.scan_state?.current_product);
-            console.log("  - result.scan_state.pallets count:", result.scan_state?.pallets?.length || 0);
 
             await this._applyScanResult(result, true);
 
@@ -439,21 +393,6 @@ export class DisassemblyOutboundPage extends Component {
     async _applyScanResult(result, notify = true) {
         if (!result) return;
 
-        console.log("[_applyScanResult] === START ===");
-        console.log("[_applyScanResult] result.success:", result.success);
-        console.log("[_applyScanResult] result.type:", result.type);
-        console.log("[_applyScanResult] result.next_step:", result.next_step);
-        console.log("[_applyScanResult] result.message:", result.message);
-
-        const scanState = result.scan_state || {};
-        console.log("[_applyScanResult] scanState.picking:", scanState.picking?.id, scanState.picking?.name);
-        console.log("[_applyScanResult] scanState.current_location:", scanState.current_location);
-        console.log("[_applyScanResult] scanState.current_pallet:", scanState.current_pallet);
-        console.log("[_applyScanResult] scanState.current_product:", scanState.current_product);
-        console.log("[_applyScanResult] scanState.current_lot:", scanState.current_lot);
-        console.log("[_applyScanResult] scanState.pallets:", scanState.pallets);
-        console.log("[_applyScanResult] scanState.summary:", scanState.summary);
-
         // 更新出库单信息
         this.state.order = scanState.picking ? { ...scanState.picking } : null;
 
@@ -463,25 +402,18 @@ export class DisassemblyOutboundPage extends Component {
         this.state.currentProduct = scanState.current_product ? { ...scanState.current_product } : {};
         this.state.currentLot = scanState.current_lot ? { ...scanState.current_lot } : {};
 
-        console.log("[_applyScanResult] AFTER basic update:");
-        console.log("[_applyScanResult]   this.state.currentPallet:", JSON.stringify(this.state.currentPallet));
-        console.log("[_applyScanResult]   this.state.currentProduct:", JSON.stringify(this.state.currentProduct));
-
         // 更新 summary
         this.state.summary = scanState.summary ? { ...scanState.summary } : this._getEmptySummary();
 
         // 深度映射 pallets 数组
         if (scanState.pallets && scanState.pallets.length > 0) {
-            console.log("[_applyScanResult] Mapping pallets:", scanState.pallets.length);
             this.state.pallets = scanState.pallets.map(pallet => {
-                console.log("[_applyScanResult]   pallet:", pallet.package_id, pallet.package_name, "products:", pallet.products?.length);
                 return {
                     ...pallet,
                     products: (pallet.products || []).map(product => ({ ...product })),
                 };
             });
         } else {
-            console.log("[_applyScanResult] No pallets in scanState");
             this.state.pallets = [];
         }
 
@@ -490,7 +422,6 @@ export class DisassemblyOutboundPage extends Component {
 
         // 更新下一步
         this.state.nextStep = result.next_step || "scan_picking";
-        console.log("[_applyScanResult] Set nextStep to:", this.state.nextStep);
 
         // 判断是否进入拆托模式（需要扫产品）
         this.state.isDisassemblyMode = this.state.nextStep === "scan_product";
@@ -509,8 +440,6 @@ export class DisassemblyOutboundPage extends Component {
             // 优先使用当前托盘的数据，避免跨托盘错误匹配
             const currentProductId = this.state.currentProduct?.id;
             const currentPalletId = this.state.currentPallet?.id;
-            console.log("[_applyScanResult] input_quantity: currentProductId:", currentProductId);
-            console.log("[_applyScanResult] input_quantity: currentPalletId:", currentPalletId);
 
             if (currentProductId && scanState.pallets) {
                 let fullProduct = null;
@@ -578,10 +507,6 @@ export class DisassemblyOutboundPage extends Component {
                 this._flashScreen([100, 200, 100], false);
             }
         }
-
-        console.log("[_applyScanResult] === END ===");
-        console.log("[_applyScanResult] final nextStep:", this.state.nextStep);
-        console.log("[_applyScanResult] final currentPallet:", this.state.currentPallet);
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -604,11 +529,6 @@ export class DisassemblyOutboundPage extends Component {
             ev.preventDefault();
         }
 
-        console.log("[submitQuantity] === START ===");
-        console.log("[submitQuantity] currentProduct:", JSON.stringify(this.state.currentProduct));
-        console.log("[submitQuantity] currentPallet11111:", JSON.stringify(this.state.currentPallet));
-        console.log("[submitQuantity] quantityInput:", this.state.quantityInput);
-
         if (!this.state.currentProduct?.id) {
             this.showMessage(_t("Please scan product first"), "danger");
             return;
@@ -628,16 +548,6 @@ export class DisassemblyOutboundPage extends Component {
             const currentMoveLineId = this.state.currentProduct?.move_line_id;
             const totalQty = this.state.currentProduct?.quantity || 0;
 
-            console.log("[submitQuantity] Calling backend:");
-            console.log("  - qty:", qty);
-            console.log("  - order.id:", this.state.order?.id);
-            console.log("  - location.id:", this.state.currentLocation?.id);
-            console.log("  - pallet.id:", this.state.currentPallet?.id);
-            console.log("  - product.id:", this.state.currentProduct?.id);
-            console.log("  - lot.id:", this.state.currentLot?.id);
-            console.log("  - currentMoveLineId:", currentMoveLineId);
-            console.log("  - totalQty:", totalQty);
-
             const result = await this.orm.call(
                 "stock.barcode.lite.scan.service",
                 "process_outgoing_quantity_scan",
@@ -652,11 +562,6 @@ export class DisassemblyOutboundPage extends Component {
                     false,
                 ]
             );
-
-            console.log("[submitQuantity] Received result:");
-            console.log("  - success:", result.success);
-            console.log("  - message:", result.message);
-            console.log("  - next_step:", result.next_step);
 
             // 错误处理
             if (result.success === false) {
@@ -680,12 +585,9 @@ export class DisassemblyOutboundPage extends Component {
             // 从更新后的 pallets 获取最新的 scanned_quantity
             let scannedQty = 0;
             if (currentMoveLineId) {
-                console.log("[submitQuantity] Searching pallets for move_line_id:", currentMoveLineId);
                 for (const pallet of this.state.pallets) {
-                    console.log("[submitQuantity]   Checking pallet:", pallet.package_id, pallet.package_name);
                     const product = pallet.products?.find(p => p.move_line_id === currentMoveLineId);
                     if (product) {
-                        console.log("[submitQuantity]   FOUND! scanned_quantity:", product.scanned_quantity);
                         scannedQty = product.scanned_quantity || 0;
                         break;
                     }
@@ -695,7 +597,6 @@ export class DisassemblyOutboundPage extends Component {
             }
 
             const remainingQty = Math.max(totalQty - scannedQty, 0);
-            console.log("[submitQuantity] totalQty:", totalQty, "scannedQty:", scannedQty, "remainingQty:", remainingQty);
 
             if (scannedQty >= totalQty && totalQty > 0) {
                 this.showMessage(_t("Quantity matched! Product completed successfully."), "success");

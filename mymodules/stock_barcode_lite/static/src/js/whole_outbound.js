@@ -64,7 +64,6 @@ export class WholePalletOutboundPage extends Component {
         this.scrollContainerRef = useRef("palletsContainer");
 
         onMounted(async () => {
-            console.log("[WholePalletOutbound] mounted");
             this._bindKeyListener();
             this._bindVisibilityChange();
             this._bindGlobalInteractionListener();
@@ -289,16 +288,8 @@ export class WholePalletOutboundPage extends Component {
     // ═══════════════════════════════════════════════════════════════
 
     async onBarcodeScanned(barcode) {
-        console.log("╔═══════════════════════════════════════════════════════");
-        console.log("║ [WholePalletOutbound] BARCODE SCANNED");
-        console.log("║ ──────────────────────────────────────────────────────");
-        console.log("║ Barcode:", barcode);
-        console.log("║ Current Step:", this.state.nextStep);
-        console.log("║ Is Processing:", this._isProcessing);
-        console.log("╚═══════════════════════════════════════════════════════");
 
         if (!barcode || this._isProcessing) {
-            console.log("[WholePalletOutbound] Skipped - no barcode or still processing");
             return;
         }
 
