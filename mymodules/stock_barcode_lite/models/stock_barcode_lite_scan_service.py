@@ -424,5 +424,5 @@ class StockBarcodeLiteScanService(models.AbstractModel):
         if not location_id:
             return "scan_location"
         if result_type == "location":
-            return "scan_package"
-        return "scan_package"
+            return "scan_pallet"
+        return "scan_pallet"
