@@ -447,8 +447,10 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
                 picking_id=picking.id,
                 location_id=current_location_id,
                 package_id=package.id,
-                product_id=product.id,
+                product_id=False,
+                lot_id=False,
                 pending_operation=pending_operation,
+                next_step="scan_product",
                 action_name="product_not_in_pallet_demand",
                 success=False,
             )
