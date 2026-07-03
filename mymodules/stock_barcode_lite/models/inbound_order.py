@@ -13,6 +13,98 @@ class InboundOrder(models.Model):
     source_sale_delivery_reference = fields.Char(string="Source Sale Delivery Reference", copy=False, index=True)
     vsourcebillcode = fields.Char(string="Source Bill Code", copy=False, index=True)
 
+    def action_confirm(self):
+        for rec in self:
+            if rec.project.name == "SUNRISE":
+                rec.validate_sunrise_inbound_confirm_values()
+        return super().action_confirm()
+
+    def validate_sunrise_inbound_confirm_values(self):
+        for rec in self:
+            missing_fields = []
+            if not rec.date:
+                missing_fields.append("date")
+            if not rec.a_date:
+                missing_fields.append("a_date")
+            if not rec.cwarehouseid:
+                missing_fields.append("cwarehouseid")
+            if not rec.vsourcebillcode:
+                missing_fields.append("vsourcebillcode")
+            if rec.type == "service" and not rec.source_sale_delivery_reference:
+                missing_fields.append("source_sale_delivery_reference")
+
+            if missing_fields:
+                raise UserError(_("Sunrise inbound order %s is missing required fields: %s") % (rec.reference or rec.billno or rec.id, ", ".join(missing_fields)))
+
+            for pallet_index, pallet_line in enumerate(rec.inbound_order_product_ids, start=1):
+                pallet_missing_fields = []
+                if not pallet_line.pallet_no:
+                    pallet_missing_fields.append("pallet_no")
+                if not pallet_line.sunrise_pallet_no:
+                    pallet_missing_fields.append("sunrise_pallet_no")
+                if not pallet_line.inbound_order_product_pallet_ids:
+                    pallet_missing_fields.append("product detail lines")
+
+                if pallet_missing_fields:
+                    raise UserError(_("Sunrise inbound pallet line %s is missing required fields: %s") % (pallet_index, ", ".join(pallet_missing_fields)))
+
+                for detail_index, detail_line in enumerate(pallet_line.inbound_order_product_pallet_ids, start=1):
+                    line_name = _("Pallet %s, product line %s") % (pallet_line.pallet_no or pallet_index, detail_index)
+                    line_missing_fields = []
+
+                    if not detail_line.product_id:
+                        line_missing_fields.append("product_id")
+                    if not detail_line.cprojectid:
+                        line_missing_fields.append("cprojectid")
+                    if not detail_line.ndiscounttaxtype:
+                        line_missing_fields.append("ndiscounttaxtype")
+                    if not detail_line.vsourcebillcode:
+                        line_missing_fields.append("vsourcebillcode")
+                    if not detail_line.vsourcerowno:
+                        line_missing_fields.append("vsourcerowno")
+                    if not detail_line.cspaceid:
+                        line_missing_fields.append("cspaceid")
+                    if not detail_line.box_type:
+                        line_missing_fields.append("box_type")
+                    if not detail_line.castunitid:
+                        line_missing_fields.append("castunitid")
+                    if not detail_line.u8_aux_uom_name:
+                        line_missing_fields.append("u8_aux_uom_name")
+                    if not detail_line.is_lot:
+                        line_missing_fields.append("is_lot")
+                    if detail_line.is_lot == "Y" and not detail_line.lot_name:
+                        line_missing_fields.append("lot_name")
+
+                    if line_missing_fields:
+                        raise UserError(_("%s is missing required fields: %s") % (line_name, ", ".join(line_missing_fields)))
+
+                    if detail_line.vsourcebillcode != rec.vsourcebillcode:
+                        raise UserError(_("%s vsourcebillcode must equal inbound order vsourcebillcode.") % line_name)
+
+                    if detail_line.box_type not in ("full", "partial"):
+                        raise UserError(_("%s box_type must be full or partial.") % line_name)
+                    if detail_line.box_qty <= 0:
+                        raise UserError(_("%s box_qty must be greater than 0.") % line_name)
+                    if detail_line.box_in_qty <= 0:
+                        raise UserError(_("%s box_in_qty must be greater than 0.") % line_name)
+                    if detail_line.ninnum <= 0:
+                        raise UserError(_("%s ninnum must be greater than 0.") % line_name)
+                    if detail_line.u8_aux_qty <= 0:
+                        raise UserError(_("%s u8_aux_qty must be greater than 0.") % line_name)
+                    if detail_line.u8_conversion_rate <= 0:
+                        raise UserError(_("%s u8_conversion_rate must be greater than 0.") % line_name)
+
+                    expected_ninnum = detail_line.box_qty * detail_line.box_in_qty
+                    if abs(detail_line.ninnum - expected_ninnum) > 0.000001:
+                        raise UserError(_("%s ninnum must equal box_qty * box_in_qty.") % line_name)
+
+                    if detail_line.box_type == "full" and abs(detail_line.box_in_qty - detail_line.u8_conversion_rate) > 0.000001:
+                        raise UserError(_("%s box_in_qty must equal u8_conversion_rate when box_type is full.") % line_name)
+
+                    if detail_line.box_type == "partial" and detail_line.box_in_qty >= detail_line.u8_conversion_rate:
+                        raise UserError(_("%s box_in_qty must be less than u8_conversion_rate when box_type is partial.") % line_name)
+
+
     def action_cancel(self):
         normal_records = self.env["world.depot.inbound.order"]
 
@@ -397,27 +489,50 @@ class InboundOrderProduct(models.Model):
     _inherit = "world.depot.inbound.order.product"
 
     creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import")], string="Creation Source", default="manual", readonly=True, copy=False)
-    sunrise_pallet_no = fields.Char(string="Sunrise Pallet No", copy=False, index=True)
+    sunrise_pallet_no = fields.Char(string="Sunrise Pallet No", compute="compute_sunrise_pallet_no",store=True, copy=False, index=True)
     package_id = fields.Many2one('stock.quant.package', string='Pallet', index=True)
 
+    @api.depends("pallet_no", "inbound_order_id.cntr_no", "inbound_order_id.project")
+    def compute_sunrise_pallet_no(self):
+        for rec in self:
+            if rec.inbound_order_id.project.name == "SUNRISE" and rec.inbound_order_id.cntr_no and rec.pallet_no:
+                rec.sunrise_pallet_no = "%s-%s" % (rec.inbound_order_id.cntr_no, rec.pallet_no)
+            else:
+                rec.sunrise_pallet_no = False
 
-    @api.constrains("sunrise_pallet_no")
+    @api.constrains("pallet_no", "inbound_order_id", "sunrise_pallet_no")
     def check_sunrise_pallet_no_unique(self):
         pallet_model = self.env["world.depot.inbound.order.product"]
+
         for rec in self:
-            if not rec.sunrise_pallet_no or not rec.inbound_order_id or rec.inbound_order_id.state == "cancel":
+            if rec.inbound_order_id.project.name != "SUNRISE":
                 continue
-            domain = [
+            if not rec.pallet_no or not rec.inbound_order_id:
+                continue
+            existing_pallet_no = pallet_model.sudo().search([
+                ("id", "!=", rec.id),
+                ("pallet_no", "=", rec.pallet_no),
+                ("inbound_order_id.project", "=", rec.inbound_order_id.project.id),
+                ("inbound_order_id.state", "!=", "cancel"),
+            ], limit=1)
+            if existing_pallet_no:
+                raise ValidationError(
+                    _('Pallet No "%s" already exists in inbound order "%s".')
+                    % (rec.pallet_no,existing_pallet_no.inbound_order_id.billno or existing_pallet_no.inbound_order_id.reference,))
+            if not rec.sunrise_pallet_no or rec.inbound_order_id.state == "cancel":
+                continue
+
+            existing_sunrise_pallet_no = pallet_model.sudo().search([
                 ("id", "!=", rec.id),
                 ("sunrise_pallet_no", "=", rec.sunrise_pallet_no),
+                ("inbound_order_id.project", "=", rec.inbound_order_id.project.id),
                 ("inbound_order_id.state", "!=", "cancel"),
-            ]
-            existing = pallet_model.sudo().search(domain, limit=1)
-            if existing:
+                ("inbound_order_id.type", "=", "inbound"),
+            ], limit=1)
+            if existing_sunrise_pallet_no:
                 raise ValidationError(
                     _('Sunrise Pallet No "%s" already exists in inbound order "%s".')
-                    % (rec.sunrise_pallet_no, existing.inbound_order_id.billno or existing.inbound_order_id.reference)
-                )
+                    % (rec.sunrise_pallet_no,existing_sunrise_pallet_no.inbound_order_id.billno or existing_sunrise_pallet_no.inbound_order_id.reference,))
 
     def unlink(self):
         for rec in self:

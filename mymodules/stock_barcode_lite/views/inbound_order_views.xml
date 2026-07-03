@@ -8,6 +8,9 @@
             <xpath expr="//form" position="attributes">
                 <attribute name="duplicate">false</attribute>
             </xpath>
+            <xpath expr="//field[@name='cntr_no']" position="attributes">
+                <attribute name="required">project_name == 'SUNRISE'</attribute>
+            </xpath>
             <xpath expr="//field[@name='cntr_no']" position="before">
                 <field name="vsourcebillcode" readonly="state != 'new'" invisible="project_name != 'SUNRISE'"/>
                 <field name="cwarehouseid" readonly="state != 'new'" invisible="project_name !='SUNRISE'"/>
@@ -52,7 +55,7 @@
                         <button name="action_sync_u8c_inbound"
                                 type="object"
                                 string="Sync U8C Inbound"
-                                class="btn btn-primary"
+                                class="btn-primary" icon="fa-upload"
                                 invisible="type == 'service'"/>
                         <button name="action_sync_u8c_service_return"
                                 type="object"

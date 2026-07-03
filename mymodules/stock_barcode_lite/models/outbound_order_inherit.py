@@ -19,6 +19,108 @@ class OutboundOrderInherit(models.Model):
     partial_pallet_picking_id = fields.Many2one("stock.picking", string="Partial Pallet Picking",copy=False, index=True)
     outgoing_picking_lines = fields.One2many("stock.picking", "outbound_order_id", string="Outgoing Pickings", tracking=True)
 
+    def action_confirm(self):
+        for rec in self:
+            if rec.project.name == "SUNRISE":
+                rec.validate_sunrise_outbound_confirm_values()
+        return super().action_confirm()
+
+    def validate_sunrise_outbound_confirm_values(self):
+        for rec in self:
+            if rec.project.name != "SUNRISE":
+                continue
+
+            missing_fields = []
+            if not rec.p_date:
+                missing_fields.append("p_date")
+            if not rec.vsourcebillcode:
+                missing_fields.append("vsourcebillcode")
+            if not rec.cwarehouseid:
+                missing_fields.append("cwarehouseid")
+            if not rec.ccustomerid:
+                missing_fields.append("ccustomerid")
+            if not rec.u8c_delivery_method:
+                missing_fields.append("u8c_delivery_method")
+            if rec.u8c_delivery_method == "pickup" and not rec.load_ref:
+                missing_fields.append("load_ref")
+            if not rec.unload_company:
+                missing_fields.append("unload_company")
+            if not rec.delivery_street:
+                missing_fields.append("delivery_street")
+            if not rec.delivery_phone:
+                missing_fields.append("delivery_phone")
+            if rec.u8c_delivery_method == "pickup" and not rec.time_slot:
+                missing_fields.append("time_slot")
+
+            if missing_fields:
+                raise UserError(_("Sunrise outbound order %s is missing required fields: %s") % (rec.reference or rec.billno or rec.id, ", ".join(missing_fields)))
+
+            if rec.u8c_delivery_method not in ("pickup", "wd"):
+                raise UserError(_("Sunrise outbound order %s u8c_delivery_method must be pickup or wd.") % (rec.reference or rec.billno or rec.id))
+
+            if not rec.outbound_order_product_ids:
+                raise UserError(_("Sunrise outbound order %s must have at least one product line.") % (rec.reference or rec.billno or rec.id))
+
+            for line_index, line in enumerate(rec.outbound_order_product_ids, start=1):
+                line_name = _("Outbound product line %s") % line_index
+                line_missing_fields = []
+
+                if not line.product_id:
+                    line_missing_fields.append("product_id")
+                if not line.pallet_no:
+                    line_missing_fields.append("pallet_no")
+                if not line.sunrise_pallet_no:
+                    line_missing_fields.append("sunrise_pallet_no")
+                if not line.cprojectid:
+                    line_missing_fields.append("cprojectid")
+                if not line.vsourcebillcode:
+                    line_missing_fields.append("vsourcebillcode")
+                if not line.vsourcerowno:
+                    line_missing_fields.append("vsourcerowno")
+                if not line.cspaceid:
+                    line_missing_fields.append("cspaceid")
+                if not line.box_type:
+                    line_missing_fields.append("box_type")
+                if not line.castunitid:
+                    line_missing_fields.append("castunitid")
+                if not line.u8_aux_uom_name:
+                    line_missing_fields.append("u8_aux_uom_name")
+                if not line.is_lot:
+                    line_missing_fields.append("is_lot")
+                if line.is_lot == "Y" and not line.lot_name:
+                    line_missing_fields.append("lot_name")
+
+                if line_missing_fields:
+                    raise UserError(_("%s is missing required fields: %s") % (line_name, ", ".join(line_missing_fields)))
+
+                if line.vsourcebillcode != rec.vsourcebillcode:
+                    raise UserError(_("%s vsourcebillcode must equal outbound order vsourcebillcode.") % line_name)
+
+                if line.box_type not in ("full", "partial"):
+                    raise UserError(_("%s box_type must be full or partial.") % line_name)
+                if line.box_qty <= 0:
+                    raise UserError(_("%s box_qty must be greater than 0.") % line_name)
+                if line.box_in_qty <= 0:
+                    raise UserError(_("%s box_in_qty must be greater than 0.") % line_name)
+                if line.ninnum <= 0:
+                    raise UserError(_("%s ninnum must be greater than 0.") % line_name)
+                if line.u8_aux_qty <= 0:
+                    raise UserError(_("%s u8_aux_qty must be greater than 0.") % line_name)
+                if line.u8_conversion_rate <= 0:
+                    raise UserError(_("%s u8_conversion_rate must be greater than 0.") % line_name)
+
+                expected_ninnum = line.box_qty * line.box_in_qty
+                if abs(line.ninnum - expected_ninnum) > 0.000001:
+                    raise UserError(_("%s ninnum must equal box_qty * box_in_qty.") % line_name)
+
+                if line.box_type == "full" and abs(line.box_in_qty - line.u8_conversion_rate) > 0.000001:
+                    raise UserError(_("%s box_in_qty must equal u8_conversion_rate when box_type is full.") % line_name)
+
+                if line.box_type == "partial" and line.box_in_qty >= line.u8_conversion_rate:
+                    raise UserError(_("%s box_in_qty must be less than u8_conversion_rate when box_type is partial.") % line_name)
+
+
+
     def action_cancel(self):
         normal_records = self.env["world.depot.outbound.order"]
 

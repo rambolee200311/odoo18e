@@ -86,7 +86,7 @@
                                 <button name="action_sync_u8c_outbound"
                                         type="object"
                                         string="Sync U8C Outbound"
-                                        class="btn btn-primary"/>
+                                        class="btn-primary" icon="fa-upload"/>
                             </div>
                             <field name="set_sunrise_outbound_sync" readonly="1"/>
                         </group>
@@ -102,7 +102,7 @@
                         <button name="action_sync_u8c_pickup_delivery"
                                 type="object"
                                 string="Sync Pickup Info"
-                                class="oe_highlight"/>
+                                class="btn-primary" icon="fa-upload"/>
 
                         <field name="set_sunrise_pickup_delivery_sync" readonly="1"/>
 
