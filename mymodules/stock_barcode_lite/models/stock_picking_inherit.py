@@ -28,6 +28,8 @@ class StockPicking(models.Model):
 
     def check_incoming_pallet_location_updated(self):
         for rec in self:
+            if rec.project_name != "SUNRISE":
+                continue
             if rec.picking_type_id.code != "incoming" or not rec.inbound_order_id or rec.state in ("done", "cancel"):
                 continue
             package_lines = rec.move_line_ids.filtered(lambda line: line.result_package_id)
@@ -41,6 +43,8 @@ class StockPicking(models.Model):
 
     def check_outgoing_pallet_scan_completed(self):
         for rec in self:
+            if rec.project_name != "SUNRISE":
+                continue
             if rec.picking_type_id.code != "outgoing" or not rec.outbound_order_id or rec.state in ("done", "cancel"):
                 continue
             package_lines = rec.move_line_ids.filtered(

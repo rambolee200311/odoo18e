@@ -1,0 +1,7 @@
+<odoo>
+        <record id="group_sunrise_stock_manager" model="res.groups">
+        <field name="name">Sunrise Stock Manager</field>
+        <field name="category_id" ref="search_product_change.module_category_stock_wms"/>
+    </record>
+
+</odoo>

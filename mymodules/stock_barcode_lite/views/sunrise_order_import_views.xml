@@ -235,7 +235,7 @@
         </field>
     </record>
 
-    <data noupdate="1">
+
         <record id="action_sunrise_order_import" model="ir.actions.act_window">
             <field name="name">Sunrise Order Imports</field>
             <field name="res_model">stock.barcode.lite.sunrise.order.import</field>
@@ -252,8 +252,7 @@
 
         <menuitem id="menu_sunrise_order_import"
                   name="Sunrise Order Imports"
-                  parent="menu_stock_barcode_lite_root"
+                  parent="menu_stock_barcode_lite_configuration"
                   action="action_sunrise_order_import"
                   sequence="45"/>
-    </data>
 </odoo>

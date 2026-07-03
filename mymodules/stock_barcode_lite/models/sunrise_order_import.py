@@ -570,8 +570,8 @@ class SunriseOrderImportLine(models.Model):
 
     def get_sunrise_package_value_name(self, box_type, box_in_qty):
         if box_type == "full":
-            return "标准包裹"
-        return "非标准包裹%s" % box_in_qty
+            return "Standard Packaging"
+        return "Non standard package%s" % box_in_qty
 
     def get_sunrise_variant_default_code(self, product_code, box_type, box_in_qty):
         if box_type == "full":
@@ -615,9 +615,9 @@ class SunriseOrderImportLine(models.Model):
         attribute_model = self.env["product.attribute"]
         value_model = self.env["product.attribute.value"]
         line_model = self.env["product.template.attribute.line"]
-        attribute = attribute_model.sudo().search([("name", "=", "包装规格")], limit=1)
+        attribute = attribute_model.sudo().search([("name", "=", "Packaging Specifications")], limit=1)
         if not attribute:
-            raise UserError(_('No attribute named "包装规格" was found.'))
+            raise UserError(_('No attribute named "Packaging Specifications" was found.'))
         value = value_model.sudo().search([("attribute_id", "=", attribute.id), ("name", "=", value_name)], limit=1)
         if not value:
             value = value_model.create({"attribute_id": attribute.id, "name": value_name})

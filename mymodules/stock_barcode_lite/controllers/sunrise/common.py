@@ -172,8 +172,8 @@ class SunriseControllerMixin:
 
     def get_sunrise_package_value_name(self, box_type, box_in_qty):
         if box_type == "full":
-            return "标准包裹"
-        return "非标准包裹%s" % box_in_qty
+            return "Standard Packaging"
+        return "Non standard package%s" % box_in_qty
 
     def get_sunrise_package_variants(self, variants, value_name):
         return variants.filtered(
@@ -274,9 +274,9 @@ class SunriseControllerMixin:
 
     # 建属性值
     def ensure_sunrise_package_value_on_template(self, template, value_name):
-        attribute = request.env["product.attribute"].sudo().search([("name", "=", "包装规格")], limit=1)
+        attribute = request.env["product.attribute"].sudo().search([("name", "=", "Packaging Specifications")], limit=1)
         if not attribute:
-            raise SunriseApiError("3001", 'No attribute named "包装规格" was found.')
+            raise SunriseApiError("3001", 'No attribute named "Packaging Specifications" was found.')
 
         value = request.env["product.attribute.value"].sudo().search([
             ("attribute_id", "=", attribute.id),

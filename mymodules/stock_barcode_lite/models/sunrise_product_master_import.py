@@ -384,8 +384,8 @@ class SunriseProductMasterImport(models.Model):
             "category_id": category.id,
             "sunrise_product_category_name": row.get("sheet_name", ""),
             "tracking": "lot",
-            "attribute_name": "包装规格",
-            "attribute_value_name": "标准包装",
+            "attribute_name": "Packaging Specifications",
+            "attribute_value_name": "Standard Packaging",
             "main_uom_name": row.get("main_uom_name", ""),
             "aux_uom_name": row.get("aux_uom_name", ""),
             "uom_conversion_rate": uom_conversion_rate,
@@ -514,26 +514,26 @@ class SunriseProductMasterImport(models.Model):
         self.ensure_one()
         attribute_model = self.env["product.attribute"]
         value_model = self.env["product.attribute.value"]
-        attribute = attribute_model.sudo().search([("name", "=", "包装规格")], limit=1)
+        attribute = attribute_model.sudo().search([("name", "=", "Packaging Specifications")], limit=1)
         if attribute:
             attribute = attribute_model.browse(attribute.id)
         else:
             attribute = attribute_model.create({
-                "name": "包装规格",
+                "name": "Packaging Specifications",
                 "create_variant": "always",
                 "display_type": "radio",
             })
 
         attribute_value = value_model.sudo().search([
             ("attribute_id", "=", attribute.id),
-            ("name", "=", "标准包装"),
+            ("name", "=", "Standard Packaging"),
         ], limit=1)
         if attribute_value:
             attribute_value = value_model.browse(attribute_value.id)
         else:
             attribute_value = value_model.create({
                 "attribute_id": attribute.id,
-                "name": "标准包装",
+                "name": "Standard Packaging",
             })
         return attribute, attribute_value
 
