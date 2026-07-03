@@ -88,14 +88,33 @@ export class DisassemblyOutboundPage extends Component {
     // 设备检测
     // ═══════════════════════════════════════════════════════════════
 
+//    _detectPDA() {
+//        const hasTouchScreen = (
+//            "ontouchstart" in window ||
+//            navigator.maxTouchPoints > 0 ||
+//            window.matchMedia("(pointer: coarse)").matches
+//        );
+//        const isDesktop = window.matchMedia("(min-width: 1024px)").matches && !hasTouchScreen;
+//        return !isDesktop;
+//    }
+
     _detectPDA() {
+        // 精确指向设备（鼠标、触控笔）→ 不可能是PDA扫码枪
+        const hasFinePointer = window.matchMedia('(pointer: fine)').matches;
+        // 支持hover（鼠标悬停）→ 不可能是PDA扫码枪
+        const hasHover = window.matchMedia('(hover: hover)').matches;
+        // 小屏幕（≤ 768px 宽）→ 可能是手持PDA
+        const isSmallScreen = window.matchMedia('(max-width: 768px)').matches;
+        // 触屏可用
         const hasTouchScreen = (
-            "ontouchstart" in window ||
+            'ontouchstart' in window ||
             navigator.maxTouchPoints > 0 ||
-            window.matchMedia("(pointer: coarse)").matches
+            window.matchMedia('(pointer: coarse)').matches
         );
-        const isDesktop = window.matchMedia("(min-width: 1024px)").matches && !hasTouchScreen;
-        return !isDesktop;
+
+        // PDA只有在小屏、触屏、无精确指针、无hover的设备上才判定为真
+        // 从而排除桌面、大屏平板、触屏笔记本
+        return isSmallScreen && hasTouchScreen && !hasFinePointer && !hasHover;
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -392,6 +411,8 @@ export class DisassemblyOutboundPage extends Component {
      */
     async _applyScanResult(result, notify = true) {
         if (!result) return;
+
+        const scanState = result.scan_state || {};
 
         // 更新出库单信息
         this.state.order = scanState.picking ? { ...scanState.picking } : null;
