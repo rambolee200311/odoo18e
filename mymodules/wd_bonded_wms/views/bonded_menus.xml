@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Actions -->
+    <record id="action_bonded_book" model="ir.actions.act_window">
+        <field name="name">Bonded Books</field>
+        <field name="res_model">bonded.book</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="action_bonded_value_limit" model="ir.actions.act_window">
+        <field name="name">Value Limits</field>
+        <field name="res_model">bonded.value.limit</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="action_bonded_customs_file" model="ir.actions.act_window">
+        <field name="name">Customs Declarations</field>
+        <field name="res_model">bonded.customs.file</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="bonded_customs_file_view_search"/>
+    </record>
+    <record id="action_bonded_customs_file_t1_in" model="ir.actions.act_window">
+        <field name="name">T1 Inbound</field>
+        <field name="res_model">bonded.customs.file</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('declaration_type','=','t1_in')]</field>
+        <field name="search_view_id" ref="bonded_customs_file_view_search"/>
+    </record>
+    <record id="action_bonded_customs_file_b3_in" model="ir.actions.act_window">
+        <field name="name">B3 Inbound</field>
+        <field name="res_model">bonded.customs.file</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('declaration_type','=','b3_in')]</field>
+        <field name="search_view_id" ref="bonded_customs_file_view_search"/>
+    </record>
+    <record id="action_bonded_customs_file_b3_out" model="ir.actions.act_window">
+        <field name="name">B3 Outbound</field>
+        <field name="res_model">bonded.customs.file</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('declaration_type','=','b3_out')]</field>
+        <field name="search_view_id" ref="bonded_customs_file_view_search"/>
+    </record>
+    <record id="action_bonded_customs_file_t1_out" model="ir.actions.act_window">
+        <field name="name">T1 Outbound</field>
+        <field name="res_model">bonded.customs.file</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('declaration_type','=','t1_out')]</field>
+        <field name="search_view_id" ref="bonded_customs_file_view_search"/>
+    </record>
+    <record id="action_gate_arrival" model="ir.actions.act_window">
+        <field name="name">Gate Arrivals</field>
+        <field name="res_model">gate.arrival</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="action_bonded_inbound" model="ir.actions.act_window">
+        <field name="name">Bonded Inbound</field>
+        <field name="res_model">bonded.inbound</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="action_bonded_outbound" model="ir.actions.act_window">
+        <field name="name">Bonded Outbound</field>
+        <field name="res_model">bonded.outbound</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="action_bonded_stock" model="ir.actions.act_window">
+        <field name="name">Bonded Stock</field>
+        <field name="res_model">bonded.stock</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="bonded_stock_view_search"/>
+    </record>
+    <record id="action_bonded_verification" model="ir.actions.act_window">
+        <field name="name">Verifications</field>
+        <field name="res_model">bonded.verification</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="action_bonded_log" model="ir.actions.act_window">
+        <field name="name">Audit Log</field>
+        <field name="res_model">bonded.log</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="action_bonded_product" model="ir.actions.act_window">
+        <field name="name">Bonded Products</field>
+        <field name="res_model">bonded.product</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="action_bonded_monthly_report" model="ir.actions.act_window">
+        <field name="name">Monthly Reports</field>
+        <field name="res_model">bonded.monthly.report</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="action_bonded_stock_snapshot" model="ir.actions.act_window">
+        <field name="name">Daily Snapshots</field>
+        <field name="res_model">bonded.stock.snapshot</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Menus -->
+    <menuitem id="menu_bonded_root" name="Bonded WMS" sequence="90" web_icon="wd_bonded_wms,static/description/icon.png"/>
+    <menuitem id="menu_bonded_masters" name="Masters" parent="menu_bonded_root" sequence="10"/>
+    <menuitem id="menu_bonded_book" name="Bonded Books" parent="menu_bonded_masters" action="action_bonded_book" sequence="10"/>
+    <menuitem id="menu_bonded_product" name="Bonded Product Filing" parent="menu_bonded_masters" action="action_bonded_product" sequence="20"/>
+    <menuitem id="menu_bonded_value_limit" name="Value Limits" parent="menu_bonded_masters" action="action_bonded_value_limit" sequence="30"/>
+    <menuitem id="menu_bonded_customs" name="Customs Declaration" parent="menu_bonded_root" sequence="20"/>
+    <menuitem id="menu_bonded_customs_file" name="Customs Files" parent="menu_bonded_customs" action="action_bonded_customs_file" sequence="10"/>
+    <menuitem id="menu_bonded_customs_file_t1_in" name="T1 Inbound" parent="menu_bonded_customs" action="action_bonded_customs_file_t1_in" sequence="20"/>
+    <menuitem id="menu_bonded_customs_file_b3_in" name="B3 Inbound" parent="menu_bonded_customs" action="action_bonded_customs_file_b3_in" sequence="30"/>
+    <menuitem id="menu_bonded_customs_file_b3_out" name="B3 Outbound" parent="menu_bonded_customs" action="action_bonded_customs_file_b3_out" sequence="40"/>
+    <menuitem id="menu_bonded_customs_file_t1_out" name="T1 Outbound" parent="menu_bonded_customs" action="action_bonded_customs_file_t1_out" sequence="50"/>
+    <menuitem id="menu_bonded_operations" name="Operations" parent="menu_bonded_root" sequence="30"/>
+    <menuitem id="menu_gate_arrival" name="Gate Arrivals" parent="menu_bonded_operations" action="action_gate_arrival" sequence="10"/>
+    <menuitem id="menu_bonded_inbound" name="Bonded Inbound" parent="menu_bonded_operations" action="action_bonded_inbound" sequence="20"/>
+    <menuitem id="menu_bonded_outbound" name="Bonded Outbound" parent="menu_bonded_operations" action="action_bonded_outbound" sequence="30"/>
+    <menuitem id="menu_bonded_stock" name="Bonded Stock" parent="menu_bonded_root" sequence="40"/>
+    <menuitem id="menu_bonded_stock_all" name="All Bonded Stock" parent="menu_bonded_stock" action="action_bonded_stock" sequence="10"/>
+    <menuitem id="menu_bonded_verification" name="Verifications" parent="menu_bonded_stock" action="action_bonded_verification" sequence="20"/>
+    <menuitem id="menu_bonded_monthly_report" name="Monthly Reports" parent="menu_bonded_stock" action="action_bonded_monthly_report" sequence="30"/>
+    <menuitem id="menu_bonded_stock_snapshot" name="Daily Snapshots" parent="menu_bonded_stock" action="action_bonded_stock_snapshot" sequence="40"/>
+    <menuitem id="menu_bonded_monitor" name="Monitoring" parent="menu_bonded_root" sequence="50"/>
+    <menuitem id="menu_bonded_log" name="Audit Log" parent="menu_bonded_monitor" action="action_bonded_log" sequence="10"/>
+</odoo>

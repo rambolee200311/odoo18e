@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="gate_arrival_view_tree" model="ir.ui.view">
+        <field name="name">gate.arrival.tree</field>
+        <field name="model">gate.arrival</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="container_no"/>
+                <field name="mrn"/>
+                <field name="seal_no"/>
+                <field name="seal_intact" widget="boolean_toggle"/>
+                <field name="carrier_id"/>
+                <field name="arrival_datetime"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="gate_arrival_view_form" model="ir.ui.view">
+        <field name="name">gate.arrival.form</field>
+        <field name="model">gate.arrival</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_confirm_seal_intact" string="Confirm Seal Intact" type="object" invisible="state != 'pending'" class="btn-success"/>
+                    <button name="action_report_seal_damaged" string="Report Seal Damaged" type="object" invisible="state != 'pending'" class="btn-danger"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-danger" role="alert" invisible="seal_intact == True">
+                        <i class="fa fa-exclamation-triangle"/> SEAL DAMAGED - T1 abnormal flow triggered
+                    </div>
+                    <group>
+                        <group string="Arrival Info">
+                            <field name="name" readonly="1"/>
+                            <field name="customs_file_id"/>
+                            <field name="mrn" readonly="1"/>
+                            <field name="handover_id"/>
+                            <field name="arrival_datetime"/>
+                        </group>
+                        <group string="Container &amp; Seal">
+                            <field name="container_no"/>
+                            <field name="seal_no"/>
+                            <field name="seal_intact" widget="boolean_toggle"/>
+                            <field name="seal_photo" widget="binary"/>
+                        </group>
+                        <group string="Transport">
+                            <field name="carrier_id"/>
+                            <field name="plate_number"/>
+                            <field name="driver_name"/>
+                            <field name="driver_phone"/>
+                        </group>
+                        <group string="POD">
+                            <field name="pod_file" widget="binary"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Related Inbounds">
+                            <field name="bonded_inbound_ids"/>
+                        </page>
+                        <page string="Charges (R1)">
+                            <field name="charge_line_ids"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

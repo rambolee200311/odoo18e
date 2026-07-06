@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="bonded_stock_view_tree" model="ir.ui.view">
+        <field name="name">bonded.stock.tree</field>
+        <field name="model">bonded.stock</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="bonded_book_id"/>
+                <field name="product_id"/>
+                <field name="lot_id"/>
+                <field name="location_id"/>
+                <field name="current_customs_status"/>
+                <field name="quantity"/>
+                <field name="unit_value" widget="monetary"/>
+                <field name="total_value" widget="monetary"/>
+                <field name="inbound_date"/>
+                <field name="locked" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="bonded_stock_view_form" model="ir.ui.view">
+        <field name="name">bonded.stock.form</field>
+        <field name="model">bonded.stock</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group string="Stock Info">
+                            <field name="bonded_book_id"/>
+                            <field name="product_id"/>
+                            <field name="lot_id"/>
+                            <field name="location_id"/>
+                        </group>
+                        <group string="Customs">
+                            <field name="current_customs_status"/>
+                            <field name="locked" widget="boolean_toggle"/>
+                        </group>
+                        <group string="Value">
+                            <field name="quantity"/>
+                            <field name="unit_value" widget="monetary"/>
+                            <field name="total_value" widget="monetary"/>
+                        </group>
+                        <group string="Traceability">
+                            <field name="inbound_date"/>
+                            <field name="related_t1_in_mrn_ids"/>
+                            <field name="related_t1_out_mrn"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="bonded_stock_view_search" model="ir.ui.view">
+        <field name="name">bonded.stock.search</field>
+        <field name="model">bonded.stock</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="product_id"/>
+                <field name="lot_id"/>
+                <field name="location_id"/>
+                <filter name="entrepot" string="Bonded" domain="[('current_customs_status','=','entrepot')]"/>
+                <filter name="vrij" string="Free Circulation" domain="[('current_customs_status','=','vrij')]"/>
+                <filter name="in_transit" string="In T1 Transit" domain="[('current_customs_status','=','in_t1_transit')]"/>
+                <filter name="locked" string="Locked" domain="[('locked','=',True)]"/>
+                <separator/>
+                <group expand="0" string="Group By">
+                    <filter name="by_status" string="Customs Status" context="{'group_by':'current_customs_status'}"/>
+                    <filter name="by_book" string="Bonded Book" context="{'group_by':'bonded_book_id'}"/>
+                    <filter name="by_product" string="Product" context="{'group_by':'product_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+</odoo>

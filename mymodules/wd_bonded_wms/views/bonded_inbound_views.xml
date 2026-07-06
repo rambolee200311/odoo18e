@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="bonded_inbound_view_tree" model="ir.ui.view">
+        <field name="name">bonded.inbound.tree</field>
+        <field name="model">bonded.inbound</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="customs_file_id"/>
+                <field name="expected_date"/>
+                <field name="total_value" widget="monetary"/>
+                <field name="cargo_source"/>
+                <field name="state"/>
+                <field name="picking_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="bonded_inbound_view_form" model="ir.ui.view">
+        <field name="name">bonded.inbound.form</field>
+        <field name="model">bonded.inbound</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_confirm" string="Confirm" type="object" invisible="state != 'draft'" class="btn-primary"/>
+                    <button name="action_create_picking" string="Create Stock Picking" type="object" invisible="state != 'confirmed'" class="btn-primary"/>
+                    <button name="action_start" string="Start" type="object" invisible="state != 'confirmed'"/>
+                    <button name="action_done" string="Set to Done" type="object" invisible="state not in ('confirmed', 'in_progress')" class="btn-success"/>
+                    <button name="action_cancel" string="Cancel" type="object" invisible="state != 'draft'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,done"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group string="Inbound Info">
+                            <field name="name" readonly="1"/>
+                            <field name="bonded_book_id"/>
+                            <field name="customs_file_id"/>
+                            <field name="cargo_source"/>
+                        </group>
+                        <group string="Schedule">
+                            <field name="expected_date"/>
+                            <field name="total_value" widget="monetary"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Products">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="product_id"/>
+                                    <field name="planned_qty"/>
+                                    <field name="done_qty"/>
+                                    <field name="uom_id"/>
+                                    <field name="customs_file_line_id"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Gate Arrivals">
+                            <field name="gate_arrival_ids"/>
+                        </page>
+                        <page string="Stock Picking">
+                            <field name="picking_id" readonly="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>
