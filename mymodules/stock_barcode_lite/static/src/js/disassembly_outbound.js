@@ -326,6 +326,15 @@ export class DisassemblyOutboundPage extends Component {
         this.state.loading = true;
 
         try {
+            if (this.state.nextStep === "validate") {
+                this.showMessage(
+                    _t("All products scanned. Click Confirm Outbound to complete."),
+                    "info"
+                );
+                this._focusBarcodeInput();
+                return;
+            }
+
             if (this.state.nextStep === "input_quantity") {
                 this.showMessage(
                     _t("Please use the quantity input to confirm the scanned quantity."),
@@ -565,10 +574,6 @@ export class DisassemblyOutboundPage extends Component {
         this._isProcessing = true;
         this.state.loading = true;
         try {
-            // 保存当前产品的 move_line_id，用于后续查找最新数据
-            const currentMoveLineId = this.state.currentProduct?.move_line_id;
-            const totalQty = this.state.currentProduct?.quantity || 0;
-
             const result = await this.orm.call(
                 "stock.barcode.lite.scan.service",
                 "process_outgoing_quantity_scan",
@@ -584,17 +589,18 @@ export class DisassemblyOutboundPage extends Component {
                 ]
             );
 
-            // 错误处理
+            // 后端返回错误
             if (result.success === false) {
                 this.showMessage(result.message || _t("Quantity error"), "danger");
                 this._flashScreen([200, 100, 100], true);
                 this.state.quantityInput = "";
-                this.state.nextStep = "input_quantity";
                 return;
             }
 
-            // 更新界面
-            await this._applyScanResult(result, false);
+            // 正常处理：后端已经清掉了 product_id/lot_id，
+            // 并返回了正确的 next_step，前端直接沿用
+            await this._applyScanResult(result, true);
+            this.state.quantityInput = "";
 
             if (this.state.nextStep === "input_quantity") {
                 const qtyInput = document.querySelector('.o_sbl_quantity_panel input[type="number"]');
@@ -602,39 +608,7 @@ export class DisassemblyOutboundPage extends Component {
             } else {
                 requestAnimationFrame(() => this._focusBarcodeInput());
             }
-
-            // 从更新后的 pallets 获取最新的 scanned_quantity
-            let scannedQty = 0;
-            if (currentMoveLineId) {
-                for (const pallet of this.state.pallets) {
-                    const product = pallet.products?.find(p => p.move_line_id === currentMoveLineId);
-                    if (product) {
-                        scannedQty = product.scanned_quantity || 0;
-                        break;
-                    }
-                }
-            } else {
-                console.log("[submitQuantity] No currentMoveLineId, cannot find scanned quantity");
-            }
-
-            const remainingQty = Math.max(totalQty - scannedQty, 0);
-
-            if (scannedQty >= totalQty && totalQty > 0) {
-                this.showMessage(_t("Quantity matched! Product completed successfully."), "success");
-                this._flashScreen([100, 200, 100], false);
-                this.state.currentProduct = {};
-                this.state.currentLot = {};
-                this.state.quantityInput = "";
-            } else {
-                this.showMessage(
-                    _t("Added: ") + qty + _t(". Remaining: ") + remainingQty + _t(" unit(s)."),
-                    "danger"
-                );
-                this._flashScreen([200, 200, 100], false);
-                this.state.quantityInput = "";
-            }
         } catch (error) {
-            console.error("[DisassemblyOutbound] quantity error:", error);
             this.showMessage(this.formatError(error), "danger");
             this._flashScreen([200, 100, 100], true);
         } finally {
@@ -802,6 +776,7 @@ export class DisassemblyOutboundPage extends Component {
             scan_product: _t("Scan Product"),
             scan_lot: _t("Scan Lot/SN"),
             input_quantity: _t("Input Quantity"),
+            validate: _t("All Done"),
         };
         return map[this.state.nextStep] || _t("Scan Barcode");
     }
@@ -814,6 +789,7 @@ export class DisassemblyOutboundPage extends Component {
             scan_product: _t("Scan product barcode from the current pallet"),
             scan_lot: _t("Scan serial number or lot number"),
             input_quantity: _t("Input quantity for the current product/lot"),
+            validate: _t("All pallets scanned. Click Confirm Outbound to complete."),
         };
         return hints[this.state.nextStep] || "";
     }
