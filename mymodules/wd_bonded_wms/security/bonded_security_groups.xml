@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <!-- 口岸报关员 -->
+        <record id="group_bonded_customs_declaration" model="res.groups">
+            <field name="name">Bonded Customs - Declaration</field>
+            <field name="category_id" ref="base.module_category_hidden"/>
+            <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        </record>
+
+        <!-- 仓关务复核员 -->
+        <record id="group_bonded_customs_review" model="res.groups">
+            <field name="name">Bonded Customs - Review</field>
+            <field name="category_id" ref="base.module_category_hidden"/>
+            <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        </record>
+
+        <!-- 仓库管理员 -->
+        <record id="group_bonded_warehouse" model="res.groups">
+            <field name="name">Bonded Warehouse - Operations</field>
+            <field name="category_id" ref="base.module_category_hidden"/>
+            <field name="implied_ids" eval="[(4, ref('stock.group_stock_user'))]"/>
+        </record>
+
+        <!-- 财务人员 -->
+        <record id="group_bonded_finance" model="res.groups">
+            <field name="name">Bonded Finance</field>
+            <field name="category_id" ref="base.module_category_hidden"/>
+            <field name="implied_ids" eval="[(4, ref('account.group_account_user'))]"/>
+        </record>
+
+        <!-- 管理员 -->
+        <record id="group_bonded_admin" model="res.groups">
+            <field name="name">Bonded Administrator</field>
+            <field name="category_id" ref="base.module_category_hidden"/>
+            <field name="implied_ids" eval="[(4, ref('base.group_erp_manager'))]"/>
+        </record>
+
+        <!-- 海关(只读) -->
+        <record id="group_bonded_customs_audit" model="res.groups">
+            <field name="name">Bonded Customs - Audit (Read-only)</field>
+            <field name="category_id" ref="base.module_category_hidden"/>
+            <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        </record>
+
+        <!-- Portal客户 -->
+        <record id="group_bonded_portal" model="res.groups">
+            <field name="name">Bonded Portal Client</field>
+            <field name="category_id" ref="base.module_category_hidden"/>
+            <field name="implied_ids" eval="[(4, ref('base.group_portal'))]"/>
+        </record>
+    </data>
+</odoo>

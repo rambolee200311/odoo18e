@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="bonded_customs_file_view_tree" model="ir.ui.view">
+        <field name="name">bonded.customs.file.tree</field>
+        <field name="model">bonded.customs.file</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="declaration_no"/>
+                <field name="declaration_type"/>
+                <field name="mrn"/>
+                <field name="consignor_eori"/>
+                <field name="consignee_eori"/>
+                <field name="total_packages"/>
+                <field name="invoice_amount" widget="monetary"/>
+                <field name="state"/>
+                <field name="declaration_date"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="bonded_customs_file_view_form" model="ir.ui.view">
+        <field name="name">bonded.customs.file.form</field>
+        <field name="model">bonded.customs.file</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_submit" string="Submit" type="object" invisible="state not in ('draft', 'to_be_submitted')" class="btn-primary"/>
+                    <button name="action_approve" string="Approve (Simulate)" type="object" invisible="state != 'submitted'" class="btn-success"/>
+                    <button name="action_reject" string="Reject" type="object" invisible="state != 'submitted'" class="btn-danger"/>
+                    <button name="action_done" string="Set to Done" type="object" invisible="state != 'customs_approved'"/>
+                    <button name="action_cancel" string="Cancel" type="object" invisible="state not in ('draft', 'to_be_submitted', 'submitted')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,customs_approved,done"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-warning" role="alert" invisible="pre_condition != 't1_closed'">
+                        <i class="fa fa-exclamation-triangle"/> This B3 declaration requires T1 pre-condition. Verify pre_mrn_ids below.
+                    </div>
+                    <div class="alert alert-danger" role="alert" invisible="state != 'customs_rejected'">
+                        <i class="fa fa-times-circle"/> Rejected: <field name="rejection_reason"/>
+                    </div>
+                    <group>
+                        <group string="Declaration Header (SAD/C88)">
+                            <field name="declaration_no" readonly="1"/>
+                            <field name="declaration_type"/>
+                            <field name="bonded_book_id"/>
+                            <field name="mrn" placeholder="Auto-filled on T1 approval"/>
+                            <field name="customs_code"/>
+                        </group>
+                        <group string="Parties">
+                            <field name="consignor_eori"/>
+                            <field name="consignee_eori"/>
+                            <field name="declarant_eori"/>
+                            <field name="procedure_code"/>
+                            <field name="bonded_warehouse_no"/>
+                            <field name="previous_doc_no"/>
+                        </group>
+                        <group string="Transport">
+                            <field name="origin_country_id"/>
+                            <field name="destination_country_id"/>
+                            <field name="transport_mode"/>
+                            <field name="estimated_distance_km" invisible="transport_mode != 'road'"/>
+                            <field name="transit_deadline"/>
+                        </group>
+                        <group string="Cargo">
+                            <field name="total_packages"/>
+                            <field name="total_gross_weight"/>
+                            <field name="invoice_amount" widget="monetary"/>
+                            <field name="currency_id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Declaration Lines (Box6)">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="item_no"/>
+                                    <field name="product_id"/>
+                                    <field name="hs_code"/>
+                                    <field name="origin_country_id"/>
+                                    <field name="quantity"/>
+                                    <field name="uom_id"/>
+                                    <field name="gross_weight"/>
+                                    <field name="net_weight"/>
+                                    <field name="line_value" widget="monetary"/>
+                                    <field name="initial_customs_status"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Pre-conditions (F-02)" invisible="declaration_type != 'b3_in'">
+                            <group>
+                                <field name="pre_condition"/>
+                                <field name="pre_satisfied_date" readonly="1"/>
+                            </group>
+                            <field name="pre_mrn_ids" context="{'default_customs_file_id': id}">
+                                <list editable="bottom">
+                                    <field name="mrn"/>
+                                    <field name="t1_customs_file_id"/>
+                                    <field name="status"/>
+                                    <field name="satisfied_date"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Gate Arrivals" invisible="declaration_type not in ('t1_in')">
+                            <field name="gate_arrival_ids"/>
+                        </page>
+                        <page string="Attachments">
+                            <group>
+                                <field name="declaration_file" filename="response_filename"/>
+                                <field name="response_file" filename="response_filename"/>
+                                <field name="response_filename" invisible="1"/>
+                                <field name="approval_no" readonly="1"/>
+                                <field name="approval_date" readonly="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="bonded_customs_file_view_search" model="ir.ui.view">
+        <field name="name">bonded.customs.file.search</field>
+        <field name="model">bonded.customs.file</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="declaration_no"/>
+                <field name="mrn"/>
+                <field name="consignor_eori"/>
+                <field name="consignee_eori"/>
+                <filter name="t1_in" string="T1 In" domain="[('declaration_type','=','t1_in')]"/>
+                <filter name="b3_in" string="B3 In" domain="[('declaration_type','=','b3_in')]"/>
+                <filter name="b3_out" string="B3 Out" domain="[('declaration_type','=','b3_out')]"/>
+                <filter name="t1_out" string="T1 Out" domain="[('declaration_type','=','t1_out')]"/>
+                <separator/>
+                <filter name="approved" string="Approved" domain="[('state','=','customs_approved')]"/>
+                <filter name="pending" string="Submitted" domain="[('state','=','submitted')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="by_type" string="Type" context="{'group_by':'declaration_type'}"/>
+                    <filter name="by_state" string="Status" context="{'group_by':'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+</odoo>

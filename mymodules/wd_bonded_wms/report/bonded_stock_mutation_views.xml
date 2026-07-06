@@ -1,0 +1,1 @@
+<?xml version="1.0"?><odoo><record id="tree" model="ir.ui.view"><field name="name">report.tree</field><field name="model">bonded.stock.mutation</field><field name="arch" type="xml"><list><field name="product_id"/><field name="mutation_type"/><field name="quantity_delta"/></list></field></record></odoo>

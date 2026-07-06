@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- 账册编号 -->
+        <record id="seq_bonded_book" model="ir.sequence">
+            <field name="name">Bonded Book</field>
+            <field name="code">seq.bonded.book</field>
+            <field name="prefix">BK-%(year)s%(month)s-</field>
+            <field name="padding">4</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <!-- T1入库申报 -->
+        <record id="seq_customs_file_t1_in" model="ir.sequence">
+            <field name="name">Customs File T1 In</field>
+            <field name="code">seq.customs.file.t1_in</field>
+            <field name="prefix">T1IN-%(year)s%(month)s%(day)s-</field>
+            <field name="padding">4</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <!-- B3入库申报 -->
+        <record id="seq_customs_file_b3_in" model="ir.sequence">
+            <field name="name">Customs File B3 In</field>
+            <field name="code">seq.customs.file.b3_in</field>
+            <field name="prefix">B3IN-%(year)s%(month)s%(day)s-</field>
+            <field name="padding">4</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <!-- B3出库申报 -->
+        <record id="seq_customs_file_b3_out" model="ir.sequence">
+            <field name="name">Customs File B3 Out</field>
+            <field name="code">seq.customs.file.b3_out</field>
+            <field name="prefix">B3OUT-%(year)s%(month)s%(day)s-</field>
+            <field name="padding">4</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <!-- T1出境申报 -->
+        <record id="seq_customs_file_t1_out" model="ir.sequence">
+            <field name="name">Customs File T1 Out</field>
+            <field name="code">seq.customs.file.t1_out</field>
+            <field name="prefix">T1OUT-%(year)s%(month)s%(day)s-</field>
+            <field name="padding">4</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <!-- EU Dispatch -->
+        <record id="seq_customs_file_ex" model="ir.sequence">
+            <field name="name">Customs File EU Dispatch</field>
+            <field name="code">seq.customs.file.ex</field>
+            <field name="prefix">EU-%(year)s%(month)s%(day)s-</field>
+            <field name="padding">4</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <!-- 销毁 -->
+        <record id="seq_customs_file_destruction" model="ir.sequence">
+            <field name="name">Customs File Destruction</field>
+            <field name="code">seq.customs.file.destruction</field>
+            <field name="prefix">DEST-%(year)s%(month)s%(day)s-</field>
+            <field name="padding">4</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <!-- 海关放行号 -->
+        <record id="seq_customs_approval" model="ir.sequence">
+            <field name="name">Customs Approval No.</field>
+            <field name="code">seq.customs.approval</field>
+            <field name="prefix">APP-%(year)s%(month)s%(day)s-</field>
+            <field name="padding">4</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <!-- 到仓登记 -->
+        <record id="seq_gate_arrival" model="ir.sequence">
+            <field name="name">Gate Arrival</field>
+            <field name="code">seq.gate.arrival</field>
+            <field name="prefix">GA-%(year)s%(month)s%(day)s-</field>
+            <field name="padding">4</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <!-- 入库指令 -->
+        <record id="seq_bonded_inbound" model="ir.sequence">
+            <field name="name">Bonded Inbound</field>
+            <field name="code">seq.bonded.inbound</field>
+            <field name="prefix">BI-%(year)s%(month)s%(day)s-</field>
+            <field name="padding">4</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <!-- 出库指令 -->
+        <record id="seq_bonded_outbound" model="ir.sequence">
+            <field name="name">Bonded Outbound</field>
+            <field name="code">seq.bonded.outbound</field>
+            <field name="prefix">BO-%(year)s%(month)s%(day)s-</field>
+            <field name="padding">4</field>
+            <field name="company_id" eval="False"/>
+        </record>
+    </data>
+</odoo>

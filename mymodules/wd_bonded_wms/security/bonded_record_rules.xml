@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- 客户Portal: 仅看自己的数据 -->
+        <record id="bonded_inbound_portal_rule" model="ir.rule">
+            <field name="name">Bonded Inbound: Portal Client</field>
+            <field name="model_id" ref="model_bonded_inbound"/>
+            <field name="domain_force">[('bonded_book_id.operator_company', '=', user.partner_id.id)]</field>
+            <field name="groups" eval="[(4, ref('group_bonded_portal'))]"/>
+        </record>
+
+        <record id="bonded_outbound_portal_rule" model="ir.rule">
+            <field name="name">Bonded Outbound: Portal Client</field>
+            <field name="model_id" ref="model_bonded_outbound"/>
+            <field name="domain_force">[('bonded_book_id.operator_company', '=', user.partner_id.id)]</field>
+            <field name="groups" eval="[(4, ref('group_bonded_portal'))]"/>
+        </record>
+
+        <record id="bonded_stock_portal_rule" model="ir.rule">
+            <field name="name">Bonded Stock: Portal Client</field>
+            <field name="model_id" ref="model_bonded_stock"/>
+            <field name="domain_force">[('bonded_book_id.operator_company', '=', user.partner_id.id)]</field>
+            <field name="groups" eval="[(4, ref('group_bonded_portal'))]"/>
+        </record>
+
+        <!-- 仓库: 仅看本仓库 -->
+        <!-- Note: stock.location warehouse_id linkage needed -->
+        <record id="bonded_inbound_warehouse_rule" model="ir.rule">
+            <field name="name">Bonded Inbound: Warehouse</field>
+            <field name="model_id" ref="model_bonded_inbound"/>
+            <field name="domain_force">[('picking_id.picking_type_id.warehouse_id', '=', user.warehouse_id.id)]</field>
+            <field name="groups" eval="[(4, ref('group_bonded_warehouse'))]"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <record id="bonded_outbound_warehouse_rule" model="ir.rule">
+            <field name="name">Bonded Outbound: Warehouse</field>
+            <field name="model_id" ref="model_bonded_outbound"/>
+            <field name="domain_force">[('picking_id.picking_type_id.warehouse_id', '=', user.warehouse_id.id)]</field>
+            <field name="groups" eval="[(4, ref('group_bonded_warehouse'))]"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+    </data>
+</odoo>

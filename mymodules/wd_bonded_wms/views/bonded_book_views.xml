@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="bonded_book_view_tree" model="ir.ui.view">
+        <field name="name">bonded.book.tree</field>
+        <field name="model">bonded.book</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="customs_office_code"/>
+                <field name="operator_company"/>
+                <field name="valid_from"/>
+                <field name="valid_until"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="bonded_book_view_form" model="ir.ui.view">
+        <field name="name">bonded.book.form</field>
+        <field name="model">bonded.book</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_activate" string="Activate" type="object" invisible="state != 'draft'" class="btn-primary"/>
+                    <button name="action_expire" string="Expire" type="object" invisible="state != 'active'"/>
+                    <button name="action_cancel" string="Cancel" type="object" invisible="state not in ('draft', 'active')"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group string="Book Info">
+                            <field name="name" readonly="1"/>
+                            <field name="customs_office_code"/>
+                            <field name="operator_company"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group string="Validity">
+                            <field name="valid_from"/>
+                            <field name="valid_until"/>
+                        </group>
+                        <group string="Thresholds (R3)">
+                            <field name="shortage_threshold_percent" widget="percentpie"/>
+                            <field name="shortage_threshold_amount" widget="monetary"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Value Limits">
+                            <field name="value_limit_ids">
+                                <list editable="bottom">
+                                    <field name="limit_type"/>
+                                    <field name="product_category_id"/>
+                                    <field name="total_value" widget="monetary"/>
+                                    <field name="used_value" widget="monetary"/>
+                                    <field name="available_value" widget="monetary"/>
+                                    <field name="effective_date"/>
+                                    <field name="expiry_date"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Bonded Products">
+                            <field name="bonded_product_ids"/>
+                        </page>
+                        <page string="Customs Declarations">
+                            <field name="customs_file_ids">
+                                <list>
+                                    <field name="declaration_no"/>
+                                    <field name="declaration_type"/>
+                                    <field name="state"/>
+                                    <field name="declaration_date"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="bonded_book_view_search" model="ir.ui.view">
+        <field name="name">bonded.book.search</field>
+        <field name="model">bonded.book</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="customs_office_code"/>
+                <field name="operator_company"/>
+                <filter name="active" string="Active" domain="[('state','=','active')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="by_state" string="Status" context="{'group_by':'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- 保税费用种子数据 - Charge Unit -->
+        <record id="bonded_charge_unit_piece" model="world.depot.charge.unit">
+            <field name="name">Per Piece</field>
+        </record>
+        <record id="bonded_charge_unit_shipment" model="world.depot.charge.unit">
+            <field name="name">Per Shipment</field>
+        </record>
+        <record id="bonded_charge_unit_mrn" model="world.depot.charge.unit">
+            <field name="name">Per MRN</field>
+        </record>
+        <record id="bonded_charge_unit_day" model="world.depot.charge.unit">
+            <field name="name">Per Day</field>
+        </record>
+        <record id="bonded_charge_unit_month" model="world.depot.charge.unit">
+            <field name="name">Per Month</field>
+        </record>
+        <record id="bonded_charge_unit_pallet_day" model="world.depot.charge.unit">
+            <field name="name">Per Pallet/Day</field>
+        </record>
+
+        <!-- 保税费用项 - 需要在world.depot.charge.item中创建 -->
+        <!-- Note: these are parent items under the existing charge tree -->
+        <record id="bonded_charge_item_customs" model="world.depot.charge.item">
+            <field name="item_name">Bonded Customs Declaration</field>
+            <field name="tab_category">customs</field>
+            <field name="operation_type">handover</field>
+        </record>
+        <record id="bonded_charge_item_storage" model="world.depot.charge.item">
+            <field name="item_name">Bonded Storage</field>
+            <field name="tab_category">storage</field>
+            <field name="operation_type">handover</field>
+        </record>
+        <record id="bonded_charge_item_other" model="world.depot.charge.item">
+            <field name="item_name">Bonded Other Services</field>
+            <field name="tab_category">wh_other</field>
+            <field name="operation_type">handover</field>
+        </record>
+    </data>
+</odoo>
