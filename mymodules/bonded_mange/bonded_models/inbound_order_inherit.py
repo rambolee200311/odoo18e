@@ -38,6 +38,23 @@ class InboundOrderInherit(models.Model):
 
     t1_closed_date = fields.Date(string="T1 Closed Date", tracking=True)
     customs_status = fields.Selection(CUSTOMS_STATUS_SELECTION, string="Customs Status", tracking=True, index=True)
+    is_bonded = fields.Boolean(string="Bonded Warehouse", default=True, tracking=True)
+
+    @api.constrains("customs_document_id", "mrn_id", "t1_document_number")
+    def check_customs_document_mrn_t1_consistency(self):
+        for rec in self:
+            doc = rec.customs_document_id
+            if not doc:
+                continue
+
+            if not doc.mrn_id:
+                raise ValidationError(_("Customs Document must have MRN."))
+
+            if rec.mrn_id != doc.mrn_id:
+                raise ValidationError(_("MRN must match the selected Customs Document."))
+
+            if (rec.t1_document_number or "") != (doc.t1_document_number or ""):
+                raise ValidationError(_("T1 Document Number must match the selected Customs Document."))
 
     @api.constrains("customs_document_id")
     def checkCustomsDocumentIdConstraint(self):
@@ -95,6 +112,7 @@ class InboundOrderInherit(models.Model):
     def onchange_customs_document_id(self):
         for rec in self:
             doc = rec.customs_document_id
+            rec.mrn_id = doc.mrn_id if doc else False
             rec.customs_status = doc.customs_status if doc else False
             rec.t1_document_number = doc.t1_document_number if doc else False
             rec.t1_status = (doc.t1_status or "open") if doc else "open"
@@ -105,10 +123,13 @@ class InboundOrderInherit(models.Model):
         for rec in self:
             doc = rec.customs_document_id
             vals = {}
+            target_mrn_id = doc.mrn_id.id if doc and doc.mrn_id else False
             target_customs_status = doc.customs_status if doc else False
             target_t1_document_number = doc.t1_document_number if doc else False
             target_t1_status = (doc.t1_status or "open") if doc else "open"
             target_t1_closed_date = doc.t1_closed_date if doc else False
+            if rec.mrn_id.id != target_mrn_id:
+                vals["mrn_id"] = target_mrn_id
             if rec.customs_status != target_customs_status:
                 vals["customs_status"] = target_customs_status
             if rec.t1_document_number != target_t1_document_number:
@@ -131,8 +152,11 @@ class InboundOrderInherit(models.Model):
             for picking in picking_env.browse(picking_ids):
                 vals = {}
                 target_doc_id = rec.customs_document_id.id if rec.customs_document_id else False
+                target_mrn_id = rec.customs_document_id.mrn_id.id if rec.customs_document_id and rec.customs_document_id.mrn_id else False
                 if picking.customs_document_id.id != target_doc_id:
                     vals["customs_document_id"] = target_doc_id
+                if picking.mrn_id.id != target_mrn_id:
+                    vals["mrn_id"] = target_mrn_id
 
                 # 只给入库单据同步标识
                 if picking.picking_type_code == "incoming":
@@ -143,7 +167,7 @@ class InboundOrderInherit(models.Model):
 
                 if vals:
                     picking.write(vals)
-
+                picking.actionSyncPickingMrnFields()
                 if picking.picking_type_code == "incoming":
                     picking.action_sync_identifier_to_move_line_from_picking()
         return True

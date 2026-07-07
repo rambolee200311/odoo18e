@@ -9,6 +9,11 @@
                 <field name="unique_identifier" optional="show"/>
                 <field name="customs_document_id" optional="show"/>
                 <field name="customs_status" optional="show"/>
+
+                 <field name="t1_document_number" readonly="1" force_save="1"/>
+                <field name="t1_status" readonly="1" force_save="1"/>
+                <field name="t1_closed_date" readonly="1" force_save="1"/>
+
                 <field name="picking_PICK" optional="show"/>
                 <field name="cmr_sign_time" optional="show"/>
                 <!--                <field name="unique_identifier" optional="show"/>-->
@@ -37,16 +42,24 @@
         <field name="model">world.depot.outbound.order</field>
         <field name="inherit_id" ref="worlddepot.view_outbound_order_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//field[@name='is_adr']" position="after">
+                <field name="is_bonded" readonly="state != 'new'" force_save="1"/>
+            </xpath>
             <xpath expr="//field[@name='pick_type']" position="after">
                 <!--                <field name="unique_identifier" optional="show"/>-->
                 <field name="bonded_flag"
                        force_save="1"
                        required="1"
+                       readonly="1"
                        decoration-danger="bonded_flag in ('true')"
                        decoration-info="bonded_flag in ('false')"/>
-                <field name="customs_document_id" readonly="state != 'new'" required="bonded_flag == 'true'"
-                       options="{'no_create': True}"/>
-                <field name="mrn_id" options="{'no_open': True , 'no_create': True}" readonly="state != 'new'"/>
+                <field name="customs_document_id" readonly="state != 'new'" domain="[('mrn_id', '!=', False)]" required="is_bonded == True" options="{'no_quick_create': True}"/>
+                <field name="t1_document_number" readonly="1" force_save="1"/>
+                <field name="t1_status" readonly="1" force_save="1"/>
+                <field name="t1_closed_date" readonly="1" force_save="1"/>
+
+                <field name="mrn_id" readonly="state != 'new'" required="is_bonded == True" options="{'no_open': True, 'create_name_field': 'code'}"/>
+                <field name="mrn_status" readonly="1"/>
                 <field name="cmr_sign_time" readonly="1"/>
             </xpath>
             <xpath expr="//field[@name='outbound_order_product_ids']" position="attributes">

@@ -12,15 +12,86 @@ class OutboundOrder(models.Model):
     #inbound_confirm_mrn_ids = fields.Many2many("bonded.mrn.master", compute="_compute_inbound_confirm_mrn_ids",compute_sudo=True)
 
     unique_identifier = fields.Char(string='Unique Identifier', tracking=True, copy=False, index=True, readonly=True)
-    bonded_flag = fields.Selection([("true", "bonded"), ("false", "Non-bonded")], string="Bonded Flag",default='false', index=True)
+   # bonded_flag = fields.Selection([("true", "bonded"), ("false", "Non-bonded")], string="Bonded Flag",default='false', index=True)
     customs_document_id = fields.Many2one("bonded.customs.document", string="Customs Document", index=True,
                                           tracking=True, copy=False)
+    is_bonded = fields.Boolean(string="Bonded Warehouse", default=True, tracking=True, index=True)
+    bonded_flag = fields.Selection([("true", "bonded"), ("false", "Non-bonded")], string="Bonded Flag",
+                                   compute="_compute_bonded_flag", inverse="_inverse_bonded_flag", store=True,
+                                   readonly=False, index=True)
 
+    def get_mrn_status_by_customs_status(self, customs_status):
+        if not customs_status:
+            return "status_changed"
+        if customs_status in ("entrepot",):
+            return "pending_declaration"
+        if customs_status in ("vrij",):
+            return "cleared"
+        if customs_status in ("rto", "ivv"):
+            return "declared"
+        if customs_status == "accijns":
+            return "exception"
+        return "status_changed"
+
+    def action_apply_customs_mrn_status_mapping(self):
+        for rec in self:
+            customs_status = rec.customs_status
+            target_mrn_status = (
+                "declared"
+                if rec.is_bonded and rec.t1_status == "closed"
+                else rec.get_mrn_status_by_customs_status(customs_status)
+            )
+            if rec.mrn_status != target_mrn_status:
+                rec.write({"mrn_status": target_mrn_status})
+    @api.constrains("customs_document_id", "mrn_id", "t1_document_number")
+    def check_customs_document_mrn_t1_consistency(self):
+        for rec in self:
+            doc = rec.customs_document_id
+            if not doc:
+                continue
+
+            if not doc.mrn_id:
+                raise ValidationError(_("Customs Document must have MRN."))
+
+            if rec.mrn_id != doc.mrn_id:
+                raise ValidationError(_("MRN must match the selected Customs Document."))
+
+            if (rec.t1_document_number or "") != (doc.t1_document_number or ""):
+                raise ValidationError(_("T1 Document Number must match the selected Customs Document."))
+
+    @api.onchange("customs_document_id")
+    def onchange_customs_document_id(self):
+        for rec in self:
+            doc = rec.customs_document_id
+            rec.mrn_id = doc.mrn_id if doc else False
+            rec.customs_status = doc.customs_status if doc else False
+            rec.t1_document_number = doc.t1_document_number if doc else False
+            rec.t1_status = (doc.t1_status or "open") if doc else "open"
+            rec.t1_closed_date = doc.t1_closed_date if doc else False
+            # rec.mrn_status = (
+            #     "declared"
+            #     if rec.is_bonded and rec.t1_status == "closed"
+            #     else rec.get_mrn_status_by_customs_status(rec.customs_status)
+            # )
+
+    @api.depends("is_bonded")
+    def _compute_bonded_flag(self):
+        for rec in self:
+            rec.bonded_flag = "true" if rec.is_bonded else "false"
+
+    def _inverse_bonded_flag(self):
+        for rec in self:
+            rec.is_bonded = rec.bonded_flag == "true"
 
     def write(self, vals):
+        vals_write = dict(vals)
         res = super().write(vals)
         if "customs_document_id" in vals:
             self.actionSyncCustomsDocumentMirrorVals()
+            self.actionSyncCustomsDocumentToOutboundPicking()
+        if any(x in vals_write for x in
+               ["customs_status", "t1_status", "t1_closed_date", "customs_document_id", "is_bonded"]):
+            self.action_apply_customs_mrn_status_mapping()
             self.actionSyncCustomsDocumentToOutboundPicking()
         return res
 
@@ -28,10 +99,14 @@ class OutboundOrder(models.Model):
         for rec in self:
             doc = rec.customs_document_id
             vals = {}
+
             target_customs_status = doc.customs_status if doc else False
             target_t1_document_number = doc.t1_document_number if doc else False
             target_t1_status = (doc.t1_status or "open") if doc else "open"
             target_t1_closed_date = doc.t1_closed_date if doc else False
+            target_mrn_id = doc.mrn_id.id if doc and doc.mrn_id else False
+            if "mrn_id" in rec._fields and rec.mrn_id.id != target_mrn_id:
+                vals["mrn_id"] = target_mrn_id
             if "customs_status" in rec._fields and rec.customs_status != target_customs_status:
                 vals["customs_status"] = target_customs_status
             if "t1_document_number" in rec._fields and rec.t1_document_number != target_t1_document_number:
@@ -42,6 +117,7 @@ class OutboundOrder(models.Model):
                 vals["t1_closed_date"] = target_t1_closed_date
             if vals:
                 rec.write(vals)
+            rec.action_apply_customs_mrn_status_mapping()
         return True
 
     def actionSyncCustomsDocumentToOutboundPicking(self):
@@ -49,9 +125,19 @@ class OutboundOrder(models.Model):
         for rec in self:
             picking_ids = picking_env.sudo().search([("outbound_order_id", "=", rec.id), ("state", "!=", "cancel")]).ids
             target_doc_id = rec.customs_document_id.id if rec.customs_document_id else False
+            target_mrn_id = rec.customs_document_id.mrn_id.id if rec.customs_document_id and rec.customs_document_id.mrn_id else False
+
             for picking in picking_env.browse(picking_ids):
+                vals = {}
                 if picking.customs_document_id.id != target_doc_id:
-                    picking.write({"customs_document_id": target_doc_id})
+                    vals["customs_document_id"] = target_doc_id
+                if picking.mrn_id.id != target_mrn_id:
+                    vals["mrn_id"] = target_mrn_id
+
+                if vals:
+                    picking.write(vals)
+
+                picking.actionSyncPickingMrnFields()
         return True
 
     def action_create_picking_PICK(self):
@@ -124,7 +210,7 @@ class OutboundOrder(models.Model):
                 vals = rec.actionGetMrnMirrorVals(rec.mrn_id)
 
                 rec.mrn_status = vals["mrn_status"]
-                rec.bonded_flag = vals["bonded_flag"]
+                #rec.bonded_flag = vals["bonded_flag"]
                 if vals.get("project"):
                     rec.project = vals["project"]
                 if vals.get("warehouse"):

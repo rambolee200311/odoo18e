@@ -55,6 +55,10 @@ class StockPicking(models.Model):
     def actionSyncPickingMrnFields(self):
         for rec in self:
             mrn = rec.mrn_id
+            if rec.customs_document_id and rec.customs_document_id.mrn_id:
+                mrn = rec.customs_document_id.mrn_id
+            if not mrn and rec.mrn_id:
+                mrn = rec.mrn_id
             if not mrn and rec.outbound_order_id and rec.outbound_order_id.mrn_id:
                 mrn = rec.outbound_order_id.mrn_id
             if not mrn and rec.inbound_order_id and rec.inbound_order_id.mrn_id:
