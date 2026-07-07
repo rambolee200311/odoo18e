@@ -99,11 +99,46 @@ class StockPicking(models.Model):
                 raise ValidationError(_("Outbound lines still miss Unique Identifier"))
         return True
 
+    def get_outbound_order_id_from_source_picking(self, vals):
+        picking_env = self.env["stock.picking"]
+        outbound_env = self.env["world.depot.outbound.order"]
+
+        origin = vals.get("origin")
+        if origin:
+            origin_picking = picking_env.sudo().search([
+                ("name", "=", origin),
+                ("outbound_order_id", "!=", False),
+            ], limit=1)
+            if origin_picking and origin_picking.outbound_order_id.is_bonded is True:
+                return origin_picking.outbound_order_id.id
+
+            outbound = outbound_env.sudo().search([
+                ("billno", "=", origin),
+                ("is_bonded", "=", True),
+            ], limit=1)
+            if outbound:
+                return outbound.id
+
+        group_id = vals.get("group_id")
+        if group_id:
+            group_picking = picking_env.sudo().search([
+                ("group_id", "=", group_id),
+                ("outbound_order_id", "!=", False),
+            ], order="id asc", limit=1)
+            if group_picking and group_picking.outbound_order_id.is_bonded is True:
+                return group_picking.outbound_order_id.id
+
+        return False
+
     @api.model_create_multi
     def create(self, vals_list):
         inbound_env = self.env["world.depot.inbound.order"]
         picking_env = self.env["stock.picking"]
         for vals in vals_list:
+            if not vals.get("outbound_order_id"):
+                outbound_order_id = self.get_outbound_order_id_from_source_picking(vals)
+                if outbound_order_id:
+                    vals["outbound_order_id"] = outbound_order_id
             if not vals.get("unique_identifier") and vals.get("inbound_order_id"):
                 inbound = inbound_env.sudo().browse(vals["inbound_order_id"])
                 vals["unique_identifier"] = inbound.unique_identifier or vals.get("unique_identifier")

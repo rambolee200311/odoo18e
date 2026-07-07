@@ -21,7 +21,7 @@ class BondedCustomsDocument(models.Model):
     _sql_constraints = [("customs_document_number_unique", "unique(customs_document_number)",
                          "Customs Document Number must be unique.")]
 
-    customs_document_number = fields.Char(string="Customs Document Number", index=True, tracking=True, copy=False)
+    customs_document_number = fields.Char(string="Customs Document Number", related="mrn_id.code", store=True, index=True, tracking=True, copy=False)
 
     customs_document_type = fields.Selection(
         [("import_declaration", "Import Declaration"),
@@ -41,17 +41,23 @@ class BondedCustomsDocument(models.Model):
     inbound_order_id = fields.Many2one("world.depot.inbound.order", string="Inbound Order", index=True, tracking=True)
     inbound_reference = fields.Char(string="Inbound Reference", index=True, tracking=True)
 
-    t1_document_number = fields.Char(string="T1 Document Number", index=True, tracking=True)
+    t1_document_number = fields.Char(string="T1 Document Number", compute="_compute_t1_document_number", store=True, readonly=True, index=True, tracking=True)
     t1_status = fields.Selection(T1_STATUS_SELECTION, string="T1 Status", required=True, default="open", index=True, tracking=True)
     t1_closed_date = fields.Date(string="T1 Closed Date", tracking=True)
+    mrn_id = fields.Many2one("bonded.mrn.master", string="MRN", required=True, index=True, copy=False, tracking=True)
     #active = fields.Boolean(string="Active", default=True, index=True)
+
+    @api.depends("customs_document_number")
+    def _compute_t1_document_number(self):
+        for rec in self:
+            rec.t1_document_number = rec.customs_document_number or False
 
     def write(self, vals):
         vals_write = dict(vals)
         if vals_write.get("t1_status") != "closed" and "t1_status" in vals_write:
             vals_write["t1_closed_date"] = False
         res = super().write(vals_write)
-        if any(x in vals_write for x in ["customs_status", "t1_document_number", "t1_status", "t1_closed_date"]):
+        if any(x in vals_write for x in ["customs_status", "t1_document_number", "t1_status", "t1_closed_date","mrn_id", "customs_document_number"]):
             self.actionSyncLinkedRecordsByDocument()
         return res
 

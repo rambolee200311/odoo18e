@@ -7,7 +7,9 @@ class OutboundOrderBondedUniqueRule(models.Model):
 
     def get_is_bonded_outbound_order(self):
         self.ensure_one()
-        return self.bonded_flag == "true"
+        #return self.bonded_flag == "true"
+        return bool(self.is_bonded)
+
 
     def action_get_inbound_product_id_set(self, inbound):
         return set(inbound.inbound_order_product_ids.mapped("inbound_order_product_pallet_ids.product_id").ids)
@@ -68,8 +70,8 @@ class OutboundOrderBondedUniqueRule(models.Model):
             domain.append(("unique_identifier", "in", [x for x in unique_list if x]))
         if self.warehouse and self.warehouse.view_location_id:
             domain.append(("location_id", "child_of", self.warehouse.view_location_id.id))
-        if self.mrn_id:
-            domain.append(("mrn_id", "=", self.mrn_id.id))
+        # if self.mrn_id:
+        #     domain.append(("mrn_id", "=", self.mrn_id.id))
         group_list = ledger_model.sudo().read_group(domain, ["product_id", "unique_identifier", "qty_on_hand:sum"], ["product_id", "unique_identifier"], lazy=False)
         qty_map = {}
         for item in group_list:
@@ -171,7 +173,12 @@ class OutboundOrderBondedUniqueRule(models.Model):
 
     def action_prepare_unique_identifier_before_flow(self):
         for rec in self:
-            if rec.get_is_bonded_outbound_order():
+            rec.action_apply_customs_mrn_status_mapping()
+            if rec.is_bonded:
+                if not rec.customs_document_id:
+                    raise ValidationError(_("Bonded outbound requires Customs Document."))
+                if not rec.mrn_id:
+                    raise ValidationError(_("Bonded outbound requires MRN."))
                 rec.action_auto_assign_unique_identifier_for_lines()
         self.action_validate_outbound_unique_policy()
         return True
@@ -193,8 +200,8 @@ class OutboundOrderBondedUniqueRule(models.Model):
         ]
         if order.warehouse and order.warehouse.view_location_id:
             domain.append(("location_id", "child_of", order.warehouse.view_location_id.id))
-        if order.mrn_id:
-            domain.append(("mrn_id", "=", order.mrn_id.id))
+        # if order.mrn_id:
+        #     domain.append(("mrn_id", "=", order.mrn_id.id))
 
         ledger_ids = ledger_model.sudo().search(domain, order="last_time asc,id asc").ids
         ledger_list = ledger_model.browse(ledger_ids)

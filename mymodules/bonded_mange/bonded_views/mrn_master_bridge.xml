@@ -1,15 +1,39 @@
 <odoo>
-     <record id="view_bonded_mrn_master_form" model="ir.ui.view">
+    <record id="view_bonded_mrn_master_list" model="ir.ui.view">
+        <field name="name">bonded.mrn.master.list</field>
+        <field name="model">bonded.mrn.master</field>
+        <field name="arch" type="xml">
+            <list string="MRN" default_order="id desc">
+                <field name="code"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_bonded_mrn_master_form" model="ir.ui.view">
         <field name="name">bonded.mrn.master.form</field>
         <field name="model">bonded.mrn.master</field>
         <field name="arch" type="xml">
-            <form string="Bonded MRN Master" duplicate="false">
+            <form string="MRN" duplicate="false">
                 <sheet>
                     <group>
-                        <field name="code"/>
+                        <field name="code" required="1"/>
                     </group>
+
                 </sheet>
             </form>
         </field>
     </record>
+
+    <record id="action_bonded_mrn_master" model="ir.actions.act_window">
+        <field name="name">MRN</field>
+        <field name="res_model">bonded.mrn.master</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_active_mrn': 1}</field>
+    </record>
+
+    <menuitem id="menu_bonded_mrn_master"
+              name="MRN"
+              parent="bonded_mange.menu_bonded_root"
+              action="action_bonded_mrn_master"
+              sequence="20"/>
 </odoo>
