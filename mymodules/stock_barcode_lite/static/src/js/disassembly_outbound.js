@@ -57,6 +57,8 @@ export class DisassemblyOutboundPage extends Component {
             currentProductIndex: -1,  // 当前正在处理的产品索引
             isDisassemblyMode: false, // 是否处于拆托模式
             quantityInput: "",        // 数量输入缓冲
+            currentScannedPalletId: null, // 当前扫描的托盘ID（用于高亮标识）
+            expandedPalletIds: [], // 自动展开的托盘ID列表
         });
 
         // 扫码输入缓冲
@@ -73,6 +75,8 @@ export class DisassemblyOutboundPage extends Component {
             this._bindVisibilityChange();
             this._bindGlobalKeyListener();
             this._focusBarcodeInput();
+            // 初始化 Bootstrap 折叠效果
+            this._initCollapse();
         });
 
         onWillUnmount(() => {
@@ -209,20 +213,35 @@ export class DisassemblyOutboundPage extends Component {
         }
     }
 
-    _focusBarcodeInput() {
-        if (this.isScanQuantityStep) {
-            return;
-        }
-        const input = this.barcodeInputRef.el;
-        if (input) {
-            input.focus();
-            input.value = "";
-        } else {
-            console.warn("[BarcodeMonitor] _focusBarcodeInput input missing");
-        }
+   _focusBarcodeInput() {
+       if (this.isScanQuantityStep) {
+           return;
+       }
+       const input = this.barcodeInputRef.el;
+       if (input) {
+           input.focus();
+           input.value = "";
+       } else {
+           console.warn("[BarcodeMonitor] _focusBarcodeInput input missing");
+       }
+   }
+
+    _reconcileFocus() {
+        requestAnimationFrame(() => {
+            if (this.isScanQuantityStep) {
+                const qtyInput = this.el?.querySelector('.o_sbl_quantity_panel input[type="number"]');
+                if (qtyInput) qtyInput.focus();
+            } else {
+                const input = this.barcodeInputRef.el;
+                if (input) {
+                    input.focus();
+                    input.value = "";
+                }
+            }
+        });
     }
 
-    _bindKeyListener() {
+   _bindKeyListener() {
         const input = this.barcodeInputRef.el;
         if (!input) return;
 
@@ -394,12 +413,12 @@ export class DisassemblyOutboundPage extends Component {
             console.error("[DisassemblyOutbound] scan error:", error);
             this.showMessage(this.formatError(error), "danger");
             this._flashScreen([200, 100, 100], true);
-        } finally {
-            this.state.loading = false;
-            this._isProcessing = false;
-            this._focusBarcodeInput();
-        }
-    }
+       } finally {
+           this.state.loading = false;
+           this._isProcessing = false;
+            this._reconcileFocus();
+       }
+   }
 
     /**
      * 映射后端 scan_state 到前端 state
@@ -452,6 +471,18 @@ export class DisassemblyOutboundPage extends Component {
 
         // 更新下一步
         this.state.nextStep = result.next_step || "scan_picking";
+
+        // 记录当前扫描的托盘ID（用于UI高亮标识）
+        if (this.state.currentPallet?.id) {
+            this.state.currentScannedPalletId = this.state.currentPallet.id;
+            // 自动展开当前扫描的托盘
+            if (!this.state.expandedPalletIds.includes(this.state.currentPallet.id)) {
+                this.state.expandedPalletIds = [...this.state.expandedPalletIds, this.state.currentPallet.id];
+            }
+        }
+
+        // 渲染完成后展开托盘卡片
+        this._expandCurrentPalletAfterRender();
 
         // 判断是否进入拆托模式（需要扫产品）
         this.state.isDisassemblyMode = this.state.nextStep === "scan_product";
@@ -599,21 +630,16 @@ export class DisassemblyOutboundPage extends Component {
 
             // 正常处理：后端已经清掉了 product_id/lot_id，
             // 并返回了正确的 next_step，前端直接沿用
-            await this._applyScanResult(result, true);
-            this.state.quantityInput = "";
+           await this._applyScanResult(result, true);
+           this.state.quantityInput = "";
 
-            if (this.state.nextStep === "input_quantity") {
-                const qtyInput = document.querySelector('.o_sbl_quantity_panel input[type="number"]');
-                if (qtyInput) qtyInput.focus();
-            } else {
-                requestAnimationFrame(() => this._focusBarcodeInput());
-            }
         } catch (error) {
             this.showMessage(this.formatError(error), "danger");
             this._flashScreen([200, 100, 100], true);
         } finally {
             this.state.loading = false;
             this._isProcessing = false;
+            this._reconcileFocus();
         }
     }
 
@@ -696,6 +722,82 @@ export class DisassemblyOutboundPage extends Component {
     _flashScreen(pattern, repeat) {
         if ("vibrate" in navigator) {
             navigator.vibrate(repeat ? pattern : 100);
+        }
+    }
+
+    /**
+     * 初始化 Bootstrap 折叠效果
+     */
+    _initCollapse() {
+        if (typeof window.bootstrap !== 'undefined') {
+            const collapseElements = this.el?.querySelectorAll('.collapse');
+            if (collapseElements) {
+                collapseElements.forEach(el => {
+                    // 确保已展开的托盘正确显示
+                    const targetId = el.id;
+                    if (targetId && targetId.startsWith('pallet_products_')) {
+                        const palletId = parseInt(targetId.split('_').pop());
+                        if (this.isPalletExpanded(palletId)) {
+                            el.classList.add('show');
+                            // 更新对应的 header aria-expanded
+                            const header = this.el?.querySelector(`[data-bs-target="#${targetId}"]`);
+                            if (header) {
+                                header.setAttribute('aria-expanded', 'true');
+                            }
+                        }
+                    }
+                });
+            }
+        }
+    }
+
+    /**
+     * 渲染后展开当前托盘
+     * Owl 渲染完成后调用，确保 collapse 面板正确展开
+     */
+    _expandCurrentPalletAfterRender() {
+        if (!this.state.currentScannedPalletId) return;
+
+        const currentPalletId = this.state.currentScannedPalletId;
+        const targetId = `pallet_products_${currentPalletId}`;
+        const collapseEl = this.el?.querySelector(`#${targetId}`);
+        const headerEl = this.el?.querySelector(`[data-bs-target="#${targetId}"]`);
+
+        // 尝试使用 Owl 的渲染后钩子
+        const tryExpand = (attempt) => {
+            const el = this.el?.querySelector(`#${targetId}`);
+            const hdr = this.el?.querySelector(`[data-bs-target="#${targetId}"]`);
+
+            if (el && !el.classList.contains('show')) {
+                el.classList.add('show');
+                if (hdr) {
+                    hdr.setAttribute('aria-expanded', 'true');
+                }
+                return true;
+            }
+            return false;
+        };
+
+        // 立即尝试
+        if (!tryExpand(0)) {
+            // 依次延迟重试，等待 Owl 完成 DOM 更新
+            [50, 100, 200, 350, 500].forEach(delay => {
+                setTimeout(() => tryExpand(delay), delay);
+            });
+        }
+    }
+
+    /**
+     * 展开指定的托盘卡片（手动控制 Bootstrap collapse）
+     */
+    _expandPallet(palletId) {
+        const targetId = `pallet_products_${palletId}`;
+        const collapseEl = this.el?.querySelector(`#${targetId}`);
+        const headerEl = this.el?.querySelector(`[data-bs-target="#${targetId}"]`);
+
+        if (collapseEl && headerEl) {
+            collapseEl.classList.add('show');
+            headerEl.setAttribute('aria-expanded', 'true');
         }
     }
 
@@ -805,6 +907,29 @@ export class DisassemblyOutboundPage extends Component {
     get isAllComplete() {
         const s = this.state.summary || {};
         return (s.pending_pallets || 0) === 0 && (s.total_pallets || 0) > 0;
+    }
+
+    /**
+     * 检查指定托盘是否为当前扫描的高亮托盘
+     */
+    isCurrentHighlightedPallet(palletId) {
+        return this.state.currentScannedPalletId === palletId;
+    }
+
+    /**
+     * 检查指定托盘是否应该展开
+     */
+    isPalletExpanded(palletId) {
+        return this.state.expandedPalletIds.includes(palletId);
+    }
+
+    /**
+     * 返回托盘产品折叠容器的 class
+     */
+    getPalletProductsClass(palletId) {
+        return this.isPalletExpanded(palletId)
+            ? "o_pallet_products collapse show"
+            : "o_pallet_products collapse";
     }
 
     get palletList() {

@@ -1,0 +1,27 @@
+// 拆托出库 - 托盘高亮样式
+.o_pallet_highlighted {
+    border: 2px solid #0d6efd !important;
+    background: linear-gradient(135deg, #e7f1ff 0%, #ffffff 100%) !important;
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.25);
+}
+
+.o_pallet_icon_highlighted {
+    color: #0d6efd !important;
+    animation: pulse_icon 1.5s ease-in-out infinite;
+}
+
+.o_pallet_current_badge {
+    background-color: #0d6efd !important;
+    color: white !important;
+    animation: pulse_badge 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse_icon {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+}
+
+@keyframes pulse_badge {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}

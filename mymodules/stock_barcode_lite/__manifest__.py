@@ -45,6 +45,7 @@ Chenyang Chemical warehouse customizations.
             "stock_barcode_lite/static/src/css/_common.scss",
             "stock_barcode_lite/static/src/css/_homepage.scss",
             "stock_barcode_lite/static/src/css/_inbound.scss",
+            "stock_barcode_lite/static/src/scss/_outbound_disassembly.scss",
         ],
     },
     "license": "LGPL-3",
