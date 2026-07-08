@@ -101,6 +101,7 @@ class SunriseInboundController(http.Controller, SunriseControllerMixin):
 
                 order_vals = {
                     "type": order_type,
+                    "is_bonded":False,
                     "date": self.get_date_value(data, "date", required=True),
                     "a_date": self.get_date_value(data, "a_date", required=True),
                     "reference": reference,
