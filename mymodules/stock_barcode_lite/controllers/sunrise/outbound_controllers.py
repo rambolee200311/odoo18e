@@ -95,6 +95,7 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
                 partner = self.get_partner(data, country)
                 order_vals = {
                     "type": order_type,
+                    "is_bonded": False,
                     "date": self.get_date_value(data, "date", required=True),
                     "p_date": self.get_date_value(data, "p_date", required=False),
                     "reference": reference,
