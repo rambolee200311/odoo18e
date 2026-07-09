@@ -143,21 +143,24 @@
                 </t>
 
                 <t t-foreach="palletList" t-as="pallet" t-key="pallet.package_id">
-                    <div t-attf-class="o_sbl_pallet {{ pallet.is_complete ? 'o_pallet_updated' : '' }}">
+                    <div t-attf-class="o_sbl_pallet {{ pallet.is_complete ? 'o_pallet_updated' : '' }} {{ this.isPalletActive(pallet.package_id) ? 'o_pallet_highlighted' : '' }}">
                         <!-- 托盘头部 -->
                         <div class="o_pallet_header" data-bs-toggle="collapse" t-attf-data-bs-target="#pallet_products_{{ pallet.package_id }}" aria-expanded="false">
                             <div class="o_pallet_row1">
                                 <div class="o_pallet_info">
-                                    <i class="fa fa-cube text-secondary me-2"/>
+                                    <i class="fa fa-cube text-secondary me-2" t-attf-class="{{ this.isPalletActive(pallet.package_id) ? 'o_pallet_icon_highlighted' : '' }}"/>
                                     <strong class="o_pallet_name">
                                         <t t-esc="pallet.package_name || pallet.package_barcode || ('Pallet ' + pallet.package_id)"/>
                                     </strong>
                                 </div>
                                 <div class="o_pallet_right">
+                                    <span class="badge o_pallet_current_badge" t-if="this.isPalletActive(pallet.package_id)">
+                                        <i class="fa fa-bullseye me-1"/>Current
+                                    </span>
                                     <span class="badge bg-success" t-if="pallet.is_complete">
                                         <i class="fa fa-check me-1"/>Done
                                     </span>
-                                    <span class="badge" t-attf-class="{{ pallet.can_ship_whole ? 'bg-info' : 'bg-warning text-dark' }}" t-if="!pallet.is_complete">
+                                    <span class="badge" t-attf-class="{{ pallet.can_ship_whole ? 'bg-info' : 'bg-warning text-dark' }}" t-if="!pallet.is_complete &amp;&amp; !this.isPalletActive(pallet.package_id)">
                                         <t t-if="pallet.can_ship_whole">Whole</t>
                                         <t t-else="">Partial</t>
                                     </span>
@@ -176,7 +179,7 @@
                         </div>
 
                         <!-- 托盘内产品列表 - 默认折叠 -->
-                        <div t-attf-id="pallet_products_{{ pallet.package_id }}" class="o_pallet_products collapse">
+                        <div t-attf-id="pallet_products_{{ pallet.package_id }}" t-attf-class="o_pallet_products collapse {{ this.isPalletActive(pallet.package_id) ? 'show' : '' }}">
                             <t t-if="!(pallet.products || []).length">
                                 <div class="o_sbl_empty_state text-center text-muted py-4">
                                     <p class="mb-0 small">No products loaded</p>

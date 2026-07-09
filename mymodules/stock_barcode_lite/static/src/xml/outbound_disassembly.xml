@@ -208,17 +208,29 @@
                 </t>
 
                 <t t-foreach="palletList" t-as="pallet" t-key="pallet.package_id">
-                    <div t-attf-class="o_sbl_pallet {{ pallet.is_complete ? 'o_pallet_updated' : '' }}">
+                    <div t-attf-class="o_sbl_pallet {{ pallet.is_complete ? 'o_pallet_updated' : '' }} {{ this.isCurrentHighlightedPallet(pallet.package_id) ? 'o_pallet_highlighted' : '' }}">
                         <!-- 托盘头部 -->
                         <div class="o_pallet_header" data-bs-toggle="collapse" t-attf-data-bs-target="#pallet_products_{{ pallet.package_id }}" aria-expanded="false">
                             <div class="o_pallet_row1">
                                 <div class="o_pallet_info">
-                                    <i class="fa fa-cube text-secondary me-2"/>
+                                    <!-- 高亮托盘使用特殊的图标 -->
+                                    <t t-if="this.isCurrentHighlightedPallet(pallet.package_id)">
+                                        <i class="fa fa-cube o_pallet_icon_highlighted me-2"/>
+                                    </t>
+                                    <t t-else="">
+                                        <i class="fa fa-cube text-secondary me-2"/>
+                                    </t>
                                     <strong class="o_pallet_name">
                                         <t t-esc="pallet.package_name || pallet.package_barcode || ('Pallet ' + pallet.package_id)"/>
                                     </strong>
                                 </div>
                                 <div class="o_pallet_right">
+                                    <!-- 高亮标识 -->
+                                    <t t-if="this.isCurrentHighlightedPallet(pallet.package_id)">
+                                        <span class="badge o_pallet_current_badge me-1">
+                                            <i class="fa fa-hand-pointer-o me-1"/>Current
+                                        </span>
+                                    </t>
                                     <span class="badge bg-success" t-if="pallet.is_complete">
                                         <i class="fa fa-check me-1"/>Done
                                     </span>
@@ -240,8 +252,8 @@
                             </div>
                         </div>
 
-                        <!-- 托盘内产品列表 - 默认折叠 -->
-                        <div t-attf-id="pallet_products_{{ pallet.package_id }}" class="o_pallet_products collapse">
+                        <!-- 托盘内产品列表 - 默认折叠，当前扫描托盘通过 collapse show 展开 -->
+                        <div t-attf-id="pallet_products_{{ pallet.package_id }}" t-att-class="getPalletProductsClass(pallet.package_id)">
                             <t t-if="!(pallet.products || []).length">
                                 <div class="o_sbl_empty_state text-center text-muted py-4">
                                     <p class="mb-0 small">No products loaded</p>
