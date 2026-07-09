@@ -16,6 +16,13 @@
     animation: pulse_badge 1.5s ease-in-out infinite;
 }
 
+.o_pallet_name {
+    word-break: break-all;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+}
+
 @keyframes pulse_icon {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.2); }

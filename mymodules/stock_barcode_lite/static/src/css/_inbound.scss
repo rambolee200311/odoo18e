@@ -225,6 +225,15 @@
     white-space: nowrap;
 }
 
+// 整托出库页面托盘号允许换行（用于 whole_pallet 页面，优先级高于上面的规则）
+.o_sbl_pallets .o_pallet_name,
+.o_sbl_inbound .o_pallet_name {
+    word-break: break-all !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+}
+
 .o_pallet_product_count {
     font-size: 12px;
     font-weight: 400;
