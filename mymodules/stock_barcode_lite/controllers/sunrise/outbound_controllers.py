@@ -95,7 +95,6 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
                 partner = self.get_partner(data, country)
                 order_vals = {
                     "type": order_type,
-                    "is_bonded": False,
                     "date": self.get_date_value(data, "date", required=True),
                     "p_date": self.get_date_value(data, "p_date", required=False),
                     "reference": reference,
@@ -120,6 +119,8 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
                     "time_slot": self.get_optional_text(data, "time_slot"),
                     "outbound_order_product_ids": product_commands,
                 }
+                if "is_bonded" in request.env["world.depot.outbound.order"]._fields:
+                    order_vals["is_bonded"] = False
                 order = request.env["world.depot.outbound.order"].create(order_vals)
                 return self.success_response(order)
         except SunriseApiError as error:

@@ -15,6 +15,20 @@
                      ('warehouse_id', '!=', False)]
                 </attribute>
             </xpath>
+            <xpath expr="//field[@name='picking_PICK']" position="attributes">
+                <attribute name="invisible">project_name == 'SUNRISE'</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='picking_Out']" position="attributes">
+                <attribute name="invisible">project_name == 'SUNRISE'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='picking_PICK_date']" position="attributes">
+                <attribute name="invisible">project_name == 'SUNRISE'</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='picking_Out_date']" position="attributes">
+                <attribute name="invisible">project_name == 'SUNRISE'</attribute>
+            </xpath>
             <xpath expr="//field[@name='is_adr']" position="before">
                 <field name="vsourcebillcode" readonly="state != 'new'" invisible="project_name != 'SUNRISE'"/>
                 <field name="cwarehouseid" readonly="state != 'new'" invisible="project_name !='SUNRISE'"/>
@@ -38,7 +52,7 @@
             <xpath expr="//button[@name='action_create_picking_PICK']" position="after">
                 <button name="action_sunrise_create_outgoing_stock_picking"
                         type="object"
-                        string="Sunrise Create outgoing"
+                        string="Sunrise Create outgoing Picking"
                         class="oe_stat_button"
                         icon="fa-file-text"
                         invisible="project_name !='SUNRISE'"/>

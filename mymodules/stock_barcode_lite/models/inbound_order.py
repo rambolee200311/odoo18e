@@ -146,10 +146,18 @@ class InboundOrder(models.Model):
 
     def action_delete_sunrise_packages_before_cancel(self):
         quant_model = self.env["stock.quant"]
+        package_model = self.env["stock.quant.package"]
 
         for rec in self:
             for pallet_line in rec.inbound_order_product_ids:
                 package = pallet_line.package_id
+                if not package and pallet_line.sunrise_pallet_no:
+                    package = package_model.sudo().search([
+                        "|",
+                        ("name", "=", pallet_line.sunrise_pallet_no),
+                        ("barcode", "=", pallet_line.sunrise_pallet_no),
+                    ], limit=1)
+
                 if not package:
                     continue
 
