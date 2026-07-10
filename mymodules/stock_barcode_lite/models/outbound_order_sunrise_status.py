@@ -208,6 +208,11 @@ class OutboundOrderSunrise(models.Model):
 
         log_model = self.env["sunrise.api.log"]
         for rec in self:
+            if rec.set_sunrise_outbound_sync:
+                raise UserError(
+                    _("Outbound order %s has already been synced to U8C. Task number: %s")
+                    % (rec.reference, rec.sunrise_outbound_task_number or "")
+                )
             config = rec.get_sunrise_api_config("outbound")
             payload = rec.build_u8c_outbound_payload(config=config)
             headers = {
@@ -307,6 +312,11 @@ class OutboundOrderSunrise(models.Model):
         log_model = self.env["sunrise.api.log"]
 
         for rec in self:
+            if rec.set_sunrise_pickup_delivery_sync:
+                raise UserError(
+                    _("Pickup delivery information for outbound order %s has already been synced.")
+                    % rec.reference
+                )
             if rec.u8c_delivery_method != "pickup":
                 raise UserError(_("Only U8C pickup outbound orders can sync pickup delivery info."))
             if  rec.state != "confirm":

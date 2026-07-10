@@ -15,6 +15,7 @@ Chenyang Chemical warehouse customizations.
 
         "reports/inbound_pallet_label_report.xml",
         "reports/outbound_lot_code_label_report.xml",
+        "reports/inbound_lot_code_label_report.xml",
 
         "views/inbound_order_views.xml",
         "views/outbound_order_views.xml",
@@ -25,6 +26,7 @@ Chenyang Chemical warehouse customizations.
         "views/sunrise_order_import_views.xml",
         "views/stock_quant_package_inherit_views.xml",
         'views/product_views.xml',
+        "views/project_project_views.xml",
 
         "wizard/inbound_product_import_wizard_views.xml",
         "wizard/outbound_product_import_wizard_views.xml",

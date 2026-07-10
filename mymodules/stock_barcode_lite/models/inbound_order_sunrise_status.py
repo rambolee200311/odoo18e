@@ -312,6 +312,11 @@ class InboundOrderSunrise(models.Model):
             raise UserError(_("Please sync one inbound order at a time."))
         log_model = self.env["sunrise.api.log"]
         for rec in self:
+            if rec.set_sunrise_inbound_sync:
+                raise UserError(
+                    _("Inbound order %s has already been synced to U8C. Task number: %s")
+                    % (rec.reference, rec.sunrise_inbound_task_number or "")
+                )
             if rec.type == "service":
                 raise UserError(_("Please use Sync U8C Service Return for service inbound orders."))
             config = rec.get_sunrise_api_config("inbound")
