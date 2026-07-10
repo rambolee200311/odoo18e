@@ -57,6 +57,8 @@ export class DisassemblyOutboundPage extends Component {
             currentProductIndex: -1,  // 当前正在处理的产品索引
             isDisassemblyMode: false, // 是否处于拆托模式
             quantityInput: "",        // 数量输入缓冲
+            currentScannedPalletId: null, // 当前扫描的托盘ID（用于高亮标识）
+            expandedPalletIds: [], // 自动展开的托盘ID列表
         });
 
         // 扫码输入缓冲
@@ -68,12 +70,13 @@ export class DisassemblyOutboundPage extends Component {
         this.barcodeInputRef = useRef("barcodeInput");
 
         onMounted(async () => {
-            console.log("[DisassemblyOutbound] mounted");
             this._bindKeyListener();
             this._bindFocusGuard();
             this._bindVisibilityChange();
             this._bindGlobalKeyListener();
             this._focusBarcodeInput();
+            // 初始化 Bootstrap 折叠效果
+            this._initCollapse();
         });
 
         onWillUnmount(() => {
@@ -89,14 +92,33 @@ export class DisassemblyOutboundPage extends Component {
     // 设备检测
     // ═══════════════════════════════════════════════════════════════
 
+//    _detectPDA() {
+//        const hasTouchScreen = (
+//            "ontouchstart" in window ||
+//            navigator.maxTouchPoints > 0 ||
+//            window.matchMedia("(pointer: coarse)").matches
+//        );
+//        const isDesktop = window.matchMedia("(min-width: 1024px)").matches && !hasTouchScreen;
+//        return !isDesktop;
+//    }
+
     _detectPDA() {
+        // 精确指向设备（鼠标、触控笔）→ 不可能是PDA扫码枪
+        const hasFinePointer = window.matchMedia('(pointer: fine)').matches;
+        // 支持hover（鼠标悬停）→ 不可能是PDA扫码枪
+        const hasHover = window.matchMedia('(hover: hover)').matches;
+        // 小屏幕（≤ 768px 宽）→ 可能是手持PDA
+        const isSmallScreen = window.matchMedia('(max-width: 768px)').matches;
+        // 触屏可用
         const hasTouchScreen = (
-            "ontouchstart" in window ||
+            'ontouchstart' in window ||
             navigator.maxTouchPoints > 0 ||
-            window.matchMedia("(pointer: coarse)").matches
+            window.matchMedia('(pointer: coarse)').matches
         );
-        const isDesktop = window.matchMedia("(min-width: 1024px)").matches && !hasTouchScreen;
-        return !isDesktop;
+
+        // PDA只有在小屏、触屏、无精确指针、无hover的设备上才判定为真
+        // 从而排除桌面、大屏平板、触屏笔记本
+        return isSmallScreen && hasTouchScreen && !hasFinePointer && !hasHover;
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -105,7 +127,6 @@ export class DisassemblyOutboundPage extends Component {
 
     _onBarcodeInput(ev) {
         const input = ev.target;
-        console.log("[BarcodeMonitor] _onBarcodeInput activeElement:", document.activeElement === input, "value:", JSON.stringify(input?.value), "inputType:", ev.inputType);
         if (!input) return;
 
         const value = input.value;
@@ -119,7 +140,6 @@ export class DisassemblyOutboundPage extends Component {
     }
 
     _onBarcodeKeydown(ev) {
-        console.log("[BarcodeMonitor] _onBarcodeKeydown key:", ev.key, "activeElement:", document.activeElement === this.barcodeInputRef.el, "value:", JSON.stringify(ev.target?.value));
         if (ev.key === "Enter") {
             ev.preventDefault();
             const input = ev.target;
@@ -193,22 +213,35 @@ export class DisassemblyOutboundPage extends Component {
         }
     }
 
-    _focusBarcodeInput() {
-        if (this.isScanQuantityStep) {
-            console.log("[BarcodeMonitor] _focusBarcodeInput skipped - quantity step");
-            return;
-        }
-        const input = this.barcodeInputRef.el;
-        if (input) {
-            input.focus();
-            input.value = "";
-            console.log("[BarcodeMonitor] _focusBarcodeInput focused. document.activeElement:", document.activeElement === input);
-        } else {
-            console.warn("[BarcodeMonitor] _focusBarcodeInput input missing");
-        }
+   _focusBarcodeInput() {
+       if (this.isScanQuantityStep) {
+           return;
+       }
+       const input = this.barcodeInputRef.el;
+       if (input) {
+           input.focus();
+           input.value = "";
+       } else {
+           console.warn("[BarcodeMonitor] _focusBarcodeInput input missing");
+       }
+   }
+
+    _reconcileFocus() {
+        requestAnimationFrame(() => {
+            if (this.isScanQuantityStep) {
+                const qtyInput = this.el?.querySelector('.o_sbl_quantity_panel input[type="number"]');
+                if (qtyInput) qtyInput.focus();
+            } else {
+                const input = this.barcodeInputRef.el;
+                if (input) {
+                    input.focus();
+                    input.value = "";
+                }
+            }
+        });
     }
 
-    _bindKeyListener() {
+   _bindKeyListener() {
         const input = this.barcodeInputRef.el;
         if (!input) return;
 
@@ -218,7 +251,6 @@ export class DisassemblyOutboundPage extends Component {
 
         if (!this._isPDA) {
             input.focus();
-            console.log("[BarcodeMonitor] _bindKeyListener desktop focus applied");
         } else {
             console.log("[BarcodeMonitor] _bindKeyListener PDA mode - deferred focus");
         }
@@ -231,7 +263,6 @@ export class DisassemblyOutboundPage extends Component {
         input.removeEventListener("input", this._onBarcodeInput.bind(this));
         input.removeEventListener("keydown", this._onBarcodeKeydown.bind(this));
         input.removeEventListener("blur", this._onBarcodeBlur.bind(this));
-        console.log("[BarcodeMonitor] _unbindKeyListener removed listeners");
     }
 
     _bindGlobalKeyListener() {
@@ -268,20 +299,17 @@ export class DisassemblyOutboundPage extends Component {
         };
 
         document.addEventListener("keydown", this._onGlobalKeyDown);
-        console.log("[BarcodeMonitor] _bindGlobalKeyListener added");
     }
 
     _unbindGlobalKeyListener() {
         if (this._onGlobalKeyDown) {
             document.removeEventListener("keydown", this._onGlobalKeyDown);
             this._onGlobalKeyDown = null;
-            console.log("[BarcodeMonitor] _unbindGlobalKeyListener removed");
         }
     }
 
     _bindVisibilityChange() {
         this._onVisibilityChange = () => {
-            console.log("[BarcodeMonitor] visibilitychange:", document.visibilityState, "activeElementBefore:", document.activeElement?.tagName, document.activeElement?.className);
             if (document.visibilityState === "visible") {
                 this._focusBarcodeInput();
             }
@@ -293,7 +321,6 @@ export class DisassemblyOutboundPage extends Component {
         if (this._onVisibilityChange) {
             document.removeEventListener("visibilitychange", this._onVisibilityChange);
             this._onVisibilityChange = null;
-            console.log("[BarcodeMonitor] _unbindVisibilityChange removed listener");
         }
     }
 
@@ -309,23 +336,6 @@ export class DisassemblyOutboundPage extends Component {
     // ═══════════════════════════════════════════════════════════════
 
     async onBarcodeScanned(barcode) {
-        console.log("╔═══════════════════════════════════════════════════════");
-        console.log("║ [DisassemblyOutbound] BARCODE SCANNED");
-        console.log("║ ──────────────────────────────────────────────────────");
-        console.log("║ Barcode:", barcode);
-        console.log("║ Current Step:", this.state.nextStep);
-        console.log("║ Is Processing:", this._isProcessing);
-        console.log("║ ──────────────────────────────────────────────────────");
-        console.log("║ currentOrder.id:", this.state.order?.id);
-        console.log("║ currentLocation.id:", this.state.currentLocation?.id);
-        console.log("║ currentPallet.id:", this.state.currentPallet?.id);
-        console.log("║ currentPallet.name:", this.state.currentPallet?.name);
-        console.log("║ currentProduct.id:", this.state.currentProduct?.id);
-        console.log("║ currentProduct.name:", this.state.currentProduct?.name);
-        console.log("║ currentLot.id:", this.state.currentLot?.id);
-        console.log("║ pallets count:", this.state.pallets?.length || 0);
-        console.log("╚═══════════════════════════════════════════════════════");
-
         if (!barcode || this._isProcessing) {
             console.log("[DisassemblyOutbound] Skipped - no barcode or still processing");
             return;
@@ -335,6 +345,15 @@ export class DisassemblyOutboundPage extends Component {
         this.state.loading = true;
 
         try {
+            if (this.state.nextStep === "validate") {
+                this.showMessage(
+                    _t("All products scanned. Click Confirm Outbound to complete."),
+                    "info"
+                );
+                this._focusBarcodeInput();
+                return;
+            }
+
             if (this.state.nextStep === "input_quantity") {
                 this.showMessage(
                     _t("Please use the quantity input to confirm the scanned quantity."),
@@ -350,29 +369,11 @@ export class DisassemblyOutboundPage extends Component {
             const productId = this.state.currentProduct?.id || false;
             const lotId = this.state.currentLot?.id || false;
 
-            console.log("[DisassemblyOutbound] Sending to backend:");
-            console.log("  - barcode:", barcode);
-            console.log("  - pickingId:", pickingId);
-            console.log("  - locationId:", locationId);
-            console.log("  - packageId:", packageId);
-            console.log("  - productId:", productId);
-            console.log("  - lotId:", lotId);
-
             const result = await this.orm.call(
                 "stock.barcode.lite.scan.service",
                 "process_outgoing_scan_barcode",
                 [barcode, pickingId, locationId, packageId, productId, lotId, false, false]
             );
-
-            console.log("[DisassemblyOutbound] Received from backend:");
-            console.log("  - result.success:", result.success);
-            console.log("  - result.type:", result.type);
-            console.log("  - result.message:", result.message);
-            console.log("  - result.next_step:", result.next_step);
-            console.log("  - result.scan_state.picking:", result.scan_state?.picking?.id, result.scan_state?.picking?.name);
-            console.log("  - result.scan_state.current_pallet:", result.scan_state?.current_pallet);
-            console.log("  - result.scan_state.current_product:", result.scan_state?.current_product);
-            console.log("  - result.scan_state.pallets count:", result.scan_state?.pallets?.length || 0);
 
             await this._applyScanResult(result, true);
 
@@ -412,12 +413,12 @@ export class DisassemblyOutboundPage extends Component {
             console.error("[DisassemblyOutbound] scan error:", error);
             this.showMessage(this.formatError(error), "danger");
             this._flashScreen([200, 100, 100], true);
-        } finally {
-            this.state.loading = false;
-            this._isProcessing = false;
-            this._focusBarcodeInput();
-        }
-    }
+       } finally {
+           this.state.loading = false;
+           this._isProcessing = false;
+            this._reconcileFocus();
+       }
+   }
 
     /**
      * 映射后端 scan_state 到前端 state
@@ -439,20 +440,7 @@ export class DisassemblyOutboundPage extends Component {
     async _applyScanResult(result, notify = true) {
         if (!result) return;
 
-        console.log("[_applyScanResult] === START ===");
-        console.log("[_applyScanResult] result.success:", result.success);
-        console.log("[_applyScanResult] result.type:", result.type);
-        console.log("[_applyScanResult] result.next_step:", result.next_step);
-        console.log("[_applyScanResult] result.message:", result.message);
-
         const scanState = result.scan_state || {};
-        console.log("[_applyScanResult] scanState.picking:", scanState.picking?.id, scanState.picking?.name);
-        console.log("[_applyScanResult] scanState.current_location:", scanState.current_location);
-        console.log("[_applyScanResult] scanState.current_pallet:", scanState.current_pallet);
-        console.log("[_applyScanResult] scanState.current_product:", scanState.current_product);
-        console.log("[_applyScanResult] scanState.current_lot:", scanState.current_lot);
-        console.log("[_applyScanResult] scanState.pallets:", scanState.pallets);
-        console.log("[_applyScanResult] scanState.summary:", scanState.summary);
 
         // 更新出库单信息
         this.state.order = scanState.picking ? { ...scanState.picking } : null;
@@ -463,25 +451,18 @@ export class DisassemblyOutboundPage extends Component {
         this.state.currentProduct = scanState.current_product ? { ...scanState.current_product } : {};
         this.state.currentLot = scanState.current_lot ? { ...scanState.current_lot } : {};
 
-        console.log("[_applyScanResult] AFTER basic update:");
-        console.log("[_applyScanResult]   this.state.currentPallet:", JSON.stringify(this.state.currentPallet));
-        console.log("[_applyScanResult]   this.state.currentProduct:", JSON.stringify(this.state.currentProduct));
-
         // 更新 summary
         this.state.summary = scanState.summary ? { ...scanState.summary } : this._getEmptySummary();
 
         // 深度映射 pallets 数组
         if (scanState.pallets && scanState.pallets.length > 0) {
-            console.log("[_applyScanResult] Mapping pallets:", scanState.pallets.length);
             this.state.pallets = scanState.pallets.map(pallet => {
-                console.log("[_applyScanResult]   pallet:", pallet.package_id, pallet.package_name, "products:", pallet.products?.length);
                 return {
                     ...pallet,
                     products: (pallet.products || []).map(product => ({ ...product })),
                 };
             });
         } else {
-            console.log("[_applyScanResult] No pallets in scanState");
             this.state.pallets = [];
         }
 
@@ -490,7 +471,18 @@ export class DisassemblyOutboundPage extends Component {
 
         // 更新下一步
         this.state.nextStep = result.next_step || "scan_picking";
-        console.log("[_applyScanResult] Set nextStep to:", this.state.nextStep);
+
+        // 记录当前扫描的托盘ID（用于UI高亮标识）
+        if (this.state.currentPallet?.id) {
+            this.state.currentScannedPalletId = this.state.currentPallet.id;
+            // 自动展开当前扫描的托盘
+            if (!this.state.expandedPalletIds.includes(this.state.currentPallet.id)) {
+                this.state.expandedPalletIds = [...this.state.expandedPalletIds, this.state.currentPallet.id];
+            }
+        }
+
+        // 渲染完成后展开托盘卡片
+        this._expandCurrentPalletAfterRender();
 
         // 判断是否进入拆托模式（需要扫产品）
         this.state.isDisassemblyMode = this.state.nextStep === "scan_product";
@@ -509,8 +501,6 @@ export class DisassemblyOutboundPage extends Component {
             // 优先使用当前托盘的数据，避免跨托盘错误匹配
             const currentProductId = this.state.currentProduct?.id;
             const currentPalletId = this.state.currentPallet?.id;
-            console.log("[_applyScanResult] input_quantity: currentProductId:", currentProductId);
-            console.log("[_applyScanResult] input_quantity: currentPalletId:", currentPalletId);
 
             if (currentProductId && scanState.pallets) {
                 let fullProduct = null;
@@ -578,10 +568,6 @@ export class DisassemblyOutboundPage extends Component {
                 this._flashScreen([100, 200, 100], false);
             }
         }
-
-        console.log("[_applyScanResult] === END ===");
-        console.log("[_applyScanResult] final nextStep:", this.state.nextStep);
-        console.log("[_applyScanResult] final currentPallet:", this.state.currentPallet);
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -604,11 +590,6 @@ export class DisassemblyOutboundPage extends Component {
             ev.preventDefault();
         }
 
-        console.log("[submitQuantity] === START ===");
-        console.log("[submitQuantity] currentProduct:", JSON.stringify(this.state.currentProduct));
-        console.log("[submitQuantity] currentPallet11111:", JSON.stringify(this.state.currentPallet));
-        console.log("[submitQuantity] quantityInput:", this.state.quantityInput);
-
         if (!this.state.currentProduct?.id) {
             this.showMessage(_t("Please scan product first"), "danger");
             return;
@@ -624,20 +605,6 @@ export class DisassemblyOutboundPage extends Component {
         this._isProcessing = true;
         this.state.loading = true;
         try {
-            // 保存当前产品的 move_line_id，用于后续查找最新数据
-            const currentMoveLineId = this.state.currentProduct?.move_line_id;
-            const totalQty = this.state.currentProduct?.quantity || 0;
-
-            console.log("[submitQuantity] Calling backend:");
-            console.log("  - qty:", qty);
-            console.log("  - order.id:", this.state.order?.id);
-            console.log("  - location.id:", this.state.currentLocation?.id);
-            console.log("  - pallet.id:", this.state.currentPallet?.id);
-            console.log("  - product.id:", this.state.currentProduct?.id);
-            console.log("  - lot.id:", this.state.currentLot?.id);
-            console.log("  - currentMoveLineId:", currentMoveLineId);
-            console.log("  - totalQty:", totalQty);
-
             const result = await this.orm.call(
                 "stock.barcode.lite.scan.service",
                 "process_outgoing_quantity_scan",
@@ -653,71 +620,26 @@ export class DisassemblyOutboundPage extends Component {
                 ]
             );
 
-            console.log("[submitQuantity] Received result:");
-            console.log("  - success:", result.success);
-            console.log("  - message:", result.message);
-            console.log("  - next_step:", result.next_step);
-
-            // 错误处理
+            // 后端返回错误
             if (result.success === false) {
                 this.showMessage(result.message || _t("Quantity error"), "danger");
                 this._flashScreen([200, 100, 100], true);
                 this.state.quantityInput = "";
-                this.state.nextStep = "input_quantity";
                 return;
             }
 
-            // 更新界面
-            await this._applyScanResult(result, false);
+            // 正常处理：后端已经清掉了 product_id/lot_id，
+            // 并返回了正确的 next_step，前端直接沿用
+           await this._applyScanResult(result, true);
+           this.state.quantityInput = "";
 
-            if (this.state.nextStep === "input_quantity") {
-                const qtyInput = document.querySelector('.o_sbl_quantity_panel input[type="number"]');
-                if (qtyInput) qtyInput.focus();
-            } else {
-                requestAnimationFrame(() => this._focusBarcodeInput());
-            }
-
-            // 从更新后的 pallets 获取最新的 scanned_quantity
-            let scannedQty = 0;
-            if (currentMoveLineId) {
-                console.log("[submitQuantity] Searching pallets for move_line_id:", currentMoveLineId);
-                for (const pallet of this.state.pallets) {
-                    console.log("[submitQuantity]   Checking pallet:", pallet.package_id, pallet.package_name);
-                    const product = pallet.products?.find(p => p.move_line_id === currentMoveLineId);
-                    if (product) {
-                        console.log("[submitQuantity]   FOUND! scanned_quantity:", product.scanned_quantity);
-                        scannedQty = product.scanned_quantity || 0;
-                        break;
-                    }
-                }
-            } else {
-                console.log("[submitQuantity] No currentMoveLineId, cannot find scanned quantity");
-            }
-
-            const remainingQty = Math.max(totalQty - scannedQty, 0);
-            console.log("[submitQuantity] totalQty:", totalQty, "scannedQty:", scannedQty, "remainingQty:", remainingQty);
-
-            if (scannedQty >= totalQty && totalQty > 0) {
-                this.showMessage(_t("Quantity matched! Product completed successfully."), "success");
-                this._flashScreen([100, 200, 100], false);
-                this.state.currentProduct = {};
-                this.state.currentLot = {};
-                this.state.quantityInput = "";
-            } else {
-                this.showMessage(
-                    _t("Added: ") + qty + _t(". Remaining: ") + remainingQty + _t(" unit(s)."),
-                    "danger"
-                );
-                this._flashScreen([200, 200, 100], false);
-                this.state.quantityInput = "";
-            }
         } catch (error) {
-            console.error("[DisassemblyOutbound] quantity error:", error);
             this.showMessage(this.formatError(error), "danger");
             this._flashScreen([200, 100, 100], true);
         } finally {
             this.state.loading = false;
             this._isProcessing = false;
+            this._reconcileFocus();
         }
     }
 
@@ -787,16 +709,95 @@ export class DisassemblyOutboundPage extends Component {
         this.state.message = text;
         this.state.messageType = type;
         clearTimeout(this._messageTimer);
-        this._messageTimer = setTimeout(() => {
-            if (this.state.message === text) {
-                this.state.message = "";
-            }
-        }, 4000);
+        // 错误消息保持到下一次扫码，不自动消失
+        if (type !== "danger") {
+            this._messageTimer = setTimeout(() => {
+                if (this.state.message === text) {
+                    this.state.message = "";
+                }
+            }, 4000);
+        }
     }
 
     _flashScreen(pattern, repeat) {
         if ("vibrate" in navigator) {
             navigator.vibrate(repeat ? pattern : 100);
+        }
+    }
+
+    /**
+     * 初始化 Bootstrap 折叠效果
+     */
+    _initCollapse() {
+        if (typeof window.bootstrap !== 'undefined') {
+            const collapseElements = this.el?.querySelectorAll('.collapse');
+            if (collapseElements) {
+                collapseElements.forEach(el => {
+                    // 确保已展开的托盘正确显示
+                    const targetId = el.id;
+                    if (targetId && targetId.startsWith('pallet_products_')) {
+                        const palletId = parseInt(targetId.split('_').pop());
+                        if (this.isPalletExpanded(palletId)) {
+                            el.classList.add('show');
+                            // 更新对应的 header aria-expanded
+                            const header = this.el?.querySelector(`[data-bs-target="#${targetId}"]`);
+                            if (header) {
+                                header.setAttribute('aria-expanded', 'true');
+                            }
+                        }
+                    }
+                });
+            }
+        }
+    }
+
+    /**
+     * 渲染后展开当前托盘
+     * Owl 渲染完成后调用，确保 collapse 面板正确展开
+     */
+    _expandCurrentPalletAfterRender() {
+        if (!this.state.currentScannedPalletId) return;
+
+        const currentPalletId = this.state.currentScannedPalletId;
+        const targetId = `pallet_products_${currentPalletId}`;
+        const collapseEl = this.el?.querySelector(`#${targetId}`);
+        const headerEl = this.el?.querySelector(`[data-bs-target="#${targetId}"]`);
+
+        // 尝试使用 Owl 的渲染后钩子
+        const tryExpand = (attempt) => {
+            const el = this.el?.querySelector(`#${targetId}`);
+            const hdr = this.el?.querySelector(`[data-bs-target="#${targetId}"]`);
+
+            if (el && !el.classList.contains('show')) {
+                el.classList.add('show');
+                if (hdr) {
+                    hdr.setAttribute('aria-expanded', 'true');
+                }
+                return true;
+            }
+            return false;
+        };
+
+        // 立即尝试
+        if (!tryExpand(0)) {
+            // 依次延迟重试，等待 Owl 完成 DOM 更新
+            [50, 100, 200, 350, 500].forEach(delay => {
+                setTimeout(() => tryExpand(delay), delay);
+            });
+        }
+    }
+
+    /**
+     * 展开指定的托盘卡片（手动控制 Bootstrap collapse）
+     */
+    _expandPallet(palletId) {
+        const targetId = `pallet_products_${palletId}`;
+        const collapseEl = this.el?.querySelector(`#${targetId}`);
+        const headerEl = this.el?.querySelector(`[data-bs-target="#${targetId}"]`);
+
+        if (collapseEl && headerEl) {
+            collapseEl.classList.add('show');
+            headerEl.setAttribute('aria-expanded', 'true');
         }
     }
 
@@ -877,6 +878,7 @@ export class DisassemblyOutboundPage extends Component {
             scan_product: _t("Scan Product"),
             scan_lot: _t("Scan Lot/SN"),
             input_quantity: _t("Input Quantity"),
+            validate: _t("All Done"),
         };
         return map[this.state.nextStep] || _t("Scan Barcode");
     }
@@ -889,6 +891,7 @@ export class DisassemblyOutboundPage extends Component {
             scan_product: _t("Scan product barcode from the current pallet"),
             scan_lot: _t("Scan serial number or lot number"),
             input_quantity: _t("Input quantity for the current product/lot"),
+            validate: _t("All pallets scanned. Click Confirm Outbound to complete."),
         };
         return hints[this.state.nextStep] || "";
     }
@@ -904,6 +907,29 @@ export class DisassemblyOutboundPage extends Component {
     get isAllComplete() {
         const s = this.state.summary || {};
         return (s.pending_pallets || 0) === 0 && (s.total_pallets || 0) > 0;
+    }
+
+    /**
+     * 检查指定托盘是否为当前扫描的高亮托盘
+     */
+    isCurrentHighlightedPallet(palletId) {
+        return this.state.currentScannedPalletId === palletId;
+    }
+
+    /**
+     * 检查指定托盘是否应该展开
+     */
+    isPalletExpanded(palletId) {
+        return this.state.expandedPalletIds.includes(palletId);
+    }
+
+    /**
+     * 返回托盘产品折叠容器的 class
+     */
+    getPalletProductsClass(palletId) {
+        return this.isPalletExpanded(palletId)
+            ? "o_pallet_products collapse show"
+            : "o_pallet_products collapse";
     }
 
     get palletList() {

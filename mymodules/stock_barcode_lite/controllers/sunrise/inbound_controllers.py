@@ -45,45 +45,28 @@ class SunriseInboundController(http.Controller, SunriseControllerMixin):
                 parsed_lines = []
                 vsourcebillcodes = set()
                 raw_pallet_numbers = set()
-                sunrise_pallet_numbers = set()
                 for index, line_data in enumerate(products, start=1):
                     parsed_line = self.prepare_inbound_product_line(line_data, index, project, cntr_no)
                     parsed_lines.append(parsed_line)
                     vsourcebillcodes.add(parsed_line["vsourcebillcode"])
                     raw_pallet_numbers.add(parsed_line["pallet_no"])
-                    sunrise_pallet_numbers.add(parsed_line["sunrise_pallet_no"])
                 if len(vsourcebillcodes) != 1:
                     raise SunriseApiError("4001", "All product lines must use the same vsourcebillcode.")
                 vsourcebillcode = list(vsourcebillcodes)[0]
-                #传过来的托
+
                 existing_pallet = request.env["world.depot.inbound.order.product"].sudo().search([
                     ("pallet_no", "in", list(raw_pallet_numbers)),
                     ("inbound_order_id.project", "=", project.id),
                     ("inbound_order_id.state", "!=", "cancel"),
                 ], limit=1)
-
                 if existing_pallet:
                     raise SunriseApiError(
                         "3004",
                         'Pallet No "%s" already exists in inbound order "%s" for this project.'
                         % (
                             existing_pallet.pallet_no,
-                            existing_pallet.inbound_order_id.billno
-                            or existing_pallet.inbound_order_id.reference,
+                            existing_pallet.inbound_order_id.billno or existing_pallet.inbound_order_id.reference,
                         ),
-                    )
-                #wms托
-                existing_pallet = request.env["world.depot.inbound.order.product"].sudo().search([
-                    ("sunrise_pallet_no", "in", list(sunrise_pallet_numbers)),
-                    ("inbound_order_id.project", "=", project.id),
-                    ("inbound_order_id.state", "!=", "cancel"),
-                    ("inbound_order_id.type", "=", "inbound"),
-                ], limit=1)
-                if existing_pallet:
-                    raise SunriseApiError(
-                        "3004",
-                        'This Sunrise Pallet "%s" already exists in inbound order "%s".'
-                        % (existing_pallet.sunrise_pallet_no, existing_pallet.inbound_order_id.billno or existing_pallet.inbound_order_id.reference),
                     )
 
                 pallet_data = {}
@@ -92,7 +75,7 @@ class SunriseInboundController(http.Controller, SunriseControllerMixin):
                     if pallet_no not in pallet_data:
                         pallet_data[pallet_no] = {
                             "pallet_no": pallet_no,
-                            "sunrise_pallet_no": parsed_line["sunrise_pallet_no"],
+                            "sunrise_pallet_no": self.generate_sunrise_pallet_no(project, pallet_no),
                             "pallets": 1,
                             "creation_source": "api",
                             "inbound_order_product_pallet_ids": [],
@@ -101,6 +84,7 @@ class SunriseInboundController(http.Controller, SunriseControllerMixin):
 
                 order_vals = {
                     "type": order_type,
+                    "is_bonded": False,
                     "date": self.get_date_value(data, "date", required=True),
                     "a_date": self.get_date_value(data, "a_date", required=True),
                     "reference": reference,
@@ -111,8 +95,8 @@ class SunriseInboundController(http.Controller, SunriseControllerMixin):
                     "vsourcebillcode": vsourcebillcode,
                     "remark": self.get_optional_text(data, "remark"),
                     "project": project.id,
-                    # "warehouse": project.warehouse.id if project.warehouse else False,
-                    # "pick_type": project.receipt_operation_type.id if project.receipt_operation_type else False,
+                    "warehouse": project.warehouse.id if project.warehouse else False,
+                    "pick_type": project.inbound_pick_type.id if project.inbound_pick_type else False,
                     "creation_source": "api",
                     "inbound_order_product_ids": [(0, 0, values) for values in pallet_data.values()],
                 }
@@ -123,7 +107,6 @@ class SunriseInboundController(http.Controller, SunriseControllerMixin):
         except Exception as error:
             _logger.exception("Unexpected Sunrise inbound create error: %s", error)
             return self.error_response("5000", str(error))
-
     @http.route("/world_depot/sunrise/api/inbound/cancel", type="json", auth="none", methods=["POST"], csrf=False)
     @validate_token
     @api_logger
@@ -150,7 +133,7 @@ class SunriseInboundController(http.Controller, SunriseControllerMixin):
             _logger.exception("Unexpected Sunrise inbound cancel error: %s", error)
             return self.error_response("5000", str(error))
 
-    def prepare_inbound_product_line(self, line_data, row_number, project,cntr_no):
+    def prepare_inbound_product_line(self, line_data, row_number, project, cntr_no):
         product_code = self.get_required_text(line_data, "product", row_number)
         product_ean = self.get_optional_text(line_data, "product_ean")
         pallet_no = self.get_required_text(line_data, "pallet_no", row_number)
@@ -175,10 +158,8 @@ class SunriseInboundController(http.Controller, SunriseControllerMixin):
                 "4001",
                 self.format_field_error("is_lot", "must be N for non-lot-tracked product", row_number),
             )
-        sunrise_pallet_no = self.get_sunrise_pallet_no(cntr_no, pallet_no)
         return {
             "pallet_no": pallet_no,
-            "sunrise_pallet_no": sunrise_pallet_no,
             "vsourcebillcode": vsourcebillcode,
             "product_vals": {
                 "product_id": product.id,

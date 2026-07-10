@@ -23,5 +23,3 @@ registry.category("actions").add("stock_barcode_lite_homepage", Homepage);
 registry.category("actions").add("stock_barcode_lite_inbound", InboundPage);
 registry.category("actions").add("stock_barcode_lite_outbound_disassembly", BreakOutboundPage);
 registry.category("actions").add("stock_barcode_lite_outbound_whole", WholeOutboundPage);
-
-console.log('[stock_barcode_lite] All pages registered');

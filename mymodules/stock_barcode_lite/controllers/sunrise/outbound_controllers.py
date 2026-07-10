@@ -104,8 +104,8 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
                     "vsourcebillcode": vsourcebillcode,
                     "ccustomerid": ccustomerid,
                     "u8c_delivery_method": u8c_delivery_method,
-                    #"warehouse": project.warehouse.id if project.warehouse else False,
-                    #"pick_type": project.pick_operation_type.id if project.pick_operation_type else False,
+                    "warehouse": project.warehouse.id if project.warehouse else False,
+                    "pick_type": project.outbound_pick_type.id if project.outbound_pick_type else False,
                     "creation_source": "api",
                     "delivery_method": delivery_method,
                     "load_ref": self.get_required_text(data, "load_ref"),
@@ -119,6 +119,8 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
                     "time_slot": self.get_optional_text(data, "time_slot"),
                     "outbound_order_product_ids": product_commands,
                 }
+                if "is_bonded" in request.env["world.depot.outbound.order"]._fields:
+                    order_vals["is_bonded"] = False
                 order = request.env["world.depot.outbound.order"].create(order_vals)
                 return self.success_response(order)
         except SunriseApiError as error:
@@ -197,7 +199,7 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
             project,
             row_number,
         )
-        sunrise_pallet_no = package.name
+        sunrise_pallet_no = package.barcode or package.name
         return {
             "sunrise_pallet_no": sunrise_pallet_no,
             "stock_check": {
@@ -240,34 +242,13 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
         inbound_pallet_model = request.env["world.depot.inbound.order.product"].sudo()
         package_model = request.env["stock.quant.package"].sudo()
 
-        if inbound_cntr_no:
-            sunrise_pallet_no = self.get_sunrise_pallet_no(inbound_cntr_no, pallet_no)
-            inbound_pallet = inbound_pallet_model.search([
-                ("sunrise_pallet_no", "=", sunrise_pallet_no),
-                ("pallet_no", "=", pallet_no),
-                ("inbound_order_id.project", "=", project.id),
-                ("inbound_order_id.state", "!=", "cancel"),
-            ], limit=1)
-            if not inbound_pallet:
-                raise SunriseApiError(
-                    "3004",
-                    self.format_field_error(
-                        "inbound_cntr_no",
-                        '"%s" and pallet_no "%s" did not match an inbound pallet in this project'
-                        % (inbound_cntr_no, pallet_no),
-                        row_number,
-                    ),
-                )
-            return self.find_package_by_sunrise_pallet_no(sunrise_pallet_no)
-
         inbound_pallets = inbound_pallet_model.search([
             ("pallet_no", "=", pallet_no),
             ("sunrise_pallet_no", "!=", False),
             ("inbound_order_id.project", "=", project.id),
             ("inbound_order_id.state", "!=", "cancel"),
         ])
-        sunrise_pallet_numbers = inbound_pallets.mapped("sunrise_pallet_no")
-        if not sunrise_pallet_numbers:
+        if not inbound_pallets:
             raise SunriseApiError(
                 "3004",
                 self.format_field_error(
@@ -277,11 +258,10 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
                 ),
             )
 
-        packages = package_model.search([
-            "|",
-            ("barcode", "in", sunrise_pallet_numbers),
-            ("name", "in", sunrise_pallet_numbers),
-        ])
+        packages = inbound_pallets.mapped("package_id")
+        missing_package_barcodes = inbound_pallets.filtered(lambda pallet: not pallet.package_id).mapped("sunrise_pallet_no")
+        if missing_package_barcodes:
+            packages |= package_model.search([("barcode", "in", missing_package_barcodes)])
         if not packages:
             raise SunriseApiError(
                 "3004",
@@ -331,12 +311,12 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
                 "3004",
                 self.format_field_error(
                     "pallet_no",
-                    '"%s" matched multiple stock packages; inbound_cntr_no is required' % pallet_no,
+                    '"%s" matched multiple stock packages for product "%s" and lot "%s"'
+                    % (pallet_no, product.display_name, lot_name or ""),
                     row_number,
                 ),
             )
-        return candidate_packages
-
+        return candidate_packages[:1]
     def get_delivery_method(self, data):
         delivery_method = self.get_optional_text(data, "delivery_method")
         if not delivery_method:

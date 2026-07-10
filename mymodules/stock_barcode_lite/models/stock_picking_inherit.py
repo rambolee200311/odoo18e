@@ -12,6 +12,21 @@ class StockPicking(models.Model):
                                           string="Outbound Scan Mode", copy=False, index=True)
     project_name = fields.Char(string='Project Name', related='project_id.name',stored=True)
 
+    def unlink(self):
+        inbound_orders = self.env["world.depot.inbound.order"]
+
+        for rec in self:
+            inbound_order = rec.inbound_order_id
+            if inbound_order and inbound_order.project.name == "SUNRISE" and rec.state != "done":
+                inbound_orders |= inbound_order
+
+        res = super().unlink()
+
+        for inbound_order in inbound_orders:
+            inbound_order.action_delete_sunrise_packages_before_cancel()
+            inbound_order.write({"stock_picking_id": False})
+
+        return res
     def chenyang_force_button_validate(self):
         return self.with_context(
             skip_chenyang_scan_validation=True,
