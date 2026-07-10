@@ -1,30 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-        <record id="paperformat_inbound_pallet_label" model="report.paperformat">
-            <field name="name">Inbound Pallet Label A4</field>
-            <field name="default" eval="False"/>
-            <field name="format">A4</field>
-            <field name="orientation">Portrait</field>
-            <field name="margin_top">6</field>
-            <field name="margin_bottom">6</field>
-            <field name="margin_left">6</field>
-            <field name="margin_right">6</field>
-            <field name="header_line" eval="False"/>
-            <field name="header_spacing">0</field>
-            <field name="dpi">90</field>
-        </record>
+    <record id="paperformat_inbound_pallet_label" model="report.paperformat">
+        <field name="name">Inbound Pallet Label A4</field>
+        <field name="default" eval="False"/>
+        <field name="format">A4</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">6</field>
+        <field name="margin_bottom">6</field>
+        <field name="margin_left">6</field>
+        <field name="margin_right">6</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">0</field>
+        <field name="dpi">90</field>
+    </record>
 
-        <record id="action_report_inbound_pallet_label" model="ir.actions.report">
-            <field name="name">Inbound Pallet Labels</field>
-            <field name="model">world.depot.inbound.order</field>
-            <field name="report_type">qweb-pdf</field>
-            <field name="report_name">stock_barcode_lite.report_inbound_pallet_label</field>
-            <field name="report_file">stock_barcode_lite.report_inbound_pallet_label</field>
-            <field name="print_report_name">'Inbound Pallet Labels - %s' % (object.vsourcebillcode)</field>
-            <field name="paperformat_id" ref="paperformat_inbound_pallet_label"/>
-            <field name="binding_model_id" ref="worlddepot.model_world_depot_inbound_order"/>
-            <field name="binding_type">report</field>
-        </record>
+    <record id="action_report_inbound_pallet_label" model="ir.actions.report">
+        <field name="name">Inbound Pallet Labels</field>
+        <field name="model">world.depot.inbound.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">stock_barcode_lite.report_inbound_pallet_label</field>
+        <field name="report_file">stock_barcode_lite.report_inbound_pallet_label</field>
+        <field name="print_report_name">'Inbound Pallet Labels - %s' % (object.vsourcebillcode)</field>
+        <field name="paperformat_id" ref="paperformat_inbound_pallet_label"/>
+        <field name="binding_model_id" ref="worlddepot.model_world_depot_inbound_order"/>
+        <field name="binding_type">report</field>
+    </record>
 
     <template id="report_inbound_pallet_label_header">
         <div class="inbound-label-header">
@@ -64,220 +64,506 @@
                      t-att-data-oe-model="o._name"
                      t-att-data-oe-id="o.id"
                      t-att-data-oe-lang="o.env.context.get('lang')">
-                <style>
-                @page {
-                    margin-top: 8mm !important;
-                    margin-bottom: 6mm;
-                    margin-left: 6mm;
-                    margin-right: 6mm;
-                }
-                html,
-                body,
-                #wrapwrap,
-                main {
-                    margin-top: 0 !important;
-                    padding-top: 0 !important;
-                }
-                .inbound-label-page {
-                    font-family: Arial, sans-serif;
-                    color: #111827;
-                    font-size: 14px;
-                    padding-top: 8mm;
-                    margin-top: 0;
-                }
-                .pallet-label-page {
-                    page-break-before: always;
-                }
-                .inbound-label-header {
-                    border-bottom: 2px solid #111827;
-                    padding-bottom: 8px;
-                    margin-top: 0;
-                    margin-bottom: 10px;
-                }
-                .inbound-label-title {
-                    font-size: 24px;
-                    font-weight: bold;
-                    margin: 0 0 3px 0;
-                }
-                .inbound-label-subtitle {
-                    font-size: 18px;
-                    font-weight: bold;
-                    margin: 0;
-                }
-                .inbound-label-info {
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin-top: 6px;
-                }
-                .inbound-label-info td {
-                    padding: 3px 14px 3px 6px;
-                    vertical-align: top;
-                }
-                .inbound-label-info .label {
-                    width: 120px;
-                    font-weight: bold;
-                    white-space: nowrap;
-                }
-                .pallet-block {
-                    border: 1px solid #111827;
-                    margin-bottom: 0;
-                    padding: 14px;
-                    page-break-inside: avoid;
-                    break-inside: avoid;
-                    -webkit-column-break-inside: avoid;
-                }
-                .pallet-header {
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin-bottom: 8px;
-                    page-break-inside: avoid;
-                    break-inside: avoid;
-                }
-                .pallet-header th,
-                .pallet-header td {
-                    border: 1px solid #d1d5db;
-                    padding: 10px;
-                }
-                .pallet-header th {
-                    background: #6f797f;
-                    color: #ffffff;
-                    font-weight: bold;
-                    text-align: left;
-                }
-                .pallet-header .qr-title {
-                    width: 180px;
-                    text-align: center;
-                }
-                .pallet-no {
-                    font-size: 28px;
-                    font-weight: bold;
-                }
-                .pallet-info-line + .pallet-info-line {
-                    margin-top: 12px;
-                }
-                .pallet-info-label {
-                    display: inline-block;
-                    min-width: 170px;
-                }
-                .pallet-qr {
-                    width: 300px;
-                    text-align: center;
-                    vertical-align: middle;
-                    page-break-inside: avoid;
-                    break-inside: avoid;
-                }
-                .product-table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    page-break-inside: avoid;
-                    break-inside: avoid;
-                }
-                .product-table th,
-                .product-table td {
-                    border: 1px solid #d1d5db;
-                    padding: 9px;
-                }
-                .product-table th {
-                    background: #f3f4f6;
-                    font-weight: bold;
-                    text-align: left;
-                }
-                .product-table .qty {
-                    width: 110px;
-                    text-align: right;
-                    white-space: nowrap;
-                }
-                .product-table .uom {
-                    width: 130px;
-                    white-space: nowrap;
-                }
-                .product-table .blank {
-                    width: 170px;
-                    white-space: nowrap;
-                }
-                img.keep-no-break {
-                    display: inline-block;
-                    page-break-inside: avoid;
-                    break-inside: avoid;
-                }
-            </style>
+                    <style>
+                        .inbound-label-header {
+                            position: relative;
+                            min-height: 0;
+                            padding-right: 0;
+                            box-sizing: border-box;
+                        }
 
-                <t t-if="o.inbound_order_product_ids">
-                    <t t-foreach="o.inbound_order_product_ids" t-as="pallet">
-                        <div t-attf-class="page inbound-label-page {{ '' if pallet_index == 0 else 'pallet-label-page' }}">
-                            <t t-call="stock_barcode_lite.report_inbound_pallet_label_header"/>
-                            <div class="pallet-block">
-                                <table class="pallet-header">
-                                    <thead>
+                        @page {
+                            margin-top: 8mm !important;
+                            margin-bottom: 6mm;
+                            margin-left: 6mm;
+                            margin-right: 6mm;
+                        }
+
+                        html,
+                        body,
+                        #wrapwrap,
+                        main {
+                            margin-top: 0 !important;
+                            padding-top: 0 !important;
+                        }
+
+                        .inbound-label-page {
+                            font-family: Arial, sans-serif;
+                            color: #111827;
+                            font-size: 14px;
+                            padding-top: 8mm;
+                            margin-top: 0;
+                        }
+
+                        .pallet-label-page {
+                            page-break-before: always;
+                        }
+
+                        .inbound-label-header {
+                            border-bottom: 2px solid #111827;
+                            padding-bottom: 8px;
+                            margin-top: 0;
+                            margin-bottom: 10px;
+                        }
+
+                        .inbound-label-title {
+                            font-size: 24px;
+                            font-weight: bold;
+                            margin: 0 0 3px 0;
+                        }
+
+                        .inbound-label-subtitle {
+                            font-size: 18px;
+                            font-weight: bold;
+                            margin: 0;
+                        }
+
+                        .inbound-label-info {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin-top: 6px;
+                        }
+
+                        .inbound-label-info td {
+                            padding: 3px 14px 3px 6px;
+                            vertical-align: top;
+                        }
+
+                        .inbound-label-info .label {
+                            width: 120px;
+                            font-weight: bold;
+                            white-space: nowrap;
+                        }
+
+                        .pallet-block {
+                            border: 1px solid #111827;
+                            margin-bottom: 0;
+                            padding: 14px;
+                            page-break-inside: avoid;
+                            break-inside: avoid;
+                            -webkit-column-break-inside: avoid;
+                        }
+
+                        .pallet-header {
+                            width: 100%;
+                            border-collapse: collapse;
+                            margin-bottom: 8px;
+                            page-break-inside: avoid;
+                            break-inside: avoid;
+                        }
+
+                        .pallet-header th,
+                        .pallet-header td {
+                            border: 1px solid #d1d5db;
+                            padding: 10px;
+                        }
+
+                        .pallet-header th {
+                            background: #6f797f;
+                            color: #ffffff;
+                            font-weight: bold;
+                            text-align: left;
+                        }
+
+                        .pallet-header .qr-title {
+                            width: 180px;
+                            text-align: center;
+                        }
+
+                        .pallet-no {
+                            font-size: 28px;
+                            font-weight: bold;
+                        }
+
+                        .pallet-info-line + .pallet-info-line {
+                            margin-top: 12px;
+                        }
+
+                        .pallet-info-label {
+                            display: inline-block;
+                            min-width: 170px;
+                        }
+
+                        .pallet-qr {
+                            width: 300px;
+                            text-align: center;
+                            vertical-align: middle;
+                            page-break-inside: avoid;
+                            break-inside: avoid;
+                        }
+
+                        .product-table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            page-break-inside: avoid;
+                            break-inside: avoid;
+                        }
+
+                        .product-table th,
+                        .product-table td {
+                            border: 1px solid #d1d5db;
+                            padding: 9px;
+                        }
+
+                        .product-table th {
+                            background: #f3f4f6;
+                            font-weight: bold;
+                            text-align: left;
+                        }
+
+                        .product-table .qty {
+                            width: 110px;
+                            text-align: right;
+                            white-space: nowrap;
+                        }
+
+                        .product-table .uom {
+                            width: 130px;
+                            white-space: nowrap;
+                        }
+
+                        .product-table .blank {
+                            width: 170px;
+                            white-space: nowrap;
+                        }
+
+                        img.keep-no-break {
+                            display: inline-block;
+                            page-break-inside: avoid;
+                            break-inside: avoid;
+                        }
+                    </style>
+
+                    <t t-if="o.inbound_order_product_ids">
+                        <t t-foreach="o.inbound_order_product_ids" t-as="pallet">
+                            <div t-attf-class="page inbound-label-page {{ '' if pallet_index == 0 else 'pallet-label-page' }}">
+                                <t t-call="stock_barcode_lite.report_inbound_pallet_label_header"/>
+                                <div class="pallet-block">
+                                    <table class="pallet-header">
+                                        <thead>
+                                            <tr>
+                                                <th>Pallet Information</th>
+                                                <th class="qr-title">QR Code</th>
+                                            </tr>
+                                        </thead>
                                         <tr>
-                                            <th>Pallet Information</th>
-                                            <th class="qr-title">QR Code</th>
+                                            <td>
+                                                <div class="pallet-no">
+                                                    <div class="pallet-info-line">
+                                                        <span class="pallet-info-label">Pallet No:</span>
+                                                        <span t-field="pallet.pallet_no"/>
+                                                    </div>
+                                                    <div class="pallet-info-line">
+                                                        <span class="pallet-info-label">Container No:</span>
+                                                        <span t-field="o.cntr_no"/>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="pallet-qr">
+                                                <t t-if="pallet.package_id and pallet.package_id.barcode">
+                                                    <div t-field="pallet.package_id.barcode"
+                                                         t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 260, 'height': 260, 'img_style': 'width:200px;height:200px;', 'img_class': 'keep-no-break'}"/>
+                                                </t>
+                                                <t t-elif="pallet.sunrise_pallet_no">
+                                                    <div t-field="pallet.sunrise_pallet_no"
+                                                         t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 260, 'height': 260, 'img_style': 'width:200px;height:200px;', 'img_class': 'keep-no-break'}"/>
+                                                </t>
+                                            </td>
                                         </tr>
-                                    </thead>
-                                    <tr>
-                                        <td>
-                                            <div class="pallet-no">
-                                                <div class="pallet-info-line">
-                                                    <span class="pallet-info-label">Pallet No:</span>
-                                                    <span t-field="pallet.sunrise_pallet_no"/>
-                                                </div>
-                                                <div class="pallet-info-line">
-                                                    <span class="pallet-info-label">Container No:</span>
-                                                    <span t-field="o.cntr_no"/>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="pallet-qr">
-                                            <t t-if="pallet.sunrise_pallet_no">
-                                                <div t-field="pallet.sunrise_pallet_no" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 260, 'height': 260, 'img_style': 'width:200px;height:200px;', 'img_class': 'keep-no-break'}"/>
+                                    </table>
+
+                                    <table class="product-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Product</th>
+                                                <th>Barcode</th>
+                                                <th class="qty">
+                                                    Quantity (<span
+                                                        t-esc="pallet.inbound_order_product_pallet_ids[:1].castunitid or 'Carton'"/>
+                                                    )
+                                                </th>
+                                                <th class="uom">
+                                                    <span t-esc="pallet.inbound_order_product_pallet_ids[:1].u8_aux_uom_name or 'UOM'"/>
+                                                </th>
+                                                <th class="blank"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-if="pallet.inbound_order_product_pallet_ids">
+                                                <t t-foreach="pallet.inbound_order_product_pallet_ids" t-as="line">
+                                                    <tr>
+                                                        <td><span t-esc="line.product_id.display_name"/></td>
+                                                        <td><span t-field="line.product_id.barcode"/></td>
+                                                        <td class="qty"><span t-field="line.quantity"/></td>
+                                                        <td class="uom"><span t-field="line.ninnum"/></td>
+                                                        <td class="blank"></td>
+                                                    </tr>
+                                                </t>
                                             </t>
-                                        </td>
-                                    </tr>
-                                </table>
-
-                                <table class="product-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Product</th>
-                                            <th>Barcode</th>
-                                            <th class="qty">
-                                                Quantity (<span t-esc="pallet.inbound_order_product_pallet_ids[:1].castunitid or 'Carton'"/>)
-                                            </th>
-                                            <th class="uom">
-                                                <span t-esc="pallet.inbound_order_product_pallet_ids[:1].u8_aux_uom_name or 'UOM'"/>
-                                            </th>
-                                            <th class="blank"></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <t t-if="pallet.inbound_order_product_pallet_ids">
-                                            <t t-foreach="pallet.inbound_order_product_pallet_ids" t-as="line">
+                                            <t t-else="">
                                                 <tr>
-                                                    <td><span t-esc="line.product_id.display_name"/></td>
-                                                    <td><span t-field="line.product_id.barcode"/></td>
-                                                    <td class="qty"><span t-field="line.quantity"/></td>
-                                                    <td class="uom"><span t-field="line.ninnum"/></td>
-                                                    <td class="blank"></td>
+                                                    <td colspan="5">No product lines.</td>
                                                 </tr>
                                             </t>
-                                        </t>
-                                        <t t-else="">
-                                            <tr>
-                                                <td colspan="5">No product lines.</td>
-                                            </tr>
-                                        </t>
-                                    </tbody>
-                                </table>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
+                        </t>
+                    </t>
+                    <t t-else="">
+                        <div class="page inbound-label-page">
+                            <t t-call="stock_barcode_lite.report_inbound_pallet_label_header"/>
+                            <div class="pallet-block">No pallet lines.</div>
                         </div>
                     </t>
-                </t>
-                <t t-else="">
-                    <div class="page inbound-label-page">
-                        <t t-call="stock_barcode_lite.report_inbound_pallet_label_header"/>
-                        <div class="pallet-block">No pallet lines.</div>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_report_inbound_picking_products" model="ir.actions.report">
+        <field name="name">Inbound Picking Products</field>
+        <field name="model">world.depot.inbound.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">stock_barcode_lite.report_inbound_picking_products</field>
+        <field name="report_file">stock_barcode_lite.report_inbound_picking_products</field>
+        <field name="print_report_name">'Inbound Picking Products - %s' % (object.stock_picking_id.name or object.billno or object.reference)</field>
+        <field name="paperformat_id" ref="paperformat_inbound_pallet_label"/>
+        <field name="binding_model_id" ref="worlddepot.model_world_depot_inbound_order"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_inbound_picking_products_header">
+        <div class="picking-products-header">
+            <div class="picking-products-qr">
+                <div t-field="o.stock_picking_id.name"
+                     t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 180, 'height': 180, 'img_style': 'width:100px;height:100px;', 'img_class': 'keep-no-break'}"/>
+                <div>Incoming Picking</div>
+                <div><span t-field="o.stock_picking_id.name"/></div>
+            </div>
+            <p class="picking-products-title">World Depot B.V.</p>
+            <p class="picking-products-subtitle">Inbound Picking Products</p>
+            <table class="picking-products-info">
+                <tr>
+                    <td class="label">Bill No:</td>
+                    <td><span t-field="o.billno"/></td>
+                    <td class="label">Owner:</td>
+                    <td><span t-esc="o.owner.name"/></td>
+                </tr>
+                <tr>
+                    <td class="label">Arrival Date:</td>
+                    <td><span t-if="o.a_date" t-esc="o.a_date.strftime('%Y-%m-%d')"/></td>
+                    <td class="label">Reference:</td>
+                    <td><span t-field="o.reference"/></td>
+                </tr>
+                <tr>
+                    <td class="label">BL No:</td>
+                    <td><span t-field="o.bl_no"/></td>
+                    <td class="label">Container No:</td>
+                    <td><span t-field="o.cntr_no"/></td>
+                </tr>
+                <tr>
+                    <td class="label">Picking:</td>
+                    <td colspan="3"><span t-field="o.stock_picking_id.name"/></td>
+                </tr>
+            </table>
+        </div>
+    </template>
+
+    <template id="report_inbound_picking_products">
+        <t t-set="data_report_margin_top" t-value="0"/>
+        <t t-set="data_report_header_spacing" t-value="0"/>
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <div class="article" t-att-data-oe-model="o._name" t-att-data-oe-id="o.id" t-att-data-oe-lang="o.env.context.get('lang')">
+                    <style>
+                        @page {
+                            margin-top: 8mm !important;
+                            margin-bottom: 8mm;
+                            margin-left: 7mm;
+                            margin-right: 7mm;
+                        }
+
+                        .picking-products-page {
+                            font-family: Arial, sans-serif;
+                            color: #111827;
+                            font-size: 12px;
+                            padding-top: 6mm;
+                        }
+
+                        .picking-products-header {
+                            position: relative;
+                            min-height: 124px;
+                            padding-right: 125px;
+                            border-bottom: 2px solid #111827;
+                            padding-bottom: 8px;
+                            margin-bottom: 12px;
+                            box-sizing: border-box;
+                        }
+
+                        .picking-products-qr {
+                            position: absolute;
+                            top: 0;
+                            right: 0;
+                            width: 112px;
+                            text-align: center;
+                            font-size: 9px;
+                            font-weight: bold;
+                            line-height: 1.05;
+                        }
+
+                        .picking-products-qr img {
+                            width: 100px !important;
+                            height: 100px !important;
+                        }
+
+                        .picking-products-title {
+                            font-size: 24px;
+                            font-weight: bold;
+                            margin: 0 0 3px 0;
+                        }
+
+                        .picking-products-subtitle {
+                            font-size: 18px;
+                            font-weight: bold;
+                            margin: 0 0 6px 0;
+                        }
+
+                        .picking-products-info {
+                            width: 100%;
+                            border-collapse: collapse;
+                        }
+
+                        .picking-products-info td {
+                            border: 1px solid #111827;
+                            padding: 3px 6px;
+                            vertical-align: top;
+                        }
+
+                        .picking-products-info .label {
+                            width: 105px;
+                            font-weight: bold;
+                            white-space: nowrap;
+                        }
+
+                        .picking-section {
+                            margin-bottom: 12px;
+                            page-break-inside: avoid;
+                            break-inside: avoid;
+                        }
+
+                        .picking-section-title {
+                            background: #6f797f;
+                            color: #ffffff;
+                            font-weight: bold;
+                            padding: 7px 9px;
+                            border: 1px solid #111827;
+                            border-bottom: 0;
+                        }
+
+                        .picking-products-table {
+                            width: 100%;
+                            border-collapse: collapse;
+                        }
+
+                        .picking-products-table th,
+                        .picking-products-table td {
+                            border: 1px solid #d1d5db;
+                            padding: 7px;
+                            vertical-align: top;
+                        }
+
+                        .picking-products-table th {
+                            background: #f3f4f6;
+                            font-weight: bold;
+                            text-align: left;
+                        }
+
+                        .picking-products-table .qty {
+                            width: 80px;
+                            text-align: right;
+                            white-space: nowrap;
+                        }
+
+                        .picking-products-table .uom {
+                            width: 90px;
+                            white-space: nowrap;
+                        }
+
+                        .picking-products-table .barcode {
+                            width: 115px;
+                            word-break: break-word;
+                        }
+
+                        .picking-products-table .size {
+                            width: 130px;
+                            word-break: break-word;
+                        }
+
+                        .picking-products-table .spec {
+                            width: 115px;
+                            word-break: break-word;
+                        }
+
+                        img.keep-no-break {
+                            display: inline-block;
+                            page-break-inside: avoid;
+                            break-inside: avoid;
+                        }
+                    </style>
+                    <div class="page picking-products-page">
+                        <t t-call="stock_barcode_lite.report_inbound_picking_products_header"/>
+                        <t t-if="o.inbound_order_product_ids">
+                            <t t-foreach="o.inbound_order_product_ids" t-as="pallet">
+                                <div class="picking-section">
+                                    <div class="picking-section-title">
+                                        Pallet No: <span t-field="pallet.pallet_no"/>
+                                        <t t-if="pallet.package_id and pallet.package_id.barcode">
+                                            / Package Barcode: <span t-field="pallet.package_id.barcode"/>
+                                        </t>
+                                    </div>
+                                    <table class="picking-products-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Product Name</th>
+                                                <th class="size">Size</th>
+                                                <th class="barcode">Barcode</th>
+                                                <th class="spec">Specification</th>
+                                                <th class="qty">Quantity</th>
+                                                <th class="uom">Unit</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-if="pallet.inbound_order_product_pallet_ids">
+                                                <t t-foreach="pallet.inbound_order_product_pallet_ids" t-as="line">
+                                                    <tr>
+                                                        <td><span t-esc="line.product_id.display_name"/></td>
+                                                        <td class="size"><span t-esc="', '.join(line.product_id.product_template_attribute_value_ids.mapped('name')) or line.box_type or ''"/></td>
+                                                        <td class="barcode"><span t-esc="line.product_id.barcode or ''"/></td>
+                                                        <td class="spec">
+                                                            <span t-esc="line.box_in_qty or ''"/>
+                                                            <span t-esc="line.u8_aux_uom_name or ''"/>
+                                                        </td>
+                                                        <td class="qty"><span t-field="line.quantity"/></td>
+                                                        <td class="uom"><span t-esc="line.castunitid or ''"/></td>
+                                                    </tr>
+                                                </t>
+                                            </t>
+                                            <t t-else="">
+                                                <tr>
+                                                    <td colspan="6">No product lines.</td>
+                                                </tr>
+                                            </t>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </t>
+                        </t>
+                        <t t-else="">
+                            <div class="picking-section">No pallet lines.</div>
+                        </t>
                     </div>
-                </t>
                 </div>
             </t>
         </t>
