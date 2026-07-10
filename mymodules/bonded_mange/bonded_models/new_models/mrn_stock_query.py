@@ -1,4 +1,9 @@
 # /.../bonded_models/mrn_stock_query.py
+import base64
+import io
+
+import xlsxwriter
+
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
 from odoo.addons.bonded_mange.bonded_models.new_models.customs_document_core import CUSTOMS_STATUS_SELECTION
@@ -26,6 +31,77 @@ class BondedMrnStockQuery(models.Model):
     def actionPrintPdf(self):
         self.ensure_one()
         return self.env.ref("bonded_mange.action_report_bonded_mrn_stock_query_pdf").report_action(self)
+
+    def action_print_excel(self):
+        self.ensure_one()
+
+        output = io.BytesIO()
+        workbook = xlsxwriter.Workbook(output, {"in_memory": True})
+        worksheet = workbook.add_worksheet("MRN Product Stock Query")
+        title_format = workbook.add_format({"bold": True, "font_size": 16, "align": "center", "valign": "vcenter"})
+        label_format = workbook.add_format({"bold": True, "border": 1})
+        value_format = workbook.add_format({"border": 1})
+        header_format = workbook.add_format({"bold": True, "align": "center", "valign": "vcenter", "bg_color": "#F1F1F1", "border": 1})
+        cell_format = workbook.add_format({"border": 1, "valign": "vcenter"})
+        number_format = workbook.add_format({"border": 1, "valign": "vcenter", "align": "right", "num_format": "0.00"})
+        bold_number_format = workbook.add_format({"bold": True, "border": 1, "valign": "vcenter", "align": "right", "num_format": "0.00"})
+
+        worksheet.merge_range(0, 0, 0, 13, "MRN Product Stock Query Report", title_format)
+        query_data = [
+            ("Query Name", self.name or ""),
+            ("Start Time", fields.Datetime.context_timestamp(self, self.start_time).strftime("%Y-%m-%d %H:%M:%S") if self.start_time else ""),
+            ("End Time", fields.Datetime.context_timestamp(self, self.end_time).strftime("%Y-%m-%d %H:%M:%S") if self.end_time else ""),
+            ("Unique Identifier", self.unique_identifier or "ALL"),
+            ("Product", self.product_id.display_name if self.product_id else "ALL"),
+            ("MRN", self.mrn_id.code if self.mrn_id else "ALL"),
+        ]
+        for row, (label, value) in enumerate(query_data, start=2):
+            worksheet.write(row, 0, label, label_format)
+            worksheet.merge_range(row, 1, row, 3, value, value_format)
+
+        headers = ["MRN", "Product", "Barcode", "Customs Status", "MRN Status", "Inbound No", "Outbound No", "Qty Before Start", "Inbound Qty", "Outbound Qty", "Stock Qty", "Operator", "Change Time", "Remark"]
+        header_row = 9
+        worksheet.write_row(header_row, 0, headers, header_format)
+        worksheet.freeze_panes(header_row + 1, 0)
+        worksheet.set_column(0, 0, 22)
+        worksheet.set_column(1, 1, 30)
+        worksheet.set_column(2, 2, 18)
+        worksheet.set_column(3, 4, 18)
+        worksheet.set_column(5, 6, 18)
+        worksheet.set_column(7, 10, 16)
+        worksheet.set_column(11, 11, 18)
+        worksheet.set_column(12, 12, 20)
+        worksheet.set_column(13, 13, 28)
+
+        customs_status_label_map = dict(self.query_lines._fields["customs_status"].selection)
+        mrn_status_label_map = dict(self.query_lines._fields["mrn_status"].selection)
+        for row, line in enumerate(self.query_lines, start=header_row + 1):
+            worksheet.write(row, 0, line.mrn_id.code if line.mrn_id else "", cell_format)
+            worksheet.write(row, 1, line.product_id.display_name or "", cell_format)
+            worksheet.write(row, 2, line.product_barcode or "", cell_format)
+            worksheet.write(row, 3, customs_status_label_map.get(line.customs_status, ""), cell_format)
+            worksheet.write(row, 4, mrn_status_label_map.get(line.mrn_status, ""), cell_format)
+            worksheet.write(row, 5, line.inbound_no or "", cell_format)
+            worksheet.write(row, 6, line.outbound_no or "", cell_format)
+            worksheet.write_number(row, 7, line.opening_qty or 0.0, number_format)
+            worksheet.write_number(row, 8, line.inbound_qty or 0.0, number_format)
+            worksheet.write_number(row, 9, line.outbound_qty or 0.0, number_format)
+            worksheet.write_number(row, 10, line.stock_qty or 0.0, bold_number_format)
+            worksheet.write(row, 11, line.operator_id.name if line.operator_id else "", cell_format)
+            worksheet.write(row, 12, fields.Datetime.context_timestamp(self, line.change_time).strftime("%Y-%m-%d %H:%M:%S") if line.change_time else "", cell_format)
+            worksheet.write(row, 13, line.remark or "", cell_format)
+
+        workbook.close()
+        output.seek(0)
+        attachment = self.env["ir.attachment"].create({
+            "name": "MRN_Product_Stock_Query_%s.xlsx" % (self.name or self.id),
+            "type": "binary",
+            "datas": base64.b64encode(output.read()),
+            "res_model": self._name,
+            "res_id": self.id,
+            "mimetype": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        })
+        return {"type": "ir.actions.act_url", "url": "/web/content/%s?download=true" % attachment.id, "target": "self"}
 
 
 
