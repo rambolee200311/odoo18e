@@ -48,7 +48,7 @@
                             type="object"
                             string="Prepare Recreate Picking"
                             class="btn-secondary"
-                            invisible="0"
+                            invisible="project_name !='HOYMILES' or state not in ['confirm']"
                             groups="search_product_change.group_hoymiles_stock_manager"/>
                     <widget name="web_ribbon" title="CANCEL" bg_color="bg-danger" invisible="state!='cancel'"/>
                 </header>
