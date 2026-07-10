@@ -245,9 +245,13 @@ export class DisassemblyOutboundPage extends Component {
         const input = this.barcodeInputRef.el;
         if (!input) return;
 
-        input.addEventListener("input", this._onBarcodeInput.bind(this));
-        input.addEventListener("keydown", this._onBarcodeKeydown.bind(this));
-        input.addEventListener("blur", this._onBarcodeBlur.bind(this));
+        this._boundOnBarcodeInput = this._onBarcodeInput.bind(this);
+        this._boundOnBarcodeKeydown = this._onBarcodeKeydown.bind(this);
+        this._boundOnBarcodeBlur = this._onBarcodeBlur.bind(this);
+
+        input.addEventListener("input", this._boundOnBarcodeInput);
+        input.addEventListener("keydown", this._boundOnBarcodeKeydown);
+        input.addEventListener("blur", this._boundOnBarcodeBlur);
 
         if (!this._isPDA) {
             input.focus();
@@ -260,9 +264,18 @@ export class DisassemblyOutboundPage extends Component {
         const input = this.barcodeInputRef.el;
         if (!input) return;
 
-        input.removeEventListener("input", this._onBarcodeInput.bind(this));
-        input.removeEventListener("keydown", this._onBarcodeKeydown.bind(this));
-        input.removeEventListener("blur", this._onBarcodeBlur.bind(this));
+        if (this._boundOnBarcodeInput) {
+            input.removeEventListener("input", this._boundOnBarcodeInput);
+            this._boundOnBarcodeInput = null;
+        }
+        if (this._boundOnBarcodeKeydown) {
+            input.removeEventListener("keydown", this._boundOnBarcodeKeydown);
+            this._boundOnBarcodeKeydown = null;
+        }
+        if (this._boundOnBarcodeBlur) {
+            input.removeEventListener("blur", this._boundOnBarcodeBlur);
+            this._boundOnBarcodeBlur = null;
+        }
     }
 
     _bindGlobalKeyListener() {
@@ -375,36 +388,34 @@ export class DisassemblyOutboundPage extends Component {
                 [barcode, pickingId, locationId, packageId, productId, lotId, false, false]
             );
 
-            await this._applyScanResult(result, true);
+            // 先校验当前 picking 的扫描模式，不匹配就直接提示并重置
+            const nextStep = result.next_step || "scan_picking";
+            const scanMode = result.scan_state?.picking?.outbound_scan_mode;
+            if (nextStep !== "scan_picking" && scanMode && scanMode !== "partial_pallet") {
+                this.showMessage(
+                    _t("This picking requires scan mode: ") + scanMode + _t(", but this page only supports partial_pallet mode. Please use the correct scanning page."),
+                    "danger"
+                );
+                this._flashScreen([200, 100, 100], true);
 
-            // 检查 picking 的出库扫描模式，如果不是 partial_pallet 则中断流程
-            if (result.next_step !== "scan_picking") {
-                const scanMode = this.state.order?.outbound_scan_mode;
-                if (scanMode && scanMode !== "partial_pallet") {
-                    this.showMessage(
-                        _t("This picking requires scan mode: ") + scanMode + _t(", but this page only supports partial_pallet mode. Please use the correct scanning page."),
-                        "danger"
-                    );
-                    this._flashScreen([200, 100, 100], true);
-
-                    // 重置数据
-                    this.state.order = null;
-                    this.state.pallets = [];
-                    this.state.currentLocation = {};
-                    this.state.currentPallet = {};
-                    this.state.currentProduct = {};
-                    this.state.currentLot = {};
-                    this.state.nextStep = "scan_picking";
-                    this.state.summary = this._getEmptySummary();
-                    this.state.lastScan = {};
-                    this.state.updatedMoveLineIds = [];
-                    this.state.currentProductIndex = -1;
-                    this.state.isDisassemblyMode = false;
-                    this._focusBarcodeInput();
-
-                    return;
-                }
+                // 保留错误提示，仅清空扫描数据
+                this.state.order = null;
+                this.state.pallets = [];
+                this.state.currentLocation = {};
+                this.state.currentPallet = {};
+                this.state.currentProduct = {};
+                this.state.currentLot = {};
+                this.state.nextStep = "scan_picking";
+                this.state.summary = this._getEmptySummary();
+                this.state.lastScan = {};
+                this.state.updatedMoveLineIds = [];
+                this.state.currentProductIndex = -1;
+                this.state.isDisassemblyMode = false;
+                this._focusBarcodeInput();
+                return;
             }
+
+            await this._applyScanResult(result, true);
 
             if (result.action?.updated_move_line_ids?.length) {
                 this.state.updatedMoveLineIds = result.action.updated_move_line_ids;
