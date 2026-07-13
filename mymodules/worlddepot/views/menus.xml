@@ -20,6 +20,8 @@
 
         <menuitem id="stock_report_menu" name="Stock Report" parent="world_depot_logi_menu" sequence="500" />
         <menuitem id="stock_report_linglong_menu" name="Stock Report for Linglong" parent="stock_report_menu" sequence="501" action="action_world_depot_linglong_report"/>
+        <menuitem id="stock_report_hoymiles_menu" name="Stock Report for Hoymiles" parent="stock_report_menu" sequence="502" action="action_world_depot_hoymiles_report"/>
+
 
         <menuitem id="charge_management_logi_menu" name="Charge Management" parent="world_depot_logi_menu" sequence="600" />
         <menuitem id="charge_unit_menu" name="Charge Units" parent="charge_management_logi_menu" sequence="601" action="action_world_depot_charge_unit"/>
