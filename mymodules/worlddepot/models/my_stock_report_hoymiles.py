@@ -53,7 +53,7 @@ class MyStockReportHoymiles(models.Model):
         return end_of_day_naive
 
     def _get_products_data(self):
-        """Collect and populate report lines grouped by container and product.
+        """Collect and populate report lines grouped by product.
         This method clears existing lines for this report and recreates them in batch.
         """
         # Clear existing lines
@@ -84,21 +84,25 @@ class MyStockReportHoymiles(models.Model):
 
         # Calculate opening quantities
         opening_quantities = {}
+        opening_container_nos = {}
         for move_line in opening_stock_moves.mapped('move_line_ids'):
             container_id = (move_line.picking_id.cntrno or '').strip() or 'Unknown'
             product = move_line.product_id
-            key = (container_id, product.id)
+            key = product.id
 
             if key not in opening_quantities:
                 opening_quantities[key] = 0.0
+                opening_container_nos[key] = set()
 
             # Calculate net movement for opening balance
             if move_line.location_dest_id.usage == 'internal' and move_line.location_id.usage == 'supplier':
+                opening_container_nos[key].add(container_id)
                 opening_quantities[key] += move_line.quantity or 0.0
             elif (
                     move_line.location_id.complete_name == 'SPN/Stock'
                     and move_line.location_dest_id.complete_name == 'SPN/Output'
             ):
+                opening_container_nos[key].add(container_id)
                 opening_quantities[key] -= move_line.quantity or 0.0
 
         # 2. Get movements during the report period
@@ -122,7 +126,7 @@ class MyStockReportHoymiles(models.Model):
         for move_line in period_stock_moves.mapped('move_line_ids'):
             container_id = (move_line.picking_id.cntrno or '').strip() or 'Unknown'
             product = move_line.product_id
-            key = (container_id, product.id)
+            key = product.id
 
             # Record all products with movement during report period
             all_period_products.add(key)
@@ -135,66 +139,72 @@ class MyStockReportHoymiles(models.Model):
                     'inbound_quantity': 0.0,
                     'outbound_quantity': 0.0,
                     'onhand_quantity': opening_qty,  # Start with opening balance
+                    'container_nos': set(opening_container_nos.get(key, set())),
                 }
 
             # Calculate period movements
             if move_line.location_dest_id.usage == 'internal' and move_line.location_id.usage == 'supplier':
+                temp_data[key]['container_nos'].add(container_id)
                 temp_data[key]['inbound_quantity'] += move_line.quantity or 0.0
                 temp_data[key]['onhand_quantity'] += move_line.quantity or 0.0
             elif (
                     move_line.location_id.complete_name == 'SPN/Stock'
                     and move_line.location_dest_id.complete_name == 'SPN/Output'
             ):
+                temp_data[key]['container_nos'].add(container_id)
                 temp_data[key]['outbound_quantity'] += move_line.quantity or 0.0
                 temp_data[key]['onhand_quantity'] -= move_line.quantity or 0.0
 
         # 3. Handle products with opening quantities but no period movements
-        for (container_id, product_id), opening_qty in opening_quantities.items():
-            if (container_id, product_id) not in temp_data and opening_qty != 0:
-                temp_data[(container_id, product_id)] = {
+        for product_id, opening_qty in opening_quantities.items():
+            if product_id not in temp_data and opening_qty != 0:
+                temp_data[product_id] = {
                     'opening_quantity': opening_qty,
                     'inbound_quantity': 0.0,
                     'outbound_quantity': 0.0,
                     'onhand_quantity': opening_qty,
+                    'container_nos': set(opening_container_nos.get(product_id, set())),
                 }
 
         # 4. Handle products with period movements but no opening quantities
-        for key in all_period_products:
-            if key not in temp_data:
+        for product_id in all_period_products:
+            if product_id not in temp_data:
                 # This product has movement during period but no opening stock record
                 # Create record with 0 opening quantity
-                temp_data[key] = {
+                temp_data[product_id] = {
                     'opening_quantity': 0.0,
                     'inbound_quantity': 0.0,
                     'outbound_quantity': 0.0,
                     'onhand_quantity': 0.0,
+                    'container_nos': set(),
                 }
 
                 # Re-process all movement records for this product to calculate period quantities
-                container_id, product_id = key
                 for move_line in period_stock_moves.mapped('move_line_ids'):
                     line_container_id = (move_line.picking_id.cntrno or '').strip() or 'Unknown'
                     line_product_id = move_line.product_id.id
 
-                    if (line_container_id, line_product_id) == key:
+                    if line_product_id == product_id:
                         if move_line.location_dest_id.usage == 'internal' and move_line.location_id.usage == 'supplier':
-                            temp_data[key]['inbound_quantity'] += move_line.quantity or 0.0
-                            temp_data[key]['onhand_quantity'] += move_line.quantity or 0.0
+                            temp_data[product_id]['container_nos'].add(line_container_id)
+                            temp_data[product_id]['inbound_quantity'] += move_line.quantity or 0.0
+                            temp_data[product_id]['onhand_quantity'] += move_line.quantity or 0.0
                         elif (
                                 move_line.location_id.complete_name == 'SPN/Stock'
                                 and move_line.location_dest_id.complete_name == 'SPN/Output'
                         ):
-                            temp_data[key]['outbound_quantity'] += move_line.quantity or 0.0
-                            temp_data[key]['onhand_quantity'] -= move_line.quantity or 0.0
+                            temp_data[product_id]['container_nos'].add(line_container_id)
+                            temp_data[product_id]['outbound_quantity'] += move_line.quantity or 0.0
+                            temp_data[product_id]['onhand_quantity'] -= move_line.quantity or 0.0
 
         # Prepare final records (batch create for performance)
         create_lines = []
 
-        for (container_id, product_id), quantities in temp_data.items():
+        for product_id, quantities in temp_data.items():
             product = self.env['product.product'].browse(product_id)
             create_lines.append({
                 'report_id': self.id,
-                'container_no': container_id,
+                'container_no': ', '.join(sorted(quantities['container_nos'])),
                 'product_id': product_id,
                 'product_uom_id': product.uom_id.id if product and product.uom_id else False,
                 'product_barcode': product.barcode if product else '',
