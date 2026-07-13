@@ -76,7 +76,7 @@ class MyStockReportHoymiles(models.Model):
             ('product_id.categ_id', '=', category_id),
         ]
         if self.container_no:
-            opening_domain.append(('move_line_ids.lot_id.name', 'ilike', self.container_no))
+            opening_domain.append(('picking_id.cntrno', 'ilike', self.container_no))
         if self.product_id:
             opening_domain.append(('move_line_ids.product_id', '=', self.product_id.id))
 
@@ -85,9 +85,7 @@ class MyStockReportHoymiles(models.Model):
         # Calculate opening quantities
         opening_quantities = {}
         for move_line in opening_stock_moves.mapped('move_line_ids'):
-            raw_container = (move_line.lot_id.name or '').strip() or 'Unknown'
-            # container_id = raw_container.split('-', 1)[1].strip() if '-' in raw_container else raw_container
-            container_id = self.get_container_str(raw_container)
+            container_id = (move_line.picking_id.cntrno or '').strip() or 'Unknown'
             product = move_line.product_id
             key = (container_id, product.id)
 
@@ -97,7 +95,10 @@ class MyStockReportHoymiles(models.Model):
             # Calculate net movement for opening balance
             if move_line.location_dest_id.usage == 'internal' and move_line.location_id.usage == 'supplier':
                 opening_quantities[key] += move_line.quantity or 0.0
-            elif move_line.location_id.usage == 'internal' and move_line.location_dest_id.usage == 'customer':
+            elif (
+                    move_line.location_id.complete_name == 'SPN/Stock'
+                    and move_line.location_dest_id.complete_name == 'SPN/Output'
+            ):
                 opening_quantities[key] -= move_line.quantity or 0.0
 
         # 2. Get movements during the report period
@@ -108,7 +109,7 @@ class MyStockReportHoymiles(models.Model):
             ('product_id.categ_id', '=', category_id),
         ]
         if self.container_no:
-            period_domain.append(('move_line_ids.lot_id.name', 'ilike', self.container_no))
+            period_domain.append(('picking_id.cntrno', 'ilike', self.container_no))
         if self.product_id:
             period_domain.append(('product_id', '=', self.product_id.id))
 
@@ -119,9 +120,7 @@ class MyStockReportHoymiles(models.Model):
 
         # Process period movements
         for move_line in period_stock_moves.mapped('move_line_ids'):
-            raw_container = (move_line.lot_id.name or '').strip() or 'Unknown'
-            # container_id = raw_container.split('-', 1)[1].strip() if '-' in raw_container else raw_container
-            container_id = self.get_container_str(raw_container)
+            container_id = (move_line.picking_id.cntrno or '').strip() or 'Unknown'
             product = move_line.product_id
             key = (container_id, product.id)
 
@@ -142,7 +141,10 @@ class MyStockReportHoymiles(models.Model):
             if move_line.location_dest_id.usage == 'internal' and move_line.location_id.usage == 'supplier':
                 temp_data[key]['inbound_quantity'] += move_line.quantity or 0.0
                 temp_data[key]['onhand_quantity'] += move_line.quantity or 0.0
-            elif move_line.location_id.usage == 'internal' and move_line.location_dest_id.usage == 'customer':
+            elif (
+                    move_line.location_id.complete_name == 'SPN/Stock'
+                    and move_line.location_dest_id.complete_name == 'SPN/Output'
+            ):
                 temp_data[key]['outbound_quantity'] += move_line.quantity or 0.0
                 temp_data[key]['onhand_quantity'] -= move_line.quantity or 0.0
 
@@ -171,16 +173,17 @@ class MyStockReportHoymiles(models.Model):
                 # Re-process all movement records for this product to calculate period quantities
                 container_id, product_id = key
                 for move_line in period_stock_moves.mapped('move_line_ids'):
-                    raw_container = (move_line.lot_id.name or '').strip() or 'Unknown'
-                    # line_container_id = raw_container.split('-', 1)[1].strip() if '-' in raw_container else raw_container
-                    line_container_id = self.get_container_str(raw_container)
+                    line_container_id = (move_line.picking_id.cntrno or '').strip() or 'Unknown'
                     line_product_id = move_line.product_id.id
 
                     if (line_container_id, line_product_id) == key:
                         if move_line.location_dest_id.usage == 'internal' and move_line.location_id.usage == 'supplier':
                             temp_data[key]['inbound_quantity'] += move_line.quantity or 0.0
                             temp_data[key]['onhand_quantity'] += move_line.quantity or 0.0
-                        elif move_line.location_id.usage == 'internal' and move_line.location_dest_id.usage == 'customer':
+                        elif (
+                                move_line.location_id.complete_name == 'SPN/Stock'
+                                and move_line.location_dest_id.complete_name == 'SPN/Output'
+                        ):
                             temp_data[key]['outbound_quantity'] += move_line.quantity or 0.0
                             temp_data[key]['onhand_quantity'] -= move_line.quantity or 0.0
 
@@ -248,15 +251,6 @@ class MyStockReportHoymiles(models.Model):
             'context': {'default_report_id': self.id},
         }
         return action
-
-    def get_container_str(self, container_no):
-        """Extract and return the meaningful part of the container number."""
-        parts = container_no.split('-')
-        if len(parts) >= 2:
-            return parts[1].strip()  # Return the part after the first hyphen
-        else:
-            return container_no.strip()
-
 
 class MyStockReportHoymilesProducts(models.Model):
     _name = 'world.depot.store.report.hoymiles.products'
