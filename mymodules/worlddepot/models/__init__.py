@@ -34,3 +34,4 @@ from . import outbound_order_charge
 from . import my_dashboard
 from . import my_stock_report_linglong
 from . import outbound_recreate_picking_ready
+from . import my_stock_report_hoymiles

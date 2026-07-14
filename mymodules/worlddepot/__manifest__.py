@@ -53,6 +53,7 @@
         'views/my_dashboard.xml',
         'views/my_route.xml',
         'views/my_stock_report_linglong_views.xml',
+        'views/my_stock_report_hoymiles_views.xml',
         #'views/my_excel_template.xml',
         #'views/pallet_barcode_assets.xml',
         #'views/sequence.xml',

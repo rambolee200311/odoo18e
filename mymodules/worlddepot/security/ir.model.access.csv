@@ -1,3 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_world_deport_dashboard,access_world_deport_dashboard,model_world_deport_dashboard,,1,1,1,1
+access_world_depot_store_report_hoymiles,world.depot.store.report.hoymiles,model_world_depot_store_report_hoymiles,,1,1,1,1
+access_world_depot_store_report_hoymiles_products,world.depot.store.report.hoymiles.products,model_world_depot_store_report_hoymiles_products,,1,1,1,1
 
