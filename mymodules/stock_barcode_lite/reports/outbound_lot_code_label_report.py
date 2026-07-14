@@ -16,6 +16,8 @@ class ReportOutboundLotCodeLabel(models.AbstractModel):
         for rec in docs:
             whole_lines = rec.outbound_order_product_ids.filtered(lambda line: line.de_palletize == "N")
             partial_lines = rec.outbound_order_product_ids.filtered(lambda line: line.de_palletize != "N")
+            whole_pallet_groups = []
+            partial_pallet_groups = []
 
             if whole_lines and not rec.whole_pallet_picking_id:
                 raise UserError(_("Please create the whole pallet picking before printing outbound lot labels."))
@@ -23,18 +25,30 @@ class ReportOutboundLotCodeLabel(models.AbstractModel):
             if partial_lines and not rec.partial_pallet_picking_id:
                 raise UserError(_("Please create the partial pallet picking before printing outbound lot labels."))
 
+            for pallet_no in list(dict.fromkeys(whole_lines.mapped("pallet_no"))):
+                whole_pallet_groups.append({
+                    "pallet_no": pallet_no,
+                    "lines": whole_lines.filtered(lambda line: line.pallet_no == pallet_no),
+                })
+
+            for pallet_no in list(dict.fromkeys(partial_lines.mapped("pallet_no"))):
+                partial_pallet_groups.append({
+                    "pallet_no": pallet_no,
+                    "lines": partial_lines.filtered(lambda line: line.pallet_no == pallet_no),
+                })
+
             sections = []
             if whole_lines:
                 sections.append({
                     "title": _("Whole Pallet Picking"),
                     "picking": rec.whole_pallet_picking_id,
-                    "lines": whole_lines,
+                    "pallet_groups": whole_pallet_groups,
                 })
             if partial_lines:
                 sections.append({
                     "title": _("Partial Pallet Picking"),
                     "picking": rec.partial_pallet_picking_id,
-                    "lines": partial_lines,
+                    "pallet_groups": partial_pallet_groups,
                 })
 
             sections_by_order[rec.id] = sections

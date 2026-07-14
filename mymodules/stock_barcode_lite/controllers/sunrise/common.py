@@ -4,6 +4,7 @@ import json
 import logging
 import math
 import re
+import uuid
 from datetime import datetime
 
 from odoo.http import request
@@ -146,12 +147,17 @@ class SunriseControllerMixin:
         if box_type == "full" and not math.isclose(box_in_qty,u8_conversion_rate,rel_tol=1e-9,abs_tol=1e-6,):
             raise SunriseApiError("4001",self.format_field_error("box_in_qty","must equal u8_conversion_rate when box_type is full",row_number,),)
 
-        if box_type == "partial" and box_in_qty >= u8_conversion_rate:
+        if box_type == "partial" and math.isclose(
+                box_in_qty,
+                u8_conversion_rate,
+                rel_tol=1e-9,
+                abs_tol=1e-6,
+        ):
             raise SunriseApiError(
                 "4001",
                 self.format_field_error(
                     "box_in_qty",
-                    "must be less than u8_conversion_rate when box_type is partial",
+                    "must not equal u8_conversion_rate when box_type is partial",
                     row_number,
                 ),
             )
@@ -169,6 +175,23 @@ class SunriseControllerMixin:
 #拼wms托盘号
     def get_sunrise_pallet_no(self, cntr_no, pallet_no):
         return "%s-%s" % (cntr_no, pallet_no)
+
+    def generate_sunrise_pallet_no(self, project, pallet_no):
+        package_model = request.env["stock.quant.package"].sudo()
+        pallet_model = request.env["world.depot.inbound.order.product"].sudo()
+        project_code = re.sub(r"\s+", "", (project.name if project else "SUNRISE") or "SUNRISE").upper()
+        pallet_code = re.sub(r"\s+", "", pallet_no or "").upper()
+        if not pallet_code:
+            raise SunriseApiError("4001", "pallet_no is required.")
+
+        for _attempt in range(20):
+            barcode = "%s-%s-%s" % (project_code, pallet_code, uuid.uuid4().hex[:6].upper())
+            existing_package = package_model.search([("barcode", "=", barcode)], limit=1)
+            existing_pallet = pallet_model.search([("sunrise_pallet_no", "=", barcode)], limit=1)
+            if not existing_package and not existing_pallet:
+                return barcode
+
+        raise SunriseApiError("5000", 'Could not generate a unique package barcode for pallet "%s".' % pallet_no)
 
     def get_sunrise_package_value_name(self, box_type, box_in_qty):
         if box_type == "full":
@@ -331,11 +354,7 @@ class SunriseControllerMixin:
 
     def find_package_by_sunrise_pallet_no(self, sunrise_pallet_no):
         package_model = request.env["stock.quant.package"].sudo()
-        packages = package_model.search([
-            "|",
-            ("barcode", "=", sunrise_pallet_no),
-            ("name", "=", sunrise_pallet_no),
-        ])
+        packages = package_model.search([("barcode", "=", sunrise_pallet_no)])
         if not packages:
             raise SunriseApiError("3004", 'Pallet "%s" does not exist in stock package.' % sunrise_pallet_no)
         if len(packages) > 1:

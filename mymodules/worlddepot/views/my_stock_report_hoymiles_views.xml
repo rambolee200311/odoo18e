@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Form view for hoymiles report -->
+    <record id="view_world_depot_hoymiles_report_form" model="ir.ui.view">
+        <field name="name">world.depot.store.report.hoymiles.form</field>
+        <field name="model">world.depot.store.report.hoymiles</field>
+        <field name="arch" type="xml">
+            <form string="hoymiles Stock Report">
+                <header>
+                    <button name="action_get_products_data" type="object" string="Generate Lines" class="oe_highlight"/>
+                    <button name="action_open_products" type="object" string="View Lines" class="oe_link"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                         <h1>
+                            hoymiles Stock Report
+                        </h1>
+                    </div>
+                    <group>
+                        <field name="from_date"/>
+                        <field name="to_date"/>
+                        <field name="container_no"/>
+                        <field name="product_id"/>
+                    </group>
+                    <notebook>
+                        <page string="Products">
+                            <field name="products_ids">
+                                <list>
+                                    <field name="container_no"/>
+                                    <field name="product_id"/>
+                                    <field name="product_barcode"/>
+                                    <field name="product_uom_id"/>
+                                    <field name="opening_quantity" string="Opening"/>
+                                    <field name="inbound_quantity" string="Inbound"/>
+                                    <field name="outbound_quantity" string="Outbound"/>
+                                    <field name="onhand_quantity" string="On Hand"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Tree view for the report records -->
+    <record id="view_world_depot_hoymiles_report_tree" model="ir.ui.view">
+        <field name="name">world.depot.store.report.hoymiles.tree</field>
+        <field name="model">world.depot.store.report.hoymiles</field>
+        <field name="arch" type="xml">
+            <list string="hoymiles Stock Reports">
+                <field name="from_date"/>
+                <field name="to_date"/>
+                <field name="container_no"/>
+                <field name="product_id"/>
+            </list>
+        </field>
+    </record>
+    <!-- Search view -->
+    <record id="view_world_depot_hoymiles_report_search" model="ir.ui.view">
+        <field name="name">world.depot.store.report.hoymiles.search</field>
+        <field name="model">world.depot.store.report.hoymiles</field>
+        <field name="arch" type="xml">
+            <search string="Search hoymiles Reports">
+                <field name="to_date"/>
+                <field name="container_no"/>
+                <field name="product_id"/>
+            </search>
+        </field>
+    </record>
+
+    <!-- Tree view for report product lines -->
+    <record id="view_world_depot_hoymiles_products_tree" model="ir.ui.view">
+        <field name="name">world.depot.store.report.hoymiles.products.tree</field>
+        <field name="model">world.depot.store.report.hoymiles.products</field>
+        <field name="arch" type="xml">
+            <list string="hoymiles Report Products">
+                <!-- <field name="report_id"/> -->
+                <field name="container_no"/>
+                <field name="product_id"/>
+                <field name="product_barcode"/>
+                <field name="product_uom_id"/>
+                <field name="opening_quantity" string="Opening"/>
+                <field name="inbound_quantity" string="Inbound"/>
+                <field name="outbound_quantity" string="Outbound"/>
+                <field name="onhand_quantity" string="On Hand"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Action to open report product lines -->
+    <record id="action_world_depot_hoymiles_products" model="ir.actions.act_window">
+        <field name="name">hoymiles Report Products</field>
+        <field name="res_model">world.depot.store.report.hoymiles.products</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_world_depot_hoymiles_products_tree"/>
+    </record>
+
+
+    <!-- Action to open the hoymiles report list -->
+    <record id="action_world_depot_hoymiles_report" model="ir.actions.act_window">
+        <field name="name">hoymiles Stock Reports</field>
+        <field name="res_model">world.depot.store.report.hoymiles</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_world_depot_hoymiles_report_tree"/>
+        <field name="search_view_id" ref="view_world_depot_hoymiles_report_search"/>
+    </record>
+</odoo>

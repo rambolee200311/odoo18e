@@ -14,15 +14,13 @@
         <field name="dpi">90</field>
     </record>
 
-
     <record id="action_report_outbound_lot_code_label" model="ir.actions.report">
-        <field name="name">Outbound Lot Code Labels</field>
+        <field name="name">Outbound Picking Products</field>
         <field name="model">world.depot.outbound.order</field>
         <field name="report_type">qweb-pdf</field>
         <field name="report_name">stock_barcode_lite.report_outbound_lot_code_label</field>
         <field name="report_file">stock_barcode_lite.report_outbound_lot_code_label</field>
-        <field name="print_report_name">'Outbound Lot Labels - %s' % (
-                object.vsourcebillcode or object.billno or object.reference or object.id)</field>
+        <field name="print_report_name">'Outbound Picking Products - %s' % (object.vsourcebillcode or object.billno or object.reference or object.id)</field>
         <field name="paperformat_id" ref="paperformat_outbound_pallet_label"/>
         <field name="binding_model_id" ref="worlddepot.model_world_depot_outbound_order"/>
         <field name="binding_type">report</field>
@@ -32,18 +30,18 @@
         <t t-set="data_report_margin_top" t-value="6"/>
         <t t-set="data_report_header_spacing" t-value="0"/>
         <t t-call="web.html_container">
-        <t t-foreach="docs" t-as="o">
+            <t t-foreach="docs" t-as="o">
                 <t t-foreach="sections_by_order.get(o.id, [])" t-as="section">
                     <t t-set="picking" t-value="section['picking']"/>
-                    <t t-set="lines" t-value="section['lines']"/>
-                    <t t-foreach="range(0, len(lines), 4)" t-as="page_start">
-                        <div class="page label-page">
+
+                    <t t-set="pallet_groups" t-value="section['pallet_groups']"/>
+                    <div class="page outbound-picking-page">
                             <style>
                                 @page {
                                     margin-top: 10mm !important;
-                                    margin-bottom: 6mm;
-                                    margin-left: 6mm;
-                                    margin-right: 6mm;
+                                    margin-bottom: 7mm;
+                                    margin-left: 7mm;
+                                    margin-right: 7mm;
                                 }
 
                                 html,
@@ -54,11 +52,21 @@
                                     padding-top: 0 !important;
                                 }
 
+                                .outbound-picking-page {
+                                    padding: 5mm 0 0 0;
+                                    margin-top: 0;
+                                    font-family: Arial, sans-serif;
+                                    color: #111827;
+                                    font-size: 12px;
+                                    page-break-before: always;
+                                    box-sizing: border-box;
+                                }
+
                                 .outbound-label-header {
                                     page-break-inside: avoid;
                                     break-inside: avoid;
                                     min-height: 38mm;
-                                    margin-bottom: 3mm;
+                                    margin-bottom: 4mm;
                                     border-bottom: 2px solid #111827;
                                 }
 
@@ -119,120 +127,75 @@
                                     white-space: nowrap;
                                 }
 
-                                .label-page {
-                                    padding: 4mm 0 0 0;
-                                    margin-top: 0;
-                                    font-family: Arial, sans-serif;
-                                    page-break-before: always;
+                                .pallet-section {
+                                    margin-bottom: 5mm;
                                     page-break-inside: avoid;
                                     break-inside: avoid;
-                                    box-sizing: border-box;
                                 }
 
-                                .label-table {
+                                .pallet-title {
+                                    background: #6f797f;
+                                    color: #ffffff;
+                                    font-weight: bold;
+                                    padding: 7px 9px;
+                                    border: 1px solid #111827;
+                                    border-bottom: 0;
+                                }
+
+                                .picking-products-table {
                                     width: 100%;
-                                    border-collapse: separate;
-                                    border-spacing: 0;
-                                    table-layout: fixed;
-                                    border: 0;
-                                }
-
-                                .label-cell {
-                                    width: 50%;
-                                    height: 96mm;
-                                    vertical-align: top;
-                                    padding: 1.5mm;
-                                    box-sizing: border-box;
-                                    border: 0;
-                                }
-
-                                .label-card {
-                                    width: 100%;
-                                    height: 92mm;
-                                    border: 2px solid #111827;
                                     border-collapse: collapse;
                                     table-layout: fixed;
-                                    overflow: hidden;
-                                    max-height: 92mm;
                                 }
 
-                                .label-card td {
-                                    box-sizing: border-box;
-                                    border-left: 0;
-                                    border-right: 0;
-                                    border-top: 0;
+                                .picking-products-table th,
+                                .picking-products-table td {
+                                    border: 1px solid #d1d5db;
+                                    padding: 7px;
+                                    vertical-align: top;
                                 }
 
-                                .top-row {
-                                    height: 36mm;
+                                .picking-products-table th {
+                                    background: #f3f4f6;
+                                    font-weight: bold;
+                                    text-align: left;
                                 }
 
-                                .top-row td {
-                                    border-bottom: 1px solid #111827;
-                                }
-
-                                .spec-row {
-                                    height: 11mm;
-                                }
-
-                                .spec-row td {
-                                    border-bottom: 1px solid #111827;
-                                }
-
-                                .bottom-row {
-                                    height: 45mm;
-                                }
-
-                                .product-text {
-                                    width: 58%;
-                                    padding: 4mm;
-                                    vertical-align: middle;
-                                    font-size: 13px;
-                                    font-weight: 700;
-                                    line-height: 1.25;
+                                .picking-products-table .product {
+                                    width: 33%;
                                     word-break: break-word;
                                 }
 
-                                .product-qr-cell {
-                                    width: 42%;
-                                    padding: 3mm;
-                                    vertical-align: middle;
-                                    text-align: center;
-                                    font-size: 9px;
-                                    font-weight: 600;
+                                .picking-products-table .size {
+                                    width: 15%;
+                                    word-break: break-word;
                                 }
 
-                                .spec-cell {
-                                    padding: 2mm 4mm;
-                                    vertical-align: middle;
-                                    font-size: 13px;
-                                    font-weight: 700;
+                                .picking-products-table .barcode {
+                                    width: 16%;
+                                    word-break: break-word;
+                                }
+
+                                .picking-products-table .spec {
+                                    width: 15%;
+                                    word-break: break-word;
+                                }
+
+                                .picking-products-table .qty {
+                                    width: 10%;
+                                    text-align: right;
                                     white-space: nowrap;
                                 }
 
-                                .lot-qr-cell {
-                                    width: 46%;
-                                    padding: 3mm 2mm 3mm 5mm;
-                                    vertical-align: middle;
-                                    text-align: center;
-                                    font-size: 9px;
-                                    font-weight: 600;
+                                .picking-products-table .uom {
+                                    width: 11%;
+                                    white-space: nowrap;
                                 }
 
-                                .lot-info-cell {
-                                    width: 54%;
-                                    padding: 3mm 4mm 3mm 3mm;
-                                    vertical-align: middle;
-                                    font-size: 12px;
-                                    font-weight: 700;
-                                    line-height: 1.65;
-                                    word-break: break-word;
-                                }
-
-                                .qr-caption {
-                                    margin-top: 1mm;
-                                    font-size: 9px;
-                                    font-weight: 600;
+                                img.keep-no-break {
+                                    display: inline-block;
+                                    page-break-inside: avoid;
+                                    break-inside: avoid;
                                 }
                             </style>
                             <div class="outbound-label-header">
@@ -240,7 +203,7 @@
                                     <tr>
                                         <td class="outbound-header-main">
                                             <p class="outbound-label-title">World Depot B.V.</p>
-                                            <p class="outbound-label-subtitle">Outbound Order</p>
+                                            <p class="outbound-label-subtitle">Outbound Picking Products</p>
                                             <table class="outbound-label-info">
                                                 <tr>
                                                     <td class="label">Bill No:</td>
@@ -254,6 +217,12 @@
                                                     <td class="label">Picking:</td>
                                                     <td><span t-field="picking.name"/></td>
                                                 </tr>
+                                                <tr>
+                                                    <td class="label">Source Bill:</td>
+                                                    <td><span t-field="o.vsourcebillcode"/></td>
+                                                    <td class="label">Mode:</td>
+                                                    <td><span t-esc="section['title']"/></td>
+                                                </tr>
                                             </table>
                                         </td>
                                         <td class="outbound-picking-qr-cell" t-if="picking">
@@ -266,84 +235,41 @@
                                 </table>
                             </div>
 
-                            <table class="label-table">
-                                <tr>
-                                    <td class="label-cell">
-                                        <t t-if="page_start &lt; len(lines)">
-                                            <t t-call="stock_barcode_lite.report_outbound_lot_code_label_card">
-                                                <t t-set="line" t-value="lines[page_start]"/>
+                            <t t-foreach="pallet_groups" t-as="pallet_group">
+                                <div class="pallet-section">
+                                    <div class="pallet-title">Pallet No: <span t-esc="pallet_group['pallet_no']"/></div>
+                                    <table class="picking-products-table">
+                                        <thead>
+                                            <tr>
+                                                <th class="product">Product Name</th>
+                                                <th class="size">Size</th>
+                                                <th class="barcode">Barcode</th>
+                                                <th class="spec">Specification</th>
+                                                <th class="qty">Quantity</th>
+                                                <th class="uom">Unit</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <t t-foreach="pallet_group['lines']" t-as="line">
+                                                <tr>
+                                                    <td class="product"><span t-field="line.product_id.display_name"/></td>
+                                                    <td class="size"><span t-esc="', '.join(line.product_id.product_template_attribute_value_ids.mapped('name')) or line.box_type or ''"/></td>
+                                                    <td class="barcode"><span t-esc="line.product_id.barcode or ''"/></td>
+                                                    <td class="spec">
+                                                        <span t-esc="line.box_in_qty or ''"/>
+                                                        <span t-esc="line.u8_aux_uom_name or ''"/>
+                                                    </td>
+                                                    <td class="qty"><span t-field="line.quantity"/></td>
+                                                    <td class="uom"><span t-esc="line.castunitid or ''"/></td>
+                                                </tr>
                                             </t>
-                                        </t>
-                                    </td>
-                                    <td class="label-cell">
-                                        <t t-if="page_start + 1 &lt; len(lines)">
-                                            <t t-call="stock_barcode_lite.report_outbound_lot_code_label_card">
-                                                <t t-set="line" t-value="lines[page_start + 1]"/>
-                                            </t>
-                                        </t>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="label-cell">
-                                        <t t-if="page_start + 2 &lt; len(lines)">
-                                            <t t-call="stock_barcode_lite.report_outbound_lot_code_label_card">
-                                                <t t-set="line" t-value="lines[page_start + 2]"/>
-                                            </t>
-                                        </t>
-                                    </td>
-                                    <td class="label-cell">
-                                        <t t-if="page_start + 3 &lt; len(lines)">
-                                            <t t-call="stock_barcode_lite.report_outbound_lot_code_label_card">
-                                                <t t-set="line" t-value="lines[page_start + 3]"/>
-                                            </t>
-                                        </t>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    </t>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </t>
+                    </div>
                 </t>
             </t>
         </t>
     </template>
-
-    <template id="report_outbound_lot_code_label_card">
-        <t t-set="product_code" t-value="line.product_id.default_code or line.product_id.barcode or ''"/>
-        <t t-set="lot_code" t-value="line.lot_name or ''"/>
-        <table class="label-card">
-            <tr class="top-row">
-                <td class="product-text">
-                    <span t-field="line.product_id.display_name"/>
-                </td>
-                <td class="product-qr-cell">
-                    <span t-out="product_code"
-                          t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 160, 'height': 160, 'img_style': 'width:34mm;height:34mm;'}"/>
-                    <div class="qr-caption">Product QR Code</div>
-                </td>
-            </tr>
-
-            <tr class="spec-row">
-                <td class="spec-cell" colspan="2">
-                    Specification:
-                    <span t-esc="line.box_in_qty"/>
-                    <span t-esc="line.u8_aux_uom_name or ''"/>
-                </td>
-            </tr>
-
-            <tr class="bottom-row">
-                <td class="lot-qr-cell">
-                    <span t-out="lot_code"
-                          t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 170, 'height': 170, 'img_style': 'width:36mm;height:36mm;'}"/>
-                    <div class="qr-caption">Lot QR Code</div>
-                </td>
-                <td class="lot-info-cell">
-                    <div>Lot No: <span t-esc="line.lot_name or ''"/></div>
-                    <div>MFG Date: <span t-esc="line.m_date or ''"/></div>
-                    <div>EXP Date: <span t-esc="line.e_date or ''"/></div>
-                </td>
-            </tr>
-        </table>
-    </template>
-
-
 </odoo>

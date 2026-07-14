@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import uuid
+import math
 from odoo import _, api, fields, models
 from odoo.http import request
 from odoo.exceptions import UserError, ValidationError
@@ -95,14 +97,35 @@ class InboundOrder(models.Model):
                         raise UserError(_("%s u8_conversion_rate must be greater than 0.") % line_name)
 
                     expected_ninnum = detail_line.box_qty * detail_line.box_in_qty
-                    if abs(detail_line.ninnum - expected_ninnum) > 0.000001:
+                    if not math.isclose(
+                            detail_line.ninnum,
+                            expected_ninnum,
+                            rel_tol=1e-9,
+                            abs_tol=1e-6,
+                    ):
                         raise UserError(_("%s ninnum must equal box_qty * box_in_qty.") % line_name)
 
-                    if detail_line.box_type == "full" and abs(detail_line.box_in_qty - detail_line.u8_conversion_rate) > 0.000001:
-                        raise UserError(_("%s box_in_qty must equal u8_conversion_rate when box_type is full.") % line_name)
+                    if detail_line.box_type == "full" and not math.isclose(
+                            detail_line.box_in_qty,
+                            detail_line.u8_conversion_rate,
+                            rel_tol=1e-9,
+                            abs_tol=1e-6,
+                    ):
+                        raise UserError(
+                            _("%s box_in_qty must equal u8_conversion_rate when box_type is full.")
+                            % line_name
+                        )
 
-                    if detail_line.box_type == "partial" and detail_line.box_in_qty >= detail_line.u8_conversion_rate:
-                        raise UserError(_("%s box_in_qty must be less than u8_conversion_rate when box_type is partial.") % line_name)
+                    if detail_line.box_type == "partial" and math.isclose(
+                            detail_line.box_in_qty,
+                            detail_line.u8_conversion_rate,
+                            rel_tol=1e-9,
+                            abs_tol=1e-6,
+                    ):
+                        raise UserError(
+                            _("%s box_in_qty must not equal u8_conversion_rate when box_type is partial.")
+                            % line_name
+                        )
 
 
     def action_cancel(self):
@@ -153,8 +176,6 @@ class InboundOrder(models.Model):
                 package = pallet_line.package_id
                 if not package and pallet_line.sunrise_pallet_no:
                     package = package_model.sudo().search([
-                        "|",
-                        ("name", "=", pallet_line.sunrise_pallet_no),
                         ("barcode", "=", pallet_line.sunrise_pallet_no),
                     ], limit=1)
 
@@ -186,25 +207,28 @@ class InboundOrder(models.Model):
                     continue
 
                 package_name = package.name or package.barcode
-                if not package_name:
+                package_barcode = package.barcode or package.name
+                if not package_name and not package_barcode:
                     continue
 
-                if "-CANCEL-" in package_name:
+                if "-CANCEL-" in package_name or "-CANCEL-" in package_barcode:
                     continue
 
                 archive_name = "%s-CANCEL-%s" % (package_name, rec.billno or rec.reference or rec.id)
+                archive_barcode = "%s-CANCEL-%s" % (package_barcode, rec.billno or rec.reference or rec.id)
                 existing_package = package_model.sudo().search([
                     "|",
                     ("name", "=", archive_name),
-                    ("barcode", "=", archive_name),
+                    ("barcode", "=", archive_barcode),
                     ("id", "!=", package.id),
                 ], limit=1)
                 if existing_package:
                     archive_name = "%s-%s" % (archive_name, rec.id)
+                    archive_barcode = "%s-%s" % (archive_barcode, rec.id)
 
                 package.write({
                     "name": archive_name,
-                    "barcode": archive_name,
+                    "barcode": archive_barcode,
                 })
 
         return True
@@ -339,8 +363,6 @@ class InboundOrder(models.Model):
 
         if package_names:
             existing_package  = package_model.sudo().search([
-                "|",
-                ("name", "in", list(package_names)),
                 ("barcode", "in", list(package_names)),
             ], limit=1)
 
@@ -410,22 +432,21 @@ class InboundOrder(models.Model):
                 product_moves[product_id] = move
 
             for pallet_line in record.inbound_order_product_ids:
-                package_name = pallet_line.sunrise_pallet_no
+                package_name = pallet_line.pallet_no
+                package_barcode = pallet_line.sunrise_pallet_no
 
                 package = package_model.sudo().search([
-                    "|",
-                    ("name", "=", package_name),
-                    ("barcode", "=", package_name),
+                    ("barcode", "=", package_barcode),
                 ], limit=1)
 
                 if package:
                     raise UserError(
                         _('Pallet No "%s" already exists as a package. Please cancel/archive the old inbound package before creating a new receipt.')
-                        % package_name
+                        % package_barcode
                     )
                 package = package_model.create({
                     "name": package_name,
-                    "barcode": package_name,
+                    "barcode": package_barcode,
                     "package_use": "disposable",
                     "billno": record.billno,
                     "reference": record.reference,
@@ -497,16 +518,44 @@ class InboundOrderProduct(models.Model):
     _inherit = "world.depot.inbound.order.product"
 
     creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import")], string="Creation Source", default="manual", readonly=True, copy=False)
-    sunrise_pallet_no = fields.Char(string="Sunrise Pallet No", compute="compute_sunrise_pallet_no",store=True, copy=False, index=True)
+    sunrise_pallet_no = fields.Char(string="Package Barcode", copy=False, index=True)
     package_id = fields.Many2one('stock.quant.package', string='Pallet', index=True)
 
-    @api.depends("pallet_no", "inbound_order_id.cntr_no", "inbound_order_id.project")
-    def compute_sunrise_pallet_no(self):
-        for rec in self:
-            if rec.inbound_order_id.project.name == "SUNRISE" and rec.inbound_order_id.cntr_no and rec.pallet_no:
-                rec.sunrise_pallet_no = "%s-%s" % (rec.inbound_order_id.cntr_no, rec.pallet_no)
-            else:
-                rec.sunrise_pallet_no = False
+    def generate_sunrise_pallet_no(self, project, pallet_no):
+        package_model = self.env["stock.quant.package"]
+        pallet_model = self.env["world.depot.inbound.order.product"]
+        project_code = (project.name or "SUNRISE").replace(" ", "").upper()
+
+        for index in range(20):
+            random_code = uuid.uuid4().hex[:6].upper()
+            barcode = "%s-%s-%s" % (project_code, pallet_no, random_code)
+            existing_package = package_model.sudo().search([("barcode", "=", barcode)], limit=1)
+            existing_pallet = pallet_model.sudo().search([("sunrise_pallet_no", "=", barcode)], limit=1)
+            if not existing_package and not existing_pallet:
+                return barcode
+
+        raise ValidationError(_('Failed to generate unique package barcode for pallet "%s".') % pallet_no)
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        inbound_order_model = self.env["world.depot.inbound.order"]
+        for vals in vals_list:
+            if vals.get("sunrise_pallet_no") or not vals.get("pallet_no") or not vals.get("inbound_order_id"):
+                continue
+            inbound_order = inbound_order_model.sudo().browse(vals["inbound_order_id"])
+            if inbound_order.exists() and inbound_order.project.name == "SUNRISE":
+                vals["sunrise_pallet_no"] = self.generate_sunrise_pallet_no(inbound_order.project, vals["pallet_no"])
+        return super().create(vals_list)
+
+    def write(self, vals):
+        result = super().write(vals)
+        if "pallet_no" in vals or "inbound_order_id" in vals or "sunrise_pallet_no" in vals:
+            for rec in self:
+                if rec.inbound_order_id.project.name == "SUNRISE" and rec.pallet_no and not rec.sunrise_pallet_no:
+                    rec.write({
+                        "sunrise_pallet_no": rec.generate_sunrise_pallet_no(rec.inbound_order_id.project, rec.pallet_no),
+                    })
+        return result
 
     @api.constrains("pallet_no", "inbound_order_id", "sunrise_pallet_no")
     def check_sunrise_pallet_no_unique(self):
@@ -533,9 +582,6 @@ class InboundOrderProduct(models.Model):
             existing_sunrise_pallet_no = pallet_model.sudo().search([
                 ("id", "!=", rec.id),
                 ("sunrise_pallet_no", "=", rec.sunrise_pallet_no),
-                ("inbound_order_id.project", "=", rec.inbound_order_id.project.id),
-                ("inbound_order_id.state", "!=", "cancel"),
-                ("inbound_order_id.type", "=", "inbound"),
             ], limit=1)
             if existing_sunrise_pallet_no:
                 raise ValidationError(
@@ -561,7 +607,7 @@ class InboundOrderProductsPallet(models.Model):
     ndiscounttaxtype = fields.Char(string="Tax Deduction Type", copy=False, index=True)
     vsourcebillcode = fields.Char(string="Source Bill Code", copy=False, index=True)
     vsourcerowno = fields.Char(string="Source Row No", copy=False, index=True)
-    box_type = fields.Selection([("full", "Full"), ("partial", "Partial")], string="Box Type", copy=False, index=True)
+    box_type = fields.Selection([("full", "Full"), ("partial", "Non-standard")], string="Box Type", copy=False, index=True)
     box_qty = fields.Integer(string="Box Qty", copy=False)
     ninnum = fields.Float(string="Received Units", copy=False)
     box_in_qty = fields.Float(string="Box In Qty", copy=False)
