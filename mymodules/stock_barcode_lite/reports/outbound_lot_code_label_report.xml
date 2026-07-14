@@ -35,8 +35,7 @@
                     <t t-set="picking" t-value="section['picking']"/>
 
                     <t t-set="pallet_groups" t-value="section['pallet_groups']"/>
-                    <t t-foreach="range(0, len(pallet_groups), 2)" t-as="page_start">
-                        <div class="page outbound-picking-page">
+                    <div class="page outbound-picking-page">
                             <style>
                                 @page {
                                     margin-top: 10mm !important;
@@ -236,7 +235,7 @@
                                 </table>
                             </div>
 
-                            <t t-foreach="pallet_groups[page_start:page_start + 2]" t-as="pallet_group">
+                            <t t-foreach="pallet_groups" t-as="pallet_group">
                                 <div class="pallet-section">
                                     <div class="pallet-title">Pallet No: <span t-esc="pallet_group['pallet_no']"/></div>
                                     <table class="picking-products-table">
@@ -268,8 +267,7 @@
                                     </table>
                                 </div>
                             </t>
-                        </div>
-                    </t>
+                    </div>
                 </t>
             </t>
         </t>

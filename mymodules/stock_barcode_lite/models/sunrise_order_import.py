@@ -549,8 +549,16 @@ class SunriseOrderImportLine(models.Model):
             raise UserError(_("Row %s: ninnum must equal box_qty * box_in_qty.") % self.row_number)
         if box_type == "full" and not math.isclose(box_in_qty, u8_conversion_rate, rel_tol=1e-9, abs_tol=1e-6):
             raise UserError(_("Row %s: box_in_qty must equal u8_conversion_rate when box_type is full.") % self.row_number)
-        if box_type == "partial" and box_in_qty >= u8_conversion_rate:
-            raise UserError(_("Row %s: box_in_qty must be less than u8_conversion_rate when box_type is partial.") % self.row_number)
+        if box_type == "partial" and math.isclose(
+                box_in_qty,
+                u8_conversion_rate,
+                rel_tol=1e-9,
+                abs_tol=1e-6,
+        ):
+            raise UserError(
+                _("Row %s: box_in_qty must not equal u8_conversion_rate when box_type is partial.")
+                % self.row_number
+            )
         return box_type, box_qty, box_in_qty, ninnum, u8_aux_qty, u8_conversion_rate
 
     def validate_lot_values(self):

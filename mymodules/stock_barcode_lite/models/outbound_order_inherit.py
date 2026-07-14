@@ -1,7 +1,7 @@
 from odoo import _, api, fields, models
 from odoo.http import request
 from odoo.exceptions import UserError, ValidationError
-
+import math
 from odoo.tools.float_utils import float_compare
 
 class OutboundOrderInherit(models.Model):
@@ -110,14 +110,34 @@ class OutboundOrderInherit(models.Model):
                     raise UserError(_("%s u8_conversion_rate must be greater than 0.") % line_name)
 
                 expected_ninnum = line.box_qty * line.box_in_qty
-                if abs(line.ninnum - expected_ninnum) > 0.000001:
+                if not math.isclose(
+                        line.ninnum,
+                        expected_ninnum,
+                        rel_tol=1e-9,
+                        abs_tol=1e-6,
+                ):
                     raise UserError(_("%s ninnum must equal box_qty * box_in_qty.") % line_name)
 
-                if line.box_type == "full" and abs(line.box_in_qty - line.u8_conversion_rate) > 0.000001:
-                    raise UserError(_("%s box_in_qty must equal u8_conversion_rate when box_type is full.") % line_name)
-
-                if line.box_type == "partial" and line.box_in_qty >= line.u8_conversion_rate:
-                    raise UserError(_("%s box_in_qty must be less than u8_conversion_rate when box_type is partial.") % line_name)
+                if line.box_type == "full" and not math.isclose(
+                        line.box_in_qty,
+                        line.u8_conversion_rate,
+                        rel_tol=1e-9,
+                        abs_tol=1e-6,
+                ):
+                    raise UserError(
+                        _("%s box_in_qty must equal u8_conversion_rate when box_type is full.")
+                        % line_name
+                    )
+                if line.box_type == "partial" and math.isclose(
+                        line.box_in_qty,
+                        line.u8_conversion_rate,
+                        rel_tol=1e-9,
+                        abs_tol=1e-6,
+                ):
+                    raise UserError(
+                        _("%s box_in_qty must not equal u8_conversion_rate when box_type is partial.")
+                        % line_name
+                    )
 
 
 
@@ -839,7 +859,7 @@ class InboundOrderProduct(models.Model):
     ndiscounttaxtype = fields.Char(string="Tax Deduction Type", copy=False, index=True, tracking=True)
     vsourcebillcode = fields.Char(string="Source Bill Code", copy=False, index=True)
     vsourcerowno = fields.Char(string="Source Row No", copy=False, index=True, tracking=True)
-    box_type = fields.Selection([("full", "Full"), ("partial", "Partial")], string="Box Type", copy=False, index=True)
+    box_type = fields.Selection([("full", "Full"), ("partial", "Non-standard")], string="Box Type", copy=False, index=True)
     box_qty = fields.Integer(string="Box Qty", copy=False, tracking=True)
     ninnum = fields.Float(string="Received Units", copy=False, tracking=True)
     box_in_qty = fields.Float(string="Box In Qty", copy=False, tracking=True)
