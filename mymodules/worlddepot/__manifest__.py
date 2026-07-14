@@ -58,6 +58,7 @@
         'views/my_dashboard.xml',
         'views/my_route.xml',
         'views/my_stock_report_linglong_views.xml',
+        'views/my_stock_report_hoymiles_views.xml',
         'views/inbound_order_deepseek_checker.xml',
         'views/outbound_order_deepseek_checker.xml',
         #'views/my_excel_template.xml',
