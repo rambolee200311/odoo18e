@@ -147,12 +147,17 @@ class SunriseControllerMixin:
         if box_type == "full" and not math.isclose(box_in_qty,u8_conversion_rate,rel_tol=1e-9,abs_tol=1e-6,):
             raise SunriseApiError("4001",self.format_field_error("box_in_qty","must equal u8_conversion_rate when box_type is full",row_number,),)
 
-        if box_type == "partial" and box_in_qty >= u8_conversion_rate:
+        if box_type == "partial" and math.isclose(
+                box_in_qty,
+                u8_conversion_rate,
+                rel_tol=1e-9,
+                abs_tol=1e-6,
+        ):
             raise SunriseApiError(
                 "4001",
                 self.format_field_error(
                     "box_in_qty",
-                    "must be less than u8_conversion_rate when box_type is partial",
+                    "must not equal u8_conversion_rate when box_type is partial",
                     row_number,
                 ),
             )
