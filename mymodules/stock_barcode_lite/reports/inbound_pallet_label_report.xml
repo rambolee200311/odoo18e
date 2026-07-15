@@ -28,28 +28,45 @@
 
     <template id="report_inbound_pallet_label_header">
         <div class="inbound-label-header">
-            <p class="inbound-label-title">World Depot B.V.</p>
-            <p class="inbound-label-subtitle">Inbound Order</p>
-            <table class="inbound-label-info">
+            <table class="inbound-label-header-layout">
                 <tr>
-                    <td class="label">Bill No:</td>
-                    <td><span t-field="o.billno"/></td>
-                    <td class="label">Owner:</td>
-                    <td><span t-esc="o.owner.name"/></td>
-                </tr>
-                <tr>
-                    <td class="label">Arrival Date:</td>
-                    <td>
-                        <span t-if="o.a_date" t-esc="o.a_date.strftime('%Y-%m-%d')"/>
+                    <td class="inbound-label-header-main">
+                        <p class="inbound-label-title">World Depot B.V.</p>
+                        <p t-if="pallet" class="inbound-label-subtitle">
+                            Pallet No:
+                            <span t-esc="pallet.package_id.name if pallet.package_id else pallet.pallet_no"/>
+                        </p>
+                        <table class="inbound-label-info">
+                            <tr>
+                                <td class="label">Reference:</td>
+                                <td><span t-field="o.reference"/></td>
+                                <td class="label">Owner:</td>
+                                <td><span t-esc="o.owner.name"/></td>
+                            </tr>
+                            <tr>
+                                <td class="label">Arrival Date:</td>
+                                <td colspan="3">
+                                    <span t-if="o.a_date" t-esc="o.a_date.strftime('%Y-%m-%d')"/>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="label">BL No:</td>
+                                <td><span t-field="o.bl_no"/></td>
+                                <td class="label">Container No:</td>
+                                <td><span t-field="o.cntr_no"/></td>
+                            </tr>
+                        </table>
                     </td>
-                    <td class="label">Reference:</td>
-                    <td><span t-field="o.reference"/></td>
-                </tr>
-                <tr>
-                    <td class="label">BL No:</td>
-                    <td><span t-field="o.bl_no"/></td>
-                    <td class="label">Container No:</td>
-                    <td><span t-field="o.cntr_no"/></td>
+                    <td class="inbound-label-header-qr">
+                        <t t-if="pallet and pallet.package_id and pallet.package_id.barcode">
+                            <div t-field="pallet.package_id.barcode"
+                                 t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 320, 'height': 320, 'img_style': 'width:220px;height:220px;', 'img_class': 'keep-no-break'}"/>
+                        </t>
+                        <t t-elif="pallet and pallet.sunrise_pallet_no">
+                            <div t-field="pallet.sunrise_pallet_no"
+                                 t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 320, 'height': 320, 'img_style': 'width:220px;height:220px;', 'img_class': 'keep-no-break'}"/>
+                        </t>
+                    </td>
                 </tr>
             </table>
         </div>
@@ -107,15 +124,39 @@
                         }
 
                         .inbound-label-title {
-                            font-size: 24px;
+                            font-size: 32px;
                             font-weight: bold;
                             margin: 0 0 3px 0;
                         }
 
                         .inbound-label-subtitle {
-                            font-size: 18px;
+                            font-size: 25px;
                             font-weight: bold;
                             margin: 0;
+                        }
+
+                        .inbound-label-header-layout {
+                            width: 100%;
+                            border-collapse: collapse;
+                            table-layout: fixed;
+                        }
+
+                        .inbound-label-header-main,
+                        .inbound-label-header-qr {
+                            border: 0;
+                            padding: 0;
+                            vertical-align: top;
+                        }
+
+                        .inbound-label-header-main {
+                            padding-right: 10px;
+                        }
+
+                        .inbound-label-header-qr {
+                            width: 230px;
+                            text-align: right;
+                            page-break-inside: avoid;
+                            break-inside: avoid;
                         }
 
                         .inbound-label-info {
@@ -135,65 +176,9 @@
                             white-space: nowrap;
                         }
 
-                        .pallet-frame-header {
-                            border: 1px solid #111827;
-                            border-bottom: 0;
-                            padding: 14px 14px 0;
-                            box-sizing: border-box;
-                        }
-
                         .pallet-empty-block {
                             border: 1px solid #111827;
                             padding: 14px;
-                        }
-
-                        .pallet-header {
-                            width: 100%;
-                            border-collapse: collapse;
-                            border: 1px solid #111827;
-                            margin-bottom: 0;
-                            page-break-inside: avoid;
-                            break-inside: avoid;
-                        }
-
-                        .pallet-header th,
-                        .pallet-header td {
-                            border: 1px solid #d1d5db;
-                            padding: 10px;
-                        }
-
-                        .pallet-header th {
-                            background: #6f797f;
-                            color: #ffffff;
-                            font-weight: bold;
-                            text-align: left;
-                        }
-
-                        .pallet-header .qr-title {
-                            width: 180px;
-                            text-align: center;
-                        }
-
-                        .pallet-no {
-                            font-size: 28px;
-                            font-weight: bold;
-                        }
-
-                        .pallet-info-line + .pallet-info-line {
-                            margin-top: 12px;
-                        }
-
-                        .pallet-info-label {
-                            display: inline-block;
-                            min-width: 170px;
-                        }
-
-                        .pallet-qr {
-                            width: 300px;
-                            text-align: center;
-                            vertical-align: middle;
-                            page-break-inside: avoid;
-                            break-inside: avoid;
                         }
 
                         .product-table {
@@ -304,41 +289,6 @@
                         <t t-foreach="o.inbound_order_product_ids" t-as="pallet">
                             <div t-attf-class="page inbound-label-page {{ '' if pallet_index == 0 else 'pallet-label-page' }}">
                                 <t t-call="stock_barcode_lite.report_inbound_pallet_label_header"/>
-                                <div class="pallet-frame-header">
-                                    <table class="pallet-header">
-                                        <thead>
-                                            <tr>
-                                                <th>Pallet Information</th>
-                                                <th class="qr-title">QR Code</th>
-                                            </tr>
-                                        </thead>
-                                        <tr>
-                                            <td>
-                                                <div class="pallet-no">
-                                                    <div class="pallet-info-line">
-                                                        <span class="pallet-info-label">Pallet No:</span>
-                                                        <span t-field="pallet.pallet_no"/>
-                                                    </div>
-                                                    <div class="pallet-info-line">
-                                                        <span class="pallet-info-label">Container No:</span>
-                                                        <span t-field="o.cntr_no"/>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td class="pallet-qr">
-                                                <t t-if="pallet.package_id and pallet.package_id.barcode">
-                                                    <div t-field="pallet.package_id.barcode"
-                                                         t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 260, 'height': 260, 'img_style': 'width:200px;height:200px;', 'img_class': 'keep-no-break'}"/>
-                                                </t>
-                                                <t t-elif="pallet.sunrise_pallet_no">
-                                                    <div t-field="pallet.sunrise_pallet_no"
-                                                         t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 260, 'height': 260, 'img_style': 'width:200px;height:200px;', 'img_class': 'keep-no-break'}"/>
-                                                </t>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </div>
-
                                 <table class="product-table">
                                         <colgroup>
                                             <col class="frame-gutter-col"/>
@@ -408,6 +358,7 @@
                     </t>
                     <t t-else="">
                         <div class="page inbound-label-page">
+                            <t t-set="pallet" t-value="False"/>
                             <t t-call="stock_barcode_lite.report_inbound_pallet_label_header"/>
                             <div class="pallet-empty-block">No pallet lines.</div>
                         </div>
@@ -442,26 +393,22 @@
             <p class="picking-products-subtitle">Inbound Picking Products</p>
             <table class="picking-products-info">
                 <tr>
-                    <td class="label">Bill No:</td>
-                    <td><span t-field="o.billno"/></td>
+                    <td class="label">Reference:</td>
+                    <td><span t-field="o.reference"/></td>
                     <td class="label">Owner:</td>
                     <td><span t-esc="o.owner.name"/></td>
                 </tr>
                 <tr>
                     <td class="label">Arrival Date:</td>
                     <td><span t-if="o.a_date" t-esc="o.a_date.strftime('%Y-%m-%d')"/></td>
-                    <td class="label">Reference:</td>
-                    <td><span t-field="o.reference"/></td>
+                    <td class="label">Picking:</td>
+                    <td><span t-field="o.stock_picking_id.name"/></td>
                 </tr>
                 <tr>
                     <td class="label">BL No:</td>
                     <td><span t-field="o.bl_no"/></td>
                     <td class="label">Container No:</td>
                     <td><span t-field="o.cntr_no"/></td>
-                </tr>
-                <tr>
-                    <td class="label">Picking:</td>
-                    <td colspan="3"><span t-field="o.stock_picking_id.name"/></td>
                 </tr>
             </table>
         </div>
@@ -593,7 +540,7 @@
                             word-break: break-word;
                         }
 
-                        .picking-products-table .size {
+                        .picking-products-table .lot {
                             width: 130px;
                             word-break: break-word;
                         }
@@ -616,15 +563,15 @@
                                 <div class="picking-section">
                                     <div class="picking-section-title">
                                         Pallet No: <span t-field="pallet.pallet_no"/>
-                                        <t t-if="pallet.package_id and pallet.package_id.barcode">
-                                            / Package Barcode: <span t-field="pallet.package_id.barcode"/>
-                                        </t>
+<!--                                        <t t-if="pallet.package_id and pallet.package_id.barcode">-->
+<!--                                            / Package Barcode: <span t-field="pallet.package_id.barcode"/>-->
+<!--                                        </t>-->
                                     </div>
                                     <table class="picking-products-table">
                                         <thead>
                                             <tr>
                                                 <th>Product Name</th>
-                                                <th class="size">Size</th>
+                                                <th class="lot">Lot No</th>
                                                 <th class="barcode">Barcode</th>
                                                 <th class="spec">Specification</th>
                                                 <th class="qty">Quantity</th>
@@ -636,8 +583,7 @@
                                                 <t t-foreach="pallet.inbound_order_product_pallet_ids" t-as="line">
                                                     <tr>
                                                         <td><span t-esc="line.product_id.display_name"/></td>
-                                                        <td class="size"><span
-                                                                t-esc="', '.join(line.product_id.product_template_attribute_value_ids.mapped('name')) or line.box_type or ''"/></td>
+                                                        <td class="lot"><span t-esc="line.lot_name or ''"/></td>
                                                         <td class="barcode"><span
                                                                 t-esc="line.product_id.barcode or ''"/></td>
                                                         <td class="spec">
