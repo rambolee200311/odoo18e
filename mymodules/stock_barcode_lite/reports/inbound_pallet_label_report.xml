@@ -5,7 +5,7 @@
         <field name="default" eval="False"/>
         <field name="format">A4</field>
         <field name="orientation">Portrait</field>
-        <field name="margin_top">6</field>
+        <field name="margin_top">8</field>
         <field name="margin_bottom">6</field>
         <field name="margin_left">6</field>
         <field name="margin_right">6</field>
@@ -56,7 +56,7 @@
     </template>
 
     <template id="report_inbound_pallet_label">
-        <t t-set="data_report_margin_top" t-value="0"/>
+        <t t-set="data_report_margin_top" t-value="8"/>
         <t t-set="data_report_header_spacing" t-value="0"/>
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="o">
@@ -91,7 +91,7 @@
                             font-family: Arial, sans-serif;
                             color: #111827;
                             font-size: 14px;
-                            padding-top: 8mm;
+                            padding-top: 0;
                             margin-top: 0;
                         }
 
@@ -135,19 +135,23 @@
                             white-space: nowrap;
                         }
 
-                        .pallet-block {
+                        .pallet-frame-header {
                             border: 1px solid #111827;
-                            margin-bottom: 0;
+                            border-bottom: 0;
+                            padding: 14px 14px 0;
+                            box-sizing: border-box;
+                        }
+
+                        .pallet-empty-block {
+                            border: 1px solid #111827;
                             padding: 14px;
-                            page-break-inside: avoid;
-                            break-inside: avoid;
-                            -webkit-column-break-inside: avoid;
                         }
 
                         .pallet-header {
                             width: 100%;
                             border-collapse: collapse;
-                            margin-bottom: 8px;
+                            border: 1px solid #111827;
+                            margin-bottom: 0;
                             page-break-inside: avoid;
                             break-inside: avoid;
                         }
@@ -195,7 +199,21 @@
                         .product-table {
                             width: 100%;
                             border-collapse: collapse;
-                            page-break-inside: avoid;
+                            border: 1px solid #111827;
+                            table-layout: fixed;
+                            margin: 0;
+                        }
+
+                        .product-table thead {
+                            display: table-header-group;
+                        }
+
+                        .product-table tfoot {
+                            display: table-footer-group;
+                        }
+
+                        .product-table tbody tr {
+                            page-break-inside: avoid !important;
                             break-inside: avoid;
                         }
 
@@ -211,10 +229,58 @@
                             text-align: left;
                         }
 
-                        .product-table .qty {
-                            width: 110px;
-                            text-align: right;
+                        .product-table .frame-top-spacer,
+                        .product-table .frame-bottom-spacer {
+                            height: 8px;
+                            padding: 0;
+                            border: 0 !important;
+                            background: #ffffff;
+                            line-height: 0;
+                        }
+
+                        .product-table .frame-bottom-spacer {
+                            height: 14px;
+                        }
+
+                        .product-table .frame-gutter,
+                        .product-table .frame-gutter-col {
+                            width: 14px;
+                        }
+
+                        .product-table .frame-gutter {
+                            min-width: 14px;
+                            padding: 0;
+                            border-top: 1px hidden transparent !important;
+                            border-bottom: 1px hidden transparent !important;
+                            border-left: 0 !important;
+                            border-right: 0 !important;
+                            background: #ffffff;
+                        }
+
+                        .product-table tr > .frame-gutter:first-child {
+                            border-left: 1px solid #111827 !important;
+                        }
+
+                        .product-table tr > .frame-gutter:last-child {
+                            border-right: 1px solid #111827 !important;
+                        }
+
+                        .product-table .lot {
+                            width: 160px;
+                            word-break: break-word;
+                        }
+
+                        .product-table .qty-uom {
+                            display: block;
+                            font-size: 11px;
+                            line-height: 1.2;
                             white-space: nowrap;
+                        }
+
+                        .product-table .qty {
+                            width: 80px;
+                            text-align: right;
+                            white-space: normal;
                         }
 
                         .product-table .uom {
@@ -223,7 +289,7 @@
                         }
 
                         .product-table .blank {
-                            width: 170px;
+                            width: 90px;
                             white-space: nowrap;
                         }
 
@@ -238,7 +304,7 @@
                         <t t-foreach="o.inbound_order_product_ids" t-as="pallet">
                             <div t-attf-class="page inbound-label-page {{ '' if pallet_index == 0 else 'pallet-label-page' }}">
                                 <t t-call="stock_barcode_lite.report_inbound_pallet_label_header"/>
-                                <div class="pallet-block">
+                                <div class="pallet-frame-header">
                                     <table class="pallet-header">
                                         <thead>
                                             <tr>
@@ -271,50 +337,79 @@
                                             </td>
                                         </tr>
                                     </table>
+                                </div>
 
-                                    <table class="product-table">
+                                <table class="product-table">
+                                        <colgroup>
+                                            <col class="frame-gutter-col"/>
+                                            <col/>
+                                            <col style="width: 90px;"/>
+                                            <col style="width: 160px;"/>
+                                            <col style="width: 80px;"/>
+                                            <col style="width: 130px;"/>
+                                            <col style="width: 90px;"/>
+                                            <col class="frame-gutter-col"/>
+                                        </colgroup>
                                         <thead>
                                             <tr>
+                                                <th class="frame-top-spacer" colspan="8"></th>
+                                            </tr>
+                                            <tr>
+                                                <th class="frame-gutter"></th>
                                                 <th>Product</th>
                                                 <th>Barcode</th>
+                                                <th class="lot">Lot No</th>
                                                 <th class="qty">
-                                                    Quantity (<span
-                                                        t-esc="pallet.inbound_order_product_pallet_ids[:1].castunitid or 'Carton'"/>
-                                                    )
+                                                    Quantity
+                                                    <span class="qty-uom">
+                                                        (<span
+                                                            t-esc="pallet.inbound_order_product_pallet_ids[:1].castunitid or 'Carton'"/>
+                                                        )
+                                                    </span>
                                                 </th>
                                                 <th class="uom">
                                                     <span t-esc="pallet.inbound_order_product_pallet_ids[:1].u8_aux_uom_name or 'UOM'"/>
                                                 </th>
                                                 <th class="blank"></th>
+                                                <th class="frame-gutter"></th>
                                             </tr>
                                         </thead>
+                                        <tfoot>
+                                            <tr>
+                                                <td class="frame-bottom-spacer" colspan="8"></td>
+                                            </tr>
+                                        </tfoot>
                                         <tbody>
                                             <t t-if="pallet.inbound_order_product_pallet_ids">
                                                 <t t-foreach="pallet.inbound_order_product_pallet_ids" t-as="line">
                                                     <tr>
+                                                        <td class="frame-gutter"></td>
                                                         <td><span t-esc="line.product_id.display_name"/></td>
                                                         <td><span t-field="line.product_id.barcode"/></td>
+                                                        <td class="lot"><span t-esc="line.lot_name or ''"/></td>
                                                         <td class="qty"><span t-field="line.quantity"/></td>
                                                         <td class="uom"><span t-field="line.ninnum"/></td>
                                                         <td class="blank"></td>
+                                                        <td class="frame-gutter"></td>
                                                     </tr>
                                                 </t>
                                             </t>
                                             <t t-else="">
                                                 <tr>
-                                                    <td colspan="5">No product lines.</td>
+                                                    <td class="frame-gutter"></td>
+                                                    <td colspan="6">No product lines.</td>
+                                                    <td class="frame-gutter"></td>
                                                 </tr>
                                             </t>
                                         </tbody>
-                                    </table>
-                                </div>
+                                </table>
                             </div>
                         </t>
                     </t>
                     <t t-else="">
                         <div class="page inbound-label-page">
                             <t t-call="stock_barcode_lite.report_inbound_pallet_label_header"/>
-                            <div class="pallet-block">No pallet lines.</div>
+                            <div class="pallet-empty-block">No pallet lines.</div>
                         </div>
                     </t>
                 </div>
@@ -328,7 +423,8 @@
         <field name="report_type">qweb-pdf</field>
         <field name="report_name">stock_barcode_lite.report_inbound_picking_products</field>
         <field name="report_file">stock_barcode_lite.report_inbound_picking_products</field>
-        <field name="print_report_name">'Inbound Picking Products - %s' % (object.stock_picking_id.name or object.billno or object.reference)</field>
+        <field name="print_report_name">'Inbound Picking Products - %s' % (
+                    object.stock_picking_id.name or object.billno or object.reference)</field>
         <field name="paperformat_id" ref="paperformat_inbound_pallet_label"/>
         <field name="binding_model_id" ref="worlddepot.model_world_depot_inbound_order"/>
         <field name="binding_type">report</field>
@@ -376,7 +472,8 @@
         <t t-set="data_report_header_spacing" t-value="0"/>
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="o">
-                <div class="article" t-att-data-oe-model="o._name" t-att-data-oe-id="o.id" t-att-data-oe-lang="o.env.context.get('lang')">
+                <div class="article" t-att-data-oe-model="o._name" t-att-data-oe-id="o.id"
+                     t-att-data-oe-lang="o.env.context.get('lang')">
                     <style>
                         @page {
                             margin-top: 8mm !important;
@@ -539,8 +636,10 @@
                                                 <t t-foreach="pallet.inbound_order_product_pallet_ids" t-as="line">
                                                     <tr>
                                                         <td><span t-esc="line.product_id.display_name"/></td>
-                                                        <td class="size"><span t-esc="', '.join(line.product_id.product_template_attribute_value_ids.mapped('name')) or line.box_type or ''"/></td>
-                                                        <td class="barcode"><span t-esc="line.product_id.barcode or ''"/></td>
+                                                        <td class="size"><span
+                                                                t-esc="', '.join(line.product_id.product_template_attribute_value_ids.mapped('name')) or line.box_type or ''"/></td>
+                                                        <td class="barcode"><span
+                                                                t-esc="line.product_id.barcode or ''"/></td>
                                                         <td class="spec">
                                                             <span t-esc="line.box_in_qty or ''"/>
                                                             <span t-esc="line.u8_aux_uom_name or ''"/>
