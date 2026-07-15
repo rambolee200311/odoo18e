@@ -56,16 +56,30 @@
                                     <field name="reference"/>
                                     <field name="cntr_no"/>
                                     <field name="inbound_cntr_no"/>
+                                    <field name="cwarehouseid" optional="hide"/>
                                     <field name="product"/>
+                                    <field name="product_name" optional="hide"/>
+                                    <field name="product_id" optional="show" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="product_ean" optional="hide"/>
                                     <field name="pallet_no"/>
                                     <field name="sunrise_pallet_no"/>
                                     <field name="lot_name"/>
+                                    <field name="is_lot" optional="hide"/>
+                                    <field name="cprojectid" optional="hide"/>
+                                    <field name="ndiscounttaxtype" optional="hide"/>
+                                    <field name="vsourcebillcode"/>
+                                    <field name="vsourcerowno"/>
+                                    <field name="cspaceid" optional="show"/>
                                     <field name="box_qty"/>
                                     <field name="box_in_qty"/>
                                     <field name="box_type"/>
                                     <field name="ninnum"/>
-                                    <field name="vsourcebillcode"/>
-                                    <field name="vsourcerowno"/>
+                                    <field name="u8_aux_qty" optional="hide"/>
+                                    <field name="u8_conversion_rate" optional="hide"/>
+                                    <field name="castunitid" optional="hide"/>
+                                    <field name="u8_aux_uom_name" optional="hide"/>
+                                    <field name="m_date" optional="hide"/>
+                                    <field name="e_date" optional="hide"/>
                                     <field name="created_inbound_detail_id" options="{'no_create': True, 'no_open': True}"/>
                                     <field name="created_outbound_line_id" options="{'no_create': True, 'no_open': True}"/>
                                 </list>
@@ -255,4 +269,10 @@
                   parent="menu_stock_barcode_lite_configuration"
                   action="action_sunrise_order_import"
                   sequence="45"/>
+
+        <menuitem id="menu_sunrise_order_import_line"
+                  name="Sunrise Order Import Lines"
+                  parent="menu_stock_barcode_lite_configuration"
+                  action="action_sunrise_order_import_line"
+                  sequence="46"/>
 </odoo>
