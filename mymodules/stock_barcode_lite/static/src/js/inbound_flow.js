@@ -41,15 +41,18 @@ export class InboundFlow extends Component {
         this._isProcessing = false;
         this._isPDA = this._detectPDA();
 
+        // 预先绑定扫码事件处理函数，确保 add/remove 用同一个引用
+        this._boundOnBarcodeInput = this._onBarcodeInput.bind(this);
+        this._boundOnBarcodeKeydown = this._onBarcodeKeydown.bind(this);
+        this._boundOnBarcodeBlur = this._onBarcodeBlur.bind(this);
+
         onMounted(async () => {
             this._bindVisibilityChange();
             const barcodeInput = this.barcodeInputRef.el;
             if (barcodeInput) {
-                barcodeInput.addEventListener("input", this._onBarcodeInput.bind(this));
-                barcodeInput.addEventListener("keydown", this._onBarcodeKeydown.bind(this));
-                barcodeInput.addEventListener("keypress", this._onBarcodeKeypress.bind(this));
-                barcodeInput.addEventListener("blur", this._onBarcodeBlur.bind(this));
-                // 初始化时聚焦输入框
+                barcodeInput.addEventListener("input", this._boundOnBarcodeInput);
+                barcodeInput.addEventListener("keydown", this._boundOnBarcodeKeydown);
+                barcodeInput.addEventListener("blur", this._boundOnBarcodeBlur);
                 this._focusBarcodeInput();
             }
             await this._initScanState();
@@ -60,10 +63,9 @@ export class InboundFlow extends Component {
             this._unbindVisibilityChange();
             const barcodeInput = this.barcodeInputRef.el;
             if (barcodeInput) {
-                barcodeInput.removeEventListener("input", this._onBarcodeInput.bind(this));
-                barcodeInput.removeEventListener("keydown", this._onBarcodeKeydown.bind(this));
-                barcodeInput.removeEventListener("keypress", this._onBarcodeKeypress.bind(this));
-                barcodeInput.removeEventListener("blur", this._onBarcodeBlur.bind(this));
+                barcodeInput.removeEventListener("input", this._boundOnBarcodeInput);
+                barcodeInput.removeEventListener("keydown", this._boundOnBarcodeKeydown);
+                barcodeInput.removeEventListener("blur", this._boundOnBarcodeBlur);
             }
             this._clearScanTimer();
         });
@@ -142,18 +144,6 @@ export class InboundFlow extends Component {
         }
     }
 
-    _onBarcodeKeypress(ev) {
-        if (ev.key === "Enter" || ev.charCode === 13) {
-            ev.preventDefault();
-            const input = ev.target;
-            const barcode = input.value.trim();
-            if (barcode) {
-                input.value = "";
-                this.onBarcodeScanned(barcode);
-            }
-        }
-    }
-
     _onBarcodeBlur(ev) {
         // PDA模式下也自动聚焦，确保扫码枪输入能被捕获
         if (!this._isProcessing) {
@@ -169,6 +159,7 @@ export class InboundFlow extends Component {
         }
     }
 
+    // 浏览器标签页可见性监听
     _bindVisibilityChange() {
         this._onVisibilityChange = () => {
             if (document.visibilityState === "visible") {
@@ -178,6 +169,7 @@ export class InboundFlow extends Component {
         document.addEventListener("visibilitychange", this._onVisibilityChange);
     }
 
+    // 浏览器标签页可见性销毁监听
     _unbindVisibilityChange() {
         if (this._onVisibilityChange) {
             document.removeEventListener("visibilitychange", this._onVisibilityChange);
