@@ -224,16 +224,14 @@
                             <p class="inbound-label-subtitle">Inbound Order</p>
                             <table class="inbound-label-info">
                                 <tr>
-                                    <td class="label">Bill No:</td>
-                                    <td><span t-field="o.billno"/></td>
+                                    <td class="label">Reference:</td>
+                                    <td><span t-field="o.reference"/></td>
                                     <td class="label">Owner:</td>
                                     <td><span t-esc="o.owner.name"/></td>
                                 </tr>
                                 <tr>
                                     <td class="label">Arrival Date:</td>
-                                    <td><span t-if="o.a_date" t-esc="o.a_date.strftime('%Y-%m-%d')"/></td>
-                                    <td class="label">Reference:</td>
-                                    <td><span t-field="o.reference"/></td>
+                                    <td colspan="3"><span t-if="o.a_date" t-esc="o.a_date.strftime('%Y-%m-%d')"/></td>
                                 </tr>
                                 <tr>
                                     <td class="label">BL No:</td>
