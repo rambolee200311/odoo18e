@@ -18,12 +18,6 @@ class ReportInboundPalletLabel(models.AbstractModel):
                     _('Only confirmed inbound orders can print "Inbound Pallet Labels".')
                 )
 
-            # Pallet labels depend on packages created by the receipt picking.
-            if not rec.stock_picking_id:
-                raise UserError(
-                    _('Please create the inbound picking before printing "Inbound Pallet Labels".')
-                )
-
         return {
             "doc_ids": docids,
             "doc_model": "world.depot.inbound.order",

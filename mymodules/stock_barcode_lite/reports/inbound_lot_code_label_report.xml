@@ -283,7 +283,7 @@
     </template>
 
     <template id="report_inbound_lot_code_label_card">
-        <t t-set="product_code" t-value="line.product_id.default_code or line.product_id.barcode or ''"/>
+        <t t-set="product_code" t-value="line.product_id.barcode or line.product_id.default_code or ''"/>
         <t t-set="lot_code" t-value="line.lot_name or ''"/>
         <table class="label-card">
             <tr class="top-row">
