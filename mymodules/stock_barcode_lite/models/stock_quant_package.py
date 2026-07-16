@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from odoo import fields, models
+import uuid
+
+from odoo import _, api, fields, models
+from odoo.exceptions import UserError
 
 
 class StockQuantPackage(models.Model):
@@ -13,3 +16,12 @@ class StockQuantPackage(models.Model):
     reference = fields.Char(string="Reference", copy=False)
     cntr_no = fields.Char(string="Container No", copy=False)
     barcode = fields.Char(string="Barcode", copy=False, index=True)
+
+    @api.model
+    def generate_sunrise_package_barcode(self):
+        """Return an unused eight-character barcode for a Sunrise package."""
+        for _attempt in range(20):
+            barcode = uuid.uuid4().hex[:8].upper()
+            if not self.sudo().search([("barcode", "=", barcode)], limit=1):
+                return barcode
+        raise UserError(_("Could not generate a unique Sunrise package barcode."))

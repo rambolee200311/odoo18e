@@ -1,7 +1,9 @@
-from odoo import _, api, fields, models
-from odoo.http import request
-from odoo.exceptions import UserError, ValidationError
 import math
+
+from psycopg2 import sql
+
+from odoo import _, fields, models
+from odoo.exceptions import UserError
 from odoo.tools.float_utils import float_compare
 
 class OutboundOrderInherit(models.Model):
@@ -67,10 +69,12 @@ class OutboundOrderInherit(models.Model):
 
                 if not line.product_id:
                     line_missing_fields.append("product_id")
+                if line.creation_source in ("api", "import") and not line.source_product_code:
+                    line_missing_fields.append("source_product_code")
                 if not line.pallet_no:
                     line_missing_fields.append("pallet_no")
-                if not line.sunrise_pallet_no:
-                    line_missing_fields.append("sunrise_pallet_no")
+                if not line.package_id:
+                    line_missing_fields.append("package_id")
                 if not line.cprojectid:
                     line_missing_fields.append("cprojectid")
                 if not line.vsourcebillcode:
@@ -256,7 +260,6 @@ class OutboundOrderInherit(models.Model):
 
     def validate_sunrise_outgoing_stock_picking(self):
         picking_model = self.env["stock.picking"]
-        package_model = self.env["stock.quant.package"]
         quant_model = self.env["stock.quant"]
         lot_model = self.env["stock.lot"]
 
@@ -287,9 +290,9 @@ class OutboundOrderInherit(models.Model):
             for line in rec.outbound_order_product_ids:
                 if not line.product_id:
                     raise UserError(_("Product is required on outbound product lines."))
-                if not line.sunrise_pallet_no:
+                if not line.package_id:
                     raise UserError(
-                        _('Sunrise pallet number is required for product "%s".')
+                        _('Package is required for product "%s".')
                         % line.product_id.display_name
                     )
                 if line.quantity <= 0:
@@ -308,22 +311,7 @@ class OutboundOrderInherit(models.Model):
                         % line.product_id.display_name
                     )
 
-                package_list = package_model.sudo().search([
-                    "|",
-                    ("name", "=", line.sunrise_pallet_no),
-                    ("barcode", "=", line.sunrise_pallet_no),
-                ], limit=2)
-                if not package_list:
-                    raise UserError(
-                        _('Pallet "%s" does not exist in stock package.')
-                        % line.sunrise_pallet_no
-                    )
-                if len(package_list) > 1:
-                    raise UserError(
-                        _('Pallet "%s" matched multiple stock packages.')
-                        % line.sunrise_pallet_no
-                    )
-                package = package_list[:1]
+                package = line.package_id
 
                 lot = False
                 if line.is_lot == "Y":
@@ -355,7 +343,7 @@ class OutboundOrderInherit(models.Model):
                 if package.id in package_mode_map and package_mode_map[package.id] != line.de_palletize:
                     raise UserError(
                         _('Pallet "%s" cannot mix de_palletize=N and de_palletize=Y.')
-                        % line.sunrise_pallet_no
+                        % (package.name or package.barcode)
                     )
                 package_mode_map[package.id] = line.de_palletize
 
@@ -416,11 +404,7 @@ class OutboundOrderInherit(models.Model):
                 pool_map = {}
 
                 for line in rec.outbound_order_product_ids:
-                    package = package_model.sudo().search([
-                        "|",
-                        ("name", "=", line.sunrise_pallet_no),
-                        ("barcode", "=", line.sunrise_pallet_no),
-                    ], limit=1)
+                    package = line.package_id
 
                     lot = False
                     if line.is_lot == "Y":
@@ -663,7 +647,6 @@ class OutboundOrderInherit(models.Model):
         group_model = self.env["procurement.group"]
         move_model = self.env["stock.move"]
         move_line_model = self.env["stock.move.line"]
-        package_model = self.env["stock.quant.package"]
         lot_model = self.env["stock.lot"]
         quant_model = self.env["stock.quant"]
 
@@ -692,11 +675,7 @@ class OutboundOrderInherit(models.Model):
                 line_meta_map = {}
 
                 for line in rec.outbound_order_product_ids:
-                    package = package_model.sudo().search([
-                        "|",
-                        ("name", "=", line.sunrise_pallet_no),
-                        ("barcode", "=", line.sunrise_pallet_no),
-                    ], limit=1)
+                    package = line.package_id
 
                     lot = False
                     if line.is_lot == "Y":
@@ -841,12 +820,21 @@ class OutboundOrderInherit(models.Model):
 
 
 
-class InboundOrderProduct(models.Model):
+class OutboundOrderProduct(models.Model):
     _inherit = "world.depot.outbound.order.product"
 
     creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import")],
                                        string="Creation Source", default="manual", readonly=True, copy=False)
-    sunrise_pallet_no = fields.Char(string="Sunrise Pallet No", copy=False, index=True, tracking=True)
+    package_id = fields.Many2one(
+        "stock.quant.package",
+        string="Package",
+        copy=False,
+        index=True,
+        tracking=True,
+        ondelete="restrict",
+    )
+    package_barcode = fields.Char(related="package_id.barcode", string="Package Barcode", readonly=True)
+    source_product_code = fields.Char(string="Source Product Code", copy=False, index=True, tracking=True)
     product_ean = fields.Char(string="Product EAN", copy=False, index=True)
 
     de_palletize = fields.Selection([("N", "Full Pallet Outbound"), ("Y", "Depalletize Outbound")],
@@ -869,6 +857,34 @@ class InboundOrderProduct(models.Model):
     u8_aux_uom_name = fields.Char(string="U8 Aux UOM Name", copy=False, index=True)
     cspaceid = fields.Char(string="Location Code", copy=False, index=True, tracking=True)#货位号
 
+    def init(self):
+        super().init()
+        cr = self.env.cr
+        cr.execute(
+            """
+                SELECT column_name
+                  FROM information_schema.columns
+                 WHERE table_schema = current_schema()
+                   AND table_name = %s
+                   AND column_name IN ('package_id', 'sunrise_pallet_no')
+            """,
+            [self._table],
+        )
+        columns = {row[0] for row in cr.fetchall()}
+        if {"package_id", "sunrise_pallet_no"} - columns:
+            return
+        cr.execute(
+            sql.SQL(
+                """
+                    UPDATE {table} AS outbound_line
+                       SET package_id = package.id
+                      FROM stock_quant_package AS package
+                     WHERE outbound_line.package_id IS NULL
+                       AND COALESCE(outbound_line.sunrise_pallet_no, '') <> ''
+                       AND package.barcode = outbound_line.sunrise_pallet_no
+                """
+            ).format(table=sql.Identifier(self._table))
+        )
 
     # @api.constrains("outbound_order_id", "pallet_no")
     # def check_pallet_no_unique_by_project(self):

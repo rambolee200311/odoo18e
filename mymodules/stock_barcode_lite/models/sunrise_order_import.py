@@ -2,8 +2,6 @@
 
 import math
 import os
-import re
-import uuid
 from datetime import datetime
 from io import BytesIO
 
@@ -113,7 +111,7 @@ class SunriseOrderImport(models.Model):
     def get_supported_fields(self):
         return {
             "ref", "reference", "cntr_no", "inbound_cntr_no", "cwarehouseid", "product", "product_name", "product_ean",
-            "lot_name", "pallet_no", "sunrise_pallet_no", "cspaceid", "box_qty", "box_in_qty", "box_type",
+            "lot_name", "pallet_no", "cspaceid", "box_qty", "box_in_qty", "box_type",
             "ninnum", "castunitid", "u8_aux_uom_name", "u8_aux_qty", "u8_conversion_rate", "vsourcebillcode",
             "vsourcerowno", "cprojectid", "ndiscounttaxtype", "is_lot", "de_palletize", "m_date", "e_date", "remark",
         }
@@ -131,7 +129,6 @@ class SunriseOrderImport(models.Model):
             "产品条码": "product_ean",
             "批次号": "lot_name",
             "托盘号": "pallet_no",
-            "wms托盘号": "sunrise_pallet_no",
             "货位号": "cspaceid",
             "箱数": "box_qty",
             "箱内产品数": "box_in_qty",
@@ -256,7 +253,6 @@ class SunriseOrderImportLine(models.Model):
     product_ean = fields.Char(string="Product EAN", copy=False, index=True)
     lot_name = fields.Char(string="Lot Name", copy=False, index=True)
     pallet_no = fields.Char(string="Pallet No", copy=False, index=True)
-    sunrise_pallet_no = fields.Char(string="Sunrise Pallet No", copy=False, index=True)
     cspaceid = fields.Char(string="Location Code", copy=False, index=True)
     box_qty = fields.Char(string="Box Qty", copy=False)
     box_in_qty = fields.Char(string="Box In Qty", copy=False)
@@ -343,38 +339,18 @@ class SunriseOrderImportLine(models.Model):
 
         pallet_model = self.env["world.depot.inbound.order.product"]
         detail_model = self.env["world.depot.inbound.order.products.pallet"]
-        existing_raw_pallet = pallet_model.sudo().search([
-            ("pallet_no", "=", pallet_no),
-            ("inbound_order_id", "!=", inbound_order.id),
-            ("inbound_order_id.project", "=", inbound_order.project.id),
-            ("inbound_order_id.state", "!=", "cancel"),
-        ], limit=1)
-        if existing_raw_pallet:
-            raise UserError(
-                _('Row %s: pallet_no "%s" already exists in inbound order "%s" for this project.')
-                % (
-                    self.row_number,
-                    pallet_no,
-                    existing_raw_pallet.inbound_order_id.billno or existing_raw_pallet.inbound_order_id.reference,
-                )
-            )
-        pallet_line = pallet_model.sudo().search([
-            ("inbound_order_id", "=", inbound_order.id),
-            ("pallet_no", "=", pallet_no),
-        ], limit=1)
-        if pallet_line:
-            pallet_line = pallet_model.browse(pallet_line.id)
-            sunrise_pallet_no = pallet_line.sunrise_pallet_no
-            if not sunrise_pallet_no:
-                sunrise_pallet_no = self.generate_sunrise_pallet_no(inbound_order.project, pallet_no)
-                pallet_line.write({"sunrise_pallet_no": sunrise_pallet_no})
-        else:
-            sunrise_pallet_no = self.generate_sunrise_pallet_no(inbound_order.project, pallet_no)
+        pallet_line = self.find_inbound_pallet_line(
+            inbound_order,
+            product_code,
+            is_lot,
+            lot_name,
+            pallet_no,
+        )
+        if not pallet_line:
             pallet_line = pallet_model.create({
                 "inbound_order_id": inbound_order.id,
                 "creation_source": "import",
                 "pallet_no": pallet_no,
-                "sunrise_pallet_no": sunrise_pallet_no,
                 "pallets": 1,
             })
 
@@ -382,6 +358,7 @@ class SunriseOrderImportLine(models.Model):
             "inbound_order_product_id": pallet_line.id,
             "creation_source": "import",
             "product_id": product.id,
+            "source_product_code": product_code,
             "product_ean": self.product_ean,
             "quantity": box_qty,
             "remark": self.remark,
@@ -406,7 +383,6 @@ class SunriseOrderImportLine(models.Model):
         self.write({
             "state": "success",
             "error_msg": False,
-            "sunrise_pallet_no": sunrise_pallet_no,
             "product_id": product.id,
             "created_inbound_pallet_id": pallet_line.id,
             "created_inbound_detail_id": detail_line.id,
@@ -440,24 +416,37 @@ class SunriseOrderImportLine(models.Model):
         is_lot, lot_name = self.validate_lot_values()
         product = self.get_sunrise_product_variant(product_code, box_type, box_in_qty, outbound_order.project)
         self.validate_product_tracking(product, is_lot, lot_name)
-        package = self.find_outbound_package(self.inbound_cntr_no, pallet_no, product, lot_name if is_lot == "Y" else "", outbound_order.project)
-        sunrise_pallet_no = package.barcode or package.name
         existing_lines = self.env["world.depot.outbound.order.product"].sudo().search([
             ("outbound_order_id", "=", outbound_order.id),
-            ("sunrise_pallet_no", "=", sunrise_pallet_no),
         ])
-        if existing_lines and any(line.de_palletize != de_palletize for line in existing_lines):
+        package = self.find_outbound_package(
+            self.inbound_cntr_no,
+            pallet_no,
+            product,
+            lot_name if is_lot == "Y" else "",
+            outbound_order.project,
+            box_qty,
+            existing_lines,
+            de_palletize,
+        )
+        existing_package_lines = existing_lines.filtered(lambda line: line.package_id == package)
+        if existing_package_lines and any(line.de_palletize != de_palletize for line in existing_package_lines):
             raise UserError(_('Pallet "%s" cannot mix de_palletize=N and de_palletize=Y.') % package.name)
-        pending_quantity = self.get_existing_outbound_quantity(existing_lines, product, lot_name if is_lot == "Y" else "")
+        pending_quantity = self.get_existing_outbound_quantity(
+            existing_package_lines,
+            product,
+            lot_name if is_lot == "Y" else "",
+        )
         self.check_package_stock(package, product, box_qty, lot_name if is_lot == "Y" else None, pending_quantity)
 
         outbound_line = self.env["world.depot.outbound.order.product"].create({
             "outbound_order_id": outbound_order.id,
             "creation_source": "import",
             "product_id": product.id,
+            "source_product_code": product_code,
             "product_ean": self.product_ean,
             "pallet_no": pallet_no,
-            "sunrise_pallet_no": sunrise_pallet_no,
+            "package_id": package.id,
             "de_palletize": de_palletize,
             "pallets": 1,
             "quantity": box_qty,
@@ -480,7 +469,7 @@ class SunriseOrderImportLine(models.Model):
             "m_date": self.get_date_value("m_date"),
             "e_date": self.get_date_value("e_date"),
         })
-        self.write({"state": "success", "error_msg": False, "sunrise_pallet_no": sunrise_pallet_no, "product_id": product.id, "created_outbound_line_id": outbound_line.id})
+        self.write({"state": "success", "error_msg": False, "product_id": product.id, "created_outbound_line_id": outbound_line.id})
 
     def ensure_order_header(self, order, values):
         write_values = {}
@@ -580,25 +569,39 @@ class SunriseOrderImportLine(models.Model):
         if is_lot == "Y" and not lot_name:
             raise UserError(_('Row %s: lot_name is required for product "%s".') % (self.row_number, product.display_name))
 
-    def get_sunrise_pallet_no(self, cntr_no, pallet_no):
-        return "%s-%s" % (cntr_no, pallet_no)
+    def get_sunrise_pallet_group_key(self, product_code, is_lot, lot_name, pallet_no):
+        return (
+            (product_code or "").strip(),
+            (lot_name or "").strip() if is_lot == "Y" else "",
+            (pallet_no or "").strip(),
+        )
 
-    def generate_sunrise_pallet_no(self, project, pallet_no):
-        package_model = self.env["stock.quant.package"].sudo()
-        pallet_model = self.env["world.depot.inbound.order.product"].sudo()
-        project_code = re.sub(r"\s+", "", (project.name if project else "SUNRISE") or "SUNRISE").upper()
-        pallet_code = re.sub(r"\s+", "", pallet_no or "").upper()
-        if not pallet_code:
-            raise UserError(_("Row %s: pallet_no is required.") % self.row_number)
-
-        for _attempt in range(20):
-            barcode = "%s-%s-%s" % (project_code, pallet_code, uuid.uuid4().hex[:6].upper())
-            existing_package = package_model.search([("barcode", "=", barcode)], limit=1)
-            existing_pallet = pallet_model.search([("sunrise_pallet_no", "=", barcode)], limit=1)
-            if not existing_package and not existing_pallet:
-                return barcode
-
-        raise UserError(_('Row %s: could not generate a unique package barcode for pallet "%s".') % (self.row_number, pallet_no))
+    def find_inbound_pallet_line(self, inbound_order, product_code, is_lot, lot_name, pallet_no):
+        pallet_model = self.env["world.depot.inbound.order.product"]
+        expected_key = self.get_sunrise_pallet_group_key(product_code, is_lot, lot_name, pallet_no)
+        candidates = pallet_model.sudo().search([
+            ("inbound_order_id", "=", inbound_order.id),
+            ("pallet_no", "=", expected_key[2]),
+        ])
+        matched_ids = []
+        for candidate in candidates:
+            detail_keys = {
+                self.get_sunrise_pallet_group_key(
+                    detail.source_product_code or detail.product_id.barcode,
+                    detail.is_lot,
+                    detail.lot_name,
+                    candidate.pallet_no,
+                )
+                for detail in candidate.inbound_order_product_pallet_ids
+            }
+            if detail_keys == {expected_key}:
+                matched_ids.append(candidate.id)
+        if len(matched_ids) > 1:
+            raise UserError(
+                _("Row %s: multiple physical pallets match product \"%s\", lot \"%s\", and pallet_no \"%s\" in this inbound order.")
+                % (self.row_number, expected_key[0], expected_key[1], expected_key[2])
+            )
+        return pallet_model.browse(matched_ids[0]) if matched_ids else pallet_model
 
     def get_sunrise_package_value_name(self, box_type, box_in_qty):
         if box_type == "full":
@@ -661,16 +664,7 @@ class SunriseOrderImportLine(models.Model):
         else:
             line_model.create({"product_tmpl_id": template.id, "attribute_id": attribute.id, "value_ids": [(6, 0, [value.id])]})
 
-    def find_package_by_sunrise_pallet_no(self, sunrise_pallet_no):
-        package_model = self.env["stock.quant.package"]
-        packages = package_model.sudo().search([("barcode", "=", sunrise_pallet_no)])
-        if not packages:
-            raise UserError(_('Row %s: pallet "%s" does not exist in stock package.') % (self.row_number, sunrise_pallet_no))
-        if len(packages) > 1:
-            raise UserError(_('Row %s: pallet "%s" matched multiple stock packages.') % (self.row_number, sunrise_pallet_no))
-        return package_model.browse(packages[:1].id)
-
-    def find_outbound_package(self, inbound_cntr_no, pallet_no, product, lot_name, project):
+    def find_outbound_package(self, inbound_cntr_no, pallet_no, product, lot_name, project, required_quantity, existing_lines, de_palletize):
         inbound_pallet_model = self.env["world.depot.inbound.order.product"]
         package_model = self.env["stock.quant.package"]
         quant_model = self.env["stock.quant"]
@@ -678,7 +672,7 @@ class SunriseOrderImportLine(models.Model):
 
         inbound_pallets = inbound_pallet_model.sudo().search([
             ("pallet_no", "=", pallet_no),
-            ("sunrise_pallet_no", "!=", False),
+            ("package_id", "!=", False),
             ("inbound_order_id.project", "=", project.id),
             ("inbound_order_id.state", "!=", "cancel"),
         ])
@@ -686,9 +680,6 @@ class SunriseOrderImportLine(models.Model):
             raise UserError(_('Row %s: pallet_no "%s" has no inbound pallet mapping for this project.') % (self.row_number, pallet_no))
 
         packages = inbound_pallets.mapped("package_id")
-        missing_package_barcodes = inbound_pallets.filtered(lambda pallet: not pallet.package_id).mapped("sunrise_pallet_no")
-        if missing_package_barcodes:
-            packages |= package_model.sudo().search([("barcode", "in", missing_package_barcodes)])
         if not packages:
             raise UserError(_('Row %s: pallet_no "%s" has no stock package.') % (self.row_number, pallet_no))
 
@@ -706,9 +697,27 @@ class SunriseOrderImportLine(models.Model):
         candidate_packages = packages.filtered(lambda package: available_by_package.get(package.id, 0.0) > 0)
         if not candidate_packages:
             raise UserError(_('Row %s: pallet_no "%s" has no available stock for product "%s" and lot "%s".') % (self.row_number, pallet_no, product.display_name, lot_name or ""))
-        if len(candidate_packages) > 1:
-            raise UserError(_('Row %s: pallet_no "%s" matched multiple stock packages for product "%s" and lot "%s".') % (self.row_number, pallet_no, product.display_name, lot_name or ""))
-        return package_model.browse(candidate_packages[:1].id)
+
+        ordered_packages = package_model.sudo().search(
+            [("id", "in", candidate_packages.ids)],
+            order="create_date asc, id asc",
+        )
+        for package in ordered_packages:
+            existing_package_lines = existing_lines.filtered(lambda line: line.package_id == package)
+            if existing_package_lines and any(line.de_palletize != de_palletize for line in existing_package_lines):
+                continue
+            pending_quantity = self.get_existing_outbound_quantity(
+                existing_package_lines,
+                product,
+                lot_name,
+            )
+            if available_by_package.get(package.id, 0.0) >= required_quantity + pending_quantity:
+                return package_model.browse(package.id)
+
+        raise UserError(
+            _('Row %s: no single stock package has enough product "%s" for pallet_no "%s" and lot "%s".')
+            % (self.row_number, product.display_name, pallet_no, lot_name or "")
+        )
 
     def get_existing_outbound_quantity(self, existing_lines, product, lot_name):
         matching_lines = existing_lines.filtered(lambda line: line.product_id == product and (line.lot_name or "") == (lot_name or ""))

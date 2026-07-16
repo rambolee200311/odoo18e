@@ -62,10 +62,6 @@
                             <div t-field="pallet.package_id.barcode"
                                  t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 320, 'height': 320, 'img_style': 'width:220px;height:220px;', 'img_class': 'keep-no-break'}"/>
                         </t>
-                        <t t-elif="pallet and pallet.sunrise_pallet_no">
-                            <div t-field="pallet.sunrise_pallet_no"
-                                 t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 320, 'height': 320, 'img_style': 'width:220px;height:220px;', 'img_class': 'keep-no-break'}"/>
-                        </t>
                     </td>
                 </tr>
             </table>

@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import uuid
 import math
-from odoo import _, api, fields, models
-from odoo.http import request
-from odoo.exceptions import UserError, ValidationError
+from psycopg2 import sql
+
+from odoo import _, fields, models
+from odoo.exceptions import UserError
 
 class InboundOrder(models.Model):
     _inherit = "world.depot.inbound.order"
@@ -42,8 +42,6 @@ class InboundOrder(models.Model):
                 pallet_missing_fields = []
                 if not pallet_line.pallet_no:
                     pallet_missing_fields.append("pallet_no")
-                if not pallet_line.sunrise_pallet_no:
-                    pallet_missing_fields.append("sunrise_pallet_no")
                 if not pallet_line.inbound_order_product_pallet_ids:
                     pallet_missing_fields.append("product detail lines")
 
@@ -56,6 +54,8 @@ class InboundOrder(models.Model):
 
                     if not detail_line.product_id:
                         line_missing_fields.append("product_id")
+                    if pallet_line.creation_source in ("api", "import") and not detail_line.source_product_code:
+                        line_missing_fields.append("source_product_code")
                     if not detail_line.cprojectid:
                         line_missing_fields.append("cprojectid")
                     if not detail_line.ndiscounttaxtype:
@@ -127,6 +127,8 @@ class InboundOrder(models.Model):
                             % line_name
                         )
 
+                pallet_line.validate_sunrise_physical_pallet_identity()
+
 
     def action_cancel(self):
         normal_records = self.env["world.depot.inbound.order"]
@@ -174,11 +176,6 @@ class InboundOrder(models.Model):
         for rec in self:
             for pallet_line in rec.inbound_order_product_ids:
                 package = pallet_line.package_id
-                if not package and pallet_line.sunrise_pallet_no:
-                    package = package_model.sudo().search([
-                        ("barcode", "=", pallet_line.sunrise_pallet_no),
-                    ], limit=1)
-
                 if not package:
                     continue
 
@@ -279,8 +276,6 @@ class InboundOrder(models.Model):
 
     def validate_sunrise_incoming_stock_picking(self):
         picking_model = self.env["stock.picking"]
-        package_model = self.env["stock.quant.package"]
-        package_names = set()
 
         for record in self:
             if record.project.name != "SUNRISE":
@@ -302,18 +297,6 @@ class InboundOrder(models.Model):
             for pallet_line in record.inbound_order_product_ids:
                 if not pallet_line.pallet_no:
                     raise UserError(_("The pallet number field is required."))
-                if not pallet_line.sunrise_pallet_no:
-                    raise UserError(
-                        _('Sunrise pallet number is required for pallet "%s".')
-                        % pallet_line.pallet_no
-                    )
-
-                if pallet_line.sunrise_pallet_no in package_names:
-                    raise UserError(
-                        _('Sunrise pallet number "%s" is duplicated.')
-                        % pallet_line.sunrise_pallet_no
-                    )
-                package_names.add(pallet_line.sunrise_pallet_no)
 
                 if pallet_line.pallets != 1:
                     raise UserError(
@@ -361,16 +344,8 @@ class InboundOrder(models.Model):
                             _('Product "%s" enables lot tracking, so is_lot must be Y.')
                             % detail_line.product_id.display_name)
 
-        if package_names:
-            existing_package  = package_model.sudo().search([
-                ("barcode", "in", list(package_names)),
-            ], limit=1)
+                pallet_line.validate_sunrise_physical_pallet_identity()
 
-            if existing_package:
-                raise UserError(
-                    _('Pallet No "%s" already exists as a package. Please cancel/archive the old inbound package before creating a new receipt.')
-                    % (existing_package.name or existing_package.barcode)
-                )
         return True
 
 
@@ -432,21 +407,14 @@ class InboundOrder(models.Model):
                 product_moves[product_id] = move
 
             for pallet_line in record.inbound_order_product_ids:
-                package_name = pallet_line.pallet_no
-                package_barcode = pallet_line.sunrise_pallet_no
-
-                package = package_model.sudo().search([
-                    ("barcode", "=", package_barcode),
-                ], limit=1)
-
-                if package:
+                if pallet_line.package_id:
                     raise UserError(
-                        _('Pallet No "%s" already exists as a package. Please cancel/archive the old inbound package before creating a new receipt.')
-                        % package_barcode
+                        _('Pallet "%s" is already linked to package "%s".')
+                        % (pallet_line.pallet_no, pallet_line.package_id.display_name)
                     )
                 package = package_model.create({
-                    "name": package_name,
-                    "barcode": package_barcode,
+                    "name": pallet_line.get_sunrise_package_name(),
+                    "barcode": package_model.generate_sunrise_package_barcode(),
                     "package_use": "disposable",
                     "billno": record.billno,
                     "reference": record.reference,
@@ -518,75 +486,65 @@ class InboundOrderProduct(models.Model):
     _inherit = "world.depot.inbound.order.product"
 
     creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import")], string="Creation Source", default="manual", readonly=True, copy=False)
-    sunrise_pallet_no = fields.Char(string="Package Barcode", copy=False, index=True)
-    package_id = fields.Many2one('stock.quant.package', string='Pallet', index=True)
+    package_id = fields.Many2one("stock.quant.package", string="Package", copy=False, index=True)
+    package_barcode = fields.Char(related="package_id.barcode", string="Package Barcode", readonly=True)
 
-    def generate_sunrise_pallet_no(self, project, pallet_no):
-        package_model = self.env["stock.quant.package"]
-        pallet_model = self.env["world.depot.inbound.order.product"]
-        project_code = (project.name or "SUNRISE").replace(" ", "").upper()
+    def get_sunrise_physical_pallet_identity(self):
+        self.ensure_one()
+        identities = set()
+        for detail_line in self.inbound_order_product_pallet_ids:
+            product_code = (detail_line.source_product_code or detail_line.product_id.barcode or "").strip()
+            lot_name = (detail_line.lot_name or "").strip() if detail_line.is_lot == "Y" else ""
+            if not product_code:
+                raise UserError(_("Pallet \"%s\" has a product line without a source product code.") % self.pallet_no)
+            identities.add((product_code, lot_name))
+        if len(identities) != 1:
+            raise UserError(
+                _("Physical pallet \"%s\" must contain one source product and one lot.") % self.pallet_no
+            )
+        return identities.pop()
 
-        for index in range(20):
-            random_code = uuid.uuid4().hex[:6].upper()
-            barcode = "%s-%s-%s" % (project_code, pallet_no, random_code)
-            existing_package = package_model.sudo().search([("barcode", "=", barcode)], limit=1)
-            existing_pallet = pallet_model.sudo().search([("sunrise_pallet_no", "=", barcode)], limit=1)
-            if not existing_package and not existing_pallet:
-                return barcode
+    def validate_sunrise_physical_pallet_identity(self):
+        for pallet_line in self:
+            pallet_line.get_sunrise_physical_pallet_identity()
+        return True
 
-        raise ValidationError(_('Failed to generate unique package barcode for pallet "%s".') % pallet_no)
+    def get_sunrise_package_name(self):
+        self.ensure_one()
+        product_code, lot_name = self.get_sunrise_physical_pallet_identity()
+        return "%s-%s-%s" % (lot_name or "NOLOT", product_code, self.pallet_no)
 
-    @api.model_create_multi
-    def create(self, vals_list):
-        inbound_order_model = self.env["world.depot.inbound.order"]
-        for vals in vals_list:
-            if vals.get("sunrise_pallet_no") or not vals.get("pallet_no") or not vals.get("inbound_order_id"):
-                continue
-            inbound_order = inbound_order_model.sudo().browse(vals["inbound_order_id"])
-            if inbound_order.exists() and inbound_order.project.name == "SUNRISE":
-                vals["sunrise_pallet_no"] = self.generate_sunrise_pallet_no(inbound_order.project, vals["pallet_no"])
-        return super().create(vals_list)
+    def init(self):
+        super().init()
+        self.migrate_legacy_sunrise_package_links()
 
-    def write(self, vals):
-        result = super().write(vals)
-        if "pallet_no" in vals or "inbound_order_id" in vals or "sunrise_pallet_no" in vals:
-            for rec in self:
-                if rec.inbound_order_id.project.name == "SUNRISE" and rec.pallet_no and not rec.sunrise_pallet_no:
-                    rec.write({
-                        "sunrise_pallet_no": rec.generate_sunrise_pallet_no(rec.inbound_order_id.project, rec.pallet_no),
-                    })
-        return result
-
-    @api.constrains("pallet_no", "inbound_order_id", "sunrise_pallet_no")
-    def check_sunrise_pallet_no_unique(self):
-        pallet_model = self.env["world.depot.inbound.order.product"]
-
-        for rec in self:
-            if rec.inbound_order_id.project.name != "SUNRISE":
-                continue
-            if not rec.pallet_no or not rec.inbound_order_id:
-                continue
-            existing_pallet_no = pallet_model.sudo().search([
-                ("id", "!=", rec.id),
-                ("pallet_no", "=", rec.pallet_no),
-                ("inbound_order_id.project", "=", rec.inbound_order_id.project.id),
-                ("inbound_order_id.state", "!=", "cancel"),
-            ], limit=1)
-            if existing_pallet_no:
-                raise ValidationError(
-                    _('Pallet No "%s" already exists in inbound order "%s".')
-                    % (rec.pallet_no,existing_pallet_no.inbound_order_id.billno or existing_pallet_no.inbound_order_id.reference,))
-            if not rec.sunrise_pallet_no or rec.inbound_order_id.state == "cancel":
-                continue
-
-            existing_sunrise_pallet_no = pallet_model.sudo().search([
-                ("id", "!=", rec.id),
-                ("sunrise_pallet_no", "=", rec.sunrise_pallet_no),
-            ], limit=1)
-            if existing_sunrise_pallet_no:
-                raise ValidationError(
-                    _('Sunrise Pallet No "%s" already exists in inbound order "%s".')
-                    % (rec.sunrise_pallet_no,existing_sunrise_pallet_no.inbound_order_id.billno or existing_sunrise_pallet_no.inbound_order_id.reference,))
+    def migrate_legacy_sunrise_package_links(self):
+        cr = self.env.cr
+        cr.execute(
+            """
+                SELECT column_name
+                  FROM information_schema.columns
+                 WHERE table_schema = current_schema()
+                   AND table_name = %s
+                   AND column_name IN ('package_id', 'sunrise_pallet_no')
+            """,
+            [self._table],
+        )
+        columns = {row[0] for row in cr.fetchall()}
+        if {"package_id", "sunrise_pallet_no"} - columns:
+            return
+        cr.execute(
+            sql.SQL(
+                """
+                    UPDATE {table} AS pallet_line
+                       SET package_id = package.id
+                      FROM stock_quant_package AS package
+                     WHERE pallet_line.package_id IS NULL
+                       AND COALESCE(pallet_line.sunrise_pallet_no, '') <> ''
+                       AND package.barcode = pallet_line.sunrise_pallet_no
+                """
+            ).format(table=sql.Identifier(self._table))
+        )
 
     def unlink(self):
         for rec in self:
@@ -599,6 +557,7 @@ class InboundOrderProductsPallet(models.Model):
     _inherit = "world.depot.inbound.order.products.pallet"
 
     creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import")], string="Creation Source", default="manual", readonly=True, copy=False)
+    source_product_code = fields.Char(string="Source Product Code", copy=False, index=True)
     product_ean = fields.Char(string="Product EAN", copy=False, index=True)
     is_lot = fields.Selection([("N", "No"), ("Y", "Yes")], string="Is Lot", default="Y", copy=False, index=True)
     lot_name = fields.Char(string="Lot Name", copy=False, index=True)

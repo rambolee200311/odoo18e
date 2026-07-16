@@ -62,7 +62,6 @@
                                     <field name="product_id" optional="show" options="{'no_create': True, 'no_open': True}"/>
                                     <field name="product_ean" optional="hide"/>
                                     <field name="pallet_no"/>
-                                    <field name="sunrise_pallet_no"/>
                                     <field name="lot_name"/>
                                     <field name="is_lot" optional="hide"/>
                                     <field name="cprojectid" optional="hide"/>
@@ -130,7 +129,6 @@
                 <field name="product_name"/>
                 <field name="product_ean"/>
                 <field name="pallet_no"/>
-                <field name="sunrise_pallet_no"/>
                 <field name="lot_name"/>
                 <field name="box_qty"/>
                 <field name="box_in_qty"/>
@@ -198,7 +196,6 @@
                             <field name="product_name" readonly="state == 'success'"/>
                             <field name="product_ean" readonly="state == 'success'"/>
                             <field name="pallet_no" required="state == 'failed'" readonly="state == 'success'"/>
-                            <field name="sunrise_pallet_no" readonly="1"/>
                             <field name="lot_name" readonly="state == 'success'"/>
                         </group>
                         <group>
@@ -236,7 +233,6 @@
                 <field name="reference"/>
                 <field name="product"/>
                 <field name="pallet_no"/>
-                <field name="sunrise_pallet_no"/>
                 <field name="lot_name"/>
                 <field name="state"/>
                 <filter name="state_success" string="Success" domain="[('state', '=', 'success')]"/>

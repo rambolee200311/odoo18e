@@ -37,7 +37,7 @@
                         invisible="project_name !='SUNRISE'"/>
             </xpath>
             <xpath expr="//field[@name='inbound_order_product_ids']/list/field[@name='pallet_no']" position="after">
-                <field name="sunrise_pallet_no" column_invisible="1"/>
+                <field name="package_barcode" optional="show" column_invisible="parent.project_name != 'SUNRISE'"/>
             </xpath>
             <xpath expr="//notebook" position="inside">
                 <page string="Sunrise Sync" invisible="project_name !='SUNRISE'">
@@ -88,10 +88,12 @@
             <!--                <field name="creation_source" readonly="1"/>-->
             <!--            </xpath>-->
             <xpath expr="//field[@name='pallet_no']" position="after">
-                <field name="sunrise_pallet_no" readonly="1" invisible="1"/>
+                <field name="package_id" readonly="1" invisible="1" options="{'no_create': True, 'no_open': True}"/>
+                <field name="package_barcode" readonly="1" invisible="project_name != 'SUNRISE'"/>
             </xpath>
             <xpath expr="//field[@name='inbound_order_product_pallet_ids']/list/field[@name='product_id']"
                    position="after">
+                <field name="source_product_code" optional="show" column_invisible="parent.project_name != 'SUNRISE'"/>
                 <field name="cprojectid" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="ndiscounttaxtype" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="vsourcebillcode" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
@@ -119,6 +121,7 @@
         <field name="inherit_id" ref="worlddepot.view_inbound_order_product_pallet_tree"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='product_id']" position="after">
+                <field name="source_product_code" optional="show" invisible="project_name != 'SUNRISE'"/>
                 <field name="cprojectid" optional="show" invisible="project_name != 'SUNRISE'"/>
                 <field name="ndiscounttaxtype" optional="show" invisible="project_name != 'SUNRISE'"/>
                 <field name="vsourcebillcode" optional="show" invisible="project_name != 'SUNRISE'"/>
