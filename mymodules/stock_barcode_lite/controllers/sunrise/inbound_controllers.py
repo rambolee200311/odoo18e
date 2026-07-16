@@ -44,43 +44,25 @@ class SunriseInboundController(http.Controller, SunriseControllerMixin):
 
                 parsed_lines = []
                 vsourcebillcodes = set()
-                raw_pallet_numbers = set()
                 for index, line_data in enumerate(products, start=1):
                     parsed_line = self.prepare_inbound_product_line(line_data, index, project, cntr_no)
                     parsed_lines.append(parsed_line)
                     vsourcebillcodes.add(parsed_line["vsourcebillcode"])
-                    raw_pallet_numbers.add(parsed_line["pallet_no"])
                 if len(vsourcebillcodes) != 1:
                     raise SunriseApiError("4001", "All product lines must use the same vsourcebillcode.")
                 vsourcebillcode = list(vsourcebillcodes)[0]
 
-                existing_pallet = request.env["world.depot.inbound.order.product"].sudo().search([
-                    ("pallet_no", "in", list(raw_pallet_numbers)),
-                    ("inbound_order_id.project", "=", project.id),
-                    ("inbound_order_id.state", "!=", "cancel"),
-                ], limit=1)
-                if existing_pallet:
-                    raise SunriseApiError(
-                        "3004",
-                        'Pallet No "%s" already exists in inbound order "%s" for this project.'
-                        % (
-                            existing_pallet.pallet_no,
-                            existing_pallet.inbound_order_id.billno or existing_pallet.inbound_order_id.reference,
-                        ),
-                    )
-
                 pallet_data = {}
                 for parsed_line in parsed_lines:
-                    pallet_no = parsed_line["pallet_no"]
-                    if pallet_no not in pallet_data:
-                        pallet_data[pallet_no] = {
-                            "pallet_no": pallet_no,
-                            "sunrise_pallet_no": self.generate_sunrise_pallet_no(project, pallet_no),
+                    physical_key = parsed_line["physical_key"]
+                    if physical_key not in pallet_data:
+                        pallet_data[physical_key] = {
+                            "pallet_no": parsed_line["pallet_no"],
                             "pallets": 1,
                             "creation_source": "api",
                             "inbound_order_product_pallet_ids": [],
                         }
-                    pallet_data[pallet_no]["inbound_order_product_pallet_ids"].append((0, 0, parsed_line["product_vals"]))
+                    pallet_data[physical_key]["inbound_order_product_pallet_ids"].append((0, 0, parsed_line["product_vals"]))
 
                 order_vals = {
                     "type": order_type,
@@ -160,9 +142,11 @@ class SunriseInboundController(http.Controller, SunriseControllerMixin):
             )
         return {
             "pallet_no": pallet_no,
+            "physical_key": (product_code, lot_name if is_lot == "Y" else "", pallet_no),
             "vsourcebillcode": vsourcebillcode,
             "product_vals": {
                 "product_id": product.id,
+                "source_product_code": product_code,
                 "product_ean": product_ean,
                 "quantity": box_qty,
                 "remark": self.get_optional_text(line_data, "remark"),
