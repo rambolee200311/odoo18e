@@ -296,10 +296,20 @@ export class InboundFlow extends Component {
             this.showMessage(_t("No picking loaded"), "danger");
             return;
         }
+
+        // 托盘：是否完成 | 是否漏扫
         if (this.state.summary.pending_pallets > 0) {
-            // 托盘有漏扫
             this.showMessage(
                 _t("There are still ") + this.state.summary.pending_pallets + _t(" pallet(s) not updated"),
+                "danger"
+            );
+            return;
+        }
+
+        // 已完成的picking不能再次确认
+        if (this.state.nextStep == "completed") {
+            this.showMessage(
+                _t("Incoming picking is already completed. Cannot confirm again."),
                 "danger"
             );
             return;
