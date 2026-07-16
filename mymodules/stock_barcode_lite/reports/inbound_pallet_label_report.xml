@@ -27,11 +27,11 @@
     </record>
 
     <template id="report_inbound_pallet_label_header">
+        <p class="inbound-label-title">World Depot B.V.</p>
         <div class="inbound-label-header">
             <table class="inbound-label-header-layout">
                 <tr>
                     <td class="inbound-label-header-main">
-                        <p class="inbound-label-title">World Depot B.V.</p>
                         <p t-if="pallet" class="inbound-label-subtitle">
                             Pallet No:
                             <span t-esc="pallet.package_id.name if pallet.package_id else pallet.pallet_no"/>
@@ -123,7 +123,7 @@
                         .inbound-label-title {
                             font-size: 32px;
                             font-weight: bold;
-                            margin: 0 0 3px 0;
+                            margin: 0 0 5px 0;
                         }
 
                         .inbound-label-subtitle {
@@ -147,6 +147,7 @@
 
                         .inbound-label-header-main {
                             padding-right: 10px;
+                            height: 236px;
                         }
 
                         .inbound-label-header-qr {
@@ -184,24 +185,65 @@
                             text-align: left;
                         }
 
-                        .inbound-label-product-lot {
+                        .inbound-label-product-name {
                             padding-left: 18px;
                             vertical-align: middle;
                             text-align: right;
                             font-size: 26px;
                             font-weight: bold;
                             line-height: 1.2;
+                            word-break: break-word;
+                        }
+
+                        .inbound-label-product-name-label {
+                            display: inline;
+                            margin-right: 10px;
+                            font-size: 20px;
+                        }
+
+                        .inbound-label-lot-code {
+                            margin-top: 10px;
+                            page-break-inside: avoid;
+                            break-inside: avoid;
+                        }
+
+                        .inbound-label-lot-code-layout {
+                            width: 100%;
+                            border-collapse: collapse;
+                        }
+
+                        .inbound-label-lot-info {
+                            padding: 0;
+                            vertical-align: middle;
+                            text-align: left;
+                            font-size: 22px;
+                            font-weight: bold;
+                            line-height: 1.5;
+                        }
+
+                        .inbound-label-lot-qr {
+                            width: 150px;
+                            padding: 0;
+                            vertical-align: middle;
+                            text-align: center;
                         }
 
                         .inbound-label-info {
                             width: 100%;
+                            height: 200px;
                             border-collapse: collapse;
                             margin-top: 6px;
                         }
 
+                        .inbound-label-info tr {
+                            height: 33.333%;
+                        }
+
                         .inbound-label-info td {
                             padding: 3px 14px 3px 6px;
-                            vertical-align: top;
+                            vertical-align: middle;
+                            font-size: 18px;
+                            font-weight: bold;
                         }
 
                         .inbound-label-info .label {
@@ -291,19 +333,10 @@
                             white-space: nowrap;
                         }
 
-                        .product-table .qty {
-                            width: 80px;
+                        .product-table .box-in-qty,
+                        .product-table .box-qty,
+                        .product-table .total-qty {
                             text-align: right;
-                            white-space: normal;
-                        }
-
-                        .product-table .uom {
-                            width: 130px;
-                            white-space: nowrap;
-                        }
-
-                        .product-table .blank {
-                            width: 90px;
                             white-space: nowrap;
                         }
 
@@ -329,10 +362,11 @@
                                                     <div class="inbound-label-qr-caption">Product QR Code</div>
                                                 </t>
                                             </td>
-                                            <td class="inbound-label-product-lot">
-                                                <t t-if="pallet.inbound_order_product_pallet_ids[:1].lot_name">
-                                                    Lot No:
-                                                    <span t-esc="pallet.inbound_order_product_pallet_ids[:1].lot_name"/>
+                                            <td class="inbound-label-product-name">
+                                                <t t-set="product_line" t-value="full_product_line or pallet.inbound_order_product_pallet_ids[:1]"/>
+                                                <t t-if="product_line">
+                                                    <span class="inbound-label-product-name-label">Product Name:</span>
+                                                    <span t-esc="product_line.product_id.display_name"/>
                                                 </t>
                                             </td>
                                         </tr>
@@ -341,37 +375,26 @@
                                 <table class="product-table">
                                         <colgroup>
                                             <col class="frame-gutter-col"/>
-                                            <col/>
-                                            <col style="width: 130px;"/>
-                                            <col style="width: 80px;"/>
-                                            <col style="width: 90px;"/>
+                                            <col style="width: 160px;"/>
+                                            <col style="width: 110px;"/>
+                                            <col style="width: 160px;"/>
                                             <col class="frame-gutter-col"/>
                                         </colgroup>
                                         <thead>
                                             <tr>
-                                                <th class="frame-top-spacer" colspan="6"></th>
+                                                <th class="frame-top-spacer" colspan="5"></th>
                                             </tr>
                                             <tr>
                                                 <th class="frame-gutter"></th>
-                                                <th>Product</th>
-                                                <th class="uom">
-                                                    <span t-esc="pallet.inbound_order_product_pallet_ids[:1].u8_aux_uom_name or 'UOM'"/>
-                                                </th>
-                                                <th class="qty">
-                                                    Quantity
-                                                    <span class="qty-uom">
-                                                        (<span
-                                                            t-esc="pallet.inbound_order_product_pallet_ids[:1].castunitid or 'Carton'"/>
-                                                        )
-                                                    </span>
-                                                </th>
-                                                <th class="blank"></th>
+                                                <th class="box-in-qty">Box In Qty</th>
+                                                <th class="box-qty">Box Qty</th>
+                                                <th class="total-qty">Total Qty</th>
                                                 <th class="frame-gutter"></th>
                                             </tr>
                                         </thead>
                                         <tfoot>
                                             <tr>
-                                                <td class="frame-bottom-spacer" colspan="6"></td>
+                                                <td class="frame-bottom-spacer" colspan="5"></td>
                                             </tr>
                                         </tfoot>
                                         <tbody>
@@ -379,10 +402,9 @@
                                                 <t t-foreach="pallet.inbound_order_product_pallet_ids" t-as="line">
                                                     <tr>
                                                         <td class="frame-gutter"></td>
-                                                        <td><span t-esc="line.product_id.display_name"/></td>
-                                                        <td class="uom"><span t-field="line.ninnum"/></td>
-                                                        <td class="qty"><span t-field="line.quantity"/></td>
-                                                        <td class="blank"></td>
+                                                        <td class="box-in-qty"><span t-field="line.box_in_qty"/></td>
+                                                        <td class="box-qty"><span t-field="line.box_qty"/></td>
+                                                        <td class="total-qty"><span t-field="line.ninnum"/></td>
                                                         <td class="frame-gutter"></td>
                                                     </tr>
                                                 </t>
@@ -390,12 +412,31 @@
                                             <t t-else="">
                                                 <tr>
                                                     <td class="frame-gutter"></td>
-                                                    <td colspan="4">No product lines.</td>
+                                                    <td colspan="3">No product lines.</td>
                                                     <td class="frame-gutter"></td>
                                                 </tr>
                                             </t>
                                         </tbody>
                                 </table>
+                                <t t-set="lot_line" t-value="pallet.inbound_order_product_pallet_ids[:1]"/>
+                                <div class="inbound-label-lot-code">
+                                    <table class="inbound-label-lot-code-layout">
+                                        <tr>
+                                            <td class="inbound-label-lot-info">
+                                                <div>Lot No: <span t-esc="lot_line.lot_name or ''"/></div>
+                                                <div>MFG Date: <span t-esc="lot_line.m_date or ''"/></div>
+                                                <div>EXP Date: <span t-esc="lot_line.e_date or ''"/></div>
+                                            </td>
+                                            <td class="inbound-label-lot-qr">
+                                                <t t-if="lot_line.lot_name">
+                                                    <div t-out="lot_line.lot_name"
+                                                         t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 180, 'height': 180, 'img_style': 'width:130px;height:130px;', 'img_class': 'keep-no-break'}"/>
+                                                    <div class="inbound-label-qr-caption">Lot QR Code</div>
+                                                </t>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
                             </div>
                         </t>
                     </t>
