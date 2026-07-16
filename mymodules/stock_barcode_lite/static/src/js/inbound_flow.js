@@ -36,7 +36,6 @@ export class InboundFlow extends Component {
         });
 
         // 扫码输入缓冲
-        this._scanBuffer = "";
         this._scanTimer = null;
         this._isProcessing = false;
         this._isPDA = this._detectPDA();
