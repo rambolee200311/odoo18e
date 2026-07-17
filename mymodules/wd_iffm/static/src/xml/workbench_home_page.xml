@@ -19,7 +19,7 @@
                     <!-- 左侧：临期卡片 -->
                     <div class="cards-section flex-fill">
                         <h5 class="text-warning mb-3">
-                            <i class="fa fa-clock-o me-2"/>临期提醒
+                            <i class="fa fa-clock-o me-2"/>Near Expiry
                         </h5>
                         <div class="d-flex gap-3 flex-wrap">
                             <!-- 提单临期卡片 -->
@@ -30,10 +30,10 @@
                                     <t t-esc="state.dashboardData.waybill.near_due_count"/>
                                 </div>
                                 <div class="card-label small mt-1">
-                                    <i class="fa fa-file-text-o me-1"/>提单
+                                    <i class="fa fa-file-text-o me-1"/>Waybill
                                 </div>
                                 <div class="card-hint small text-muted mt-1">
-                                    <i class="fa fa-hand-pointer-o me-1"/>点击查看
+                                    <i class="fa fa-hand-pointer-o me-1"/>Click to view
                                 </div>
                             </div>
                             
@@ -45,10 +45,10 @@
                                     <t t-esc="state.dashboardData.handover.near_due_count"/>
                                 </div>
                                 <div class="card-label small mt-1">
-                                    <i class="fa fa-exchange me-1"/>换单
+                                    <i class="fa fa-exchange me-1"/>Handover
                                 </div>
                                 <div class="card-hint small text-muted mt-1">
-                                    <i class="fa fa-hand-pointer-o me-1"/>点击查看
+                                    <i class="fa fa-hand-pointer-o me-1"/>Click to view
                                 </div>
                             </div>
                             
@@ -60,10 +60,10 @@
                                     <t t-esc="state.dashboardData.clearance.near_due_count"/>
                                 </div>
                                 <div class="card-label small mt-1">
-                                    <i class="fa fa-calculator me-1"/>清关
+                                    <i class="fa fa-calculator me-1"/>Clearance
                                 </div>
                                 <div class="card-hint small text-muted mt-1">
-                                    <i class="fa fa-hand-pointer-o me-1"/>点击查看
+                                    <i class="fa fa-hand-pointer-o me-1"/>Click to view
                                 </div>
                             </div>
                         </div>
@@ -72,7 +72,7 @@
                     <!-- 中间：逾期卡片 -->
                     <div class="cards-section flex-fill">
                         <h5 class="text-danger mb-3">
-                            <i class="fa fa-exclamation-triangle me-2"/>逾期提醒
+                            <i class="fa fa-exclamation-triangle me-2"/>Overdue
                         </h5>
                         <div class="d-flex gap-3 flex-wrap">
                             <!-- 提单逾期卡片 -->
@@ -83,10 +83,10 @@
                                     <t t-esc="state.dashboardData.waybill.overdue_count"/>
                                 </div>
                                 <div class="card-label small mt-1">
-                                    <i class="fa fa-file-text-o me-1"/>提单
+                                    <i class="fa fa-file-text-o me-1"/>Waybill
                                 </div>
                                 <div class="card-hint small text-muted mt-1">
-                                    <i class="fa fa-hand-pointer-o me-1"/>点击查看
+                                    <i class="fa fa-hand-pointer-o me-1"/>Click to view
                                 </div>
                             </div>
                             
@@ -98,10 +98,10 @@
                                     <t t-esc="state.dashboardData.handover.overdue_count"/>
                                 </div>
                                 <div class="card-label small mt-1">
-                                    <i class="fa fa-exchange me-1"/>换单
+                                    <i class="fa fa-exchange me-1"/>Handover
                                 </div>
                                 <div class="card-hint small text-muted mt-1">
-                                    <i class="fa fa-hand-pointer-o me-1"/>点击查看
+                                    <i class="fa fa-hand-pointer-o me-1"/>Click to view
                                 </div>
                             </div>
                             
@@ -113,10 +113,10 @@
                                     <t t-esc="state.dashboardData.clearance.overdue_count"/>
                                 </div>
                                 <div class="card-label small mt-1">
-                                    <i class="fa fa-calculator me-1"/>清关
+                                    <i class="fa fa-calculator me-1"/>Clearance
                                 </div>
                                 <div class="card-hint small text-muted mt-1">
-                                    <i class="fa fa-hand-pointer-o me-1"/>点击查看
+                                    <i class="fa fa-hand-pointer-o me-1"/>Click to view
                                 </div>
                             </div>
                         </div>
@@ -125,7 +125,7 @@
                     <!-- 右侧：全部提单 -->
                     <div class="cards-section flex-fill">
                         <h5 class="text-primary mb-3">
-                            <i class="fa fa-folder-open me-2"/>全部提单
+                            <i class="fa fa-folder-open me-2"/>All Waybills
                         </h5>
                         <div class="d-flex gap-3 flex-wrap">
                             <!-- 全部提单卡片 -->
@@ -136,10 +136,10 @@
                                     <t t-esc="state.dashboardData.total.all_count"/>
                                 </div>
                                 <div class="card-label small mt-1">
-                                    <i class="fa fa-file-text-o me-1"/>提单
+                                    <i class="fa fa-file-text-o me-1"/>Waybill
                                 </div>
                                 <div class="card-hint small text-muted mt-1">
-                                    <i class="fa fa-hand-pointer-o me-1"/>点击查看
+                                    <i class="fa fa-hand-pointer-o me-1"/>Click to view
                                 </div>
                             </div>
                         </div>
@@ -154,7 +154,7 @@
                         <select class="form-select form-select-sm" style="width: 160px;"
                                 t-on-change="(e) => onFilterChange('project_id', e.target.value)">
 <!--                                t-model="state.filters.project_id"-->
-                            <option value="">全部项目</option>
+                            <option value="">All Projects</option>
                             <t t-foreach="state.projectOptions" t-as="project" t-key="project.id">
                                 <option t-att-value="project.id" t-att-selected="state.filters.project_id == project.id">
                                     <t t-esc="project.name"/>
@@ -166,7 +166,7 @@
                         <select class="form-select form-select-sm" style="width: 160px;"
                                 t-on-change="(e) => onFilterChange('shipping_company_id', e.target.value)">
 <!--                                t-model="state.filters.shipping_company_id"-->
-                            <option value="">全部船公司</option>
+                            <option value="">All Shipping Companies</option>
                             <t t-foreach="state.shippingCompanyOptions" t-as="company" t-key="company.id">
                                 <option t-att-value="company.id" t-att-selected="state.filters.shipping_company_id == company.id">
                                     <t t-esc="company.name"/>
@@ -179,18 +179,18 @@
                             <strong class="me-1">ETA: </strong>
                             <input type="date" class="form-control form-control-sm" style="width: 130px;"
                                    t-on-change="(e) => onFilterChange('eta_date_from', e.target.value)"
-                                   placeholder="开始"/>
+                                   placeholder="Start"/>
 <!--                                   t-model="state.filters.eta_date_from"-->
-                            <span class="text-muted">至</span>
+                            <span class="text-muted">to</span>
                             <input type="date" class="form-control form-control-sm" style="width: 130px;"
                                    t-on-change="(e) => onFilterChange('eta_date_to', e.target.value)"
-                                   placeholder="结束"/>
+                                   placeholder="End"/>
 <!--                                   t-model="state.filters.eta_date_to"-->
                         </div>
 
                         <!-- 清空按钮 -->
                         <button class="btn btn-sm btn-outline-secondary" t-on-click="clearFilters">
-                            <i class="fa fa-times me-1"/>清空
+                            <i class="fa fa-times me-1"/>Clear
                         </button>
                     </div>
 
@@ -200,25 +200,25 @@
                             t-att-class="'btn ' + (state.activeView == 'kanban' ? 'btn-primary' : 'btn-outline-secondary')"
                             t-on-click="() => onViewTypeClick('kanban')"
                             type="button">
-                            <i class="fa fa-th-large me-1"/> 看板
+                            <i class="fa fa-th-large me-1"/> Kanban
                         </button>
                         <button
                             t-att-class="'btn ' + (state.activeView == 'list' ? 'btn-primary' : 'btn-outline-secondary')"
                             t-on-click="() => onViewTypeClick('list')"
                             type="button">
-                            <i class="fa fa-list me-1"/> 列表
+                            <i class="fa fa-list me-1"/> List
                         </button>
                         <button
                             t-att-class="'btn ' + (state.activeView == 'calendar' ? 'btn-primary' : 'btn-outline-secondary')"
                             t-on-click="() => onViewTypeClick('calendar')"
                             type="button">
-                            <i class="fa fa-calendar me-1"/> 日历
+                            <i class="fa fa-calendar me-1"/> Calendar
                         </button>
                     </div>
 
                     <!-- 右侧：当前选中卡片信息 -->
                     <div class="d-flex align-items-center gap-2">
-                        <span class="text-muted">当前:</span>
+                        <span class="text-muted">Current:</span>
                         <span t-att-class="'badge ' + (state.activeTab.includes('near_due') ? 'bg-warning text-dark' : 'bg-danger')">
                             <t t-esc="getCurrentTab().label"/>
                         </span>
@@ -236,7 +236,7 @@
                         <div class="d-flex align-items-center justify-content-center h-100">
                             <div class="text-center text-muted">
                                 <i class="fa fa-spinner fa-spin fa-3x mb-3"/>
-                                <p class="fs-5">加载中...</p>
+                                <p class="fs-5">Loading...</p>
                             </div>
                         </div>
                     </t>

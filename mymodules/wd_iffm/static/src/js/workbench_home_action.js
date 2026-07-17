@@ -49,43 +49,43 @@ export class WdIffmWorkbench extends Component {
             waybill_near_due: {
                 res_model: "world.depot.waybill",
                 domain: [],
-                label: "临期提单"
+                label: "Near Due Waybills"
             },
             // 逾期提单
             waybill_overdue: {
                 res_model: "world.depot.waybill",
                 domain: [],
-                label: "逾期提单"
+                label: "Overdue Waybills"
             },
             // 临期换单
             handover_near_due: {
                 res_model: "world.depot.waybill",
                 domain: [],
-                label: "临期换单"
+                label: "Near Due Handover"
             },
             // 逾期换单
             handover_overdue: {
                 res_model: "world.depot.waybill",
                 domain: [],
-                label: "逾期换单"
+                label: "Overdue Handover"
             },
             // 临期清关
             clearance_near_due: {
                 res_model: "world.depot.waybill",
                 domain: [],
-                label: "临期清关"
+                label: "Near Due Clearance"
             },
             // 逾期清关
             clearance_overdue: {
                 res_model: "world.depot.waybill",
                 domain: [],
-                label: "逾期清关"
+                label: "Overdue Clearance"
             },
             // 全部提单
             waybill_all: {
                 res_model: "world.depot.waybill",
                 domain: [],
-                label: "全部提单"
+                label: "All Waybills"
             }
         };
 
@@ -102,11 +102,11 @@ export class WdIffmWorkbench extends Component {
     }
 
     async onViewRecordClicked(record) {
-        console.log(1211)
+//        console.log(1211)
         const actionService = this.env.services.action;
         await actionService.doAction({
             type: "ir.actions.act_window",
-            name: "提单详情",
+            name: "Waybill Details",
             res_model: this.state.currentResModel,
             res_id: record.resId,
             view_mode: "form",
@@ -134,7 +134,7 @@ export class WdIffmWorkbench extends Component {
 
     async applyFilters() {
         // 重新加载 dashboard 数据和视图，带上 filters 作为 domain
-        console.log("应用筛选条件:", this.state.filters);
+//        console.log("应用筛选条件:", this.state.filters);
         // await this.loadDashboardData();  // 后端需要支持 filters 参数
         // await this.loadView(this.state.activeTab);
     }
@@ -154,13 +154,13 @@ export class WdIffmWorkbench extends Component {
                 err?.data?.arguments?.[0] ||
                 (err?.data?.message ? err.data.message.replace(/^odoo\.exceptions\.[^:]+:\s*/, "") : "") ||
                 err?.message ||
-                "未知错误";
+                "Unknown Error";
 
 //            this.notification.add(`操作失败：${msg}`, {
 //                type: "danger",
 //                title: "错误",
 //            });
-            console.error("加载仪表盘数据失败:", msg);
+//            console.error("加载仪表盘数据失败:", msg);
 
             this.state.dashboardData = {
                 waybill: { near_due_count: 0, overdue_count: 0 },
@@ -262,7 +262,7 @@ export class WdIffmWorkbench extends Component {
                 searchViewId: viewInfo.views[finalViewType]?.searchViewId,
                 action: {
                     id: false,
-                    name: config.label || "提单列表",
+                    name: config.label || "Waybill List",
                     res_model: config.res_model,
                     type: "ir.actions.act_window",
                     view_mode: `${finalViewType},form`,
@@ -273,7 +273,7 @@ export class WdIffmWorkbench extends Component {
                 },
             };
         } catch (error) {
-            console.error("加载视图失败:", error);
+            console.error("Failed to load view:", error);
             this.state.viewProps = null;
         }
     }
@@ -282,8 +282,8 @@ export class WdIffmWorkbench extends Component {
         const config = this.cardConfigs[this.state.activeTab];
         return {
             label: config ? config.label : this.state.activeTab,
-            type: this.state.activeTab.includes("near_due") ? "临期" : 
-                  this.state.activeTab.includes("overdue") ? "逾期" : "全部"
+            type: this.state.activeTab.includes("near_due") ? "Near Due" :
+                  this.state.activeTab.includes("overdue") ? "Overdue" : "All"
         };
     }
 }
