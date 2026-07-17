@@ -55,7 +55,6 @@ export class WholePalletOutboundPage extends Component {
         });
 
         // 扫码输入缓冲
-        this._scanBuffer = "";
         this._scanTimer = null;
         this._isProcessing = false;
         this._isPDA = this._detectPDA();
@@ -452,9 +451,20 @@ export class WholePalletOutboundPage extends Component {
             this.showMessage(_t("No order loaded"), "danger");
             return;
         }
+
+        // 托盘：是否完成 | 是否漏扫
         if (!this.isAllComplete) {
             this.showMessage(
                 _t("There are still ") + this.state.summary.pending_pallets + _t(" pallet(s) not scanned"),
+                "danger"
+            );
+            return;
+        }
+
+        // 已完成的picking不能再次确认
+        if (this.state.nextStep == "completed") {
+            this.showMessage(
+                _t("Outgoing picking is already completed. Cannot confirm again."),
                 "danger"
             );
             return;
