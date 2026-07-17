@@ -34,26 +34,26 @@
                     <td class="inbound-label-header-main">
                         <p t-if="pallet" class="inbound-label-subtitle">
                             Pallet No:
-                            <span t-esc="pallet.package_id.name if pallet.package_id else pallet.pallet_no"/>
+                            <span class="inbound-label-variable-value" t-esc="pallet.package_id.name if pallet.package_id else pallet.pallet_no"/>
                         </p>
                         <table class="inbound-label-info">
                             <tr>
                                 <td class="label">Reference:</td>
-                                <td><span t-field="o.reference"/></td>
+                                <td><span class="inbound-label-variable-value" t-field="o.reference"/></td>
                                 <td class="label">Owner:</td>
-                                <td><span t-esc="o.owner.name"/></td>
+                                <td><span class="inbound-label-variable-value" t-esc="o.owner.name"/></td>
                             </tr>
                             <tr>
                                 <td class="label">Arrival Date:</td>
                                 <td colspan="3">
-                                    <span t-if="o.a_date" t-esc="o.a_date.strftime('%Y-%m-%d')"/>
+                                    <span class="inbound-label-variable-value" t-if="o.a_date" t-esc="o.a_date.strftime('%Y-%m-%d')"/>
                                 </td>
                             </tr>
                             <tr>
                                 <td class="label">BL No:</td>
-                                <td><span t-field="o.bl_no"/></td>
+                                <td><span class="inbound-label-variable-value" t-field="o.bl_no"/></td>
                                 <td class="label">Container No:</td>
-                                <td><span t-field="o.cntr_no"/></td>
+                                <td><span class="inbound-label-variable-value" t-field="o.cntr_no"/></td>
                             </tr>
                         </table>
                     </td>
@@ -182,7 +182,7 @@
                         }
 
                         .inbound-label-product-code .inbound-label-qr-caption {
-                            text-align: left;
+                            text-align: center;
                         }
 
                         .inbound-label-product-name {
@@ -219,6 +219,25 @@
                             font-size: 22px;
                             font-weight: bold;
                             line-height: 1.5;
+                        }
+
+                        .inbound-label-lot-info-table {
+                            width: 100%;
+                            border-collapse: collapse;
+                        }
+
+                        .inbound-label-lot-info-table td {
+                            border: 1px solid #111827;
+                            padding: 4px 10px;
+                        }
+
+                        .inbound-label-lot-label {
+                            width: 150px;
+                            white-space: nowrap;
+                        }
+
+                        .inbound-label-variable-value {
+                            text-decoration: underline;
                         }
 
                         .inbound-label-lot-qr {
@@ -282,12 +301,14 @@
                         .product-table td {
                             border: 1px solid #d1d5db;
                             padding: 9px;
+                            font-size: 18px;
+                            font-weight: bold;
                         }
 
                         .product-table th {
                             background: #f3f4f6;
                             font-weight: bold;
-                            text-align: left;
+                            text-align: center;
                         }
 
                         .product-table .frame-top-spacer,
@@ -336,7 +357,7 @@
                         .product-table .box-in-qty,
                         .product-table .box-qty,
                         .product-table .total-qty {
-                            text-align: right;
+                            text-align: center;
                             white-space: nowrap;
                         }
 
@@ -366,7 +387,7 @@
                                                 <t t-set="product_line" t-value="full_product_line or pallet.inbound_order_product_pallet_ids[:1]"/>
                                                 <t t-if="product_line">
                                                     <span class="inbound-label-product-name-label">Product Name:</span>
-                                                    <span t-esc="product_line.product_id.display_name"/>
+                                                    <span class="inbound-label-variable-value" t-esc="product_line.product_id.display_name"/>
                                                 </t>
                                             </td>
                                         </tr>
@@ -386,9 +407,9 @@
                                             </tr>
                                             <tr>
                                                 <th class="frame-gutter"></th>
-                                                <th class="box-in-qty">Box In Qty</th>
-                                                <th class="box-qty">Box Qty</th>
-                                                <th class="total-qty">Total Qty</th>
+                                                <th class="box-in-qty">Per Box PCS</th>
+                                                <th class="box-qty"> Total Cartons</th>
+                                                <th class="total-qty">Total PCS</th>
                                                 <th class="frame-gutter"></th>
                                             </tr>
                                         </thead>
@@ -423,9 +444,20 @@
                                     <table class="inbound-label-lot-code-layout">
                                         <tr>
                                             <td class="inbound-label-lot-info">
-                                                <div>Lot No: <span t-esc="lot_line.lot_name or ''"/></div>
-                                                <div>MFG Date: <span t-esc="lot_line.m_date or ''"/></div>
-                                                <div>EXP Date: <span t-esc="lot_line.e_date or ''"/></div>
+                                                <table class="inbound-label-lot-info-table">
+                                                    <tr>
+                                                        <td class="inbound-label-lot-label">Lot No:</td>
+                                                        <td><span class="inbound-label-variable-value" t-esc="lot_line.lot_name or ''"/></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="inbound-label-lot-label">MFG Date:</td>
+                                                        <td><span class="inbound-label-variable-value" t-esc="lot_line.m_date or ''"/></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="inbound-label-lot-label">EXP Date:</td>
+                                                        <td><span class="inbound-label-variable-value" t-esc="lot_line.e_date or ''"/></td>
+                                                    </tr>
+                                                </table>
                                             </td>
                                             <td class="inbound-label-lot-qr">
                                                 <t t-if="lot_line.lot_name">
