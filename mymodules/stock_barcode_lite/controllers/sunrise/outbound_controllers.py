@@ -58,15 +58,12 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
 
                 product_commands = []
                 pallet_de_palletize_map = {}
-                stock_checks = {}
-                pending_quantities = {}
                 for index, line_data in enumerate(products, start=1):
                     parsed_line = self.prepare_outbound_product_line(
                         line_data,
                         index,
                         project,
                         vsourcebillcode,
-                        pending_quantities,
                         pallet_de_palletize_map,
                     )
                     package = parsed_line["package"]
@@ -74,31 +71,7 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
                     if package.id in pallet_de_palletize_map and pallet_de_palletize_map[package.id] != de_palletize:
                         raise SunriseApiError("4001", 'Pallet "%s" cannot mix de_palletize=N and de_palletize=Y.' % package.name)
                     pallet_de_palletize_map[package.id] = de_palletize
-
-                    stock_check = parsed_line["stock_check"]
-                    stock_check_key = (
-                        stock_check["package"].id,
-                        stock_check["product"].id,
-                        stock_check["lot_name"],
-                    )
-                    if stock_check_key not in stock_checks:
-                        stock_checks[stock_check_key] = {
-                            "package": stock_check["package"],
-                            "product": stock_check["product"],
-                            "lot_name": stock_check["lot_name"],
-                            "quantity": 0,
-                        }
-                    stock_checks[stock_check_key]["quantity"] += stock_check["quantity"]
-                    pending_quantities[stock_check_key] = stock_checks[stock_check_key]["quantity"]
                     product_commands.append((0, 0, parsed_line["product_vals"]))
-
-                for stock_check in stock_checks.values():
-                    self.check_package_stock(
-                        stock_check["package"],
-                        stock_check["product"],
-                        stock_check["quantity"],
-                        stock_check["lot_name"] or None,
-                    )
 
                 country = self.get_country(data)
                 partner = self.get_partner(data, country)
@@ -163,7 +136,7 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
             _logger.exception("Unexpected Sunrise outbound cancel error: %s", error)
             return self.error_response("5000", str(error))
 
-    def prepare_outbound_product_line(self, line_data, row_number, project, order_vsourcebillcode, pending_quantities, package_modes):
+    def prepare_outbound_product_line(self, line_data, row_number, project, order_vsourcebillcode, package_modes):
         product_code = self.get_required_text(line_data, "product", row_number)
         product_ean = self.get_optional_text(line_data, "product_ean")
         pallet_no = self.get_required_text(line_data, "pallet_no", row_number)
@@ -207,19 +180,11 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
             lot_name if is_lot == "Y" else "",
             project,
             row_number,
-            box_qty,
-            pending_quantities,
             de_palletize,
             package_modes,
         )
         return {
             "package": package,
-            "stock_check": {
-                "package": package,
-                "product": product,
-                "lot_name": lot_name if is_lot == "Y" else "",
-                "quantity": box_qty,
-            },
             "product_vals": {
                 "product_id": product.id,
                 "source_product_code": product_code,
@@ -251,8 +216,9 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
             },
         }
 
-    def find_outbound_package(self, inbound_cntr_no, pallet_no, product, lot_name, project, row_number, required_quantity, pending_quantities, de_palletize, package_modes):
+    def find_outbound_package(self, inbound_cntr_no, pallet_no, product, lot_name, project, row_number, de_palletize, package_modes):
         inbound_pallet_model = request.env["world.depot.inbound.order.product"].sudo()
+        inbound_detail_model = request.env["world.depot.inbound.order.products.pallet"].sudo()
         package_model = request.env["stock.quant.package"].sudo()
 
         inbound_pallets = inbound_pallet_model.search([
@@ -271,68 +237,37 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
                 ),
             )
 
-        packages = inbound_pallets.mapped("package_id")
+        inbound_details = inbound_detail_model.search([
+            ("inbound_order_product_id", "in", inbound_pallets.ids),
+            ("product_id", "=", product.id),
+        ])
+        if lot_name:
+            inbound_details = inbound_details.filtered(lambda detail: detail.is_lot == "Y" and detail.lot_name == lot_name)
+        packages = inbound_details.mapped("inbound_order_product_id.package_id")
         if not packages:
             raise SunriseApiError(
                 "3004",
                 self.format_field_error(
                     "pallet_no",
-                    '"%s" has no stock package' % pallet_no,
-                    row_number,
-                ),
-            )
-
-        quant_domain = [
-            ("package_id", "in", packages.ids),
-            ("product_id", "=", product.id),
-            ("location_id.usage", "=", "internal"),
-        ]
-        if lot_name:
-            lot = request.env["stock.lot"].sudo().search([
-                ("product_id", "=", product.id),
-                ("name", "=", lot_name),
-            ], limit=1)
-            if not lot:
-                raise SunriseApiError(
-                    "3003",
-                    self.format_field_error("lot_name", '"%s" has no stock for this product' % lot_name, row_number),
-                )
-            quant_domain.append(("lot_id", "=", lot.id))
-
-        quants = request.env["stock.quant"].sudo().search(quant_domain)
-        available_by_package = {}
-        for quant in quants:
-            available_by_package.setdefault(quant.package_id.id, 0)
-            available_by_package[quant.package_id.id] += quant.quantity - quant.reserved_quantity
-        candidate_packages = packages.filtered(lambda package: available_by_package.get(package.id, 0) > 0)
-
-        if not candidate_packages:
-            raise SunriseApiError(
-                "3003",
-                self.format_field_error(
-                    "pallet_no",
-                    '"%s" has no available stock for product "%s" and lot "%s"'
+                    '"%s" has no inbound package for product "%s" and lot "%s"'
                     % (pallet_no, product.display_name, lot_name or ""),
                     row_number,
                 ),
             )
         ordered_packages = package_model.search(
-            [("id", "in", candidate_packages.ids)],
+            [("id", "in", packages.ids)],
             order="create_date asc, id asc",
         )
         for package in ordered_packages:
             if package.id in package_modes and package_modes[package.id] != de_palletize:
                 continue
-            pending_quantity = pending_quantities.get((package.id, product.id, lot_name), 0.0)
-            if available_by_package.get(package.id, 0.0) >= required_quantity + pending_quantity:
-                return package[:1]
+            return package[:1]
 
         raise SunriseApiError(
-            "3003",
+            "4001",
             self.format_field_error(
                 "pallet_no",
-                '"%s" has no single stock package with enough product "%s" and lot "%s"'
-                % (pallet_no, product.display_name, lot_name or ""),
+                '"%s" cannot mix de_palletize=N and de_palletize=Y' % pallet_no,
                 row_number,
             ),
         )

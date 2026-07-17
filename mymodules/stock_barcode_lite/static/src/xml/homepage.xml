@@ -6,11 +6,16 @@
             <div class="container-fluid py-2">
 
                 <!-- Inbound -->
-                <div class="section-header">
-                    <h5 class="section-title">Inbound</h5>
+                <div class="row">
+                    <div class="col-10 offset-1 col-md-6 offset-md-3 col-lg-3 offset-lg-0">
+                        <div class="section-header">
+                            <h5 class="section-title">Inbound</h5>
+                        </div>
+                    </div>
                 </div>
                 <div class="row justify-content-center g-4">
-                    <div class="col-md-5 col-lg-4">
+                    <!-- lg卡片宽度-->
+                    <div class="col-11 col-md-6 col-lg-6">
                         <div class="card h-100 shadow-sm o_homepage_card o_inbound_card" t-on-click="_onInboundClick">
                             <div class="card-header bg-primary text-white">
                                 <h3 class="mb-0">
@@ -28,11 +33,15 @@
                 </div>
 
                 <!-- Outbound -->
-                <div class="section-header">
-                    <h5 class="section-title">Outbound</h5>
+                <div class="row">
+                    <div class="col-10 offset-1 col-md-6 offset-md-3 col-lg-3 offset-lg-0">
+                        <div class="section-header">
+                            <h5 class="section-title">Outbound</h5>
+                        </div>
+                    </div>
                 </div>
-                <div class="row justify-content-center g-4">
-                    <div class="col-md-5 col-lg-4">
+                <div class="row justify-content-center g-3">
+                    <div class="col-11 col-md-6 col-lg-6">
                         <div class="card h-100 shadow-sm o_homepage_card o_outbound_whole_card" t-on-click="_onOutboundWholeClick">
                             <div class="card-header bg-success text-white">
                                 <h3 class="mb-0">
@@ -47,7 +56,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-5 col-lg-4">
+                    <div class="col-11 col-md-6 col-lg-6">
                         <div class="card h-100 shadow-sm o_homepage_card o_outbound_break_card" t-on-click="_onOutboundBreakClick">
                             <div class="card-header bg-warning text-dark">
                                 <h3 class="mb-0">
