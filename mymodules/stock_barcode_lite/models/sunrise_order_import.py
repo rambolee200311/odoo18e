@@ -111,7 +111,7 @@ class SunriseOrderImport(models.Model):
     def get_supported_fields(self):
         return {
             "ref", "reference", "cntr_no", "inbound_cntr_no", "cwarehouseid", "product", "product_name", "product_ean",
-            "lot_name", "pallet_no", "cspaceid", "box_qty", "box_in_qty", "box_type",
+            "lot_name", "pallet_no", "package_barcode", "cspaceid", "box_qty", "box_in_qty", "box_type",
             "ninnum", "castunitid", "u8_aux_uom_name", "u8_aux_qty", "u8_conversion_rate", "vsourcebillcode",
             "vsourcerowno", "cprojectid", "ndiscounttaxtype", "is_lot", "de_palletize", "m_date", "e_date", "remark",
         }
@@ -253,6 +253,7 @@ class SunriseOrderImportLine(models.Model):
     product_ean = fields.Char(string="Product EAN", copy=False, index=True)
     lot_name = fields.Char(string="Lot Name", copy=False, index=True)
     pallet_no = fields.Char(string="Pallet No", copy=False, index=True)
+    package_barcode = fields.Char(string="Package Barcode", copy=False, index=True)
     cspaceid = fields.Char(string="Location Code", copy=False, index=True)
     box_qty = fields.Char(string="Box Qty", copy=False)
     box_in_qty = fields.Char(string="Box In Qty", copy=False)
@@ -347,12 +348,26 @@ class SunriseOrderImportLine(models.Model):
             pallet_no,
         )
         if not pallet_line:
+            reused_package = self.find_sunrise_reused_inbound_package(
+                inbound_order,
+                product_code,
+                is_lot,
+                lot_name,
+                pallet_no,
+            )
             pallet_line = pallet_model.create({
                 "inbound_order_id": inbound_order.id,
                 "creation_source": "import",
                 "pallet_no": pallet_no,
                 "pallets": 1,
+                "package_id": reused_package.id if reused_package else False,
+                "is_reused_package": bool(reused_package),
             })
+        elif self.package_barcode and pallet_line.package_id and pallet_line.package_id.barcode != self.package_barcode:
+            raise UserError(
+                _('Row %s: package_barcode "%s" does not match the existing pallet package "%s".')
+                % (self.row_number, self.package_barcode, pallet_line.package_id.barcode)
+            )
 
         detail_line = detail_model.create({
             "inbound_order_product_id": pallet_line.id,
@@ -602,6 +617,48 @@ class SunriseOrderImportLine(models.Model):
                 % (self.row_number, expected_key[0], expected_key[1], expected_key[2])
             )
         return pallet_model.browse(matched_ids[0]) if matched_ids else pallet_model
+
+    def find_sunrise_reused_inbound_package(self, inbound_order, product_code, is_lot, lot_name, pallet_no):
+        pallet_model = self.env["world.depot.inbound.order.product"]
+        package_model = self.env["stock.quant.package"]
+        expected_key = self.get_sunrise_pallet_group_key(product_code, is_lot, lot_name, pallet_no)
+        candidates = pallet_model.sudo().search([
+            ("inbound_order_id", "!=", inbound_order.id),
+            ("inbound_order_id.project", "=", inbound_order.project.id),
+            ("inbound_order_id.state", "=", "confirm"),
+            ("pallet_no", "=", expected_key[2]),
+            ("package_id", "!=", False),
+        ])
+        package_ids = set()
+        for candidate in candidates:
+            detail_keys = {
+                self.get_sunrise_pallet_group_key(
+                    detail.source_product_code or detail.product_id.barcode,
+                    detail.is_lot,
+                    detail.lot_name,
+                    candidate.pallet_no,
+                )
+                for detail in candidate.inbound_order_product_pallet_ids
+            }
+            if detail_keys != {expected_key}:
+                continue
+            if self.package_barcode and candidate.package_id.barcode != self.package_barcode:
+                continue
+            package_ids.add(candidate.package_id.id)
+
+        if not package_ids:
+            if self.package_barcode:
+                raise UserError(
+                    _('Row %s: package_barcode "%s" does not match a confirmed inbound pallet for this project.')
+                    % (self.row_number, self.package_barcode)
+                )
+            return package_model
+        if len(package_ids) > 1:
+            raise UserError(
+                _('Row %s: multiple existing packages match product "%s", lot "%s", and pallet_no "%s". Please fill package_barcode.')
+                % (self.row_number, expected_key[0], expected_key[1], expected_key[2])
+            )
+        return package_model.browse(next(iter(package_ids)))
 
     def get_sunrise_package_value_name(self, box_type, box_in_qty):
         if box_type == "full":
