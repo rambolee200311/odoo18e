@@ -1,22 +1,22 @@
 // Stock Barcode Lite - Homepage Styles
 
-// 菜单页面内容块
+/* 菜单页面内容块 */
 .o_stock_barcode_lite_homepage {
-    max-width: 900px;
+    max-width: 650px;
     margin: 0 auto;
-    padding: 16px 16px 80px 16px;
-    min-height: calc(100vh - 50px);  // PC端避开顶部导航栏
+    padding: 24px 24px 80px 24px;
+    min-height: calc(100vh - 50px);  /* PC端避开顶部导航栏 */
     box-sizing: border-box;
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
 
-    // PDA设备全屏显示，顶部间距更小，底部 padding 压缩确保首屏能显示完
+    /* PDA设备全屏显示，顶部间距更小，底部 padding 压缩确保首屏能显示完 */
     @media (max-width: 768px), (pointer: coarse) {
         min-height: 100vh;
-        min-height: 100dvh;  // 移动端动态视口，更稳定地适配各类 PDA 浏览器
+        min-height: 100dvh;  /* 移动端动态视口，更稳定地适配各类 PDA 浏览器 */
         height: 100vh;
         height: 100dvh;
-        padding: 0 16px 16px 16px;  // 底部从 80px 降到 16px，避免占用过多垂直空间
+        padding: 0 16px 16px 16px;  /* 底部从 80px 降到 16px，避免占用过多垂直空间 */
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
         overscroll-behavior: contain;
@@ -24,6 +24,12 @@
 
     .section-header {
         padding: 8px 4px 4px 4px;
+    }
+
+    @media (min-width: 992px) {
+        .section-header {
+            margin-left: 24px;
+        }
     }
 
     .section-title {

@@ -166,7 +166,7 @@
                                     word-break: break-word;
                                 }
 
-                                .picking-products-table .size {
+                                .picking-products-table .lot {
                                     width: 15%;
                                     word-break: break-word;
                                 }
@@ -206,22 +206,18 @@
                                             <p class="outbound-label-subtitle">Outbound Picking Products</p>
                                             <table class="outbound-label-info">
                                                 <tr>
-                                                    <td class="label">Bill No:</td>
-                                                    <td><span t-field="o.billno"/></td>
+                                                    <td class="label">Reference:</td>
+                                                    <td><span t-field="o.reference"/></td>
                                                     <td class="label">Owner:</td>
                                                     <td><span t-esc="o.owner.name"/></td>
                                                 </tr>
                                                 <tr>
-                                                    <td class="label">Reference:</td>
-                                                    <td><span t-field="o.reference"/></td>
                                                     <td class="label">Picking:</td>
-                                                    <td><span t-field="picking.name"/></td>
+                                                    <td colspan="3"><span t-field="picking.name"/></td>
                                                 </tr>
                                                 <tr>
-                                                    <td class="label">Source Bill:</td>
-                                                    <td><span t-field="o.vsourcebillcode"/></td>
                                                     <td class="label">Mode:</td>
-                                                    <td><span t-esc="section['title']"/></td>
+                                                    <td colspan="3"><span t-esc="section['title']"/></td>
                                                 </tr>
                                             </table>
                                         </td>
@@ -242,7 +238,7 @@
                                         <thead>
                                             <tr>
                                                 <th class="product">Product Name</th>
-                                                <th class="size">Size</th>
+                                                <th class="lot">Lot No</th>
                                                 <th class="barcode">Barcode</th>
                                                 <th class="spec">Specification</th>
                                                 <th class="qty">Quantity</th>
@@ -253,7 +249,7 @@
                                             <t t-foreach="pallet_group['lines']" t-as="line">
                                                 <tr>
                                                     <td class="product"><span t-field="line.product_id.display_name"/></td>
-                                                    <td class="size"><span t-esc="', '.join(line.product_id.product_template_attribute_value_ids.mapped('name')) or line.box_type or ''"/></td>
+                                                    <td class="lot"><span t-esc="line.lot_name or ''"/></td>
                                                     <td class="barcode"><span t-esc="line.product_id.barcode or ''"/></td>
                                                     <td class="spec">
                                                         <span t-esc="line.box_in_qty or ''"/>

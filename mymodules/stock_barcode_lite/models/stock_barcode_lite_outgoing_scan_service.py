@@ -179,14 +179,15 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
             )
         if picking.state == "done":
             return self.build_outgoing_scan_result(
-                "error",
-                _("Error"),
-                _("Outgoing picking %s is already done.") % picking.name,
+                "picking",
+                _("Outgoing Picking"),
+                _("Outgoing picking %s is completed. Read-only view.") % picking.name,
                 barcode=code,
                 picking_id=picking.id,
-                pending_operation=pending_operation,
-                action_name="picking_already_done",
-                success=False,
+                pending_operation=False,
+                action_name="view_completed_picking",
+                success=True,
+                next_step="completed",
             )
         return self.build_outgoing_scan_result(
             "picking",
@@ -1104,6 +1105,7 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
                 "last_scan": last_scan or {},
             }
 
+        is_picking_done = picking.state == "done"
         package_lines = self.env["stock.move.line"].sudo().search([
             ("picking_id", "=", picking.id),
             ("package_id", "!=", False),
@@ -1122,7 +1124,12 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
             products = []
             for line in lines:
                 required_qty = line.quantity or 0.0
-                line_scanned_qty = min(line.outbound_scanned_quantity or 0.0, required_qty)
+                line_is_complete = is_picking_done or self.is_outgoing_line_complete(line)
+                line_scanned_qty = (
+                    required_qty
+                    if is_picking_done
+                    else min(line.outbound_scanned_quantity or 0.0, required_qty)
+                )
                 remaining_qty = max(required_qty - line_scanned_qty, 0.0)
                 total_qty += required_qty
                 scanned_qty += line_scanned_qty
@@ -1136,14 +1143,16 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
                     "lot_id": line.lot_id.id or False,
                     "lot": line.lot_id.name or line.lot_name or "",
                     "quantity": required_qty,
-                    "scanned_quantity": line.outbound_scanned_quantity or 0.0,
+                    "scanned_quantity": line_scanned_qty,
                     "remaining_quantity": remaining_qty,
                     "uom": line.product_uom_id.name,
                     "source_location": line.location_id.display_name,
                     "dest_location": line.location_dest_id.display_name,
-                    "is_complete": self.is_outgoing_line_complete(line),
+                    "is_complete": line_is_complete,
                 })
-            is_complete = bool(lines) and all(self.is_outgoing_line_complete(line) for line in lines)
+            is_complete = is_picking_done or (
+                bool(lines) and all(self.is_outgoing_line_complete(line) for line in lines)
+            )
             if is_complete:
                 completed_pallets += 1
             pallet_data.append({
@@ -1169,6 +1178,8 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
                 ("id", "!=", picking.id),
             ], order="id")
             for related_picking in related_picking_list:
+                if related_picking.state == "done":
+                    continue
                 related_package_lines = related_picking.move_line_ids.filtered(
                     lambda line: line.package_id and line.quantity > 0 and line.state != "cancel"
                 )

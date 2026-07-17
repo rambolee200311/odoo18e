@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import uuid
 import math
-from odoo import _, api, fields, models
-from odoo.http import request
-from odoo.exceptions import UserError, ValidationError
+from psycopg2 import sql
+
+from odoo import _, fields, models
+from odoo.exceptions import UserError
 
 class InboundOrder(models.Model):
     _inherit = "world.depot.inbound.order"
@@ -14,6 +14,7 @@ class InboundOrder(models.Model):
     cwarehouseid = fields.Char(string="U8C Warehouse ID", copy=False, index=True)
     source_sale_delivery_reference = fields.Char(string="Source Sale Delivery Reference", copy=False, index=True)
     vsourcebillcode = fields.Char(string="Source Bill Code", copy=False, index=True)
+    project_package_generation_mode = fields.Selection(related="project.package_generation_mode", string="Package Generation Mode", readonly=True)
 
     def action_confirm(self):
         for rec in self:
@@ -42,13 +43,23 @@ class InboundOrder(models.Model):
                 pallet_missing_fields = []
                 if not pallet_line.pallet_no:
                     pallet_missing_fields.append("pallet_no")
-                if not pallet_line.sunrise_pallet_no:
-                    pallet_missing_fields.append("sunrise_pallet_no")
                 if not pallet_line.inbound_order_product_pallet_ids:
                     pallet_missing_fields.append("product detail lines")
 
                 if pallet_missing_fields:
                     raise UserError(_("Sunrise inbound pallet line %s is missing required fields: %s") % (pallet_index, ", ".join(pallet_missing_fields)))
+
+                if rec.project_package_generation_mode == "inbound" and not pallet_line.package_id:
+                    raise UserError(
+                        _('Pallet "%s" has no package. Generate packages before confirming the inbound order.')
+                        % pallet_line.pallet_no
+                    )
+
+                if rec.project_package_generation_mode == "none" and pallet_line.package_id:
+                    raise UserError(
+                        _('Pallet "%s" has a package although Package Generation Mode is No Package.')
+                        % pallet_line.pallet_no
+                    )
 
                 for detail_index, detail_line in enumerate(pallet_line.inbound_order_product_pallet_ids, start=1):
                     line_name = _("Pallet %s, product line %s") % (pallet_line.pallet_no or pallet_index, detail_index)
@@ -56,6 +67,8 @@ class InboundOrder(models.Model):
 
                     if not detail_line.product_id:
                         line_missing_fields.append("product_id")
+                    if pallet_line.creation_source in ("api", "import") and not detail_line.source_product_code:
+                        line_missing_fields.append("source_product_code")
                     if not detail_line.cprojectid:
                         line_missing_fields.append("cprojectid")
                     if not detail_line.ndiscounttaxtype:
@@ -127,6 +140,8 @@ class InboundOrder(models.Model):
                             % line_name
                         )
 
+                pallet_line.validate_sunrise_physical_pallet_identity()
+
 
     def action_cancel(self):
         normal_records = self.env["world.depot.inbound.order"]
@@ -160,6 +175,8 @@ class InboundOrder(models.Model):
                         % (rec.reference, str(error))
                     )
                 rec.action_delete_sunrise_packages_before_cancel()
+            else:
+                rec.action_delete_sunrise_packages_before_cancel()
             rec.write({"state": "cancel"})
 
         if normal_records:
@@ -167,33 +184,15 @@ class InboundOrder(models.Model):
 
         return True
 
-    def action_delete_sunrise_packages_before_cancel(self):
-        quant_model = self.env["stock.quant"]
-        package_model = self.env["stock.quant.package"]
-
+    def unlink(self):
         for rec in self:
-            for pallet_line in rec.inbound_order_product_ids:
-                package = pallet_line.package_id
-                if not package and pallet_line.sunrise_pallet_no:
-                    package = package_model.sudo().search([
-                        ("barcode", "=", pallet_line.sunrise_pallet_no),
-                    ], limit=1)
+            if rec.project.name == "SUNRISE":
+                rec.action_delete_sunrise_packages_before_cancel()
+        return super().unlink()
 
-                if not package:
-                    continue
-
-                quant = quant_model.sudo().search([
-                    ("package_id", "=", package.id),
-                    ("quantity", "!=", 0),
-                ], limit=1)
-                if quant:
-                    raise UserError(
-                        _('Pallet No "%s" still has stock and cannot be deleted.')
-                        % (package.name or package.barcode)
-                    )
-
-                pallet_line.write({"package_id": False})
-                package.unlink()
+    def action_delete_sunrise_packages_before_cancel(self):
+        for rec in self:
+            rec.inbound_order_product_ids.delete_sunrise_packages_without_stock()
 
         return True
 
@@ -202,6 +201,8 @@ class InboundOrder(models.Model):
 
         for rec in self:
             for pallet_line in rec.inbound_order_product_ids:
+                if pallet_line.is_reused_package:
+                    continue
                 package = pallet_line.package_id
                 if not package:
                     continue
@@ -277,10 +278,69 @@ class InboundOrder(models.Model):
             }
         return False
 
+    def action_sunrise_generate_packages(self):
+        picking_model = self.env["stock.picking"]
+        created_count = 0
+
+        for rec in self:
+            if rec.project.name != "SUNRISE":
+                raise UserError(_("Only SUNRISE inbound orders can generate packages."))
+            if rec.project_package_generation_mode != "inbound":
+                raise UserError(_("Package Generation Mode must be Inbound."))
+            if rec.state != "new":
+                raise UserError(_("Packages can only be generated before the inbound order is confirmed."))
+
+            existing_picking = picking_model.sudo().search([
+                ("inbound_order_id", "=", rec.id),
+                ("state", "!=", "cancel"),
+            ], limit=1)
+            if existing_picking:
+                raise UserError(_("Packages cannot be generated after a stock picking exists."))
+
+            pending_pallet_lines = rec.inbound_order_product_ids.filtered(lambda pallet_line: not pallet_line.package_id)
+            for pallet_line in pending_pallet_lines:
+                if pallet_line.pallets != 1:
+                    raise UserError(
+                        _('Pallet "%s" has pallets=%s. Please split pallets before generating packages.')
+                        % (pallet_line.pallet_no, pallet_line.pallets)
+                    )
+                if not pallet_line.pallet_no:
+                    raise UserError(_("The pallet number field is required."))
+                if not pallet_line.inbound_order_product_pallet_ids:
+                    raise UserError(_('Pallet "%s" must contain product lines.') % pallet_line.pallet_no)
+                if any(not detail_line.product_id for detail_line in pallet_line.inbound_order_product_pallet_ids):
+                    raise UserError(_('Pallet "%s" has a product line without a product.') % pallet_line.pallet_no)
+                pallet_line.validate_sunrise_physical_pallet_identity()
+
+            for pallet_line in pending_pallet_lines:
+                pallet_line.create_sunrise_package()
+                created_count += 1
+
+        if not created_count:
+            return {
+                "type": "ir.actions.client",
+                "tag": "display_notification",
+                "params": {
+                    "title": _("No Packages Generated"),
+                    "message": _("Every pallet line already has a package."),
+                    "type": "info",
+                    "sticky": False,
+                },
+            }
+
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Packages Generated"),
+                "message": _("Generated %(count)s package(s).") % {"count": created_count},
+                "type": "success",
+                "sticky": False,
+            },
+        }
+
     def validate_sunrise_incoming_stock_picking(self):
         picking_model = self.env["stock.picking"]
-        package_model = self.env["stock.quant.package"]
-        package_names = set()
 
         for record in self:
             if record.project.name != "SUNRISE":
@@ -302,24 +362,27 @@ class InboundOrder(models.Model):
             for pallet_line in record.inbound_order_product_ids:
                 if not pallet_line.pallet_no:
                     raise UserError(_("The pallet number field is required."))
-                if not pallet_line.sunrise_pallet_no:
-                    raise UserError(
-                        _('Sunrise pallet number is required for pallet "%s".')
-                        % pallet_line.pallet_no
-                    )
-
-                if pallet_line.sunrise_pallet_no in package_names:
-                    raise UserError(
-                        _('Sunrise pallet number "%s" is duplicated.')
-                        % pallet_line.sunrise_pallet_no
-                    )
-                package_names.add(pallet_line.sunrise_pallet_no)
 
                 if pallet_line.pallets != 1:
                     raise UserError(
                         _('Pallet "%s" pallets must be 1.')
                         % pallet_line.pallet_no
                     )
+
+                if record.project_package_generation_mode == "inbound" and not pallet_line.package_id:
+                    raise UserError(
+                        _('Pallet "%s" has no package. Generate packages before confirming the inbound order.')
+                        % pallet_line.pallet_no
+                    )
+
+                if record.project_package_generation_mode == "none" and pallet_line.package_id:
+                    raise UserError(
+                        _('Pallet "%s" has a package although Package Generation Mode is No Package.')
+                        % pallet_line.pallet_no
+                    )
+
+                if pallet_line.is_reused_package:
+                    pallet_line.get_sunrise_reused_package_locations()
 
                 if not pallet_line.inbound_order_product_pallet_ids:
                     raise UserError(
@@ -361,16 +424,8 @@ class InboundOrder(models.Model):
                             _('Product "%s" enables lot tracking, so is_lot must be Y.')
                             % detail_line.product_id.display_name)
 
-        if package_names:
-            existing_package  = package_model.sudo().search([
-                ("barcode", "in", list(package_names)),
-            ], limit=1)
+                pallet_line.validate_sunrise_physical_pallet_identity()
 
-            if existing_package:
-                raise UserError(
-                    _('Pallet No "%s" already exists as a package. Please cancel/archive the old inbound package before creating a new receipt.')
-                    % (existing_package.name or existing_package.barcode)
-                )
         return True
 
 
@@ -380,10 +435,12 @@ class InboundOrder(models.Model):
         picking_model = self.env["stock.picking"]
         move_model = self.env["stock.move"]
         move_line_model = self.env["stock.move.line"]
-        package_model = self.env["stock.quant.package"]
         lot_model = self.env["stock.lot"]
+        created_package_count = 0
 
         for record in self:
+            generation_mode = record.project_package_generation_mode or "picking"
+            reused_package_locations = record.inbound_order_product_ids.get_sunrise_reused_package_locations()
             picking = picking_model.create({
                 "picking_type_id": record.pick_type.id,
                 "location_id": record.pick_type.default_location_src_id.id,
@@ -432,30 +489,21 @@ class InboundOrder(models.Model):
                 product_moves[product_id] = move
 
             for pallet_line in record.inbound_order_product_ids:
-                package_name = pallet_line.pallet_no
-                package_barcode = pallet_line.sunrise_pallet_no
-
-                package = package_model.sudo().search([
-                    ("barcode", "=", package_barcode),
-                ], limit=1)
-
-                if package:
+                package = pallet_line.package_id
+                target_location = reused_package_locations.get(pallet_line.id, picking.location_dest_id)
+                if generation_mode == "inbound" and not package:
                     raise UserError(
-                        _('Pallet No "%s" already exists as a package. Please cancel/archive the old inbound package before creating a new receipt.')
-                        % package_barcode
+                        _('Pallet "%s" has no package. Generate packages before confirming the inbound order.')
+                        % pallet_line.pallet_no
                     )
-                package = package_model.create({
-                    "name": package_name,
-                    "barcode": package_barcode,
-                    "package_use": "disposable",
-                    "billno": record.billno,
-                    "reference": record.reference,
-                    "cntr_no": record.cntr_no,
-                })
-
-                pallet_line.write({
-                    "package_id": package.id,
-                })
+                if generation_mode == "picking" and not package:
+                    package = pallet_line.create_sunrise_package()
+                    created_package_count += 1
+                if generation_mode == "none" and package:
+                    raise UserError(
+                        _('Pallet "%s" has a package although Package Generation Mode is No Package.')
+                        % pallet_line.pallet_no
+                    )
 
                 for detail_line in pallet_line.inbound_order_product_pallet_ids:
                     product = detail_line.product_id
@@ -476,22 +524,32 @@ class InboundOrder(models.Model):
                                 "company_id": picking.company_id.id,
                             })
 
-                    move_line_model.create({
+                    move_line_values = {
                         "picking_id": picking.id,
                         "move_id": move.id,
                         "product_id": product.id,
                         "product_uom_id": product.uom_id.id,
                         "quantity": detail_line.quantity,
                         "location_id": picking.location_id.id,
-                        "location_dest_id": picking.location_dest_id.id,
-                        "result_package_id": package.id,
+                        "location_dest_id": target_location.id,
+                        "result_package_id": package.id if package else False,
                         "lot_id": lot.id if lot else False,
                         "inbound_order_product_pallet_id": detail_line.id,
-                    })
+                    }
+                    if pallet_line.is_reused_package:
+                        move_line_values.update({
+                            "is_location_updated": True,
+                            "location_updated_by_id": self.env.user.id,
+                            "location_updated_datetime": fields.Datetime.now(),
+                        })
+                    move_line_model.create(move_line_values)
 
             record.write({
                 "stock_picking_id": picking.id,
             })
+
+        if created_package_count:
+            return self.env.ref("stock_barcode_lite.action_report_inbound_pallet_label").report_action(self)
 
         return {
             "type": "ir.actions.client",
@@ -518,77 +576,131 @@ class InboundOrderProduct(models.Model):
     _inherit = "world.depot.inbound.order.product"
 
     creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import")], string="Creation Source", default="manual", readonly=True, copy=False)
-    sunrise_pallet_no = fields.Char(string="Package Barcode", copy=False, index=True)
-    package_id = fields.Many2one('stock.quant.package', string='Pallet', index=True)
+    package_id = fields.Many2one("stock.quant.package", string="Package", copy=False, index=True)
+    package_barcode = fields.Char(related="package_id.barcode", string="Package Barcode", readonly=True)
+    is_reused_package = fields.Boolean(string="Reused Package", default=False, readonly=True, copy=False, index=True)
 
-    def generate_sunrise_pallet_no(self, project, pallet_no):
+    def create_sunrise_package(self):
+        self.ensure_one()
+        if self.package_id:
+            return self.package_id
+        inbound_order = self.inbound_order_id
         package_model = self.env["stock.quant.package"]
-        pallet_model = self.env["world.depot.inbound.order.product"]
-        project_code = (project.name or "SUNRISE").replace(" ", "").upper()
+        package = package_model.create({
+            "name": self.get_sunrise_package_name(),
+            "barcode": package_model.generate_sunrise_package_barcode(),
+            "package_use": "disposable",
+            "billno": inbound_order.billno,
+            "reference": inbound_order.reference,
+            "cntr_no": inbound_order.cntr_no,
+        })
+        self.write({"package_id": package.id, "is_reused_package": False})
+        return package
 
-        for index in range(20):
-            random_code = uuid.uuid4().hex[:6].upper()
-            barcode = "%s-%s-%s" % (project_code, pallet_no, random_code)
-            existing_package = package_model.sudo().search([("barcode", "=", barcode)], limit=1)
-            existing_pallet = pallet_model.sudo().search([("sunrise_pallet_no", "=", barcode)], limit=1)
-            if not existing_package and not existing_pallet:
-                return barcode
+    def get_sunrise_physical_pallet_identity(self):
+        self.ensure_one()
+        identities = set()
+        for detail_line in self.inbound_order_product_pallet_ids:
+            product_code = (detail_line.source_product_code or detail_line.product_id.barcode or "").strip()
+            lot_name = (detail_line.lot_name or "").strip() if detail_line.is_lot == "Y" else ""
+            if not product_code:
+                raise UserError(_("Pallet \"%s\" has a product line without a source product code.") % self.pallet_no)
+            identities.add((product_code, lot_name))
+        if len(identities) != 1:
+            raise UserError(
+                _("Physical pallet \"%s\" must contain one source product and one lot.") % self.pallet_no
+            )
+        return identities.pop()
 
-        raise ValidationError(_('Failed to generate unique package barcode for pallet "%s".') % pallet_no)
+    def validate_sunrise_physical_pallet_identity(self):
+        for pallet_line in self:
+            pallet_line.get_sunrise_physical_pallet_identity()
+        return True
 
-    @api.model_create_multi
-    def create(self, vals_list):
-        inbound_order_model = self.env["world.depot.inbound.order"]
-        for vals in vals_list:
-            if vals.get("sunrise_pallet_no") or not vals.get("pallet_no") or not vals.get("inbound_order_id"):
-                continue
-            inbound_order = inbound_order_model.sudo().browse(vals["inbound_order_id"])
-            if inbound_order.exists() and inbound_order.project.name == "SUNRISE":
-                vals["sunrise_pallet_no"] = self.generate_sunrise_pallet_no(inbound_order.project, vals["pallet_no"])
-        return super().create(vals_list)
-
-    def write(self, vals):
-        result = super().write(vals)
-        if "pallet_no" in vals or "inbound_order_id" in vals or "sunrise_pallet_no" in vals:
-            for rec in self:
-                if rec.inbound_order_id.project.name == "SUNRISE" and rec.pallet_no and not rec.sunrise_pallet_no:
-                    rec.write({
-                        "sunrise_pallet_no": rec.generate_sunrise_pallet_no(rec.inbound_order_id.project, rec.pallet_no),
-                    })
-        return result
-
-    @api.constrains("pallet_no", "inbound_order_id", "sunrise_pallet_no")
-    def check_sunrise_pallet_no_unique(self):
-        pallet_model = self.env["world.depot.inbound.order.product"]
+    def get_sunrise_reused_package_locations(self):
+        locations = {}
+        quant_model = self.env["stock.quant"]
 
         for rec in self:
-            if rec.inbound_order_id.project.name != "SUNRISE":
+            if not rec.is_reused_package:
                 continue
-            if not rec.pallet_no or not rec.inbound_order_id:
-                continue
-            existing_pallet_no = pallet_model.sudo().search([
-                ("id", "!=", rec.id),
-                ("pallet_no", "=", rec.pallet_no),
-                ("inbound_order_id.project", "=", rec.inbound_order_id.project.id),
-                ("inbound_order_id.state", "!=", "cancel"),
-            ], limit=1)
-            if existing_pallet_no:
-                raise ValidationError(
-                    _('Pallet No "%s" already exists in inbound order "%s".')
-                    % (rec.pallet_no,existing_pallet_no.inbound_order_id.billno or existing_pallet_no.inbound_order_id.reference,))
-            if not rec.sunrise_pallet_no or rec.inbound_order_id.state == "cancel":
-                continue
+            if not rec.package_id:
+                raise UserError(_('Pallet "%s" is marked as reusing a package but has no package.') % rec.pallet_no)
 
-            existing_sunrise_pallet_no = pallet_model.sudo().search([
-                ("id", "!=", rec.id),
-                ("sunrise_pallet_no", "=", rec.sunrise_pallet_no),
+            quants = quant_model.sudo().search([
+                ("package_id", "=", rec.package_id.id),
+                ("location_id.usage", "=", "internal"),
+                ("quantity", ">", 0),
+            ])
+            location_ids = quants.mapped("location_id")
+            if len(location_ids) != 1:
+                raise UserError(
+                    _('Reused package "%s" for pallet "%s" must have exactly one internal stock location.')
+                    % (rec.package_id.name or rec.package_id.barcode, rec.pallet_no)
+                )
+            locations[rec.id] = location_ids
+
+        return locations
+
+    def get_sunrise_package_name(self):
+        self.ensure_one()
+        product_code, lot_name = self.get_sunrise_physical_pallet_identity()
+        return "%s-%s-%s" % (lot_name or "NOLOT", product_code, self.pallet_no)
+
+    def init(self):
+        super().init()
+        self.migrate_legacy_sunrise_package_links()
+
+    def migrate_legacy_sunrise_package_links(self):
+        cr = self.env.cr
+        cr.execute(
+            """
+                SELECT column_name
+                  FROM information_schema.columns
+                 WHERE table_schema = current_schema()
+                   AND table_name = %s
+                   AND column_name IN ('package_id', 'sunrise_pallet_no')
+            """,
+            [self._table],
+        )
+        columns = {row[0] for row in cr.fetchall()}
+        if {"package_id", "sunrise_pallet_no"} - columns:
+            return
+        cr.execute(
+            sql.SQL(
+                """
+                    UPDATE {table} AS pallet_line
+                       SET package_id = package.id
+                      FROM stock_quant_package AS package
+                     WHERE pallet_line.package_id IS NULL
+                       AND COALESCE(pallet_line.sunrise_pallet_no, '') <> ''
+                       AND package.barcode = pallet_line.sunrise_pallet_no
+                """
+            ).format(table=sql.Identifier(self._table))
+        )
+
+    def delete_sunrise_packages_without_stock(self):
+        quant_model = self.env["stock.quant"]
+
+        for rec in self:
+            package = rec.package_id
+            if not package or rec.is_reused_package:
+                continue
+            quant = quant_model.sudo().search([
+                ("package_id", "=", package.id),
+                ("quantity", "!=", 0),
             ], limit=1)
-            if existing_sunrise_pallet_no:
-                raise ValidationError(
-                    _('Sunrise Pallet No "%s" already exists in inbound order "%s".')
-                    % (rec.sunrise_pallet_no,existing_sunrise_pallet_no.inbound_order_id.billno or existing_sunrise_pallet_no.inbound_order_id.reference,))
+            if quant:
+                raise UserError(
+                    _('Pallet No "%s" still has stock and cannot be deleted.')
+                    % (package.name or package.barcode)
+                )
+            rec.write({"package_id": False})
+            package.unlink()
+        return True
 
     def unlink(self):
+        self.delete_sunrise_packages_without_stock()
         for rec in self:
             if rec.inbound_order_product_pallet_ids:
                 rec.inbound_order_product_pallet_ids.unlink()
@@ -599,6 +711,7 @@ class InboundOrderProductsPallet(models.Model):
     _inherit = "world.depot.inbound.order.products.pallet"
 
     creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import")], string="Creation Source", default="manual", readonly=True, copy=False)
+    source_product_code = fields.Char(string="Source Product Code", copy=False, index=True)
     product_ean = fields.Char(string="Product EAN", copy=False, index=True)
     is_lot = fields.Selection([("N", "No"), ("Y", "Yes")], string="Is Lot", default="Y", copy=False, index=True)
     lot_name = fields.Char(string="Lot Name", copy=False, index=True)

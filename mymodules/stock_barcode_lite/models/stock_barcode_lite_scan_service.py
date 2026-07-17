@@ -38,14 +38,15 @@ class StockBarcodeLiteScanService(models.AbstractModel):
 
             if picking.state == "done":
                 return self.build_scan_result(
-                    "error",
-                    _("Error"),
-                    _("Incoming picking %s is already done.") % picking.name,
+                    "picking",
+                    _("Incoming Picking"),
+                    _("Incoming picking %s is completed. Read-only view.") % picking.name,
                     barcode=code,
                     picking_id=picking.id,
-                    location_id=current_location_id,
-                    action_name="picking_already_done",
-                    success=False,
+                    location_id=False,
+                    action_name="view_completed_picking",
+                    success=True,
+                    next_step="completed",
                 )
             return self.build_scan_result(
                 "picking",
@@ -305,6 +306,7 @@ class StockBarcodeLiteScanService(models.AbstractModel):
     def get_incoming_scan_state(self, picking_id=False, current_location_id=False, last_scan=None):
         picking = self.env["stock.picking"].sudo().search([("id", "=", picking_id)], limit=1) if picking_id else self.env["stock.picking"]
         location = self.env["stock.location"].sudo().search([("id", "=", current_location_id)], limit=1) if current_location_id else self.env["stock.location"]
+
         if not picking:
             return {
                 "picking": {},
@@ -320,14 +322,16 @@ class StockBarcodeLiteScanService(models.AbstractModel):
                 "pallets": [],
                 "last_scan": last_scan or {},
             }
-
+        is_picking_done = picking.state == "done"
         package_lines = picking.move_line_ids.filtered(lambda line: line.result_package_id)
         packages = package_lines.mapped("result_package_id")
         pallet_data = []
         updated_pallets = 0
         for package in packages:
             lines = package_lines.filtered(lambda line: line.result_package_id == package)
-            is_location_updated = bool(lines) and all(lines.mapped("is_location_updated"))
+            is_location_updated = is_picking_done or (
+                    bool(lines) and all(lines.mapped("is_location_updated"))
+            )
             if is_location_updated:
                 updated_pallets += 1
             pallet_location = lines[:1].location_dest_id if lines else self.env["stock.location"]
@@ -359,7 +363,11 @@ class StockBarcodeLiteScanService(models.AbstractModel):
             })
 
         total_pallets = len(packages)
-        updated_move_lines = len(package_lines.filtered(lambda line: line.is_location_updated))
+        updated_move_lines = (
+            len(package_lines)
+            if is_picking_done
+            else len(package_lines.filtered(lambda line: line.is_location_updated))
+        )
         return {
             "picking": {
                 "id": picking.id,
