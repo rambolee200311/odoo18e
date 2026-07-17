@@ -201,6 +201,8 @@ class InboundOrder(models.Model):
 
         for rec in self:
             for pallet_line in rec.inbound_order_product_ids:
+                if pallet_line.is_reused_package:
+                    continue
                 package = pallet_line.package_id
                 if not package:
                     continue
@@ -379,6 +381,9 @@ class InboundOrder(models.Model):
                         % pallet_line.pallet_no
                     )
 
+                if pallet_line.is_reused_package:
+                    pallet_line.get_sunrise_reused_package_locations()
+
                 if not pallet_line.inbound_order_product_pallet_ids:
                     raise UserError(
                         _('Pallet "%s" must contain product lines.')
@@ -435,6 +440,7 @@ class InboundOrder(models.Model):
 
         for record in self:
             generation_mode = record.project_package_generation_mode or "picking"
+            reused_package_locations = record.inbound_order_product_ids.get_sunrise_reused_package_locations()
             picking = picking_model.create({
                 "picking_type_id": record.pick_type.id,
                 "location_id": record.pick_type.default_location_src_id.id,
@@ -484,6 +490,7 @@ class InboundOrder(models.Model):
 
             for pallet_line in record.inbound_order_product_ids:
                 package = pallet_line.package_id
+                target_location = reused_package_locations.get(pallet_line.id, picking.location_dest_id)
                 if generation_mode == "inbound" and not package:
                     raise UserError(
                         _('Pallet "%s" has no package. Generate packages before confirming the inbound order.')
@@ -517,18 +524,25 @@ class InboundOrder(models.Model):
                                 "company_id": picking.company_id.id,
                             })
 
-                    move_line_model.create({
+                    move_line_values = {
                         "picking_id": picking.id,
                         "move_id": move.id,
                         "product_id": product.id,
                         "product_uom_id": product.uom_id.id,
                         "quantity": detail_line.quantity,
                         "location_id": picking.location_id.id,
-                        "location_dest_id": picking.location_dest_id.id,
+                        "location_dest_id": target_location.id,
                         "result_package_id": package.id if package else False,
                         "lot_id": lot.id if lot else False,
                         "inbound_order_product_pallet_id": detail_line.id,
-                    })
+                    }
+                    if pallet_line.is_reused_package:
+                        move_line_values.update({
+                            "is_location_updated": True,
+                            "location_updated_by_id": self.env.user.id,
+                            "location_updated_datetime": fields.Datetime.now(),
+                        })
+                    move_line_model.create(move_line_values)
 
             record.write({
                 "stock_picking_id": picking.id,
@@ -564,6 +578,7 @@ class InboundOrderProduct(models.Model):
     creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import")], string="Creation Source", default="manual", readonly=True, copy=False)
     package_id = fields.Many2one("stock.quant.package", string="Package", copy=False, index=True)
     package_barcode = fields.Char(related="package_id.barcode", string="Package Barcode", readonly=True)
+    is_reused_package = fields.Boolean(string="Reused Package", default=False, readonly=True, copy=False, index=True)
 
     def create_sunrise_package(self):
         self.ensure_one()
@@ -579,7 +594,7 @@ class InboundOrderProduct(models.Model):
             "reference": inbound_order.reference,
             "cntr_no": inbound_order.cntr_no,
         })
-        self.write({"package_id": package.id})
+        self.write({"package_id": package.id, "is_reused_package": False})
         return package
 
     def get_sunrise_physical_pallet_identity(self):
@@ -601,6 +616,31 @@ class InboundOrderProduct(models.Model):
         for pallet_line in self:
             pallet_line.get_sunrise_physical_pallet_identity()
         return True
+
+    def get_sunrise_reused_package_locations(self):
+        locations = {}
+        quant_model = self.env["stock.quant"]
+
+        for rec in self:
+            if not rec.is_reused_package:
+                continue
+            if not rec.package_id:
+                raise UserError(_('Pallet "%s" is marked as reusing a package but has no package.') % rec.pallet_no)
+
+            quants = quant_model.sudo().search([
+                ("package_id", "=", rec.package_id.id),
+                ("location_id.usage", "=", "internal"),
+                ("quantity", ">", 0),
+            ])
+            location_ids = quants.mapped("location_id")
+            if len(location_ids) != 1:
+                raise UserError(
+                    _('Reused package "%s" for pallet "%s" must have exactly one internal stock location.')
+                    % (rec.package_id.name or rec.package_id.barcode, rec.pallet_no)
+                )
+            locations[rec.id] = location_ids
+
+        return locations
 
     def get_sunrise_package_name(self):
         self.ensure_one()
@@ -644,7 +684,7 @@ class InboundOrderProduct(models.Model):
 
         for rec in self:
             package = rec.package_id
-            if not package:
+            if not package or rec.is_reused_package:
                 continue
             quant = quant_model.sudo().search([
                 ("package_id", "=", package.id),

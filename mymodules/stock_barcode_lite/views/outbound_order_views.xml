@@ -90,7 +90,8 @@
                             string="Import Products"
                             class="btn btn-primary"
                             icon="fa-upload"
-                            invisible="state != 'new'"/>
+                            invisible="state != 'new'"
+                            groups="stock_barcode_lite.group_sunrise_stock_manager"/>
                 </div>
             </xpath>
 

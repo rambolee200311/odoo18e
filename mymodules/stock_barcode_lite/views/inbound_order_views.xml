@@ -45,7 +45,9 @@
                         invisible="project_name !='SUNRISE'"/>
             </xpath>
             <xpath expr="//field[@name='inbound_order_product_ids']/list/field[@name='pallet_no']" position="after">
-                <field name="package_id" optional="show" column_invisible="parent.project_name != 'SUNRISE'" options="{'no_create': True, 'no_open': False}"/>
+                <field name="package_id" optional="show" column_invisible="parent.project_name != 'SUNRISE'" options="{'no_create': True, 'no_open': True}"/>
+<!--                <field name="package_barcode" optional="show" column_invisible="parent.project_name != 'SUNRISE'"/>-->
+<!--                <field name="is_reused_package" optional="show" column_invisible="parent.project_name != 'SUNRISE'"/>-->
             </xpath>
             <xpath expr="//notebook" position="inside">
                 <page string="Sunrise Sync" invisible="project_name !='SUNRISE'">
@@ -97,6 +99,8 @@
             <!--            </xpath>-->
             <xpath expr="//field[@name='pallet_no']" position="after">
                 <field name="package_id" readonly="1" invisible="1" options="{'no_create': True, 'no_open': True}"/>
+<!--                <field name="package_barcode" readonly="1" invisible="project_name != 'SUNRISE'"/>-->
+<!--                <field name="is_reused_package" readonly="1" invisible="project_name != 'SUNRISE'"/>-->
 
             </xpath>
             <xpath expr="//field[@name='inbound_order_product_pallet_ids']/list/field[@name='product_id']"
