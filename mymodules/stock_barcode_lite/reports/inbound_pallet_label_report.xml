@@ -136,22 +136,25 @@
                             width: 100%;
                             border-collapse: collapse;
                             table-layout: fixed;
+                            border: 1px solid #111827 !important;
                         }
 
                         .inbound-label-header-main,
                         .inbound-label-header-qr {
-                            border: 0;
+                            border: 1px solid #111827 !important;
                             padding: 0;
                             vertical-align: top;
                         }
 
                         .inbound-label-header-main {
-                            padding-right: 10px;
+                            min-width: 0;
                             height: 236px;
                         }
 
                         .inbound-label-header-qr {
                             width: 230px;
+                            min-width: 230px;
+                            max-width: 230px;
                             text-align: right;
                             page-break-inside: avoid;
                             break-inside: avoid;
@@ -166,6 +169,13 @@
                         .inbound-label-product-code-layout {
                             width: 100%;
                             border-collapse: collapse;
+                            table-layout: fixed;
+                            border: 1px solid #111827 !important;
+                        }
+
+                        .inbound-label-product-qr,
+                        .inbound-label-product-name {
+                            border: 1px solid #111827 !important;
                         }
 
                         .inbound-label-product-qr {
@@ -251,6 +261,8 @@
                             width: 100%;
                             height: 200px;
                             border-collapse: collapse;
+                            table-layout: auto;
+                            border: 1px solid #111827 !important;
                             margin-top: 6px;
                         }
 
@@ -259,10 +271,17 @@
                         }
 
                         .inbound-label-info td {
+                            border: 1px solid #111827 !important;
                             padding: 3px 14px 3px 6px;
                             vertical-align: middle;
                             font-size: 18px;
                             font-weight: bold;
+                        }
+
+                        .inbound-label-info td:not(.label) {
+                            word-break: break-all;
+                            word-wrap: break-word;
+                            overflow-wrap: break-word;
                         }
 
                         .inbound-label-info .label {
