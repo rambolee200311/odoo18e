@@ -278,6 +278,30 @@ class InboundOrder(models.Model):
             }
         return False
 
+    def action_open_sunrise_pallet_label_list(self):
+        for rec in self:
+            if rec.state != "confirm":
+                raise UserError(_("Only confirmed inbound orders can print pallet labels."))
+
+            pallet_lines = rec.inbound_order_product_ids.filtered(lambda line: not line.is_reused_package)
+            if not pallet_lines:
+                raise UserError(_("This inbound order has no complete pallet labels available for printing."))
+
+            return {
+                "type": "ir.actions.act_window",
+                "name": _("Select Pallets to Print"),
+                "res_model": "world.depot.inbound.order.product",
+                "view_mode": "list",
+                "views": [(self.env.ref("stock_barcode_lite.view_sunrise_inbound_pallet_label_list").id, "list")],
+                "domain": [("id", "in", pallet_lines.ids)],
+                "context": {
+                    "create": False,
+                    "edit": False,
+                    "delete": False,
+                },
+            }
+        return False
+
     def action_sunrise_generate_packages(self):
         picking_model = self.env["stock.picking"]
         created_count = 0
@@ -579,6 +603,29 @@ class InboundOrderProduct(models.Model):
     package_id = fields.Many2one("stock.quant.package", string="Package", copy=False, index=True)
     package_barcode = fields.Char(related="package_id.barcode", string="Package Barcode", readonly=True)
     is_reused_package = fields.Boolean(string="Reused Package", default=False, readonly=True, copy=False, index=True)
+
+    def action_print_selected_sunrise_pallet_labels(self):
+        if not self:
+            raise UserError(_("Select at least one pallet to print."))
+
+        for rec in self:
+            inbound_order = rec.inbound_order_id
+            if inbound_order.project.name != "SUNRISE":
+                raise UserError(_("Pallet \"%s\" is not a SUNRISE pallet.") % rec.pallet_no)
+            if inbound_order.state != "confirm":
+                raise UserError(_("Pallet \"%s\" belongs to an inbound order that is not confirmed.") % rec.pallet_no)
+            if rec.is_reused_package:
+                raise UserError(_("Pallet \"%s\" reuses an existing package and cannot print an incomplete label.") % rec.pallet_no)
+            if not rec.package_id or not rec.package_id.barcode:
+                raise UserError(_("Pallet \"%s\" has no package barcode.") % rec.pallet_no)
+            if not rec.inbound_order_product_pallet_ids:
+                raise UserError(_("Pallet \"%s\" has no product lines.") % rec.pallet_no)
+
+        inbound_orders = self.mapped("inbound_order_id")
+        return self.env.ref("stock_barcode_lite.action_report_inbound_pallet_label").report_action(
+            inbound_orders,
+            data={"inbound_pallet_ids": self.ids},
+        )
 
     def create_sunrise_package(self):
         self.ensure_one()
