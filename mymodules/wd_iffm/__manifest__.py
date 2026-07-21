@@ -42,12 +42,13 @@ Long description of module's purpose
         'wizard/waybill_arrival_wizard_views.xml',
         'wizard/waybill_create_clearance_wizard_views.xml',
         'wizard/clearance/clearance_reclearance_wizard_views.xml',
-        'wizard/protbase_import/portbase_waybill_import_wizard.xml',
+
 
 
         'views/charge_pricing_views/charge_quotation_views.xml',
         'views/charge_pricing_views/project_project_inherit_views.xml',
         'views/charge_pricing_views/waybill.xml',
+        'wizard/protbase_import/portbase_waybill_import_wizard.xml',
         'views/charge_pricing_views/res_partner_inherit_views.xml',
         'views/charge_pricing_views/port_node_views.xml',
         'views/charge_pricing_views/portbase_webhook_log_views.xml',

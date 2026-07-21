@@ -34,7 +34,16 @@
                             class="btn btn-primary ms-3"
                             icon="fa-qrcode"
                             invisible="state != 'new' or project_name != 'SUNRISE' or project_package_generation_mode != 'inbound'"/>
+
                 </div>
+            </xpath>
+            <xpath expr="//button[@name='view_inbound_order_product_details']" position = 'before'>
+                 <button name="action_open_sunrise_pallet_label_list"
+                            type="object"
+                            string="Open Pallet List"
+                            class="btn btn-primary ms-3"
+                            icon="fa-print"
+                            invisible="state != 'confirm' or project_name != 'SUNRISE'"/>
             </xpath>
             <xpath expr="//button[@name='action_create_stock_picking']" position="after">
                 <button name="action_sunrise_create_incoming_stock_picking"
@@ -89,6 +98,19 @@
     <!--            </xpath>-->
     <!--        </field>-->
     <!--    </record>-->
+
+    <record id="view_sunrise_inbound_pallet_label_list" model="ir.ui.view">
+        <field name="name">sunrise.inbound.pallet.label.list</field>
+        <field name="model">world.depot.inbound.order.product</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0">
+                <field name="pallet_no" readonly="1"/>
+                <field name="package_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                <field name="product_description" readonly="1"/>
+                <field name="quantity" readonly="1"/>
+            </list>
+        </field>
+    </record>
 
     <record id="view_chenyang_chemical_inbound_order_product_form_inherit" model="ir.ui.view">
         <field name="name">chenyang.chemical.inbound.order.product.form.inherit</field>
