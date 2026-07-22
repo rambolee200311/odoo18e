@@ -68,7 +68,7 @@
                                     </div>
                                     <div class="o_kanban_card_content_row">
                                         <span class="text-muted">Container Number: </span>
-                                        <span t-esc="record.extra_data.raw_value.container_number or '未绑定'"/>
+                                        <span t-esc="record.extra_data.raw_value.container_number or 'Not Bound'"/>
                                     </div>
                                     <div class="o_kanban_card_content_row">
                                         <span class="text-muted">Bill No: </span>

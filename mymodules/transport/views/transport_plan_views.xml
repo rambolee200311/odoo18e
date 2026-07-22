@@ -3,7 +3,7 @@
     <data>
         <!-- 运输计划排期页面动作 -->
         <record id="action_transport_plan_schedule" model="ir.actions.client">
-            <field name="name">运输计划排期</field>
+            <field name="name">Transport Plan Scheduling</field>
             <field name="tag">transport_plan.action</field>
         </record>
 
@@ -12,7 +12,7 @@
             <field name="name">container.transport.plan.tree</field>
             <field name="model">container.transport.plan</field>
             <field name="arch" type="xml">
-                <list string="排期记录" default_order="plan_date desc, id desc">
+                <list string="Schedule Records" default_order="plan_date desc, id desc">
                     <field name="plan_date"/>
                     <field name="container_no"/>
                     <field name="bl_no"/>
@@ -27,7 +27,7 @@
             <field name="name">container.transport.plan.form</field>
             <field name="model">container.transport.plan</field>
             <field name="arch" type="xml">
-                <form string="排期记录">
+                <form string="Schedule Records">
                     <sheet>
                         <group>
                             <field name="plan_date"/>
@@ -36,7 +36,7 @@
                             <field name="state"/>
                             <field name="remark"/>
                         </group>
-                        <group string="只读信息" col="2">
+                        <group string="Read-only Information" col="2">
                             <field name="container_no" readonly="1"/>
                             <field name="bl_no" readonly="1"/>
                         </group>
@@ -46,15 +46,15 @@
         </record>
 
         <record id="action_container_transport_plan" model="ir.actions.act_window">
-            <field name="name">排期记录</field>
+            <field name="name">Schedule Records</field>
             <field name="res_model">container.transport.plan</field>
             <field name="view_mode">list,form</field>
             <field name="help" type="html">
                 <p class="o_view_nocontent_smiling_face">
-                    还没有排期记录
+                    No schedule records yet.
                 </p>
                 <p>
-                    你可以在“排期管理”页面拖拽创建排期，或在这里手动新增。
+                    You can drag and drop to create schedules on the Schedule Management page, or manually create new ones here.
                 </p>
             </field>
         </record>
@@ -64,7 +64,7 @@
             <field name="name">bl.container.tree</field>
             <field name="model">bl.container</field>
             <field name="arch" type="xml">
-                <list string="集装箱">
+                <list string="Containers">
                     <field name="bl_no"/>
                     <field name="container_no"/>
                     <field name="container_type"/>
@@ -79,7 +79,7 @@
             <field name="name">bl.container.form</field>
             <field name="model">bl.container</field>
             <field name="arch" type="xml">
-                <form string="集装箱">
+                <form string="Container">
                     <sheet>
                         <group>
                             <field name="bl_no"/>
@@ -98,7 +98,7 @@
             <field name="name">bl.container.search</field>
             <field name="model">bl.container</field>
             <field name="arch" type="xml">
-                <search string="集装箱搜索">
+                <search string="Container Search">
                     <field name="bl_no"/>
                     <field name="container_no"/>
                     <field name="container_type"/>
@@ -111,16 +111,16 @@
 
         <!-- bl.container 窗口动作：供 JS 中 this.action.doAction 调用 -->
         <record id="action_bl_container" model="ir.actions.act_window">
-            <field name="name">集装箱</field>
+            <field name="name">Container</field>
             <field name="res_model">bl.container</field>
             <field name="view_mode">list,form</field>
             <field name="search_view_id" ref="view_bl_container_search"/>
             <field name="help" type="html">
                 <p class="o_view_nocontent_smiling_face">
-                    暂时还没有集装箱记录
+                    No container records yet.
                 </p>
                 <p>
-                    你可以点击“新建”按钮，录入集装箱信息。
+                    Click the "Create" button to add container information.
                 </p>
             </field>
         </record>
