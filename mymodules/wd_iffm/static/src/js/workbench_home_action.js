@@ -260,17 +260,17 @@ export class WdIffmWorkbench extends Component {
                     this.onViewRecordClicked({ resId });
                 },
                 searchViewId: viewInfo.views[finalViewType]?.searchViewId,
-                action: {
-                    id: false,
-                    name: config.label || "Waybill List",
-                    res_model: config.res_model,
-                    type: "ir.actions.act_window",
-                    view_mode: `${finalViewType},form`,
-                    views: [
-                        [viewInfo.views[finalViewType]?.id || false, finalViewType],
-                        [false, "form"],
-                    ],
-                },
+//                action: {
+//                    id: false,
+//                    name: config.label || "Waybill List",
+//                    res_model: config.res_model,
+//                    type: "ir.actions.act_window",
+//                    view_mode: `${finalViewType},form`,
+//                    views: [
+//                        [viewInfo.views[finalViewType]?.id || false, finalViewType],
+//                        [false, "form"],
+//                    ],
+//                },
             };
         } catch (error) {
             console.error("Failed to load view:", error);
