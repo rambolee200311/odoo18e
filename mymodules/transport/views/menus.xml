@@ -2,17 +2,17 @@
 <odoo>
     <data>
         <menuitem id="menu_transportation_root"
-                  name="运输计划"
+                  name="Transport Plan"
                   sequence="100"/>
         
         <menuitem id="menu_transport_plan_schedule"
-                  name="排期管理"
+                  name="Schedule Management"
                   parent="menu_transportation_root"
                   action="action_transport_plan_schedule"
                   sequence="10"/>
 
         <menuitem id="menu_transport_plan_records"
-                  name="排期记录"
+                  name="Schedule Records"
                   parent="menu_transportation_root"
                   action="action_container_transport_plan"
                   sequence="20"/>

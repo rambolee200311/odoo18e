@@ -42,9 +42,9 @@
                        widget="many2many_tags"/>
             </xpath>
             <xpath expr="//field[@name='delivery_method']" position="after">
-                <field name="u8c_delivery_method" readonly="state == 'cancel'" required="project_name == 'SUNRISE'"
+                <field name="u8c_delivery_method" readonly="1" required="project_name == 'SUNRISE'"
                        invisible="project_name != 'SUNRISE'"/>
-                <field name="time_slot" readonly="state == 'cancel'"
+                <field name="time_slot"  readonly="state in ('confirm', 'cancel')"
                        required="u8c_delivery_method  == 'pickup' and project_name == 'SUNRISE'"
                        invisible="project_name !='SUNRISE'or u8c_delivery_method  != 'pickup'"/>
             </xpath>

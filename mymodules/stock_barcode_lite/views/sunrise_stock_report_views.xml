@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sunrise_stock_report_list" model="ir.ui.view">
+        <field name="name">sunrise.stock.report.list</field>
+        <field name="model">sunrise.stock.report</field>
+        <field name="arch" type="xml">
+            <list string="Sunrise Inventory Reports">
+                <field name="date_from"/>
+                <field name="date_to"/>
+                <field name="product_template_id"/>
+                <field name="product_keyword"/>
+                <field name="lot_name"/>
+                <field name="pallet_no"/>
+                <field name="state"/>
+                <field name="refreshed_by_id"/>
+                <field name="refreshed_datetime"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sunrise_stock_report_form" model="ir.ui.view">
+        <field name="name">sunrise.stock.report.form</field>
+        <field name="model">sunrise.stock.report</field>
+        <field name="arch" type="xml">
+            <form string="Sunrise Inventory Report" duplicate="false">
+                <header>
+                    <button name="action_refresh_report" type="object" string="Refresh Report" class="oe_highlight"/>
+                    <button name="action_view_report_lines" type="object" icon="fa-table" title="View Result List"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                            <field name="product_template_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="product_keyword"/>
+                            <field name="lot_name"/>
+                            <field name="pallet_no"/>
+                        </group>
+                        <group>
+                            <field name="refreshed_by_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="refreshed_datetime"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Results">
+                            <field name="line_ids" readonly="1">
+                                <list create="0" delete="0" edit="0">
+                                    <field name="report_id" column_invisible="True"/>
+                                    <field name="source_product_code"/>
+                                    <field name="product_template_id"/>
+                                    <field name="lot_name"/>
+                                    <field name="pallet_no"/>
+                                    <field name="package_barcode"/>
+                                    <field name="uom_id"/>
+                                    <field name="opening_quantity" sum="Total"/>
+                                    <field name="inbound_quantity" sum="Total"/>
+                                    <field name="outbound_quantity" sum="Total"/>
+                                    <field name="adjustment_quantity" sum="Total"/>
+                                    <field name="closing_quantity" sum="Total"/>
+                                    <button name="action_view_move_lines" type="object" icon="fa-list" title="View Stock Moves"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_sunrise_stock_report_line_list" model="ir.ui.view">
+        <field name="name">sunrise.stock.report.line.list</field>
+        <field name="model">sunrise.stock.report.line</field>
+        <field name="arch" type="xml">
+            <list string="Sunrise Inventory Report Lines" create="0" delete="0" edit="0">
+                <field name="report_id" column_invisible="True"/>
+                <field name="source_product_code"/>
+                <field name="product_template_id"/>
+                <field name="lot_name"/>
+                <field name="pallet_no"/>
+                <field name="package_barcode"/>
+                <field name="uom_id"/>
+                <field name="opening_quantity" sum="Total"/>
+                <field name="inbound_quantity" sum="Total"/>
+                <field name="outbound_quantity" sum="Total"/>
+                <field name="adjustment_quantity" sum="Total"/>
+                <field name="closing_quantity" sum="Total"/>
+                <button name="action_view_move_lines" type="object" icon="fa-list" title="View Stock Moves"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_sunrise_stock_report" model="ir.actions.act_window">
+        <field name="name">Sunrise Inventory Report</field>
+        <field name="res_model">sunrise.stock.report</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_sunrise_stock_report_list"/>
+    </record>
+</odoo>

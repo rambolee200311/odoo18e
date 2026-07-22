@@ -7,3 +7,7 @@ access_sunrise_product_master_import,stock.barcode.lite.sunrise.product.master.i
 access_sunrise_product_master_import_line,stock.barcode.lite.sunrise.product.master.import.line,model_stock_barcode_lite_sunrise_product_master_import_line,,1,1,1,1
 access_sunrise_order_import,stock.barcode.lite.sunrise.order.import,model_stock_barcode_lite_sunrise_order_import,,1,1,1,1
 access_sunrise_order_import_line,stock.barcode.lite.sunrise.order.import.line,model_stock_barcode_lite_sunrise_order_import_line,,1,1,1,1
+access_move_line_location_import,move.line.location.import,model_move_line_location_import,,1,1,1,1
+access_move_line_location_import_line,move.line.location.import.line,model_move_line_location_import_line,,1,1,1,1
+access_sunrise_stock_report,sunrise.stock.report,model_sunrise_stock_report,,1,1,1,1
+access_sunrise_stock_report_line,sunrise.stock.report.line,model_sunrise_stock_report_line,,1,1,1,1

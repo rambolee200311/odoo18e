@@ -45,7 +45,7 @@ export class TransportPlan extends Component {
 
         // 打开集装箱标准表单/列表视图
         this.openContainerForm = () => {
-            // TODO: 将下面的 external ID 替换为你实际的 bl.container action 外部 ID
+            // ！！！！！！！！！！！！！！ 将下面的 external ID 替换为你实际的 bl.container action 外部 ID
             // 例如： "transport.action_bl_container" 或 其他模块中定义的 action
             this.action.doAction("transport.action_bl_container");
         };
@@ -150,9 +150,9 @@ export class TransportPlan extends Component {
             // 加载筛选选项
             await this.loadFilterOptions();
         } catch (error) {
-            console.error("加载数据失败:", error);
+//            console.error("加载数据失败:", error);
             this.state.containers = [];
-            this.notification.add("加载数据失败，请联系管理员或稍后重试", { type: "danger" });
+            this.notification.add("Failed to load data. Please contact the administrator or try again later.", { type: "danger" });
         }
     }
 
@@ -265,7 +265,7 @@ export class TransportPlan extends Component {
             // 刷新待安排列表（可能有集装箱被排期了）
             await this.loadData();
         } catch (error) {
-            console.error('加载计划汇总失败:', error);
+//            console.error('加载计划汇总失败:', error);
             this.state.dailyPlans = {};
         }
     }
@@ -277,7 +277,7 @@ export class TransportPlan extends Component {
         try {
             const validContainerId = parseInt(containerId);
             if (isNaN(validContainerId) || validContainerId <= 0) {
-                this.notification.add("无效的集装箱ID", { type: "warning" });
+                this.notification.add("Invalid Container ID", { type: "warning" });
                 return;
             }
 
@@ -290,10 +290,10 @@ export class TransportPlan extends Component {
             // 刷新数据
             await this.loadDailyPlans();
             
-            this.notification.add("运输计划创建成功", { type: "success" });
+            this.notification.add("Transport plan created successfully.", { type: "success" });
         } catch (error) {
-            console.error('保存失败:', error);
-            this.notification.add(`保存运输计划失败：${error.message || error}`, { type: "danger" });
+//            console.error('保存失败:', error);
+            this.notification.add(`Failed to save transport plan：${error.message || error}`, { type: "danger" });
         }
     }
 
@@ -304,7 +304,7 @@ export class TransportPlan extends Component {
         try {
             const validContainerId = parseInt(containerId);
             if (isNaN(validContainerId) || validContainerId <= 0) {
-                this.notification.add("无效的集装箱ID", { type: "warning" });
+                this.notification.add("Invalid Container ID", { type: "warning" });
                 return;
             }
 
@@ -331,10 +331,10 @@ export class TransportPlan extends Component {
 
             // 刷新数据
             await this.loadDailyPlans();
-            this.notification.add("已取消运输计划", { type: "warning" });
+            this.notification.add("Transport plan cancelled.", { type: "warning" });
         } catch (error) {
-            console.error('取消计划失败:', error);
-            this.notification.add(`取消计划失败：${error.message || error}`, { type: "danger" });
+            console.error('Failed to cancel plan:', error);
+            this.notification.add(`Failed to cancel plan：${error.message || error}`, { type: "danger" });
         }
     }
 
@@ -344,13 +344,13 @@ export class TransportPlan extends Component {
     async moveTransportPlan(planId, planDate, fromDate = null) {
         try {
             if (fromDate && planDate === fromDate) {
-                this.notification.add("当前日期已排班", { type: "warning" });
+                this.notification.add("Already scheduled for this date.", { type: "warning" });
                 return;
             }
 
             const validPlanId = parseInt(planId);
             if (isNaN(validPlanId) || validPlanId <= 0) {
-                this.notification.add("无效的计划ID", { type: "warning" });
+                this.notification.add("Invalid plan ID.", { type: "warning" });
                 return;
             }
 
@@ -361,10 +361,10 @@ export class TransportPlan extends Component {
             );
 
             await this.loadDailyPlans();
-            this.notification.add("运输计划已更新", { type: "success" });
+            this.notification.add("Transport plan updated.", { type: "success" });
         } catch (error) {
-            console.error("更新计划失败:", error);
-            this.notification.add(`更新计划失败：${error.message || error}`, { type: "danger" });
+            console.error("Failed to update plan:", error);
+            this.notification.add(`Failed to update plan：${error.message || error}`, { type: "danger" });
         }
     }
 
@@ -399,7 +399,7 @@ export class TransportPlan extends Component {
     formatMonthYear() {
         const year = this.state.currentMonth.getFullYear();
         const month = this.state.currentMonth.getMonth() + 1;
-        return `${year}年${month}月`;
+        return `${month}/${year}`;
     }
 
     /**
