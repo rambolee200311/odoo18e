@@ -394,6 +394,7 @@ class MoveLineLocationImportLine(models.Model):
         location_model = self.env["stock.location"]
         for rec in self:
             errors = []
+            notes = []
             stale = False
             move_line = rec.get_move_line_from_source_id(rec.source_move_line_external_id)
             values = {
@@ -460,10 +461,17 @@ class MoveLineLocationImportLine(models.Model):
                 elif not package:
                     errors.append(_("[result_package_id] Stock move line has no pallet."))
                 elif rec.source_package_name not in {package.name or "", package.barcode or "", package.display_name or ""}:
-                    errors.append(_("[result_package_id] Excel: %s; Current: %s.") % (
-                        rec.source_package_name,
-                        current_package_name or "-",
-                    ))
+                    package_names = {package.name or "", package.barcode or ""}
+                    if rec.source_package_name.endswith("0") and rec.source_package_name[-2:-1].isalpha() and rec.source_package_name[:-1] in package_names:
+                        notes.append(_("[result_package_id] Excel: %s; Current: %s. Legacy trailing-zero package name accepted.") % (
+                            rec.source_package_name,
+                            current_package_name or "-",
+                        ))
+                    else:
+                        errors.append(_("[result_package_id] Excel: %s; Current: %s.") % (
+                            rec.source_package_name,
+                            current_package_name or "-",
+                        ))
 
                 quantity = rec.get_quantity_from_text(rec.source_quantity_text)
                 rounding = move_line.product_uom_id.rounding or move_line.product_id.uom_id.rounding
@@ -501,8 +509,8 @@ class MoveLineLocationImportLine(models.Model):
                 "row": rec.row_number,
                 "product": rec.source_product_name or "-",
             }
-            validation_details = "\n".join([row_header] + errors) if errors else "\n".join([row_header, _("Validation passed.")])
-            log_message = _("Validation passed.") if not errors else _("Validation failed: %s") % "; ".join(error_field_names)
+            validation_details = "\n".join([row_header] + errors + notes) if errors else "\n".join([row_header, _("Validation passed.")] + notes)
+            log_message = _("Validation failed: %s") % "; ".join(error_field_names) if errors else _("Validation passed with note: %s") % " ".join(notes) if notes else _("Validation passed.")
             values.update({
                 "state": state,
                 "error_field_names": ",".join(sorted(set(error_field_names))),
