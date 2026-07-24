@@ -12,6 +12,19 @@ class StockPicking(models.Model):
                                           string="Outbound Scan Mode", copy=False, index=True)
     project_name = fields.Char(string='Project Name', related='project_id.name',stored=True)
 
+    def check_native_barcode_scan_allowed(self):
+        for rec in self:
+            if rec.project_id.barcode_scan_mode == "custom":
+                raise UserError(_("This picking must use Custom Barcode Lite scanning."))
+
+    def action_open_picking_client_action(self):
+        self.check_native_barcode_scan_allowed()
+        return super().action_open_picking_client_action()
+
+    def _get_stock_barcode_data(self):
+        self.check_native_barcode_scan_allowed()
+        return super()._get_stock_barcode_data()
+
     def unlink(self):
         inbound_orders = self.env["world.depot.inbound.order"]
 
