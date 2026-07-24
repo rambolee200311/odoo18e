@@ -37,14 +37,14 @@
 
                 </div>
             </xpath>
-<!--            <xpath expr="//button[@name='view_inbound_order_product_details']" position = 'before'>-->
-<!--                 <button name="action_open_sunrise_pallet_label_list"-->
-<!--                            type="object"-->
-<!--                            string="Open Pallet List"-->
-<!--                            class="btn btn-primary ms-3"-->
-<!--                            icon="fa-print"-->
-<!--                            invisible="state != 'confirm' or project_name != 'SUNRISE'"/>-->
-<!--            </xpath>-->
+            <xpath expr="//button[@name='view_inbound_order_product_details']" position = 'before'>
+                 <button name="action_open_sunrise_pallet_label_list"
+                            type="object"
+                            string="Open Pallet List"
+                            class="btn btn-primary ms-3"
+                            icon="fa-print"
+                            invisible="state != 'confirm' or project_name != 'SUNRISE'"/>
+            </xpath>
             <xpath expr="//button[@name='action_create_stock_picking']" position="after">
                 <button name="action_sunrise_create_incoming_stock_picking"
                         type="object"
