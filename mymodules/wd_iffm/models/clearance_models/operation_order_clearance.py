@@ -90,7 +90,7 @@ class OperationOrderClearance(models.Model):
         "container_id",
         string="Clearance Containers",
     )
-    invoice_line_ids = fields.One2many("operation.order.clearance.invoice.line", "clearance_id", string="Vendor Invoice Lines", copy=False)
+    invoice_line_ids = fields.One2many("operation.order.clearance.invoice.line", "clearance_id", string="Accrued expenses", copy=False)
 
     attachment_line_ids = fields.One2many("operation.order.clearance.attachment.line", "clearance_id", string="Document Lines")
 
@@ -148,47 +148,47 @@ class OperationOrderClearance(models.Model):
     overdue_result_note = fields.Text(string="Overdue Handle Note", copy=False, tracking=True)
 
 
-    @api.onchange(
-        "clearance_receipt_no",
-        "customs_release_datetime",
-        "inbound_release_datetime",
-        "outbound_release_datetime",
-        "t1_closed_datetime",
-        "t1_inbound_release_datetime",
-        "attachment_line_ids",
-    )
-    def onchange_customs_release_document_required(self):
-        self.check_customs_release_document_required()
+    # @api.onchange(
+    #     "clearance_receipt_no",
+    #     "customs_release_datetime",
+    #     "inbound_release_datetime",
+    #     "outbound_release_datetime",
+    #     "t1_closed_datetime",
+    #     "t1_inbound_release_datetime",
+    #     "attachment_line_ids",
+    # )
+    # def onchange_customs_release_document_required(self):
+    #     self.check_customs_release_document_required()
 
-    @api.constrains(
-        "clearance_receipt_no",
-        "customs_release_datetime",
-        "inbound_release_datetime",
-        "outbound_release_datetime",
-        "t1_closed_datetime",
-        "t1_inbound_release_datetime",
-        "attachment_line_ids",
-    )
-    def check_customs_release_document_required(self):
-        for rec in self:
-            has_release_info = bool(
-                rec.clearance_receipt_no
-                or rec.customs_release_datetime
-                or rec.inbound_release_datetime
-                or rec.outbound_release_datetime
-                or rec.t1_closed_datetime
-                or rec.t1_inbound_release_datetime
-            )
-            if not has_release_info:
-                continue
-
-            customs_release_files = rec.attachment_line_ids.filtered(
-                lambda line: line.doc_type == "customs_release" and line.file
-            )
-            if not customs_release_files:
-                raise ValidationError(
-                    _("Customs release document is required when clearance finish time or release number is filled.")
-                )
+    # @api.constrains(
+    #     "clearance_receipt_no",
+    #     "customs_release_datetime",
+    #     "inbound_release_datetime",
+    #     "outbound_release_datetime",
+    #     "t1_closed_datetime",
+    #     "t1_inbound_release_datetime",
+    #     "attachment_line_ids",
+    # )
+    # def check_customs_release_document_required(self):
+    #     for rec in self:
+    #         has_release_info = bool(
+    #             rec.clearance_receipt_no
+    #             or rec.customs_release_datetime
+    #             or rec.inbound_release_datetime
+    #             or rec.outbound_release_datetime
+    #             or rec.t1_closed_datetime
+    #             or rec.t1_inbound_release_datetime
+    #         )
+    #         if not has_release_info:
+    #             continue
+    #
+    #         customs_release_files = rec.attachment_line_ids.filtered(
+    #             lambda line: line.doc_type == "customs_release" and line.file
+    #         )
+    #         if not customs_release_files:
+    #             raise ValidationError(
+    #                 _("Customs release document is required when clearance finish time or release number is filled.")
+    #             )
 
     @api.constrains("overdue_blocking_reason_id", "overdue_reason_note", "overdue_handle_result", "overdue_result_note")
     def check_handover_overdue_other_notes(self):
@@ -373,8 +373,8 @@ class OperationOrderClearance(models.Model):
             #     raise ValidationError(_("All advance invoices must be paid before Clearancing."))
             if not rec.customs_declaration_datetime:
                 raise ValidationError(_("Customs declaration date is required."))
-            if not rec.eu_eori_no and not rec.vat_tax_no:
-                raise ValidationError(_("EU EORI No or VAT Tax No is required."))
+            # if not rec.eu_eori_no and not rec.vat_tax_no:
+            #     raise ValidationError(_("EU EORI No or VAT Tax No is required."))
             rec.write({"state": "clearancing"})
 
     @api.depends("clearance_type", "customs_release_datetime", "inbound_release_datetime",
@@ -424,15 +424,25 @@ class OperationOrderClearance(models.Model):
             waybill.write({"custom_clearance": all_orders_done and all_containers_covered})
 
     def action_clearanced(self):
+        finish_field_map = {
+            "general": "customs_release_datetime",
+            "bonded_in": "inbound_release_datetime",
+            "bonded_out": "outbound_release_datetime",
+            "t1_transit": "t1_closed_datetime",
+            "t1_bonded": "t1_inbound_release_datetime",
+        }
         for rec in self:
-            if rec.state != "clearancing":
-                raise ValidationError(_("Only Clearancing can be set to Clearanced."))
-            if not rec.waybill_id.ata or not rec.waybill_id.terminal_id:
-                raise ValidationError(_("Waybill ETA and Terminal of Arrival is required before Released."))
-            if not rec.vat_tax_no and not rec.clearance_receipt_no and not rec.eu_eori_no:
-                raise ValidationError(_("VAT Tax No, Clearance Receipt No, EU EORI No is required before Released."))
-            if not rec.clearance_finish_datetime:
-                raise ValidationError(_("Clearance Finish Date is required before Released."))
+            if rec.state not in ("open", "paying", "paid"):
+                raise ValidationError(_("Only Open, Paying or Paid can be set to Clearanced."))
+            if not rec.waybill_id.ata :
+                raise ValidationError(_("Waybill ETA  is required before Released."))
+            # if not rec.vat_tax_no and not rec.clearance_receipt_no and not rec.eu_eori_no:
+            #     raise ValidationError(_("VAT Tax No, Clearance Receipt No, EU EORI No is required before Released."))
+            # if not rec.clearance_finish_datetime:
+            #     raise ValidationError(_("Clearance Finish Date is required before Released."))
+            finish_field = finish_field_map[rec.clearance_type]
+            if not rec[finish_field]:
+                rec.write({finish_field: fields.Datetime.now()})
 
             rec.write({"state": "clearanced",})
             rec.sync_waybill_custom_clearance()
@@ -488,6 +498,11 @@ class OperationOrderClearance(models.Model):
                 vals["name"] = self.env["ir.sequence"].next_by_code("operation.order.clearance") or _("New")
         return super().create(vals_list)
 
+    def unlink(self):
+        for rec in self:
+            if rec.state != "open":
+                raise ValidationError(_("Only Open orders can be deleted."))
+        return super().unlink()
     # @api.onchange("waybill_id")
     # def _onchange_waybill_id(self):
     #     for rec in self:

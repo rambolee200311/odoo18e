@@ -12,7 +12,7 @@ class Waybill(models.Model):
     _name = "world.depot.waybill"
     _description = "Waybill"
     _inherit = ["mail.thread", "mail.activity.mixin"]
-    _rec_name = 'billno'
+    _rec_name = 'bl_number'
     _order = "id DESC"
 
     billno = fields.Char(string='BillNo', readonly=True)
@@ -78,7 +78,7 @@ class Waybill(models.Model):
     arrival_confirm_user_id = fields.Many2one("res.users", string="Arrival Confirm User", tracking=True, copy=False,
                                               readonly=True, index=True)
     arrival_confirm_time = fields.Datetime(string="Arrival Confirm Time", tracking=True, copy=False, readonly=True)
-    is_arrived = fields.Boolean(string="Is Arrived")
+    is_arrived = fields.Boolean(string="Is Arrived", compute="_compute_is_arrived", store=True)
 
     #逾期信息
     is_waybill_overdue = fields.Boolean(string="Is Waybill Overdue", compute="_compute_is_waybill_overdue")
@@ -96,6 +96,11 @@ class Waybill(models.Model):
         ("other", "Other"),
     ], string="Arrival Overdue Handle Result", tracking=True, copy=False)
     arrival_overdue_result_note = fields.Text(string="Arrival Overdue Result Note", tracking=True)
+
+    @api.depends("ata")
+    def _compute_is_arrived(self):
+        for rec in self:
+            rec.is_arrived = bool(rec.ata)
 
     @api.constrains(
         "arrival_overdue_reason", "arrival_overdue_reason_note",
@@ -145,14 +150,14 @@ class Waybill(models.Model):
             }
         }
 
-    @api.constrains('other_docs_ids')
-    def constrain_required_documents(self):
-        if self.env.context.get("skip_bl_required"):
-            return
-        for rec in self:
-            bl_lines = rec.other_docs_ids.filtered(lambda l: l.bill_doc_type == 'bl' and l.file)
-            if not bl_lines:
-                raise ValidationError(_("BL file is required."))
+    # @api.constrains('other_docs_ids')
+    # def constrain_required_documents(self):
+    #     if self.env.context.get("skip_bl_required"):
+    #         return
+    #     for rec in self:
+    #         bl_lines = rec.other_docs_ids.filtered(lambda l: l.bill_doc_type == 'bl' and l.file)
+    #         if not bl_lines:
+    #             raise ValidationError(_("BL file is required."))
 
     def name_get(self):
         res = []
@@ -261,10 +266,33 @@ class Waybill(models.Model):
             },
         }
 
-    def action_create_clearance_create_clearance(self):
+    def action_create_clearance_all_create(self):
+        env_clearance = self.env["operation.order.clearance"]
         for rec in self:
             if rec.state != "confirm":
                 raise UserError(_("Please change the status to confirm"))
+            if not rec.container_ids:
+                raise UserError(_("Please select at least one container."))
+
+            main_clearance = env_clearance.sudo().search([
+                ("waybill_id", "=", rec.id),
+                ("parent_id", "=", False),
+                ("state", "!=", "cancelled"),
+            ], limit=1)
+            if main_clearance:
+                raise UserError(_("Main clearance already exists."))
+
+            clearances = env_clearance.sudo().search([
+                ("waybill_id", "=", rec.id),
+                ("state", "!=", "cancelled"),
+            ])
+            used_ids = set(clearances.mapped("clearance_container_ids").ids)
+            selected_ids = set(rec.container_ids.ids)
+            duplicated_ids = selected_ids & used_ids
+            if duplicated_ids:
+                duplicated = self.env["world.depot.waybill.container"].sudo().browse(list(duplicated_ids))
+                nums = ", ".join(duplicated.mapped("container_number"))
+                raise UserError(_("These containers are already in clearance orders: %s") % nums)
 
             attachment_lines = [(0, 0, {
                 "doc_type": ln.bill_doc_type,
@@ -280,12 +308,13 @@ class Waybill(models.Model):
                 "is_fixed_fee": ln.is_fixed_fee,
             }) for ln in rec.quotation_id.quotation_customs_lines]
 
-            clearance_id = rec.env['operation.order.clearance'].sudo().create({
+            clearance_id = env_clearance.create({
                 'waybill_id': rec.id,
                 'project_id': rec.project.id,
                 'shipping_line_id': rec.shipping.id,
                 'handover_id': rec.handover_id.id,
-                'container_qty': rec.container_qty,
+                'container_qty': len(rec.container_ids),
+                'clearance_container_ids': [(6, 0, rec.container_ids.ids)],
                 "attachment_line_ids": attachment_lines,
                 "charge_line_ids": charge_lines,
             })
@@ -412,9 +441,9 @@ class WaybillContainer(models.Model):
             ('RF', 'RF'),
         ],
         string='Container Type',
-        required=True,
+
     )
-    weight = fields.Float(string='Weight (kg)', required=True)
+    weight = fields.Float(string='Weight (kg)')
 
 
 
@@ -423,7 +452,7 @@ class WaybillContainer(models.Model):
 
     volume = fields.Float(string='Volume (m³)', default=0.0)
     pallets = fields.Float(string='Pallets', default=0)
-    quantity = fields.Float(string='Packages', default=0)
+    quantity = fields.Float(string='Packages', default=1)
 
     mode = fields.Char(string='Model', help='Container mode, e.g., CY/CY, etc.')
     temperature = fields.Char(string='Temperature', help='Temperature control for refrigerated containers')
@@ -441,6 +470,7 @@ class WaybillContainer(models.Model):
 
     # 关联运单
     waybill_id = fields.Many2one('world.depot.waybill', string='Waybill BillNo', required=True, ondelete='cascade')
+    bl_number = fields.Char(string='Bill Number',related='waybill_id.bl_number',store=True)
 
     # 关联运单箱单
     packing_list_ids = fields.One2many('world.depot.waybill.packing.list', 'container_id', string='Packing Lists',

@@ -7,8 +7,8 @@
             <xpath expr="//field[@name='parent_id']" position="after">
                 <field name="account_account_id" options="{'no_create': True}"
                        domain="[('account_category', '=','expense')]"/>
-                <field name="tab_category" required="1"/>
-                <field name="is_leaf"/>
+<!--                <field name="tab_category" required="1"/>-->
+<!--                <field name="is_leaf"/>-->
                 <field name="operation_type"/>
                 <field name="charge_based_on_max"/>
             </xpath>

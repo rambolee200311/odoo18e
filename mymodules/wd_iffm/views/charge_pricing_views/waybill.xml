@@ -8,11 +8,9 @@
                 <field name="billno"/>
                 <field name="project"/>
                 <field name="bl_number"/>
-                <field name="hbl_number"/>
                 <field name="eta"/>
-                <field name="document_number"/>
-                <field name="reference_number"/>
                 <field name="state"/>
+                <field name="remark"/>
             </list>
         </field>
     </record>
@@ -62,18 +60,18 @@
                         </h2>
                     </div>
                     <div class="oe_button_box" name="button_box">
-                        <button name="action_open_arrival_wizard"
-                                string="Cargo Arrival Confirmation"
-                                type="object"
-                                class="oe_stat_button"
-                                icon="fa-film"
-                                invisible="is_arrived == True"/>
+                        <!--                        <button name="action_open_arrival_wizard"-->
+                        <!--                                string="Cargo Arrival Confirmation"-->
+                        <!--                                type="object"-->
+                        <!--                                class="oe_stat_button"-->
+                        <!--                                icon="fa-film"-->
+                        <!--                                invisible="is_arrived == True"/>-->
                         <button name="action_create_handover"
                                 type="object"
                                 string="Create Handover"
                                 class="oe_stat_button"
                                 icon="fa-film"/>
-                        <button name="action_create_clearance"
+                        <button name="action_create_clearance_all_create"
                                 type="object"
                                 string="Create Clearance"
                                 class="oe_stat_button"
@@ -89,24 +87,26 @@
                     <group col="2">
                         <group col="2" string="MAIN">
                             <field name="project" readonly="state!='new'"/>
-                            <field name="bl_number"/>
-                            <field name="hbl_number" readonly="state!='new'"/>
-                            <field name="obl_number" readonly="state!='new'"/>
-                            <field name="document_number" readonly="state!='new'"/>
+                            <field name="bl_number" required="1" readonly="state!='new'"/>
+                            <field name="hbl_number" readonly="state!='new'" invisible="1"/>
+                            <field name="obl_number" readonly="state!='new'" invisible="1"/>
+                            <field name="document_number" readonly="state!='new'" invisible="1"/>
                             <field name="reference_number" readonly="state!='new'"/>
                             <field name="shipping" readonly="state!='new'" required="1"
-                                   domain="[('is_shipping_line','=',True)]"/>
-                            <field name="shipper" readonly="state!='new'" domain="[('is_exporter','=',True)]"/>
-                            <field name="voyage_no" readonly="state!='new'"/>
-                            <field name="consignee" readonly="state!='new'" required="1"
-                                   domain="[('is_importer','=',True)]"/>
-                            <field name="notify_party" readonly="state!='new'" domain="[('is_notify_party','=',True)]"/>
+                                   domain="[('is_shipping_line','=',True)]" options="{'no_create': True}"/>
+                            <field name="shipper" readonly="state!='new'" domain="[('is_exporter','=',True)]"
+                                   invisible="1"/>
+                            <field name="voyage_no" readonly="state!='new'" invisible="1"/>
+                            <field name="consignee" readonly="state!='new'" required="0"
+                                   domain="[('is_importer','=',True)]" options="{'no_create': True}"/>
+                            <field name="notify_party" readonly="state!='new'" domain="[('is_notify_party','=',True)]"
+                                   invisible="1"/>
                         </group>
                         <group col="2" string="INFO">
                             <field name="handover_id" readonly="1"
                                    context="{'form_view_ref': 'wd_iffm.view_operation_order_handover_form'}"/>
-                            <!--                            <field name="clearance_id" readonly="1"-->
-                            <!--                                   context="{'form_view_ref': 'wd_iffm.operation_order_clearance_form_view'}"/>-->
+                            <field name="clearance_id" readonly="1"
+                                   context="{'form_view_ref': 'wd_iffm.operation_order_clearance_form_view'}"/>
                             <field name="arrival_overdue_reason" required="is_waybill_overdue==True"
                                    invisible="is_waybill_overdue == False"/>
                             <field name="arrival_overdue_reason_note" required="arrival_overdue_reason == 'other'"
@@ -116,24 +116,26 @@
                                    invisible="is_waybill_overdue == False"/>
                             <field name="arrival_overdue_result_note" required="arrival_overdue_result == 'other'"
                                    invisible="arrival_overdue_result != 'other'"/>
-                            <field name="customs_status" readonly="1"/>
-                            <field name="portbase_visit_status" readonly="1"/>
-                            <field name="portbase_last_sync_time" readonly="1"/>
-                            <field name="portbase_sync_message" readonly="1"/>
-                            <field name="eta" required="1"/>
-                            <field name="ata" readonly="1"/>
-                            <field name="port_id" required="1" domain="[('node_type', '=', 'port')]"/>
-                            <field name="terminal_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="creation_method" invisible="1"/>
+                            <field name="customs_status" readonly="1" invisible="creation_method != 'portbase'"/>
+                            <field name="portbase_visit_status" readonly="1" invisible="creation_method != 'portbase'"/>
+                            <field name="portbase_last_sync_time" readonly="1" invisible="1"/>
+                            <field name="portbase_sync_message" readonly="1" invisible="1"/>
+                            <field name="eta" required="1" readonly="state != 'new'"/>
+                            <field name="ata" readonly="release_received or custom_clearance"/>
+                            <field name="port_id" required="1" readonly="state != 'new'" domain="[('node_type', '=', 'port')]" options="{'no_create': True}"/>
+                            <field name="terminal_id" readonly="1" options="{'no_create': True, 'no_open': True}"
+                                   invisible="1"/>
                             <!--                            <field name="terminal_port" required="1"/>-->
                             <!--                            <field name="terminal_a" readonly="1"/>-->
-                            <field name="is_arrived" readonly="1"/>
+                            <!--                            <field name="is_arrived" readonly="1"/>-->
                             <field name="release_received" readonly="1"/>
                             <field name="custom_clearance" readonly="1"/>
                             <field name="remark"/>
                         </group>
                     </group>
                     <notebook>
-                        <page string="Documents">
+                        <page string="Documents" invisible="1">
                             <!--                            <field name="other_docs_ids" widget="one2many_list" context="{'default_waybill_id': id}"/>-->
                             <field name="other_docs_ids"
                                    context="{'default_waybill_id': id}">
@@ -146,10 +148,26 @@
                             </field>
                         </page>
                         <page string="Containers">
-                            <field name="container_ids" widget="one2many_list" context="{'default_waybill_id': id}"
-                                   readonly="state!='new'"/>
+                            <group>
+                                <button name="%(action_waybill_container_batch_create_wizard)d"
+                                        type="action"
+                                        string="Batch Create"
+                                        class="btn-secondary"
+                                        invisible="state != 'new'"
+                                        context="{'default_waybill_id': id}"/>
+                            </group>
+                            <field name="container_ids" context="{'default_waybill_id': id}" readonly="state!='new'">
+                                <list editable="bottom">
+                                    <field name="container_number"/>
+                                    <field name="container_type"/>
+                                    <field name="weight"/>
+                                    <field name="quantity"/>
+                                    <field name="loading_date"/>
+<!--                                    <field name="drop_off_date"/>-->
+                                </list>
+                            </field>
                         </page>
-                        <page string="Packing List">
+                        <page string="Packing List" invisible="1">
                             <field name="packing_list_ids" readonly="state!='new'"/>
                         </page>
 
@@ -287,17 +305,17 @@
             <list>
                 <field name="container_number"/>
                 <field name="container_type"/>
-                <field name="seal_number"/>
+                <!--                <field name="seal_number"/>-->
                 <field name="weight"/>
-                <field name="volume"/>
-                <field name="pallets"/>
+                <!--                <field name="volume"/>-->
+                <!--                <field name="pallets"/>-->
                 <field name="quantity"/>
                 <field name="loading_date"/>
                 <field name="drop_off_date"/>
-                <field name="portbase_release_valid_until"/>
-                <field name="portbase_gate_out_time"/>
-                <field name="portbase_inspection_status"/>
-                <field name="portbase_last_sync_time"/>
+                <!--                <field name="portbase_release_valid_until"/>-->
+                <!--                <field name="portbase_gate_out_time"/>-->
+                <!--                <field name="portbase_inspection_status"/>-->
+                <!--                <field name="portbase_last_sync_time"/>-->
             </list>
         </field>
     </record>
@@ -310,7 +328,7 @@
             <form class="wd_iffm_required_highlight">
                 <sheet>
                     <group string="Waybill">
-                        <field name="waybill_id" readonly="1"/>
+                        <field name="bl_number" readonly="1"/>
                     </group>
                     <group col="2" string="Information">
                         <group col="2">

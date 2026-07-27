@@ -4842,8 +4842,8 @@ msgstr "供应商发票附件"
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_clearance__invoice_line_ids
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__invoice_line_ids
-msgid "Vendor Invoice Lines"
-msgstr "供应商发票明细"
+msgid "Accrued expenses"
+msgstr "应付费用"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_clearance_invoice_line__vendor_invoice_num

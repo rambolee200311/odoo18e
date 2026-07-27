@@ -124,23 +124,23 @@ class OperationOrderHandover(models.Model):
     ], string="Overdue Handle Result", index=True, copy=False, tracking=True)
     overdue_result_note = fields.Text(string="Overdue Result Note", tracking=True, copy=False)
 
-    @api.onchange("do_issue_datetime", "attachment_line_ids")
-    def onchange_do_release_document_required(self):
-        self.check_do_release_document_required()
+    # @api.onchange("do_issue_datetime", "attachment_line_ids")
+    # def onchange_do_release_document_required(self):
+    #     self.check_do_release_document_required()
 
-    @api.constrains("do_issue_datetime", "attachment_line_ids")
-    def check_do_release_document_required(self):
-        for rec in self:
-            if not rec.do_issue_datetime:
-                continue
-
-            do_files = rec.attachment_line_ids.filtered(
-                lambda line: line.doc_type == "do" and line.file
-            )
-            if not do_files:
-                raise ValidationError(
-                    _("DO / Telex Release document is required when DO Issue Date is filled.")
-                )
+    # @api.constrains("do_issue_datetime", "attachment_line_ids")
+    # def check_do_release_document_required(self):
+    #     for rec in self:
+    #         if not rec.do_issue_datetime:
+    #             continue
+    #
+    #         do_files = rec.attachment_line_ids.filtered(
+    #             lambda line: line.doc_type == "do" and line.file
+    #         )
+    #         if not do_files:
+    #             raise ValidationError(
+    #                 _("DO / Telex Release document is required when DO Issue Date is filled.")
+    #             )
 
     @api.constrains("overdue_blocking_reason_id", "overdue_reason_note", "overdue_handle_result", "overdue_result_note")
     def check_handover_overdue_other_notes(self):
@@ -375,8 +375,11 @@ class OperationOrderHandover(models.Model):
     def action_released(self):
         for rec in self:
             rec.check_released_ready()
-            rec.write({"state": "released",
-                       })
+            vals = {"state": "released"}
+            if not rec.do_issue_datetime:
+                vals["do_issue_datetime"] = fields.Datetime.now()
+
+            rec.write(vals)
             rec.waybill_id.write({
                 "release_received": True
             })
@@ -419,14 +422,18 @@ class OperationOrderHandover(models.Model):
 
     def check_released_ready(self):
         for rec in self:
-            if rec.state != "releasing":
-                raise ValidationError(_("Only Releasing can be set to Released."))
-            if rec.get_required_doc_count("do") == 0:
-                raise ValidationError(_("DO / Telex Release document is required before Released."))
-            if not rec.waybill_id.ata or not rec.waybill_id.terminal_id:
-                raise ValidationError(_("Waybill ETA and Terminal of Arrival is required before Released."))
-            if not rec.do_issue_datetime:
-                raise ValidationError(_("Do issue date is required."))
+            can_release_without_invoice = rec.state == "open" and not rec.invoice_line_ids
+            if rec.state != "paid" and not can_release_without_invoice:
+                raise ValidationError(
+                    _("Only Paid handover or Open handover without vendor invoices can be set to Released.")
+                )
+            # if rec.get_required_doc_count("do") == 0:
+            #     raise ValidationError(_("DO / Telex Release document is required before Released."))
+            #if not rec.waybill_id.ata or not rec.waybill_id.terminal_id:
+            if not rec.waybill_id.ata:
+                raise ValidationError(_("Waybill ETA is required before Released."))
+            # if not rec.do_issue_datetime:
+            #     raise ValidationError(_("Do issue date is required."))
             if not rec.bl_release_type:
                 raise ValidationError(_("BL Release type is required."))
 
@@ -434,8 +441,8 @@ class OperationOrderHandover(models.Model):
         for rec in self:
             if rec.state != "released":
                 raise ValidationError(_("Only Released can be closed."))
-            if rec.get_required_doc_count("do") == 0:
-                raise ValidationError(_("DO / Telex Release document is required before Close."))
+            # if rec.get_required_doc_count("do") == 0:
+            #     raise ValidationError(_("DO / Telex Release document is required before Close."))
             if len(rec.charge_line_ids) == 0:
                 raise ValidationError(_("Charges are required before Close."))
 
@@ -446,7 +453,11 @@ class OperationOrderHandover(models.Model):
                 vals["name"] = self.env["ir.sequence"].next_by_code("operation.order.handover") or _("New")
         return super().create(vals_list)
 
-
+    def unlink(self):
+        for rec in self:
+            if rec.state != "open":
+                raise ValidationError(_("Only Open orders can be deleted."))
+        return super().unlink()
 class OperationOrderHandoverInvoiceLine(models.Model):
     _name = "operation.order.handover.invoice.line"
     _description = "Handover Vendor Invoice Line"
