@@ -757,6 +757,7 @@ class InboundOrderProduct(models.Model):
 class InboundOrderProductsPallet(models.Model):
     _inherit = "world.depot.inbound.order.products.pallet"
 
+    inbound_order_id = fields.Many2one('world.depot.inbound.order',related='inbound_order_product_id.inbound_order_id')
     creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import")], string="Creation Source", default="manual", readonly=True, copy=False)
     source_product_code = fields.Char(string="Source Product Code", copy=False, index=True)
     product_ean = fields.Char(string="Product EAN", copy=False, index=True)

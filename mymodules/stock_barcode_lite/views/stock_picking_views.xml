@@ -30,11 +30,11 @@
             <xpath expr="//list/field[@name='quantity']" position="after">
                 <field name="outbound_scanned_quantity"
                        string="Outbound Scanned Quantity"
-                       readonly="1"
+                       readonly="0"
                        column_invisible="context.get('picking_code') != 'outgoing'"/>
                 <field name="is_outbound_scanned"
                        string="Outbound Scanned"
-                       readonly="1"
+                       readonly="0"
                        column_invisible="context.get('picking_code') != 'outgoing'"/>
                 <field name="is_location_updated"
                        string="Location Updated"

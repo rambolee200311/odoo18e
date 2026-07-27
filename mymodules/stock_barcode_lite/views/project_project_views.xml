@@ -8,9 +8,10 @@
             <xpath expr="//field[@name='is_check_origin_doc']" position="before">
                 <field name="warehouse" options="{'no_create': True, 'no_open': True}"/>
                 <field name="package_generation_mode"/>
+                <field name="barcode_scan_mode" required="1"/>
                 <field name="inbound_pick_type" domain = "[('code', '=', 'incoming'),
                      ('warehouse_id', '=', warehouse),
-                     ('warehouse_id', '!=', False)]" options="{'no_create': True, 'no_open': False}"/>}
+                     ('warehouse_id', '!=', False)]" options="{'no_create': True, 'no_open': False}"/>
                 <field name="outbound_pick_type" domain = "[('code', 'in',  ['outgoing', 'internal']),
                      ('warehouse_id', '=', warehouse),
                      ('warehouse_id', '!=', False)]" options="{'no_create': True, 'no_open': False}"/>

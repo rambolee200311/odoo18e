@@ -49,7 +49,7 @@ class InboundOrder(models.Model):
                                 stored=True)
     remark = fields.Text(string='Remark')
     remark1 = fields.Text(string='Remark 1')
-    reference = fields.Char(string='Reference', help='Reference for the Order No of Owner', required=True)
+    reference = fields.Char(string='Reference', help='Reference for the Order No of Owner')
     bl_no = fields.Char(string='Bill of Lading')
     invoice_no = fields.Char(string='Invoice No')
     cntr_no = fields.Char(string='Container No')
