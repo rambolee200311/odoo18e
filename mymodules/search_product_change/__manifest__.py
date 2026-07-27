@@ -26,6 +26,7 @@ Long description of module's purpose
         'security/stock_security.xml',
         'views/views.xml',
         'views/modify_lot_name_views.xml',
+        'views/project_action_views.xml',
 
     ],
     'license': 'LGPL-3',
