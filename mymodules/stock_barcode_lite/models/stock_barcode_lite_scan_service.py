@@ -228,8 +228,6 @@ class StockBarcodeLiteScanService(models.AbstractModel):
 
         package_model = self.env["stock.quant.package"]
         package = package_model.sudo().search([("barcode", "=", code)], limit=1)
-        if not package:
-            package = package_model.sudo().search([("name", "=", code)], limit=1)
         return package
 
     @api.model

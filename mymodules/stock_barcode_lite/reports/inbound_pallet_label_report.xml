@@ -26,6 +26,16 @@
         <field name="binding_type">report</field>
     </record>
 
+    <record id="action_print_selected_sunrise_pallet_labels" model="ir.actions.server">
+        <field name="name">Print Selected Pallet Labels</field>
+        <field name="model_id" ref="worlddepot.model_world_depot_inbound_order_product"/>
+        <field name="binding_model_id" ref="worlddepot.model_world_depot_inbound_order_product"/>
+        <field name="binding_type">report</field>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">action = records.action_print_selected_sunrise_pallet_labels()</field>
+    </record>
+
     <template id="report_inbound_pallet_label_header">
         <p class="inbound-label-title">World Depot B.V.</p>
         <div class="inbound-label-header">
@@ -60,7 +70,7 @@
                     <td class="inbound-label-header-qr">
                         <t t-if="pallet and pallet.package_id and pallet.package_id.barcode">
                             <div t-field="pallet.package_id.barcode"
-                                 t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 320, 'height': 320, 'img_style': 'width:220px;height:220px;', 'img_class': 'keep-no-break'}"/>
+                                 t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 380, 'height': 380, 'img_style': 'width:260px;height:260px;', 'img_class': 'keep-no-break'}"/>
                             <div class="inbound-label-qr-caption">Pallet QR Code</div>
                         </t>
                     </td>
@@ -127,7 +137,8 @@
                         }
 
                         .inbound-label-subtitle {
-                            font-size: 25px;
+                            font-size: 30px;
+                            padding: 12px 0 12px;
                             font-weight: bold;
                             margin: 0;
                         }
@@ -148,13 +159,13 @@
 
                         .inbound-label-header-main {
                             min-width: 0;
-                            height: 236px;
+                            height: 276px;
                         }
 
                         .inbound-label-header-qr {
-                            width: 230px;
-                            min-width: 230px;
-                            max-width: 230px;
+                            width: 270px;
+                            min-width: 270px;
+                            max-width: 270px;
                             text-align: right;
                             page-break-inside: avoid;
                             break-inside: avoid;
@@ -179,9 +190,10 @@
                         }
 
                         .inbound-label-product-qr {
-                            width: 160px;
+                            width: 240px;
                             padding: 0;
                             vertical-align: middle;
+                            text-align: center;
                         }
 
                         .inbound-label-qr-caption {
@@ -205,12 +217,6 @@
                             word-break: break-word;
                         }
 
-                        .inbound-label-product-name-label {
-                            display: inline;
-                            margin-right: 10px;
-                            font-size: 20px;
-                        }
-
                         .inbound-label-lot-code {
                             margin-top: 10px;
                             page-break-inside: avoid;
@@ -226,7 +232,7 @@
                             padding: 0;
                             vertical-align: middle;
                             text-align: left;
-                            font-size: 22px;
+                            font-size: 24px;
                             font-weight: bold;
                             line-height: 1.5;
                         }
@@ -238,11 +244,11 @@
 
                         .inbound-label-lot-info-table td {
                             border: 1px solid #111827;
-                            padding: 4px 10px;
+                            padding: 8px 12px;
                         }
 
                         .inbound-label-lot-label {
-                            width: 150px;
+                            width: 200px;
                             white-space: nowrap;
                         }
 
@@ -319,8 +325,8 @@
                         .product-table th,
                         .product-table td {
                             border: 1px solid #d1d5db;
-                            padding: 9px;
-                            font-size: 18px;
+                            padding: 15px;
+                            font-size: 20px;
                             font-weight: bold;
                         }
 
@@ -332,7 +338,7 @@
 
                         .product-table .frame-top-spacer,
                         .product-table .frame-bottom-spacer {
-                            height: 8px;
+                            height: 12px;
                             padding: 0;
                             border: 0 !important;
                             background: #ffffff;
@@ -340,16 +346,16 @@
                         }
 
                         .product-table .frame-bottom-spacer {
-                            height: 14px;
+                            height: 20px;
                         }
 
                         .product-table .frame-gutter,
                         .product-table .frame-gutter-col {
-                            width: 14px;
+                            width: 18px;
                         }
 
                         .product-table .frame-gutter {
-                            min-width: 14px;
+                            min-width: 18px;
                             padding: 0;
                             border-top: 1px hidden transparent !important;
                             border-bottom: 1px hidden transparent !important;
@@ -387,8 +393,9 @@
                         }
                     </style>
 
-                    <t t-if="o.inbound_order_product_ids">
-                        <t t-foreach="o.inbound_order_product_ids" t-as="pallet">
+                    <t t-set="pallets" t-value="pallets_by_order.get(o.id, o.inbound_order_product_ids)"/>
+                    <t t-if="pallets">
+                        <t t-foreach="pallets" t-as="pallet">
                             <div t-attf-class="page inbound-label-page {{ '' if pallet_index == 0 else 'pallet-label-page' }}">
                                 <t t-call="stock_barcode_lite.report_inbound_pallet_label_header"/>
                                 <div class="inbound-label-product-code">
@@ -398,14 +405,13 @@
                                             <td class="inbound-label-product-qr">
                                                 <t t-if="full_product_line and full_product_line.product_id.barcode">
                                                     <div t-field="full_product_line.product_id.barcode"
-                                                         t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 220, 'height': 220, 'img_style': 'width:150px;height:150px;', 'img_class': 'keep-no-break'}"/>
+                                                         t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 320, 'height': 320, 'img_style': 'width:230px;height:230px;', 'img_class': 'keep-no-break'}"/>
                                                     <div class="inbound-label-qr-caption">Product QR Code</div>
                                                 </t>
                                             </td>
                                             <td class="inbound-label-product-name">
                                                 <t t-set="product_line" t-value="full_product_line or pallet.inbound_order_product_pallet_ids[:1]"/>
                                                 <t t-if="product_line">
-                                                    <span class="inbound-label-product-name-label">Product Name:</span>
                                                     <span class="inbound-label-variable-value" t-esc="product_line.product_id.display_name"/>
                                                 </t>
                                             </td>
@@ -481,7 +487,7 @@
                                             <td class="inbound-label-lot-qr">
                                                 <t t-if="lot_line.lot_name">
                                                     <div t-out="lot_line.lot_name"
-                                                         t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 180, 'height': 180, 'img_style': 'width:130px;height:130px;', 'img_class': 'keep-no-break'}"/>
+                                                         t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 260, 'height': 260, 'img_style': 'width:180px;height:180px;', 'img_class': 'keep-no-break'}"/>
                                                     <div class="inbound-label-qr-caption">Lot QR Code</div>
                                                 </t>
                                             </td>

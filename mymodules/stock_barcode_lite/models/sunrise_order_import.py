@@ -28,6 +28,8 @@ class SunriseOrderImport(models.Model):
     import_type = fields.Selection([("inbound", "Inbound"), ("outbound", "Outbound")], string="Import Type", required=True, copy=False, index=True)
     inbound_order_id = fields.Many2one("world.depot.inbound.order", string="Inbound Order", copy=False, index=True)
     outbound_order_id = fields.Many2one("world.depot.outbound.order", string="Outbound Order", copy=False, index=True)
+    reuse_existing_packages = fields.Boolean(string="Use Reuse Existing Packages", default=False, copy=False, index=True)
+    reuse_source_inbound_order_line_ids = fields.Many2many("world.depot.inbound.order", "stock_barcode_lite_sunrise_import_source_inbound_rel", "import_id", "inbound_order_id", string="Reuse Source Inbound Orders", copy=False)
     filename = fields.Char(string="Filename", copy=False)
     state = fields.Selection([("draft", "Draft"), ("done", "Done"), ("partial", "Partial"), ("failed", "Failed")], string="State", default="draft", required=True, copy=False, index=True)
     total_count = fields.Integer(string="Total Count", copy=False)
@@ -621,11 +623,23 @@ class SunriseOrderImportLine(models.Model):
     def find_sunrise_reused_inbound_package(self, inbound_order, product_code, is_lot, lot_name, pallet_no):
         pallet_model = self.env["world.depot.inbound.order.product"]
         package_model = self.env["stock.quant.package"]
+        if not self.import_id.reuse_existing_packages:
+            return package_model
+
+        reuse_source_inbound_orders = self.import_id.reuse_source_inbound_order_line_ids.sudo()
+        if not reuse_source_inbound_orders:
+            raise UserError(_("Row %s: select at least one source inbound order when reusing existing packages.") % self.row_number)
+        invalid_reuse_source_inbound_orders = reuse_source_inbound_orders.filtered(
+            lambda order: order.id == inbound_order.id
+            or order.project.id != inbound_order.project.id
+            or order.state != "confirm"
+        )
+        if invalid_reuse_source_inbound_orders:
+            raise UserError(_("Row %s: source inbound orders must be confirmed, in the same project, and different from the current inbound order.") % self.row_number)
+
         expected_key = self.get_sunrise_pallet_group_key(product_code, is_lot, lot_name, pallet_no)
         candidates = pallet_model.sudo().search([
-            ("inbound_order_id", "!=", inbound_order.id),
-            ("inbound_order_id.project", "=", inbound_order.project.id),
-            ("inbound_order_id.state", "=", "confirm"),
+            ("inbound_order_id", "in", reuse_source_inbound_orders.ids),
             ("pallet_no", "=", expected_key[2]),
             ("package_id", "!=", False),
         ])
@@ -649,13 +663,13 @@ class SunriseOrderImportLine(models.Model):
         if not package_ids:
             if self.package_barcode:
                 raise UserError(
-                    _('Row %s: package_barcode "%s" does not match a confirmed inbound pallet for this project.')
+                    _('Row %s: package_barcode "%s" does not match a confirmed inbound pallet in the selected source inbound orders.')
                     % (self.row_number, self.package_barcode)
                 )
             return package_model
         if len(package_ids) > 1:
             raise UserError(
-                _('Row %s: multiple existing packages match product "%s", lot "%s", and pallet_no "%s". Please fill package_barcode.')
+                _('Row %s: multiple existing packages match product "%s", lot "%s", and pallet_no "%s" in the selected source inbound orders. Please fill package_barcode.')
                 % (self.row_number, expected_key[0], expected_key[1], expected_key[2])
             )
         return package_model.browse(next(iter(package_ids)))

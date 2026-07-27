@@ -38,6 +38,8 @@
                         <group>
                             <field name="inbound_order_id" readonly="1" invisible="import_type != 'inbound'" options="{'no_create': True, 'no_open': True}"/>
                             <field name="outbound_order_id" readonly="1" invisible="import_type != 'outbound'" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="reuse_existing_packages" readonly="1" invisible="import_type != 'inbound'"/>
+                            <field name="reuse_source_inbound_order_line_ids" widget="many2many_tags" required="reuse_existing_packages" readonly="1" invisible="import_type != 'inbound' or not reuse_existing_packages" options="{'no_create': True, 'no_open': True}"/>
                             <field name="total_count" readonly="1"/>
                             <field name="success_count" readonly="1"/>
                             <field name="failed_count" readonly="1"/>

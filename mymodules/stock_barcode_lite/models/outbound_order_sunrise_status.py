@@ -105,7 +105,7 @@ class OutboundOrderSunrise(models.Model):
         parentvo.update({
             "dbilldate": self.get_sunrise_date_text(rec.date),
             "vnote": rec.load_ref or rec.remark or rec.reference or "",
-            #"vuserdef14": rec.load_ref or "",
+            "vuserdef14": rec.load_ref if rec.u8c_delivery_method == "wd" and rec.delivery_method == "parcel" else "",
             "vuserdef17": self.get_sunrise_date_text(rec.p_date),
             "vuserdef5": delivery_method,
 
