@@ -16,6 +16,26 @@ class InboundOrder(models.Model):
     vsourcebillcode = fields.Char(string="Source Bill Code", copy=False, index=True)
     project_package_generation_mode = fields.Selection(related="project.package_generation_mode", string="Package Generation Mode", readonly=True)
 
+    def action_open_sunrise_inbound_pallet_products(self):
+        for rec in self:
+            if rec.project_name != "SUNRISE":
+                raise UserError(_("Only SUNRISE inbound orders can open pallet products."))
+
+            return {
+                "type": "ir.actions.act_window",
+                "name": _("Pallet Products"),
+                "res_model": "world.depot.inbound.order.products.pallet",
+                "view_mode": "list,form",
+                "views": [(False, "list"), (False, "form")],
+                "domain": [
+                    ("inbound_order_product_id.inbound_order_id", "=", rec.id),
+                ],
+                "context": {
+                    "list_view_ref": "stock_barcode_lite.view_stock_barcode_lite_sunrise_inbound_pallet_product_list",
+                    "form_view_ref": "stock_barcode_lite.view_stock_barcode_lite_sunrise_inbound_pallet_product_form",
+                },
+            }
+        return False
     def action_confirm(self):
         for rec in self:
             if rec.project.name == "SUNRISE":
@@ -758,6 +778,8 @@ class InboundOrderProductsPallet(models.Model):
     _inherit = "world.depot.inbound.order.products.pallet"
 
     inbound_order_id = fields.Many2one('world.depot.inbound.order',related='inbound_order_product_id.inbound_order_id')
+    pallet_no = fields.Char(related="inbound_order_product_id.pallet_no", string="Pallet No", store=True, readonly=True,
+                            index=True)
     creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import")], string="Creation Source", default="manual", readonly=True, copy=False)
     source_product_code = fields.Char(string="Source Product Code", copy=False, index=True)
     product_ean = fields.Char(string="Product EAN", copy=False, index=True)

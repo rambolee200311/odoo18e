@@ -29,6 +29,10 @@
             <xpath expr="//field[@name='picking_Out_date']" position="attributes">
                 <attribute name="invisible">project_name == 'SUNRISE'</attribute>
             </xpath>
+            <xpath expr="//field[@name='outbound_order_product_ids']/list/field[@name='quantity']"
+                   position="attributes">
+                <attribute name="sum">Total Quantity</attribute>
+            </xpath>
             <xpath expr="//field[@name='is_adr']" position="before">
                 <field name="vsourcebillcode" readonly="state != 'new'" invisible="project_name != 'SUNRISE'"/>
                 <field name="cwarehouseid" readonly="state != 'new'" invisible="project_name !='SUNRISE'"/>
@@ -40,13 +44,14 @@
                 <field name="partial_pallet_picking_id" readonly="1" invisible="project_name !='SUNRISE'"/>
                 <field name="outgoing_picking_lines" readonly="1" invisible="project_name != 'SUNRISE'"
                        widget="many2many_tags"/>
-                <field name="o_date" string = 'Manual Outbound Date' invisible="project_name != 'SUNRISE'" readonly="set_sunrise_outbound_sync == True"
+                <field name="o_date" string='Manual Outbound Date' invisible="project_name != 'SUNRISE'"
+                       readonly="set_sunrise_outbound_sync == True"
                        help="If filled in, the system will report the outbound transaction using this date and time. If left blank, it will use the outbound pick validation time."/>
             </xpath>
             <xpath expr="//field[@name='delivery_method']" position="after">
                 <field name="u8c_delivery_method" readonly="1" required="project_name == 'SUNRISE'"
                        invisible="project_name != 'SUNRISE'"/>
-                <field name="time_slot"  readonly="state in ('confirm', 'cancel')"
+                <field name="time_slot" readonly="state in ('confirm', 'cancel')"
                        required="u8c_delivery_method  == 'pickup' and project_name == 'SUNRISE'"
                        invisible="project_name !='SUNRISE'or u8c_delivery_method  != 'pickup'"/>
             </xpath>
@@ -59,7 +64,11 @@
                         icon="fa-file-text"
                         invisible="project_name !='SUNRISE'"/>
             </xpath>
-
+            <xpath expr="//field[@name='outbound_order_product_ids']" position="after">
+                <group invisible="project_name != 'SUNRISE'">
+                    <field name="sunrise_pallet_count" readonly="1"/>
+                </group>
+            </xpath>
             <xpath expr="//field[@name='outbound_order_product_ids']/list/field[@name='product_id']" position="after">
                 <!--                <field name="de_palletize" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>-->
                 <field name="package_id" optional="show" column_invisible="parent.project_name !='SUNRISE'"
@@ -75,7 +84,8 @@
                 <field name="box_type" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="box_qty" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="box_in_qty" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
-                <field name="ninnum" optional="hide" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="ninnum" sum="Total PCS" optional="hide"
+                       column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="u8_aux_qty" optional="hide" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="u8_conversion_rate" optional="hide" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="castunitid" optional="hide" column_invisible="parent.project_name !='SUNRISE'"/>
