@@ -178,8 +178,8 @@
 
                     <button name="action_close" type="object" string="Close" class="btn-success"
                             invisible="state == 'close'"/>
-                    <button name="action_recompute_state" type="object" string="Recompute State"
-                            invisible="state == 'close'"/>
+<!--                    <button name="action_recompute_state" type="object" string="Recompute State"-->
+<!--                            invisible="state == 'close'"/>-->
                     <field name="state" widget="statusbar"
                            statusbar_visible="open,paying,paid,close"/>
                 </header>
@@ -197,21 +197,21 @@
                             <field name="parent_id" readonly="1"
                                    context="{'form_view_ref': 'wd_iffm.operation_order_clearance_form_view'}"/>
                             <field name="container_qty" required="1" readonly="1"/>
-                            <field name="extra_reason" required="1"/>
+                            <field name="extra_reason" required="1" readonly="state == 'close'"/>
                             <field name="extra_remark"
                                    invisible="extra_reason != 'other'"
-                                   required="extra_reason == 'other'"/>
-                            <field name="actual_datetime" required="1"/>
+                                   required="extra_reason == 'other'" readonly="state == 'close'"/>
+                            <field name="actual_datetime" required="1" readonly="state == 'close'"/>
 
 
                         </group>
 
 
-                        <group>
-                            <field name="bl_number" readonly="1"/>
-                            <field name="hbl_number" readonly="1"/>
-                            <field name="obl_number" readonly="1"/>
-                        </group>
+<!--                        <group>-->
+<!--                            <field name="bl_number" readonly="1"/>-->
+<!--&lt;!&ndash;                            <field name="hbl_number" readonly="1"/>&ndash;&gt;-->
+<!--&lt;!&ndash;                            <field name="obl_number" readonly="1"/>&ndash;&gt;-->
+<!--                        </group>-->
 
                     </group>
 
@@ -266,18 +266,18 @@
                         </page>
 
                         <!-- Tab 2: Documents -->
-                        <page string="Documents">
-                            <field name="attachment_line_ids" readonly="1">
-                                <list editable="bottom">
-                                    <field name="doc_type"/>
-                                    <field name="name"/>
-                                    <field name="file" widget="binary"/>
-                                    <field name="upload_time"/>
-                                    <field name="upload_user_id"/>
-                                    <field name="remark"/>
-                                </list>
-                            </field>
-                        </page>
+<!--                        <page string="Documents">-->
+<!--                            <field name="attachment_line_ids" readonly="1">-->
+<!--                                <list editable="bottom">-->
+<!--                                    <field name="doc_type"/>-->
+<!--                                    <field name="name"/>-->
+<!--                                    <field name="file" widget="binary"/>-->
+<!--                                    <field name="upload_time"/>-->
+<!--                                    <field name="upload_user_id"/>-->
+<!--                                    <field name="remark"/>-->
+<!--                                </list>-->
+<!--                            </field>-->
+<!--                        </page>-->
 
                         <!-- Tab 3: Containers (read only from waybill) -->
                         <page string="Containers">
