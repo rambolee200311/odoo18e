@@ -11,6 +11,7 @@ class StockPicking(models.Model):
     outbound_scan_mode = fields.Selection([("whole_pallet", "Whole Pallet"), ("partial_pallet", "Partial Pallet")],
                                           string="Outbound Scan Mode", copy=False, index=True)
     project_name = fields.Char(string='Project Name', related='project_id.name',stored=True)
+    barcode_scan_mode = fields.Selection(related='project_id.barcode_scan_mode', store=True)
 
     def check_native_barcode_scan_allowed(self):
         for rec in self:
