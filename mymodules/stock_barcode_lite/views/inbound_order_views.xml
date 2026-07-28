@@ -37,11 +37,20 @@
 
                 </div>
             </xpath>
+            <xpath expr="//button[@name='view_inbound_order_product_details']" position="attributes">
+                <attribute name="invisible">project_name == 'SUNRISE'</attribute>
+            </xpath>
             <xpath expr="//button[@name='view_inbound_order_product_details']" position='before'>
+                <button name="action_open_sunrise_inbound_pallet_products"
+                        type="object"
+                        string="Pallet Products"
+                        class="btn btn-primary ms-3"
+                        icon="fa-list"
+                        invisible="project_name != 'SUNRISE' or not inbound_order_product_ids"/>
                 <button name="action_open_sunrise_pallet_label_list"
                         type="object"
                         string="Open Pallet List"
-                        class="btn btn-primary ms-3"
+                        class="btn btn-primary"
                         icon="fa-print"
                         invisible="state != 'confirm' or project_name != 'SUNRISE'"/>
             </xpath>
@@ -158,6 +167,7 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='product_id']" position="after">
                 <field name="inbound_order_id"/>
+                <field name="pallet_no"/>
                 <field name="source_product_code" optional="hide" invisible="project_name != 'SUNRISE'"/>
                 <field name="cprojectid" optional="hide" invisible="project_name != 'SUNRISE'"/>
                 <field name="ndiscounttaxtype" optional="hide" invisible="project_name != 'SUNRISE'"/>
@@ -230,6 +240,7 @@
                                    options="{'no_create': True, 'no_open': True}"/>
                             <field name="product_id"
                                    options="{'no_create': True, 'no_open': True}"/>
+
                             <field name="source_product_code"/>
                             <field name="lot_name"/>
                             <field name="box_type"/>
@@ -238,6 +249,7 @@
                             <field name="ninnum"/>
                         </group>
                         <group>
+                            <field name="pallet_no"/>
                             <field name="cspaceid"/>
                             <field name="castunitid"/>
                             <field name="u8_aux_uom_name"/>
@@ -253,6 +265,33 @@
             </form>
         </field>
     </record>
+    <record id="view_stock_barcode_lite_sunrise_inbound_pallet_product_list"
+            model="ir.ui.view">
+        <field name="name">stock.barcode.lite.sunrise.inbound.pallet.product.list</field>
+        <field name="model">world.depot.inbound.order.products.pallet</field>
+        <field name="arch" type="xml">
+            <list string="Sunrise Pallet Products" create="false" delete="false">
+                <field name="inbound_order_id"
+                       options="{'no_create': True, 'no_open': True}"/>
+                <field name="vsourcebillcode"/>
+                <field name="pallet_no"/>
+                <field name="product_id"
+                       options="{'no_create': True, 'no_open': True}"/>
+                <field name="lot_name"/>
+                <field name="box_type"/>
+                <field name="box_in_qty"/>
+                <field name="box_qty"/>
+                <field name="ninnum"/>
+                <field name="cspaceid"/>
+                <field name="m_date" optional="hide"/>
+                <field name="e_date" optional="hide"/>
+                <field name="castunitid" optional="hide"/>
+
+
+            </list>
+        </field>
+    </record>
+
     <record id="view_stock_barcode_lite_sunrise_inbound_pallet_search" model="ir.ui.view">
         <field name="name">stock.barcode.lite.sunrise.inbound.pallet.search</field>
         <field name="model">world.depot.inbound.order.products.pallet</field>
@@ -261,6 +300,7 @@
                 <field name="source_product_code"/>
                 <field name="product_id" options="{'no_create': True, 'no_open': True}"/>
                 <field name="lot_name"/>
+                <field name="pallet_no"/>
 
                 <group expand="0" string="Group By">
                     <filter string="Product" name="group_by_product" context="{'group_by': 'product_id'}"/>
@@ -275,12 +315,17 @@
         <field name="name">Pallet Products action</field>
         <field name="res_model">world.depot.inbound.order.products.pallet</field>
         <field name="view_mode">list,form</field>
-       <field name="view_ids"
-                   eval="[(5, 0, 0),
-                          (0, 0, {'view_mode': 'list', 'view_id': ref('worlddepot.view_inbound_order_product_pallet_tree')}),
+        <field name="view_ids"
+               eval="[(5, 0, 0),
+                          (0, 0, {'view_mode': 'list', 'view_id': ref('view_stock_barcode_lite_sunrise_inbound_pallet_product_list')}),
                           (0, 0, {'view_mode': 'form', 'view_id': ref('view_stock_barcode_lite_sunrise_inbound_pallet_product_form')})]"/>
         <field name="search_view_id" ref="view_stock_barcode_lite_sunrise_inbound_pallet_search"/>
-        <field name="domain">[('project.name', '=', 'SUNRISE')]</field>
+        <field name="domain">
+            [
+                ('project.name', '=', 'SUNRISE'),
+                ('inbound_order_product_id.inbound_order_id.state', '!=', 'cancel')
+            ]
+        </field>
         <field name="context">{'create': False, 'delete': False}</field>
     </record>
 
