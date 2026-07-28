@@ -213,7 +213,8 @@ class OperationOrderHandover(models.Model):
         for rec in self:
             if rec.parent_id:
                 raise ValidationError(_("Only the main switch bill can create a sub-switch bill."))
-
+            if rec.state != "close":
+                raise ValidationError(_("The main handover must be closed before creating a child handover."))
             child_count = env_handover.sudo().search_count([("parent_id", "=", rec.id)]) + 1
 
             vals = {

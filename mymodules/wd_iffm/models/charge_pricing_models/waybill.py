@@ -125,14 +125,7 @@ class Waybill(models.Model):
             else:
                 rec.is_waybill_overdue = rec.eta < today
 
-    def action_done_order(self):
-        for rec in self:
-            if rec.state != "confirm":
-                raise UserError(_("Only confirmed waybill can be done."))
-            if not rec.release_received or not rec.custom_clearance:
-                raise UserError(_("Release Received and Custom Clearance must both be completed before Done."))
-            rec.write({"state": "done"})
-        return True
+
 
     def action_open_arrival_wizard(self):
         for rec in self:
@@ -349,33 +342,82 @@ class Waybill(models.Model):
 
         return super().create(vals_list)
 
+    def action_done_order(self):
+        for rec in self:
+            if rec.state != "confirm":
+                raise UserError(_("Only confirmed waybill can be done."))
+            if not rec.release_received or not rec.custom_clearance:
+                raise UserError(_("Release Received and Custom Clearance must both be completed before Done."))
+            rec.write({"state": "done"})
+        return True
     def action_confirm_order(self):
         for rec in self:
             if rec.state != 'new':
                 raise UserError(_("You only can confirm New Order"))
-            else:
-                if not rec.project.quotation_id:
-                    raise UserError(_("Please create quotation first"))
-                rec.state = 'confirm'
-                return True
+
+            if not rec.project.quotation_id:
+                raise UserError(_("Please create quotation first"))
+            if not rec.container_ids:
+                raise UserError(_("Please create container first"))
+            rec.state = 'confirm'
+            return True
 
     def action_unconfirm_order(self):
+        env_handover = self.env["operation.order.handover"]
+        env_clearance = self.env["operation.order.clearance"]
+
+        # if not self.env.user.has_group("base.group_system"):
+        #     raise UserError(_("Only administrators can unconfirm waybills."))
+
         for rec in self:
-            if rec.state != 'confirm':
-                raise UserError(_("You only can unconfirm Confirmed Order"))
-            # elif not rec.container_ids:
-            #     raise UserError(_("Please create container first"))
-            else:
-                rec.state = 'new'
-                return True
+            if rec.state != "confirm":
+                raise UserError(_("Only confirmed waybills can be unconfirmed."))
+
+            handover_count = env_handover.sudo().search_count([
+                ("waybill_id", "=", rec.id),
+                ("state", "!=", "cancelled"),
+            ])
+            clearance_count = env_clearance.sudo().search_count([
+                ("waybill_id", "=", rec.id),
+                ("state", "!=", "cancelled"),
+            ])
+            if handover_count or clearance_count:
+                raise UserError(
+                    _("Waybills with active handover or clearance orders cannot be unconfirmed.")
+                )
+
+            rec.write({"state": "new"})
+
+        return True
 
     def action_cancel_order(self):
+        env_handover = self.env["operation.order.handover"]
+        env_clearance = self.env["operation.order.clearance"]
+
+        # if not self.env.user.has_group("base.group_system"):
+        #     raise UserError(_("Only administrators can cancel waybills."))
+
         for rec in self:
-            if rec.state != 'new':
-                raise UserError(_("You only can cancel New Order"))
-            else:
-                rec.state = 'cancel'
-                return True
+            if rec.state != "new":
+                raise UserError(_("Only new waybills can be cancelled."))
+            handover_count = env_handover.sudo().search_count([
+                ("waybill_id", "=", rec.id),
+                ("state", "!=", "cancelled"),
+            ])
+            clearance_count = env_clearance.sudo().search_count([
+                ("waybill_id", "=", rec.id),
+                ("state", "!=", "cancelled"),
+            ])
+            if handover_count or clearance_count:
+                raise UserError(
+                    _("Waybills with active handover or clearance orders cannot be cancelled.")
+                )
+
+            rec.write({
+                "state": "cancel",
+            })
+
+        return True
 
         # check waybillno unique
 

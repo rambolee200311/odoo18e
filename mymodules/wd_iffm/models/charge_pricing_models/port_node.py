@@ -35,7 +35,7 @@ class WorldDepotPortNode(models.Model):
         for rec in self:
             if rec.parent_id and rec.parent_id.id == rec.id:
                 raise ValidationError(_("Parent node cannot be itself."))
-            if not rec._check_recursion():
+            if rec._has_cycle("parent_id"):
                 raise ValidationError(_("Hierarchy recursion is not allowed."))
 
     @api.constrains("node_type", "parent_id", "child_lines")

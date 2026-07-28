@@ -270,7 +270,8 @@ class OperationOrderClearance(models.Model):
         for rec in self:
             if rec.parent_id:
                 raise ValidationError(_("Only the main customs clearance can create sub-customs clearances."))
-
+            if rec.state != "close":
+                raise ValidationError(_("The main clearance must be closed before creating a child clearance."))
             child_count = env_clearance.sudo().search_count([("parent_id", "=", rec.id)]) + 1
 
             vals = {
