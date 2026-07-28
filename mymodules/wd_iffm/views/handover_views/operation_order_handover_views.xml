@@ -89,7 +89,7 @@
                         <group>
                             <field name="do_no" readonly="state == 'close'"/>
                             <field name="bl_release_type" readonly="state in ('close','released')"/>
-                            <field name="do_issue_datetime" readonly="state in ('released','close')"/>
+<!--                            <field name="do_issue_datetime" readonly="state in ('released','close')"/>-->
                         </group>
 
                         <!--                            <field name="bl_release_type" readonly="state in ('close','released')"/>-->

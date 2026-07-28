@@ -84,7 +84,7 @@
         <!-- Menu -->
         <menuitem id="menu_portbase_webhook_log"
                   name="Portbase Webhook Logs"
-                  parent="waybill_logi_menu"
+                  parent="menu_wd_base_config"
                   action="action_portbase_webhook_log"
                   groups="base.group_system"
                   sequence="804"/>
