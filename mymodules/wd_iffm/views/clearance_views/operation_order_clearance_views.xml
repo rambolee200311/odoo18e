@@ -74,25 +74,25 @@
 
                             <field name="clearance_type" readonly="state in ('clearanced','close')" required="1"/>
                             <field name="remark" readonly="state in ('close')"/>
-                            <field name="customs_release_datetime"
-                                   invisible="clearance_type != 'general'" readonly="state in ('clearanced','close')"
-                            />
+<!--                            <field name="customs_release_datetime"-->
+<!--                                   invisible="clearance_type != 'general'" readonly="state in ('clearanced','close')"-->
+<!--                            />-->
 
 
-                            <field name="inbound_release_datetime"
-                                   invisible="clearance_type !='bonded_in'" readonly="state in ('clearanced','close')"
-                            />
-                            <field name="outbound_release_datetime"
-                                   invisible="clearance_type != 'bonded_out'" readonly="state in ('clearanced','close')"
+<!--                            <field name="inbound_release_datetime"-->
+<!--                                   invisible="clearance_type !='bonded_in'" readonly="state in ('clearanced','close')"-->
+<!--                            />-->
+<!--                            <field name="outbound_release_datetime"-->
+<!--                                   invisible="clearance_type != 'bonded_out'" readonly="state in ('clearanced','close')"-->
 
-                            />
+<!--                            />-->
 
-                            <field name="t1_closed_datetime"
-                                   invisible="clearance_type != 't1_transit'" readonly="state in ('clearanced','close')"
-                            />
-                            <field name="t1_inbound_release_datetime"
-                                   invisible="clearance_type != 't1_bonded'" readonly="state in ('clearanced','close')"
-                            />
+<!--                            <field name="t1_closed_datetime"-->
+<!--                                   invisible="clearance_type != 't1_transit'" readonly="state in ('clearanced','close')"-->
+<!--                            />-->
+<!--                            <field name="t1_inbound_release_datetime"-->
+<!--                                   invisible="clearance_type != 't1_bonded'" readonly="state in ('clearanced','close')"-->
+<!--                            />-->
                         </group>
                         <group>
                             <field name="is_clearance_overdue" readonly="1" invisible="1"/>
