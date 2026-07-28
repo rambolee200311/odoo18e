@@ -49,7 +49,7 @@
                        help="If filled in, the system will report the outbound transaction using this date and time. If left blank, it will use the outbound pick validation time."/>
             </xpath>
             <xpath expr="//field[@name='delivery_method']" position="after">
-                <field name="u8c_delivery_method" readonly="1" required="project_name == 'SUNRISE'"
+                <field name="u8c_delivery_method" readonly="state != 'new'" required="project_name == 'SUNRISE'"
                        invisible="project_name != 'SUNRISE'"/>
                 <field name="time_slot" readonly="state in ('confirm', 'cancel')"
                        required="u8c_delivery_method  == 'pickup' and project_name == 'SUNRISE'"
