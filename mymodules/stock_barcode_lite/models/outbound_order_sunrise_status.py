@@ -102,8 +102,11 @@ class OutboundOrderSunrise(models.Model):
             "pickup": "自提"
         }
         delivery_method = u8c_delivery_method_map.get(rec.u8c_delivery_method, rec.u8c_delivery_method or "")
+        picking_list = rec.get_outbound_sync_picking()
+        done_date_list = [picking.date_done for picking in picking_list if picking.date_done]
+        last_done_date = max(done_date_list) if done_date_list else False
         parentvo.update({
-            "dbilldate": self.get_sunrise_date_text(rec.date),
+            "dbilldate": self.get_sunrise_date_text(rec.o_date or rec.picking_Out_date or last_done_date or rec.date),
             "vnote": rec.load_ref or rec.remark or rec.reference or "",
             "vuserdef14": rec.load_ref if rec.u8c_delivery_method == "wd" and rec.delivery_method == "parcel" else "",
             "vuserdef17": self.get_sunrise_date_text(rec.p_date),
