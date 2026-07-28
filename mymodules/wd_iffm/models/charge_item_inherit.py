@@ -32,7 +32,6 @@ class ChargeItemInherit(models.Model):
     operation_type = fields.Selection(
         OPERATION_TYPE,
         string='Operation Type',
-        required=True,
     )
     is_leaf = fields.Boolean(string='Is Leaf', compute='_compute_is_leaf_data', store=True)
 

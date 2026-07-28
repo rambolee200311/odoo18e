@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_waybill_container_batch_create_wizard_form" model="ir.ui.view">
+        <field name="name">waybill.container.batch.create.wizard.form</field>
+        <field name="model">waybill.container.batch.create.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Batch Create Containers" duplicate="false">
+                <group>
+                    <field name="waybill_id" invisible="1"/>
+                    <field name="container_numbers" required="1"
+                           placeholder="Enter one container number per line."/>
+                    <field name="keep_existing_containers"/>
+                </group>
+                <footer>
+                    <button name="action_create_containers" type="object"
+                            string="Create" class="btn-primary"/>
+                    <button string="Discard" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_waybill_container_batch_create_wizard" model="ir.actions.act_window">
+        <field name="name">Batch Create Containers</field>
+        <field name="res_model">waybill.container.batch.create.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

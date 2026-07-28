@@ -16,7 +16,8 @@ class WaybillPortbaseInherit(models.Model):
     portbase_visit_status = fields.Char(string="Portbase Visit Status", readonly=True, copy=False, index=True,tracking=True)
     portbase_last_sync_time = fields.Datetime(string="Portbase Last Sync Time", readonly=True, copy=False,tracking=True)
     portbase_sync_message = fields.Char(string="Portbase Sync Message", readonly=True, copy=False,tracking=True)
-
+    creation_method = fields.Selection([("manual", "Manual"), ("portbase", "Portbase")], string="Creation Method",
+                                       default="manual", required=True, copy=False, index=True)
     @api.model
     def get_portbase_config(self, env_param):
         return {
@@ -274,7 +275,7 @@ class WaybillPortbaseInherit(models.Model):
             waybill.write(waybill_vals)
             return waybill
 
-        waybill_vals.update({"project": default_project_id, "bl_number": bl_number})
+        waybill_vals.update({"project": default_project_id, "bl_number": bl_number, "creation_method": "portbase",})
         return env_waybill.create(waybill_vals)
 
     @api.model

@@ -26,22 +26,22 @@
         <field name="arch" type="xml">
             <form string="Clearance" class="wd_iffm_required_highlight" create="false">
                 <header>
-                    <button name="action_clearancing" type="object" string="Clearancing" class="btn-secondary"
-                            invisible="state not in ('open','paying','paid')"/>
+                    <!--                    <button name="action_clearancing" type="object" string="Clearancing" class="btn-secondary"-->
+                    <!--                            invisible="state not in ('open','paying','paid')"/>-->
                     <button name="action_clearanced" type="object" string="Clearanced" class="btn-secondary"
-                            invisible="state != 'clearancing'"/>
+                            invisible="state not in ('open','paying','paid')"/>
                     <button name="action_close" type="object" string="Close" class="btn-success"
                             invisible="state != 'clearanced'"/>
-                    <button name="action_open_reclearance_wizard"
-                            type="object"
-                            string="Back To Paid"
-                            class="btn-warning"
-                            invisible="(state != 'clearancing') and (parent_id == False)"/>
-                    <button name="action_recompute_state" type="object" string="Recompute State"
-                            invisible="state in ('clearancing','clearanced','close','cancelled')"/>
+                    <!--                    <button name="action_open_reclearance_wizard"-->
+                    <!--                            type="object"-->
+                    <!--                            string="Back To Paid"-->
+                    <!--                            class="btn-warning"-->
+                    <!--                            invisible="(state != 'clearancing') and (parent_id == False)"/>-->
+                    <!--                    <button name="action_recompute_state" type="object" string="Recompute State"-->
+                    <!--                            invisible="state in ('clearanced','close','cancelled')"/>-->
 
                     <field name="state" widget="statusbar"
-                           statusbar_visible="open,paying,paid,clearancing,clearanced,close"/>
+                           statusbar_visible="open,paying,paid,clearanced,close"/>
 
                 </header>
                 <sheet>
@@ -66,15 +66,14 @@
                             <!--                            <field name="project_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>-->
                             <field name="container_qty" readonly="state != 'open'"/>
                             <field name="hs_code_qty" required="1" readonly="state in ('clearanced','close')"/>
-                            <field name="eu_eori_no" readonly="1"/>
-                            <field name="vat_tax_no" readonly="1"/>
+                            <!--                            <field name="eu_eori_no" readonly="1"/>-->
+                            <!--                            <field name="vat_tax_no" readonly="1"/>-->
                             <field name="clearance_receipt_no" readonly="state in ('clearanced','close')"/>
-                            <field name="customs_declaration_datetime"
-                                   readonly="state in ('clearancing','clearanced','close')"/>
-                            <field name="remark" readonly="state in ('close')"/>
-
+<!--                            <field name="customs_declaration_datetime"-->
+<!--                                   readonly="state in ('clearancing','clearanced','close')"/>-->
 
                             <field name="clearance_type" readonly="state in ('clearanced','close')" required="1"/>
+                            <field name="remark" readonly="state in ('close')"/>
                             <field name="customs_release_datetime"
                                    invisible="clearance_type != 'general'" readonly="state in ('clearanced','close')"
                             />
@@ -95,7 +94,7 @@
                                    invisible="clearance_type != 't1_bonded'" readonly="state in ('clearanced','close')"
                             />
                         </group>
-                        <group string="Clearance Info">
+                        <group>
                             <field name="is_clearance_overdue" readonly="1" invisible="1"/>
                             <field name="overdue_blocking_reason_id" required="is_clearance_overdue"
                                    invisible="is_clearance_overdue == False"/>
@@ -113,26 +112,24 @@
                     <notebook>
                         <!-- Tab 1: Charge / Cost -->
                         <page string="Charge / Cost">
+                                <field name="invoice_line_ids" context="{'default_clearance_id': id}"
+                                       readonly="state in ('close')">
+                                    <list>
 
-                            <field name="invoice_line_ids" context="{'default_clearance_id': id}"
-                                   readonly="state in ('close')">
-                                <list>
-
-                                    <field name="vendor_invoice_id"/>
-                                    <field name="invoice_date"/>
-                                    <field name="amount_total"/>
-                                    <field name="payment_state"/>
-                                </list>
-                            </field>
-
+                                        <field name="vendor_invoice_id"/>
+                                        <field name="invoice_date"/>
+                                        <field name="amount_total"/>
+                                        <field name="payment_state"/>
+                                    </list>
+                                </field>
 
                             <!-- Charge Lines -->
-                            <group string="Charges" invisible="state not in ('close','clearancing','clearanced')">
+                            <group>
                                 <field name="charge_line_ids" readonly="state in ('clearanced','close')">
                                     <list editable="bottom">
                                         <field name="charge_qty" column_invisible="True"/>
                                         <field name="charge_item_id" options="{'no_create': True, 'no_open': True}"
-                                               domain="[('operation_type', '=','clearance'),('is_leaf','=',True)]"
+                                               domain="['|', ('operation_type', '=', 'clearance'), ('operation_type', '=', False), ('is_leaf', '=', True)]"
                                                required="1"/>
                                         <field name="is_fixed_fee" readonly="1"/>
                                         <field name="qty" readonly="is_fixed_fee"/>
@@ -147,25 +144,26 @@
                         <page string="Containers">
                             <field name="clearance_container_ids" create="False" delete="False"
                                    readonly="state in ('clearancing','clearanced','close')">
-                                <list editable="bottom" create="False" delete="False">
+                                <list editable="bottom" no_open="1" create="False" delete="False">
                                     <field name="container_number"/>
                                     <field name="container_type"/>
                                     <field name="weight"/>
+                                    <field name="quantity"/>
                                 </list>
                             </field>
                         </page>
                         <!-- Tab 2: Documents -->
-                        <page string="Documents">
-                            <field name="attachment_line_ids" readonly="state in ('clearanced','close')">
-                                <list editable="bottom">
-                                    <field name="doc_type"/>
-                                    <field name="name"/>
-                                    <field name="file"/>
-                                    <field name="upload_time"/>
-                                    <field name="upload_user_id"/>
-                                </list>
-                            </field>
-                        </page>
+<!--                        <page string="Documents">-->
+<!--                            <field name="attachment_line_ids" readonly="state in ('clearanced','close')">-->
+<!--                                <list editable="bottom">-->
+<!--                                    <field name="doc_type"/>-->
+<!--                                    <field name="name"/>-->
+<!--                                    <field name="file"/>-->
+<!--                                    <field name="upload_time"/>-->
+<!--                                    <field name="upload_user_id"/>-->
+<!--                                </list>-->
+<!--                            </field>-->
+<!--                        </page>-->
                     </notebook>
                 </sheet>
                 <chatter/>

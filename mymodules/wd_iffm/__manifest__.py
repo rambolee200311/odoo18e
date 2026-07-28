@@ -42,6 +42,7 @@ Long description of module's purpose
         'wizard/waybill_arrival_wizard_views.xml',
         'wizard/waybill_create_clearance_wizard_views.xml',
         'wizard/clearance/clearance_reclearance_wizard_views.xml',
+        'wizard/waybill_container_batch_create_wizard_views.xml',
 
 
 

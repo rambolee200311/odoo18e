@@ -2,7 +2,7 @@ import math
 
 from psycopg2 import sql
 
-from odoo import _, fields, models
+from odoo import _, fields, models, api
 from odoo.exceptions import UserError
 from odoo.tools.float_utils import float_compare
 
@@ -20,6 +20,13 @@ class OutboundOrderInherit(models.Model):
     whole_pallet_picking_id = fields.Many2one("stock.picking", string="Whole Pallet Picking",copy=False,index=True)
     partial_pallet_picking_id = fields.Many2one("stock.picking", string="Partial Pallet Picking",copy=False, index=True)
     outgoing_picking_lines = fields.One2many("stock.picking", "outbound_order_id", string="Outgoing Pickings", tracking=True)
+    sunrise_pallet_count = fields.Integer(string="Sunrise Pallet Count", compute="_compute_sunrise_pallet_count",
+                                          store=True)
+
+    @api.depends("outbound_order_product_ids.package_id")
+    def _compute_sunrise_pallet_count(self):
+        for rec in self:
+            rec.sunrise_pallet_count = len(rec.outbound_order_product_ids.mapped("package_id"))
 
     def action_confirm(self):
         for rec in self:

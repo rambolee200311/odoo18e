@@ -54,7 +54,7 @@
                             <field name="cost_line_ids" readonly="payment_state !='draft'">
                                 <list editable="bottom">
                                     <field name="charge_item_id" options="{'no_create': True, 'no_open': True}"
-                                           domain="[('operation_type', '=','clearance'),('is_leaf','=',True)]"/>
+                                           domain="['|', ('operation_type', '=', 'clearance'), ('operation_type', '=', False), ('is_leaf', '=', True)]"/>
 
                                     <field name="qty"/>
                                     <field name="unit_price"/>

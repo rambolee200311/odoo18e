@@ -37,7 +37,7 @@
         <field name="view_mode">list,form</field>
     </record>
 
-    <menuitem id="menu_operation_workbench_dashboard_data" name="Workbench Dashboard data"
-              parent="menu_wd_base_config"
-              action="action_operation_workbench_dashboard_data" sequence="990"/>
+<!--    <menuitem id="menu_operation_workbench_dashboard_data" name="Workbench Dashboard data"-->
+<!--              parent="menu_wd_base_config"-->
+<!--              action="action_operation_workbench_dashboard_data" sequence="990"/>-->
 </odoo>
