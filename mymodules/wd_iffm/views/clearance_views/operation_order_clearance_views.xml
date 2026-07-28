@@ -180,8 +180,8 @@
                 <header>
                     <button name="action_close" type="object" string="Close" class="btn-success"
                             invisible="state == 'close'"/>
-                    <button name="action_recompute_state" type="object" string="Recompute State"
-                            invisible="state == 'close'"/>
+<!--                    <button name="action_recompute_state" type="object" string="Recompute State"-->
+<!--                            invisible="state == 'close'"/>-->
                     <field name="state" widget="statusbar"
                            statusbar_visible="open,paying,paid,close"/>
 
@@ -206,34 +206,37 @@
                             <field name="container_qty" readonly="1"/>
                             <field name="hs_code_qty" required="1" readonly="1"/>
                             <field name="clearance_type" readonly="1"/>
-                            <field name="eu_eori_no" readonly="1"/>
-                            <field name="vat_tax_no" readonly="1"/>
+<!--                            <field name="eu_eori_no" readonly="1"/>-->
+<!--                            <field name="vat_tax_no" readonly="1"/>-->
 
-                            <field name="customs_release_datetime"
-                                   invisible="clearance_type != 'general'" readonly="1"/>
+<!--                            <field name="customs_release_datetime"-->
+<!--                                   invisible="clearance_type != 'general'" readonly="1"/>-->
 
 
-                            <field name="inbound_release_datetime"
-                                   invisible="clearance_type !='bonded_in'" readonly="1"/>
+<!--                            <field name="inbound_release_datetime"-->
+<!--                                   invisible="clearance_type !='bonded_in'" readonly="1"/>-->
 
-                            <field name="outbound_release_datetime"
-                                   invisible="clearance_type != 'bonded_out'" readonly="1"/>
+<!--                            <field name="outbound_release_datetime"-->
+<!--                                   invisible="clearance_type != 'bonded_out'" readonly="1"/>-->
 
-                            <field name="t1_closed_datetime"
-                                   invisible="clearance_type != 't1_transit'" readonly="1"/>
-                            <field name="t1_inbound_release_datetime"
-                                   invisible="clearance_type != 't1_bonded'" readonly="1"/>
+<!--                            <field name="t1_closed_datetime"-->
+<!--                                   invisible="clearance_type != 't1_transit'" readonly="1"/>-->
+<!--                            <field name="t1_inbound_release_datetime"-->
+<!--                                   invisible="clearance_type != 't1_bonded'" readonly="1"/>-->
                             <field name="extra_reason"
                                    invisible="parent_id == False"
-                                   required="parent_id != False"/>
+                                   required="parent_id != False"
+                                   readonly="state in ('clearanced','close')"/>
 
                             <field name="actual_datetime"
                                    invisible="parent_id == False"
-                                   required="parent_id != False"/>
+                                   required="parent_id != False"
+                                   readonly="state in ('clearanced','close')"/>
 
                             <field name="extra_remark"
                                    invisible="extra_reason != 'other'"
-                                   required="extra_reason == 'other'"/>
+                                   required="extra_reason == 'other'"
+                                   readonly="state in ('clearanced','close')"/>
                             <field name="remark" readonly="state=='close'"/>
                         </group>
                     </group>
@@ -281,17 +284,17 @@
                             </field>
                         </page>
                         <!-- Tab 2: Documents -->
-                        <page string="Documents">
-                            <field name="attachment_line_ids" readonly="1">
-                                <list editable="bottom">
-                                    <field name="file"/>
-                                    <field name="doc_type"/>
-                                    <field name="name"/>
-                                    <field name="upload_time"/>
-                                    <field name="upload_user_id"/>
-                                </list>
-                            </field>
-                        </page>
+<!--                        <page string="Documents">-->
+<!--                            <field name="attachment_line_ids" readonly="1">-->
+<!--                                <list editable="bottom">-->
+<!--                                    <field name="file"/>-->
+<!--                                    <field name="doc_type"/>-->
+<!--                                    <field name="name"/>-->
+<!--                                    <field name="upload_time"/>-->
+<!--                                    <field name="upload_user_id"/>-->
+<!--                                </list>-->
+<!--                            </field>-->
+<!--                        </page>-->
                     </notebook>
                 </sheet>
                 <chatter/>

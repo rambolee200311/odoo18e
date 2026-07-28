@@ -48,9 +48,10 @@
                             name="state"
                             widget="statusbar"
                             statusbar_visible="new,confirm,done"/>
-                    <widget name="web_ribbon" title="CANCEL" bg_color="bg-danger" invisible="state!='cancel'"/>
+
                 </header>
                 <sheet>
+                    <widget name="web_ribbon" title="CANCEL" bg_color="bg-danger" invisible="state!='cancel'"/>
                     <div class="oe_title">
                         <h1>
                             Waybill
