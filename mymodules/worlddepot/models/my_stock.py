@@ -66,6 +66,7 @@ class StockMove(models.Model):
 
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
+    _order = "id desc"
 
     bill_of_lading = fields.Char('Bill of Lading')
     cntrno = fields.Char('Container Number')
