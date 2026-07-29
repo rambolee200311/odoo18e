@@ -13,6 +13,9 @@ class ProductProduct(models.Model):
     hs_code = fields.Char(string="HS Code", tracking=True, index=True)
     weight = fields.Float(string="Weight", tracking=True)
     customs_code = fields.Char(string="Customs Code", tracking=True, index=True)
+    article_number = fields.Char(string="Article Number", tracking=True, index=True)
+    product_description = fields.Char(string="Product Description", tracking=True)
+    technical_description = fields.Text(string="Technical Description", tracking=True)
 
 
     currency_id = fields.Many2one(

@@ -30,6 +30,10 @@ class StockPicking(models.Model):
     bonded_flag = fields.Selection([("true", "bonded"), ("false", "Non-bonded")], string="Bonded Flag",
                                    compute="_compute_bonded_flag", index=True,
                                    readonly=True)
+    manual_bonded_flag = fields.Selection([
+        ("true", "Bonded"),
+        ("false", "Non-bonded"),
+    ], string="Manual Bonded Flag", tracking=True, index=True, copy=False)
 
     @api.depends("inbound_order_id", "inbound_order_id.is_bonded",
                  "outbound_order_id",
@@ -38,16 +42,14 @@ class StockPicking(models.Model):
                  "mrn_id.bonded_flag", )
     def _compute_bonded_flag(self):
         for rec in self:
-            bonded_value = "false"
             if rec.inbound_order_id:
-                bonded_value = "true" if rec.inbound_order_id.is_bonded else "false"
-            elif rec.outbound_order_id and rec.outbound_order_id.bonded_flag in ("true", "false"):
-                bonded_value = rec.outbound_order_id.bonded_flag
-
-            elif rec.mrn_id and rec.mrn_id.bonded_flag in ("true", "false"):
-                bonded_value = rec.mrn_id.bonded_flag
-
-            rec.bonded_flag = bonded_value
+                rec.bonded_flag = "true" if rec.inbound_order_id.is_bonded else "false"
+            elif rec.outbound_order_id:
+                rec.bonded_flag = "true" if rec.outbound_order_id.is_bonded else "false"
+            # elif rec.mrn_id and rec.mrn_id.bonded_flag in ("true", "false"):
+            #     rec.bonded_flag = rec.mrn_id.bonded_flag
+            else:
+                rec.bonded_flag = rec.manual_bonded_flag or "false"
 
     def check_cmr_sign_time_before_done(self):
         for rec in self:
@@ -211,15 +213,10 @@ class StockPicking(models.Model):
 
     def get_required_is_bonded_by_picking(self):
         self.ensure_one()
-        if self.picking_type_code == "incoming" and self.inbound_order_id:
-            return bool(self.inbound_order_id.is_bonded)
-
-        if self.picking_type_code == "outgoing":
-            if self.outbound_order_id and self.outbound_order_id.bonded_flag in ("true", "false"):
-                return self.outbound_order_id.bonded_flag == "true"
-            if self.bonded_flag in ("true", "false"):
-                return self.bonded_flag == "true"
-
+        if self.bonded_flag == "true":
+            return True
+        if self.bonded_flag == "false":
+            return False
         return None
 
     def check_location_bonded_policy(self):
@@ -259,6 +256,26 @@ class StockPicking(models.Model):
                         }
                     )
 
+            if rec.picking_type_code == "internal":
+                location_list = (
+                        line_list.mapped("location_id") |
+                        line_list.mapped("location_dest_id")
+                ).filtered(lambda x: x.usage in ("internal", "transit"))
+
+                wrong_location_list = location_list.filtered(
+                    lambda x: bool(x.is_bonded) != required_is_bonded
+                )
+                if wrong_location_list:
+                    location_text = ", ".join(wrong_location_list.mapped("complete_name")[:5])
+                    raise ValidationError(
+                        _(
+                            "Internal transfer location bonded policy mismatch. "
+                            "Required bonded=%(required)s, wrong locations: %(locations)s"
+                        ) % {
+                            "required": "true" if required_is_bonded else "false",
+                            "locations": location_text,
+                        }
+                    )
     def button_validate(self):
         # 验证保税入库只能入保税库位,出库同
         self.check_location_bonded_policy()

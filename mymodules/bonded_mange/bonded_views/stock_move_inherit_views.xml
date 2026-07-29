@@ -37,6 +37,7 @@
                 <field name="hs_code" readonly="1"/>
                 <field name="weight"/>
                 <field name="customs_code" readonly="1"/>
+                <field name="customs_mutation_type" readonly="state in ('done', 'cancel')"/>
             </xpath>
             <xpath expr="//field[@name='reference']" position="after">
                 <field name="unique_identifier" readonly="1"/>
@@ -63,6 +64,7 @@
 
                 <field name="mrn_id" readonly="1"/>
                 <field name="mrn_status" readonly="1"/>
+                <field name="customs_mutation_type"/>
             </xpath>
             <xpath expr="//search/group[@expand='0']" position="before">
                 <filter name="has_unique_identifier" string="Has Unique Identifier"
