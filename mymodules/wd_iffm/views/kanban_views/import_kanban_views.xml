@@ -6,7 +6,7 @@
         <field name="model">world.depot.waybill</field>
         <field name="arch" type="xml">
 <!--            can_open_records="True"-->
-            <kanban default_group_by="state" can_open_records="True" class="wd_iffm_kanban wd_iffm_waybill_kanban wd_iffm_waybill_kanban_lane" default_order="id desc">
+            <kanban default_group_by="state" js_class="waybill_kanban_validator" can_open_records="True" class="wd_iffm_kanban wd_iffm_waybill_kanban wd_iffm_waybill_kanban_lane" default_order="id desc">
                 <field name="billno"/>
                 <field name="project"/>
                 <field name="state"/>
