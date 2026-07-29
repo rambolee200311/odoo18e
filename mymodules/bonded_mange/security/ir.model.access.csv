@@ -10,3 +10,5 @@ access_bonded_identifier_stock_ledger_user,access.bonded.identifier.stock.ledger
 
 
 access_bonded_customs_document_user,access.bonded.customs.document.user,model_bonded_customs_document,,1,1,1,1
+access_bonded_inventory_movement_history_report_user,bonded.inventory.movement.history.report user,model_bonded_inventory_movement_history_report,,1,1,1,1
+access_bonded_inventory_movement_history_report_line_user,bonded.inventory.movement.history.report.line user,model_bonded_inventory_movement_history_report_line,,1,1,1,1

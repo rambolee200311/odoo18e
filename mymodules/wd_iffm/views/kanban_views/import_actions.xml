@@ -14,14 +14,15 @@
         <field name="name">Import Bill Kanban</field>
         <field name="res_model">world.depot.waybill</field>
         <field name="view_mode">kanban,list,form</field>
-        <field name="domain">[('state', '!=', 'cancel')]</field>
+<!--        <field name="domain">[('state', '!=', 'cancel')]</field>-->
         <field name="view_ids" eval="[
             (5, 0, 0),
             (0, 0, {'view_mode': 'kanban', 'view_id': ref('wd_iffm.view_waybill_kanban_level1')}),
             (0, 0, {'view_mode': 'list', 'view_id': ref('wd_iffm.view_world_depot_waybill_tree')}),
             (0, 0, {'view_mode': 'form', 'view_id': ref('wd_iffm.view_world_depot_waybill_form')})
             ]"/>
-        <field name="context">{'search_default_group_by_state': 1}</field>
+        <field name="search_view_id" ref="view_world_depot_waybill_search"/>
+        <field name="context">{'search_default_group_by_state': 1,'search_default_state_not_cancel': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 No import bill data

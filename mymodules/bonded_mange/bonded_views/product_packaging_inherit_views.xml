@@ -1,0 +1,23 @@
+<odoo>
+    <record id="view_product_packaging_list_estimated_weight_inherit" model="ir.ui.view">
+        <field name="name">product.packaging.list.estimated.weight.inherit</field>
+        <field name="model">product.packaging</field>
+        <field name="inherit_id" ref="product.product_packaging_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list/field[@name='qty']" position="after">
+                <field name="estimated_package_weight" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_product_packaging_form_estimated_weight_inherit" model="ir.ui.view">
+        <field name="name">product.packaging.form.estimated.weight.inherit</field>
+        <field name="model">product.packaging</field>
+        <field name="inherit_id" ref="product.product_packaging_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='barcode']" position="after">
+                <field name="estimated_package_weight"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

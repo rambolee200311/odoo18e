@@ -56,14 +56,26 @@
                        readonly="state == 'done'"/>
                 <field name="unique_identifier" readonly="1" invisible="picking_type_code== 'outgoing'"/>
                 <field name="file_identifier" readonly="1" invisible="picking_type_code== 'outgoing'"/>
-                <field name="bonded_flag" readonly="1" widget="badge"
+                <field name="bonded_flag" readonly="0" widget="badge"
+                       invisible="not inbound_order_id and not outbound_order_id and not mrn_id"
                        decoration-danger="bonded_flag in ('bonded')"
-                       decoration-info="bonded_flag in ('non_bonded')"/>
+                       decoration-info="bonded_flag in ('non_bonded')" force_save="1"/>
+                <field name="manual_bonded_flag"
+                       string="Bonded Flag"
+                       required="not inbound_order_id and not outbound_order_id and not mrn_id"
+                       invisible="inbound_order_id or outbound_order_id or mrn_id"
+                       readonly="state in ('done', 'cancel')"/>
                 <field name="customs_document_id" options="{'no_create': True}" readonly="1"/>
                 <field name="t1_document_number" readonly="1"/>
                 <field name="t1_status" readonly="1"/>
                 <field name="t1_closed_date" readonly="1"/>
             </xpath>
+            <xpath expr="//field[@name='move_ids_without_package']/list/field[@name='product_id']" position="after">
+                <field name="bonded_flag" column_invisible="1"/>
+                <field name="customs_mutation_type" column_invisible="parent.bonded_flag != 'true'"
+                       readonly="state in ('done', 'cancel')"/>
+            </xpath>
+
         </field>
     </record>
 
