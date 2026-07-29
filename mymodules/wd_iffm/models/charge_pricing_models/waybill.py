@@ -65,8 +65,11 @@ class Waybill(models.Model):
     packing_list_ids = fields.One2many('world.depot.waybill.packing.list', 'waybill_id', string='Packing Lists',
                                        help='Packing lists associated with this container')
     obl_number = fields.Char(string="OBL No")
-    quotation_id = fields.Many2one("charge.quotation", related='project.quotation_id', store=True, string="Quotation",
-                                   index=True, tracking=True)
+
+    quotation_id = fields.Many2one("charge.quotation", string="Quotation", readonly=True, copy=False, index=True,
+                                   tracking=True)
+    quotation_effective_date = fields.Date(string="Quotation Effective Date", readonly=True, copy=False, index=True,
+                                           tracking=True)
     container_qty = fields.Integer(string="Container Qty",compute="_compute_container_ids", tracking=True)
 
     handover_id = fields.Many2one("operation.order.handover", string="Handover")
@@ -350,17 +353,33 @@ class Waybill(models.Model):
                 raise UserError(_("Release Received and Custom Clearance must both be completed before Done."))
             rec.write({"state": "done"})
         return True
+
     def action_confirm_order(self):
         for rec in self:
-            if rec.state != 'new':
-                raise UserError(_("You only can confirm New Order"))
-
-            if not rec.project.quotation_id:
-                raise UserError(_("Please create quotation first"))
+            if rec.state != "new":
+                raise UserError(_("Only new waybills can be confirmed."))
             if not rec.container_ids:
-                raise UserError(_("Please create container first"))
-            rec.state = 'confirm'
-            return True
+                raise UserError(_("Please create container first."))
+
+            quotation = rec.project.quotation_id
+            if not quotation:
+                raise UserError(_("Please configure a quotation for the project."))
+            if quotation.state != "active" or not quotation.is_active:
+                raise UserError(_("The project quotation must be active."))
+
+            pricing_date = rec.ata or rec.eta or fields.Date.context_today(rec)
+            if quotation.effective_from > pricing_date:
+                raise UserError(_("The quotation effective date is later than the pricing date."))
+            if quotation.effective_to and quotation.effective_to < pricing_date:
+                raise UserError(_("The quotation has expired on the pricing date."))
+
+            rec.write({
+                "state": "confirm",
+                "quotation_id": quotation.id,
+                "quotation_effective_date": pricing_date,
+            })
+
+        return True
 
     def action_unconfirm_order(self):
         env_handover = self.env["operation.order.handover"]
@@ -386,7 +405,11 @@ class Waybill(models.Model):
                     _("Waybills with active handover or clearance orders cannot be unconfirmed.")
                 )
 
-            rec.write({"state": "new"})
+            rec.write({
+                "state": "new",
+                "quotation_id": False,
+                "quotation_effective_date": False,
+            })
 
         return True
 
