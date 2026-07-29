@@ -4,12 +4,21 @@
         <field name="model">product.product</field>
         <field name="inherit_id" ref="product.product_normal_form_view"/>
         <field name="arch" type="xml">
-            <xpath expr="//group[@name='group_lots_and_weight']/div[@name='weight']" position="after">
-                <field name="origin_country"/>
-                <field name="goods_value"/>
-<!--                <field name="hs_code"/>-->
-                <field name="customs_code" />
-<!--                 <field name="customs_status" required="1"/>-->
+            <xpath expr="//notebook" position="inside">
+                <page string="Bonded Attributes" name="bonded_attributes">
+                    <group>
+                        <group>
+                            <field name="origin_country"/>
+                            <field name="goods_value"/>
+                            <field name="customs_code"/>
+                        </group>
+                        <group>
+                            <field name="article_number"/>
+                            <field name="product_description"/>
+                            <field name="technical_description"/>
+                        </group>
+                    </group>
+                </page>
             </xpath>
         </field>
     </record>

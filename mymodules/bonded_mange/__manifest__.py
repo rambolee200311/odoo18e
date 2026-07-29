@@ -32,10 +32,12 @@ Long description of module's purpose
         'bonded_views/inbound_order_inherit_views.xml',
         'bonded_views/outbound_order_inherit_views.xml',
         'bonded_views/product_product_inherit_views.xml',
+        'bonded_views/product_packaging_inherit_views.xml',
 
         'bonded_views/customs_document_core_views.xml',
         'bonded_views/bonded_customs_mrn_audit_log_views.xml',
         'bonded_views/mrn_stock_query_views.xml',
+        'bonded_views/inventory_movement_history_report_views.xml',
 
 
 
@@ -56,4 +58,3 @@ Long description of module's purpose
     'application': True,
     'license': 'LGPL-3',
 }
-

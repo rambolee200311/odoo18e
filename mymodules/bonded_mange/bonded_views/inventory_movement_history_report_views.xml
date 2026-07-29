@@ -1,0 +1,179 @@
+<odoo>
+    <record id="view_inventory_movement_history_report_list" model="ir.ui.view">
+        <field name="name">bonded.inventory.movement.history.report.list</field>
+        <field name="model">bonded.inventory.movement.history.report</field>
+        <field name="arch" type="xml">
+            <list create="1" edit="1" delete="1" default_order="id desc">
+                <field name="name"/>
+                <field name="period_begin"/>
+                <field name="period_end"/>
+                <field name="warehouse_id"/>
+                <field name="bonded_flag" widget="badge" optional="show"/>
+                <field name="closing_total_qty" optional="show"/>
+                <field name="total_gross_weight" optional="show"/>
+                <field name="total_net_weight" optional="show"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_inventory_movement_history_report_form" model="ir.ui.view">
+        <field name="name">bonded.inventory.movement.history.report.form</field>
+        <field name="model">bonded.inventory.movement.history.report</field>
+        <field name="arch" type="xml">
+            <form duplicate="0">
+                <header>
+                    <button name="action_query_movement_history" type="object" string="Query" class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_open_export_lines"
+                            type="object"
+                            string="Open Export Lines"
+                            class="btn-secondary"
+                            invisible="state != 'done'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,done"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" readonly="state == 'done'"/>
+                            <field name="period_begin" required="1" readonly="state == 'done'"/>
+                            <field name="period_end" required="1" readonly="state == 'done'"/>
+                            <field name="warehouse_id" required="1" readonly="state == 'done'"
+                                   options="{'no_create': True, 'no_open': True}"/>
+                            <field name="bonded_flag" readonly="state == 'done'"/>
+
+                        </group>
+                        <group>
+                            <field name="generated_at" readonly="1"/>
+                            <field name="generated_by_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="opening_total_qty" readonly="1"/>
+                            <field name="inbound_total_qty" readonly="1"/>
+                            <field name="outbound_total_qty" readonly="1"/>
+                            <field name="finding_total_qty" readonly="1"/>
+                            <field name="missing_total_qty" readonly="1"/>
+                            <field name="correction_total_qty" readonly="1"/>
+                            <field name="closing_total_qty" readonly="1"/>
+                            <field name="total_gross_weight" readonly="1"/>
+                            <field name="total_net_weight" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Movement Lines">
+                            <field name="movement_lines" nolabel="1" readonly="1"
+                                   options="{'no_create': True, 'no_open': True}">
+                                <list create="0" edit="0" delete="0" default_order="sequence asc, id asc">
+                                    <field name="sequence" column_invisible="1"/>
+                                    <field name="product_id" optional="show"
+                                           options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="product_description" optional="show"/>
+                                    <field name="marks_article_technical_description" optional="hide"/>
+                                    <field name="commodity_code" optional="show"/>
+                                    <field name="period_begin" optional="hide"/>
+                                    <field name="period_end" optional="hide"/>
+                                    <field name="begin_stock_date" optional="show"/>
+                                    <field name="begin_stock_qty" optional="show"/>
+                                    <field name="date_of_mutation" optional="show"/>
+                                    <field name="mutation_type" optional="show"/>
+                                    <field name="inbound_outbound_number" optional="show"/>
+                                    <field name="unique_identifier" optional="show"/>
+                                    <field name="mrn_id" optional="show"
+                                           options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="bonded_flag" widget="badge" optional="show"/>
+                                    <field name="kind_of_colli" optional="show"/>
+                                    <field name="mutation_quantity" optional="show"/>
+                                    <field name="gross_weight" optional="show"/>
+                                    <field name="net_weight" optional="show"/>
+                                    <field name="end_stock_date" optional="show"/>
+                                    <field name="end_stock_qty" optional="show"/>
+                                    <field name="bonded_flag_again" widget="badge" optional="show"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_inventory_movement_history_report_line_export_list" model="ir.ui.view">
+        <field name="name">bonded.inventory.movement.history.report.line.export.list</field>
+        <field name="model">bonded.inventory.movement.history.report.line</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0" default_order="sequence asc, id asc">
+                <field name="product_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="product_description"/>
+                <field name="marks_article_technical_description"/>
+                <field name="commodity_code"/>
+                <field name="period_begin"/>
+                <field name="period_end"/>
+                <field name="begin_stock_date"/>
+                <field name="begin_stock_qty"/>
+                <field name="date_of_mutation"/>
+                <field name="mutation_type"/>
+                <field name="inbound_outbound_number"/>
+                <field name="unique_identifier"/>
+                <field name="mrn_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="bonded_flag" widget="badge"/>
+                <field name="kind_of_colli"/>
+                <field name="mutation_quantity"/>
+                <field name="gross_weight"/>
+                <field name="net_weight"/>
+                <field name="end_stock_date"/>
+                <field name="end_stock_qty"/>
+                <field name="bonded_flag_again"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_inventory_movement_history_report_line_export_search" model="ir.ui.view">
+        <field name="name">bonded.inventory.movement.history.report.line.export.search</field>
+        <field name="model">bonded.inventory.movement.history.report.line</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="product_id"/>
+                <field name="unique_identifier"/>
+                <field name="mrn_id"/>
+                <field name="inbound_outbound_number"/>
+                <field name="period_begin"/>
+                <field name="period_end"/>
+                <field name="date_of_mutation"/>
+                <field name="bonded_flag"/>
+
+                <filter name="filter_bonded" string="Bonded" domain="[('bonded_flag', '=', 'true')]"/>
+                <filter name="filter_non_bonded" string="Non-bonded" domain="[('bonded_flag', '=', 'false')]"/>
+                <filter name="filter_mutation_date" string="Mutation Date" date="date_of_mutation"/>
+
+                <group expand="0" string="Group By">
+                    <filter name="group_by_product" string="Product" domain="[]" context="{'group_by': 'product_id'}"/>
+                    <filter name="group_by_bonded_flag" string="Customs Status" domain="[]"
+                            context="{'group_by': 'bonded_flag'}"/>
+                    <filter name="group_by_mutation_type" string="Mutation Type" domain="[]"
+                            context="{'group_by': 'mutation_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="view_inventory_movement_history_report_search" model="ir.ui.view">
+        <field name="name">bonded.inventory.movement.history.report.search</field>
+        <field name="model">bonded.inventory.movement.history.report</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="warehouse_id"/>
+                <field name="bonded_flag"/>
+                <field name="period_begin"/>
+                <field name="period_end"/>
+                <field name="state"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_inventory_movement_history_report" model="ir.actions.act_window">
+        <field name="name">Inventory Movement History Report</field>
+        <field name="res_model">bonded.inventory.movement.history.report</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="bonded_mange.view_inventory_movement_history_report_search"/>
+    </record>
+
+    <menuitem id="menu_inventory_movement_history_report" name="Inventory Movement History Report"
+              parent="bonded_mange.menu_bonded_root" action="action_inventory_movement_history_report" sequence="985"/>
+</odoo>
