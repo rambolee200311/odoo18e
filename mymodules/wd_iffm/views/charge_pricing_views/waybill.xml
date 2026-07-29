@@ -194,6 +194,9 @@
                 <field name="document_number"/>
                 <field name="reference_number"/>
                 <field name="state"/>
+                <filter name="state_not_cancel"
+                    string="Active"
+                    domain="[('state', '!=', 'cancel')]"/>
             </search>
         </field>
     </record>
@@ -398,7 +401,7 @@
     </record>
 
     <menuitem id="waybill_logi_menu" name="Waybill" parent="menu_wd_charge_root" sequence="40"/>
-    <menuitem id="waybill_menu" name="Waybills" parent="waybill_logi_menu" action="action_world_depot_waybill"
+    <menuitem id="waybill_menu" name="Waybills" parent="waybill_logi_menu" action="action_import_bill_kanban"
               sequence="801"/>
     <menuitem id="container_menu" name="Containers" parent="waybill_logi_menu" action="action_waybill_container"
               sequence="802"/>
