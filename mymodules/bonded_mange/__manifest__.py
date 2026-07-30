@@ -20,6 +20,13 @@ Long description of module's purpose
     # any module necessary for this one to work correctly
     'depends': ['base','worlddepot'],
 
+    'assets': {
+        'web.assets_backend': [
+            'bonded_mange/static/src/js/inventory_movement_history_print_excel_cog_menu.js',
+            'bonded_mange/static/src/xml/inventory_movement_history_print_excel_cog_menu.xml',
+        ],
+    },
+
     # always loaded
     'data': [
         'security/ir.model.access.csv',
