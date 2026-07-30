@@ -43,4 +43,15 @@
             </xpath>
         </field>
     </record>
+
+    <record id="stock_picking_kanban_barcode_lite_inherit" model="ir.ui.view">
+        <field name="name">stock.picking.kanban.barcode.lite.inherit</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock_barcode.stock_picking_view_kanban"/>
+        <field name="arch" type="xml">
+            <xpath expr="//kanban/field[@name='scheduled_date']" position="before">
+                <field name="barcode_scan_mode" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
 </odoo>

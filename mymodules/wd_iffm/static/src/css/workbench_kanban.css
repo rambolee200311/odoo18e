@@ -412,6 +412,26 @@
     overflow: hidden;
 }
 
+/* 卡片内容行 - 标签不换行，值在标签后自动换行 */
+.o_kanban_view.wd_iffm_kanban .o_kanban_card_content_row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_kanban_card_content_row .text-muted {
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.o_kanban_view.wd_iffm_kanban .o_kanban_card_content_row span:last-child {
+    flex: 1;
+    min-width: 0;
+    word-break: break-word;
+    overflow-wrap: break-word;
+}
+
 .o_kanban_view.wd_iffm_kanban .o_kanban_quick_create {
     margin: 8px;
 }

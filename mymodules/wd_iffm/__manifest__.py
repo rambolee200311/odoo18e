@@ -100,6 +100,8 @@ Long description of module's purpose
             'wd_iffm/static/src/js/workbench_kanban_registry.js',
             'wd_iffm/static/src/js/workbench_home_action.js',
             'wd_iffm/static/src/js/workbench_action_registry.js',
+            'wd_iffm/static/src/js/waybill_kanban_validator.js',
+            'wd_iffm/static/src/js/waybill_kanban_registry.js',
         ],
     },
     'license': 'LGPL-3',

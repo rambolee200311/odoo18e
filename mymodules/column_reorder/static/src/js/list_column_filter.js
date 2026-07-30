@@ -1,8 +1,8 @@
 /** @odoo-module **/
 
-import { ListRenderer } from "@web/views/list/list_renderer";
-import { patch } from "@web/core/utils/patch";
-import { onMounted, onWillUnmount, onPatched } from "@odoo/owl";
+import {ListRenderer} from "@web/views/list/list_renderer";
+import {patch} from "@web/core/utils/patch";
+import {onMounted, onWillUnmount, onPatched} from "@odoo/owl";
 
 patch(ListRenderer.prototype, {
     setup() {
@@ -12,6 +12,9 @@ patch(ListRenderer.prototype, {
         this.columnInfoMap = {};
         this._searchTimeout = null;
         this._searchRowInjected = false;
+        this.baseGlobalDomain = Array.isArray(this.env?.searchModel?.globalDomain)
+            ? [...this.env.searchModel.globalDomain]
+            : [];
 
         try {
             if (this.props.list?.fields) {
@@ -152,19 +155,19 @@ patch(ListRenderer.prototype, {
         quickSelect.style.cssText = "flex:0 0 auto;max-width:85px;padding:2px 4px;font-size:11px;";
 
         const presets = [
-            { v: "", l: ".." },
-            { v: "today", l: "Today" },
-            { v: "yesterday", l: "Yesterday" },
-            { v: "this_week", l: "This Week" },
-            { v: "last_week", l: "Last Week" },
-            { v: "this_month", l: "This Month" },
-            { v: "last_month", l: "Last Month" },
-            { v: "past_7", l: "Past 7 Days" },
-            { v: "past_30", l: "Past 30 Days" },
-            { v: "custom", l: "Custom.." },
+            {v: "", l: ".."},
+            {v: "today", l: "Today"},
+            {v: "yesterday", l: "Yesterday"},
+            {v: "this_week", l: "This Week"},
+            {v: "last_week", l: "Last Week"},
+            {v: "this_month", l: "This Month"},
+            {v: "last_month", l: "Last Month"},
+            {v: "past_7", l: "Past 7 Days"},
+            {v: "past_30", l: "Past 30 Days"},
+            {v: "custom", l: "Custom.."},
         ];
 
-        presets.forEach(function(item) {
+        presets.forEach(function (item) {
             const opt = document.createElement("option");
             opt.value = item.v;
             opt.textContent = item.l;
@@ -212,7 +215,7 @@ patch(ListRenderer.prototype, {
         }
 
         const self = this;
-        const applyFilter = function() {
+        const applyFilter = function () {
             const sel = quickSelect.value;
             if (!sel) {
                 delete self.columnFilters[fieldName];
@@ -253,7 +256,7 @@ patch(ListRenderer.prototype, {
         select.appendChild(blank);
 
         if (colInfo.selection) {
-            colInfo.selection.forEach(function(item) {
+            colInfo.selection.forEach(function (item) {
                 const opt = document.createElement("option");
                 opt.value = item[0];
                 opt.textContent = item[1];
@@ -285,7 +288,7 @@ patch(ListRenderer.prototype, {
         const select = document.createElement("select");
         select.className = "o_cf_input o_cf_select";
 
-        [["", ".."], ["true", "Yes"], ["false", "No"]].forEach(function(item) {
+        [["", ".."], ["true", "Yes"], ["false", "No"]].forEach(function (item) {
             const opt = document.createElement("option");
             opt.value = item[0];
             opt.textContent = item[1];
@@ -401,7 +404,10 @@ patch(ListRenderer.prototype, {
 
                 case "date":
                 case "datetime": {
-                    const todayStr = function() { var d = new Date(); return d.toISOString().split("T")[0]; };
+                    const todayStr = function () {
+                        var d = new Date();
+                        return d.toISOString().split("T")[0];
+                    };
                     var d = new Date();
 
                     // Handle custom:from,to format from date widget
@@ -480,7 +486,9 @@ patch(ListRenderer.prototype, {
 
                 case "selection":
                     if (searchValue.includes(",")) {
-                        const vals = searchValue.split(",").map(function(s) { return s.trim(); }).filter(Boolean);
+                        const vals = searchValue.split(",").map(function (s) {
+                            return s.trim();
+                        }).filter(Boolean);
                         if (vals.length) conditions = [[fieldPath, "in", vals]];
                     } else {
                         conditions = [[fieldPath, "=", searchValue]];
@@ -498,7 +506,9 @@ patch(ListRenderer.prototype, {
                 case "many2many":
                 case "one2many":
                     if (searchValue.includes(",")) {
-                        const parts = searchValue.split(",").map(function(s) { return s.trim(); }).filter(Boolean);
+                        const parts = searchValue.split(",").map(function (s) {
+                            return s.trim();
+                        }).filter(Boolean);
                         if (parts.length) conditions = [[fieldPath, "in", parts]];
                     } else {
                         conditions = [[fieldPath, "ilike", searchValue]];
@@ -509,20 +519,25 @@ patch(ListRenderer.prototype, {
                     conditions = [[fieldPath, "ilike", searchValue]];
             }
 
-            conditions.forEach(function(c) { domain.push(c); });
+            conditions.forEach(function (c) {
+                domain.push(c);
+            });
         }
         return domain;
     },
 
     _applyColumnFilters() {
-        const domain = this._buildDomain();
-        const sm = this.env?.searchModel;
-        if (sm) {
-            sm.globalDomain = domain;
-            sm._domain = null;
-            sm._reloadSections().then(function() {
-                if (sm._domain) sm._domain = null;
-                sm.trigger("update");
+        const columnDomain = this._buildDomain();
+        const searchModel = this.env?.searchModel;
+        if (searchModel) {
+            searchModel.globalDomain = [
+                ...this.baseGlobalDomain,
+                ...columnDomain,
+            ];
+            searchModel._domain = null;
+            searchModel._reloadSections().then(function () {
+                if (searchModel._domain) searchModel._domain = null;
+                searchModel.trigger("update");
             });
         }
     },
@@ -563,7 +578,7 @@ patch(ListRenderer.prototype, {
         }
     },
     _addCellQuickFilters(tbody) {
-        tbody.querySelectorAll("td.o_data_cell[data-name]").forEach(function(td) {
+        tbody.querySelectorAll("td.o_data_cell[data-name]").forEach(function (td) {
             if (td.querySelector(".o_cf_quick")) return;
             const fieldName = td.getAttribute("data-name");
             if (!fieldName) return;
@@ -576,8 +591,9 @@ patch(ListRenderer.prototype, {
             eq.textContent = "=";
             eq.href = "#";
             eq.style.cssText = "cursor:pointer;padding:0 3px;color:#0d6efd;text-decoration:none;";
-            eq.addEventListener("click", function(ev) {
-                ev.preventDefault(); ev.stopPropagation();
+            eq.addEventListener("click", function (ev) {
+                ev.preventDefault();
+                ev.stopPropagation();
                 const val = td.textContent.trim();
                 this.columnFilters[fieldName] = val;
                 this._applyColumnFilters();
@@ -587,8 +603,9 @@ patch(ListRenderer.prototype, {
             neq.textContent = "!=";
             neq.href = "#";
             neq.style.cssText = "cursor:pointer;padding:0 3px;color:#dc3545;text-decoration:none;";
-            neq.addEventListener("click", function(ev) {
-                ev.preventDefault(); ev.stopPropagation();
+            neq.addEventListener("click", function (ev) {
+                ev.preventDefault();
+                ev.stopPropagation();
                 this.columnFilters[fieldName] = "!=" + td.textContent.trim();
                 this._applyColumnFilters();
             }.bind(this));
@@ -599,8 +616,12 @@ patch(ListRenderer.prototype, {
             td.style.position = "relative";
             td.appendChild(qf);
 
-            td.addEventListener("mouseenter", function() { qf.style.display = "inline-flex"; });
-            td.addEventListener("mouseleave", function() { qf.style.display = "none"; });
+            td.addEventListener("mouseenter", function () {
+                qf.style.display = "inline-flex";
+            });
+            td.addEventListener("mouseleave", function () {
+                qf.style.display = "none";
+            });
         });
     },
 });

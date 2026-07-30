@@ -242,6 +242,13 @@
                 <field name="vsourcebillcode"
                        optional="show"
                        column_invisible="not context.get('show_sunrise_fields')"/>
+                <field name="set_sunrise_outbound_sync"
+                       optional="show"
+                       column_invisible="not context.get('show_sunrise_fields')"/>
+                <field name="set_sunrise_pickup_delivery_sync"
+                       optional="show"
+                       column_invisible="not context.get('show_sunrise_fields')"/>
+
             </xpath>
         </field>
     </record>

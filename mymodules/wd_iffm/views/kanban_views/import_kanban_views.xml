@@ -6,7 +6,7 @@
         <field name="model">world.depot.waybill</field>
         <field name="arch" type="xml">
 <!--            can_open_records="True"-->
-            <kanban default_group_by="state" can_open_records="True" class="wd_iffm_kanban wd_iffm_waybill_kanban wd_iffm_waybill_kanban_lane" default_order="id desc">
+            <kanban default_group_by="state" js_class="waybill_kanban_validator" can_open_records="True" class="wd_iffm_kanban wd_iffm_waybill_kanban wd_iffm_waybill_kanban_lane" default_order="id desc">
                 <field name="billno"/>
                 <field name="project"/>
                 <field name="state"/>
@@ -28,6 +28,11 @@
                                 <div class="o_kanban_card_header d-flex align-items-start gap-1">
                                     <div class="o_kanban_card_header_title flex-grow-1 min-w-0">
                                         <t t-esc="record.bl_number.raw_value or record.hbl_number.raw_value or record.obl_number.raw_value or record.id.value"/>
+                                    </div>
+                                    <div class="o_kanban_card_content_row">
+                                        <span t-if="record.is_waybill_overdue" class="badge text-bg-danger">
+                                            <i class="fa fa-exclamation-triangle me-1"/>Overdue
+                                        </span>
                                     </div>
     <!--                                <div class="o_kanban_card_header_tags">-->
     <!--                                    &lt;!&ndash; 原生风格状态栏：New -> Confirm -> Done，当前状态高亮，已完成状态显示对勾 &ndash;&gt;-->
@@ -51,51 +56,50 @@
                                 <!-- 卡片内容 -->
                                 <div class="o_kanban_card_content">
                                     <div class="row gx-2">
-                                        <!-- 左侧：HBL + MBL -->
+                                        <!-- 左侧：BL -->
                                         <div class="col-6">
                                             <div class="o_kanban_card_content_row">
                                                 <span class="text-muted">B/L: </span>
                                                 <field name="bl_number"/>
                                             </div>
-                                            <div class="o_kanban_card_content_row">
-                                                <span class="text-muted">HBL: </span>
-                                                <field name="hbl_number"/>
-                                            </div>
-                                            <div class="o_kanban_card_content_row">
-                                                <span class="text-muted">MBL: </span>
-                                                <field name="obl_number"/>
-                                            </div>
+
+<!--                                            <div class="o_kanban_card_content_row">-->
+<!--                                                <span class="text-muted">HBL: </span>-->
+<!--                                                <field name="hbl_number"/>-->
+<!--                                            </div>-->
+<!--                                            <div class="o_kanban_card_content_row">-->
+<!--                                                <span class="text-muted">MBL: </span>-->
+<!--                                                <field name="obl_number"/>-->
+<!--                                            </div>-->
+
                                         </div>
-                                        <!-- 右侧：ETA + ATA -->
+                                        <!-- 右侧：ETA -->
                                         <div class="col-6">
                                             <div class="o_kanban_card_content_row">
                                                 <span class="text-muted">ETA: </span>
                                                 <field name="eta"/>
                                             </div>
-                                            <div class="o_kanban_card_content_row">
-                                                <span class="text-muted">ATA: </span>
-                                                <field name="ata"/>
-                                            </div>
                                         </div>
                                     </div>
+                                    <div class="o_kanban_card_content_row">
+                                        <span class="text-muted">ATA: </span>
+                                        <field name="ata"/>
+                                    </div>
                                     <div class="row gx-2">
+                                        <!-- 左侧：Container Number -->
                                         <div class="col-6">
                                             <div class="o_kanban_card_content_row">
                                                 <span class="text-muted">Container Number: </span>
                                                 <field name="container_qty"/>
                                             </div>
                                         </div>
+                                        <!-- 右侧： Bill No -->
                                         <div class="col-6">
                                             <div class="o_kanban_card_content_row">
-                                                <span t-if="record.is_waybill_overdue" class="badge text-bg-danger">
-                                                    <i class="fa fa-exclamation-triangle me-1"/>Overdue
-                                                </span>
+                                                <span class="text-muted">Bill No: </span>
+                                                <field name="billno"/>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div class="o_kanban_card_content_row">
-                                        <span class="text-muted">Bill No: </span>
-                                        <field name="billno"/>
                                     </div>
                                     <div t-if="record.is_waybill_overdue" class="o_kanban_card_content_row">
                                         <span class="text-muted">Overdue Reason: </span>

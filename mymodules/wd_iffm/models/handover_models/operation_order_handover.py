@@ -390,14 +390,19 @@ class OperationOrderHandover(models.Model):
             if rec.parent_id:
                 if not rec.charge_line_ids:
                     raise ValidationError(_("Charges are required before Close."))
-                unpaid = rec.invoice_line_ids.filtered(
-                    lambda l: l.payment_state != "paid")
-                if unpaid:
-                    raise ValidationError(_("All advance invoices must be paid before Close."))
             else:
                 rec.check_close_ready()
+                if not rec.invoice_line_ids:
+                    raise ValidationError(_("Vendor invoice lines are required before Close."))
+
+            unpaid_lines = rec.invoice_line_ids.filtered(
+                lambda line: line.payment_state != "paid"
+            )
+            if unpaid_lines:
+                raise ValidationError(_("All vendor invoice lines must be paid before Close."))
+
             rec.write({
-                "state": "close"
+                "state": "close",
             })
 
 
