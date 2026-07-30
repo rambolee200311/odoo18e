@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="bonded_mange.InventoryMovementHistoryPrintExcel">
+        <DropdownItem class="'o_inventory_movement_history_print_excel'" onSelected.bind="on_print_excel">
+            <i class="fa fa-fw fa-file-excel-o me-1"/>Print Excel
+        </DropdownItem>
+    </t>
+</templates>
