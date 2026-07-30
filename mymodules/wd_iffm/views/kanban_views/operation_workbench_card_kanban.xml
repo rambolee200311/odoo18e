@@ -58,14 +58,14 @@
                                         <span class="text-muted">B/L: </span>
                                         <span t-esc="record.extra_data.raw_value.bl_number or ''"/>
                                     </div>
-                                    <div class="o_kanban_card_content_row">
-                                        <span class="text-muted">HBL: </span>
-                                        <span t-esc="record.extra_data.raw_value.hbl_number or ''"/>
-                                    </div>
-                                    <div class="o_kanban_card_content_row">
-                                        <span class="text-muted">MBL: </span>
-                                        <span t-esc="record.extra_data.raw_value.obl_number or '0'"/>
-                                    </div>
+<!--                                    <div class="o_kanban_card_content_row">-->
+<!--                                        <span class="text-muted">HBL: </span>-->
+<!--                                        <span t-esc="record.extra_data.raw_value.hbl_number or ''"/>-->
+<!--                                    </div>-->
+<!--                                    <div class="o_kanban_card_content_row">-->
+<!--                                        <span class="text-muted">MBL: </span>-->
+<!--                                        <span t-esc="record.extra_data.raw_value.obl_number or '0'"/>-->
+<!--                                    </div>-->
                                     <div class="o_kanban_card_content_row">
                                         <span class="text-muted">Container Number: </span>
                                         <span t-esc="record.extra_data.raw_value.container_number or 'Not Bound'"/>
@@ -82,14 +82,14 @@
                                         <span class="text-muted">B/L: </span>
                                         <span t-esc="record.extra_data.raw_value.bl_number or ''"/>
                                     </div>
-                                    <div class="o_kanban_card_content_row">
-                                        <span class="text-muted">HBL: </span>
-                                        <span t-esc="record.extra_data.raw_value.hbl_number or ''"/>
-                                    </div>
-                                    <div class="o_kanban_card_content_row">
-                                        <span class="text-muted">MBL: </span>
-                                        <span t-esc="record.extra_data.raw_value.obl_number or '0'"/>
-                                    </div>
+<!--                                    <div class="o_kanban_card_content_row">-->
+<!--                                        <span class="text-muted">HBL: </span>-->
+<!--                                        <span t-esc="record.extra_data.raw_value.hbl_number or ''"/>-->
+<!--                                    </div>-->
+<!--                                    <div class="o_kanban_card_content_row">-->
+<!--                                        <span class="text-muted">MBL: </span>-->
+<!--                                        <span t-esc="record.extra_data.raw_value.obl_number or '0'"/>-->
+<!--                                    </div>-->
                                     <div class="o_kanban_card_content_row">
                                         <span class="text-muted">Container Number: </span>
                                         <span t-esc="record.extra_data.raw_value.container_nums or '0'"/>
@@ -105,14 +105,14 @@
                                         <span class="text-muted">B/L: </span>
                                         <span t-esc="record.extra_data.raw_value.bl_number or ''"/>
                                     </div>
-                                    <div class="o_kanban_card_content_row">
-                                        <span class="text-muted">HBL: </span>
-                                        <span t-esc="record.extra_data.raw_value.hbl_number or ''"/>
-                                    </div>
-                                    <div class="o_kanban_card_content_row">
-                                        <span class="text-muted">MBL: </span>
-                                        <span t-esc="record.extra_data.raw_value.obl_number or ''"/>
-                                    </div>
+<!--                                    <div class="o_kanban_card_content_row">-->
+<!--                                        <span class="text-muted">HBL: </span>-->
+<!--                                        <span t-esc="record.extra_data.raw_value.hbl_number or ''"/>-->
+<!--                                    </div>-->
+<!--                                    <div class="o_kanban_card_content_row">-->
+<!--                                        <span class="text-muted">MBL: </span>-->
+<!--                                        <span t-esc="record.extra_data.raw_value.obl_number or ''"/>-->
+<!--                                    </div>-->
                                     <div class="o_kanban_card_content_row">
                                         <span class="text-muted">Container Number: </span>
                                         <span t-esc="record.extra_data.raw_value.container_nums or '0'"/>
