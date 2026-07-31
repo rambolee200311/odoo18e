@@ -61,7 +61,10 @@
                         <page string="Movement Lines">
                             <field name="movement_lines" nolabel="1" readonly="1"
                                    options="{'no_create': True, 'no_open': True}">
-                                <list create="0" edit="0" delete="0" default_order="sequence asc, id asc">
+                                <list create="0" edit="0" delete="0" default_order="sequence asc, id asc"
+                                      class="o_inventory_movement_history_report_line_list"
+                                      decoration-primary="mutation_type == 'total'"
+                                      decoration-bf="mutation_type == 'total'">
                                     <field name="sequence" column_invisible="1"/>
                                     <field name="product_id" optional="show"
                                            options="{'no_create': True, 'no_open': True}"/>
@@ -79,6 +82,8 @@
                                     <field name="mrn_id" optional="show"
                                            options="{'no_create': True, 'no_open': True}"/>
                                     <field name="bonded_flag" widget="badge" optional="show"/>
+                                    <field name="product_uom_id" optional="hide"
+                                           options="{'no_create': True, 'no_open': True}"/>
                                     <field name="kind_of_colli" optional="show"/>
                                     <field name="mutation_quantity" optional="show"/>
                                     <field name="gross_weight" optional="show"/>
@@ -98,7 +103,10 @@
         <field name="name">bonded.inventory.movement.history.report.line.export.list</field>
         <field name="model">bonded.inventory.movement.history.report.line</field>
         <field name="arch" type="xml">
-            <list create="0" edit="0" delete="0" default_order="sequence asc, id asc">
+            <list create="0" edit="0" delete="0" default_order="sequence asc, id asc"
+                  class="o_inventory_movement_history_report_line_list"
+                  decoration-primary="mutation_type == 'total'"
+                  decoration-bf="mutation_type == 'total'">
                 <field name="product_id" options="{'no_create': True, 'no_open': True}"/>
                 <field name="product_description"/>
                 <field name="marks_article_technical_description"/>
@@ -113,6 +121,7 @@
                 <field name="unique_identifier"/>
                 <field name="mrn_id" options="{'no_create': True, 'no_open': True}"/>
                 <field name="bonded_flag" widget="badge"/>
+                <field name="product_uom_id" optional="hide" options="{'no_create': True, 'no_open': True}"/>
                 <field name="kind_of_colli"/>
                 <field name="mutation_quantity"/>
                 <field name="gross_weight"/>
