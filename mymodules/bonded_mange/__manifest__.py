@@ -24,6 +24,7 @@ Long description of module's purpose
         'web.assets_backend': [
             'bonded_mange/static/src/js/inventory_movement_history_print_excel_cog_menu.js',
             'bonded_mange/static/src/xml/inventory_movement_history_print_excel_cog_menu.xml',
+            'bonded_mange/static/src/scss/inventory_movement_history_report.scss',
         ],
     },
 

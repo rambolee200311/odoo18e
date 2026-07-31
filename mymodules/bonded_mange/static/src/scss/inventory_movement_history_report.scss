@@ -1,0 +1,11 @@
+.o_inventory_movement_history_report_line_list {
+    .o_data_row.text-primary > td {
+        background-color: #BEBEBE !important;
+        color: #ffffff !important;
+    }
+
+    .o_data_row.text-primary a,
+    .o_data_row.text-primary .o_field_widget {
+        color: #ffffff !important;
+    }
+}
