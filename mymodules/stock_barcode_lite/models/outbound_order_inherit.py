@@ -22,6 +22,7 @@ class OutboundOrderInherit(models.Model):
     outgoing_picking_lines = fields.One2many("stock.picking", "outbound_order_id", string="Outgoing Pickings", tracking=True)
     sunrise_pallet_count = fields.Integer(string="Sunrise Pallet Count", compute="_compute_sunrise_pallet_count",
                                           store=True)
+    eta = fields.Date(string='ETA', tracking=True)
 
     @api.onchange("project")
     def onchange_project_warehouse(self):
