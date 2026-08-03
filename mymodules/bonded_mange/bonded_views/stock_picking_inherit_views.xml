@@ -62,7 +62,6 @@
                        decoration-info="bonded_flag in ('non_bonded')" force_save="1"/>
                 <field name="manual_bonded_flag"
                        string="Bonded Flag"
-                       required="not inbound_order_id and not outbound_order_id and not mrn_id"
                        invisible="inbound_order_id or outbound_order_id or mrn_id"
                        readonly="state in ('done', 'cancel')"/>
                 <field name="customs_document_id" options="{'no_create': True}" readonly="1"/>

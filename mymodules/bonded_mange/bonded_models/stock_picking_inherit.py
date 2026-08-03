@@ -33,7 +33,7 @@ class StockPicking(models.Model):
     manual_bonded_flag = fields.Selection([
         ("true", "Bonded"),
         ("false", "Non-bonded"),
-    ], string="Manual Bonded Flag", tracking=True, index=True, copy=False)
+    ], string="Manual Bonded Flag",default='false', tracking=True, index=True, copy=False)
 
     @api.depends("inbound_order_id", "inbound_order_id.is_bonded",
                  "outbound_order_id",
