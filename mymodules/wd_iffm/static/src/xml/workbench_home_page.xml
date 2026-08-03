@@ -13,10 +13,10 @@
 <!--                    <p class="text-muted">点击Tab切换下方的数据视图</p>-->
 <!--                </div>-->
 
-                <!-- 三块卡片区域 -->
+                <!-- 上边区域：菜单卡片区域 -->
                 <div class="dashboard-cards-container d-flex gap-4 mb-4">
                     
-                    <!-- 左侧：临期卡片 -->
+                    <!-- 临期卡片 -->
                     <div class="cards-section flex-fill">
                         <h5 class="text-warning mb-3">
                             <i class="fa fa-clock-o me-2"/>Near Expiry
@@ -69,7 +69,7 @@
                         </div>
                     </div>
                     
-                    <!-- 中间：逾期卡片 -->
+                    <!-- 中间区域：逾期卡片 -->
                     <div class="cards-section flex-fill">
                         <h5 class="text-danger mb-3">
                             <i class="fa fa-exclamation-triangle me-2"/>Overdue
@@ -79,7 +79,8 @@
                             <div t-att-class="'dashboard-card p-3 rounded text-center cursor-pointer border ' + (state.activeTab == 'waybill_overdue' ? 'border-danger bg-danger bg-opacity-10' : 'bg-light')"
                                  t-on-click="() => onCardClick('waybill', 'overdue')"
                                  style="min-width: 140px;">
-                                <div class="card-count fw-bold fs-2 text-danger">
+<!--                                <div class="card-count fw-bold fs-2 text-danger">-->
+                                <div t-att-class="'card-count fw-bold fs-2 ' + (state.activeTab == 'waybill_overdue' ? 'text-white' : 'text-danger')">
                                     <t t-esc="state.dashboardData.waybill.overdue_count"/>
                                 </div>
                                 <div class="card-label small mt-1">
@@ -94,7 +95,8 @@
                             <div t-att-class="'dashboard-card p-3 rounded text-center cursor-pointer border ' + (state.activeTab == 'handover_overdue' ? 'border-danger bg-danger bg-opacity-10' : 'bg-light')"
                                  t-on-click="() => onCardClick('handover', 'overdue')"
                                  style="min-width: 140px;">
-                                <div class="card-count fw-bold fs-2 text-danger">
+<!--                                <div class="card-count fw-bold fs-2 text-danger">-->
+                                <div t-att-class="'card-count fw-bold fs-2 ' + (state.activeTab == 'handover_overdue' ? 'text-white' : 'text-danger')">
                                     <t t-esc="state.dashboardData.handover.overdue_count"/>
                                 </div>
                                 <div class="card-label small mt-1">
@@ -109,7 +111,8 @@
                             <div t-att-class="'dashboard-card p-3 rounded text-center cursor-pointer border ' + (state.activeTab == 'clearance_overdue' ? 'border-danger bg-danger bg-opacity-10' : 'bg-light')"
                                  t-on-click="() => onCardClick('clearance', 'overdue')"
                                  style="min-width: 140px;">
-                                <div class="card-count fw-bold fs-2 text-danger">
+<!--                                <div class="card-count fw-bold fs-2 text-danger">-->
+                                <div t-att-class="'card-count fw-bold fs-2 ' + (state.activeTab == 'clearance_overdue' ? 'text-white' : 'text-danger')">
                                     <t t-esc="state.dashboardData.clearance.overdue_count"/>
                                 </div>
                                 <div class="card-label small mt-1">
@@ -146,7 +149,7 @@
                     </div>
                 </div>
 
-                <!-- 视图切换区域 -->
+                <!-- 中间区域：视图切换区域 -->
                 <div class="view-switcher mb-3 d-flex gap-2 align-items-center">
                     <!-- 左侧：筛选条件 -->
                     <div class="d-flex gap-2 align-items-center flex-wrap">
@@ -225,7 +228,7 @@
                     </div>
                 </div>
 
-                <!-- 内容区域：强制占满剩余高度 -->
+                <!-- 下边内容区域：强制占满剩余高度 -->
                 <div class="content-area border rounded" style="flex: 1; height: 0; overflow-y: auto;">
                     <t t-if="state.viewProps">
                         <div style="width:100%;height:100%;min-height:100%;">
