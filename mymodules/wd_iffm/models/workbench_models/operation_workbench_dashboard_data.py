@@ -17,6 +17,7 @@ class OperationWorkbenchDashboardData(models.Model):
     @api.model
     def get_dashboard_counts(self, filters=None):
         filters = filters or {}
+        waybill_all_count = self.env["world.depot.waybill"].sudo().search_count([("state", "!=", "cancel")])
 
         waybill_near = self.get_lane_record_ids("waybill", "near", filters).get("filtered_count", 0)
         handover_near = self.get_lane_record_ids("handover", "near", filters).get("filtered_count", 0)
@@ -31,6 +32,7 @@ class OperationWorkbenchDashboardData(models.Model):
             "handover": {"near_due_count": handover_near, "overdue_count": handover_overdue},
             "clearance": {"near_due_count": clearance_near, "overdue_count": clearance_overdue},
             "total": {
+                "waybill_all_count": waybill_all_count,
                 "near_due_count": waybill_near + handover_near + clearance_near,
                 "overdue_count": waybill_overdue + handover_overdue + clearance_overdue,
             },
