@@ -305,7 +305,7 @@ class InboundOrderProductsOfPallet(models.Model):
         currency_field='currency_id',
         tracking=True)
     hs_code = fields.Char(string="HS Code", tracking=True, related = 'product_id.hs_code',readonly=True, index=True)
-    weight = fields.Float(string="Weight", tracking=True)
+
     customs_code = fields.Char(string="Customs Code", tracking=True,related='product_id.customs_code', readonly=True, index=True)
     currency_id = fields.Many2one(
         'res.currency',
