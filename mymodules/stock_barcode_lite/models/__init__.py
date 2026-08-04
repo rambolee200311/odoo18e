@@ -18,3 +18,4 @@ from . import stock_return_picking_inherit
 from . import project_project_inherit
 from . import outbound_order_recreate
 from . import inbound_order_recreate
+from . import pda_internal_transfer
