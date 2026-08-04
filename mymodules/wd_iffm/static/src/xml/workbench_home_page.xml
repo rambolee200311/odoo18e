@@ -135,8 +135,8 @@
                             <div t-att-class="'dashboard-card p-3 rounded text-center cursor-pointer border ' + (state.activeTab == 'waybill_all' ? 'border-primary bg-primary bg-opacity-10' : 'bg-light')"
                                  t-on-click="() => onCardClick('waybill', 'all')"
                                  style="min-width: 140px;">
-                                <div class="card-count fw-bold fs-2 text-primary">
-                                    <t t-esc="state.dashboardData.total.all_count"/>
+                                <div t-att-class="'card-count fw-bold fs-2 ' + (state.activeTab == 'waybill_all' ? 'text-white' : 'text-primary')">
+                                    <t t-esc="state.dashboardData.total.waybill_all_count"/>
                                 </div>
                                 <div class="card-label small mt-1">
                                     <i class="fa fa-file-text-o me-1"/>Waybill

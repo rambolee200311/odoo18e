@@ -36,7 +36,7 @@ export class WdIffmWorkbench extends Component {
                 waybill: { near_due_count: 0, overdue_count: 0 },
                 handover: { near_due_count: 0, overdue_count: 0 },
                 clearance: { near_due_count: 0, overdue_count: 0 },
-                total: { all_count: 0, near_due_count: 0, overdue_count: 0 }
+                total: { waybill_all_count: 0, near_due_count: 0, overdue_count: 0 }
             },
             viewProps: null,
             currentResModel: null,
@@ -166,7 +166,7 @@ export class WdIffmWorkbench extends Component {
                 waybill: { near_due_count: 0, overdue_count: 0 },
                 handover: { near_due_count: 0, overdue_count: 0 },
                 clearance: { near_due_count: 0, overdue_count: 0 },
-                total: { all_count: 0, near_due_count: 0, overdue_count: 0 }
+                total: { waybill_all_count: 0, near_due_count: 0, overdue_count: 0 }
             };
         }
     }
