@@ -18,9 +18,9 @@
                     
                     <!-- 临期卡片 -->
                     <div class="cards-section flex-fill">
-                        <h6 class="text-warning mb-2 fw-bold">
+                        <h4 class="text-warning mb-3 fw-bold">
                             <i class="fa fa-clock-o me-1"></i>Near Expiry
-                        </h6>
+                        </h4>
                         <div class="d-flex gap-2 flex-wrap">
                             <div t-att-class="'dashboard-card p-3 rounded text-center cursor-pointer border ' + (state.activeTab == 'waybill_near_due' ? 'border-warning bg-warning bg-opacity-15' : 'bg-white border-secondary')"
                                  t-on-click="() => onCardClick('waybill', 'near_due')"
@@ -68,9 +68,9 @@
                     
                     <!-- 逾期卡片 -->
                     <div class="cards-section flex-fill">
-                        <h6 class="text-danger mb-2 fw-bold">
+                        <h4 class="text-danger mb-3 fw-bold">
                             <i class="fa fa-exclamation-triangle me-1"></i>Overdue
-                        </h6>
+                        </h4>
                         <div class="d-flex gap-2 flex-wrap">
                             <div t-att-class="'dashboard-card p-3 rounded text-center cursor-pointer border ' + (state.activeTab == 'waybill_overdue' ? 'border-danger bg-danger bg-opacity-15' : 'bg-white border-secondary')"
                                  t-on-click="() => onCardClick('waybill', 'overdue')"
@@ -118,9 +118,9 @@
                     
                     <!-- 全部提单 -->
                     <div class="cards-section flex-fill">
-                        <h6 class="text-primary mb-2 fw-bold">
+                        <h4 class="text-primary mb-3 fw-bold">
                             <i class="fa fa-folder-open me-1"></i>All Waybills
-                        </h6>
+                        </h4>
                         <div class="d-flex gap-2">
                             <div t-att-class="'dashboard-card p-3 rounded text-center cursor-pointer border ' + (state.activeTab == 'waybill_all' ? 'border-primary bg-primary bg-opacity-15' : 'bg-white border-secondary')"
                                  t-on-click="() => onCardClick('waybill', 'all')"
