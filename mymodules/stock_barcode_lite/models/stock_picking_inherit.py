@@ -31,7 +31,14 @@ class StockPicking(models.Model):
 
         for rec in self:
             inbound_order = rec.inbound_order_id
-            if inbound_order and inbound_order.project.name == "SUNRISE" and rec.state != "done":
+            if (
+                    inbound_order
+                    and inbound_order.project.name == "SUNRISE"
+                    and rec.state != "done"
+                    and not rec.return_id
+                    and rec.picking_type_id.code == "incoming"
+                    and inbound_order.stock_picking_id == rec
+            ):
                 inbound_orders |= inbound_order
 
         res = super().unlink()

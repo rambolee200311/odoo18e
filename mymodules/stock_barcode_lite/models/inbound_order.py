@@ -3,7 +3,7 @@
 import math
 from psycopg2 import sql
 
-from odoo import _, fields, models
+from odoo import _, fields, models, api
 from odoo.exceptions import UserError
 
 class InboundOrder(models.Model):
@@ -15,6 +15,14 @@ class InboundOrder(models.Model):
     source_sale_delivery_reference = fields.Char(string="Source Sale Delivery Reference", copy=False, index=True)
     vsourcebillcode = fields.Char(string="Source Bill Code", copy=False, index=True)
     project_package_generation_mode = fields.Selection(related="project.package_generation_mode", string="Package Generation Mode", readonly=True)
+    organic = fields.Boolean(string="Organic")
+
+    @api.onchange("project")
+    def onchange_project_warehouse(self):
+        for record in self:
+            record.warehouse = record.project.warehouse
+            record.pick_type = record.project.inbound_pick_type
+
 
     def action_open_sunrise_inbound_pallet_products(self):
         for rec in self:

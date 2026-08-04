@@ -22,6 +22,14 @@ class OutboundOrderInherit(models.Model):
     outgoing_picking_lines = fields.One2many("stock.picking", "outbound_order_id", string="Outgoing Pickings", tracking=True)
     sunrise_pallet_count = fields.Integer(string="Sunrise Pallet Count", compute="_compute_sunrise_pallet_count",
                                           store=True)
+    eta = fields.Date(string='ETA', tracking=True)
+
+    @api.onchange("project")
+    def onchange_project_warehouse(self):
+        for record in self:
+            record.warehouse = record.project.warehouse
+            record.pick_type = record.project.outbound_pick_type
+
 
     @api.depends("outbound_order_product_ids.package_id")
     def _compute_sunrise_pallet_count(self):
@@ -200,6 +208,8 @@ class OutboundOrderInherit(models.Model):
             picking_list = picking_model.sudo().search([
                 ("outbound_order_id", "=", rec.id),
                 ("state", "!=", "cancel"),
+                ("picking_type_id.code", "=", "outgoing"),
+                ("return_id", "=", False),
             ], order="id")
             result |= picking_list
 
@@ -287,6 +297,8 @@ class OutboundOrderInherit(models.Model):
             existing_picking = picking_model.sudo().search([
                 ("outbound_order_id", "=", rec.id),
                 ("state", "!=", "cancel"),
+                ("picking_type_id.code", "=", "outgoing"),
+                ("return_id", "=", False),
             ], limit=1)
             if existing_picking:
                 raise UserError(_("A stock picking already exists for this outbound order."))
