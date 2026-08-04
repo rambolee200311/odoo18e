@@ -14,135 +14,125 @@
 <!--                </div>-->
 
                 <!-- 上边区域：菜单卡片区域 -->
-                <div class="dashboard-cards-container d-flex gap-4 mb-4">
+                <div class="dashboard-cards-container d-flex gap-4 mb-3" style="align-items: flex-start;">
                     
                     <!-- 临期卡片 -->
                     <div class="cards-section flex-fill">
-                        <h5 class="text-warning mb-3">
-                            <i class="fa fa-clock-o me-2"/>Near Expiry
-                        </h5>
-                        <div class="d-flex gap-3 flex-wrap">
-                            <!-- 提单临期卡片 -->
-                            <div t-att-class="'dashboard-card p-3 rounded text-center cursor-pointer border ' + (state.activeTab == 'waybill_near_due' ? 'border-warning bg-warning bg-opacity-10' : 'bg-light')"
+                        <h6 class="text-warning mb-2 fw-bold">
+                            <i class="fa fa-clock-o me-1"></i>Near Expiry
+                        </h6>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <div t-att-class="'dashboard-card p-3 rounded text-center cursor-pointer border ' + (state.activeTab == 'waybill_near_due' ? 'border-warning bg-warning bg-opacity-15' : 'bg-white border-secondary')"
                                  t-on-click="() => onCardClick('waybill', 'near_due')"
-                                 style="min-width: 140px;">
-                                <div class="card-count fw-bold fs-2 text-warning">
+                                 style="min-width: 110px; flex: 1;">
+                                <div class="card-count fw-bold fs-3 text-warning">
                                     <t t-esc="state.dashboardData.waybill.near_due_count"/>
                                 </div>
-                                <div class="card-label small mt-1">
-                                    <i class="fa fa-file-text-o me-1"/>Waybill
+                                <div class="card-label small text-muted mt-1">
+                                    <i class="fa fa-file-text-o me-1"></i>Waybill
                                 </div>
-                                <div class="card-hint small text-muted mt-1">
-                                    <i class="fa fa-hand-pointer-o me-1"/>Click to view
+                                <div class="card-hint small text-muted mt-1 opacity-75">
+                                    <i class="fa fa-hand-pointer-o me-1"></i>Click
                                 </div>
                             </div>
                             
-                            <!-- 换单临期卡片 -->
-                            <div t-att-class="'dashboard-card p-3 rounded text-center cursor-pointer border ' + (state.activeTab == 'handover_near_due' ? 'border-warning bg-warning bg-opacity-10' : 'bg-light')"
+                            <div t-att-class="'dashboard-card p-3 rounded text-center cursor-pointer border ' + (state.activeTab == 'handover_near_due' ? 'border-warning bg-warning bg-opacity-15' : 'bg-white border-secondary')"
                                  t-on-click="() => onCardClick('handover', 'near_due')"
-                                 style="min-width: 140px;">
-                                <div class="card-count fw-bold fs-2 text-warning">
+                                 style="min-width: 110px; flex: 1;">
+                                <div class="card-count fw-bold fs-3 text-warning">
                                     <t t-esc="state.dashboardData.handover.near_due_count"/>
                                 </div>
-                                <div class="card-label small mt-1">
-                                    <i class="fa fa-exchange me-1"/>Handover
+                                <div class="card-label small text-muted mt-1">
+                                    <i class="fa fa-refresh me-1"></i>Handover
                                 </div>
-                                <div class="card-hint small text-muted mt-1">
-                                    <i class="fa fa-hand-pointer-o me-1"/>Click to view
+                                <div class="card-hint small text-muted mt-1 opacity-75">
+                                    <i class="fa fa-hand-pointer-o me-1"></i>Click
                                 </div>
                             </div>
                             
-                            <!-- 清关临期卡片 -->
-                            <div t-att-class="'dashboard-card p-3 rounded text-center cursor-pointer border ' + (state.activeTab == 'clearance_near_due' ? 'border-warning bg-warning bg-opacity-10' : 'bg-light')"
+                            <div t-att-class="'dashboard-card p-3 rounded text-center cursor-pointer border ' + (state.activeTab == 'clearance_near_due' ? 'border-warning bg-warning bg-opacity-15' : 'bg-white border-secondary')"
                                  t-on-click="() => onCardClick('clearance', 'near_due')"
-                                 style="min-width: 140px;">
-                                <div class="card-count fw-bold fs-2 text-warning">
+                                 style="min-width: 110px; flex: 1;">
+                                <div class="card-count fw-bold fs-3 text-warning">
                                     <t t-esc="state.dashboardData.clearance.near_due_count"/>
                                 </div>
-                                <div class="card-label small mt-1">
-                                    <i class="fa fa-calculator me-1"/>Clearance
+                                <div class="card-label small text-muted mt-1">
+                                    <i class="fa fa-calculator me-1"></i>Clearance
                                 </div>
-                                <div class="card-hint small text-muted mt-1">
-                                    <i class="fa fa-hand-pointer-o me-1"/>Click to view
+                                <div class="card-hint small text-muted mt-1 opacity-75">
+                                    <i class="fa fa-hand-pointer-o me-1"></i>Click
                                 </div>
                             </div>
                         </div>
                     </div>
                     
-                    <!-- 中间区域：逾期卡片 -->
+                    <!-- 逾期卡片 -->
                     <div class="cards-section flex-fill">
-                        <h5 class="text-danger mb-3">
-                            <i class="fa fa-exclamation-triangle me-2"/>Overdue
-                        </h5>
-                        <div class="d-flex gap-3 flex-wrap">
-                            <!-- 提单逾期卡片 -->
-                            <div t-att-class="'dashboard-card p-3 rounded text-center cursor-pointer border ' + (state.activeTab == 'waybill_overdue' ? 'border-danger bg-danger bg-opacity-10' : 'bg-light')"
+                        <h6 class="text-danger mb-2 fw-bold">
+                            <i class="fa fa-exclamation-triangle me-1"></i>Overdue
+                        </h6>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <div t-att-class="'dashboard-card p-3 rounded text-center cursor-pointer border ' + (state.activeTab == 'waybill_overdue' ? 'border-danger bg-danger bg-opacity-15' : 'bg-white border-secondary')"
                                  t-on-click="() => onCardClick('waybill', 'overdue')"
-                                 style="min-width: 140px;">
-<!--                                <div class="card-count fw-bold fs-2 text-danger">-->
-                                <div t-att-class="'card-count fw-bold fs-2 ' + (state.activeTab == 'waybill_overdue' ? 'text-white' : 'text-danger')">
+                                 style="min-width: 110px; flex: 1;">
+                                <div t-att-class="'card-count fw-bold fs-3 ' + (state.activeTab == 'waybill_overdue' ? 'text-white' : 'text-danger')">
                                     <t t-esc="state.dashboardData.waybill.overdue_count"/>
                                 </div>
-                                <div class="card-label small mt-1">
-                                    <i class="fa fa-file-text-o me-1"/>Waybill
+                                <div class="card-label small text-muted mt-1">
+                                    <i class="fa fa-file-text-o me-1"></i>Waybill
                                 </div>
-                                <div class="card-hint small text-muted mt-1">
-                                    <i class="fa fa-hand-pointer-o me-1"/>Click to view
+                                <div class="card-hint small text-muted mt-1 opacity-75">
+                                    <i class="fa fa-hand-pointer-o me-1"></i>Click
                                 </div>
                             </div>
                             
-                            <!-- 换单逾期卡片 -->
-                            <div t-att-class="'dashboard-card p-3 rounded text-center cursor-pointer border ' + (state.activeTab == 'handover_overdue' ? 'border-danger bg-danger bg-opacity-10' : 'bg-light')"
+                            <div t-att-class="'dashboard-card p-3 rounded text-center cursor-pointer border ' + (state.activeTab == 'handover_overdue' ? 'border-danger bg-danger bg-opacity-15' : 'bg-white border-secondary')"
                                  t-on-click="() => onCardClick('handover', 'overdue')"
-                                 style="min-width: 140px;">
-<!--                                <div class="card-count fw-bold fs-2 text-danger">-->
-                                <div t-att-class="'card-count fw-bold fs-2 ' + (state.activeTab == 'handover_overdue' ? 'text-white' : 'text-danger')">
+                                 style="min-width: 110px; flex: 1;">
+                                <div t-att-class="'card-count fw-bold fs-3 ' + (state.activeTab == 'handover_overdue' ? 'text-white' : 'text-danger')">
                                     <t t-esc="state.dashboardData.handover.overdue_count"/>
                                 </div>
-                                <div class="card-label small mt-1">
-                                    <i class="fa fa-exchange me-1"/>Handover
+                                <div class="card-label small text-muted mt-1">
+                                    <i class="fa fa-refresh me-1"></i>Handover
                                 </div>
-                                <div class="card-hint small text-muted mt-1">
-                                    <i class="fa fa-hand-pointer-o me-1"/>Click to view
+                                <div class="card-hint small text-muted mt-1 opacity-75">
+                                    <i class="fa fa-hand-pointer-o me-1"></i>Click
                                 </div>
                             </div>
                             
-                            <!-- 清关逾期卡片 -->
-                            <div t-att-class="'dashboard-card p-3 rounded text-center cursor-pointer border ' + (state.activeTab == 'clearance_overdue' ? 'border-danger bg-danger bg-opacity-10' : 'bg-light')"
+                            <div t-att-class="'dashboard-card p-3 rounded text-center cursor-pointer border ' + (state.activeTab == 'clearance_overdue' ? 'border-danger bg-danger bg-opacity-15' : 'bg-white border-secondary')"
                                  t-on-click="() => onCardClick('clearance', 'overdue')"
-                                 style="min-width: 140px;">
-<!--                                <div class="card-count fw-bold fs-2 text-danger">-->
-                                <div t-att-class="'card-count fw-bold fs-2 ' + (state.activeTab == 'clearance_overdue' ? 'text-white' : 'text-danger')">
+                                 style="min-width: 110px; flex: 1;">
+                                <div t-att-class="'card-count fw-bold fs-3 ' + (state.activeTab == 'clearance_overdue' ? 'text-white' : 'text-danger')">
                                     <t t-esc="state.dashboardData.clearance.overdue_count"/>
                                 </div>
-                                <div class="card-label small mt-1">
-                                    <i class="fa fa-calculator me-1"/>Clearance
+                                <div class="card-label small text-muted mt-1">
+                                    <i class="fa fa-calculator me-1"></i>Clearance
                                 </div>
-                                <div class="card-hint small text-muted mt-1">
-                                    <i class="fa fa-hand-pointer-o me-1"/>Click to view
+                                <div class="card-hint small text-muted mt-1 opacity-75">
+                                    <i class="fa fa-hand-pointer-o me-1"></i>Click
                                 </div>
                             </div>
                         </div>
                     </div>
                     
-                    <!-- 右侧：全部提单 -->
+                    <!-- 全部提单 -->
                     <div class="cards-section flex-fill">
-                        <h5 class="text-primary mb-3">
-                            <i class="fa fa-folder-open me-2"/>All Waybills
-                        </h5>
-                        <div class="d-flex gap-3 flex-wrap">
-                            <!-- 全部提单卡片 -->
-                            <div t-att-class="'dashboard-card p-3 rounded text-center cursor-pointer border ' + (state.activeTab == 'waybill_all' ? 'border-primary bg-primary bg-opacity-10' : 'bg-light')"
+                        <h6 class="text-primary mb-2 fw-bold">
+                            <i class="fa fa-folder-open me-1"></i>All Waybills
+                        </h6>
+                        <div class="d-flex gap-2">
+                            <div t-att-class="'dashboard-card p-3 rounded text-center cursor-pointer border ' + (state.activeTab == 'waybill_all' ? 'border-primary bg-primary bg-opacity-15' : 'bg-white border-secondary')"
                                  t-on-click="() => onCardClick('waybill', 'all')"
-                                 style="min-width: 140px;">
-                                <div t-att-class="'card-count fw-bold fs-2 ' + (state.activeTab == 'waybill_all' ? 'text-white' : 'text-primary')">
+                                 style="flex: 1;">
+                                <div t-att-class="'card-count fw-bold fs-3 ' + (state.activeTab == 'waybill_all' ? 'text-white' : 'text-primary')">
                                     <t t-esc="state.dashboardData.total.waybill_all_count"/>
                                 </div>
-                                <div class="card-label small mt-1">
-                                    <i class="fa fa-file-text-o me-1"/>Waybill
+                                <div class="card-label small text-muted mt-1">
+                                    <i class="fa fa-file-text-o me-1"></i>Waybill
                                 </div>
-                                <div class="card-hint small text-muted mt-1">
-                                    <i class="fa fa-hand-pointer-o me-1"/>Click to view
+                                <div class="card-hint small text-muted mt-1 opacity-75">
+                                    <i class="fa fa-hand-pointer-o me-1"></i>Click
                                 </div>
                             </div>
                         </div>

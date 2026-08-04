@@ -176,6 +176,154 @@
 }
 
 /* ==========================================
+   新版仪表盘卡片样式 (workbench_home_page)
+   ========================================== */
+
+/* 仪表盘面板容器 */
+.dashboard-cards-container {
+    gap: 16px;
+}
+
+/* 面板样式 */
+.dashboard-panel {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+}
+
+.dashboard-panel:hover {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+/* 面板头部 */
+.dashboard-panel .panel-header {
+    background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%);
+}
+
+.dashboard-panel.panel-warning {
+    border-top: 3px solid #ffc107;
+}
+
+.dashboard-panel.panel-warning .panel-header {
+    background: linear-gradient(135deg, #fff8e1 0%, #fffde7 100%);
+}
+
+.dashboard-panel.panel-danger {
+    border-top: 3px solid #dc3545;
+}
+
+.dashboard-panel.panel-danger .panel-header {
+    background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+}
+
+.dashboard-panel.panel-primary {
+    border-top: 3px solid #0d6efd;
+}
+
+.dashboard-panel.panel-primary .panel-header {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+}
+
+/* 卡片样式 */
+.dashboard-card {
+    background: white;
+    border: 1px solid #e9ecef;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.dashboard-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent 0%, currentColor 50%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    border-color: currentColor;
+}
+
+.dashboard-card:hover::before {
+    opacity: 0.3;
+}
+
+/* 卡片激活状态 */
+.dashboard-card.card-active-warning {
+    background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+    border-color: #ffc107;
+    box-shadow: 0 4px 16px rgba(255, 193, 7, 0.3);
+}
+
+.dashboard-card.card-active-warning::before {
+    opacity: 1;
+    background: linear-gradient(90deg, #ffc107 0%, #ffeb3b 50%, #ffc107 100%);
+}
+
+.dashboard-card.card-active-danger {
+    background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+    border-color: #dc3545;
+    box-shadow: 0 4px 16px rgba(220, 53, 69, 0.3);
+}
+
+.dashboard-card.card-active-danger::before {
+    opacity: 1;
+    background: linear-gradient(90deg, #dc3545 0%, #ef5350 50%, #dc3545 100%);
+}
+
+.dashboard-card.card-active-primary {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    border-color: #0d6efd;
+    box-shadow: 0 4px 16px rgba(13, 110, 253, 0.3);
+}
+
+.dashboard-card.card-active-primary::before {
+    opacity: 1;
+    background: linear-gradient(90deg, #0d6efd 0%, #42a5f5 50%, #0d6efd 100%);
+}
+
+/* 卡片图标 */
+.dashboard-card .card-icon {
+    transition: all 0.3s ease;
+}
+
+.dashboard-card:hover .card-icon {
+    transform: scale(1.1);
+}
+
+/* 卡片数量 */
+.dashboard-card .card-count {
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* 响应式 */
+@media (max-width: 991px) {
+    .dashboard-panel {
+        margin-bottom: 12px;
+    }
+}
+
+@media (max-width: 576px) {
+    .dashboard-card {
+        padding: 12px !important;
+    }
+    
+    .dashboard-card .card-count {
+        font-size: 1.8rem !important;
+    }
+}
+
+/* ==========================================
    原有首页卡片样式（保留兼容）
    ========================================== */
 
