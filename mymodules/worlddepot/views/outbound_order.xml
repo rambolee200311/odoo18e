@@ -138,8 +138,8 @@
                             <group col="2">
                                 <group col="2">
                                     <field name="delivery_method"/>
-                                    <field name="unload_company"/>
-                                    <field name="delivery_street"/>
+                                    <field name="unload_company" required="1"/>
+                                    <field name="delivery_street" invisible="delivery_method == 'pickup'"/>
                                     <field name="delivery_city"/>
                                     <field name="delivery_zip"/>
                                     <field name="delivery_country_id"/>
@@ -149,11 +149,11 @@
                                     <field name="delivery_remark"/>
                                 </group>
                                 <group col="2">
-                                    <field name="load_ref"/>
+                                    <field name="load_ref" required="delivery_method in ('pickup', 'parcel')"/>
                                     <field name="load_date"/>
-                                    <field name="delivery_company"/>
-                                    <field name="delivery_number"/>
-                                    <field name="plate_number"/>
+                                    <field name="delivery_company" invisible="delivery_method in ('pickup', 'parcel')"/>
+                                    <field name="delivery_number" invisible="delivery_method in ('pickup', 'parcel')"/>
+                                    <field name="plate_number" invisible="delivery_method in ('pickup', 'parcel')"/>
                                     <field name="receiver_sign_back_date"/>
                                     <field name="pod_file" widget="binary" filename="pod_filename"/>
                                     <field name="pod_filename" invisible="1"/>

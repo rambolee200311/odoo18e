@@ -2271,13 +2271,13 @@ msgstr "已装车"
 #: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__load_date
 #: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_pack_info__loading_date
 msgid "Loading Date"
-msgstr "装车日期"
+msgstr "装车/配送日期"
 
 #. module: worlddepot
 #: model:ir.model.fields,field_description:worlddepot.field_stock_picking__load_ref
 #: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__load_ref
-msgid "Loading Reference"
-msgstr "装车参考"
+msgid "Loading / Pickup / Vehicle Plate / Courier Reference No."
+msgstr "装车/自提/快递参考号"
 
 #. module: worlddepot
 #: model_terms:ir.ui.view,arch_db:worlddepot.view_stock_location_type_form
@@ -4601,8 +4601,8 @@ msgstr ""
 #. module: worlddepot
 #: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__unload_company
 #: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_summary__unload_company
-msgid "Unload Company/Person"
-msgstr "卸货公司/人员"
+msgid "Unload Company/Recipient"
+msgstr "卸货公司/收货人"
 
 #. module: worlddepot
 #: model:ir.actions.server,name:worlddepot.action_update_nine_digit_linglong_code
