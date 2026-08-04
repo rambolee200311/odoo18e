@@ -29,4 +29,8 @@ export class Homepage extends Component {
     _onOutboundWholeClick() {
         this.action.doAction("stock_barcode_lite_outbound_whole");
     }
+
+    _onInternalTransferClick() {
+        this.action.doAction("stock_barcode_lite_internal_transfer");
+    }
 }

@@ -59,6 +59,12 @@
         <field name="target">main</field>
     </record>
 
+    <record id="action_stock_barcode_lite_internal_transfer" model="ir.actions.client">
+        <field name="name">Internal Transfer</field>
+        <field name="tag">stock_barcode_lite_internal_transfer</field>
+        <field name="target">main</field>
+    </record>
+
     <menuitem id="menu_stock_barcode_lite_root"
               name="Chen Yang Stock Management"
               sequence="50"
