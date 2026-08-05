@@ -54,15 +54,15 @@ class InboundOrder(models.Model):
         for rec in self:
             missing_fields = []
             if not rec.date:
-                missing_fields.append("date")
+                missing_fields.append(rec._fields["date"].string)
             if not rec.a_date:
-                missing_fields.append("a_date")
+                missing_fields.append(rec._fields["a_date"].string)
             if not rec.cwarehouseid:
-                missing_fields.append("cwarehouseid")
+                missing_fields.append(rec._fields["cwarehouseid"].string)
             if not rec.vsourcebillcode:
-                missing_fields.append("vsourcebillcode")
+                missing_fields.append(rec._fields["vsourcebillcode"].string)
             if rec.type == "service" and not rec.source_sale_delivery_reference:
-                missing_fields.append("source_sale_delivery_reference")
+                missing_fields.append(rec._fields["source_sale_delivery_reference"].string)
 
             if missing_fields:
                 raise UserError(_("Sunrise inbound order %s is missing required fields: %s") % (rec.reference or rec.billno or rec.id, ", ".join(missing_fields)))
@@ -70,9 +70,11 @@ class InboundOrder(models.Model):
             for pallet_index, pallet_line in enumerate(rec.inbound_order_product_ids, start=1):
                 pallet_missing_fields = []
                 if not pallet_line.pallet_no:
-                    pallet_missing_fields.append("pallet_no")
+                    pallet_missing_fields.append(pallet_line._fields["pallet_no"].string)
                 if not pallet_line.inbound_order_product_pallet_ids:
-                    pallet_missing_fields.append("product detail lines")
+                    pallet_missing_fields.append(
+                        pallet_line._fields["inbound_order_product_pallet_ids"].string
+                    )
 
                 if pallet_missing_fields:
                     raise UserError(_("Sunrise inbound pallet line %s is missing required fields: %s") % (pallet_index, ", ".join(pallet_missing_fields)))
@@ -94,29 +96,29 @@ class InboundOrder(models.Model):
                     line_missing_fields = []
 
                     if not detail_line.product_id:
-                        line_missing_fields.append("product_id")
+                        line_missing_fields.append(detail_line._fields["product_id"].string)
                     if pallet_line.creation_source in ("api", "import") and not detail_line.source_product_code:
-                        line_missing_fields.append("source_product_code")
+                        line_missing_fields.append(detail_line._fields["source_product_code"].string)
                     if not detail_line.cprojectid:
-                        line_missing_fields.append("cprojectid")
+                        line_missing_fields.append(detail_line._fields["cprojectid"].string)
                     if not detail_line.ndiscounttaxtype:
-                        line_missing_fields.append("ndiscounttaxtype")
+                        line_missing_fields.append(detail_line._fields["ndiscounttaxtype"].string)
                     if not detail_line.vsourcebillcode:
-                        line_missing_fields.append("vsourcebillcode")
+                        line_missing_fields.append(detail_line._fields["vsourcebillcode"].string)
                     if not detail_line.vsourcerowno:
-                        line_missing_fields.append("vsourcerowno")
+                        line_missing_fields.append(detail_line._fields["vsourcerowno"].string)
                     if not detail_line.cspaceid:
-                        line_missing_fields.append("cspaceid")
+                        line_missing_fields.append(detail_line._fields["cspaceid"].string)
                     if not detail_line.box_type:
-                        line_missing_fields.append("box_type")
+                        line_missing_fields.append(detail_line._fields["box_type"].string)
                     if not detail_line.castunitid:
-                        line_missing_fields.append("castunitid")
+                        line_missing_fields.append(detail_line._fields["castunitid"].string)
                     if not detail_line.u8_aux_uom_name:
-                        line_missing_fields.append("u8_aux_uom_name")
+                        line_missing_fields.append(detail_line._fields["u8_aux_uom_name"].string)
                     if not detail_line.is_lot:
-                        line_missing_fields.append("is_lot")
+                        line_missing_fields.append(detail_line._fields["is_lot"].string)
                     if detail_line.is_lot == "Y" and not detail_line.lot_name:
-                        line_missing_fields.append("lot_name")
+                        line_missing_fields.append(detail_line._fields["lot_name"].string)
 
                     if line_missing_fields:
                         raise UserError(_("%s is missing required fields: %s") % (line_name, ", ".join(line_missing_fields)))

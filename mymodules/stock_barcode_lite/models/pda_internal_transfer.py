@@ -35,9 +35,19 @@ class StockPicking(models.Model):
             "location_dest_id": picking_type.default_location_dest_id.id,
             "is_pda_internal_transfer": True,
         })
-        result = picking.get_pda_internal_transfer_scan_data()
-        result.update({"success": True, "message": _("PDA internal transfer %s created.") % picking.name})
-        return result
+        picking_data = picking.get_pda_internal_transfer_scan_data()
+        picking_data.update({"success": True, "message": _("PDA internal transfer %s created.") % picking.name})
+        return {
+            "type": "ir.actions.client",
+            "tag": "stock_barcode_lite_internal_transfer",
+            "params": {
+                "picking.id": picking.id,
+                "picking_data": picking_data,
+                "message": _("PDA internal transfer %s created.") % picking.name,
+                "target": "current",
+            },
+        }
+
 
 
 
@@ -158,6 +168,22 @@ class StockPicking(models.Model):
             raise UserError(_("Destination location is the same as the source location for package %s.") % (package.name or package.barcode))
         return quants
 
+    def action_reset_pda_internal_transfer(self):
+        results = []
+        for rec in self:
+            rec.check_pda_internal_transfer_draft()
+            if rec.move_ids:
+                raise UserError(_("PDA internal transfer with stock moves cannot be reset."))
+            scan_line_ids = rec.get_pda_internal_transfer_scan_lines().ids
+            self.env["stock.picking.package.scan"].browse(scan_line_ids).with_context(
+                allow_pda_package_reset=True).unlink()
+            rec.write({"pda_destination_location_id": False})
+            result = rec.get_pda_internal_transfer_scan_data()
+            result.update({"success": True, "message": _("PDA internal transfer has been reset.")})
+            results.append(result)
+        return results[0] if len(results) == 1 else results
+
+
     def get_pda_internal_transfer_scan_data(self):
         results = []
         for rec in self:
@@ -211,6 +237,64 @@ class StockPicking(models.Model):
         #return results[0] if len(results) == 1 else results
         return True
 
+    def action_validate_pda_internal_transfer(self):
+        results = []
+        for rec in self:
+            rec.check_pda_internal_transfer_draft()
+            if rec.move_ids:
+                raise UserError(_("PDA internal transfer already has stock moves."))
+            if not rec.pda_destination_location_id:
+                raise UserError(_("Please scan destination location first."))
+            if not rec.picking_type_id.show_entire_packs:
+                raise UserError(_("Please enable Move Entire Packages on the PDA internal transfer operation type."))
+            rec.check_pda_internal_transfer_location(rec.pda_destination_location_id)
+            scan_lines = rec.get_pda_internal_transfer_scan_lines()
+            if not scan_lines:
+                raise UserError(_("Please scan at least one package."))
+
+            with rec.env.cr.savepoint():
+                package_level_values = []
+                for scan_line in scan_lines:
+                    package = self.env["stock.quant.package"].sudo().browse(scan_line.package_id.id).exists()
+                    if not package:
+                        raise UserError(_("Scanned package no longer exists."))
+                    if package.package_use != "disposable":
+                        raise UserError(_("Package %s must be a disposable package for PDA whole-package transfer.") % (
+                                    package.name or package.barcode))
+                    quants = rec.get_pda_package_quants(package)
+                    source_location = quants.location_id
+                    if source_location != scan_line.source_location_id:
+                        raise UserError(_("Package %s source location has changed. Please reset and scan again.") % (
+                                    package.name or package.barcode))
+                    package_level_values.append({
+                        "picking_id": rec.id,
+                        "package_id": package.id,
+                        "location_dest_id": rec.pda_destination_location_id.id,
+                        "company_id": rec.company_id.id,
+                    })
+                rec.write({"location_dest_id": rec.pda_destination_location_id.id})
+                package_levels = self.env["stock.package_level"].create(package_level_values)
+
+                rec.action_confirm()
+                rec.action_assign()
+                unassigned_moves = rec.move_ids.filtered(lambda move: move.state != "assigned")
+                if unassigned_moves:
+                    raise UserError(_("PDA internal transfer could not reserve all package stock."))
+                package_levels.is_done = True
+                invalid_move_lines = rec.move_line_ids.filtered(
+                    lambda move_line: not move_line.package_id or move_line.package_id != move_line.result_package_id
+                )
+                if invalid_move_lines:
+                    raise UserError(
+                        _("PDA internal transfer could not preserve the original package on all move lines."))
+                rec.with_context(skip_backorder=True).button_validate()
+                if rec.state != "done":
+                    raise UserError(_("PDA internal transfer could not be completed."))
+
+            result = rec.get_pda_internal_transfer_scan_data()
+            result.update({"success": True, "message": _("PDA internal transfer %s completed.") % rec.name})
+            results.append(result)
+        return results[0] if len(results) == 1 else results
     @api.model
     def cron_cancel_empty_pda_internal_transfers(self):
         expiration_datetime = fields.Datetime.now() - timedelta(hours=24)

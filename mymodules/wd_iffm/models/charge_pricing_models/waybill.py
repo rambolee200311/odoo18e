@@ -534,7 +534,7 @@ class WaybillContainer(models.Model):
     drop_off_location = fields.Many2one('res.partner', string='Dropoff Location', )
 
     # 关联运单
-    waybill_id = fields.Many2one('world.depot.waybill', string='Waybill BillNo', required=True, ondelete='cascade')
+    waybill_id = fields.Many2one('world.depot.waybill', string='Waybill BillNo',ondelete='set null')
     bl_number = fields.Char(string='Bill Number',related='waybill_id.bl_number',store=True)
 
     # 关联运单箱单

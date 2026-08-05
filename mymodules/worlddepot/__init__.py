@@ -2,6 +2,7 @@
 
 from . import controllers
 from . import models
+from . import wizard
 import logging
 from odoo import api, SUPERUSER_ID
 

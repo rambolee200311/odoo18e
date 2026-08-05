@@ -139,6 +139,12 @@
                                 <group col="2">
                                     <field name="delivery_method"/>
                                     <field name="unload_company" required="1"/>
+                                    <button name="action_open_delivery_address_wizard" type="object"
+                                            string="Select Address" icon="fa-map-marker" class="btn-secondary"
+                                            invisible="not unload_company or delivery_method == 'pickup' or state == 'cancel'"/>
+<!--                                    <field name="delivery_address_id" domain="[('recipient_id', '=', unload_company)]"-->
+<!--                                           readonly="1" options="{'no_create': True, 'no_open': True}"-->
+<!--                                           invisible="delivery_method == 'pickup'"/>-->
                                     <field name="delivery_street" invisible="delivery_method == 'pickup'"/>
                                     <field name="delivery_city"/>
                                     <field name="delivery_zip"/>
@@ -164,9 +170,11 @@
                         </page>
                         <page string="Products">
                             <field name="outbound_order_product_ids"
-                                   context="{'default_outbound_order_id': id}" readonly="state == 'confirm'" options="{'no_open': True}">>
+                                   context="{'default_outbound_order_id': id}" readonly="state == 'confirm'"
+                                   options="{'no_open': True}">>
                                 <list editable="bottom" open_form_view="0">
-                                    <button name="action_open_line_form" type="object" string="open" class="oe_stat_button"/>
+                                    <button name="action_open_line_form" type="object" string="open"
+                                            class="oe_stat_button"/>
                                     <field name="product_id" width="400"/>
                                     <field name="pallet_no"/>
                                     <field name="adr"/>
@@ -240,7 +248,8 @@
                                 </list>
                             </field>
                         </page>
-                        <page string="Hoymiles APIs" groups="account.group_project_hoymiles" invisible="project_name != 'HOYMILES'">
+                        <page string="Hoymiles APIs" groups="account.group_project_hoymiles"
+                              invisible="project_name != 'HOYMILES'">
                             <group string="Start Operatoin" col="2">
                                 <group col="2">
                                     <div class="oe_button_box" name="button_box">
@@ -411,9 +420,9 @@
         <field name="name">world.depot.outbound.order.product.standalone.form</field>
         <field name="model">world.depot.outbound.order.product</field>
         <field name="arch" type="xml">
-            <form string="Outbound Order Product" duplicate="false" >
+            <form string="Outbound Order Product" duplicate="false">
                 <sheet>
-                    <group >
+                    <group>
                         <field name="product_id" readonly="outbound_order_state != 'new'"/>
                         <field name="pallet_no" readonly="outbound_order_state != 'new'"/>
                         <field name="pallet_type" readonly="outbound_order_state != 'new'"/>
