@@ -20,6 +20,15 @@
         <field name="search_view_id" ref="view_stock_barcode_lite_sunrise_outbound_order_search"/>
     </record>
 
+    <record model="ir.actions.act_window" id="action_stock_pda_internal_transfer">
+        <field name="name">PDA Internal Transfers</field>
+        <field name="res_model">stock.picking</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('is_pda_internal_transfer', '=', True)]</field>
+        <field name="context">{'search_default_state_not_cancel': 1}</field>
+        <field name="search_view_id" ref="view_picking_internal_transfer_search"/>
+    </record>
+
     <record id="action_api_log_sunrise_get_wms" model="ir.actions.act_window">
         <field name="name">API Logs</field>
         <field name="res_model">world.depot.api.log</field>
@@ -102,6 +111,11 @@
               parent="menu_stock_barcode_lite_root"
               action="action_stock_barcode_lite_sunrise_outbound_order"
               sequence="40"/>
+    <menuitem id="menu_stock_pda_internal_transfer"
+              name="Internal Transfer"
+                parent="menu_stock_barcode_lite_root"
+                action="action_stock_pda_internal_transfer"
+                sequence="45"/>
     <!--    <menuitem id="menu_sunrise_stock_report"-->
     <!--              name="Sunrise Inventory Report"-->
     <!--              parent="menu_stock_barcode_lite_root"-->
