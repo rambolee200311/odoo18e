@@ -61,38 +61,41 @@
 
                     <group>
                         <group string="Base Info">
-                            <field name="waybill_id" required="1"
-                                   readonly="1"/>
+                            <field name="waybill_id" readonly="1" invisible="not waybill_id"/>
+                            <field name="project_id" readonly="state != 'open'" force_save="1"
+                                   options="{'no_create': True, 'no_open': True}"/>
                             <!--                            <field name="project_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>-->
                             <field name="container_qty" readonly="state != 'open'"/>
                             <field name="hs_code_qty" required="1" readonly="state in ('clearanced','close')"/>
+                            <field name="currency_id" force_save="1" invisible="1"/>
+                            <field name="quotation_id" invisible="1" force_save="1"/>
                             <!--                            <field name="eu_eori_no" readonly="1"/>-->
                             <!--                            <field name="vat_tax_no" readonly="1"/>-->
                             <field name="clearance_receipt_no" readonly="state in ('clearanced','close')"/>
-<!--                            <field name="customs_declaration_datetime"-->
-<!--                                   readonly="state in ('clearancing','clearanced','close')"/>-->
+                            <!--                            <field name="customs_declaration_datetime"-->
+                            <!--                                   readonly="state in ('clearancing','clearanced','close')"/>-->
 
                             <field name="clearance_type" readonly="state in ('clearanced','close')" required="1"/>
                             <field name="remark" readonly="state in ('close')"/>
-<!--                            <field name="customs_release_datetime"-->
-<!--                                   invisible="clearance_type != 'general'" readonly="state in ('clearanced','close')"-->
-<!--                            />-->
+                            <!--                            <field name="customs_release_datetime"-->
+                            <!--                                   invisible="clearance_type != 'general'" readonly="state in ('clearanced','close')"-->
+                            <!--                            />-->
 
 
-<!--                            <field name="inbound_release_datetime"-->
-<!--                                   invisible="clearance_type !='bonded_in'" readonly="state in ('clearanced','close')"-->
-<!--                            />-->
-<!--                            <field name="outbound_release_datetime"-->
-<!--                                   invisible="clearance_type != 'bonded_out'" readonly="state in ('clearanced','close')"-->
+                            <!--                            <field name="inbound_release_datetime"-->
+                            <!--                                   invisible="clearance_type !='bonded_in'" readonly="state in ('clearanced','close')"-->
+                            <!--                            />-->
+                            <!--                            <field name="outbound_release_datetime"-->
+                            <!--                                   invisible="clearance_type != 'bonded_out'" readonly="state in ('clearanced','close')"-->
 
-<!--                            />-->
+                            <!--                            />-->
 
-<!--                            <field name="t1_closed_datetime"-->
-<!--                                   invisible="clearance_type != 't1_transit'" readonly="state in ('clearanced','close')"-->
-<!--                            />-->
-<!--                            <field name="t1_inbound_release_datetime"-->
-<!--                                   invisible="clearance_type != 't1_bonded'" readonly="state in ('clearanced','close')"-->
-<!--                            />-->
+                            <!--                            <field name="t1_closed_datetime"-->
+                            <!--                                   invisible="clearance_type != 't1_transit'" readonly="state in ('clearanced','close')"-->
+                            <!--                            />-->
+                            <!--                            <field name="t1_inbound_release_datetime"-->
+                            <!--                                   invisible="clearance_type != 't1_bonded'" readonly="state in ('clearanced','close')"-->
+                            <!--                            />-->
                         </group>
                         <group>
                             <field name="is_clearance_overdue" readonly="1" invisible="1"/>
@@ -112,16 +115,16 @@
                     <notebook>
                         <!-- Tab 1: Charge / Cost -->
                         <page string="Charge / Cost">
-                                <field name="invoice_line_ids" context="{'default_clearance_id': id}"
-                                       readonly="state in ('close')">
-                                    <list>
+                            <field name="invoice_line_ids" context="{'default_clearance_id': id}"
+                                   readonly="state in ('close')">
+                                <list>
 
-                                        <field name="vendor_invoice_id"/>
-                                        <field name="invoice_date"/>
-                                        <field name="amount_total"/>
-                                        <field name="payment_state"/>
-                                    </list>
-                                </field>
+                                    <field name="vendor_invoice_id"/>
+                                    <field name="invoice_date"/>
+                                    <field name="amount_total"/>
+                                    <field name="payment_state"/>
+                                </list>
+                            </field>
 
                             <!-- Charge Lines -->
                             <group>
@@ -142,9 +145,14 @@
                             </group>
                         </page>
                         <page string="Containers">
-                            <field name="clearance_container_ids" create="False" delete="False"
-                                   readonly="state in ('clearancing','clearanced','close')">
-                                <list editable="bottom" no_open="1" create="False" delete="False">
+                            <button name="action_open_container_batch_create_wizard"
+                                    type="object"
+                                    string="Batch Create Containers"
+                                    class="btn-secondary"
+                                    invisible="waybill_id or state != 'open'"/>
+                            <field name="clearance_container_ids"
+                                    readonly="waybill_id or state in ('clearancing', 'clearanced', 'close')">
+                                <list editable="bottom" no_open="1" create="true" delete="true">
                                     <field name="container_number"/>
                                     <field name="container_type"/>
                                     <field name="weight"/>
@@ -153,17 +161,17 @@
                             </field>
                         </page>
                         <!-- Tab 2: Documents -->
-<!--                        <page string="Documents">-->
-<!--                            <field name="attachment_line_ids" readonly="state in ('clearanced','close')">-->
-<!--                                <list editable="bottom">-->
-<!--                                    <field name="doc_type"/>-->
-<!--                                    <field name="name"/>-->
-<!--                                    <field name="file"/>-->
-<!--                                    <field name="upload_time"/>-->
-<!--                                    <field name="upload_user_id"/>-->
-<!--                                </list>-->
-<!--                            </field>-->
-<!--                        </page>-->
+                        <!--                        <page string="Documents">-->
+                        <!--                            <field name="attachment_line_ids" readonly="state in ('clearanced','close')">-->
+                        <!--                                <list editable="bottom">-->
+                        <!--                                    <field name="doc_type"/>-->
+                        <!--                                    <field name="name"/>-->
+                        <!--                                    <field name="file"/>-->
+                        <!--                                    <field name="upload_time"/>-->
+                        <!--                                    <field name="upload_user_id"/>-->
+                        <!--                                </list>-->
+                        <!--                            </field>-->
+                        <!--                        </page>-->
                     </notebook>
                 </sheet>
                 <chatter/>
@@ -180,8 +188,8 @@
                 <header>
                     <button name="action_close" type="object" string="Close" class="btn-success"
                             invisible="state == 'close'"/>
-<!--                    <button name="action_recompute_state" type="object" string="Recompute State"-->
-<!--                            invisible="state == 'close'"/>-->
+                    <!--                    <button name="action_recompute_state" type="object" string="Recompute State"-->
+                    <!--                            invisible="state == 'close'"/>-->
                     <field name="state" widget="statusbar"
                            statusbar_visible="open,paying,paid,close"/>
 
@@ -198,31 +206,34 @@
 
                     <group>
                         <group string="Base Info">
-                            <field name="waybill_id" required="1"
+                            <field name="waybill_id" invisible="not waybill_id"
                                    readonly="1"/>
+                            <field name="project_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="quotation_id" invisible="1"/>
+                            <field name="currency_id" invisible="1"/>
                             <field name="parent_id" readonly="1"
                                    context="{'form_view_ref': 'wd_iffm.operation_order_clearance_form_view'}"/>
                             <!--                            <field name="project_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>-->
                             <field name="container_qty" readonly="1"/>
                             <field name="hs_code_qty" required="1" readonly="1"/>
                             <field name="clearance_type" readonly="1"/>
-<!--                            <field name="eu_eori_no" readonly="1"/>-->
-<!--                            <field name="vat_tax_no" readonly="1"/>-->
+                            <!--                            <field name="eu_eori_no" readonly="1"/>-->
+                            <!--                            <field name="vat_tax_no" readonly="1"/>-->
 
-<!--                            <field name="customs_release_datetime"-->
-<!--                                   invisible="clearance_type != 'general'" readonly="1"/>-->
+                            <!--                            <field name="customs_release_datetime"-->
+                            <!--                                   invisible="clearance_type != 'general'" readonly="1"/>-->
 
 
-<!--                            <field name="inbound_release_datetime"-->
-<!--                                   invisible="clearance_type !='bonded_in'" readonly="1"/>-->
+                            <!--                            <field name="inbound_release_datetime"-->
+                            <!--                                   invisible="clearance_type !='bonded_in'" readonly="1"/>-->
 
-<!--                            <field name="outbound_release_datetime"-->
-<!--                                   invisible="clearance_type != 'bonded_out'" readonly="1"/>-->
+                            <!--                            <field name="outbound_release_datetime"-->
+                            <!--                                   invisible="clearance_type != 'bonded_out'" readonly="1"/>-->
 
-<!--                            <field name="t1_closed_datetime"-->
-<!--                                   invisible="clearance_type != 't1_transit'" readonly="1"/>-->
-<!--                            <field name="t1_inbound_release_datetime"-->
-<!--                                   invisible="clearance_type != 't1_bonded'" readonly="1"/>-->
+                            <!--                            <field name="t1_closed_datetime"-->
+                            <!--                                   invisible="clearance_type != 't1_transit'" readonly="1"/>-->
+                            <!--                            <field name="t1_inbound_release_datetime"-->
+                            <!--                                   invisible="clearance_type != 't1_bonded'" readonly="1"/>-->
                             <field name="extra_reason"
                                    invisible="parent_id == False"
                                    required="parent_id != False"
@@ -284,17 +295,17 @@
                             </field>
                         </page>
                         <!-- Tab 2: Documents -->
-<!--                        <page string="Documents">-->
-<!--                            <field name="attachment_line_ids" readonly="1">-->
-<!--                                <list editable="bottom">-->
-<!--                                    <field name="file"/>-->
-<!--                                    <field name="doc_type"/>-->
-<!--                                    <field name="name"/>-->
-<!--                                    <field name="upload_time"/>-->
-<!--                                    <field name="upload_user_id"/>-->
-<!--                                </list>-->
-<!--                            </field>-->
-<!--                        </page>-->
+                        <!--                        <page string="Documents">-->
+                        <!--                            <field name="attachment_line_ids" readonly="1">-->
+                        <!--                                <list editable="bottom">-->
+                        <!--                                    <field name="file"/>-->
+                        <!--                                    <field name="doc_type"/>-->
+                        <!--                                    <field name="name"/>-->
+                        <!--                                    <field name="upload_time"/>-->
+                        <!--                                    <field name="upload_user_id"/>-->
+                        <!--                                </list>-->
+                        <!--                            </field>-->
+                        <!--                        </page>-->
                     </notebook>
                 </sheet>
                 <chatter/>

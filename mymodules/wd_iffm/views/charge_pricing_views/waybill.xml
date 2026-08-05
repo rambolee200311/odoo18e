@@ -124,7 +124,8 @@
                             <field name="portbase_sync_message" readonly="1" invisible="1"/>
                             <field name="eta" required="1" readonly="state != 'new'"/>
                             <field name="ata" readonly="release_received or custom_clearance"/>
-                            <field name="port_id" required="1" readonly="state != 'new'" domain="[('node_type', '=', 'port')]" options="{'no_create': True}"/>
+                            <field name="port_id" required="1" readonly="state != 'new'"
+                                   domain="[('node_type', '=', 'port')]" options="{'no_create': True}"/>
                             <field name="terminal_id" readonly="1" options="{'no_create': True, 'no_open': True}"
                                    invisible="1"/>
                             <!--                            <field name="terminal_port" required="1"/>-->
@@ -164,7 +165,12 @@
                                     <field name="weight"/>
                                     <field name="quantity"/>
                                     <field name="loading_date"/>
-<!--                                    <field name="drop_off_date"/>-->
+                                    <button name="action_create_inbound_order"
+                                            type="object"
+                                            string="Create Inbound Order"
+                                            class="btn btn-secondary"
+                                            invisible="not container_number or parent.state == 'cancel'"/>
+                                    <!--                                    <field name="drop_off_date"/>-->
                                 </list>
                             </field>
                         </page>
@@ -195,8 +201,8 @@
                 <field name="reference_number"/>
                 <field name="state"/>
                 <filter name="state_not_cancel"
-                    string="Active"
-                    domain="[('state', '!=', 'cancel')]"/>
+                        string="Active"
+                        domain="[('state', '!=', 'cancel')]"/>
             </search>
         </field>
     </record>

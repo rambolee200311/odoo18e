@@ -1281,9 +1281,9 @@ class OutboundOrder(models.Model):
             worksheet['B4'] = ', '.join(warehouse_address)
             worksheet['B8'] = rec.unload_company.name or ''
             unload_company_address = [
-                rec.unload_company.street or '',
-                rec.unload_company.zip or '',
-                rec.unload_company.city or ''
+                rec.delivery_street or '',
+                rec.delivery_zip  or '',
+                rec.delivery_city  or ''
             ]
             worksheet['B9'] = ', '.join(unload_company_address)
             worksheet['E19'] = rec.load_ref or ''

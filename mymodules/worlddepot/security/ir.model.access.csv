@@ -16,3 +16,7 @@ access_worlddepot_charge_module_selector,worlddepot.charge.module.selector,model
 
 access_world_depot_store_report_hoymiles,world.depot.store.report.hoymiles,model_world_depot_store_report_hoymiles,,1,1,1,1
 access_world_depot_store_report_hoymiles_products,world.depot.store.report.hoymiles.products,model_world_depot_store_report_hoymiles_products,,1,1,1,1
+
+
+access_world_depot_delivery_address,world.depot.delivery.address,model_world_depot_delivery_address,,1,1,1,1
+access_world_depot_delivery_address_wizard,world.depot.delivery.address.wizard,model_world_depot_delivery_address_wizard,,1,1,1,1

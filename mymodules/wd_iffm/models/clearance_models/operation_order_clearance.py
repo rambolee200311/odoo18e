@@ -15,7 +15,7 @@ class OperationOrderClearance(models.Model):
 
     name = fields.Char(string="Clearance No.", required=True, copy=False, default=lambda self: _("New"), index=True)
 
-    waybill_id = fields.Many2one("world.depot.waybill", string="Waybill", required=True, ondelete="restrict", index=True)
+    waybill_id = fields.Many2one("world.depot.waybill", string="Waybill", ondelete="restrict", index=True)
 
     waybill_bill_number = fields.Char(string="Waybill Bill Number", compute="_compute_waybill_bill_number", store=True)
 
@@ -53,9 +53,9 @@ class OperationOrderClearance(models.Model):
     external_system_no = fields.Char(string="External Order No.", index=True)
     sync_time = fields.Datetime(string="Sync Time")
 
-    project_id = fields.Many2one("project.project", string="Project", related="waybill_id.project", store=True, readonly=True, index=True)
+    project_id = fields.Many2one("project.project", string="Project",required=True, index=True)
 
-
+    quotation_id = fields.Many2one("charge.quotation", string="Quotation", readonly=True, copy=False, index=True)
 
     state = fields.Selection(
         CLEARANCE_STATE,
@@ -102,8 +102,7 @@ class OperationOrderClearance(models.Model):
     # 费用明细
     charge_line_ids = fields.One2many("operation.order.clearance.charge.line", "clearance_id", string="Charges", copy=False)
     cost_line_ids = fields.One2many("operation.order.clearance.cost.line", "clearance_id", string="Costs", copy=False)
-    currency_id = fields.Many2one("res.currency", string="Currency", related="waybill_id.quotation_id.currency_id",
-                                  store=True)
+    currency_id = fields.Many2one("res.currency", string="Currency", related='quotation_id.currency_id', store=True, readonly=True, index=True)
 
     container_nums = fields.Char(string="Container Nums", compute="_compute_container_nums")
 
@@ -147,7 +146,55 @@ class OperationOrderClearance(models.Model):
     ], string="Overdue Handle Result", index=True, copy=False, tracking=True)
     overdue_result_note = fields.Text(string="Overdue Handle Note", copy=False, tracking=True)
 
+    def action_open_container_batch_create_wizard(self):
+        for rec in self:
+            if rec.state != "open":
+                raise ValidationError(_("Containers can only be created for Open clearance."))
 
+            if rec.waybill_id:
+                raise ValidationError(
+                    _("This action is only available for manual clearance without a waybill.")
+                )
+
+            return {
+                "type": "ir.actions.act_window",
+                "name": _("Batch Create Containers"),
+                "res_model": "waybill.container.batch.create.wizard",
+                "view_mode": "form",
+                "target": "new",
+                "context": {
+                    "default_clearance_id": rec.id,
+                },
+            }
+    @api.onchange("waybill_id")
+    def onchange_waybill_id_fill_defaults(self):
+        for rec in self:
+            if rec.waybill_id:
+                rec.project_id = rec.waybill_id.project
+                rec.quotation_id = rec.waybill_id.quotation_id
+
+    @api.onchange("project_id")
+    def onchange_project_id_fill_manual_clearance_charges(self):
+        for rec in self:
+            if rec.waybill_id or rec.parent_id or not rec.project_id:
+                continue
+
+            quotation = rec.project_id.quotation_id
+            if not quotation:
+                raise ValidationError(
+                    _("A quotation is required before creating manual clearance.")
+                )
+
+            rec.quotation_id = quotation
+            rec.charge_line_ids = [(5, 0, 0)] + [
+                (0, 0, {
+                    "charge_item_id": line.charge_item_id.id,
+                    "charge_origin_type": "quotation",
+                    "unit_price": line.unit_price,
+                    "is_fixed_fee": line.is_fixed_fee,
+                })
+                for line in quotation.quotation_customs_lines
+            ]
     # @api.onchange(
     #     "clearance_receipt_no",
     #     "customs_release_datetime",
@@ -243,6 +290,9 @@ class OperationOrderClearance(models.Model):
         vals.update({
             "parent_id": self.id,
             "name": f"{self.name}-{child_count}",
+            "project_id": self.project_id.id,
+            "quotation_id": self.quotation_id.id,
+            "currency_id": self.currency_id.id,
             "attachment_line_ids": [(0, 0, {
                 "doc_type": line.doc_type,
                 "remark": line.remark,
@@ -277,6 +327,9 @@ class OperationOrderClearance(models.Model):
             vals = {
                 "waybill_id": rec.waybill_id.id,
                 "parent_id": rec.id,
+                "project_id": rec.project_id.id,
+                "quotation_id": rec.quotation_id.id,
+                "currency_id": rec.currency_id.id,
                 "name": f"{rec.name}-{child_count}",
                 "clearance_type": rec.clearance_type,
                 "external_system_type": rec.external_system_type,
@@ -337,9 +390,10 @@ class OperationOrderClearance(models.Model):
 
     @api.depends('clearance_container_ids')
     def _compute_container_nums(self):
-        for record in self:
-            container_numbers = [line.container_number for line in record.container_line_ids]
-            record.container_nums = ', '.join(container_numbers)
+        for rec in self:
+            rec.container_nums = ", ".join(
+                rec.clearance_container_ids.mapped("container_number")
+            )
 
 
     # @api.constrains("waybill_id", "state")
@@ -435,8 +489,12 @@ class OperationOrderClearance(models.Model):
         for rec in self:
             if rec.state not in ("open", "paying", "paid"):
                 raise ValidationError(_("Only Open, Paying or Paid can be set to Clearanced."))
-            if not rec.waybill_id.ata :
-                raise ValidationError(_("Waybill ETA  is required before Released."))
+            if rec.waybill_id and not rec.waybill_id.ata:
+                raise ValidationError(_("Actual arrival time is required before clearance completion."))
+            if not rec.parent_id and not rec.waybill_id and not rec.clearance_container_ids:
+                raise ValidationError(
+                    _("At least one container is required before manual clearance completion.")
+                )
             # if not rec.vat_tax_no and not rec.clearance_receipt_no and not rec.eu_eori_no:
             #     raise ValidationError(_("VAT Tax No, Clearance Receipt No, EU EORI No is required before Released."))
             # if not rec.clearance_finish_datetime:
@@ -500,9 +558,32 @@ class OperationOrderClearance(models.Model):
         return super().create(vals_list)
 
     def unlink(self):
+        env_clearance = self.env["operation.order.clearance"]
+
         for rec in self:
             if rec.state != "open":
                 raise ValidationError(_("Only Open orders can be deleted."))
+
+            if rec.parent_id or rec.waybill_id or not rec.clearance_container_ids:
+                continue
+
+            container_ids = rec.clearance_container_ids
+            if container_ids.filtered("waybill_id"):
+                raise ValidationError(
+                    _("Waybill containers cannot be deleted from manual clearance.")
+                )
+
+            other_clearance = env_clearance.sudo().search([
+                ("id", "!=", rec.id),
+                ("clearance_container_ids", "in", container_ids.ids),
+            ], limit=1)
+            if other_clearance:
+                raise ValidationError(
+                    _("Delete child clearance records before deleting the main clearance.")
+                )
+
+            container_ids.unlink()
+
         return super().unlink()
     # @api.onchange("waybill_id")
     # def _onchange_waybill_id(self):
