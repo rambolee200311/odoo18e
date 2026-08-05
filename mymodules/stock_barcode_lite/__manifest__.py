@@ -12,6 +12,7 @@ Chenyang Chemical warehouse customizations.
     "data": [
         "security/ir.model.access.csv",
         'security/security.xml',
+        "data/pda_internal_transfer_cron.xml",
 
         "reports/inbound_pallet_label_report.xml",
         "reports/outbound_lot_code_label_report.xml",

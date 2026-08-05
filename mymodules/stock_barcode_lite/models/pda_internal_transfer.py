@@ -39,6 +39,68 @@ class StockPicking(models.Model):
         result.update({"success": True, "message": _("PDA internal transfer %s created.") % picking.name})
         return result
 
+
+
+    def action_scan_pda_destination_location(self, barcode):
+        results = []
+        code = (barcode or "").strip()
+        if not code:
+            raise UserError(_("Please scan a destination location barcode."))
+        for rec in self:
+            rec.check_pda_internal_transfer_draft()
+            if rec.get_pda_internal_transfer_scan_lines():
+                raise UserError(_("Please reset transfer before changing destination location."))
+            locations = self.env["stock.location"].sudo().search([
+                ("barcode", "=", code),
+                ("usage", "=", "internal"),
+            ], limit=2)
+            if not locations:
+                raise UserError(_("Destination location barcode %s was not found.") % code)
+            if len(locations) > 1:
+                raise UserError(_("Destination location barcode %s is duplicated.") % code)
+            rec.check_pda_internal_transfer_location(locations)
+            rec.write({"pda_destination_location_id": locations.id})
+            result = rec.get_pda_internal_transfer_scan_data()
+            result.update({"success": True, "message": _("Destination location set to %s.") % locations.display_name})
+            results.append(result)
+        return results[0] if len(results) == 1 else results
+
+
+    def action_scan_pda_package(self, barcode):
+        results = []
+        code = (barcode or "").strip()
+        if not code:
+            raise UserError(_("Please scan a package barcode."))
+        for rec in self:
+            rec.check_pda_internal_transfer_draft()
+            if not rec.pda_destination_location_id:
+                raise UserError(_("Please scan destination location first."))
+            rec.check_pda_internal_transfer_location(rec.pda_destination_location_id)
+            packages = self.env["stock.quant.package"].sudo().search([("barcode", "=", code)], limit=2)
+            if not packages:
+                raise UserError(_("Package barcode %s was not found.") % code)
+            if len(packages) > 1:
+                raise UserError(_("Package barcode %s is duplicated.") % code)
+            package = packages
+            existing_scan = self.env["stock.picking.package.scan"].sudo().search([
+                ("picking_id", "=", rec.id),
+                ("package_id", "=", package.id),
+            ], limit=1)
+            if existing_scan:
+                raise UserError(_("Package %s has already been scanned.") % (package.name or package.barcode))
+            quants = rec.get_pda_package_quants(package)
+            source_location = quants.location_id
+            self.env["stock.picking.package.scan"].with_context(allow_pda_package_scan=True).create({
+                "picking_id": rec.id,
+                "package_id": package.id,
+                "barcode": package.barcode,
+                "source_location_id": source_location.id,
+            })
+            result = rec.get_pda_internal_transfer_scan_data()
+            result.update({"success": True, "message": _("Package %s added.") % (package.name or package.barcode)})
+            results.append(result)
+        return results[0] if len(results) == 1 else results
+
     def check_pda_internal_transfer_draft(self):
         self.ensure_one()
         if not self.is_pda_internal_transfer:
@@ -133,18 +195,40 @@ class StockPicking(models.Model):
         return results[0] if len(results) == 1 else results
 
 
+    def action_cancel_pda_internal_transfer(self):
+        #results = []
+        for rec in self:
+            if not rec.is_pda_internal_transfer:
+                raise UserError(_("This picking is not a PDA internal transfer."))
+            if rec.state == "done":
+                raise UserError(_("Completed PDA internal transfers must be reversed with a new internal transfer."))
+            if rec.state == "cancel":
+                raise UserError(_("PDA internal transfer is already cancelled."))
+            rec.action_cancel()
+            # result = rec.get_pda_internal_transfer_scan_data()
+            # result.update({"success": True, "message": _("PDA internal transfer has been cancelled.")})
+            # results.append(result)
+        #return results[0] if len(results) == 1 else results
+        return True
+
     @api.model
     def cron_cancel_empty_pda_internal_transfers(self):
         expiration_datetime = fields.Datetime.now() - timedelta(hours=24)
         picking_ids = self.sudo().search([
             ("is_pda_internal_transfer", "=", True),
             ("state", "=", "draft"),
-            ("package_scan_lines", "=", False),
-            ("move_ids", "=", False),
             ("create_date", "<", expiration_datetime),
         ]).ids
+        empty_picking_ids = self.sudo().search([
+            ("id", "in", picking_ids),
+            ("package_scan_lines", "=", False),
+            ("move_ids", "=", False),
+        ]).ids
         for rec in self.env["stock.picking"].browse(picking_ids):
-            rec.action_cancel_pda_internal_transfer()
+            if rec.id in empty_picking_ids:
+                rec.unlink()
+            else:
+                rec.action_cancel_pda_internal_transfer()
         return True
 
 
