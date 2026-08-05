@@ -47,6 +47,11 @@
                 <field name="o_date" string='Manual Outbound Date' invisible="project_name != 'SUNRISE'"
                        readonly="set_sunrise_outbound_sync == True"
                        help="If filled in, the system will report the outbound transaction using this date and time. If left blank, it will use the outbound pick validation time."/>
+                <field name="eta"
+                       invisible="project_name != 'SUNRISE'"
+                       readonly="set_sunrise_outbound_sync == True"
+                       required="u8c_delivery_method == 'wd' and project_name == 'SUNRISE'"
+                       help="For warehouse delivery (wd), enter the estimated arrival date at the customer's warehouse."/>
             </xpath>
             <xpath expr="//field[@name='delivery_method']" position="after">
                 <field name="u8c_delivery_method" readonly="state != 'new'" required="project_name == 'SUNRISE'"
@@ -63,6 +68,13 @@
                         class="oe_stat_button"
                         icon="fa-file-text"
                         invisible="project_name !='SUNRISE'"/>
+                <button name="action_sunrise_prepare_recreate_outgoing_picking"
+                        type="object"
+                        string="Prepare Recreate Picking"
+                        class="oe_stat_button"
+                        icon="fa-refresh"
+                        confirm="This will return completed outbound pickings and remove old picking links. Continue?"
+                        invisible="project_name != 'SUNRISE' or state != 'confirm'"/>
             </xpath>
             <xpath expr="//field[@name='outbound_order_product_ids']" position="after">
                 <group invisible="project_name != 'SUNRISE'">

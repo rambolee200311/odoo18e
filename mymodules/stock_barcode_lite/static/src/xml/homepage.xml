@@ -73,6 +73,32 @@
                     </div>
                 </div>
 
+                <!-- Internal Transfer -->
+                <div class="row">
+                    <div class="col-10 offset-1 col-md-6 offset-md-3 col-lg-3 offset-lg-0">
+                        <div class="section-header">
+                            <h5 class="section-title">Internal Transfer</h5>
+                        </div>
+                    </div>
+                </div>
+                <div class="row justify-content-center g-3">
+                    <div class="col-11 col-md-6 col-lg-6">
+                        <div class="card h-100 shadow-sm o_homepage_card o_internal_transfer_card" t-on-click="_onInternalTransferClick">
+                            <div class="card-header bg-info text-white">
+                                <h3 class="mb-0">
+                                    <i class="fa fa-arrows-alt me-2"/>Internal Transfer
+                                </h3>
+                            </div>
+                            <div class="card-body d-flex flex-column">
+                                <p class="text-muted mb-auto">Move pallets between internal locations.</p>
+                                <button class="btn btn-info mt-3">
+                                    <i class="fa fa-arrow-right me-2"/>Go
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </t>

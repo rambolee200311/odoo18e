@@ -7,6 +7,7 @@
             <form string="Batch Create Containers" duplicate="false">
                 <group>
                     <field name="waybill_id" invisible="1"/>
+                     <field name="clearance_id" invisible="1"/>
                     <field name="container_numbers" required="1"
                            placeholder="Enter one container number per line."/>
                     <field name="keep_existing_containers"/>

@@ -46,12 +46,12 @@ class OutboundOrder(models.Model):
     pick_type = fields.Many2one('stock.picking.type', string='Picking Type',
                                 tracking=True, help='Picking type for this project', stored=True,
                                 domain=[('code', '=', 'internal')])
-    unload_company = fields.Many2one('res.partner', string='Unload Company/Person', required=True, tracking=True)
+    unload_company = fields.Many2one('res.partner', string='Unload Company/Recipient', tracking=True)
     remark = fields.Text(string='Remark')
     remark1 = fields.Text(string='Remark 1')
     reference = fields.Char(string='Reference', required=True, help='Reference for the Order No of Owner',tracking=True )
-    load_ref = fields.Char(string='Loading Reference', required=False, help='Reference for the Delivery',tracking=True )
-    load_date = fields.Datetime(string='Loading Date', required=False, tracking=True,
+    load_ref = fields.Char(string='Loading / Pickup / Courier Reference No.', required=False, help='Enter the loading reference, pickup reference, or courier tracking number.',tracking=True )
+    load_date = fields.Datetime(string='Loading/Delivery Date', required=False, tracking=True,
                                 help='Date when the loading was completed')
     delivery_method = fields.Selection(
         selection=[
@@ -1281,9 +1281,9 @@ class OutboundOrder(models.Model):
             worksheet['B4'] = ', '.join(warehouse_address)
             worksheet['B8'] = rec.unload_company.name or ''
             unload_company_address = [
-                rec.unload_company.street or '',
-                rec.unload_company.zip or '',
-                rec.unload_company.city or ''
+                rec.delivery_street or '',
+                rec.delivery_zip  or '',
+                rec.delivery_city  or ''
             ]
             worksheet['B9'] = ', '.join(unload_company_address)
             worksheet['E19'] = rec.load_ref or ''

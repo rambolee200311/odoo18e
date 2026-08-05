@@ -36,7 +36,7 @@ export class WdIffmWorkbench extends Component {
                 waybill: { near_due_count: 0, overdue_count: 0 },
                 handover: { near_due_count: 0, overdue_count: 0 },
                 clearance: { near_due_count: 0, overdue_count: 0 },
-                total: { all_count: 0, near_due_count: 0, overdue_count: 0 }
+                total: { waybill_all_count: 0, near_due_count: 0, overdue_count: 0 }
             },
             viewProps: null,
             currentResModel: null,
@@ -166,7 +166,7 @@ export class WdIffmWorkbench extends Component {
                 waybill: { near_due_count: 0, overdue_count: 0 },
                 handover: { near_due_count: 0, overdue_count: 0 },
                 clearance: { near_due_count: 0, overdue_count: 0 },
-                total: { all_count: 0, near_due_count: 0, overdue_count: 0 }
+                total: { waybill_all_count: 0, near_due_count: 0, overdue_count: 0 }
             };
         }
     }
@@ -250,28 +250,49 @@ export class WdIffmWorkbench extends Component {
                 }
             }
 
+//            this.state.viewProps = {
+//                resModel: config.res_model,
+//                type: finalViewType,
+//                display: {},
+//                context: {
+//                    search_view_id: viewInfo.views[finalViewType]?.searchViewId,
+//                    search_default_state_not_cancel: 1,
+//                    search_default_group_by_state: 1
+//                },
+//                domain: domain,
+//                selectRecord: (resId) => {
+//                    this.onViewRecordClicked({ resId });
+//                },
+//                searchViewId: viewInfo.views[finalViewType]?.searchViewId,
+////                action: {
+////                    id: false,
+////                    name: config.label || "Waybill List",
+////                    res_model: config.res_model,
+////                    type: "ir.actions.act_window",
+////                    view_mode: `${finalViewType},form`,
+////                    views: [
+////                        [viewInfo.views[finalViewType]?.id || false, finalViewType],
+////                        [false, "form"],
+////                    ],
+////                },
+//            };
+
             this.state.viewProps = {
                 resModel: config.res_model,
                 type: finalViewType,
                 display: {},
-                context: {},
+                context: {
+                    search_default_state_not_cancel: 1,
+                    search_default_group_by_state: 1
+                },
                 domain: domain,
                 selectRecord: (resId) => {
                     this.onViewRecordClicked({ resId });
                 },
-                searchViewId: viewInfo.views[finalViewType]?.searchViewId,
-//                action: {
-//                    id: false,
-//                    name: config.label || "Waybill List",
-//                    res_model: config.res_model,
-//                    type: "ir.actions.act_window",
-//                    view_mode: `${finalViewType},form`,
-//                    views: [
-//                        [viewInfo.views[finalViewType]?.id || false, finalViewType],
-//                        [false, "form"],
-//                    ],
-//                },
+                searchViewId: 2375,  // 硬编码搜索视图 ID
             };
+//            console.log("viewProps after load:", JSON.stringify(this.state.viewProps, null, 2));
+
         } catch (error) {
             console.error("Failed to load view:", error);
             this.state.viewProps = null;

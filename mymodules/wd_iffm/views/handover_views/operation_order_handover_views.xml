@@ -59,6 +59,7 @@
                     <group string="Base Info">
                         <group>
                             <field name="waybill_id" required="1" readonly="1"/>
+                            <field name="project_id" readonly="1"/>
                             <field name="container_qty" required="1" readonly="state != 'open'"/>
                             <field name="remark" readonly="state == 'close'"/>
                             <field name="is_handover_overdue" readonly="1" invisible="1"/>

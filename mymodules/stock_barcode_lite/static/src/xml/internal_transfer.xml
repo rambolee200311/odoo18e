@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates>
+    <t t-name="stock_barcode_lite.InternalTransferPage">
+        <div class="o_internal_transfer_page">
+            <!-- Header -->
+            <div class="o_transfer_header bg-primary text-white p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">
+                        <i class="fa fa-arrows-alt me-2"/>Internal Transfer
+                    </h4>
+                    <button class="btn btn-light btn-sm" t-on-click="_onBackToHome">
+                        <i class="fa fa-home"/> Home
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 1: New Transfer -->
+            <div t-if="state.step == 'new'" class="o_transfer_content p-4">
+                <div class="text-center">
+                    <h5>Create New Transfer</h5>
+                    <button class="btn btn-primary btn-lg mt-4" t-on-click="_onNewTransfer">
+                        <i class="fa fa-plus me-2"/>New Transfer
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 2: Scan Location -->
+            <div t-if="state.step == 'scan_location'" class="o_transfer_content p-4">
+                <div class="alert alert-info">
+                    <h5>Step 1: Scan Destination Location</h5>
+                </div>
+                <div class="o_scan_input mt-4">
+                    <input type="text" class="form-control form-control-lg"
+                           placeholder="Scan location barcode..."
+                           t-on-keyup="_onLocationKeyup"/>
+                </div>
+                <div class="text-center mt-4">
+                    <button class="btn btn-secondary" t-on-click="_onBackToHome">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 3: Scan Package -->
+            <div t-if="state.step == 'scan_package'" class="o_transfer_content p-4">
+                <div class="alert alert-success">
+                    <h5>Destination: <span t-esc="state.location_dest_name"/></h5>
+                    <button class="btn btn-sm btn-outline-light" t-on-click="_onClearDestination">
+                        <i class="fa fa-times"/> Clear Destination
+                    </button>
+                </div>
+
+                <div class="o_scan_input mt-3">
+                    <input type="text" class="form-control form-control-lg"
+                           placeholder="Scan package barcode..."
+                           t-on-keyup="_onPackageKeyup"/>
+                </div>
+
+                <!-- Scanned Packages List -->
+                <div class="o_package_list mt-4">
+                    <h6>Scanned Packages (<span t-esc="state.scanned_packages.length"/>)</h6>
+                    <ul class="list-group">
+                        <li t-foreach="state.scanned_packages" t-as="pkg" t-key="pkg.id"
+                            class="list-group-item d-flex justify-content-between align-items-center">
+                            <span>
+                                <i class="fa fa-cube me-2"/>
+                                <t t-esc="pkg.name"/>
+                            </span>
+                            <span class="badge bg-secondary me-2">
+                                <t t-esc="pkg.location_name"/>
+                            </span>
+                            <button class="btn btn-sm btn-danger" t-on-click="_onRemovePackage.bind(this, pkg.id)">
+                                <i class="fa fa-trash"/>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Validate Button -->
+                <div class="text-center mt-4">
+                    <button class="btn btn-success btn-lg"
+                            t-on-click="_onValidate"
+                            t-att-disabled="state.scanned_packages.length === 0 or state.is_validating">
+                        <i t-if="!state.is_validating" class="fa fa-check me-2"/>
+                        <t t-if="state.is_validating">Validating...</t>
+                        <t t-else="">Validate Transfer</t>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 4: Done -->
+            <div t-if="state.step == 'done'" class="o_transfer_content p-4">
+                <div class="text-center">
+                    <div class="alert alert-success">
+                        <i class="fa fa-check-circle fa-3x mb-3"/>
+                        <h4>Transfer Completed!</h4>
+                    </div>
+                    <button class="btn btn-primary mt-3" t-on-click="_onNewTransfer">
+                        <i class="fa fa-plus me-2"/>New Transfer
+                    </button>
+                    <button class="btn btn-secondary mt-3 ms-2" t-on-click="_onBackToHome">
+                        Back to Home
+                    </button>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

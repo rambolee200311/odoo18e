@@ -9,4 +9,5 @@ from . import charge_item_inherit
 from . import transportation_models
 from . import world_depot_waybill_container_inherit
 from . import workbench_models
+from . import inbound_order_inherit
 

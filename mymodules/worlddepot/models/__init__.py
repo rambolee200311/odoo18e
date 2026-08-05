@@ -49,3 +49,5 @@ from . import charge_module
 from . import charge_module_wizard
 from . import charge_summary
 from . import my_stock_report_hoymiles
+from . import delivery_address
+from . import outbound_order_delivery_address

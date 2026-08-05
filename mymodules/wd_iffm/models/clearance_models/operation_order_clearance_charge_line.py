@@ -20,9 +20,9 @@ class OperationOrderClearanceChargeLine(models.Model):
 
     charge_origin_type = fields.Selection([("quotation", "Quotation"), ("manual", "Manual")], string="Charge Source", default="manual", required=True, index=True)
 
-    quotation_id = fields.Many2one("charge.quotation", string="Quotation", related="clearance_id.waybill_id.quotation_id", store=True, readonly=True, index=True)
+    quotation_id = fields.Many2one("charge.quotation", string="Quotation", related="clearance_id.quotation_id", store=True, readonly=True, index=True)
     project_id = fields.Many2one("project.project", string="Project/Customer", related="clearance_id.project_id", store=True, readonly=True, index=True)
-    currency_id = fields.Many2one("res.currency", string="Currency", related="clearance_id.waybill_id.quotation_id.currency_id", store=True, readonly=True, index=True)
+    currency_id = fields.Many2one("res.currency", string="Currency", related="clearance_id.quotation_id.currency_id", store=True, readonly=True, index=True)
 
     charge_item_id = fields.Many2one("world.depot.charge.item", string="Charge Item", tracking=True)
     quotation_tab_category = fields.Selection(TAB_CATEGORY_LIST, related="charge_item_id.tab_category", string="Tab Category", tracking=True)

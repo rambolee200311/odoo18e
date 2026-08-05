@@ -11,3 +11,4 @@ access_move_line_location_import,move.line.location.import,model_move_line_locat
 access_move_line_location_import_line,move.line.location.import.line,model_move_line_location_import_line,,1,1,1,1
 access_sunrise_stock_report,sunrise.stock.report,model_sunrise_stock_report,,1,1,1,1
 access_sunrise_stock_report_line,sunrise.stock.report.line,model_sunrise_stock_report_line,,1,1,1,1
+access_stock_picking_package_scan,stock.picking.package.scan,model_stock_picking_package_scan,,1,1,1,1

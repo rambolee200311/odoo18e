@@ -66,6 +66,8 @@
         #'views/sequence.xml',
         'views/my_sequence.xml',
         'views/menus.xml',
+        'views/delivery_address_views.xml',
+        'wizard/outbound_delivery_address_wizard.xml',
         #'views/report_wd_picking_templates.xml',
         #'views/report_wd_picking_action.xml',
         #'views/pallet_barcode_action.xml',
