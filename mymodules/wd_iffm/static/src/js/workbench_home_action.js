@@ -289,7 +289,7 @@ export class WdIffmWorkbench extends Component {
                 selectRecord: (resId) => {
                     this.onViewRecordClicked({ resId });
                 },
-                searchViewId: 2375,  // 硬编码搜索视图 ID
+                searchViewId: viewInfo.views[finalViewType]?.searchViewId || false,  // 硬编码搜索视图 ID
             };
 //            console.log("viewProps after load:", JSON.stringify(this.state.viewProps, null, 2));
 
