@@ -220,6 +220,20 @@ class StockPicking(models.Model):
             })
         return results[0] if len(results) == 1 else results
 
+    def button_validate(self):
+        if self.env.context.get("skip_pda_internal_transfer_validation"):
+            return super().button_validate()
+
+        pda_pickings = self.filtered(
+            lambda rec: rec.is_pda_internal_transfer and rec.state not in ("done", "cancel")
+        )
+        if pda_pickings:
+            if len(pda_pickings) != len(self):
+                raise UserError(_("PDA internal transfers and regular pickings cannot be validated together."))
+            pda_pickings.action_validate_pda_internal_transfer()
+            return True
+
+        return super().button_validate()
 
     def action_cancel_pda_internal_transfer(self):
         #results = []
@@ -238,7 +252,6 @@ class StockPicking(models.Model):
         return True
 
     def action_validate_pda_internal_transfer(self):
-        results = []
         for rec in self:
             rec.check_pda_internal_transfer_draft()
             if rec.move_ids:
@@ -287,14 +300,12 @@ class StockPicking(models.Model):
                 if invalid_move_lines:
                     raise UserError(
                         _("PDA internal transfer could not preserve the original package on all move lines."))
-                rec.with_context(skip_backorder=True).button_validate()
+                rec.with_context( skip_pda_internal_transfer_validation=True,skip_backorder=True).button_validate()
                 if rec.state != "done":
                     raise UserError(_("PDA internal transfer could not be completed."))
+        return True
 
-            result = rec.get_pda_internal_transfer_scan_data()
-            result.update({"success": True, "message": _("PDA internal transfer %s completed.") % rec.name})
-            results.append(result)
-        return results[0] if len(results) == 1 else results
+
     @api.model
     def cron_cancel_empty_pda_internal_transfers(self):
         expiration_datetime = fields.Datetime.now() - timedelta(hours=24)
