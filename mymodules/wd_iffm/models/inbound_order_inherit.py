@@ -11,7 +11,7 @@ class InboundOrderInherit(models.Model):
 class InboundOrderProductsOfPalletInherit(models.Model):
     _inherit = "world.depot.inbound.order.products.pallet"
 
-    weight = fields.Float(string='Weight (kg)', help='Weight of the product in kilograms', )
+    weight = fields.Float(string='Weight (kg)', help='Weight of the product in kilograms', related=False )
 
     @api.onchange("product_id")
     def onchange_product_id_fill_weight(self):
