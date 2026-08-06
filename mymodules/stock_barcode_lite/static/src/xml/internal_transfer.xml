@@ -1,107 +1,149 @@
 <?xml version="1.0" encoding="utf-8"?>
 <templates>
+    <!-- 移库流程页面 -->
     <t t-name="stock_barcode_lite.InternalTransferPage">
-        <div class="o_internal_transfer_page">
+        <input
+            t-ref="barcodeInput"
+            type="text"
+            class="o_hidden_barcode_input"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+            inputmode="none"
+            touch-action="none"
+        />
+
+        <div class="o_sbl_inbound">
             <!-- Header -->
-            <div class="o_transfer_header bg-primary text-white p-3">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h4 class="mb-0">
-                        <i class="fa fa-arrows-alt me-2"/>Internal Transfer
-                    </h4>
-                    <button class="btn btn-light btn-sm" t-on-click="_onBackToHome">
-                        <i class="fa fa-home"/> Home
-                    </button>
+            <div class="o_sbl_header">
+                <button type="button" class="btn btn-link text-dark p-1" t-on-click="exit" title="Home">
+                    <i class="fa fa-arrow-left"/>
+                </button>
+                <div class="o_sbl_header_title">
+                    <i class="fa fa-arrows-alt text-primary me-1"/>
+                    <t t-if="hasPicking">
+                        <t t-esc="pickingLabel"/>
+                    </t>
+                    <t t-else="">Internal Transfer</t>
+                </div>
+                <div class="o_sbl_scan_mode" t-attf-class="o_mode_{{ state.nextStep }}">
+                    <t t-esc="scanModeLabel"/>
                 </div>
             </div>
 
-            <!-- Step 1: New Transfer -->
-            <div t-if="state.step == 'new'" class="o_transfer_content p-4">
-                <div class="text-center">
-                    <h5>Create New Transfer</h5>
-                    <button class="btn btn-primary btn-lg mt-4" t-on-click="_onNewTransfer">
-                        <i class="fa fa-plus me-2"/>New Transfer
-                    </button>
-                </div>
+            <!-- Alert Message -->
+            <div t-if="state.message" t-attf-class="o_sbl_alert alert alert-{{ state.messageType }}">
+                <t t-esc="state.message"/>
             </div>
 
-            <!-- Step 2: Scan Location -->
-            <div t-if="state.step == 'scan_location'" class="o_transfer_content p-4">
-                <div class="alert alert-info">
-                    <h5>Step 1: Scan Destination Location</h5>
-                </div>
-                <div class="o_scan_input mt-4">
-                    <input type="text" class="form-control form-control-lg"
-                           placeholder="Scan location barcode..."
-                           t-on-keyup="_onLocationKeyup"/>
-                </div>
-                <div class="text-center mt-4">
-                    <button class="btn btn-secondary" t-on-click="_onBackToHome">
-                        Cancel
-                    </button>
-                </div>
-            </div>
-
-            <!-- Step 3: Scan Package -->
-            <div t-if="state.step == 'scan_package'" class="o_transfer_content p-4">
-                <div class="alert alert-success">
-                    <h5>Destination: <span t-esc="state.location_dest_name"/></h5>
-                    <button class="btn btn-sm btn-outline-light" t-on-click="_onClearDestination">
-                        <i class="fa fa-times"/> Clear Destination
-                    </button>
-                </div>
-
-                <div class="o_scan_input mt-3">
-                    <input type="text" class="form-control form-control-lg"
-                           placeholder="Scan package barcode..."
-                           t-on-keyup="_onPackageKeyup"/>
-                </div>
-
-                <!-- Scanned Packages List -->
-                <div class="o_package_list mt-4">
-                    <h6>Scanned Packages (<span t-esc="state.scanned_packages.length"/>)</h6>
-                    <ul class="list-group">
-                        <li t-foreach="state.scanned_packages" t-as="pkg" t-key="pkg.id"
-                            class="list-group-item d-flex justify-content-between align-items-center">
-                            <span>
-                                <i class="fa fa-cube me-2"/>
-                                <t t-esc="pkg.name"/>
-                            </span>
-                            <span class="badge bg-secondary me-2">
-                                <t t-esc="pkg.location_name"/>
-                            </span>
-                            <button class="btn btn-sm btn-danger" t-on-click="_onRemovePackage.bind(this, pkg.id)">
-                                <i class="fa fa-trash"/>
-                            </button>
-                        </li>
-                    </ul>
-                </div>
-
-                <!-- Validate Button -->
-                <div class="text-center mt-4">
-                    <button class="btn btn-success btn-lg"
-                            t-on-click="_onValidate"
-                            t-att-disabled="state.scanned_packages.length === 0 or state.is_validating">
-                        <i t-if="!state.is_validating" class="fa fa-check me-2"/>
-                        <t t-if="state.is_validating">Validating...</t>
-                        <t t-else="">Validate Transfer</t>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Step 4: Done -->
-            <div t-if="state.step == 'done'" class="o_transfer_content p-4">
-                <div class="text-center">
-                    <div class="alert alert-success">
-                        <i class="fa fa-check-circle fa-3x mb-3"/>
-                        <h4>Transfer Completed!</h4>
+            <!-- ═══ 移库单信息卡片 ═══ -->
+            <div t-if="hasPicking" class="o_sbl_picking_card">
+                <div class="o_sbl_picking_info">
+                    <div class="o_picking_row">
+                        <span class="o_picking_label">Origin:</span>
+                        <span class="o_picking_value"><t t-esc="pickingOrigin"/></span>
                     </div>
-                    <button class="btn btn-primary mt-3" t-on-click="_onNewTransfer">
-                        <i class="fa fa-plus me-2"/>New Transfer
-                    </button>
-                    <button class="btn btn-secondary mt-3 ms-2" t-on-click="_onBackToHome">
-                        Back to Home
-                    </button>
+                    <div class="o_picking_row">
+                        <span class="o_picking_label">Status:</span>
+                        <span class="badge" t-attf-class="{{ getStateBadgeClass(pickingState) }}">
+                            <t t-esc="getStateLabel(pickingState)"/>
+                        </span>
+                    </div>
                 </div>
+            </div>
+
+            <!-- ═══ 目标货位信息 ═══ -->
+            <div t-if="hasDestination" class="o_sbl_location_bar">
+                <i class="fa fa-map-marker text-danger me-1"/>
+                <span class="me-1">Destination:</span>
+                <strong class="text-primary"><t t-esc="destinationLocationName"/></strong>
+            </div>
+
+            <!-- ═══ 扫描提示步骤条 ═══ -->
+            <div class="o_sbl_step_indicator">
+                <div class="o_step_item" t-attf-class="{ active: isScanLocationStep, done: hasDestination }">
+                    <div class="o_step_circle">
+                        <t t-if="hasDestination"><i class="fa fa-check"/></t>
+                        <t t-else="">1</t>
+                    </div>
+                    <div class="o_step_label">Location</div>
+                </div>
+                <div class="o_step_line" t-attf-class="{ active: hasDestination }"/>
+                <div class="o_step_item" t-attf-class="{ active: isScanPackageStep }">
+                    <div class="o_step_circle">
+                        <t t-if="isAllComplete"><i class="fa fa-check"/></t>
+                        <t t-else="">2</t>
+                    </div>
+                    <div class="o_step_label">Pallet</div>
+                </div>
+            </div>
+
+            <div class="o_sbl_step_hint">
+                <i class="fa fa-qrcode me-2"/>
+                <t t-esc="stepHint"/>
+            </div>
+
+            <!-- ═══ 托盘列表 ═══ -->
+            <div class="o_sbl_pallets">
+                <t t-if="palletList.length === 0 &amp;&amp; !state.loading">
+                    <div class="o_sbl_empty_state text-center text-muted py-5">
+                        <i class="fa fa-inbox fa-4x mb-3 d-block opacity-25"/>
+                        <p class="mb-1 fw-bold">No Pallets Scanned</p>
+                        <p class="small">
+                            <t t-if="isScanLocationStep">Scan a destination location to continue</t>
+                            <t t-else="">Scan pallets to transfer them</t>
+                        </p>
+                    </div>
+                </t>
+
+                <t t-foreach="palletList" t-as="pallet" t-key="pallet.id">
+                    <div t-attf-class="o_sbl_pallet {{ pallet.is_updated ? 'o_pallet_updated' : '' }}">
+                        <!-- 托盘头部 -->
+                        <div class="o_pallet_header">
+                            <div class="o_pallet_row1">
+                                <div class="o_pallet_info">
+                                    <i class="fa fa-cube text-secondary me-2"/>
+                                    <strong class="o_pallet_name">
+                                        <t t-esc="pallet.name || pallet.barcode || ('Package ' + pallet.id)"/>
+                                    </strong>
+                                </div>
+                                <div class="o_pallet_right">
+                                    <span class="badge bg-success" t-if="pallet.is_updated">
+                                        <i class="fa fa-check me-1"/>Scanned
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="o_pallet_row2">
+                                <span class="o_pallet_location" t-if="pallet.location_name">
+                                    <i class="fa fa-map-marker-alt text-muted me-1"/>
+                                    <t t-esc="pallet.location_name"/>
+                                </span>
+                                <button class="btn btn-sm btn-outline-danger ms-auto"
+                                        t-if="pallet.is_updated"
+                                        t-on-click="_onRemovePackage.bind(this, pallet.id)">
+                                    <i class="fa fa-trash"/>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </div>
+
+            <!-- Footer -->
+            <div class="o_sbl_footer">
+                <button class="btn btn-outline-secondary" t-on-click="resetScan" t-att-disabled="state.loading">
+                    <i class="fa fa-refresh me-1"/>Reset
+                </button>
+                <button class="btn btn-primary"
+                        style="background-color: #0d6efd; border-color: #0d6efd; color: white; display: block !important; visibility: visible !important; flex: 1.5;"
+                        t-on-click="confirmTransfer"
+                        t-att-disabled="state.loading || !hasDestination">
+                    <i class="fa fa-check-circle me-1"/>Confirm
+                </button>
+                <button class="btn btn-secondary" t-on-click="exit">
+                    <i class="fa fa-home me-1"/>Home
+                </button>
             </div>
         </div>
     </t>

@@ -74,6 +74,16 @@
         <field name="target">main</field>
     </record>
 
+    <record id="action_create_pda_internal_transfer" model="ir.actions.server">
+        <field name="name">Create PDA Internal Transfer</field>
+        <field name="model_id" ref="stock.model_stock_picking"/>
+        <field name="binding_model_id" ref="stock.model_stock_picking"/>
+        <field name="state">code</field>
+        <field name="code">
+            action = model.action_create_pda_internal_transfer()
+        </field>
+    </record>
+
     <menuitem id="menu_stock_barcode_lite_root"
               name="Chen Yang Stock Management"
               sequence="50"

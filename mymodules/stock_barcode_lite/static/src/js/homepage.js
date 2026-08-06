@@ -16,6 +16,7 @@ export class Homepage extends Component {
 
     setup() {
         this.action = useService("action");
+        this.orm = useService("orm");
     }
 
     _onInboundClick() {
@@ -30,7 +31,21 @@ export class Homepage extends Component {
         this.action.doAction("stock_barcode_lite_outbound_whole");
     }
 
-    _onInternalTransferClick() {
-        this.action.doAction("stock_barcode_lite_internal_transfer");
+    async _onInternalTransferClick() {
+        try {
+            const result = await this.orm.call(
+                "stock.picking",
+                "action_create_pda_internal_transfer",
+                []
+            );
+            if (result) {
+//                console.log('嘿嘿',result)
+                if (result.type === "ir.actions.client") {
+                    this.action.doAction(result);
+                }
+            }
+        } catch (error) {
+            console.error("Failed to create internal transfer:", error);
+        }
     }
 }
