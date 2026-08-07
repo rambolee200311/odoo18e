@@ -315,6 +315,28 @@ class InternalTransfer extends Component {
         });
     }
 
+    async cancelTransfer() {
+        if (!this.state.picking_id) {
+            this.exit();
+            return;
+        }
+
+        this.state.loading = true;
+        try {
+            await this.orm.call("stock.picking", "action_cancel_pda_internal_transfer", [
+                this.state.picking_id
+            ]);
+            this.showMessage(_t("Transfer cancelled"), "info");
+            this._flashScreen([200, 100, 100], false);
+            setTimeout(() => this.exit(), 500);
+        } catch (error) {
+            this.showMessage(this.formatError(error), "danger");
+            this._flashScreen([200, 100, 100], true);
+        } finally {
+            this.state.loading = false;
+        }
+    }
+
     exit() {
         this.action.doAction("stock_barcode_lite_homepage");
     }
