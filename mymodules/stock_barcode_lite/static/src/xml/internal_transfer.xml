@@ -121,11 +121,11 @@
                             <div class="o_pallet_row2">
                                 <span class="o_pallet_location" t-if="pallet.location_name">
                                     <i class="fa fa-map-marker-alt text-muted me-1"/>
-                                    <t t-esc="pallet.location_name"/>
+                                    Source: <t t-esc="pallet.location_name"/>
                                 </span>
                                 <button class="btn btn-sm btn-outline-danger ms-auto"
                                         t-if="pallet.is_updated"
-                                        t-on-click="_onRemovePackage.bind(this, pallet.id)">
+                                        t-on-click="_onRemovePackage.bind(this, pallet.package_id)">
                                     <i class="fa fa-trash"/>
                                 </button>
                             </div>

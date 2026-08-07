@@ -169,6 +169,7 @@ class InternalTransfer extends Component {
             this.state.destination_name = result.destination_location?.name;
             this.state.scanned_packages = result.package_scan_lines?.map(line => ({
                 id: line.id,
+                package_id: line.package_id,
                 name: line.package_name,
                 barcode: line.barcode,
                 location_name: line.source_location?.name || "",
@@ -196,6 +197,7 @@ class InternalTransfer extends Component {
         if (result.success) {
             this.state.scanned_packages = result.package_scan_lines?.map(line => ({
                 id: line.id,
+                package_id: line.package_id,
                 name: line.package_name,
                 barcode: line.barcode,
                 location_name: line.source_location?.name || "",
@@ -223,6 +225,7 @@ class InternalTransfer extends Component {
         this.state.destination_name = data.destination_location?.name || "";
         this.state.scanned_packages = data.package_scan_lines?.map(line => ({
             id: line.id,
+            package_id: line.package_id,
             name: line.package_name,
             barcode: line.barcode,
             location_name: line.source_location?.name || "",
@@ -286,7 +289,23 @@ class InternalTransfer extends Component {
     }
 
     _onRemovePackage(packageId) {
-        this.state.scanned_packages = this.state.scanned_packages.filter(p => p.id !== packageId);
+        if (this.state.loading) return;
+        this.state.loading = true;
+        this.orm.call("stock.picking", "action_remove_pda_package",
+            [this.state.picking_id],
+            { package_id: packageId }
+        ).then((result) => {
+            if (result && result.success) {
+                this.state.scanned_packages = this.state.scanned_packages.filter(p => p.package_id !== packageId);
+                this.showMessage(_t("Package removed"), "info");
+            }
+        }).catch(err => {
+            console.error("[InternalTransfer] remove package error:", err);
+            this.showMessage(this.formatError(err), "danger");
+        }).finally(() => {
+            this.state.loading = false;
+            this._focusBarcodeInput();
+        });
     }
 
     _onClearDestination() {
