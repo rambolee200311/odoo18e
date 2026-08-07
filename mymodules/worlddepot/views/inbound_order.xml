@@ -149,7 +149,7 @@
                             <field name="date" readonly="state!='new'"/>
                             <field name="a_date" readonly="state!='new'"/>
                             <field name="project" readonly="state!='new'"/>
-                            <field name="owner" readonly="state!='new'"/>
+                            <field name="owner"  readonly="1" options="{'no_create': True, 'no_open': True}"/>
                             <field name="warehouse"/>
                             <field name="bl_no" readonly="state!='new'"/>
                             <field name="cntr_no" readonly="state!='new'"/>
