@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+<record id="charge_type_freight_base" model="tlmp.carrier.charge.type">
+            <field name="code">FREIGHT_BASE</field>
+            <field name="name">Transport Base</field>
+            <field name="main_category">freight</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="charge_type_fuel_surcharge" model="tlmp.carrier.charge.type">
+            <field name="code">FUEL_SURCHARGE</field>
+            <field name="name">Fuel Surcharge</field>
+            <field name="main_category">surcharge</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="charge_type_detention" model="tlmp.carrier.charge.type">
+            <field name="code">DETENTION</field>
+            <field name="name">Detention</field>
+            <field name="main_category">accessorial</field>
+            <field name="sequence">30</field>
+        </record>
+        <record id="charge_type_demurrage" model="tlmp.carrier.charge.type">
+            <field name="code">DEMURRAGE</field>
+            <field name="name">Demurrage</field>
+            <field name="main_category">accessorial</field>
+            <field name="sequence">40</field>
+        </record>
+        <record id="charge_type_waiting_time" model="tlmp.carrier.charge.type">
+            <field name="code">WAITING_TIME</field>
+            <field name="name">Waiting Time</field>
+            <field name="main_category">accessorial</field>
+            <field name="sequence">50</field>
+        </record>
+        <record id="charge_type_loading_unloading" model="tlmp.carrier.charge.type">
+            <field name="code">LOADING_UNLOADING</field>
+            <field name="name">Loading / Unloading</field>
+            <field name="main_category">accessorial</field>
+            <field name="sequence">60</field>
+        </record>
+        <record id="charge_type_terminal_handling" model="tlmp.carrier.charge.type">
+            <field name="code">TERMINAL_HANDLING</field>
+            <field name="name">Terminal Handling</field>
+            <field name="main_category">accessorial</field>
+            <field name="sequence">70</field>
+        </record>
+        <record id="charge_type_toll" model="tlmp.carrier.charge.type">
+            <field name="code">TOLL</field>
+            <field name="name">Toll</field>
+            <field name="main_category">surcharge</field>
+            <field name="sequence">80</field>
+        </record>
+        <record id="charge_type_vat" model="tlmp.carrier.charge.type">
+            <field name="code">VAT</field>
+            <field name="name">VAT</field>
+            <field name="main_category">tax</field>
+            <field name="sequence">90</field>
+        </record>
+        <record id="charge_type_adjustment" model="tlmp.carrier.charge.type">
+            <field name="code">ADJUSTMENT</field>
+            <field name="name">Adjustment</field>
+            <field name="main_category">adjustment</field>
+            <field name="sequence">100</field>
+        </record>
+        <record id="charge_type_late_penalty" model="tlmp.carrier.charge.type">
+            <field name="code">LATE_PENALTY</field>
+            <field name="name">Late Penalty</field>
+            <field name="main_category">penalty</field>
+            <field name="sequence">110</field>
+        </record>
+</odoo>

@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="utf-8"?>
+ <odoo>
+     <record id="view_tlmp_transport_order_tree" model="ir.ui.view">
+         <field name="name">tlmp.transport.order.tree</field>
+         <field name="model">tlmp.transport.order</field>
+         <field name="arch" type="xml">
+             <list string="Transport Orders" default_order="id desc">
+                 <field name="name"/>
+                 <field name="source_type" widget="badge" decoration-success="source_type == 'plan_driven'"
+                        decoration-info="source_type == 'commercial'"/>
+                 <field name="transport_type_id"/>
+                 <field name="partner_id" optional="show"/>
+                 <field name="carrier_id" optional="show"/>
+                 <field name="state" widget="badge" decoration-success="state == 'confirmed'"
+                        decoration-info="state in ('assigned','in_transit')"
+                        decoration-warning="state in ('delivered','signed')"
+                        decoration-muted="state in ('closed','cancelled')"/>
+                 <field name="planned_pickup_date" optional="show"/>
+                 <field name="request_id" optional="show"/>
+                 <field name="pickup_plan_id" optional="show"/>
+                 <field name="quote_id" optional="show"/>
+             </list>
+         </field>
+     </record>
+ 
+     <record id="view_tlmp_transport_order_form" model="ir.ui.view">
+         <field name="name">tlmp.transport.order.form</field>
+         <field name="model">tlmp.transport.order</field>
+         <field name="arch" type="xml">
+             <form string="Transport Order">
+                 <header>
+                     <field name="source_type" widget="badge" class="mx-2"/>
+                    <button name="action_confirm" type="object" string="Confirm" invisible="state != 'draft'"
+                             class="btn-primary"/>
+                    <button name="action_assign" type="object" string="Assign Carrier" invisible="state != 'confirmed'"/>
+                    <button name="action_allocate" type="object" string="Allocate" invisible="state != 'confirmed'"/>
+                    <button name="action_raise_exception" type="object" string="Raise Exception"
+                            invisible="state not in ('allocated', 'in_transit')"/>
+                    <button name="action_recover_exception" type="object" string="Recover"
+                            invisible="state != 'exception'"/>
+                    <button name="action_start_transit" type="object" string="Start Transit"
+                             invisible="state != 'assigned'"/>
+                    <button name="action_deliver" type="object" string="Mark Delivered" invisible="state != 'in_transit'"/>
+                    <button name="action_confirm_pod" type="object" string="Confirm POD" invisible="state != 'delivered'"/>
+                    <button name="action_enter_settlement" type="object" string="Enter Settlement"
+                            invisible="state not in ('delivered', 'signed')"/>
+                    <button name="action_bill" type="object" string="Bill" invisible="state != 'signed'"/>
+                     <button name="action_settle" type="object" string="Settle" invisible="state != 'billed'"/>
+                     <button name="action_close" type="object" string="Close" invisible="state != 'settled'"/>
+                     <button name="action_cancel" type="object" string="Cancel"
+                             invisible="state not in ('draft', 'confirmed', 'assigned')"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,confirmed,allocated,assigned,in_transit,exception,delivered,signed,settlement_pending,billed,settled,closed"/>
+                 </header>
+                 <sheet>
+                     <group>
+                         <group string="Order Info">
+                             <field name="name" readonly="1"/>
+                             <field name="transport_type_id"/>
+                             <field name="scene_id" readonly="1" options="{'no_create': True}"/>
+                             <field name="fleet_operation_mode"/>
+                             <field name="partner_id" options="{'no_create': True}"/>
+                             <field name="carrier_id" options="{'no_create': True}"/>
+                         </group>
+                         <group string="Source Documents">
+                             <field name="request_id" options="{'no_open': False, 'no_create': True}"
+                                    invisible="not request_id"/>
+                             <field name="pickup_plan_id" options="{'no_open': False, 'no_create': True}"
+                                    invisible="not pickup_plan_id"/>
+                             <field name="inquiry_id" options="{'no_open': False, 'no_create': True}"
+                                    invisible="not inquiry_id"/>
+                             <field name="quote_id" options="{'no_open': False, 'no_create': True}"
+                                    invisible="not quote_id"/>
+                         </group>
+                     </group>
+                     <group invisible="not scene_id and not origin_street and not destination_street">
+                         <group string="Origin Address">
+                         <field name="origin_street" placeholder="Street"/>
+                         <field name="origin_zip" placeholder="Zip"/>
+                         <field name="origin_city" placeholder="City"/>
+                         <field name="origin_state_id" options="{'no_create': True}"/>
+                         <field name="origin_country_id" options="{'no_create': True}"/>
+                         <field name="pickup_location_id" options="{'no_create': True}"/>
+                         <field name="place_of_departure"/>
+                     </group>
+                     <group string="Destination Address">
+                         <field name="destination_street" placeholder="Street"/>
+                         <field name="destination_zip" placeholder="Zip"/>
+                         <field name="destination_city" placeholder="City"/>
+                         <field name="destination_state_id" options="{'no_create': True}"/>
+                         <field name="destination_country_id" options="{'no_create': True}"/>
+                         <field name="delivery_location_id" options="{'no_create': True}"/>
+                         <field name="place_of_destination"/>
+                     </group>
+                     </group>
+                     <group string="Schedule &amp; Execution">
+                         <group>
+                             <field name="planned_pickup_date"/>
+                             <field name="planned_delivery_date"/>
+                             <field name="actual_pickup_date" readonly="1"/>
+                             <field name="actual_delivery_date" readonly="1"/>
+                         </group>
+                         <group>
+                             <field name="driver_name"/>
+                             <field name="driver_phone"/>
+                             <field name="vehicle_plate"/>
+                             <field name="carrier_contact"/>
+                             <field name="carrier_phone"/>
+                         </group>
+                     </group>
+                     <notebook>
+                         <page string="Cargo" name="cargo_page">
+                             <group>
+                                 <group>
+                                     <field name="snapshot_status" widget="badge" readonly="1"/>
+                                     <field name="cargo_snapshot_version" readonly="1"/>
+                                     <field name="matrix_code" readonly="1"/>
+                                     <field name="matrix_version" readonly="1"/>
+                                     <field name="matrix_validation_result" widget="badge" readonly="1"/>
+                                     <field name="cargo_description" readonly="snapshot_status != 'draft'"/>
+                                     <field name="cargo_weight" readonly="snapshot_status != 'draft'"/>
+                                     <field name="cargo_volume" readonly="snapshot_status != 'draft'"/>
+                                     <field name="pallet_count" readonly="snapshot_status != 'draft'"/>
+                                     <field name="package_count" readonly="snapshot_status != 'draft'"/>
+                                 </group>
+                                 <group string="Dangerous Goods">
+                                     <field name="has_dangerous_goods"/>
+                                     <field name="adr_un_number" invisible="not has_dangerous_goods"/>
+                                     <field name="adr_class" invisible="not has_dangerous_goods"/>
+                                     <field name="adr_packing_group" invisible="not has_dangerous_goods"/>
+                                     <field name="adr_tunnel_code" invisible="not has_dangerous_goods"/>
+                                 </group>
+                                 <group string="Vehicle Requirement Snapshot">
+                                     <field name="vehicle_requirement_snapshot" readonly="1"/>
+                                 </group>
+                                 <group string="Workflow">
+                                     <field name="exception_type"/>
+                                     <field name="exception_recovery"/>
+                                     <field name="delivered_qty"/>
+                                     <field name="vehicle_allocation_snapshot" readonly="1"/>
+                                 </group>
+                             </group>
+                             <group string="Cargo Lines Snapshot">
+                                 <field name="cargo_line_ids" readonly="snapshot_status != 'draft'">
+                                     <list>
+                                         <field name="description"/>
+                                         <field name="packaging_level"/>
+                                         <field name="qty"/>
+                                         <field name="gross_weight"/>
+                                         <field name="volume_m3"/>
+                                     </list>
+                                 </field>
+                             </group>
+                         </page>
+                         <page string="Containers" name="container_page"
+                               invisible="source_type != 'plan_driven'">
+                             <field name="container_ids">
+                                 <list editable="bottom">
+                                     <field name="name"/>
+                                     <field name="container_type"/>
+                                     <field name="seal_number"/>
+                                     <field name="cargo_weight_kg"/>
+                                 </list>
+                             </field>
+                         </page>
+                         <page string="Pricing" name="pricing_page">
+                             <group>
+                                 <field name="price_source"/>
+                                 <field name="total_carrier_cost"/>
+                                 <field name="total_customer_charge"/>
+                                 <field name="source_amount_carrier" readonly="1"/>
+                                 <field name="source_amount_customer" readonly="1"/>
+                                 <field name="total_base_fee"/>
+                                 <field name="total_surcharge"/>
+                             </group>
+                             <group string="Surcharges">
+                                 <field name="surcharge_ids"/>
+                             </group>
+                         </page>
+                         <page string="Documents" name="docs_page">
+                             <group>
+                                 <field name="pod_id" options="{'no_open': False, 'no_create': True}"/>
+                                 <field name="cmr_ids">
+                                     <list>
+                                         <field name="name"/>
+                                         <field name="state"/>
+                                     </list>
+                                 </field>
+                             </group>
+                         </page>
+                         <page string="Customs" name="customs_page">
+                             <group>
+                                 <field name="customs_transit_ref"/>
+                                 <field name="t1_state"/>
+                                 <field name="customs_declaration_ref"/>
+                             </group>
+                         </page>
+                         <page string="DGD" name="dgd_page">
+                             <group>
+                                 <field name="shipment_label_ids">
+                                     <list>
+                                         <field name="name"/>
+                                         <field name="state" widget="badge"/>
+                                         <field name="tracking_number"/>
+                                         <field name="carrier_service_id"/>
+                                     </list>
+                                 </field>
+                             </group>
+                         </page>
+                         <page string="DGD" name="dgd_page">
+                             <group>
+                                 <field name="dgd_ids">
+                                     <list>
+                                         <field name="name"/>
+                                         <field name="state" widget="badge"/>
+                                         <field name="total_gross_weight"/>
+                                         <field name="confirmed_uid"/>
+                                         <field name="signed_uid"/>
+                                     </list>
+                                 </field>
+                             </group>
+                         </page>
+                         <page string="Tracking" name="tracking_page">
+                             <group string="Transport Events">
+                                 <field name="tracking_state" widget="badge"
+                                        decoration-success="tracking_state == 'completed'"
+                                        decoration-info="tracking_state == 'in_transit'"
+                                        decoration-warning="tracking_state == 'pending_pickup'"
+                                        decoration-danger="tracking_state == 'exception_hold'"/>
+                             </group>
+                             <field name="transport_event_ids" nolabel="1" colspan="2">
+                                 <list>
+                                     <field name="sequence" widget="handle"/>
+                                    <field name="event_type_id"/>
+                                     <field name="event_type_id"/>
+                                     <field name="event_state" widget="badge"/>
+                                     <field name="location"/>
+                                     <field name="planned_time"/>
+                                     <field name="estimated_time" optional="hide"/>
+                                     <field name="actual_time"/>
+                                     <field name="skip_cancel_reason" optional="hide"/>
+                                 </list>
+                             </field>
+                             <separator string="Exceptions"/>
+                             <field name="exception_ids" nolabel="1" colspan="2">
+                                 <list>
+                                     <field name="exception_type"/>
+                                     <field name="exception_state" widget="badge"/>
+                                     <field name="description"/>
+                                     <field name="handler"/>
+                                     <field name="closed_time"/>
+                                 </list>
+                             </field>
+                             <separator string="Extra Charges"/>
+                             <field name="extra_charge_ids" nolabel="1" colspan="2">
+                                 <list>
+                                     <field name="charge_type"/>
+                                     <field name="amount" sum="Total"/>
+                                     <field name="currency_id"/>
+                                     <field name="party_type"/>
+                                     <field name="reason"/>
+                                 </list>
+                             </field>
+                         </page>
+                         <page string="Attachments" name="attachments_page">
+                             <group string="CMR Documents">
+                                 <field name="cmr_attachment_ids" widget="many2many_binary"
+                                        options="{'no_create': True}"/>
+                             </group>
+                             <group string="Transport Events (incl. POD)">
+                                 <field name="event_attachment_ids" widget="many2many_binary"
+                                        options="{'no_create': True}"/>
+                             </group>
+                             <group string="Exceptions">
+                                 <field name="exception_attachment_ids" widget="many2many_binary"
+                                        options="{'no_create': True}"/>
+                             </group>
+                             <group string="Extra Charges">
+                                 <field name="charge_attachment_ids" widget="many2many_binary"
+                                        options="{'no_create': True}"/>
+                             </group>
+                         </page>
+                         <page string="Notes" name="notes_page">
+                             <field name="notes"/>
+                         </page>
+                     </notebook>
+                 </sheet>
+                 <chatter/>
+             </form>
+         </field>
+     </record>
+ 
+     <record id="view_tlmp_transport_order_search" model="ir.ui.view">
+         <field name="name">tlmp.transport.order.search</field>
+         <field name="model">tlmp.transport.order</field>
+         <field name="arch" type="xml">
+             <search string="Search Transport Orders">
+                 <field name="name"/>
+                 <field name="partner_id"/>
+                 <field name="carrier_id"/>
+                 <field name="request_id"/>
+                 <field name="pickup_plan_id"/>
+                 <separator/>
+                 <filter string="Plan-Driven" name="plan_driven"
+                         domain="[('source_type', '=', 'plan_driven')]"/>
+                 <filter string="Commercial" name="commercial"
+                         domain="[('source_type', '=', 'commercial')]"/>
+                 <separator/>
+                 <filter string="Draft" name="draft" domain="[('state', '=', 'draft')]"/>
+                 <filter string="In Transit" name="in_transit"
+                         domain="[('state', 'in', ('confirmed','assigned','in_transit'))]"/>
+                 <filter string="Delivered" name="delivered"
+                         domain="[('state', 'in', ('delivered','signed'))]"/>
+                 <filter string="Closed" name="closed" domain="[('state', '=', 'closed')]"/>
+                 <filter string="Cancelled" name="cancelled" domain="[('state', '=', 'cancelled')]"/>
+                 <group expand="0" string="Group By">
+                     <filter string="Source Type" name="group_source"
+                             context="{'group_by': 'source_type'}"/>
+                     <filter string="Status" name="group_state"
+                             context="{'group_by': 'state'}"/>
+                     <filter string="Transport Type" name="group_type"
+                             context="{'group_by': 'transport_type_id'}"/>
+                 </group>
+             </search>
+         </field>
+     </record>
+ 
+     <record id="action_tlmp_order" model="ir.actions.act_window">
+         <field name="name">Transport Orders</field>
+         <field name="res_model">tlmp.transport.order</field>
+         <field name="view_mode">list,form</field>
+         <field name="search_view_id" ref="view_tlmp_transport_order_search"/>
+     </record>
+ 
+ </odoo>

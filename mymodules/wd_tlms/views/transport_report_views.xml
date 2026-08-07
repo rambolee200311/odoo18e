@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Timeliness Report: delay hours by scene/carrier (Float measure, no aggregator needed) -->
+    <record id="view_timeliness_report_graph" model="ir.ui.view">
+        <field name="name">tlmp.transport.order.timeliness.graph</field>
+        <field name="model">tlmp.transport.order</field>
+        <field name="arch" type="xml">
+            <graph string="Delivery Timeliness" type="bar">
+                <field name="scene_id"/>
+                <field name="carrier_id"/>
+                <field name="delivery_delay_hours"/>
+            </graph>
+        </field>
+    </record>
+    <record id="action_timeliness_report" model="ir.actions.act_window">
+        <field name="name">Delivery Timeliness</field>
+        <field name="res_model">tlmp.transport.order</field>
+        <field name="view_mode">graph</field>
+    </record>
+
+    <!-- Exception Report: count by type (no type="measure", default COUNT) -->
+    <record id="view_exception_report_graph" model="ir.ui.view">
+        <field name="name">tlmp.transport.exception.report.graph</field>
+        <field name="model">tlmp.transport.exception</field>
+        <field name="arch" type="xml">
+            <graph string="Exceptions by Type" type="bar">
+                <field name="exception_type"/>
+            </graph>
+        </field>
+    </record>
+    <record id="action_exception_report" model="ir.actions.act_window">
+        <field name="name">Exception Summary</field>
+        <field name="res_model">tlmp.transport.exception</field>
+        <field name="view_mode">graph</field>
+    </record>
+</odoo>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Surcharge Types -->
+    <record id="surcharge_thc" model="tlmp.surcharge.type">
+        <field name="name">THC (Terminal Handling)</field>
+        <field name="code">THC</field>
+    </record>
+    <record id="surcharge_seal" model="tlmp.surcharge.type">
+        <field name="name">Seal Fee</field>
+        <field name="code">SEAL</field>
+    </record>
+    <record id="surcharge_port" model="tlmp.surcharge.type">
+        <field name="name">Port Operation</field>
+        <field name="code">PORT</field>
+    </record>
+    <record id="surcharge_detention" model="tlmp.surcharge.type">
+        <field name="name">Detention</field>
+        <field name="code">DETENTION</field>
+    </record>
+    <record id="surcharge_waiting" model="tlmp.surcharge.type">
+        <field name="name">Waiting Time</field>
+        <field name="code">WAITING</field>
+    </record>
+    <record id="surcharge_weighing" model="tlmp.surcharge.type">
+        <field name="name">Weighing</field>
+        <field name="code">WEIGHING</field>
+    </record>
+</odoo>

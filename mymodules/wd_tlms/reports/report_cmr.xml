@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Report definition -->
+    <report id="report_cmr" string="CMR Waybill" model="tlmp.cmr" report_type="qweb-pdf"
+        file="wd_tlms.report_cmr_document"
+        name="wd_tlms.report_cmr_document"/>
+
+    <!-- Paper format: 210 × 310 mm (pre-printed CMR blank) -->
+    <record id="paperformat_cmr" model="report.paperformat">
+        <field name="name">CMR 210x310</field>
+        <field name="default" eval="True"/>
+        <field name="format">custom</field>
+        <field name="page_height">310</field>
+        <field name="page_width">210</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">0</field>
+        <field name="margin_bottom">0</field>
+        <field name="margin_left">0</field>
+        <field name="margin_right">0</field>
+        <field name="header_line" eval="False"/>
+        <field name="dpi">300</field>
+    </record>
+
+    <!-- Report template: pure text overlay, no borders/no graphics -->
+    <template id="report_cmr_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-foreach="['1','2','3','4']" t-as="doc_copy">
+                    <t t-set="blocks" t-value="o._get_print_blocks()"/>
+                    <t t-set="line_count" t-value="len(o.line_ids)"/>
+                    <div class="cmr_page">
+                        <!-- Static fields from coordinate config -->
+                        <t t-foreach="blocks" t-as="b">
+                            <span t-attf-style="
+                                position: absolute;
+                                left: #{ b['x_mm'] }mm;
+                                top: #{ b['y_mm'] }mm;
+                                font-size: #{ b['font_size'] }px;
+                                font-family: 'Courier New', Courier, monospace;
+                                text-align: #{ b['alignment'] };
+                                white-space: nowrap;
+                                #{ 'width: 50mm;' if b['alignment'] != 'left' else '' }
+                            "><t t-esc="b['text']"/></span>
+                        </t>
+                        <!-- Copy number overlay -->
+                        <span t-attf-style="
+                            position: absolute;
+                            left: 185mm; top: 2mm;
+                            font-size: 10px;
+                            font-family: 'Courier New', Courier, monospace;
+                        ">Copy <t t-esc="doc_copy"/></span>
+                    </div>
+                </t>
+                <!-- Page break between documents -->
+                <p style="page-break-before: always;" t-if="not o_last"/>
+            </t>
+        </t>
+    </template>
+
+    <!-- Minimal CSS: no box decorations, no colors -->
+    <template id="report_cmr_style" name="report_cmr_style" inherit_id="web.html_container">
+        <xpath expr="." position="inside">
+            <style>
+                .cmr_page {
+                    position: relative;
+                    width: 210mm;
+                    height: 310mm;
+                    overflow: hidden;
+                    margin: 0;
+                    padding: 0;
+                }
+                .cmr_page span {
+                    color: #000;
+                    background: transparent;
+                }
+            </style>
+        </xpath>
+    </template>
+</odoo>

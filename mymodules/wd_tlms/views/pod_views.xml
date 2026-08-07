@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_tlmp_pod_tree" model="ir.ui.view">
+        <field name="name">tlmp.pod.tree</field>
+        <field name="model">tlmp.pod</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_tlmp_pod_form" model="ir.ui.view">
+        <field name="name">tlmp.pod.form</field>
+        <field name="model">tlmp.pod</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="state"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_tlmp_pod_search" model="ir.ui.view">
+        <field name="name">tlmp.pod.search</field>
+        <field name="model">tlmp.pod</field>
+        <field name="arch" type="xml">
+            <search/>
+        </field>
+    </record>
+
+    <record id="action_tlmp_pod" model="ir.actions.act_window">
+        <field name="name"></field>
+        <field name="res_model">tlmp.pod</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

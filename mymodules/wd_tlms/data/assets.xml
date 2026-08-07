@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="assets_frontend" inherit_id="web.assets_frontend">
+        <xpath expr="." position="inside">
+            <link rel="stylesheet" type="text/scss"
+                  href="/wd_tlms/static/src/scss/tlmp_portal.scss"/>
+            <script type="text/javascript"
+                    src="/wd_tlms/static/src/js/tlmp_portal_helper.js"/>
+            <script type="text/javascript"
+                    src="/wd_tlms/static/src/js/tlmp_portal_customer.js"/>
+            <script type="text/javascript"
+                    src="/wd_tlms/static/src/js/tlmp_portal_carrier.js"/>
+            <script src="https://maps.googleapis.com/maps/api/js?key=API_KEY&amp;libraries=places,geometry"/>
+        </xpath>
+    </template>
+</odoo>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_product_adr_form_inherit" model="ir.ui.view" forcecreate="false">
+        <field name="name">product.product.adr.form.inherit</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook/page[1]" position="before">
+                <page string="ADR" groups="wd_tlms.group_tlm_manager">
+                    <group string="Dangerous Goods">
+                        <field name="is_dangerous_good"/>
+                        <field name="adr_un_number"/>
+                        <field name="adr_class"/>
+                        <field name="adr_class_name"/>
+                        <field name="adr_packing_group"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

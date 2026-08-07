@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_dashboard" model="ir.actions.act_window">
+        <field name="name">Transport Dashboard</field>
+        <field name="res_model">tlmp.transport.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="target">inline</field>
+    </record>
+
+    <record id="view_dashboard_form" model="ir.ui.view">
+        <field name="name">tlmp.transport.dashboard.form</field>
+        <field name="model">tlmp.transport.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="Transport Monitoring Dashboard">
+                <group string="Overdue Transport Events">
+                    <div class="row">
+                        <div>
+                            <h3><field name="event_timeout_count"/></h3>
+                            <span>events overdue</span>
+                        </div>
+                        <button name="action_event_timeout_list" type="object"
+                                string="View List" class="btn-primary"/>
+                    </div>
+                </group>
+                <group string="T1 Customs Overdue">
+                    <div class="row">
+                        <div>
+                            <h3><field name="t1_overdue_count"/></h3>
+                            <span>T1 documents overdue</span>
+                        </div>
+                        <button name="action_t1_overdue_list" type="object"
+                                string="View List" class="btn-primary"/>
+                    </div>
+                </group>
+                <group string="Exception Overdue">
+                    <div class="row">
+                        <div>
+                            <h3><field name="exception_overdue_count"/></h3>
+                            <span>exceptions overdue</span>
+                        </div>
+                        <button name="action_exception_overdue_list" type="object"
+                                string="View List" class="btn-primary"/>
+                    </div>
+                </group>
+            </form>
+        </field>
+    </record>
+</odoo>

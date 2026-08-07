@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_tlmp_invoice_template_tree" model="ir.ui.view">
+        <field name="name">tlmp.carrier.invoice.template.tree</field>
+        <field name="model">tlmp.carrier.invoice.template</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="carrier_profile_id"/>
+                <field name="file_type"/>
+                <field name="is_active"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_tlmp_invoice_template_form" model="ir.ui.view">
+        <field name="name">tlmp.carrier.invoice.template.form</field>
+        <field name="model">tlmp.carrier.invoice.template</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="carrier_profile_id"/>
+                            <field name="file_type"/>
+                            <field name="encoding"/>
+                        </group>
+                        <group>
+                            <field name="delimiter"/>
+                            <field name="has_header"/>
+                            <field name="is_active"/>
+                        </group>
+                    </group>
+                    <group string="Column Mapping (JSON)">
+                        <field name="mapping_json" nolabel="1" placeholder='[{"source_column":"Invoice No","target_field":"external_invoice_no","transform":"char"}]'/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_tlmp_invoice_template" model="ir.actions.act_window">
+        <field name="name">Invoice Templates</field>
+        <field name="res_model">tlmp.carrier.invoice.template</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+<!-- High-frequency ADR Dangerous Goods - UN Dictionary Presets -->
+        <record id="un_1203" model="tlmp.transport.un.dictionary">
+            <field name="un_number">UN1203</field>
+            <field name="proper_shipping_name">GASOLINE</field>
+            <field name="hazard_class">3</field>
+            <field name="classification_code">F1</field>
+            <field name="packing_group">II</field>
+            <field name="tunnel_code">D/E</field>
+            <field name="transport_category">3</field>
+        </record>
+        <record id="un_1263" model="tlmp.transport.un.dictionary">
+            <field name="un_number">UN1263</field>
+            <field name="proper_shipping_name">PAINT</field>
+            <field name="hazard_class">3</field>
+            <field name="classification_code">F1</field>
+            <field name="packing_group">III</field>
+            <field name="tunnel_code">D/E</field>
+            <field name="transport_category">3</field>
+        </record>
+        <record id="un_1202" model="tlmp.transport.un.dictionary">
+            <field name="un_number">UN1202</field>
+            <field name="proper_shipping_name">DIESEL FUEL</field>
+            <field name="hazard_class">3</field>
+            <field name="classification_code">F1</field>
+            <field name="packing_group">III</field>
+            <field name="tunnel_code">D/E</field>
+            <field name="transport_category">3</field>
+        </record>
+        <record id="un_1950" model="tlmp.transport.un.dictionary">
+            <field name="un_number">UN1950</field>
+            <field name="proper_shipping_name">AEROSOLS</field>
+            <field name="hazard_class">2.1</field>
+            <field name="classification_code">5F</field>
+            <field name="packing_group">none</field>
+            <field name="tunnel_code">D</field>
+            <field name="transport_category">2</field>
+        </record>
+        <record id="un_3481" model="tlmp.transport.un.dictionary">
+            <field name="un_number">UN3481</field>
+            <field name="proper_shipping_name">LITHIUM ION BATTERIES IN EQUIPMENT</field>
+            <field name="hazard_class">9</field>
+            <field name="classification_code">M11</field>
+            <field name="packing_group">none</field>
+            <field name="tunnel_code">E</field>
+            <field name="transport_category">4</field>
+        </record>
+        <record id="un_2794" model="tlmp.transport.un.dictionary">
+            <field name="un_number">UN2794</field>
+            <field name="proper_shipping_name">BATTERIES, WET, FILLED WITH ACID</field>
+            <field name="hazard_class">8</field>
+            <field name="classification_code">C11</field>
+            <field name="packing_group">III</field>
+            <field name="tunnel_code">E</field>
+            <field name="transport_category">3</field>
+        </record>
+        <record id="un_3291" model="tlmp.transport.un.dictionary">
+            <field name="un_number">UN3291</field>
+            <field name="proper_shipping_name">CLINICAL WASTE</field>
+            <field name="hazard_class">6.2</field>
+            <field name="classification_code">I1</field>
+            <field name="packing_group">II</field>
+            <field name="tunnel_code">E</field>
+            <field name="transport_category">2</field>
+        </record>
+        <record id="un_3077" model="tlmp.transport.un.dictionary">
+            <field name="un_number">UN3077</field>
+            <field name="proper_shipping_name">ENVIRONMENTALLY HAZARDOUS SUBSTANCE, SOLID, N.O.S.</field>
+            <field name="hazard_class">9</field>
+            <field name="classification_code">M7</field>
+            <field name="packing_group">III</field>
+            <field name="tunnel_code">E</field>
+            <field name="transport_category">4</field>
+        </record>
+        <record id="un_3082" model="tlmp.transport.un.dictionary">
+            <field name="un_number">UN3082</field>
+            <field name="proper_shipping_name">ENVIRONMENTALLY HAZARDOUS SUBSTANCE, LIQUID, N.O.S.</field>
+            <field name="hazard_class">9</field>
+            <field name="classification_code">M6</field>
+            <field name="packing_group">III</field>
+            <field name="tunnel_code">E</field>
+            <field name="transport_category">4</field>
+        </record>
+        <record id="un_3257" model="tlmp.transport.un.dictionary">
+            <field name="un_number">UN3257</field>
+            <field name="proper_shipping_name">ELEVATED TEMPERATURE LIQUID, N.O.S.</field>
+            <field name="hazard_class">9</field>
+            <field name="classification_code">M9</field>
+            <field name="packing_group">III</field>
+            <field name="tunnel_code">E</field>
+            <field name="transport_category">3</field>
+        </record>
+</odoo>

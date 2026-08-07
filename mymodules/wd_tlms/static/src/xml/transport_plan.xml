@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="wd_tlms.TransportPlanTemplate" owl="1">
+        <div class="o_transport_plan_container">
+            <div class="o_transport_plan_header">
+                <h2>运输计划排期</h2>
+            </div>
+            <div class="o_transport_plan_content">
+                <div class="o_container_list_panel">
+                    <div class="o_panel_header">
+                        <div class="o_panel_header_title">
+                            <h4>待排期计划</h4>
+                            <span class="badge bg-secondary" t-esc="state.plans.length"/>
+                        </div>
+                    </div>
+                    <div class="o_container_list"
+                         t-on-dragover="onDragOver"
+                         t-on-drop="onPlanListDrop">
+                        <div t-if="state.plans.length === 0" class="o_empty_state">
+                            <p>暂无待排期计划</p>
+                        </div>
+                        <t t-foreach="state.plans" t-as="plan" t-key="plan.id">
+                            <div class="o_container_card"
+                                 draggable="true"
+                                 t-on-dragstart="(ev) => onDragStart(ev, plan.id)">
+                                <div class="o_container_info">
+                                    <div class="o_container_no">
+                                        <strong t-esc="plan.container_no"/>
+                                    </div>
+                                    <div class="o_container_details">
+                                        <span t-if="plan.bl_no">提单：<t t-esc="plan.bl_no"/></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </div>
+                </div>
+                <div class="o_calendar_panel">
+                    <div class="o_calendar_header">
+                        <button type="button" class="btn btn-sm btn-outline-secondary"
+                                t-on-click="() => changeMonth(-1)">← 上月</button>
+                        <h4 class="o_month_title" t-esc="formatMonthYear()"/>
+                        <button type="button" class="btn btn-sm btn-outline-secondary"
+                                t-on-click="() => changeMonth(1)">下月 →</button>
+                    </div>
+                    <div class="o_calendar_grid">
+                        <div class="o_calendar_weekdays">
+                            <div class="o_weekday">日</div><div class="o_weekday">一</div><div class="o_weekday">二</div>
+                            <div class="o_weekday">三</div><div class="o_weekday">四</div><div class="o_weekday">五</div><div class="o_weekday">六</div>
+                        </div>
+                        <div class="o_calendar_days">
+                            <t t-foreach="state.calendarDays" t-as="day" t-key="day.key">
+                                <div class="o_calendar_day"
+                                     t-att-class="getDayClass(day)"
+                                     t-on-dragover="onDragOver"
+                                     t-on-drop="(ev) => onDrop(ev, day.dateStr)">
+                                    <div class="o_day_inner">
+                                        <div class="o_day_header">
+                                            <span class="o_day_number" t-if="!day.isEmpty" t-esc="day.date"/>
+                                            <span class="o_day_count badge"
+                                                  t-if="!day.isEmpty and getDayPlans(day.dateStr).count > 0"
+                                                  t-esc="getDayPlans(day.dateStr).count"/>
+                                        </div>
+                                        <div class="o_day_containers">
+                                            <t t-foreach="day.isEmpty ? [] : getDayPlans(day.dateStr).plans"
+                                               t-as="plan" t-key="plan.id">
+                                                <div class="o_day_container_item"
+                                                     draggable="true"
+                                                     t-on-dragstart="(ev) => onPlanDragStart(ev, plan.id, day.dateStr)">
+                                                    <span t-esc="plan.name"/>
+                                                </div>
+                                            </t>
+                                        </div>
+                                    </div>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Request -->
+    <record id="event_code_request_confirmed" model="tlmp.transport.event.code">
+        <field name="code">REQUEST_CONFIRMED</field><field name="name">Request Confirmed</field><field name="category">state</field>
+    </record>
+    <record id="event_code_request_submitted" model="tlmp.transport.event.code">
+        <field name="code">REQUEST_SUBMITTED</field><field name="name">Request Submitted</field><field name="category">state</field>
+    </record>
+    <record id="event_code_request_processing" model="tlmp.transport.event.code">
+        <field name="code">REQUEST_PROCESSING</field><field name="name">Request Processing</field><field name="category">state</field>
+    </record>
+    <record id="event_code_request_completed" model="tlmp.transport.event.code">
+        <field name="code">REQUEST_COMPLETED</field><field name="name">Request Completed</field><field name="category">state</field>
+    </record>
+    <record id="event_code_request_cancelled" model="tlmp.transport.event.code">
+        <field name="code">REQUEST_CANCELLED</field><field name="name">Request Cancelled</field><field name="category">state</field>
+    </record>
+    <!-- Inquiry -->
+    <record id="event_code_inquiry_sent" model="tlmp.transport.event.code">
+        <field name="code">INQUIRY_SENT</field><field name="name">Inquiry Sent</field><field name="category">state</field>
+    </record>
+    <record id="event_code_inquiry_responded" model="tlmp.transport.event.code">
+        <field name="code">INQUIRY_RESPONDED</field><field name="name">Inquiry Responded</field><field name="category">business</field>
+    </record>
+    <record id="event_code_inquiry_accepted" model="tlmp.transport.event.code">
+        <field name="code">INQUIRY_ACCEPTED</field><field name="name">Inquiry Accepted</field><field name="category">business</field>
+    </record>
+    <record id="event_code_inquiry_closed" model="tlmp.transport.event.code">
+        <field name="code">INQUIRY_CLOSED</field><field name="name">Inquiry Closed</field><field name="category">state</field>
+    </record>
+    <record id="event_code_inquiry_rejected" model="tlmp.transport.event.code">
+        <field name="code">INQUIRY_REJECTED</field><field name="name">Inquiry Rejected</field><field name="category">state</field>
+    </record>
+    <record id="event_code_inquiry_reopened" model="tlmp.transport.event.code">
+        <field name="code">INQUIRY_REOPENED</field><field name="name">Inquiry Reopened</field><field name="category">state</field>
+    </record>
+    <!-- Quote -->
+    <record id="event_code_quote_sent" model="tlmp.transport.event.code">
+        <field name="code">QUOTE_SENT</field><field name="name">Quote Sent</field><field name="category">state</field>
+    </record>
+    <record id="event_code_quote_issued" model="tlmp.transport.event.code">
+        <field name="code">QUOTE_ISSUED</field><field name="name">Quote Issued</field><field name="category">state</field>
+    </record>
+    <record id="event_code_quote_approved" model="tlmp.transport.event.code">
+        <field name="code">QUOTE_APPROVED</field><field name="name">Quote Approved</field><field name="category">business</field>
+    </record>
+    <record id="event_code_quote_confirmed" model="tlmp.transport.event.code">
+        <field name="code">QUOTE_CONFIRMED</field><field name="name">Quote Confirmed</field><field name="category">state</field>
+    </record>
+    <record id="event_code_quote_accepted" model="tlmp.transport.event.code">
+        <field name="code">QUOTE_ACCEPTED</field><field name="name">Quote Accepted</field><field name="category">business</field>
+    </record>
+    <record id="event_code_quote_rejected" model="tlmp.transport.event.code">
+        <field name="code">QUOTE_REJECTED</field><field name="name">Quote Rejected</field><field name="category">state</field>
+    </record>
+    <record id="event_code_quote_cancelled" model="tlmp.transport.event.code">
+        <field name="code">QUOTE_CANCELLED</field><field name="name">Quote Cancelled</field><field name="category">state</field>
+    </record>
+    <record id="event_code_quote_expired" model="tlmp.transport.event.code">
+        <field name="code">QUOTE_EXPIRED</field><field name="name">Quote Expired</field><field name="category">state</field>
+    </record>
+    <!-- Order -->
+    <record id="event_code_order_confirmed" model="tlmp.transport.event.code">
+        <field name="code">ORDER_CONFIRMED</field><field name="name">Order Confirmed</field><field name="category">state</field>
+    </record>
+    <record id="event_code_order_assigned" model="tlmp.transport.event.code">
+        <field name="code">ORDER_ASSIGNED</field><field name="name">Order Assigned</field><field name="category">business</field>
+    </record>
+    <record id="event_code_order_allocated" model="tlmp.transport.event.code">
+        <field name="code">ORDER_ALLOCATED</field><field name="name">Order Allocated</field><field name="category">state</field>
+    </record>
+    <record id="event_code_order_in_transit" model="tlmp.transport.event.code">
+        <field name="code">ORDER_IN_TRANSIT</field><field name="name">Order In Transit</field><field name="category">state</field>
+    </record>
+    <record id="event_code_order_exception" model="tlmp.transport.event.code">
+        <field name="code">ORDER_EXCEPTION</field><field name="name">Order Exception</field><field name="category">state</field>
+    </record>
+    <record id="event_code_order_exception_recovered" model="tlmp.transport.event.code">
+        <field name="code">ORDER_EXCEPTION_RECOVERED</field><field name="name">Order Exception Recovered</field><field name="category">state</field>
+    </record>
+    <record id="event_code_order_delivered" model="tlmp.transport.event.code">
+        <field name="code">ORDER_DELIVERED</field><field name="name">Order Delivered</field><field name="category">state</field>
+    </record>
+    <record id="event_code_order_pod_confirmed" model="tlmp.transport.event.code">
+        <field name="code">ORDER_POD_CONFIRMED</field><field name="name">Order POD Confirmed</field><field name="category">business</field>
+    </record>
+    <record id="event_code_order_billed" model="tlmp.transport.event.code">
+        <field name="code">ORDER_BILLED</field><field name="name">Order Billed</field><field name="category">state</field>
+    </record>
+    <record id="event_code_order_settlement_pending" model="tlmp.transport.event.code">
+        <field name="code">ORDER_SETTLEMENT_PENDING</field><field name="name">Order Settlement Pending</field><field name="category">state</field>
+    </record>
+    <record id="event_code_order_settled" model="tlmp.transport.event.code">
+        <field name="code">ORDER_SETTLED</field><field name="name">Order Settled</field><field name="category">state</field>
+    </record>
+    <record id="event_code_order_closed" model="tlmp.transport.event.code">
+        <field name="code">ORDER_CLOSED</field><field name="name">Order Closed</field><field name="category">state</field>
+    </record>
+    <record id="event_code_order_reopened" model="tlmp.transport.event.code">
+        <field name="code">ORDER_REOPENED</field><field name="name">Order Reopened</field><field name="category">state</field>
+    </record>
+    <record id="event_code_order_cancelled" model="tlmp.transport.event.code">
+        <field name="code">ORDER_CANCELLED</field><field name="name">Order Cancelled</field><field name="category">state</field>
+    </record>
+    <!-- Plan -->
+    <record id="event_code_plan_scheduled" model="tlmp.transport.event.code">
+        <field name="code">PLAN_SCHEDULED</field><field name="name">Plan Scheduled</field><field name="category">state</field>
+    </record>
+    <record id="event_code_plan_reserved" model="tlmp.transport.event.code">
+        <field name="code">PLAN_RESERVED</field><field name="name">Plan Reserved</field><field name="category">business</field>
+    </record>
+    <record id="event_code_plan_executing" model="tlmp.transport.event.code">
+        <field name="code">PLAN_EXECUTING</field><field name="name">Plan Executing</field><field name="category">state</field>
+    </record>
+    <record id="event_code_plan_finished" model="tlmp.transport.event.code">
+        <field name="code">PLAN_FINISHED</field><field name="name">Plan Finished</field><field name="category">state</field>
+    </record>
+    <record id="event_code_plan_failed" model="tlmp.transport.event.code">
+        <field name="code">PLAN_FAILED</field><field name="name">Plan Failed</field><field name="category">state</field>
+    </record>
+    <record id="event_code_plan_cancelled" model="tlmp.transport.event.code">
+        <field name="code">PLAN_CANCELLED</field><field name="name">Plan Cancelled</field><field name="category">state</field>
+    </record>
+    <!-- Guard / business events -->
+    <record id="event_code_pod_received" model="tlmp.transport.event.code">
+        <field name="code">POD_RECEIVED</field><field name="name">POD Received</field><field name="category">business</field>
+    </record>
+    <record id="event_code_delivery_completed" model="tlmp.transport.event.code">
+        <field name="code">DELIVERY_COMPLETED</field><field name="name">Delivery Completed</field><field name="category">business</field>
+    </record>
+</odoo>

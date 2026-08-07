@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_tlmp_carrier_charge_type_tree" model="ir.ui.view">
+        <field name="name">tlmp.carrier.charge.type.tree</field>
+        <field name="model">tlmp.carrier.charge.type</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="main_category"/>
+                <field name="sub_category"/>
+                <field name="is_active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_tlmp_carrier_charge_type_form" model="ir.ui.view">
+        <field name="name">tlmp.carrier.charge.type.form</field>
+        <field name="model">tlmp.carrier.charge.type</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="code"/>
+                            <field name="name"/>
+                            <field name="main_category"/>
+                            <field name="sub_category"/>
+                        </group>
+                        <group>
+                            <field name="is_active"/>
+                            <field name="sequence"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_tlmp_carrier_charge_type_search" model="ir.ui.view">
+        <field name="name">tlmp.carrier.charge.type.search</field>
+        <field name="model">tlmp.carrier.charge.type</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="main_category"/>
+                <separator/>
+                <filter name="is_active" string="Active" domain="[('is_active','=',True)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_tlmp_carrier_charge_type" model="ir.actions.act_window">
+        <field name="name">Charge Types</field>
+        <field name="res_model">tlmp.carrier.charge.type</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>
