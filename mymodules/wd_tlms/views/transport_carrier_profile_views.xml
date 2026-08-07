@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_tlmp_carrier_profile_tree" model="ir.ui.view">
+        <field name="name">tlmp.carrier.profile.tree</field>
+        <field name="model">tlmp.carrier.profile</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="carrier_code"/>
+                <field name="partner_id"/>
+                <field name="carrier_type"/>
+                <field name="settlement_mode"/>
+                <field name="is_active"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_tlmp_carrier_profile_form" model="ir.ui.view">
+        <field name="name">tlmp.carrier.profile.form</field>
+        <field name="model">tlmp.carrier.profile</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="partner_id"/>
+                            <field name="carrier_code"/>
+                            <field name="carrier_type"/>
+                        </group>
+                        <group>
+                            <field name="settlement_mode"/>
+                            <field name="is_active"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_tlmp_carrier_profile" model="ir.actions.act_window">
+        <field name="name">Carrier Profiles</field>
+        <field name="res_model">tlmp.carrier.profile</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="view_res_partner_carrier_capability_inherit" model="ir.ui.view">
+        <field name="name">res.partner.carrier.capability.inherit</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Carrier Capabilities" name="carrier_capabilities_page">
+                    <field name="carrier_capability_ids" widget="many2many_tags"/>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

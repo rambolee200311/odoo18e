@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="charge_unit_container" model="world.depot.charge.unit">
+            <field name="name">Per Container</field>
+        </record>
+        <record id="charge_unit_trip" model="world.depot.charge.unit">
+            <field name="name">Per Trip</field>
+        </record>
+        <record id="charge_unit_document" model="world.depot.charge.unit">
+            <field name="name">Per Document</field>
+        </record>
+
+        <record id="charge_item_transportation" model="world.depot.charge.item">
+            <field name="item_name">Transportation Fee</field>
+            <field name="unit_id" ref="charge_unit_trip"/>
+            <field name="description">Base transportation cost for port-to-warehouse / port-to-customer moves.</field>
+        </record>
+        <record id="charge_item_fuel_surcharge" model="world.depot.charge.item">
+            <field name="item_name">Fuel Surcharge</field>
+            <field name="unit_id" ref="charge_unit_trip"/>
+            <field name="description">Fuel adjustment surcharge.</field>
+        </record>
+        <record id="charge_item_terminal_handling" model="world.depot.charge.item">
+            <field name="item_name">Terminal Handling Charge</field>
+            <field name="unit_id" ref="charge_unit_container"/>
+            <field name="description">Terminal / port handling fee.</field>
+        </record>
+        <record id="charge_item_container_pickup" model="world.depot.charge.item">
+            <field name="item_name">Container Pickup Fee</field>
+            <field name="unit_id" ref="charge_unit_container"/>
+            <field name="description">Container pickup / drop fee.</field>
+        </record>
+        <record id="charge_item_customs_clearance" model="world.depot.charge.item">
+            <field name="item_name">Customs Clearance Fee</field>
+            <field name="unit_id" ref="charge_unit_document"/>
+            <field name="description">Customs declaration / clearance fee.</field>
+        </record>
+        <record id="charge_item_documentation" model="world.depot.charge.item">
+            <field name="item_name">Documentation Fee</field>
+            <field name="unit_id" ref="charge_unit_document"/>
+            <field name="description">Document preparation fee.</field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <template id="pickup_schedule_template" name="Pickup Schedule Calendar">
+        <t t-call="web.basic_layout">
+            <div id="pickup_schedule_app" class="pickup_schedule_container">
+                <div class="ps_header">
+                    <h2>Pickup Schedule</h2>
+                    <div class="ps_month_nav">
+                        <button id="ps_prev_month" class="btn btn-sm btn-outline-secondary">« Prev</button>
+                        <span id="ps_month_title" class="ps_month_title fw-bold mx-3"></span>
+                        <button id="ps_next_month" class="btn btn-sm btn-outline-secondary">Next »</button>
+                    </div>
+                    <div><small class="text-muted">Click a date, then click an item to schedule. Selected date: <span id="ps_selected_date">—</span></small></div>
+                </div>
+                <div class="ps_body d-flex gap-3">
+                    <!-- Left Panel: Unplanned Plans -->
+                    <div class="ps_left_panel" style="width:350px;min-width:350px">
+                        <div class="ps_panel_title fw-bold mb-2">Unplanned Pickups</div>
+                        <div class="ps_filters d-flex gap-2 mb-2">
+                            <select id="ps_filter_warehouse" class="form-select form-select-sm" style="width:auto;">
+                                <option value="">All Warehouses</option>
+                            </select>
+                        </div>
+                        <div id="ps_unplanned_list" class="ps_unplanned_list border rounded p-2" style="height:60vh;overflow-y:auto;">
+                            <div class="text-center text-muted py-4">Loading...</div>
+                        </div>
+                    </div>
+
+                    <!-- Right Panel: Calendar -->
+                    <div class="ps_calendar_panel flex-grow-1">
+                        <div class="ps_weekdays d-grid mb-1" style="grid-template-columns:repeat(7,1fr);text-align:center;font-weight:bold;">
+                            <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>
+                        </div>
+                        <div id="ps_calendar_grid" class="ps_calendar_grid d-grid" style="grid-template-columns:repeat(7,1fr);gap:2px;height:55vh;overflow-y:auto;"></div>
+                    </div>
+                </div>
+            </div>
+        </t>
+
+        <link rel="stylesheet" href="/wd_tlms/static/src/css/pickup_schedule.css"/>
+
+        <script type="text/javascript">
+<![CDATA[            document.addEventListener('DOMContentLoaded', function() {
+                var currentMonth = new Date();
+                currentMonth.setDate(1);
+                var selectedDate = null;
+                var unplannedPlans = [];
+                var scheduledData = {};
+
+                var elMonthTitle = document.getElementById('ps_month_title');
+                var elCalendarGrid = document.getElementById('ps_calendar_grid');
+                var elUnplannedList = document.getElementById('ps_unplanned_list');
+                var elSelectedDate = document.getElementById('ps_selected_date');
+                var elFilterWarehouse = document.getElementById('ps_filter_warehouse');
+
+                function formatDate(d) {
+                    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+                }
+
+                function fetchJSON(url) {
+                    return fetch(url, {credentials:'same-origin'}).then(function(r){ return r.json(); });
+                }
+
+                function postJSON(url, data) {
+                    return fetch(url, {
+                        method:'POST',
+                        headers:{'Content-Type':'application/json'},
+                        body:JSON.stringify(data),
+                        credentials:'same-origin'
+                    }).then(function(r){ return r.json(); });
+                }
+
+                function loadUnplanned() {
+                    var wh = elFilterWarehouse ? elFilterWarehouse.value : '';
+                    var url = '/pickup_schedule/api/unplanned';
+                    if (wh) url += '?warehouse_id=' + wh;
+                    fetchJSON(url).then(function(plans){
+                        unplannedPlans = plans || [];
+                        renderUnplanned();
+                    }).catch(function(err){
+                        elUnplannedList.innerHTML = '<div class="text-danger">Error loading plans</div>';
+                    });
+                }
+
+                function loadSchedules() {
+                    var y = currentMonth.getFullYear();
+                    var m = currentMonth.getMonth() + 1;
+                    fetchJSON('/pickup_schedule/api/schedules?year='+y+'&amp;month='+m).then(function(data){
+                        scheduledData = data || {};
+                        renderCalendar();
+                    });
+                }
+
+                function renderUnplanned() {
+                    if (!unplannedPlans.length) {
+                        elUnplannedList.innerHTML = '<div class="text-center text-muted py-4">No unplanned pickups</div>';
+                        return;
+                    }
+                    var html = '';
+                    unplannedPlans.forEach(function(p){
+                        var containers = '';
+                        if (p.containers && p.containers.length) {
+                            p.containers.forEach(function(c){
+                                containers += '<div class="small text-muted">' + (c.container_number||'') + ' ' + (c.container_type||'') + '</div>';
+                            });
+                        }
+                        var selected = selectedDate ? 'data-selected="1"' : '';
+                        html += '<div class="ps-plan-card border rounded p-2 mb-1" data-plan-id="'+p.plan_id+'" '+selected+' style="cursor:pointer">';
+                        html += '<div class="fw-bold">' + (p.name||'') + '</div>';
+                        html += containers;
+                        html += '<div class="small text-muted">' + (p.warehouse||'') + '</div>';
+                        html += '</div>';
+                    });
+                    elUnplannedList.innerHTML = html;
+
+                    // Click to schedule
+                    elUnplannedList.querySelectorAll('.ps-plan-card').forEach(function(card){
+                        card.addEventListener('click', function(){
+                            if (!selectedDate) { alert('Select a date first by clicking on the calendar.'); return; }
+                            var planId = parseInt(this.dataset.planId);
+                            var dateStr = formatDate(selectedDate);
+                            postJSON('/pickup_schedule/api/schedule', {plan_id:planId, scheduled_date:dateStr}).then(function(result){
+                                if (result.ok) {
+                                    loadUnplanned();
+                                    loadSchedules();
+                                } else {
+                                    alert(result.error || 'Schedule failed');
+                                }
+                            });
+                        });
+                    });
+                }
+
+                function renderCalendar() {
+                    var y = currentMonth.getFullYear();
+                    var m = currentMonth.getMonth();
+                    elMonthTitle.textContent = y + '/' + String(m+1).padStart(2,'0');
+
+                    var firstDay = new Date(y, m, 1);
+                    var lastDay = new Date(y, m+1, 0);
+                    var startDay = firstDay.getDay(); // 0=Sun
+                    // Adjust: Mon=0
+                    var offset = (startDay === 0) ? 6 : startDay - 1;
+                    var totalDays = lastDay.getDate();
+
+                    var html = '';
+                    // Empty cells before first day
+                    for (var i = 0; i < offset; i++) {
+                        html += '<div class="p-2"></div>';
+                    }
+                    for (var d = 1; d <= totalDays; d++) {
+                        var dateObj = new Date(y, m, d);
+                        var dateStr = formatDate(dateObj);
+                        var dayOfWeek = dateObj.getDay();
+                        var isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+                        var isSelected = selectedDate && dateStr === formatDate(selectedDate);
+
+                        var sched = scheduledData[dateStr] || {count:0, plans:[]};
+                        var count = sched.count || 0;
+
+                        var cls = 'p-2 border rounded ';
+                        if (isWeekend) cls += 'bg-light ';
+                        if (isSelected) cls += 'border-primary border-2 ';
+                        if (dateObj < new Date()) cls += 'text-muted ';
+
+                        html += '<div class="ps-day '+cls+'" data-date="'+dateStr+'" style="min-height:80px;cursor:pointer;">';
+                        html += '<div class="small fw-bold">'+d+'</div>';
+                        if (count > 0) {
+                            html += '<div class="small text-success fw-bold">'+count+' scheduled</div>';
+                        }
+                        html += '</div>';
+                    }
+                    elCalendarGrid.innerHTML = html;
+
+                    // Click date to select
+                    elCalendarGrid.querySelectorAll('.ps-day').forEach(function(cell){
+                        cell.addEventListener('click', function(){
+                            selectedDate = new Date(this.dataset.date + 'T12:00:00');
+                            elSelectedDate.textContent = this.dataset.date;
+                            // Highlight
+                            elCalendarGrid.querySelectorAll('.ps-day').forEach(function(c){ c.classList.remove('border-primary','border-2'); });
+                            this.classList.add('border-primary','border-2');
+                        });
+                    });
+                }
+
+                // Month navigation
+                document.getElementById('ps_prev_month').addEventListener('click', function(){
+                    currentMonth.setMonth(currentMonth.getMonth() - 1);
+                    loadSchedules();
+                });
+                document.getElementById('ps_next_month').addEventListener('click', function(){
+                    currentMonth.setMonth(currentMonth.getMonth() + 1);
+                    loadSchedules();
+                });
+
+                // Initial load
+                loadUnplanned();
+                loadSchedules();
+            });]]>
+        </script>
+    </template>
+</odoo>

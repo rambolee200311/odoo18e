@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Allocation History (read-only) -->
+    <record id="view_tlmp_carrier_allocation_history_tree" model="ir.ui.view">
+        <field name="name">tlmp.carrier.allocation.history.tree</field>
+        <field name="model">tlmp.carrier.allocation.history</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="change_date"/>
+                <field name="operation_type"/>
+                <field name="allocation_id"/>
+                <field name="old_amount"/>
+                <field name="new_amount"/>
+                <field name="old_order_id"/>
+                <field name="new_order_id"/>
+                <field name="old_charge_type_id"/>
+                <field name="new_charge_type_id"/>
+                <field name="change_reason"/>
+                <field name="operator"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_tlmp_carrier_allocation_history_form" model="ir.ui.view">
+        <field name="name">tlmp.carrier.allocation.history.form</field>
+        <field name="model">tlmp.carrier.allocation.history</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name="change_date"/>
+                    <field name="operation_type"/>
+                    <field name="allocation_id"/>
+                    <field name="old_amount"/>
+                    <field name="new_amount"/>
+                    <field name="old_order_id"/>
+                    <field name="new_order_id"/>
+                    <field name="old_charge_type_id"/>
+                    <field name="new_charge_type_id"/>
+                    <field name="change_reason"/>
+                    <field name="operator"/>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_tlmp_carrier_allocation_history" model="ir.actions.act_window">
+        <field name="name">Allocation History</field>
+        <field name="res_model">tlmp.carrier.allocation.history</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

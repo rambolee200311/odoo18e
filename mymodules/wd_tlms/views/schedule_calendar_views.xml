@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ============================================================
+         Schedule Plan - Calendar View
+         Odoo native calendar view for drag-drop scheduling
+         ============================================================ -->
+    <record id="view_schedule_plan_schedule_calendar" model="ir.ui.view">
+        <field name="name">schedule.plan.schedule.calendar</field>
+        <field name="model">schedule.plan.schedule</field>
+        <field name="arch" type="xml">
+            <calendar string="Schedule Calendar" date_start="scheduled_date"
+                      color="warehouse_id" mode="month">
+                <field name="display_name"/>
+                <field name="container_number"/>
+                <field name="cargo_type"/>
+                <field name="warehouse_id"/>
+                <field name="state"/>
+            </calendar>
+        </field>
+    </record>
+
+    <!-- ============================================================
+         Schedule Plan - Tree View
+         ============================================================ -->
+    <record id="view_schedule_plan_schedule_tree" model="ir.ui.view">
+        <field name="name">schedule.plan.schedule.tree</field>
+        <field name="model">schedule.plan.schedule</field>
+        <field name="arch" type="xml">
+            <list string="Schedule Plans" default_order="scheduled_date desc, plan_id">
+                <field name="display_name"/>
+                <field name="plan_id"/>
+                <field name="scheduled_date"/>
+                <field name="cargo_type"/>
+                <field name="warehouse_id" optional="show"/>
+                <field name="container_number" optional="show"/>
+                <field name="pallet_count" optional="show"/>
+                <field name="state" widget="badge" decoration-success="state == 'scheduled'"
+                       decoration-info="state == 'draft'"
+                       decoration-muted="state in ('completed', 'cancelled')"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ============================================================
+         Schedule Plan - Form View
+         ============================================================ -->
+    <record id="view_schedule_plan_schedule_form" model="ir.ui.view">
+        <field name="name">schedule.plan.schedule.form</field>
+        <field name="model">schedule.plan.schedule</field>
+        <field name="arch" type="xml">
+            <form string="Schedule Plan">
+                <header>
+                    <button name="action_schedule" type="object" string="Confirm Schedule"
+                            class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_complete" type="object" string="Mark Completed"
+                            invisible="state != 'scheduled'"/>
+                    <button name="action_cancel" type="object" string="Cancel Schedule"
+                            invisible="state not in ('draft', 'scheduled')"
+                            confirm="Are you sure you want to cancel this schedule?"/>
+                    <button name="action_draft" type="object" string="Reset to Draft"
+                            invisible="state != 'cancelled'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,scheduled,completed"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group string="Schedule Info">
+                            <field name="plan_id" options="{'no_create': True}"/>
+                            <field name="container_line_id"
+                                   invisible="cargo_type != 'container'"
+                                   options="{'no_create': True}"/>
+                            <field name="scheduled_date"/>
+                            <field name="state"/>
+                        </group>
+                        <group string="Cargo Details">
+                            <field name="cargo_type"/>
+                            <field name="warehouse_id"/>
+                            <field name="container_number"
+                                   invisible="cargo_type != 'container'"/>
+                            <field name="container_type"
+                                   invisible="cargo_type != 'container'"/>
+                            <field name="bl_number"
+                                   invisible="cargo_type != 'container'"/>
+                            <field name="pallet_count"
+                                   invisible="cargo_type != 'pallet'"/>
+                            <field name="cargo_weight"/>
+                            <field name="cargo_description"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Notes">
+                            <field name="notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================================
+         Schedule Plan - Search View
+         ============================================================ -->
+    <record id="view_schedule_plan_schedule_search" model="ir.ui.view">
+        <field name="name">schedule.plan.schedule.search</field>
+        <field name="model">schedule.plan.schedule</field>
+        <field name="arch" type="xml">
+            <search string="Search Schedules">
+                <field name="plan_id"/>
+                <field name="container_number"/>
+                <field name="scheduled_date"/>
+                <separator/>
+                <filter string="Draft" name="draft"
+                        domain="[('state', '=', 'draft')]"/>
+                <filter string="Scheduled" name="scheduled"
+                        domain="[('state', '=', 'scheduled')]"/>
+                <filter string="Completed" name="completed"
+                        domain="[('state', '=', 'completed')]"/>
+                <filter string="Cancelled" name="cancelled"
+                        domain="[('state', '=', 'cancelled')]"/>
+                <separator/>
+                <filter string="Container" name="container"
+                        domain="[('cargo_type', '=', 'container')]"/>
+                <filter string="Pallet / Piece" name="pallet"
+                        domain="[('cargo_type', 'in', ('pallet', 'piece'))]"/>
+                <separator/>
+                <group expand="0" string="Group By">
+                    <filter string="Date" name="group_date"
+                            context="{'group_by': 'scheduled_date'}"/>
+                    <filter string="Cargo Type" name="group_cargo"
+                            context="{'group_by': 'cargo_type'}"/>
+                    <filter string="Status" name="group_state"
+                            context="{'group_by': 'state'}"/>
+                    <filter string="Warehouse" name="group_warehouse"
+                            context="{'group_by': 'warehouse_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ============================================================
+         Window Action
+         ============================================================ -->
+    <record id="action_schedule_plan_schedule" model="ir.actions.act_window">
+        <field name="name">Schedule Plans</field>
+        <field name="res_model">schedule.plan.schedule</field>
+        <field name="view_mode">calendar,list,form</field>
+        <field name="search_view_id" ref="view_schedule_plan_schedule_search"/>
+        <field name="help" type="html">
+            <p>Schedule your pick-up plans here. Drag tasks onto calendar dates to create schedules.</p>
+            <p>Switch to <b>Calendar</b> view for drag-drop scheduling.</p>
+        </field>
+    </record>
+
+</odoo>

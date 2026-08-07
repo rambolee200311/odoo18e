@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="carrier_capability_t1" model="tlmp.carrier.capability">
+        <field name="code">t1</field>
+        <field name="name">T1 Transit</field>
+        <field name="description">EU T1 customs transit capability</field>
+    </record>
+    <record id="carrier_capability_adr" model="tlmp.carrier.capability">
+        <field name="code">adr</field>
+        <field name="name">ADR</field>
+        <field name="description">ADR dangerous goods road transport</field>
+    </record>
+    <record id="carrier_capability_dg" model="tlmp.carrier.capability">
+        <field name="code">dg</field>
+        <field name="name">Dangerous Goods</field>
+        <field name="description">Dangerous goods handling qualification</field>
+    </record>
+    <record id="carrier_capability_temperature" model="tlmp.carrier.capability">
+        <field name="code">temperature_control</field>
+        <field name="name">Temperature Control</field>
+        <field name="description">Reefer / temperature controlled transport</field>
+    </record>
+    <record id="carrier_capability_oversize" model="tlmp.carrier.capability">
+        <field name="code">oversize</field>
+        <field name="name">Oversize</field>
+        <field name="description">Oversize / abnormal cargo transport</field>
+    </record>
+    <record id="carrier_capability_customs" model="tlmp.carrier.capability">
+        <field name="code">customs</field>
+        <field name="name">Customs</field>
+        <field name="description">Customs clearance support</field>
+    </record>
+
+    <record id="business_rule_cargo_001" model="tlmp.business.rule">
+        <field name="code">RULE-CARGO-001</field>
+        <field name="name">整柜禁止快递</field>
+        <field name="message_cn">整柜运输不允许快递公司承运</field>
+        <field name="result">block</field>
+        <field name="priority">10</field>
+        <field name="cargo_category">container</field>
+        <field name="carrier_type">courier</field>
+    </record>
+    <record id="business_rule_cargo_002" model="tlmp.business.rule">
+        <field name="code">RULE-CARGO-002</field>
+        <field name="name">散件禁止T1</field>
+        <field name="message_cn">散件不承接T1跨境监管运输</field>
+        <field name="result">block</field>
+        <field name="priority">20</field>
+        <field name="cargo_category">piece</field>
+        <field name="t1_attribute">t1</field>
+    </record>
+    <record id="business_rule_cargo_003" model="tlmp.business.rule">
+        <field name="code">RULE-CARGO-003</field>
+        <field name="name">快递禁止T1</field>
+        <field name="message_cn">快递公司无跨境T1报关配套能力</field>
+        <field name="result">block</field>
+        <field name="priority">30</field>
+        <field name="carrier_type">courier</field>
+        <field name="t1_attribute">t1</field>
+    </record>
+    <record id="business_rule_cargo_004" model="tlmp.business.rule">
+        <field name="code">RULE-CARGO-004</field>
+        <field name="name">快递禁止危险品</field>
+        <field name="message_cn">普通快递无危化运输资质</field>
+        <field name="result">block</field>
+        <field name="priority">40</field>
+        <field name="carrier_type">courier</field>
+        <field name="dg_attribute">dg</field>
+    </record>
+    <record id="business_rule_cargo_005" model="tlmp.business.rule">
+        <field name="code">RULE-CARGO-005</field>
+        <field name="name">单一Cargo Root</field>
+        <field name="message_cn">单个运输需求禁止混合Cargo Category Root</field>
+        <field name="result">block</field>
+        <field name="priority">5</field>
+        <field name="apply_mixed_root">True</field>
+    </record>
+    <record id="business_rule_carrier_001" model="tlmp.business.rule">
+        <field name="code">RULE-CARRIER-001</field>
+        <field name="name">T1承运商资质</field>
+        <field name="message_cn">承运商缺少T1资质</field>
+        <field name="result">block</field>
+        <field name="priority">50</field>
+        <field name="t1_attribute">t1</field>
+        <field name="require_capability">t1</field>
+    </record>
+    <record id="business_rule_carrier_002" model="tlmp.business.rule">
+        <field name="code">RULE-CARRIER-002</field>
+        <field name="name">危险品承运商资质</field>
+        <field name="message_cn">承运商缺少危险品资质</field>
+        <field name="result">block</field>
+        <field name="priority">60</field>
+        <field name="dg_attribute">dg</field>
+        <field name="require_capability">dg</field>
+    </record>
+    <record id="business_rule_compliance_001" model="tlmp.business.rule">
+        <field name="code">RULE-COMPLIANCE-001</field>
+        <field name="name">散件危品合规审批</field>
+        <field name="message_cn">散件危品需额外合规审批</field>
+        <field name="result">warning</field>
+        <field name="priority">70</field>
+        <field name="cargo_category">piece</field>
+        <field name="carrier_type">truck</field>
+        <field name="dg_attribute">dg</field>
+    </record>
+
+    <!-- Sprint49-B: carrier_type_vehicle_policy -->
+    <record id="vehicle_policy_own_fleet" model="tlmp.business.rule">
+        <field name="code">VEHICLE-POLICY-001</field>
+        <field name="name">自有车队车辆需求策略</field>
+        <field name="message_cn">自有车队默认启用车辆需求校验</field>
+        <field name="result">block</field>
+        <field name="priority">1</field>
+        <field name="carrier_type">own_fleet</field>
+        <field name="vehicle_policy_mode">required</field>
+    </record>
+    <record id="vehicle_policy_truck" model="tlmp.business.rule">
+        <field name="code">VEHICLE-POLICY-002</field>
+        <field name="name">第三方卡车车辆需求策略</field>
+        <field name="message_cn">第三方卡车默认启用车辆需求校验</field>
+        <field name="result">block</field>
+        <field name="priority">2</field>
+        <field name="carrier_type">truck</field>
+        <field name="vehicle_policy_mode">required</field>
+    </record>
+    <record id="vehicle_policy_courier" model="tlmp.business.rule">
+        <field name="code">VEHICLE-POLICY-003</field>
+        <field name="name">快递车辆需求豁免策略</field>
+        <field name="message_cn">快递运输豁免车辆需求校验</field>
+        <field name="result">block</field>
+        <field name="priority">3</field>
+        <field name="carrier_type">courier</field>
+        <field name="vehicle_policy_mode">exempted</field>
+    </record>
+
+    <!-- Sprint49-B: RULE-VEHICLE-000~005 are executed as static handlers by
+         Business Matrix Rule Engine. Only the carrier_type_vehicle_policy
+         rows above are data-configured; they control vehicle_requirement_mode
+         and are skipped by matrix violation evaluation (see rule_engine.py). -->
+</odoo>

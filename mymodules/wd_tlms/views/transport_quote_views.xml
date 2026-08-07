@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_tlmp_transport_quote_tree" model="ir.ui.view">
+        <field name="name">tlmp.transport.quote.tree</field>
+        <field name="model">tlmp.transport.quote</field>
+        <field name="arch" type="xml">
+            <list string="Quotes" default_order="id desc">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="total_amount" widget="monetary" sum="Total"/>
+                <field name="carrier_cost" widget="monetary" optional="show"/>
+                <field name="margin_amount" widget="monetary" optional="show"/>
+                <field name="margin_rate" widget="percentage" optional="show"/>
+                <field name="state" widget="badge"/>
+                <field name="validity_date" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_tlmp_transport_quote_form" model="ir.ui.view">
+        <field name="name">tlmp.transport.quote.form</field>
+        <field name="model">tlmp.transport.quote</field>
+        <field name="arch" type="xml">
+            <form string="Quote">
+                <header>
+                    <button name="action_send" type="object" string="Send to Customer"
+                            invisible="state != 'draft'" class="btn-primary"/>
+                    <button name="action_issue" type="object" string="Issue"
+                            invisible="state != 'draft'"/>
+                    <button name="action_approve" type="object" string="Approve"
+                            invisible="state != 'issued'"/>
+                    <button name="action_confirm_customer" type="object" string="Confirm Customer"
+                            invisible="state != 'approved'" class="btn-success"/>
+                    <button name="action_accept" type="object" string="Accept Quote"
+                            invisible="state != 'sent'" class="btn-success"/>
+                    <button name="action_reject" type="object" string="Reject"
+                            invisible="state != 'sent'"/>
+                    <button name="action_cancel" type="object" string="Cancel"
+                            invisible="state not in ('draft', 'sent')"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group string="Quote Info">
+                            <field name="name" readonly="1"/>
+                            <field name="request_id" options="{'no_open': True, 'no_create': True}"/>
+                            <field name="inquiry_id" options="{'no_open': True, 'no_create': True}"/>
+                            <field name="transport_order_id" readonly="1" options="{'no_create': True}"/>
+                            <field name="partner_id" options="{'no_create': True}"/>
+                            <field name="transport_mode"/>
+                            <field name="validity_date"/>
+                            <field name="confirmation_source"/>
+                            <field name="customer_accept"/>
+                        </group>
+                        <group string="Pricing">
+                            <field name="carrier_cost" widget="monetary"/>
+                            <field name="margin_amount" widget="monetary" readonly="1"/>
+                            <field name="margin_rate" widget="percentage"/>
+                            <field name="total_amount" string="Customer Price" widget="monetary" readonly="1"/>
+                            <field name="currency_id"/>
+                        </group>
+                    </group>
+                    <group string="Cargo Summary" invisible="not cargo_source_reference">
+                        <field name="cargo_source_reference" readonly="1"/>
+                        <field name="cargo_summary" readonly="1"/>
+                        <field name="cargo_weight_kg" readonly="1"/>
+                        <field name="cargo_volume_m3" readonly="1"/>
+                    </group>
+                    <group string="Vehicle Requirement" invisible="not vehicle_requirement_mode">
+                        <group>
+                            <field name="vehicle_requirement_display" readonly="1"/>
+                            <field name="vehicle_requirement_mode" readonly="1"/>
+                        </group>
+                        <group invisible="vehicle_requirement_mode == 'exempted'">
+                            <field name="vehicle_body_type" readonly="1"/>
+                            <field name="vehicle_capacity_requirement" readonly="1"/>
+                            <field name="is_dangerous_goods" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Cargo Lines" name="lines_page">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="description"/>
+                                    <field name="unit_price" widget="monetary"/>
+                                    <field name="quantity"/>
+                                    <field name="subtotal" widget="monetary" sum="Total"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Fee Lines" name="fees_page">
+                            <field name="fee_line_ids" readonly="state != 'draft'">
+                                <list editable="bottom">
+                                    <field name="fee_type_id"/>
+                                    <field name="party_type" widget="badge"/>
+                                    <field name="partner_id"/>
+                                    <field name="unit_amount" widget="monetary"/>
+                                    <field name="quantity"/>
+                                    <field name="total_amount" widget="monetary" sum="Total"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes" name="notes_page">
+                            <field name="notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_tlmp_transport_quote_search" model="ir.ui.view">
+        <field name="name">tlmp.transport.quote.search</field>
+        <field name="model">tlmp.transport.quote</field>
+        <field name="arch" type="xml">
+            <search string="Search Quotes">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="request_id"/>
+                <field name="inquiry_id"/>
+                <separator/>
+                <filter string="Draft" name="draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Sent" name="sent" domain="[('state', '=', 'sent')]"/>
+                <filter string="Accepted" name="accepted" domain="[('state', '=', 'accepted')]"/>
+                <filter string="Rejected" name="rejected" domain="[('state', '=', 'rejected')]"/>
+                <separator/>
+                <group expand="0" string="Group By">
+                    <filter string="Status" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Customer" name="group_customer" context="{'group_by': 'partner_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_tlmp_quote" model="ir.actions.act_window">
+        <field name="name">Quotes</field>
+        <field name="res_model">tlmp.transport.quote</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_tlmp_transport_quote_search"/>
+    </record>
+</odoo>

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_tlmp_settlement_adjustment_tree" model="ir.ui.view">
+        <field name="name">tlmp.carrier.settlement.adjustment.tree</field>
+        <field name="model">tlmp.carrier.settlement.adjustment</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="type"/>
+                <field name="state"/>
+                <field name="amount"/>
+                <field name="currency_id"/>
+                <field name="carrier_partner_id"/>
+                <field name="create_date"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_tlmp_settlement_adjustment_form" model="ir.ui.view">
+        <field name="name">tlmp.carrier.settlement.adjustment.form</field>
+        <field name="model">tlmp.carrier.settlement.adjustment</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_approve" string="Approve" type="object" class="btn-primary"/>
+                    <button name="action_cancel" string="Cancel" type="object"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="type"/>
+                            <field name="amount"/>
+                            <field name="currency_id"/>
+                            <field name="carrier_partner_id"/>
+                        </group>
+                        <group>
+                            <field name="source_case_id"/>
+                            <field name="batch_id"/>
+                            <field name="original_document_id"/>
+                            <field name="reason"/>
+                        </group>
+                    </group>
+                    <group string="Audit">
+                        <field name="created_by"/>
+                        <field name="approved_by"/>
+                        <field name="approved_date"/>
+                        <field name="cancel_reason"/>
+                        <field name="cancelled_by"/>
+                        <field name="cancelled_date"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_tlmp_settlement_adjustment" model="ir.actions.act_window">
+        <field name="name">Settlement Adjustments</field>
+        <field name="res_model">tlmp.carrier.settlement.adjustment</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

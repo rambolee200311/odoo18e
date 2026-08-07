@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_tlmp_carrier_capability_tree" model="ir.ui.view">
+        <field name="name">tlmp.carrier.capability.tree</field>
+        <field name="model">tlmp.carrier.capability</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="description"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_tlmp_carrier_capability_form" model="ir.ui.view">
+        <field name="name">tlmp.carrier.capability.form</field>
+        <field name="model">tlmp.carrier.capability</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="code"/>
+                            <field name="name"/>
+                        </group>
+                        <group>
+                            <field name="active"/>
+                        </group>
+                        <field name="description"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_tlmp_carrier_capability" model="ir.actions.act_window">
+        <field name="name">Carrier Capabilities</field>
+        <field name="res_model">tlmp.carrier.capability</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="view_tlmp_business_rule_tree" model="ir.ui.view">
+        <field name="name">tlmp.business.rule.tree</field>
+        <field name="model">tlmp.business.rule</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="result" widget="badge"/>
+                <field name="priority"/>
+                <field name="cargo_category"/>
+                <field name="carrier_type"/>
+                <field name="t1_attribute"/>
+                <field name="dg_attribute"/>
+                <field name="require_capability"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_tlmp_business_rule_form" model="ir.ui.view">
+        <field name="name">tlmp.business.rule.form</field>
+        <field name="model">tlmp.business.rule</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="code"/>
+                            <field name="name"/>
+                            <field name="result"/>
+                            <field name="priority"/>
+                        </group>
+                        <group>
+                            <field name="cargo_category"/>
+                            <field name="carrier_type"/>
+                            <field name="t1_attribute"/>
+                            <field name="dg_attribute"/>
+                            <field name="require_capability"/>
+                        </group>
+                        <field name="message_cn"/>
+                        <field name="apply_mixed_root"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_tlmp_business_rule" model="ir.actions.act_window">
+        <field name="name">Business Matrix Rules</field>
+        <field name="res_model">tlmp.business.rule</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

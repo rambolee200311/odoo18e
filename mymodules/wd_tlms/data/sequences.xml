@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+<!-- Sequences -->
+    <record id="seq_tlmp_request" model="ir.sequence">
+        <field name="name">TLM Request</field>
+        <field name="code">tlmp.request.seq</field>
+        <field name="prefix">TLM-REQ-%(year)s-%(month)s-</field>
+        <field name="padding">4</field>
+        <field name="company_id" eval="False"/>
+    </record>
+    <record id="seq_tlmp_inquiry" model="ir.sequence">
+        <field name="name">TLM Inquiry</field>
+        <field name="code">tlmp.inquiry.seq</field>
+        <field name="prefix">TLM-INQ-%(year)s-%(month)s-</field>
+        <field name="padding">4</field>
+    </record>
+    <record id="seq_tlmp_quote" model="ir.sequence">
+        <field name="name">TLM Quote</field>
+        <field name="code">tlmp.quote.seq</field>
+        <field name="prefix">TLM-QTE-%(year)s-%(month)s-</field>
+        <field name="padding">4</field>
+    </record>
+    <record id="seq_tlmp_order" model="ir.sequence">
+        <field name="name">TLM Order</field>
+        <field name="code">tlmp.order.seq</field>
+        <field name="prefix">TLM-ORD-%(year)s-%(month)s-</field>
+        <field name="padding">4</field>
+    </record>
+    <record id="seq_tlmp_cmr" model="ir.sequence">
+        <field name="name">TLM CMR</field>
+        <field name="code">tlmp.cmr.seq</field>
+        <field name="prefix">CMR-</field>
+        <field name="padding">4</field>
+    </record>
+    <record id="seq_tlmp_pod" model="ir.sequence">
+        <field name="name">TLM POD</field>
+        <field name="code">tlmp.pod.seq</field>
+        <field name="prefix">TLM-POD-%(year)s-%(month)s-</field>
+        <field name="padding">4</field>
+    </record>
+    <record id="seq_tlmp_bill" model="ir.sequence">
+        <field name="name">TLM Bill</field>
+        <field name="code">tlmp.bill.seq</field>
+        <field name="prefix">TLM-BILL-%(year)s-%(month)s-</field>
+        <field name="padding">4</field>
+    </record>
+    <record id="seq_tlmp_settlement" model="ir.sequence">
+        <field name="name">TLM Settlement</field>
+        <field name="code">tlmp.settlement.seq</field>
+        <field name="prefix">TLM-STL-%(year)s-%(month)s-</field>
+        <field name="padding">4</field>
+    </record>
+    <!-- Pickup Plan -->
+    <record id="seq_pickup_plan" model="ir.sequence">
+        <field name="name">Pickup Plan</field>
+        <field name="code">pickup.plan.seq</field>
+        <field name="prefix">PP-%(year)s%(month)s-</field>
+        <field name="padding">4</field>
+        <field name="company_id" eval="False"/>
+    </record>
+    <!-- Container Service Request -->
+    <record id="seq_container_service_request" model="ir.sequence">
+        <field name="name">Container Service Request</field>
+        <field name="code">container.service.request.seq</field>
+        <field name="prefix">CSR-%(year)s%(month)s-</field>
+        <field name="padding">4</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+
+    <record id="seq_shipment_label" model="ir.sequence">
+        <field name="name">Shipment Label</field>
+        <field name="code">tlmp.shipment.label.seq</field>
+        <field name="prefix">LBL/</field>
+        <field name="padding">5</field>
+    </record>
+    <record id="seq_tlmp_settlement_case" model="ir.sequence">
+        <field name="name">TLM Settlement Case</field>
+        <field name="code">tlmp.settlement.case.seq</field>
+        <field name="prefix">CASE-%(year)s%(month)s-</field>
+        <field name="padding">4</field>
+    </record>
+    <record id="seq_tlmp_adjustment" model="ir.sequence">
+        <field name="name">TLM Adjustment</field>
+        <field name="code">tlmp.adjustment.seq</field>
+        <field name="prefix">ADJ-%(year)s%(month)s-</field>
+        <field name="padding">4</field>
+    </record>
+    <record id="seq_tlmp_invoice_import" model="ir.sequence">
+        <field name="name">TLM Invoice Import</field>
+        <field name="code">tlmp.invoice.import.seq</field>
+        <field name="prefix">IMP-%(year)s%(month)s-</field>
+        <field name="padding">4</field>
+    </record>
+
+    <record id="seq_tlmp_billing_document" model="ir.sequence">
+        <field name="name">TLM Billing Document</field>
+        <field name="code">tlmp.billing.document.seq</field>
+        <field name="prefix">TLM-BLD-%(year)s-%(month)s-</field>
+        <field name="padding">4</field>
+    </record>
+    <record id="seq_tlmp_batch" model="ir.sequence">
+        <field name="name">TLM Batch</field>
+        <field name="code">tlmp.batch.seq</field>
+        <field name="prefix">TLM-BCH-%(year)s%(month)s-</field>
+        <field name="padding">4</field>
+    </record>
+    <record id="seq_tlmp_match_execution" model="ir.sequence">
+        <field name="name">TLM Match Execution</field>
+        <field name="code">tlmp.match.execution.seq</field>
+        <field name="prefix">MEX/</field>
+        <field name="padding">5</field>
+    </record>
+    <record id="seq_tlmp_settlement_exception" model="ir.sequence">
+        <field name="name">TLM Settlement Exception</field>
+        <field name="code">tlmp.settlement.exception.seq</field>
+        <field name="prefix">EXC-%(year)s%(month)s-</field>
+        <field name="padding">4</field>
+    </record>
+</odoo>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+<!-- FTL Types -->
+        <record id="type_port_to_warehouse" model="tlmp.transport.type">
+            <field name="code">port_to_warehouse</field>
+            <field name="name">Terminal to Warehouse</field>
+            <field name="category">ftl</field>
+            <field name="mode">road</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="type_to_customer" model="tlmp.transport.type">
+            <field name="code">to_customer</field>
+            <field name="name">To Customer</field>
+            <field name="category">ftl</field>
+            <field name="mode">road</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="type_pickup_to_warehouse" model="tlmp.transport.type">
+            <field name="code">pickup_to_warehouse</field>
+            <field name="name">Pickup to Warehouse</field>
+            <field name="category">ftl</field>
+            <field name="mode">road</field>
+            <field name="sequence">30</field>
+        </record>
+        <record id="type_warehouse_transfer" model="tlmp.transport.type">
+            <field name="code">warehouse_transfer</field>
+            <field name="name">Warehouse Transfer</field>
+            <field name="category">ftl</field>
+            <field name="mode">road</field>
+            <field name="sequence">40</field>
+        </record>
+        <record id="type_reverse_logistics" model="tlmp.transport.type">
+            <field name="code">reverse_logistics</field>
+            <field name="name">Reverse Logistics</field>
+            <field name="category">return</field>
+            <field name="mode">road</field>
+            <field name="sequence">50</field>
+        </record>
+        <!-- LTL Type -->
+        <record id="type_groupage" model="tlmp.transport.type">
+            <field name="code">groupage</field>
+            <field name="name">Groupage / LTL</field>
+            <field name="category">ltl</field>
+            <field name="mode">road</field>
+            <field name="sequence">60</field>
+        </record>
+        <!-- Parcel Type -->
+        <record id="type_parcel" model="tlmp.transport.type">
+            <field name="code">parcel</field>
+            <field name="name">Parcel / Small Package</field>
+            <field name="category">parcel</field>
+            <field name="mode">road</field>
+            <field name="sequence">70</field>
+        </record>
+</odoo>

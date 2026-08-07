@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_tlmp_workflow_ledger_tree" model="ir.ui.view">
+        <field name="name">tlmp.transport.event.ledger.tree</field>
+        <field name="model">tlmp.transport.event.ledger</field>
+        <field name="arch" type="xml">
+            <list string="Workflow Ledger" default_order="create_date desc, id desc">
+                <field name="create_date"/>
+                <field name="event_type"/>
+                <field name="event_category" widget="badge"/>
+                <field name="res_model"/>
+                <field name="res_id"/>
+                <field name="from_state"/>
+                <field name="to_state"/>
+                <field name="create_uid"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_tlmp_workflow_ledger_form" model="ir.ui.view">
+        <field name="name">tlmp.transport.event.ledger.form</field>
+        <field name="model">tlmp.transport.event.ledger</field>
+        <field name="arch" type="xml">
+            <form string="Workflow Ledger Entry">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="event_type" readonly="1"/>
+                            <field name="event_code_id" readonly="1"/>
+                            <field name="event_code_status" widget="badge" readonly="1"/>
+                            <field name="event_category" readonly="1"/>
+                            <field name="create_date" readonly="1"/>
+                            <field name="create_uid" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="res_model" readonly="1"/>
+                            <field name="res_id" readonly="1"/>
+                            <field name="from_state" readonly="1"/>
+                            <field name="to_state" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Payload">
+                        <field name="payload" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_tlmp_workflow_ledger_search" model="ir.ui.view">
+        <field name="name">tlmp.transport.event.ledger.search</field>
+        <field name="model">tlmp.transport.event.ledger</field>
+        <field name="arch" type="xml">
+            <search string="Workflow Ledger">
+                <field name="event_type"/>
+                <field name="res_model"/>
+                <field name="res_id"/>
+                <filter string="State Events" name="state"
+                        domain="[('event_category', '=', 'state')]"/>
+                <filter string="Business Events" name="business"
+                        domain="[('event_category', '=', 'business')]"/>
+                <filter string="Integration Events" name="integration"
+                        domain="[('event_category', '=', 'integration')]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_tlmp_workflow_ledger" model="ir.actions.act_window">
+        <field name="name">Workflow Ledger</field>
+        <field name="res_model">tlmp.transport.event.ledger</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_tlmp_workflow_ledger_search"/>
+    </record>
+
+    <menuitem id="menu_tlmp_workflow_ledger" name="Workflow Ledger"
+              parent="menu_tlmp_tracking_group"
+              action="action_tlmp_workflow_ledger" sequence="25"/>
+
+    <record id="view_tlmp_transport_event_code_tree" model="ir.ui.view">
+        <field name="name">tlmp.transport.event.code.tree</field>
+        <field name="model">tlmp.transport.event.code</field>
+        <field name="arch" type="xml">
+            <list string="Event Codes">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="category" widget="badge"/>
+                <field name="version"/>
+                <field name="active"/>
+                <field name="deprecated_at"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_tlmp_transport_event_code_form" model="ir.ui.view">
+        <field name="name">tlmp.transport.event.code.form</field>
+        <field name="model">tlmp.transport.event.code</field>
+        <field name="arch" type="xml">
+            <form string="Transport Event Code">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="code"/>
+                            <field name="name"/>
+                            <field name="category"/>
+                        </group>
+                        <group>
+                            <field name="version"/>
+                            <field name="active"/>
+                            <field name="deprecated_at"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_tlmp_transport_event_code" model="ir.actions.act_window">
+        <field name="name">Transport Event Codes</field>
+        <field name="res_model">tlmp.transport.event.code</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_tlmp_transport_event_code" name="Transport Event Codes"
+              parent="menu_tlmp_config"
+              action="action_tlmp_transport_event_code" sequence="54"/>
+
+    <record id="view_tlmp_workflow_guard_tree" model="ir.ui.view">
+        <field name="name">tlmp.workflow.guard.tree</field>
+        <field name="model">tlmp.workflow.guard</field>
+        <field name="arch" type="xml">
+            <list string="Workflow Guards">
+                <field name="name"/>
+                <field name="res_model"/>
+                <field name="from_state"/>
+                <field name="to_state"/>
+                <field name="guard_code" widget="badge"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_tlmp_workflow_guard_form" model="ir.ui.view">
+        <field name="name">tlmp.workflow.guard.form</field>
+        <field name="model">tlmp.workflow.guard</field>
+        <field name="arch" type="xml">
+            <form string="Workflow Guard">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="res_model"/>
+                            <field name="from_state"/>
+                            <field name="to_state"/>
+                        </group>
+                        <group>
+                            <field name="guard_code"/>
+                            <field name="message"/>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_tlmp_workflow_guard" model="ir.actions.act_window">
+        <field name="name">Workflow Guards</field>
+        <field name="res_model">tlmp.workflow.guard</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_tlmp_workflow_guards" name="Workflow Guards"
+              parent="menu_tlmp_config"
+              action="action_tlmp_workflow_guard" sequence="53"/>
+
+    <record id="view_tlmp_transport_plan_abstract_tree" model="ir.ui.view">
+        <field name="name">tlmp.transport.plan.tree</field>
+        <field name="model">tlmp.transport.plan</field>
+        <field name="arch" type="xml">
+            <list string="Transport Plans">
+                <field name="name"/>
+                <field name="plan_type" widget="badge"/>
+                <field name="state" widget="badge"/>
+                <field name="reservation_type"/>
+                <field name="transport_request_id" optional="show"/>
+                <field name="pickup_plan_id" optional="show"/>
+                <field name="container_plan_id" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_tlmp_transport_plan_abstract_form" model="ir.ui.view">
+        <field name="name">tlmp.transport.plan.form</field>
+        <field name="model">tlmp.transport.plan</field>
+        <field name="arch" type="xml">
+            <form string="Transport Plan">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" readonly="1"/>
+                            <field name="plan_type" readonly="1"/>
+                            <field name="state" readonly="1"/>
+                            <field name="reservation_type" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="transport_request_id" readonly="1"/>
+                            <field name="pickup_plan_id" readonly="1"/>
+                            <field name="container_plan_id" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Vehicle Allocation Snapshot">
+                        <field name="vehicle_allocation_snapshot" readonly="1"/>
+                    </group>
+                    <group string="Allocation Candidate">
+                        <field name="assignment_context"/>
+                        <field name="allocation_candidate_valid" readonly="1"/>
+                        <field name="allocation_candidate" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_tlmp_transport_plan_abstract" model="ir.actions.act_window">
+        <field name="name">Transport Plans</field>
+        <field name="res_model">tlmp.transport.plan</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_tlmp_transport_plan_abstract" name="Transport Plans"
+              parent="menu_tlmp_pickup_group"
+              action="action_tlmp_transport_plan_abstract" sequence="26"/>
+</odoo>

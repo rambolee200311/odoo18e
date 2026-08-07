@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <report id="report_bill" string="Customer Bill" model="tlmp.customer.bill"
+        report_type="qweb-pdf"
+        file="wd_tlms.report_bill_document"
+        name="wd_tlms.report_bill_document"/>
+    <template id="report_bill_document">
+        <t t-call="web.html_container">
+            <div class="page"><h2>Customer Bill</h2>
+            <p>No: <span t-field="o.name"/></p>
+            <p>Total: <span t-field="o.total_amount"/></p></div>
+        </t>
+    </template>
+</odoo>

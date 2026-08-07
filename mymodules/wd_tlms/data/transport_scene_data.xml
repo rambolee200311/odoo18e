@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Transport Scenes -->
+    <record id="scene_terminal_to_warehouse" model="tlmp.transport.scene">
+        <field name="name">Terminal → Warehouse</field>
+        <field name="code">terminal_to_warehouse</field>
+        <field name="scene_type">plan_driven</field>
+        <field name="origin_type">terminal</field>
+        <field name="destination_type">warehouse</field>
+        <field name="origin_type">terminal</field>
+        <field name="destination_type">warehouse</field>
+        <field name="creation_method">manual</field>
+        <field name="sequence">10</field>
+    </record>
+    <record id="scene_terminal_to_customer" model="tlmp.transport.scene">
+        <field name="name">Terminal → Customer</field>
+        <field name="code">terminal_to_customer</field>
+        <field name="scene_type">commercial</field>
+        <field name="origin_type">terminal</field>
+        <field name="destination_type">customer</field>
+        <field name="creation_method">quote_auto</field>
+        <field name="sequence">20</field>
+    </record>
+    <record id="scene_warehouse_to_customer" model="tlmp.transport.scene">
+        <field name="name">Warehouse → Customer</field>
+        <field name="code">warehouse_to_customer</field>
+        <field name="scene_type">commercial</field>
+        <field name="origin_type">warehouse</field>
+        <field name="destination_type">customer</field>
+        <field name="creation_method">quote_auto</field>
+        <field name="sequence">30</field>
+    </record>
+    <record id="scene_customer_to_customer" model="tlmp.transport.scene">
+        <field name="name">Customer A → Customer B</field>
+        <field name="code">customer_to_customer</field>
+        <field name="scene_type">commercial</field>
+        <field name="origin_type">customer</field>
+        <field name="destination_type">customer</field>
+        <field name="creation_method">quote_auto</field>
+        <field name="sequence">40</field>
+    </record>
+    <record id="scene_warehouse_transfer" model="tlmp.transport.scene">
+        <field name="name">Warehouse ↔ Warehouse</field>
+        <field name="code">warehouse_transfer</field>
+        <field name="scene_type">plan_driven</field>
+        <field name="origin_type">warehouse</field>
+        <field name="destination_type">warehouse</field>
+        <field name="origin_type">terminal</field>
+        <field name="destination_type">warehouse</field>
+        <field name="creation_method">manual</field>
+        <field name="sequence">50</field>
+    </record>
+    <record id="scene_customer_return" model="tlmp.transport.scene">
+        <field name="name">Customer → Warehouse (Return)</field>
+        <field name="code">customer_to_warehouse</field>
+        <field name="scene_type">commercial</field>
+        <field name="origin_type">customer</field>
+        <field name="destination_type">warehouse</field>
+        <field name="creation_method">quote_auto</field>
+        <field name="sequence">60</field>
+    </record>
+    <record id="scene_container_swap" model="tlmp.transport.scene">
+        <field name="name">Container Swap</field>
+        <field name="code">container_swap</field>
+        <field name="scene_type">mixed</field>
+        <field name="origin_type">terminal</field>
+        <field name="destination_type">warehouse</field>
+        <field name="creation_method">manual</field>
+        <field name="sequence">70</field>
+    </record>
+    <record id="scene_empty_depot" model="tlmp.transport.scene">
+        <field name="name">Empty Depo ↔ Warehouse</field>
+        <field name="code">empty_depot</field>
+        <field name="scene_type">plan_driven</field>
+        <field name="origin_type">depot</field>
+        <field name="destination_type">warehouse</field>
+        <field name="origin_type">terminal</field>
+        <field name="destination_type">warehouse</field>
+        <field name="creation_method">manual</field>
+        <field name="sequence">80</field>
+    </record>
+
+    <!-- Event Types -->
+    <record id="evt_pickup_arrived" model="tlmp.transport.event.type">
+        <field name="name">Pickup Arrived</field>
+        <field name="code">PICKUP_ARRIVED</field>
+        <field name="is_base_event" eval="True"/>
+        <field name="sequence_order">10</field>
+    </record>
+    <record id="evt_loading_completed" model="tlmp.transport.event.type">
+        <field name="name">Loading Completed</field>
+        <field name="code">LOADING_COMPLETED</field>
+        <field name="is_base_event" eval="True"/>
+        <field name="sequence_order">20</field>
+    </record>
+    <record id="evt_departed" model="tlmp.transport.event.type">
+        <field name="name">Departed</field>
+        <field name="code">DEPARTED</field>
+        <field name="is_base_event" eval="True"/>
+        <field name="sequence_order">30</field>
+    </record>
+    <record id="evt_delivery_arrived" model="tlmp.transport.event.type">
+        <field name="name">Delivery Arrived</field>
+        <field name="code">DELIVERY_ARRIVED</field>
+        <field name="is_base_event" eval="True"/>
+        <field name="sequence_order">40</field>
+    </record>
+    <record id="evt_delivery_completed" model="tlmp.transport.event.type">
+        <field name="name">Delivery Completed</field>
+        <field name="code">DELIVERY_COMPLETED</field>
+        <field name="is_base_event" eval="True"/>
+        <field name="sequence_order">50</field>
+        <field name="description">Requires POD attachment</field>
+    </record>
+    <record id="evt_empty_return" model="tlmp.transport.event.type">
+        <field name="name">Empty Return</field>
+        <field name="code">EMPTY_RETURN</field>
+        <field name="is_base_event" eval="True"/>
+        <field name="sequence_order">60</field>
+    </record>
+    <record id="evt_customs_check" model="tlmp.transport.event.type">
+        <field name="name">Customs Check</field>
+        <field name="code">CUSTOMS_CHECK</field>
+        <field name="is_base_event" eval="True"/>
+        <field name="sequence_order">70</field>
+    </record>
+    <record id="evt_other" model="tlmp.transport.event.type">
+        <field name="name">Other</field>
+        <field name="code">OTHER</field>
+        <field name="is_base_event" eval="False"/>
+        <field name="sequence_order">999</field>
+    </record>
+    <!-- Scene Cargo Rules (Sprint22) -->
+    <record id="cargo_rule_terminal_wh" model="tlmp.transport.scene.cargo.rule">
+        <field name="scene_id" ref="scene_terminal_to_warehouse"/>
+        <field name="allowed_source_type">manual</field>
+        <field name="container_required" eval="True"/>
+        <field name="cargo_required" eval="True"/>
+        <field name="priority">10</field>
+    </record>
+    <record id="cargo_rule_terminal_cust" model="tlmp.transport.scene.cargo.rule">
+        <field name="scene_id" ref="scene_terminal_to_customer"/>
+        <field name="allowed_source_type">manual</field>
+        <field name="container_required" eval="True"/>
+        <field name="cargo_required" eval="True"/>
+        <field name="priority">10</field>
+    </record>
+    <record id="cargo_rule_wh_cust" model="tlmp.transport.scene.cargo.rule">
+        <field name="scene_id" ref="scene_warehouse_to_customer"/>
+        <field name="allowed_source_type">both</field>
+        <field name="container_required" eval="False"/>
+        <field name="cargo_required" eval="True"/>
+        <field name="priority">10</field>
+    </record>
+    <record id="cargo_rule_cust_cust" model="tlmp.transport.scene.cargo.rule">
+        <field name="scene_id" ref="scene_customer_to_customer"/>
+        <field name="allowed_source_type">manual</field>
+        <field name="container_required" eval="False"/>
+        <field name="cargo_required" eval="True"/>
+        <field name="priority">10</field>
+    </record>
+    <record id="cargo_rule_wh_transfer" model="tlmp.transport.scene.cargo.rule">
+        <field name="scene_id" ref="scene_warehouse_transfer"/>
+        <field name="allowed_source_type">both</field>
+        <field name="container_required" eval="False"/>
+        <field name="cargo_required" eval="True"/>
+        <field name="priority">10</field>
+    </record>
+    <record id="cargo_rule_return" model="tlmp.transport.scene.cargo.rule">
+        <field name="scene_id" ref="scene_customer_return"/>
+        <field name="allowed_source_type">manual</field>
+        <field name="container_required" eval="False"/>
+        <field name="cargo_required" eval="True"/>
+        <field name="priority">10</field>
+    </record>
+    <record id="cargo_rule_swap" model="tlmp.transport.scene.cargo.rule">
+        <field name="scene_id" ref="scene_container_swap"/>
+        <field name="allowed_source_type">manual</field>
+        <field name="container_required" eval="True"/>
+        <field name="cargo_required" eval="True"/>
+        <field name="priority">10</field>
+    </record>
+    <record id="cargo_rule_empty" model="tlmp.transport.scene.cargo.rule">
+        <field name="scene_id" ref="scene_empty_depot"/>
+        <field name="allowed_source_type">none</field>
+        <field name="container_required" eval="True"/>
+        <field name="cargo_required" eval="False"/>
+        <field name="priority">10</field>
+    </record>
+
+</odoo>

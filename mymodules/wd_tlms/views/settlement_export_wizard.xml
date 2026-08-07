@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_tlmp_settlement_export_wizard_form" model="ir.ui.view">
+        <field name="name">tlmp.settlement.export.wizard.form</field>
+        <field name="model">tlmp.settlement.export.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name="carrier_partner_id"/>
+                    <field name="period_start"/>
+                    <field name="period_end"/>
+                    <field name="batch_state"/>
+                </group>
+                <footer>
+                    <button name="action_export_csv" string="Export CSV" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+    <record id="action_tlmp_settlement_export" model="ir.actions.act_window">
+        <field name="name">Settlement Export</field>
+        <field name="res_model">tlmp.settlement.export.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>
