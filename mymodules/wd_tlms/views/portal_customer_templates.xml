@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+    <!-- 订单列表：QWeb 只提供空壳，数据由 JS ORM call 填充 -->
+    <template id="portal_customer_orders" name="My Orders">
+        <t t-call="portal.portal_layout">
+            <div id="tlmp_orders_page">
+                <h2>Transport Orders</h2>
+                <table id="tlmp_orders_table" class="table">
+                    <thead><tr><th>Order</th><th>Status</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </t>
+    </template>
+
+    <!-- 订单详情：QWeb 提供骨架 + data 属性，JS 通过 ORM call 填充 -->
+    <template id="portal_customer_order_detail" name="Order Detail">
+        <t t-call="portal.portal_layout">
+            <div id="tlmp_order_detail_page" t-att-data-order-id="order_id">
+                <h2 id="tlmp_order_name"></h2>
+                <span id="tlmp_order_state" class="badge bg-primary"></span>
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <p><strong>Pickup:</strong> <span id="tlmp_order_pickup"></span></p>
+                        <p><strong>Delivery:</strong> <span id="tlmp_order_delivery"></span></p>
+                        <div id="tlmp_tracking_map" style="height:400px;"></div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- 首页入口 -->
+    <template id="portal_home_entry" inherit_id="portal.portal_my_home" name="TLM Home">
+        <xpath expr="//div[@id='portal_common_category']" position="inside">
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="title">Transport Orders</t>
+                <t t-set="url" t-value="'/my/transport/orders'"/>
+                <t t-set="text">View transport orders</t>
+                <t t-set="config_card" t-value="True"/>
+            </t>
+        </xpath>
+    </template>
+    </data>
+</odoo>

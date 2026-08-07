@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Billing Document Views -->
+    <record id="view_tlmp_carrier_billing_document_tree" model="ir.ui.view">
+        <field name="name">tlmp.carrier.billing.document.tree</field>
+        <field name="model">tlmp.carrier.billing.document</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="carrier_id"/>
+                <field name="document_no"/>
+                <field name="document_type"/>
+                <field name="total_amount" sum="Total"/>
+                <field name="currency_id"/>
+                <field name="state"/>
+                <field name="create_date"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_tlmp_carrier_billing_document_form" model="ir.ui.view">
+        <field name="name">tlmp.carrier.billing.document.form</field>
+        <field name="model">tlmp.carrier.billing.document</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_confirm" string="Confirm" type="object"
+                            invisible="state != 'draft'" class="btn-primary"/>
+                    <button name="action_cancel" string="Cancel" type="object"
+                            invisible="state not in ('draft','confirmed')"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="carrier_id"/>
+                            <field name="document_no"/>
+                            <field name="document_type"/>
+                            <field name="carrier_service_id"/>
+                        </group>
+                        <group>
+                            <field name="billing_period_start"/>
+                            <field name="billing_period_end"/>
+                            <field name="currency_id"/>
+                            <field name="transport_mode"/>
+                            <field name="amount_sign"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="total_amount" widget="monetary"/>
+                    </group>
+                    <group string="Legacy">
+                        <field name="legacy_settlement_id"/>
+                    </group>
+                    <notebook>
+                        <page string="Billing Lines" name="lines">
+                            <field name="line_ids">
+                                <list>
+                                    <field name="service_date"/>
+                                    <field name="carrier_reference"/>
+                                    <field name="raw_reference"/>
+                                    <field name="charge_type_id"/>
+                                    <field name="raw_description"/>
+                                    <field name="net_amount"/>
+                                    <field name="tax"/>
+                                    <field name="line_total" sum="Total"/>
+                                    <field name="amount_sign"/>
+                                    <field name="transport_order_id"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Audit" name="audit">
+                            <group>
+                                <field name="confirmed_by"/>
+                                <field name="confirmed_date"/>
+                                <field name="cancel_reason"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_tlmp_carrier_billing_document" model="ir.actions.act_window">
+        <field name="name">Billing Documents</field>
+        <field name="res_model">tlmp.carrier.billing.document</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_draft': 1}</field>
+    </record>
+</odoo>

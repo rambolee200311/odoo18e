@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="flow_type_plan_driven" model="tlmp.transport.flow.type">
+        <field name="code">plan_driven</field>
+        <field name="name">Plan Driven</field>
+    </record>
+    <record id="flow_type_commercial" model="tlmp.transport.flow.type">
+        <field name="code">commercial</field>
+        <field name="name">Commercial</field>
+    </record>
+    <record id="dest_warehouse" model="tlmp.transport.destination.type">
+        <field name="code">warehouse</field>
+        <field name="name">Terminal / Depot to Our Warehouse</field>
+    </record>
+    <record id="dest_warehouse_transfer" model="tlmp.transport.destination.type">
+        <field name="code">warehouse_transfer</field>
+        <field name="name">Our Warehouse Transfer</field>
+    </record>
+    <record id="dest_customer" model="tlmp.transport.destination.type">
+        <field name="code">customer</field>
+        <field name="name">Terminal / Depot to Customer</field>
+    </record>
+    <record id="dest_self_pickup" model="tlmp.transport.destination.type">
+        <field name="code">self_pickup</field>
+        <field name="name">Customer Self-Pickup</field>
+    </record>
+</odoo>

@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Tree View -->
+    <record id="view_tlmp_dgd_tree" model="ir.ui.view">
+        <field name="name">tlmp.transport.dgd.tree</field>
+        <field name="model">tlmp.transport.dgd</field>
+        <field name="arch" type="xml">
+            <list string="DGD Documents" default_order="id desc">
+                <field name="name"/>
+                <field name="order_id"/>
+                <field name="state" widget="badge"
+                       decoration-warning="state in ('draft','confirmed')"
+                       decoration-success="state in ('generated','signed')"
+                       decoration-muted="state in ('archived','void')"/>
+                <field name="total_packages" optional="show"/>
+                <field name="total_gross_weight" optional="show"/>
+                <field name="confirmed_uid" optional="show"/>
+                <field name="signed_uid" optional="show"/>
+                <field name="create_date" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form View -->
+    <record id="view_tlmp_dgd_form" model="ir.ui.view">
+        <field name="name">tlmp.transport.dgd.form</field>
+        <field name="model">tlmp.transport.dgd</field>
+        <field name="arch" type="xml">
+            <form string="DGD - Dangerous Goods Declaration">
+                <header>
+                    <button name="action_confirm" type="object" string="Confirm"
+                            invisible="state != 'draft'" class="btn-primary"
+                            groups="wd_tlms.group_tlm_compliance_officer"/>
+                    <button name="action_generate" type="object" string="Generate"
+                            invisible="state != 'confirmed'"/>
+                    <button name="action_sign" type="object" string="Sign"
+                            invisible="state != 'generated'" class="btn-success"
+                            groups="wd_tlms.group_tlm_compliance_officer"/>
+                    <button name="action_archive" type="object" string="Archive"
+                            invisible="state not in ('signed','archived')"/>
+                    <button name="action_void" type="object" string="Void"
+                            invisible="state in ('void','archived','signed')"
+                            confirm="Are you sure you want to void this DGD?"/>
+                    <button name="action_prefill_from_cargo" type="object"
+                            string="Prefill from Cargo"
+                            invisible="dgd_line_ids or state not in ('draft','confirmed')"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,confirmed,generated,signed,archived"
+                           clickable="False"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group string="Document Info">
+                            <field name="name" readonly="1"/>
+                            <field name="order_id" options="{'no_create': True}"/>
+                            <field name="cmr_id" readonly="1"/>
+                        </group>
+                        <group string="Compliance Tracking">
+                            <field name="confirmed_uid" readonly="1"/>
+                            <field name="confirmed_date" readonly="1"/>
+                            <field name="signed_uid" readonly="1"/>
+                            <field name="signed_date" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <!-- DGD Cargo Lines -->
+                    <group string="Declared Cargo">
+                        <field name="total_packages" readonly="1"/>
+                        <field name="total_gross_weight" readonly="1"/>
+                        <field name="total_net_weight" readonly="1"/>
+                    </group>
+                    <field name="dgd_line_ids" nolabel="1">
+                        <list editable="top">
+                            <field name="sequence" widget="handle"/>
+                            <field name="commodity"/>
+                            <field name="packages"/>
+                            <field name="gross_weight"/>
+                            <field name="net_weight"/>
+                            <field name="un_number"/>
+                            <field name="hazard_class"/>
+                            <field name="packing_group"/>
+                            <field name="tunnel_code"/>
+                            <field name="container_no"/>
+                        </list>
+                    </field>
+
+                    <!-- Void Section -->
+                    <group string="Void" invisible="state != 'void'">
+                        <field name="void_reason" readonly="1"/>
+                        <field name="void_uid" readonly="1"/>
+                        <field name="void_date" readonly="1"/>
+                    </group>
+                    <group string="Void Request" invisible="state == 'void'">
+                        <field name="void_reason" placeholder="Reason for voiding..."/>
+                    </group>
+
+                    <!-- Void Log History -->
+                    <group string="Void Audit Log" invisible="not void_log_ids">
+                        <field name="void_log_ids" nolabel="1">
+                            <list>
+                                <field name="void_date"/>
+                                <field name="void_uid"/>
+                                <field name="void_reason"/>
+                                <field name="order_name"/>
+                            </list>
+                        </field>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+
+
+    <!-- Action -->
+    <record id="action_tlmp_dgd" model="ir.actions.act_window">
+        <field name="name">DGD Documents</field>
+        <field name="res_model">tlmp.transport.dgd</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p>Manage DGD (Dangerous Goods Declaration) documents for ADR compliance.</p>
+        </field>
+    </record>
+
+
+    <!-- Dangerous Goods Profile Action -->
+    <record id="action_tlmp_dangerous_goods_profile" model="ir.actions.act_window">
+        <field name="name">DG Profiles</field>
+        <field name="res_model">tlmp.transport.dangerous.goods.profile</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p>Configure ADR dangerous goods attribute templates linked to UN dictionary entries.</p>
+        </field>
+    </record>
+</odoo>

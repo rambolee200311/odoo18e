@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Sprint50-A seed guards: wildcard per model + contract-critical guards -->
+    <record id="guard_request_general" model="tlmp.workflow.guard">
+        <field name="name">Request General Guard</field>
+        <field name="res_model">tlmp.transport.request</field>
+        <field name="from_state">*</field>
+        <field name="to_state">*</field>
+        <field name="guard_code">general</field>
+        <field name="sequence">10</field>
+    </record>
+    <record id="guard_request_process" model="tlmp.workflow.guard">
+        <field name="name">Request Submit->Processing Guard</field>
+        <field name="res_model">tlmp.transport.request</field>
+        <field name="from_state">submitted</field>
+        <field name="to_state">processing</field>
+        <field name="guard_code">validation_state_passed</field>
+        <field name="message">request.validation_state must be passed</field>
+        <field name="sequence">20</field>
+    </record>
+    <record id="guard_inquiry_general" model="tlmp.workflow.guard">
+        <field name="name">Inquiry General Guard</field>
+        <field name="res_model">tlmp.transport.inquiry</field>
+        <field name="from_state">*</field>
+        <field name="to_state">*</field>
+        <field name="guard_code">general</field>
+        <field name="sequence">10</field>
+    </record>
+    <record id="guard_quote_general" model="tlmp.workflow.guard">
+        <field name="name">Quote General Guard</field>
+        <field name="res_model">tlmp.transport.quote</field>
+        <field name="from_state">*</field>
+        <field name="to_state">*</field>
+        <field name="guard_code">general</field>
+        <field name="sequence">10</field>
+    </record>
+    <record id="guard_quote_confirm" model="tlmp.workflow.guard">
+        <field name="name">Quote Approved->Confirmed Guard</field>
+        <field name="res_model">tlmp.transport.quote</field>
+        <field name="from_state">approved</field>
+        <field name="to_state">confirmed</field>
+        <field name="guard_code">quote_customer_approval</field>
+        <field name="message">customer_accept is required</field>
+        <field name="sequence">20</field>
+    </record>
+    <record id="guard_order_general" model="tlmp.workflow.guard">
+        <field name="name">Order General Guard</field>
+        <field name="res_model">tlmp.transport.order</field>
+        <field name="from_state">*</field>
+        <field name="to_state">*</field>
+        <field name="guard_code">general</field>
+        <field name="sequence">10</field>
+    </record>
+    <record id="guard_order_deliver" model="tlmp.workflow.guard">
+        <field name="name">Order In-Transit->Delivered Guard</field>
+        <field name="res_model">tlmp.transport.order</field>
+        <field name="from_state">in_transit</field>
+        <field name="to_state">delivered</field>
+        <field name="guard_code">pod_received</field>
+        <field name="message">POD_RECEIVED event is required</field>
+        <field name="sequence">20</field>
+    </record>
+    <record id="guard_order_settlement" model="tlmp.workflow.guard">
+        <field name="name">Order Delivered->Settlement Pending Guard</field>
+        <field name="res_model">tlmp.transport.order</field>
+        <field name="from_state">delivered</field>
+        <field name="to_state">settlement_pending</field>
+        <field name="guard_code">delivery_completed</field>
+        <field name="message">DELIVERY_COMPLETED event is required</field>
+        <field name="sequence">20</field>
+    </record>
+    <record id="guard_order_signed_settlement" model="tlmp.workflow.guard">
+        <field name="name">Order Signed->Settlement Pending Guard</field>
+        <field name="res_model">tlmp.transport.order</field>
+        <field name="from_state">signed</field>
+        <field name="to_state">settlement_pending</field>
+        <field name="guard_code">delivery_completed</field>
+        <field name="message">DELIVERY_COMPLETED event is required</field>
+        <field name="sequence">20</field>
+    </record>
+    <record id="guard_pickup_plan_general" model="tlmp.workflow.guard">
+        <field name="name">Pickup Plan General Guard</field>
+        <field name="res_model">pickup.plan</field>
+        <field name="from_state">*</field>
+        <field name="to_state">*</field>
+        <field name="guard_code">general</field>
+        <field name="sequence">10</field>
+    </record>
+    <record id="guard_pickup_plan_reserve" model="tlmp.workflow.guard">
+        <field name="name">Pickup Plan Scheduled->Reserved Guard</field>
+        <field name="res_model">pickup.plan</field>
+        <field name="from_state">scheduled</field>
+        <field name="to_state">reserved</field>
+        <field name="guard_code">assignment_context_required</field>
+        <field name="message">assignment_context is required for reservation</field>
+        <field name="sequence">20</field>
+    </record>
+    <record id="guard_container_plan_general" model="tlmp.workflow.guard">
+        <field name="name">Container Plan General Guard</field>
+        <field name="res_model">container.transport.plan</field>
+        <field name="from_state">*</field>
+        <field name="to_state">*</field>
+        <field name="guard_code">general</field>
+        <field name="sequence">10</field>
+    </record>
+    <record id="guard_container_plan_reserve" model="tlmp.workflow.guard">
+        <field name="name">Container Plan Scheduled->Reserved Guard</field>
+        <field name="res_model">container.transport.plan</field>
+        <field name="from_state">scheduled</field>
+        <field name="to_state">reserved</field>
+        <field name="guard_code">assignment_context_required</field>
+        <field name="message">assignment_context is required for reservation</field>
+        <field name="sequence">20</field>
+    </record>
+    <record id="guard_transport_plan_general" model="tlmp.workflow.guard">
+        <field name="name">Transport Plan General Guard</field>
+        <field name="res_model">tlmp.transport.plan</field>
+        <field name="from_state">*</field>
+        <field name="to_state">*</field>
+        <field name="guard_code">general</field>
+        <field name="sequence">10</field>
+    </record>
+    <record id="guard_transport_plan_reserve" model="tlmp.workflow.guard">
+        <field name="name">Transport Plan Scheduled->Reserved Guard</field>
+        <field name="res_model">tlmp.transport.plan</field>
+        <field name="from_state">scheduled</field>
+        <field name="to_state">reserved</field>
+        <field name="guard_code">assignment_context_required</field>
+        <field name="message">assignment_context is required for reservation (except exempted)</field>
+        <field name="sequence">20</field>
+    </record>
+</odoo>

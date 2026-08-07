@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_tlmp_surcharge_tree" model="ir.ui.view">
+        <field name="name">tlmp.surcharge.tree</field>
+        <field name="model">tlmp.surcharge</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="surcharge_type_id"/>
+                <field name="amount"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_tlmp_surcharge_form" model="ir.ui.view">
+        <field name="name">tlmp.surcharge.form</field>
+        <field name="model">tlmp.surcharge</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="surcharge_type_id"/>
+                        <field name="amount"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_tlmp_surcharge_search" model="ir.ui.view">
+        <field name="name">tlmp.surcharge.search</field>
+        <field name="model">tlmp.surcharge</field>
+        <field name="arch" type="xml">
+            <search/>
+        </field>
+    </record>
+
+    <record id="action_tlmp_surcharge" model="ir.actions.act_window">
+        <field name="name">Surcharges</field>
+        <field name="res_model">tlmp.surcharge</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="view_tlmp_surcharge_type_list" model="ir.ui.view">
+        <field name="name">tlmp.surcharge.type.list</field>
+        <field name="model">tlmp.surcharge.type</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="code"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_tlmp_surcharge_type_form" model="ir.ui.view">
+        <field name="name">tlmp.surcharge.type.form</field>
+        <field name="model">tlmp.surcharge.type</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="code"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_tlmp_surcharge_type" model="ir.actions.act_window">
+        <field name="name">Surcharge Types</field>
+        <field name="res_model">tlmp.surcharge.type</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_tlmp_invoice_import_tree" model="ir.ui.view">
+        <field name="name">tlmp.carrier.invoice.import.tree</field>
+        <field name="model">tlmp.carrier.invoice.import</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="carrier_partner_id"/>
+                <field name="state"/>
+                <field name="total_lines"/>
+                <field name="success_lines"/>
+                <field name="error_lines"/>
+                <field name="create_date"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_tlmp_invoice_import_form" model="ir.ui.view">
+        <field name="name">tlmp.carrier.invoice.import.form</field>
+        <field name="model">tlmp.carrier.invoice.import</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_preview" string="Preview" type="object" class="btn-primary"/>
+                    <button name="action_validate" string="Validate" type="object"/>
+                    <button name="action_confirm_import" string="Confirm Import" type="object" class="btn-primary"/>
+                    <button name="action_cancel" string="Cancel" type="object"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,uploaded,preview,validated,waiting_confirm,importing,completed" />
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="carrier_partner_id"/>
+                            <field name="template_id"/>
+                            <field name="file_name"/>
+                        </group>
+                        <group>
+                            <field name="state"/>
+                            <field name="total_lines"/>
+                            <field name="success_lines"/>
+                            <field name="error_lines"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Import Lines" name="lines">
+                            <field name="line_ids">
+                                <list>
+                                    <field name="line_no"/>
+                                    <field name="import_status"/>
+                                    <field name="parsed_data"/>
+                                    <field name="raw_data"/>
+                                    <field name="validation_error_code"/>
+                                    <field name="validation_error_message"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_tlmp_invoice_import" model="ir.actions.act_window">
+        <field name="name">Invoice Import</field>
+        <field name="res_model">tlmp.carrier.invoice.import</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

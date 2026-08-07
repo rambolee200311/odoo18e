@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ============================================================
+         Transport Event Views
+         ============================================================ -->
+    <record id="view_tlmp_transport_event_tree" model="ir.ui.view">
+        <field name="name">tlmp.transport.event.tree</field>
+        <field name="model">tlmp.transport.event</field>
+        <field name="arch" type="xml">
+            <list string="Transport Events" multi_edit="1" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="event_type_id"/>
+                <field name="event_state" widget="badge"
+                       decoration-success="event_state == 'completed'"
+                       decoration-info="event_state == 'in_progress'"
+                       decoration-warning="event_state == 'pending'"
+                       decoration-danger="event_state in ('skipped','cancelled')"/>
+                <field name="planned_time"/>
+                <field name="estimated_time" optional="hide"/>
+                <field name="actual_time" optional="hide"/>
+                <field name="location"/>
+                <field name="operator" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_tlmp_transport_event_form" model="ir.ui.view">
+        <field name="name">tlmp.transport.event.form</field>
+        <field name="model">tlmp.transport.event</field>
+        <field name="arch" type="xml">
+            <form string="Transport Event">
+                <header>
+                    <field name="event_state" widget="badge"
+                           decoration-success="event_state == 'completed'"
+                           decoration-info="event_state == 'in_progress'"
+                           decoration-warning="event_state == 'pending'"
+                           decoration-danger="event_state in ('skipped','cancelled')"/>
+                    <button name="action_set_in_progress" type="object" string="Start"
+                            invisible="event_state != 'pending'"/>
+                    <button name="action_complete" type="object" string="Complete"
+                            invisible="event_state != 'in_progress'"/>
+                    <button name="action_skip" type="object" string="Skip"
+                            invisible="event_state not in ('pending', 'in_progress')"/>
+                    <button name="action_cancel" type="object" string="Cancel"
+                            invisible="event_state not in ('pending', 'in_progress')"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="order_id" options="{'no_create': True}"/>
+                            <field name="event_type_id"/>
+                            <field name="sequence"/>
+                        </group>
+                        <group>
+                            <field name="location"/>
+                            <field name="operator"/>
+                        </group>
+                    </group>
+                    <group string="3-Layer Time">
+                        <group>
+                            <field name="planned_time"/>
+                            <field name="estimated_time"/>
+                            <field name="actual_time"/>
+                        </group>
+                    </group>
+                    <group string="Skip/Cancel" invisible="event_state not in ('skipped', 'cancelled')">
+                        <field name="skip_cancel_reason" nolabel="1" placeholder="Reason for skip/cancel..."/>
+                    </group>
+                    <group>
+                        <field name="notes"/>
+                        <field name="attachment_ids" widget="many2many_binary"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_tlmp_transport_event_search" model="ir.ui.view">
+        <field name="name">tlmp.transport.event.search</field>
+        <field name="model">tlmp.transport.event</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="order_id"/>
+                <field name="event_type_id"/>
+                <field name="event_state"/>
+                <filter string="Pending" name="pend" domain="[('event_state','=','pending')]"/>
+                <filter string="Completed" name="done" domain="[('event_state','=','completed')]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Type" name="group_type" context="{'group_by':'event_type_id'}"/>
+                    <filter string="Status" name="group_state" context="{'group_by':'event_state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_tlmp_transport_event" model="ir.actions.act_window">
+        <field name="name">Transport Events</field>
+        <field name="res_model">tlmp.transport.event</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ============================================================
+         Transport Exception Views
+         ============================================================ -->
+    <record id="view_tlmp_transport_exception_tree" model="ir.ui.view">
+        <field name="name">tlmp.transport.exception.tree</field>
+        <field name="model">tlmp.transport.exception</field>
+        <field name="arch" type="xml">
+            <list string="Exceptions" multi_edit="1" editable="bottom">
+                <field name="exception_type"/>
+                <field name="exception_state" widget="badge"
+                       decoration-danger="exception_state == 'open'"
+                       decoration-warning="exception_state == 'processing'"
+                       decoration-success="exception_state == 'resolved'"
+                       decoration-muted="exception_state == 'closed'"/>
+                <field name="event_id" optional="hide"/>
+                <field name="description"/>
+                <field name="handler" optional="hide"/>
+                <field name="resolved_time" optional="hide"/>
+                <field name="closed_time" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_tlmp_transport_exception_form" model="ir.ui.view">
+        <field name="name">tlmp.transport.exception.form</field>
+        <field name="model">tlmp.transport.exception</field>
+        <field name="arch" type="xml">
+            <form string="Transport Exception">
+                <header>
+                    <field name="exception_state" widget="badge"
+                           decoration-danger="exception_state == 'open'"
+                           decoration-warning="exception_state == 'processing'"
+                           decoration-success="exception_state in ('resolved','closed')"/>
+                    <button name="action_process" type="object" string="Start Processing"
+                            invisible="exception_state != 'open'"/>
+                    <button name="action_resolve" type="object" string="Mark Resolved"
+                            invisible="exception_state != 'processing'"/>
+                    <button name="action_close" type="object" string="Close"
+                            invisible="exception_state != 'resolved'"/>
+                    <button name="action_reopen" type="object" string="Re-open"
+                            invisible="exception_state not in ('resolved', 'closed')"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="order_id" options="{'no_create': True}"/>
+                            <field name="event_id" options="{'no_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="exception_type"/>
+                            <field name="handler"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="description"/>
+                        <field name="carrier_feedback"/>
+                        <field name="resolution"/>
+                    </group>
+                    <group string="Indemnity">
+                        <field name="indemnity_amount"/>
+                        <field name="currency_id"/>
+                    </group>
+                    <group string="Timeline">
+                        <field name="resolved_time"/>
+                        <field name="closed_time"/>
+                    </group>
+                    <group>
+                        <field name="attachment_ids" widget="many2many_binary"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_tlmp_transport_exception" model="ir.actions.act_window">
+        <field name="name">Exceptions</field>
+        <field name="res_model">tlmp.transport.exception</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ============================================================
+         Extra Charge Views
+         ============================================================ -->
+    <record id="view_tlmp_extra_charge_tree" model="ir.ui.view">
+        <field name="name">tlmp.transport.extra.charge.tree</field>
+        <field name="model">tlmp.transport.extra.charge</field>
+        <field name="arch" type="xml">
+            <list string="Extra Charges" multi_edit="1" editable="bottom">
+                <field name="charge_type"/>
+                <field name="amount" sum="Total"/>
+                <field name="currency_id"/>
+                <field name="quantity"/>
+                <field name="party_type"/>
+                <field name="event_id" optional="hide"/>
+                <field name="reason"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_tlmp_extra_charge_form" model="ir.ui.view">
+        <field name="name">tlmp.transport.extra.charge.form</field>
+        <field name="model">tlmp.transport.extra.charge</field>
+        <field name="arch" type="xml">
+            <form string="Extra Charge">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="order_id" options="{'no_create': True}"/>
+                            <field name="event_id" options="{'no_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="charge_type"/>
+                            <field name="party_type"/>
+                        </group>
+                    </group>
+                    <group string="Amount">
+                        <field name="amount"/>
+                        <field name="currency_id"/>
+                        <field name="quantity"/>
+                        <field name="uom"/>
+                    </group>
+                    <group>
+                        <field name="reason"/>
+                    </group>
+                    <group>
+                        <field name="attachment_ids" widget="many2many_binary"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_tlmp_extra_charge" model="ir.actions.act_window">
+        <field name="name">Extra Charges</field>
+        <field name="res_model">tlmp.transport.extra.charge</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+
+</odoo>

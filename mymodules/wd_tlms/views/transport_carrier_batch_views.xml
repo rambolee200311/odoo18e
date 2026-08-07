@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_tlmp_settlement_batch_tree" model="ir.ui.view">
+        <field name="name">tlmp.carrier.settlement.batch.tree</field>
+        <field name="model">tlmp.carrier.settlement.batch</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="carrier_partner_id"/>
+                <field name="period_start"/>
+                <field name="period_end"/>
+                <field name="aggregated_total" sum="Total"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_tlmp_settlement_batch_form" model="ir.ui.view">
+        <field name="name">tlmp.carrier.settlement.batch.form</field>
+        <field name="model">tlmp.carrier.settlement.batch</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_confirm" string="Confirm" type="object" invisible="state != 'draft'" class="btn-primary"/>
+                    <button name="action_close" string="Close" type="object" invisible="state != 'confirmed'"/>
+                    <button name="action_cancel" string="Cancel" type="object" invisible="state != 'draft'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="carrier_partner_id"/>
+                            <field name="period_start"/>
+                            <field name="period_end"/>
+                        </group>
+                        <group>
+                            <field name="aggregated_total" widget="monetary"/>
+                            <field name="currency_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <group string="Audit">
+                        <field name="confirmed_by"/>
+                        <field name="confirmed_date"/>
+                    </group>
+                    <notebook>
+                        <page string="Lines" name="lines">
+                            <field name="line_ids">
+                                <list>
+                                    <field name="billing_document_id"/>
+                                    <field name="billing_line_id"/>
+                                    <field name="snapshot_amount" sum="Total"/>
+                                    <field name="created_date"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_tlmp_settlement_batch" model="ir.actions.act_window">
+        <field name="name">Settlement Batches</field>
+        <field name="res_model">tlmp.carrier.settlement.batch</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_tlmp_settlement_case_tree" model="ir.ui.view">
+        <field name="name">tlmp.carrier.settlement.case.tree</field>
+        <field name="model">tlmp.carrier.settlement.case</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="case_type"/>
+                <field name="source"/>
+                <field name="state"/>
+                <field name="priority"/>
+                <field name="owner_user_id"/>
+                <field name="create_date"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_tlmp_settlement_case_form" model="ir.ui.view">
+        <field name="name">tlmp.carrier.settlement.case.form</field>
+        <field name="model">tlmp.carrier.settlement.case</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_open" string="Open" type="object" invisible="state!='open'"/>
+                    <button name="action_process" string="Start Processing" type="object"/>
+                    <button name="action_resolve" string="Resolve" type="object" class="btn-primary"/>
+                    <button name="action_close" string="Close" type="object"/>
+                    <button name="action_cancel" string="Cancel" type="object"/>
+                    <button name="action_reopen" string="Reopen" type="object"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="case_type"/>
+                            <field name="source"/>
+                            <field name="priority"/>
+                        </group>
+                        <group>
+                            <field name="owner_user_id"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <group string="Resolution">
+                        <field name="resolution"/>
+                        <field name="resolved_by"/>
+                        <field name="resolved_date"/>
+                    </group>
+                    <notebook>
+                        <page string="Case Lines" name="lines">
+                            <field name="line_ids">
+                                <list>
+                                    <field name="billing_line_id"/>
+                                    <field name="issue_amount"/>
+                                    <field name="resolution_amount"/>
+                                    <field name="expected_amount"/>
+                                    <field name="variance_amount"/>
+                                    <field name="variance_percent"/>
+                                    <field name="note"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_tlmp_settlement_case" model="ir.actions.act_window">
+        <field name="name">Settlement Cases</field>
+        <field name="res_model">tlmp.carrier.settlement.case</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

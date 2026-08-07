@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Transport Scene -->
+    <record id="view_tlmp_transport_scene_tree" model="ir.ui.view">
+        <field name="name">tlmp.transport.scene.tree</field>
+        <field name="model">tlmp.transport.scene</field>
+        <field name="arch" type="xml">
+            <list string="Transport Scenes" multi_edit="1" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="scene_type"/>
+                <field name="origin_type"/>
+                <field name="destination_type"/>
+                <field name="creation_method"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_tlmp_transport_scene_form" model="ir.ui.view">
+        <field name="name">tlmp.transport.scene.form</field>
+        <field name="model">tlmp.transport.scene</field>
+        <field name="arch" type="xml">
+            <form string="Transport Scene">
+                <sheet>
+                    <h1><field name="name"/></h1>
+                    <group>
+                        <group>
+                            <field name="code"/>
+                            <field name="scene_type"/>
+                            <field name="origin_type"/>
+                            <field name="destination_type"/>
+                            <field name="creation_method"/>
+                            <field name="sequence"/>
+                            <field name="active"/>
+                        </group>
+                        <group>
+                            <field name="description"/>
+                        </group>
+                    </group>
+
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_tlmp_transport_scene" model="ir.actions.act_window">
+        <field name="name">Transport Scenes</field>
+        <field name="res_model">tlmp.transport.scene</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Event Type -->
+    <record id="view_tlmp_event_type_tree" model="ir.ui.view">
+        <field name="name">tlmp.transport.event.type.tree</field>
+        <field name="model">tlmp.transport.event.type</field>
+        <field name="arch" type="xml">
+            <list string="Event Types" editable="bottom">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="is_base_event"/>
+                <field name="sequence_order"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_tlmp_event_type_form" model="ir.ui.view">
+        <field name="name">tlmp.transport.event.type.form</field>
+        <field name="model">tlmp.transport.event.type</field>
+        <field name="arch" type="xml">
+            <form string="Event Type">
+                <sheet>
+                    <h1><field name="name"/></h1>
+                    <group>
+                        <group>
+                            <field name="code"/>
+                            <field name="is_base_event"/>
+                            <field name="sequence_order"/>
+                            <field name="active"/>
+                        </group>
+                        <group>
+                            <field name="description"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_tlmp_event_type" model="ir.actions.act_window">
+        <field name="name">Event Types</field>
+        <field name="res_model">tlmp.transport.event.type</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Scene-Event Path -->
+    <record id="view_tlmp_scene_event_tree" model="ir.ui.view">
+        <field name="name">tlmp.transport.scene.event.tree</field>
+        <field name="model">tlmp.transport.scene.event</field>
+        <field name="arch" type="xml">
+            <list string="Scene-Event Paths" editable="bottom">
+                <field name="scene_id"/>
+                <field name="event_type_id"/>
+                <field name="sequence"/>
+                <field name="is_mandatory"/>
+                <field name="pod_required"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_tlmp_scene_event" model="ir.actions.act_window">
+        <field name="name">Scene-Event Paths</field>
+        <field name="res_model">tlmp.transport.scene.event</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

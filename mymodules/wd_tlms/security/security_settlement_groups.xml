@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<record id="group_tlm_settlement_clerk" model="res.groups">
+            <field name="name">TLM Settlement Clerk</field>
+            <field name="category_id" ref="base.module_category_transport"/>
+            <field name="implied_ids" eval="[(4, ref('group_tlm_operator'))]"/>
+        </record>
+        <record id="group_tlm_settlement_config" model="res.groups">
+        <field name="name">Settlement Config Manager</field>
+        <field name="category_id" ref="base.module_category_transport"/>
+        <field name="implied_ids" eval="[(4, ref('group_tlm_settlement_clerk'))]"/>
+    </record>
+
+    <record id="group_tlm_settlement_rule_manager" model="res.groups">
+        <field name="name">Settlement Rule Manager</field>
+        <field name="category_id" ref="base.module_category_transport"/>
+        <field name="implied_ids" eval="[(4, ref('group_tlm_settlement_config'))]"/>
+    </record>
+        <record id="group_tlm_match_operator" model="res.groups">
+            <field name="name">TLM Match Operator</field>
+            <field name="category_id" ref="base.module_category_transport"/>
+            <field name="implied_ids" eval="[(4, ref('group_tlm_operator'))]"/>
+        </record>
+        <record id="group_tlm_invoice_operator" model="res.groups">
+            <field name="name">TLM Invoice Operator</field>
+            <field name="category_id" ref="base.module_category_transport"/>
+            <field name="implied_ids" eval="[(4, ref('group_tlm_operator'))]"/>
+        </record>
+</odoo>

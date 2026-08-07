@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+<!-- Generic Carrier Services (not tied to specific carrier companies) -->
+        <record id="svc_parcel_standard" model="tlmp.carrier.service">
+            <field name="code">parcel_standard</field>
+            <field name="name">Parcel Standard</field>
+            <field name="service_type">parcel</field>
+            <field name="sequence">10</field>
+        </record>
+        <record id="svc_parcel_express" model="tlmp.carrier.service">
+            <field name="code">parcel_express</field>
+            <field name="name">Parcel Express</field>
+            <field name="service_type">express</field>
+            <field name="sequence">20</field>
+        </record>
+        <record id="svc_freight_standard" model="tlmp.carrier.service">
+            <field name="code">freight_standard</field>
+            <field name="name">Freight Standard</field>
+            <field name="service_type">freight</field>
+            <field name="sequence">30</field>
+        </record>
+        <record id="svc_road_priority" model="tlmp.carrier.service">
+            <field name="code">road_priority</field>
+            <field name="name">Road Priority</field>
+            <field name="service_type">road</field>
+            <field name="sequence">40</field>
+        </record>
+</odoo>

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_container_master_tree" model="ir.ui.view">
+        <field name="name">container.master.tree</field>
+        <field name="model">container.master</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="container_number"/>
+                <field name="container_type"/>
+                <field name="current_status"/>
+                <field name="total_visits"/>
+                <field name="last_visit_date"/>
+                <field name="owner_id" optional="show"/>
+                <field name="current_location_id" optional="show"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_container_master_form" model="ir.ui.view">
+        <field name="name">container.master.form</field>
+        <field name="model">container.master</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group string="Container ID">
+                            <field name="container_number"/>
+                            <field name="container_type"/>
+                        </group>
+                        <group string="Status &amp; Location">
+                            <field name="current_status"/>
+                            <field name="owner_id" options="{'no_create': True}"/>
+                            <field name="current_location_id" options="{'no_create': True}"/>
+                        </group>
+                        <group string="Visit History">
+                            <field name="total_visits"/>
+                            <field name="last_visit_date"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="last_service_date"/>
+                        <field name="notes"/>
+                    </group>
+                    <notebook>
+                        <page string="Container History" name="history">
+                            <field name="history_line_ids" readonly="1">
+                                <list create="false" delete="false" edit="false">
+                                    <field name="create_date" string="Time"/>
+                                    <field name="direction"/>
+                                    <field name="reference_type"/>
+                                    <field name="bl_number"/>
+                                    <field name="eta"/>
+                                    <field name="ata"/>
+                                    <field name="inbound_date"/>
+                                    <field name="return_date"/>
+                                    <field name="location_start"/>
+                                    <field name="location_end"/>
+                                    <field name="remark"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_container_master_search" model="ir.ui.view">
+        <field name="name">container.master.search</field>
+        <field name="model">container.master</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="container_number"/>
+                <field name="owner_id"/>
+                <filter string="Active" name="active" domain="[('active', '=', True)]"/>
+                <filter string="Damaged" name="damaged" domain="[('current_status', '=', 'damaged')]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Status" name="grp_status" context="{'group_by': 'current_status'}"/>
+                    <filter string="Type" name="grp_type" context="{'group_by': 'container_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_container_master" model="ir.actions.act_window">
+        <field name="name">Containers</field>
+        <field name="res_model">container.master</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_container_master_search"/>
+    </record>
+</odoo>

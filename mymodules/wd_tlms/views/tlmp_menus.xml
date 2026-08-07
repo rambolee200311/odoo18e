@@ -1,0 +1,145 @@
+<odoo>
+    <data>
+    <!-- Top Menu -->
+    <menuitem id="menu_tlmp_root" name="Transport" sequence="10"
+              web_icon="wd_tlms,static/description/icon.png"/>
+
+    <!-- Transport Operations (3-group menu) -->
+    <menuitem id="menu_tlmp_operations" name="Operations" parent="menu_tlmp_root" sequence="25"/>
+
+    <menuitem id="menu_tlmp_transport_requests_top" name="Transport Requests" parent="menu_tlmp_operations"
+              action="action_tlmp_request" sequence="5"/>
+    <!-- Group 1: Pickup &amp; Service -->
+    <menuitem id="menu_tlmp_pickup_group" name="Pickup &amp; Service" parent="menu_tlmp_operations" sequence="25"/>
+    <menuitem id="menu_tlmp_pickup_plans" name="Pickup Plans" parent="menu_tlmp_pickup_group"
+              action="action_pickup_plan" sequence="25"/>
+<!--     <menuitem id="menu_tlmp_schedule_plans" name="Schedule Plans" parent="menu_tlmp_pickup_group"
+              action="action_schedule_plan_schedule" sequence="15"/> -->
+    <menuitem id="menu_tlmp_container_service" name="Container Service"
+              parent="menu_tlmp_pickup_group"
+              action="action_container_service_request" sequence="20"/>
+
+    <!-- Group 2: Quotation Process -->
+
+
+    <menuitem id="menu_tlmp_quote_group" name="Quotation Process" parent="menu_tlmp_operations" sequence="20"/>
+    <menuitem id="menu_tlmp_inquiries" name="Inquiries" parent="menu_tlmp_quote_group"
+              action="action_tlmp_inquiry" sequence="20"/>
+    <menuitem id="menu_tlmp_quotes" name="Quotes" parent="menu_tlmp_quote_group"
+              action="action_tlmp_quote" sequence="30"/>
+
+    <!-- Group 3: Transport Execution -->
+    <menuitem id="menu_tlmp_dashboard" name="Dashboard" parent="menu_tlmp_root" sequence="15" action="action_dashboard" groups="wd_tlms.group_tlm_manager,wd_tlms.group_tlm_operator"/>
+    <menuitem id="menu_tlmp_exec_group" name="Transport Execution" parent="menu_tlmp_operations" sequence="30"/>
+    <menuitem id="menu_tlmp_orders" name="Orders" parent="menu_tlmp_exec_group"
+              action="action_tlmp_order" sequence="20"/>
+    <menuitem id="menu_tlmp_tracking_group" name="Tracking" parent="menu_tlmp_exec_group" sequence="25"/>
+    <menuitem id="menu_tlmp_tracking" name="Order Tracking" parent="menu_tlmp_tracking_group"
+              sequence="10"/>
+    <menuitem id="menu_tlmp_transport_events" name="Events" parent="menu_tlmp_tracking_group"
+              action="action_tlmp_transport_event" sequence="20"/>
+    <menuitem id="menu_tlmp_exceptions" name="Exceptions" parent="menu_tlmp_tracking_group"
+              action="action_tlmp_transport_exception" sequence="30"/>
+    <menuitem id="menu_tlmp_extra_charges" name="Extra Charges" parent="menu_tlmp_tracking_group"
+              action="action_tlmp_extra_charge" sequence="40"/>
+
+    <!-- Finance -->
+    <menuitem id="menu_tlmp_reports" name="Reports" parent="menu_tlmp_root" sequence="25" groups="wd_tlms.group_tlm_manager"/>
+    <menuitem id="menu_tlmp_timeliness_report" name="Delivery Timeliness" parent="menu_tlmp_reports" action="action_timeliness_report" sequence="10"/>
+    <menuitem id="menu_tlmp_exception_report" name="Exception Summary" parent="menu_tlmp_reports" action="action_exception_report" sequence="20"/>
+    <menuitem id="menu_tlmp_finance" name="Finance" parent="menu_tlmp_root" sequence="20"/>
+    <menuitem id="menu_tlmp_bills" name="Customer Bills" parent="menu_tlmp_finance"
+              action="action_tlmp_bill" sequence="25"/>
+    <menuitem id="menu_tlmp_settlements" name="Carrier Settlements" parent="menu_tlmp_finance"
+              action="action_tlmp_settlement" sequence="20"/>
+    <menuitem id="menu_tlmp_exception" name="Settlement Exceptions" parent="menu_tlmp_finance"
+              action="action_tlmp_exception_review_queue" sequence="25"/>
+    <menuitem id="menu_tlmp_surcharges" name="Surcharges" parent="menu_tlmp_finance"
+              action="action_tlmp_surcharge" sequence="30"/>
+    <menuitem id="menu_tlmp_billing_documents" name="Billing Documents" parent="menu_tlmp_finance"
+              action="action_tlmp_carrier_billing_document" sequence="15"
+              groups="wd_tlms.group_tlm_settlement_clerk,wd_tlms.group_tlm_manager,wd_tlms.group_tlm_financier"/>
+
+    <!-- Documents -->
+    <menuitem id="menu_tlmp_docs" name="Documents" parent="menu_tlmp_root" sequence="30"/>
+    <menuitem id="menu_tlmp_cmr" name="CMR Waybills" parent="menu_tlmp_exec_group"
+              action="action_tlmp_cmr" sequence="25"/>
+    <menuitem id="menu_tlmp_pod" name="PODs" parent="menu_tlmp_docs"
+              action="action_tlmp_pod" sequence="20"/>
+
+    <!-- Container Master -->
+    <menuitem id="menu_tlmp_container_master" name="Containers" parent="menu_tlmp_root" sequence="35"
+              action="action_container_master"/>
+
+    <!-- Configuration -->
+    <menuitem id="menu_tlmp_config" name="Configuration" parent="menu_tlmp_root" sequence="90"/>
+    <menuitem id="menu_tlmp_rate_bases" name="Rate Bases" parent="menu_tlmp_config"
+              action="action_transport_rate_base" sequence="40"/>
+    <menuitem id="menu_tlmp_fee_lines" name="Fee Lines" parent="menu_tlmp_config"
+              action="action_transport_fee_line" sequence="50"/>
+
+    <menuitem id="menu_tlmp_pricing" name="Pricing Rules" parent="menu_tlmp_config"
+              action="action_tlmp_pricing_rule" sequence="25"/>
+    <menuitem id="menu_tlmp_surcharge_type" name="Surcharge Types" parent="menu_tlmp_config"
+              sequence="20"/>
+    <menuitem id="menu_tlmp_cmr_coordinate" name="CMR Coordinates" parent="menu_tlmp_config"
+              action="action_tlmp_cmr_coordinate" sequence="45"/>
+    <!-- DGD Configuration -->
+    <menuitem id="menu_tlmp_un_dictionary" name="UN Dictionary" parent="menu_tlmp_config"
+              action="action_tlmp_un_dictionary" sequence="46"/>
+    <menuitem id="menu_tlmp_dangerous_goods_profile" name="DG Profiles" parent="menu_tlmp_config"
+              action="action_tlmp_dangerous_goods_profile" sequence="47"/>
+    <menuitem id="menu_tlmp_transport_type" name="Transport Types" parent="menu_tlmp_config"
+              action="action_tlmp_transport_type" sequence="48"/>
+    <menuitem id="menu_tlmp_transport_scene" name="Transport Scenes" parent="menu_tlmp_config"
+              action="action_tlmp_transport_scene" sequence="48"/>
+    <menuitem id="menu_tlmp_event_type" name="Event Types" parent="menu_tlmp_config"
+              action="action_tlmp_event_type" sequence="49"/>
+    <menuitem id="menu_tlmp_scene_event" name="Scene Events" parent="menu_tlmp_config"
+              action="action_tlmp_scene_event" sequence="50"/>
+    <menuitem id="menu_tlmp_carrier_service" name="Carrier Services" parent="menu_tlmp_config"
+              action="action_tlmp_carrier_service" sequence="49"/>
+    <menuitem id="menu_tlmp_carrier_capability" name="Carrier Capabilities" parent="menu_tlmp_config"
+              action="action_tlmp_carrier_capability" sequence="51"/>
+    <menuitem id="menu_tlmp_business_rule" name="Business Matrix Rules" parent="menu_tlmp_config"
+              action="action_tlmp_business_rule" sequence="52"/>
+    <menuitem id="menu_tlmp_charge_types" name="Charge Types" parent="menu_tlmp_config"
+              action="action_tlmp_carrier_charge_type" sequence="12"
+              groups="wd_tlms.group_tlm_settlement_clerk,wd_tlms.group_tlm_manager"/>
+    <menuitem id="menu_tlmp_match_rules" name="Match Rules" parent="menu_tlmp_config"
+              action="action_tlmp_carrier_match_rule" sequence="13"
+              groups="wd_tlms.group_tlm_settlement_config,wd_tlms.group_tlm_manager"/>
+    <!-- DGD Documents in Documents section -->
+    <menuitem id="menu_tlmp_dgd" name="DGD Documents" parent="menu_tlmp_docs"
+              action="action_tlmp_dgd" sequence="25"/>
+    <menuitem id="menu_tlmp_shipment_labels" name="Shipment Labels" parent="menu_tlmp_docs"
+              action="action_tlmp_shipment_label" sequence="30"/>
+    <menuitem id="menu_tlmp_transport_reference" name="Transport References" parent="menu_tlmp_docs"
+              action="action_tlmp_transport_reference" sequence="35"
+              groups="wd_tlms.group_tlm_settlement_clerk,wd_tlms.group_tlm_manager,wd_tlms.group_tlm_operator,wd_tlms.group_tlm_viewer,wd_tlms.group_tlm_financier"/>
+
+
+
+    <!-- 运输计划独立菜单 
+    <menuitem id="menu_transportation_root"
+              name="运输计划"
+              sequence="100"
+              parent="menu_tlmp_root"/>
+    <menuitem id="menu_transport_plan_schedule"
+              name="排期管理"
+              parent="menu_transportation_root"
+              action="action_transport_plan_schedule"
+              sequence="25"/>            
+    <menuitem id="menu_transport_plan_records"
+              name="排期记录"
+              parent="menu_transportation_root"
+              action="action_container_transport_plan"
+              sequence="20"/>
+    <menuitem id="menu_bl_containers"
+              name="集装箱"
+              parent="menu_transportation_root"
+              action="action_bl_container"
+              sequence="30"/>
+    -->          
+    </data>
+</odoo>

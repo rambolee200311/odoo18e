@@ -66,7 +66,7 @@ class InboundOrderRecreate(models.Model):
             not_done_picking_list = original_picking_list.filtered(
                 lambda picking: picking.state not in ("done", "cancel")
             )
-            rec.validate_sunrise_inbound_auto_return_allowed(done_picking_list)
+            rec.validate_sunrise_inbound_auto_return_allowed(original_picking_list)
             for picking in not_done_picking_list:
                 picking.unlink()
 
@@ -164,8 +164,10 @@ class InboundOrderRecreate(models.Model):
                     return False
 
         return True
+
     def validate_sunrise_inbound_auto_return_allowed(self, picking_list):
         move_line_model = self.env["stock.move.line"]
+        outbound_line_model = self.env["world.depot.outbound.order.product"]
 
         for rec in self:
             for picking in picking_list:
@@ -178,25 +180,42 @@ class InboundOrderRecreate(models.Model):
                 if not package_list:
                     continue
 
-                used_line_list = move_line_model.sudo().search([
+                outbound_line = outbound_line_model.sudo().search([
                     ("package_id", "in", package_list.ids),
-                    ("state", "=", "done"),
-                    ("picking_id.picking_type_id.code", "in", ("outgoing", "internal")),
-                ]).filtered(
-                    lambda line: line.move_id.origin_returned_move_id
-                                 not in original_move_list
-                )
-
-                if used_line_list:
-                    used_line = used_line_list[:1]
+                    ("project", "=", rec.project.id),
+                    ("outbound_order_state", "!=", "cancel"),
+                ], order="id desc", limit=1)
+                if outbound_line:
+                    outbound_order = outbound_line.outbound_order_id
                     raise UserError(
                         _(
-                            "Inbound pallet %s was already used by completed picking %s. "
-                            "Automatic receipt return is not allowed."
+                            "Inbound pallet %s is referenced by active outbound order %s. "
+                            "Please cancel the outbound order before recreating the receipt."
+                        )
+                        % (
+                            outbound_line.package_id.name or outbound_line.package_id.barcode,
+                            outbound_order.billno or outbound_order.reference,
+                        )
+                    )
+
+                used_line = move_line_model.sudo().search([
+                    ("package_id", "in", package_list.ids),
+                    ("picking_id.state", "!=", "cancel"),
+                    ("picking_id.picking_type_id.code", "in", ("outgoing", "internal")),
+                ], order="id desc", limit=1).filtered(
+                    lambda line: line.move_id.origin_returned_move_id not in original_move_list
+                )[:1]
+                if used_line:
+                    raise UserError(
+                        _(
+                            "Inbound pallet %s is occupied by %s picking %s in state %s. "
+                            "Please cancel or finish the downstream picking first."
                         )
                         % (
                             used_line.package_id.name or used_line.package_id.barcode,
+                            used_line.picking_id.picking_type_id.code,
                             used_line.picking_id.name,
+                            used_line.picking_id.state,
                         )
                     )
 

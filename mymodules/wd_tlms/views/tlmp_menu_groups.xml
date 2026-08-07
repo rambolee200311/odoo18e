@@ -1,0 +1,25 @@
+<odoo>
+    <data>
+        <menuitem id="menu_tlmp_root" name="Transport" sequence="10"
+                  web_icon="wd_tlms,static/description/icon.png"/>
+        <menuitem id="menu_tlmp_operations" name="Operations"
+                  parent="menu_tlmp_root" sequence="25"/>
+        <menuitem id="menu_tlmp_pickup_group" name="Pickup &amp; Service"
+                  parent="menu_tlmp_operations" sequence="25"/>
+        <menuitem id="menu_tlmp_quote_group" name="Quotation Process"
+                  parent="menu_tlmp_operations" sequence="20"/>
+        <menuitem id="menu_tlmp_exec_group" name="Transport Execution"
+                  parent="menu_tlmp_operations" sequence="30"/>
+        <menuitem id="menu_tlmp_tracking_group" name="Tracking"
+                  parent="menu_tlmp_exec_group" sequence="25"/>
+        <menuitem id="menu_tlmp_reports" name="Reports"
+                  parent="menu_tlmp_root" sequence="25"
+                  groups="wd_tlms.group_tlm_manager"/>
+        <menuitem id="menu_tlmp_finance" name="Finance"
+                  parent="menu_tlmp_root" sequence="20"/>
+        <menuitem id="menu_tlmp_docs" name="Documents"
+                  parent="menu_tlmp_root" sequence="30"/>
+        <menuitem id="menu_tlmp_config" name="Configuration"
+                  parent="menu_tlmp_root" sequence="90"/>
+    </data>
+</odoo>

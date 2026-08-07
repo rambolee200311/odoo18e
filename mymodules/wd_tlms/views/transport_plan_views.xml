@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+
+        <!-- 运输计划排期页面动作 -->
+        <record id="action_transport_plan_schedule" model="ir.actions.client">
+            <field name="name">运输计划排期</field>
+            <field name="tag">tlmp_schedule.action</field>
+        </record>
+
+        <!-- 排期记录（标准列表/表单） -->
+        <record id="view_container_transport_plan_tree" model="ir.ui.view">
+            <field name="name">container.transport.plan.tree</field>
+            <field name="model">container.transport.plan</field>
+            <field name="arch" type="xml">
+                <list string="排期记录" default_order="plan_date desc, id desc">
+                    <field name="plan_date"/>
+                    <field name="container_no"/>
+                    <field name="bl_no"/>
+                    <field name="transport_company"/>
+                    <field name="state"/>
+                    <field name="remark"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_container_transport_plan_form" model="ir.ui.view">
+            <field name="name">container.transport.plan.form</field>
+            <field name="model">container.transport.plan</field>
+            <field name="arch" type="xml">
+                <form string="排期记录">
+                    <sheet>
+                        <group>
+                            <field name="plan_date"/>
+                            <field name="container_id"/>
+                            <field name="transport_company"/>
+                            <field name="state"/>
+                            <field name="remark"/>
+                        </group>
+                        <group string="只读信息">
+                            <field name="container_no" readonly="1"/>
+                            <field name="bl_no" readonly="1"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_container_transport_plan_search" model="ir.ui.view">
+            <field name="name">container.transport.plan.search</field>
+            <field name="model">container.transport.plan</field>
+            <field name="arch" type="xml">
+                <search string="排期搜索">
+                    <field name="plan_date"/>
+                    <field name="container_no"/>
+                    <field name="bl_no"/>
+                    <field name="transport_company"/>
+                    <field name="state"/>
+                </search>
+            </field>
+        </record>
+
+        <record id="action_container_transport_plan" model="ir.actions.act_window">
+            <field name="name">排期记录</field>
+            <field name="res_model">container.transport.plan</field>
+            <field name="view_mode">list,form</field>
+            <field name="search_view_id" ref="view_container_transport_plan_search"/>
+        </record>
+
+        <!-- bl.container 视图 -->
+        <record id="view_bl_container_tree" model="ir.ui.view">
+            <field name="name">bl.container.tree</field>
+            <field name="model">bl.container</field>
+            <field name="arch" type="xml">
+                <list string="集装箱">
+                    <field name="bl_no"/>
+                    <field name="container_no"/>
+                    <field name="container_type"/>
+                    <field name="supplier"/>
+                    <field name="destination_warehouse"/>
+                    <field name="state"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_bl_container_form" model="ir.ui.view">
+            <field name="name">bl.container.form</field>
+            <field name="model">bl.container</field>
+            <field name="arch" type="xml">
+                <form string="集装箱">
+                    <sheet>
+                        <group>
+                            <field name="bl_no"/>
+                            <field name="container_no"/>
+                            <field name="container_type"/>
+                            <field name="supplier"/>
+                            <field name="destination_warehouse"/>
+                            <field name="state"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_bl_container_search" model="ir.ui.view">
+            <field name="name">bl.container.search</field>
+            <field name="model">bl.container</field>
+            <field name="arch" type="xml">
+                <search string="集装箱搜索">
+                    <field name="bl_no"/>
+                    <field name="container_no"/>
+                    <field name="container_type"/>
+                    <field name="supplier"/>
+                    <field name="destination_warehouse"/>
+                    <field name="state"/>
+                </search>
+            </field>
+        </record>
+
+        <record id="action_bl_container" model="ir.actions.act_window">
+            <field name="name">集装箱</field>
+            <field name="res_model">bl.container</field>
+            <field name="view_mode">list,form</field>
+            <field name="search_view_id" ref="view_bl_container_search"/>
+        </record>
+
+    </data>
+</odoo>
