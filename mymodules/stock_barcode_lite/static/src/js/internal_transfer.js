@@ -57,7 +57,8 @@ class InternalTransfer extends Component {
             }
         });
 
-        const params = this.env.config.action?.params || {};
+        const action = this.env.config.action || {};
+        const params = this.props?.action?.params || action.params || action.context || {};
 
         if (params.message) {
             this.notification.add(params.message, { type: "success" });
@@ -65,8 +66,8 @@ class InternalTransfer extends Component {
 
         if (params.picking_data) {
             this._initFromData(params.picking_data);
-        } else if (params.picking_id) {
-            this._loadPicking(params.picking_id);
+        } else if (params["picking.id"]) {
+            this._loadPicking(params["picking.id"]);
         }
     }
 
@@ -193,16 +194,13 @@ class InternalTransfer extends Component {
             this.state.picking_id, barcode
         ]);
         if (result.success) {
-            this.state.scanned_packages = [
-                ...this.state.scanned_packages,
-                {
-                    id: result.package_line?.id,
-                    name: result.package_line?.package_name || barcode,
-                    barcode: barcode,
-                    location_name: result.package_line?.source_location?.name || "",
-                    is_updated: true,
-                }
-            ];
+            this.state.scanned_packages = result.package_scan_lines?.map(line => ({
+                id: line.id,
+                name: line.package_name,
+                barcode: line.barcode,
+                location_name: line.source_location?.name || "",
+                is_updated: true,
+            })) || [];
             this.showMessage(_t("Package scanned: ") + barcode, "success");
             this._flashScreen([100, 200, 100], false);
         } else {
@@ -261,25 +259,26 @@ class InternalTransfer extends Component {
             return;
         }
 
+        if (this.state.scanned_packages.length === 0) {
+            this.showMessage(_t("Please scan at least one pallet"), "danger");
+            return;
+        }
+
         this.state.is_validating = true;
         this.state.loading = true;
 
         try {
-            const result = await this.orm.call("stock.picking", "action_validate_pda_internal_transfer", [
-                this.state.picking_id, this.state.destination_id,
-                this.state.scanned_packages.map(p => p.id)
+            const result = await this.orm.call("stock.picking", "button_validate", [
+                this.state.picking_id
             ]);
 
-            if (result.success) {
-                this.showMessage(_t("Transfer confirmed successfully!"), "success");
-                this._flashScreen([100, 300, 100], true);
-                setTimeout(() => this._goHome(), 1500);
-            } else {
-                this.showMessage(result.message || _t("Validation failed"), "danger");
-                this._flashScreen([200, 100, 100], true);
-            }
+            // button_validate 成功时返回 True，失败时抛出异常
+            this.showMessage(_t("Transfer confirmed successfully!"), "success");
+            this._flashScreen([100, 300, 100], true);
+            setTimeout(() => this._goHome(), 1500);
         } catch (error) {
             this.showMessage(this.formatError(error), "danger");
+            this._flashScreen([200, 100, 100], true);
         } finally {
             this.state.is_validating = false;
             this.state.loading = false;
@@ -298,17 +297,22 @@ class InternalTransfer extends Component {
     }
 
     resetScan() {
-        this.state.picking_id = null;
-        this.state.picking_name = "";
-        this.state.picking_origin = "";
-        this.state.picking_state = "";
-        this.state.destination_id = null;
-        this.state.destination_name = "";
-        this.state.scanned_packages = [];
-        this.state.nextStep = "scan_location";
-        this.state.message = "";
-        this.showMessage(_t("Scan reset - ready for new transfer"), "info");
-        this._focusBarcodeInput();
+        this.state.loading = true;
+        this.orm.call("stock.picking", "action_reset_pda_internal_transfer", [
+            this.state.picking_id
+        ]).then(() => {
+            this.state.destination_id = null;
+            this.state.destination_name = "";
+            this.state.scanned_packages = [];
+            this.state.nextStep = "scan_location";
+            this.state.message = "";
+            this.showMessage(_t("Scan reset - ready for new transfer"), "info");
+        }).catch(err => {
+            console.error("[InternalTransfer] reset error:", err);
+        }).finally(() => {
+            this.state.loading = false;
+            this._focusBarcodeInput();
+        });
     }
 
     exit() {
@@ -326,6 +330,14 @@ class InternalTransfer extends Component {
     showMessage(text, type = "info") {
         this.state.message = text;
         this.state.messageType = type;
+        clearTimeout(this._messageTimer);
+        if (type !== "danger") {
+            this._messageTimer = setTimeout(() => {
+                if (this.state.message === text) {
+                    this.state.message = "";
+                }
+            }, 4000);
+        }
     }
 
     _flashScreen(pattern, repeat) {
@@ -358,6 +370,10 @@ class InternalTransfer extends Component {
     }
 
     get pickingLabel() {
+        return this.state.picking_name || "";
+    }
+
+    get pickingName() {
         return this.state.picking_name || "";
     }
 

@@ -40,6 +40,10 @@
             <!-- ═══ 移库单信息卡片 ═══ -->
             <div t-if="hasPicking" class="o_sbl_picking_card">
                 <div class="o_sbl_picking_info">
+<!--                    <div class="o_picking_row">-->
+<!--                        <span class="o_picking_label">Name:</span>-->
+<!--                        <span class="o_picking_value"><t t-esc="pickingName"/></span>-->
+<!--                    </div>-->
                     <div class="o_picking_row">
                         <span class="o_picking_label">Origin:</span>
                         <span class="o_picking_value"><t t-esc="pickingOrigin"/></span>
