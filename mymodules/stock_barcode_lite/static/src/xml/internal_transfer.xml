@@ -66,26 +66,36 @@
 
             <!-- ═══ 扫描提示步骤条 ═══ -->
             <div class="o_sbl_step_indicator">
+                <!-- 第一步：Picking（自动完成） -->
+                <div class="o_step_item done">
+                    <div class="o_step_circle">
+                        <i class="fa fa-check"/>
+                    </div>
+                    <div class="o_step_label">Picking</div>
+                </div>
+                <div class="o_step_line" t-attf-class="{ active: hasDestination }"/>
+
+                <!-- 第二步：扫描目标库位 -->
                 <div class="o_step_item" t-attf-class="{ active: isScanLocationStep, done: hasDestination }">
                     <div class="o_step_circle">
                         <t t-if="hasDestination"><i class="fa fa-check"/></t>
-                        <t t-else="">1</t>
+                        <t t-else="">2</t>
                     </div>
                     <div class="o_step_label">Location</div>
                 </div>
                 <div class="o_step_line" t-attf-class="{ active: hasDestination }"/>
+
+                <!-- 第三步：扫描托盘 -->
                 <div class="o_step_item" t-attf-class="{ active: isScanPackageStep }">
-                    <div class="o_step_circle">
-                        <t t-if="isAllComplete"><i class="fa fa-check"/></t>
-                        <t t-else="">2</t>
-                    </div>
+                    <div class="o_step_circle">3</div>
                     <div class="o_step_label">Pallet</div>
                 </div>
             </div>
 
             <div class="o_sbl_step_hint">
                 <i class="fa fa-qrcode me-2"/>
-                <t t-esc="stepHint"/>
+                <t t-if="isScanLocationStep">Scan destination location barcode</t>
+                <t t-else="">Scan pallets to transfer</t>
             </div>
 
             <!-- ═══ 托盘列表 ═══ -->
