@@ -207,7 +207,7 @@ class SunriseStockReport(models.Model):
                 lifecycle_count = 0
                 opening_pallet_count = 0
                 inbound_pallet_count = 0
-                outbound_cleared_in_period = False
+                outbound_pallet_count = 0
                 period_has_event = False
                 opening_set = False
                 package_matches_filter = not (rec.product_template_id or lot_filter)
@@ -245,11 +245,11 @@ class SunriseStockReport(models.Model):
                         lifecycle_start_move_line = move_line
                         consumed_datetime = False
                         if event_date >= rec.date_from and package_event["direction"] == "inbound":
-                            inbound_pallet_count = 1
+                            inbound_pallet_count += 1
                     elif before_active and not after_active:
                         consumed_datetime = package_event["date"]
                         if event_date >= rec.date_from and package_event["direction"] == "outbound":
-                            outbound_cleared_in_period = True
+                            outbound_pallet_count += 1
 
                     if event_date >= rec.date_from:
                         period_has_event = True
@@ -495,7 +495,7 @@ class SunriseStockReport(models.Model):
                         "picking_state_summary": state_summary,
                         "opening_pallet_count": opening_pallet_count,
                         "inbound_pallet_count": inbound_pallet_count,
-                        "outbound_pallet_count": 1 if outbound_cleared_in_period and not closing_pallet_count else 0,
+                        "outbound_pallet_count": outbound_pallet_count,
                         "closing_pallet_count": closing_pallet_count,
                         "opening_age_days": opening_age_days,
                         "closing_age_days": closing_age_days,
@@ -589,10 +589,11 @@ class SunriseStockReport(models.Model):
             if rec.state != "done":
                 raise ValidationError(_("Please refresh the report before exporting."))
 
+            total_values = False
             if export_type == "pallet_summary":
                 sheet_name = "Pallet Summary"
                 file_prefix = "Sunrise_Pallet_Summary"
-                headers = ["Package", "Original Pallet", "Lifecycle State", "Lifecycle Start", "Consumed At", "Inbound Orders", "Outbound Orders", "Inbound Pickings", "Outbound Pickings", "Opening Pallets", "Inbound Pallets", "Outbound Pallets", "Closing Pallets", "Opening Age Days", "Closing Age Days", "Period Stock Days", "Anomaly"]
+                headers = ["Package", "Original Pallet", "Lifecycle State", "Lifecycle Start", "Consumed At", "Inbound Orders", "Outbound Orders", "Inbound Pickings", "Outbound Pickings", "Opening Pallets", "Inbound Pallet Operations", "Outbound Pallet Operations", "Closing Pallets", "Opening Age Days", "Closing Age Days", "Period Stock Days", "Anomaly"]
                 widths = [28, 22, 16, 20, 20, 24, 24, 24, 24, 14, 14, 15, 14, 16, 16, 17, 24]
                 state_label_map = dict(report_line_model._fields["lifecycle_state"].selection)
                 report_lines = report_line_model.search([("report_id", "=", rec.id)], order="pallet_no asc, id asc")
@@ -618,6 +619,7 @@ class SunriseStockReport(models.Model):
                     ]
                     for line in report_lines
                 ]
+                total_values = ["Total", "", "", "", "", "", "", "", "", sum(line.opening_pallet_count for line in report_lines), sum(line.inbound_pallet_count for line in report_lines), sum(line.outbound_pallet_count for line in report_lines), sum(line.closing_pallet_count for line in report_lines), "", "", "", ""]
             elif export_type == "product_stock":
                 sheet_name = "Product Lot Stock"
                 file_prefix = "Sunrise_Product_Lot_Stock"
@@ -684,6 +686,8 @@ class SunriseStockReport(models.Model):
             header_format = workbook.add_format({"bold": True, "align": "center", "valign": "vcenter", "text_wrap": True, "bg_color": "#D9EAF7", "border": 1})
             text_format = workbook.add_format({"border": 1, "valign": "vcenter", "text_wrap": True})
             number_format = workbook.add_format({"border": 1, "valign": "vcenter", "align": "right", "num_format": "0.00"})
+            total_text_format = workbook.add_format({"bold": True, "border": 1, "valign": "vcenter"})
+            total_number_format = workbook.add_format({"bold": True, "border": 1, "valign": "vcenter", "align": "right", "num_format": "0.00"})
             header_row = 5
 
             worksheet.merge_range(0, 0, 0, len(headers) - 1, "%s - %s" % (sheet_name, rec.name or ""), title_format)
@@ -705,6 +709,14 @@ class SunriseStockReport(models.Model):
                         worksheet.write_number(row, column, value, number_format)
                     else:
                         worksheet.write(row, column, value or "", text_format)
+
+            if total_values:
+                total_row = header_row + len(rows) + 1
+                for column, value in enumerate(total_values):
+                    if isinstance(value, (int, float)) and not isinstance(value, bool):
+                        worksheet.write_number(total_row, column, value, total_number_format)
+                    else:
+                        worksheet.write(total_row, column, value or "", total_text_format)
 
             workbook.close()
             output.seek(0)
@@ -742,8 +754,8 @@ class SunriseStockReportLine(models.Model):
     outbound_picking_names = fields.Char(string="Outbound Pickings", readonly=True, copy=False)
     picking_state_summary = fields.Char(string="Picking State Summary", readonly=True, copy=False)
     opening_pallet_count = fields.Integer(string="Opening Pallets", readonly=True, copy=False)
-    inbound_pallet_count = fields.Integer(string="Inbound Pallets", readonly=True, copy=False)
-    outbound_pallet_count = fields.Integer(string="Outbound Pallets", readonly=True, copy=False)
+    inbound_pallet_count = fields.Integer(string="Inbound Pallet Operations", readonly=True, copy=False)
+    outbound_pallet_count = fields.Integer(string="Outbound Pallet Operations", readonly=True, copy=False)
     closing_pallet_count = fields.Integer(string="Closing Pallets", readonly=True, copy=False)
     opening_age_days = fields.Integer(string="Opening Age Days", readonly=True, copy=False)
     closing_age_days = fields.Integer(string="Closing Age Days", readonly=True, copy=False)
