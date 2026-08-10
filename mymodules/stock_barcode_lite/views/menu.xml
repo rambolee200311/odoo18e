@@ -20,6 +20,15 @@
         <field name="search_view_id" ref="view_stock_barcode_lite_sunrise_outbound_order_search"/>
     </record>
 
+    <record model="ir.actions.act_window" id="action_stock_pda_internal_transfer">
+        <field name="name">PDA Internal Transfers</field>
+        <field name="res_model">stock.picking</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('is_pda_internal_transfer', '=', True)]</field>
+        <field name="context">{'search_default_state_not_cancel': 1}</field>
+        <field name="search_view_id" ref="view_picking_internal_transfer_search"/>
+    </record>
+
     <record id="action_api_log_sunrise_get_wms" model="ir.actions.act_window">
         <field name="name">API Logs</field>
         <field name="res_model">world.depot.api.log</field>
@@ -59,6 +68,22 @@
         <field name="target">main</field>
     </record>
 
+    <record id="action_stock_barcode_lite_internal_transfer" model="ir.actions.client">
+        <field name="name">Internal Transfer</field>
+        <field name="tag">stock_barcode_lite_internal_transfer</field>
+        <field name="target">main</field>
+    </record>
+
+    <record id="action_create_pda_internal_transfer" model="ir.actions.server">
+        <field name="name">Create PDA Internal Transfer</field>
+        <field name="model_id" ref="stock.model_stock_picking"/>
+        <field name="binding_model_id" ref="stock.model_stock_picking"/>
+        <field name="state">code</field>
+        <field name="code">
+            action = model.action_create_pda_internal_transfer()
+        </field>
+    </record>
+
     <menuitem id="menu_stock_barcode_lite_root"
               name="Chen Yang Stock Management"
               sequence="50"
@@ -96,11 +121,25 @@
               parent="menu_stock_barcode_lite_root"
               action="action_stock_barcode_lite_sunrise_outbound_order"
               sequence="40"/>
-    <!--    <menuitem id="menu_sunrise_stock_report"-->
-    <!--              name="Sunrise Inventory Report"-->
-    <!--              parent="menu_stock_barcode_lite_root"-->
-    <!--              action="action_sunrise_stock_report"-->
-    <!--              sequence="50"/>-->
+    <menuitem id="menu_stock_pda_internal_transfer"
+              name="Internal Transfer"
+                parent="menu_stock_barcode_lite_root"
+                action="action_stock_pda_internal_transfer"
+                sequence="45"/>
+<!--    <menuitem id="menu_stock_barcode_lite_report"-->
+<!--              name="Reports"-->
+<!--              parent="menu_stock_barcode_lite_root"-->
+<!--              sequence="50"/>-->
+<!--    <menuitem id="menu_sunrise_stock_report"-->
+<!--              name="Sunrise Inventory Report"-->
+<!--              parent="menu_stock_barcode_lite_report"-->
+<!--              action="action_sunrise_stock_report"-->
+<!--              sequence="5"/>-->
+<!--    <menuitem id="menu_sunrise_location_occupancy_report"-->
+<!--              name="Warehouse Location Occupancy"-->
+<!--              parent="menu_stock_barcode_lite_report"-->
+<!--              action="action_sunrise_location_occupancy_report"-->
+<!--              sequence="10"/>-->
     <menuitem id="menu_get_wms_sunrise_api_config"
               name="Get WMS API Log"
               parent="menu_stock_barcode_lite_configuration"

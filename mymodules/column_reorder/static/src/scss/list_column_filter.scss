@@ -1,0 +1,57 @@
+.column_search_row th {
+    padding: 4px 6px !important;
+    vertical-align: top;
+    border-bottom: none !important;
+}
+
+.o_cf_wrapper {
+    width: 100%;
+    min-width: 60px;
+}
+
+.o_cf_input,
+.o_cf_select {
+    width: 100%;
+    padding: 2px 6px;
+    font-size: 12px;
+    border: 1px solid #ced4da;
+    border-radius: 3px;
+    background: #fff;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+
+    &:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.15);
+        outline: none;
+    }
+
+    &.has-value {
+        border-color: #0d6efd;
+        background: #f0f7ff;
+    }
+}
+
+.o_cf_select {
+    padding: 2px 4px;
+    cursor: pointer;
+}
+
+.o_cf_quick {
+    display: none;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    gap: 3px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    padding: 1px 3px;
+    z-index: 10;
+    font-size: 10px;
+    line-height: 1;
+}
+
+td.o_data_cell:hover .o_cf_quick {
+    display: inline-flex !important;
+}

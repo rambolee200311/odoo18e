@@ -14,7 +14,7 @@
             <xpath expr="//header" position="inside">
                 <button name="chenyang_force_button_validate" type="object" string="Chenyang Force Validate"
                         confirm="Are you sure you want to validate without scan checks?"
-                        class="btn-secondary"  invisible="project_name !='SUNRISE'"
+                        class="btn-secondary" invisible="project_name !='SUNRISE'"
                         groups="stock_barcode_lite.group_sunrise_stock_manager"/>
             </xpath>
 
@@ -41,6 +41,33 @@
                        readonly="0"
                        column_invisible="context.get('picking_code') != 'incoming'"/>
             </xpath>
+        </field>
+    </record>
+
+    <record id="stock_picking_kanban_barcode_lite_inherit" model="ir.ui.view">
+        <field name="name">stock.picking.kanban.barcode.lite.inherit</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock_barcode.stock_picking_view_kanban"/>
+        <field name="arch" type="xml">
+            <xpath expr="//kanban/field[@name='scheduled_date']" position="before">
+                <field name="barcode_scan_mode" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="view_picking_internal_transfer_search">
+        <field name="name">stock.picking.internal.transfer.search</field>
+        <field name="model">stock.picking</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="package_level_ids" string="Package"
+                       filter_domain="['|',
+           ('package_level_ids.package_id.barcode', '=', self),
+           ('package_level_ids.package_id.name', 'ilike', self)]"/>
+                <field name="pda_destination_location_id" string="Destination Location"/>
+                <filter string="Active" name="state_not_cancel" domain="[('state', '!=', 'cancel')]"/>
+                <filter name="is_pda_internal_transfer" domain="[('is_pda_internal_transfer', '=', True)]"/>
+            </search>
         </field>
     </record>
 </odoo>

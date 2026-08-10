@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sunrise_location_occupancy_report_list" model="ir.ui.view">
+        <field name="name">sunrise.location.occupancy.report.list</field>
+        <field name="model">sunrise.location.occupancy.report</field>
+        <field name="arch" type="xml">
+            <list string="Warehouse Location Occupancy">
+                <field name="name"/>
+                <field name="warehouse_ids" widget="many2many_tags"/>
+                <field name="parent_location_id"/>
+                <field name="project_id"/>
+                <field name="location_state"/>
+                <field name="package_name"/>
+                <field name="lot_name"/>
+                <field name="state"/>
+                <field name="refreshed_by_id"/>
+                <field name="refreshed_datetime"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sunrise_location_occupancy_report_search" model="ir.ui.view">
+        <field name="name">sunrise.location.occupancy.report.search</field>
+        <field name="model">sunrise.location.occupancy.report</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="warehouse_ids"/>
+                <field name="parent_location_id"/>
+                <field name="project_id"/>
+                <field name="location_state"/>
+                <field name="package_name"/>
+                <field name="lot_name"/>
+                <filter name="filter_draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="filter_done" string="Done" domain="[('state', '=', 'done')]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_sunrise_location_occupancy_report_form" model="ir.ui.view">
+        <field name="name">sunrise.location.occupancy.report.form</field>
+        <field name="model">sunrise.location.occupancy.report</field>
+        <field name="arch" type="xml">
+            <form string="Warehouse Location Occupancy" duplicate="false">
+                <header>
+                    <button name="action_refresh_current_report" type="object" string="Refresh Current Report" class="oe_highlight" invisible="state == 'done'"/>
+                    <button name="action_view_report_lines" type="object" string="View Lines" invisible="state != 'done'"/>
+                    <button name="action_export_location_occupancy_excel" type="object" string="Export Excel" invisible="state != 'done'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" readonly="1"/>
+                            <field name="warehouse_ids" widget="many2many_tags" readonly="state == 'done'"/>
+                            <field name="parent_location_id" options="{'no_create': True, 'no_open': True}" readonly="state == 'done'"/>
+                            <field name="project_id" options="{'no_create': True, 'no_open': True}" readonly="state == 'done'"/>
+                            <field name="location_state" readonly="state == 'done'"/>
+                        </group>
+                        <group>
+                            <field name="package_name" readonly="state == 'done'"/>
+                            <field name="lot_name" readonly="state == 'done'"/>
+                            <field name="refreshed_by_id" options="{'no_create': True, 'no_open': True}" readonly="1"/>
+                            <field name="refreshed_datetime" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Location Occupancy Lines">
+                            <field name="line_ids" readonly="1">
+                                <list create="0" delete="0" edit="0">
+                                    <field name="warehouse_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="location_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="occupancy_state"/>
+                                    <field name="package_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="product_template_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="lot_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="expiration_datetime"/>
+                                    <field name="quantity"/>
+                                    <field name="uom_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="first_inbound_datetime"/>
+                                    <field name="project_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="owner_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="anomaly_message"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_sunrise_location_occupancy_report_line_list" model="ir.ui.view">
+        <field name="name">sunrise.location.occupancy.report.line.list</field>
+        <field name="model">sunrise.location.occupancy.report.line</field>
+        <field name="arch" type="xml">
+            <list string="Warehouse Location Occupancy Lines" create="0" delete="0" edit="0">
+                <field name="report_id" column_invisible="True"/>
+                <field name="warehouse_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="location_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="occupancy_state"/>
+                <field name="package_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="product_template_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="lot_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="expiration_datetime"/>
+                <field name="quantity"/>
+                <field name="uom_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="first_inbound_datetime"/>
+                <field name="project_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="owner_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="anomaly_message"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sunrise_location_occupancy_report_line_search" model="ir.ui.view">
+        <field name="name">sunrise.location.occupancy.report.line.search</field>
+        <field name="model">sunrise.location.occupancy.report.line</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="warehouse_id"/>
+                <field name="location_id"/>
+                <field name="occupancy_state"/>
+                <field name="package_id"/>
+                <field name="lot_id"/>
+                <field name="project_id"/>
+                <filter name="filter_occupied" string="Occupied" domain="[('occupancy_state', '=', 'occupied')]"/>
+                <filter name="filter_empty" string="Empty" domain="[('occupancy_state', '=', 'empty')]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_sunrise_location_occupancy_report" model="ir.actions.act_window">
+        <field name="name">Warehouse Location Occupancy</field>
+        <field name="res_model">sunrise.location.occupancy.report</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_sunrise_location_occupancy_report_list"/>
+        <field name="search_view_id" ref="view_sunrise_location_occupancy_report_search"/>
+    </record>
+</odoo>

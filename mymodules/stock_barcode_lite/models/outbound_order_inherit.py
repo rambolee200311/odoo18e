@@ -22,6 +22,16 @@ class OutboundOrderInherit(models.Model):
     outgoing_picking_lines = fields.One2many("stock.picking", "outbound_order_id", string="Outgoing Pickings", tracking=True)
     sunrise_pallet_count = fields.Integer(string="Sunrise Pallet Count", compute="_compute_sunrise_pallet_count",
                                           store=True)
+    manual_pallet_count = fields.Integer(string="Manual Pallet Count", copy=False)
+    eta = fields.Date(string='ETA', tracking=True)
+    organic = fields.Boolean(string="Organic", compute="_compute_organic", store=True, copy=False, index=True)
+
+    @api.onchange("project")
+    def onchange_project_warehouse(self):
+        for record in self:
+            record.warehouse = record.project.warehouse
+            record.pick_type = record.project.outbound_pick_type
+
 
     @api.depends("outbound_order_product_ids.package_id")
     def _compute_sunrise_pallet_count(self):
@@ -34,6 +44,11 @@ class OutboundOrderInherit(models.Model):
                 rec.validate_sunrise_outbound_confirm_values()
         return super().action_confirm()
 
+    @api.depends("outbound_order_product_ids.product_id.product_tmpl_id.organic")
+    def _compute_organic(self):
+        for rec in self:
+            rec.organic = any(rec.outbound_order_product_ids.mapped("product_id.product_tmpl_id.organic"))
+
     def validate_sunrise_outbound_confirm_values(self):
         for rec in self:
             if rec.project.name != "SUNRISE":
@@ -41,25 +56,25 @@ class OutboundOrderInherit(models.Model):
 
             missing_fields = []
             if not rec.p_date:
-                missing_fields.append("p_date")
+                missing_fields.append(rec._fields["p_date"].string)
             if not rec.vsourcebillcode:
-                missing_fields.append("vsourcebillcode")
+                missing_fields.append(rec._fields["vsourcebillcode"].string)
             if not rec.cwarehouseid:
-                missing_fields.append("cwarehouseid")
+                missing_fields.append(rec._fields["cwarehouseid"].string)
             if not rec.ccustomerid:
-                missing_fields.append("ccustomerid")
+                missing_fields.append(rec._fields["ccustomerid"].string)
             if not rec.u8c_delivery_method:
-                missing_fields.append("u8c_delivery_method")
+                missing_fields.append(rec._fields["u8c_delivery_method"].string)
             if rec.u8c_delivery_method == "pickup" and not rec.load_ref:
-                missing_fields.append("load_ref")
+                missing_fields.append(rec._fields["load_ref"].string)
             if not rec.unload_company:
-                missing_fields.append("unload_company")
+                missing_fields.append(rec._fields["unload_company"].string)
             if not rec.delivery_street:
-                missing_fields.append("delivery_street")
+                missing_fields.append(rec._fields["delivery_street"].string)
             if not rec.delivery_phone:
-                missing_fields.append("delivery_phone")
+                missing_fields.append(rec._fields["delivery_phone"].string)
             if rec.u8c_delivery_method == "pickup" and not rec.time_slot:
-                missing_fields.append("time_slot")
+                missing_fields.append(rec._fields["time_slot"].string)
 
             if missing_fields:
                 raise UserError(_("Sunrise outbound order %s is missing required fields: %s") % (rec.reference or rec.billno or rec.id, ", ".join(missing_fields)))
@@ -75,31 +90,31 @@ class OutboundOrderInherit(models.Model):
                 line_missing_fields = []
 
                 if not line.product_id:
-                    line_missing_fields.append("product_id")
+                    line_missing_fields.append(line._fields["product_id"].string)
                 if line.creation_source in ("api", "import") and not line.source_product_code:
-                    line_missing_fields.append("source_product_code")
+                    line_missing_fields.append(line._fields["source_product_code"].string)
                 if not line.pallet_no:
-                    line_missing_fields.append("pallet_no")
+                    line_missing_fields.append(line._fields["pallet_no"].string)
                 if not line.package_id:
-                    line_missing_fields.append("package_id")
+                    line_missing_fields.append(line._fields["package_id"].string)
                 if not line.cprojectid:
-                    line_missing_fields.append("cprojectid")
+                    line_missing_fields.append(line._fields["cprojectid"].string)
                 if not line.vsourcebillcode:
-                    line_missing_fields.append("vsourcebillcode")
+                    line_missing_fields.append(line._fields["vsourcebillcode"].string)
                 if not line.vsourcerowno:
-                    line_missing_fields.append("vsourcerowno")
+                    line_missing_fields.append(line._fields["vsourcerowno"].string)
                 if not line.cspaceid:
-                    line_missing_fields.append("cspaceid")
+                    line_missing_fields.append(line._fields["cspaceid"].string)
                 if not line.box_type:
-                    line_missing_fields.append("box_type")
+                    line_missing_fields.append(line._fields["box_type"].string)
                 if not line.castunitid:
-                    line_missing_fields.append("castunitid")
+                    line_missing_fields.append(line._fields["castunitid"].string)
                 if not line.u8_aux_uom_name:
-                    line_missing_fields.append("u8_aux_uom_name")
+                    line_missing_fields.append(line._fields["u8_aux_uom_name"].string)
                 if not line.is_lot:
-                    line_missing_fields.append("is_lot")
+                    line_missing_fields.append(line._fields["is_lot"].string)
                 if line.is_lot == "Y" and not line.lot_name:
-                    line_missing_fields.append("lot_name")
+                    line_missing_fields.append(line._fields["lot_name"].string)
 
                 if line_missing_fields:
                     raise UserError(_("%s is missing required fields: %s") % (line_name, ", ".join(line_missing_fields)))
@@ -200,6 +215,8 @@ class OutboundOrderInherit(models.Model):
             picking_list = picking_model.sudo().search([
                 ("outbound_order_id", "=", rec.id),
                 ("state", "!=", "cancel"),
+                ("picking_type_id.code", "=", "outgoing"),
+                ("return_id", "=", False),
             ], order="id")
             result |= picking_list
 
@@ -287,6 +304,8 @@ class OutboundOrderInherit(models.Model):
             existing_picking = picking_model.sudo().search([
                 ("outbound_order_id", "=", rec.id),
                 ("state", "!=", "cancel"),
+                ("picking_type_id.code", "=", "outgoing"),
+                ("return_id", "=", False),
             ], limit=1)
             if existing_picking:
                 raise UserError(_("A stock picking already exists for this outbound order."))

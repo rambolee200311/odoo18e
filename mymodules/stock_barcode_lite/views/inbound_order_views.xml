@@ -12,6 +12,7 @@
                 <attribute name="required">project_name == 'SUNRISE'</attribute>
             </xpath>
             <xpath expr="//field[@name='cntr_no']" position="before">
+                <field name="organic" readonly="0" invisible="project_name != 'SUNRISE'"/>
                 <field name="vsourcebillcode" readonly="state != 'new'" invisible="project_name != 'SUNRISE'"/>
                 <field name="cwarehouseid" readonly="state != 'new'" invisible="project_name !='SUNRISE'"/>
                 <field name="source_sale_delivery_reference" readonly="state != 'new'"
@@ -61,6 +62,14 @@
                         class="oe_stat_button"
                         icon="fa-file-text"
                         invisible="project_name !='SUNRISE'"/>
+                <button name="action_sunrise_prepare_recreate_incoming_picking"
+                        type="object"
+                        string="Prepare Recreate Receipt"
+                        class="btn-secondary"
+                        icon="fa-refresh"
+                        confirm="Completed receipts will be returned before old receipt links are cleared. Continue?"
+                        invisible="project_name != 'SUNRISE' or state != 'confirm'"
+                        groups="stock_barcode_lite.group_sunrise_stock_manager"/>
             </xpath>
             <xpath expr="//field[@name='inbound_order_product_ids']/list/field[@name='pallet_no']" position="after">
                 <field name="package_id" optional="show" column_invisible="parent.project_name != 'SUNRISE'"
@@ -201,12 +210,16 @@
                 <field name="bl_no"/>
                 <field name="cntr_no"/>
                 <field name="stock_picking_id"/>
+                <field name="organic"/>
+                <filter string="Organic" name="organic_true" domain="[('organic', '=', True)]"/>
+                <filter string="Non-organic" name="organic_false" domain="[('organic', '=', False)]"/>
                 <group expand="0" string="Group By">
                     <filter string="Active Orders" name="state_not_cancel" domain="[('state', '!=', 'cancel')]"/>
                     <filter string="State" name="group_state" context="{'group_by': 'state'}"/>
 
                     <filter string="Source Bill Code" name="group_vsourcebillcode"
                             context="{'group_by': 'vsourcebillcode'}"/>
+                    <filter string="Organic" name="group_organic" context="{'group_by': 'organic'}"/>
                     <filter string="Arrival Date" name="group_a_date" context="{'group_by': 'a_date'}"/>
                 </group>
             </search>
@@ -219,7 +232,11 @@
         <field name="inherit_id" ref="worlddepot.view_inbound_order_tree"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='reference']" position="after">
+                <field name="organic" column_invisible="not context.get('show_sunrise_fields')"/>
                 <field name="vsourcebillcode"
+                       optional="show"
+                       column_invisible="not context.get('show_sunrise_fields')"/>
+                <field name="set_sunrise_inbound_sync"
                        optional="show"
                        column_invisible="not context.get('show_sunrise_fields')"/>
             </xpath>

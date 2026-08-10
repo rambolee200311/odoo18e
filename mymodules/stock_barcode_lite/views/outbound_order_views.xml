@@ -29,11 +29,15 @@
             <xpath expr="//field[@name='picking_Out_date']" position="attributes">
                 <attribute name="invisible">project_name == 'SUNRISE'</attribute>
             </xpath>
+            <xpath expr="//button[@name='view_outbound_order_sn_details']" position="attributes">
+                <attribute name="invisible">project_name == 'SUNRISE'</attribute>
+            </xpath>
             <xpath expr="//field[@name='outbound_order_product_ids']/list/field[@name='quantity']"
                    position="attributes">
                 <attribute name="sum">Total Quantity</attribute>
             </xpath>
             <xpath expr="//field[@name='is_adr']" position="before">
+                <field name="organic" readonly="1" invisible="1"/>
                 <field name="vsourcebillcode" readonly="state != 'new'" invisible="project_name != 'SUNRISE'"/>
                 <field name="cwarehouseid" readonly="state != 'new'" invisible="project_name !='SUNRISE'"/>
                 <field name="ccustomerid" readonly="state != 'new'" invisible="project_name != 'SUNRISE'"/>
@@ -47,6 +51,11 @@
                 <field name="o_date" string='Manual Outbound Date' invisible="project_name != 'SUNRISE'"
                        readonly="set_sunrise_outbound_sync == True"
                        help="If filled in, the system will report the outbound transaction using this date and time. If left blank, it will use the outbound pick validation time."/>
+                <field name="eta"
+                       invisible="project_name != 'SUNRISE'"
+                       readonly="set_sunrise_outbound_sync == True"
+                       required="u8c_delivery_method == 'wd' and project_name == 'SUNRISE'"
+                       help="For warehouse delivery (wd), enter the estimated arrival date at the customer's warehouse."/>
             </xpath>
             <xpath expr="//field[@name='delivery_method']" position="after">
                 <field name="u8c_delivery_method" readonly="state != 'new'" required="project_name == 'SUNRISE'"
@@ -63,10 +72,18 @@
                         class="oe_stat_button"
                         icon="fa-file-text"
                         invisible="project_name !='SUNRISE'"/>
+                <button name="action_sunrise_prepare_recreate_outgoing_picking"
+                        type="object"
+                        string="Prepare Recreate Picking"
+                        class="oe_stat_button"
+                        icon="fa-refresh"
+                        confirm="This will return completed outbound pickings and remove old picking links. Continue?"
+                        invisible="project_name != 'SUNRISE' or state != 'confirm'"/>
             </xpath>
             <xpath expr="//field[@name='outbound_order_product_ids']" position="after">
                 <group invisible="project_name != 'SUNRISE'">
                     <field name="sunrise_pallet_count" readonly="1"/>
+<!--                    <field name="new_pallet_count_total" readonly="1"/>-->
                 </group>
             </xpath>
             <xpath expr="//field[@name='outbound_order_product_ids']/list/field[@name='product_id']" position="after">
@@ -207,6 +224,7 @@
                 <field name="reference"/>
                 <field name="load_ref"/>
                 <field name="u8c_delivery_method"/>
+<!--                <field name="organic"/>-->
                 <field name="date"/>
                 <field name="p_date"/>
                 <field name="state"/>
@@ -220,12 +238,15 @@
                         domain="[('u8c_delivery_method', '=', 'pickup')]"/>
                 <filter string="WD Transport" name="u8c_delivery_method_wd"
                         domain="[('u8c_delivery_method', '=', 'wd')]"/>
+                <filter string="Organic" name="organic_true" domain="[('organic', '=', True)]"/>
+                <filter string="Non-organic" name="organic_false" domain="[('organic', '=', False)]"/>
 
                 <group expand="0" string="Group By">
                     <filter string="Active Orders" name="state_not_cancel" domain="[('state', '!=', 'cancel')]"/>
                     <filter string="State" name="group_state" context="{'group_by': 'state'}"/>
                     <filter string="U8C Delivery Method" name="group_u8c_delivery_method"
                             context="{'group_by': 'u8c_delivery_method'}"/>
+                    <filter string="Organic" name="group_organic" context="{'group_by': 'organic'}"/>
                     <filter string="Planned Date" name="group_p_date" context="{'group_by': 'p_date'}"/>
                 </group>
             </search>
@@ -239,9 +260,19 @@
         <field name="inherit_id" ref="worlddepot.view_outbound_order_tree"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='reference']" position="after">
+                <field name="organic"
+                       optional="show"
+                       column_invisible="not context.get('show_sunrise_fields')"/>
                 <field name="vsourcebillcode"
                        optional="show"
                        column_invisible="not context.get('show_sunrise_fields')"/>
+                <field name="set_sunrise_outbound_sync"
+                       optional="show"
+                       column_invisible="not context.get('show_sunrise_fields')"/>
+                <field name="set_sunrise_pickup_delivery_sync"
+                       optional="show"
+                       column_invisible="not context.get('show_sunrise_fields')"/>
+
             </xpath>
         </field>
     </record>
