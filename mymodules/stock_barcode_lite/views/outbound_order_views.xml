@@ -29,11 +29,15 @@
             <xpath expr="//field[@name='picking_Out_date']" position="attributes">
                 <attribute name="invisible">project_name == 'SUNRISE'</attribute>
             </xpath>
+            <xpath expr="//button[@name='view_outbound_order_sn_details']" position="attributes">
+                <attribute name="invisible">project_name == 'SUNRISE'</attribute>
+            </xpath>
             <xpath expr="//field[@name='outbound_order_product_ids']/list/field[@name='quantity']"
                    position="attributes">
                 <attribute name="sum">Total Quantity</attribute>
             </xpath>
             <xpath expr="//field[@name='is_adr']" position="before">
+                <field name="organic" readonly="1" invisible="project_name != 'SUNRISE'"/>
                 <field name="vsourcebillcode" readonly="state != 'new'" invisible="project_name != 'SUNRISE'"/>
                 <field name="cwarehouseid" readonly="state != 'new'" invisible="project_name !='SUNRISE'"/>
                 <field name="ccustomerid" readonly="state != 'new'" invisible="project_name != 'SUNRISE'"/>
@@ -219,6 +223,7 @@
                 <field name="reference"/>
                 <field name="load_ref"/>
                 <field name="u8c_delivery_method"/>
+                <field name="organic"/>
                 <field name="date"/>
                 <field name="p_date"/>
                 <field name="state"/>
@@ -232,12 +237,15 @@
                         domain="[('u8c_delivery_method', '=', 'pickup')]"/>
                 <filter string="WD Transport" name="u8c_delivery_method_wd"
                         domain="[('u8c_delivery_method', '=', 'wd')]"/>
+                <filter string="Organic" name="organic_true" domain="[('organic', '=', True)]"/>
+                <filter string="Non-organic" name="organic_false" domain="[('organic', '=', False)]"/>
 
                 <group expand="0" string="Group By">
                     <filter string="Active Orders" name="state_not_cancel" domain="[('state', '!=', 'cancel')]"/>
                     <filter string="State" name="group_state" context="{'group_by': 'state'}"/>
                     <filter string="U8C Delivery Method" name="group_u8c_delivery_method"
                             context="{'group_by': 'u8c_delivery_method'}"/>
+                    <filter string="Organic" name="group_organic" context="{'group_by': 'organic'}"/>
                     <filter string="Planned Date" name="group_p_date" context="{'group_by': 'p_date'}"/>
                 </group>
             </search>
@@ -251,6 +259,9 @@
         <field name="inherit_id" ref="worlddepot.view_outbound_order_tree"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='reference']" position="after">
+                <field name="organic"
+                       optional="show"
+                       column_invisible="not context.get('show_sunrise_fields')"/>
                 <field name="vsourcebillcode"
                        optional="show"
                        column_invisible="not context.get('show_sunrise_fields')"/>

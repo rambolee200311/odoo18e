@@ -22,7 +22,9 @@ class OutboundOrderInherit(models.Model):
     outgoing_picking_lines = fields.One2many("stock.picking", "outbound_order_id", string="Outgoing Pickings", tracking=True)
     sunrise_pallet_count = fields.Integer(string="Sunrise Pallet Count", compute="_compute_sunrise_pallet_count",
                                           store=True)
+    manual_pallet_count = fields.Integer(string="Manual Pallet Count", copy=False)
     eta = fields.Date(string='ETA', tracking=True)
+    organic = fields.Boolean(string="Organic", compute="_compute_organic", store=True, copy=False, index=True)
 
     @api.onchange("project")
     def onchange_project_warehouse(self):
@@ -41,6 +43,11 @@ class OutboundOrderInherit(models.Model):
             if rec.project.name == "SUNRISE":
                 rec.validate_sunrise_outbound_confirm_values()
         return super().action_confirm()
+
+    @api.depends("outbound_order_product_ids.product_id.product_tmpl_id.organic")
+    def _compute_organic(self):
+        for rec in self:
+            rec.organic = any(rec.outbound_order_product_ids.mapped("product_id.product_tmpl_id.organic"))
 
     def validate_sunrise_outbound_confirm_values(self):
         for rec in self:
