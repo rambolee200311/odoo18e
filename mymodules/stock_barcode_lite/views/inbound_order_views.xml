@@ -12,7 +12,7 @@
                 <attribute name="required">project_name == 'SUNRISE'</attribute>
             </xpath>
             <xpath expr="//field[@name='cntr_no']" position="before">
-                <field name="organic" readonly="1" invisible="project_name != 'SUNRISE'"/>
+                <field name="organic" readonly="0" invisible="project_name != 'SUNRISE'"/>
                 <field name="vsourcebillcode" readonly="state != 'new'" invisible="project_name != 'SUNRISE'"/>
                 <field name="cwarehouseid" readonly="state != 'new'" invisible="project_name !='SUNRISE'"/>
                 <field name="source_sale_delivery_reference" readonly="state != 'new'"
@@ -232,7 +232,7 @@
         <field name="inherit_id" ref="worlddepot.view_inbound_order_tree"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='reference']" position="after">
-                <field name="organic" optional="show" column_invisible="not context.get('show_sunrise_fields')"/>
+                <field name="organic" column_invisible="not context.get('show_sunrise_fields')"/>
                 <field name="vsourcebillcode"
                        optional="show"
                        column_invisible="not context.get('show_sunrise_fields')"/>

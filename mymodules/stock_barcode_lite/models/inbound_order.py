@@ -15,7 +15,7 @@ class InboundOrder(models.Model):
     source_sale_delivery_reference = fields.Char(string="Source Sale Delivery Reference", copy=False, index=True)
     vsourcebillcode = fields.Char(string="Source Bill Code", copy=False, index=True)
     project_package_generation_mode = fields.Selection(related="project.package_generation_mode", string="Package Generation Mode", readonly=True)
-    organic = fields.Boolean(string="Organic", compute="_compute_organic", store=True, copy=False, index=True)
+    organic = fields.Boolean(string="Organic", copy=False, index=True)
 
     @api.onchange("project")
     def onchange_project_warehouse(self):
@@ -50,11 +50,11 @@ class InboundOrder(models.Model):
                 rec.validate_sunrise_inbound_confirm_values()
         return super().action_confirm()
 
-    @api.depends("inbound_order_product_ids.inbound_order_product_pallet_ids.product_id.product_tmpl_id.organic")
-    def _compute_organic(self):
-        for rec in self:
-            detail_line_list = rec.inbound_order_product_ids.mapped("inbound_order_product_pallet_ids")
-            rec.organic = any(detail_line_list.mapped("product_id.product_tmpl_id.organic"))
+    # @api.depends("inbound_order_product_ids.inbound_order_product_pallet_ids.product_id.product_tmpl_id.organic")
+    # def _compute_organic(self):
+    #     for rec in self:
+    #         detail_line_list = rec.inbound_order_product_ids.mapped("inbound_order_product_pallet_ids")
+    #         rec.organic = any(detail_line_list.mapped("product_id.product_tmpl_id.organic"))
 
     def validate_sunrise_inbound_confirm_values(self):
         for rec in self:
