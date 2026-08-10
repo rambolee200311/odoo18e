@@ -8,6 +8,7 @@ from . import sunrise_api
 from . import sunrise_product_master_import
 from . import sunrise_order_import
 from . import sunrise_stock_report
+from . import sunrise_location_occupancy_report
 from . import stock_quant_package
 from . import stock_barcode_lite_scan_service
 from . import stock_barcode_lite_outgoing_scan_service
