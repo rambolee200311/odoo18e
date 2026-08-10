@@ -10,6 +10,10 @@
                 <field name="billno" optional="show" readonly="1"/>
                 <field name="reference" optional="show" readonly="1"/>
                 <field name="cntr_no" optional="show" readonly="1"/>
+                <field name="original_pallet_no" optional="show" readonly="1"/>
+                <field name="lifecycle_state" optional="show" readonly="1"/>
+                <field name="lifecycle_start_datetime" optional="show" readonly="1"/>
+                <field name="consumed_datetime" optional="show" readonly="1"/>
             </xpath>
         </field>
     </record>
@@ -24,6 +28,10 @@
                 <field name="billno" optional="show" readonly="1"/>
                 <field name="reference" optional="show" readonly="1"/>
                 <field name="cntr_no" optional="show" readonly="1"/>
+                <field name="original_pallet_no" optional="show" readonly="1"/>
+                <field name="lifecycle_state" optional="show" readonly="1"/>
+                <field name="lifecycle_start_datetime" optional="show" readonly="1"/>
+                <field name="consumed_datetime" optional="show" readonly="1"/>
             </xpath>
         </field>
     </record>

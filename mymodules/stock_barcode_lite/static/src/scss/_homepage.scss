@@ -16,7 +16,9 @@
         min-height: 100dvh;  /* 移动端动态视口，更稳定地适配各类 PDA 浏览器 */
         height: 100vh;
         height: 100dvh;
-        padding: 0 16px 16px 16px;  /* 底部从 80px 降到 16px，避免占用过多垂直空间 */
+        padding: 0 16px 100px 16px;
+        scroll-padding-top: 8px;
+        scroll-padding-bottom: 20px;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
         overscroll-behavior: contain;
@@ -24,6 +26,7 @@
 
     .section-header {
         padding: 8px 4px 4px 4px;
+        margin-bottom: 12px;
     }
 
     @media (min-width: 992px) {
@@ -47,6 +50,11 @@
     .o_homepage_card {
         cursor: pointer;
         transition: transform 0.2s, box-shadow 0.2s;
+        margin-bottom: 16px;
+
+        &:last-child {
+            margin-bottom: 0;
+        }
 
         &:hover {
             transform: translateY(-4px);

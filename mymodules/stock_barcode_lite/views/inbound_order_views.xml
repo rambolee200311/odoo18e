@@ -12,7 +12,7 @@
                 <attribute name="required">project_name == 'SUNRISE'</attribute>
             </xpath>
             <xpath expr="//field[@name='cntr_no']" position="before">
-                <field name="organic" column_invisible="not context.get('show_sunrise_fields')"/>
+                <field name="organic" readonly="0" invisible="project_name != 'SUNRISE'"/>
                 <field name="vsourcebillcode" readonly="state != 'new'" invisible="project_name != 'SUNRISE'"/>
                 <field name="cwarehouseid" readonly="state != 'new'" invisible="project_name !='SUNRISE'"/>
                 <field name="source_sale_delivery_reference" readonly="state != 'new'"
@@ -210,12 +210,16 @@
                 <field name="bl_no"/>
                 <field name="cntr_no"/>
                 <field name="stock_picking_id"/>
+                <field name="organic"/>
+                <filter string="Organic" name="organic_true" domain="[('organic', '=', True)]"/>
+                <filter string="Non-organic" name="organic_false" domain="[('organic', '=', False)]"/>
                 <group expand="0" string="Group By">
                     <filter string="Active Orders" name="state_not_cancel" domain="[('state', '!=', 'cancel')]"/>
                     <filter string="State" name="group_state" context="{'group_by': 'state'}"/>
 
                     <filter string="Source Bill Code" name="group_vsourcebillcode"
                             context="{'group_by': 'vsourcebillcode'}"/>
+                    <filter string="Organic" name="group_organic" context="{'group_by': 'organic'}"/>
                     <filter string="Arrival Date" name="group_a_date" context="{'group_by': 'a_date'}"/>
                 </group>
             </search>

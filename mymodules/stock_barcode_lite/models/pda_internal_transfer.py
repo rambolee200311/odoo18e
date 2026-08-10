@@ -168,6 +168,37 @@ class StockPicking(models.Model):
             raise UserError(_("Destination location is the same as the source location for package %s.") % (package.name or package.barcode))
         return quants
 
+    def action_remove_pda_package(self, package_id):
+        results = []
+        if not package_id:
+            raise UserError(_("Please select a package to remove."))
+
+        for rec in self:
+            rec.check_pda_internal_transfer_draft()
+            if rec.move_ids:
+                raise UserError(_("PDA internal transfer with stock moves cannot remove packages."))
+
+            scan_line = self.env["stock.picking.package.scan"].sudo().search([
+                ("picking_id", "=", rec.id),
+                ("package_id", "=", package_id),
+            ], limit=1)
+            if not scan_line:
+                raise UserError(_("Package is not scanned in this PDA internal transfer."))
+
+            package_name = scan_line.package_id.name or scan_line.barcode
+            self.env["stock.picking.package.scan"].browse(scan_line.id).with_context(
+                allow_pda_package_unlink=True,
+            ).unlink()
+
+            result = rec.get_pda_internal_transfer_scan_data()
+            result.update({
+                "success": True,
+                "message": _("Package %s has been removed.") % package_name,
+            })
+            results.append(result)
+
+        return results[0] if len(results) == 1 else results
+
     def action_reset_pda_internal_transfer(self):
         results = []
         for rec in self:
@@ -176,7 +207,7 @@ class StockPicking(models.Model):
                 raise UserError(_("PDA internal transfer with stock moves cannot be reset."))
             scan_line_ids = rec.get_pda_internal_transfer_scan_lines().ids
             self.env["stock.picking.package.scan"].browse(scan_line_ids).with_context(
-                allow_pda_package_reset=True).unlink()
+                allow_pda_package_unlink=True).unlink()
             rec.write({"pda_destination_location_id": False})
             result = rec.get_pda_internal_transfer_scan_data()
             result.update({"success": True, "message": _("PDA internal transfer has been reset.")})
@@ -351,8 +382,8 @@ class StockPickingPackageScan(models.Model):
         raise UserError(_("Package scan records cannot be modified directly."))
 
     def unlink(self):
-        if not self.env.context.get("allow_pda_package_reset"):
-            raise UserError(_("Package scan records can only be removed by resetting the PDA internal transfer."))
+        if not self.env.context.get("allow_pda_package_unlink"):
+            raise UserError(_("Package scan records can only be removed through PDA transfer operations."))
         for rec in self:
             if rec.picking_id.state != "draft" or rec.picking_id.move_ids:
                 raise UserError(_("Only draft PDA internal transfer scan records can be removed."))

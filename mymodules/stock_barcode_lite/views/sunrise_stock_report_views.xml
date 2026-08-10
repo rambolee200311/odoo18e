@@ -4,13 +4,17 @@
         <field name="name">sunrise.stock.report.list</field>
         <field name="model">sunrise.stock.report</field>
         <field name="arch" type="xml">
-            <list string="Sunrise Inventory Reports">
+            <list string="Sunrise Pallet Aging Reports">
+                <field name="name"/>
                 <field name="date_from"/>
                 <field name="date_to"/>
+                <field name="warehouse_id"/>
+                <field name="owner_id"/>
                 <field name="product_template_id"/>
-                <field name="product_keyword"/>
                 <field name="lot_name"/>
-                <field name="pallet_no"/>
+                <field name="average_age_days"/>
+                <field name="maximum_age_days"/>
+                <field name="over_180_pallet_count"/>
                 <field name="state"/>
                 <field name="refreshed_by_id"/>
                 <field name="refreshed_datetime"/>
@@ -22,44 +26,61 @@
         <field name="name">sunrise.stock.report.form</field>
         <field name="model">sunrise.stock.report</field>
         <field name="arch" type="xml">
-            <form string="Sunrise Inventory Report" duplicate="false">
+            <form string="Sunrise Pallet Aging Report" duplicate="false">
                 <header>
-                    <button name="action_refresh_report" type="object" string="Refresh Report" class="oe_highlight"/>
-                    <button name="action_view_report_lines" type="object" icon="fa-table" title="View Result List"/>
+                    <button name="action_refresh_report" type="object" string="Refresh Report" class="oe_highlight" invisible="state == 'done'"/>
+                    <button name="action_view_report_lines" type="object" icon="fa-table" title="View Pallet Summary"/>
+                    <button name="action_export_pallet_summary_excel" type="object" string="Export Pallet Summary" invisible="state != 'done'"/>
+                    <button name="action_export_product_stock_excel" type="object" string="Export Product / Lot Stock" invisible="state != 'done'"/>
+                    <button name="action_export_operation_excel" type="object" string="Export Operations" invisible="state != 'done'"/>
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
                     <group>
                         <group>
-                            <field name="date_from"/>
-                            <field name="date_to"/>
-                            <field name="product_template_id" options="{'no_create': True, 'no_open': True}"/>
-                            <field name="product_keyword"/>
-                            <field name="lot_name"/>
-                            <field name="pallet_no"/>
+                            <field name="name" readonly="1"/>
+                            <field name="date_from" readonly="state == 'done'" required="1"/>
+                            <field name="date_to" readonly="state == 'done'" required="1"/>
+                            <field name="warehouse_id" required="1" readonly="state == 'done'" options="{'no_create': True, 'no_open': True}"/>
+<!--                            <field name="owner_id" options="{'no_create': True, 'no_open': True}"/>-->
+                            <field name="product_template_id" readonly="state == 'done'" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="lot_name" readonly="state == 'done'"/>
                         </group>
                         <group>
-                            <field name="refreshed_by_id" options="{'no_create': True, 'no_open': True}"/>
-                            <field name="refreshed_datetime"/>
+                            <field name="average_age_days" readonly="1"/>
+                            <field name="maximum_age_days" readonly="1"/>
+                            <field name="over_180_pallet_count" readonly="1"/>
+                            <field name="refreshed_by_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="refreshed_datetime" readonly="1"/>
                         </group>
                     </group>
                     <notebook>
-                        <page string="Results">
+                        <page string="Pallet Summary">
                             <field name="line_ids" readonly="1">
                                 <list create="0" delete="0" edit="0">
                                     <field name="report_id" column_invisible="True"/>
-                                    <field name="source_product_code"/>
-                                    <field name="product_template_id"/>
-                                    <field name="lot_name"/>
+<!--                                    <field name="warehouse_id"/>-->
+<!--                                    <field name="owner_id"/>-->
+                                    <field name="package_id"/>
                                     <field name="pallet_no"/>
-                                    <field name="package_barcode"/>
-                                    <field name="uom_id"/>
-                                    <field name="opening_quantity" sum="Total"/>
-                                    <field name="inbound_quantity" sum="Total"/>
-                                    <field name="outbound_quantity" sum="Total"/>
-                                    <field name="adjustment_quantity" sum="Total"/>
-                                    <field name="closing_quantity" sum="Total"/>
-                                    <button name="action_view_move_lines" type="object" icon="fa-list" title="View Stock Moves"/>
+                                    <field name="lifecycle_state"/>
+                                    <field name="lifecycle_start_datetime"/>
+                                    <field name="consumed_datetime"/>
+                                    <field name="inbound_order_names"/>
+                                    <field name="outbound_order_names"/>
+                                    <field name="inbound_picking_names"/>
+                                    <field name="outbound_picking_names"/>
+                                    <field name="opening_pallet_count" sum="Total"/>
+                                    <field name="inbound_pallet_count" sum="Total"/>
+                                    <field name="outbound_pallet_count" sum="Total"/>
+                                    <field name="closing_pallet_count" sum="Total"/>
+                                    <field name="opening_age_days"/>
+                                    <field name="closing_age_days"/>
+                                    <field name="period_stock_days"/>
+                                    <field name="first_inbound_picking_id"/>
+                                    <field name="anomaly_message"/>
+                                    <button name="action_view_stock_lines" type="object" icon="fa-cubes" title="View Stock Details"/>
+                                    <button name="action_view_operation_lines" type="object" icon="fa-list" title="View Operations"/>
                                 </list>
                             </field>
                         </page>
@@ -73,26 +94,83 @@
         <field name="name">sunrise.stock.report.line.list</field>
         <field name="model">sunrise.stock.report.line</field>
         <field name="arch" type="xml">
-            <list string="Sunrise Inventory Report Lines" create="0" delete="0" edit="0">
+            <list string="Sunrise Pallet Aging Lines" create="0" delete="0" edit="0">
                 <field name="report_id" column_invisible="True"/>
-                <field name="source_product_code"/>
-                <field name="product_template_id"/>
-                <field name="lot_name"/>
+<!--                <field name="warehouse_id"/>-->
+<!--                <field name="owner_id"/>-->
+                <field name="package_id"/>
                 <field name="pallet_no"/>
-                <field name="package_barcode"/>
+                <field name="lifecycle_state"/>
+                <field name="lifecycle_start_datetime"/>
+                <field name="consumed_datetime"/>
+                <field name="first_inbound_order_id"/>
+                <field name="first_inbound_picking_id"/>
+                <field name="inbound_order_names"/>
+                <field name="outbound_order_names"/>
+                <field name="inbound_picking_names"/>
+                <field name="outbound_picking_names"/>
+                <field name="picking_state_summary"/>
+                <field name="opening_pallet_count" sum="Total"/>
+                <field name="inbound_pallet_count" sum="Total"/>
+                <field name="outbound_pallet_count" sum="Total"/>
+                <field name="closing_pallet_count" sum="Total"/>
+                <field name="opening_age_days"/>
+                <field name="closing_age_days"/>
+                <field name="period_stock_days"/>
+                <field name="anomaly_message"/>
+                <button name="action_view_stock_lines" type="object" icon="fa-cubes" title="View Stock Details"/>
+                <button name="action_view_operation_lines" type="object" icon="fa-list" title="View Operations"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sunrise_stock_report_product_line_list" model="ir.ui.view">
+        <field name="name">sunrise.stock.report.product.line.list</field>
+        <field name="model">sunrise.stock.report.product.line</field>
+        <field name="arch" type="xml">
+            <list string="Pallet Stock Details" create="0" delete="0" edit="0">
+                <field name="report_line_id" column_invisible="True"/>
+                <field name="product_template_id"/>
+                <field name="lot_id"/>
+                <field name="stock_state"/>
+                <field name="opening_quantity"/>
+                <field name="inbound_quantity"/>
+                <field name="outbound_quantity"/>
+                <field name="on_hand_quantity"/>
+                <field name="reserved_quantity"/>
+                <field name="available_quantity"/>
                 <field name="uom_id"/>
-                <field name="opening_quantity" sum="Total"/>
-                <field name="inbound_quantity" sum="Total"/>
-                <field name="outbound_quantity" sum="Total"/>
-                <field name="adjustment_quantity" sum="Total"/>
-                <field name="closing_quantity" sum="Total"/>
-                <button name="action_view_move_lines" type="object" icon="fa-list" title="View Stock Moves"/>
+                <field name="variant_summary"/>
+                <field name="quantity_summary"/>
+                <field name="reservation_note"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sunrise_stock_report_operation_line_list" model="ir.ui.view">
+        <field name="name">sunrise.stock.report.operation.line.list</field>
+        <field name="model">sunrise.stock.report.operation.line</field>
+        <field name="arch" type="xml">
+            <list string="Pallet Operations" create="0" delete="0" edit="0">
+                <field name="report_line_id" column_invisible="True"/>
+                <field name="direction"/>
+                <field name="inbound_order_id"/>
+                <field name="outbound_order_id"/>
+                <field name="picking_id"/>
+                <field name="picking_state"/>
+                <field name="product_id"/>
+                <field name="lot_id"/>
+                <field name="planned_quantity"/>
+                <field name="reserved_quantity"/>
+                <field name="done_quantity"/>
+                <field name="uom_id"/>
+                <field name="operation_datetime"/>
             </list>
         </field>
     </record>
 
     <record id="action_sunrise_stock_report" model="ir.actions.act_window">
-        <field name="name">Sunrise Inventory Report</field>
+        <field name="name">Sunrise Pallet Aging Report</field>
         <field name="res_model">sunrise.stock.report</field>
         <field name="view_mode">list,form</field>
         <field name="view_id" ref="view_sunrise_stock_report_list"/>
