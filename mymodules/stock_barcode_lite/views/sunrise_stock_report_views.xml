@@ -63,6 +63,7 @@
 <!--                                    <field name="owner_id"/>-->
                                     <field name="package_id"/>
                                     <field name="pallet_no"/>
+                                    <field name="closing_location_id" options="{'no_create': True, 'no_open': True}"/>
                                     <field name="lifecycle_state"/>
                                     <field name="lifecycle_start_datetime"/>
                                     <field name="consumed_datetime"/>
@@ -100,6 +101,7 @@
 <!--                <field name="owner_id"/>-->
                 <field name="package_id"/>
                 <field name="pallet_no"/>
+                <field name="closing_location_id" options="{'no_create': True, 'no_open': True}"/>
                 <field name="lifecycle_state"/>
                 <field name="lifecycle_start_datetime"/>
                 <field name="consumed_datetime"/>
@@ -132,6 +134,7 @@
                 <field name="report_line_id" column_invisible="True"/>
                 <field name="product_template_id"/>
                 <field name="lot_id"/>
+                <field name="closing_location_id" options="{'no_create': True, 'no_open': True}"/>
                 <field name="stock_state"/>
                 <field name="opening_quantity"/>
                 <field name="inbound_quantity"/>
