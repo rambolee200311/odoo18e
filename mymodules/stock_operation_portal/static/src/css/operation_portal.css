@@ -1,0 +1,96 @@
+/* Stock Operation Portal - Styles */
+
+.operation-portal-card {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    transition: box-shadow 0.3s;
+}
+
+.operation-portal-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.operation-portal-card .card-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.operation-filter-form {
+    background-color: #f8f9fa;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.operation-table {
+    background-color: white;
+}
+
+.operation-table th {
+    background-color: #f1f1f1;
+    font-weight: 600;
+}
+
+.operation-status-badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.operation-status-draft {
+    background-color: #e9ecef;
+    color: #495057;
+}
+
+.operation-status-confirmed {
+    background-color: #cce5ff;
+    color: #004085;
+}
+
+.operation-status-done {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.operation-status-cancelled {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* Form styles */
+.operation-form-section {
+    margin-bottom: 24px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+.operation-form-section h4 {
+    margin-bottom: 16px;
+    border-bottom: 2px solid #dee2e6;
+    padding-bottom: 8px;
+}
+
+.operation-line-item {
+    padding: 12px;
+    background-color: white;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    margin-bottom: 8px;
+}
+
+.operation-line-item:hover {
+    border-color: #007bff;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .operation-portal-card {
+        margin-bottom: 16px;
+    }
+    
+    .operation-table {
+        font-size: 14px;
+    }
+}

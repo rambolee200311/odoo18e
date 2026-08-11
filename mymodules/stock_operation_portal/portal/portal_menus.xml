@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="portal_menus" name="Operation Portal Menus">
+        <ul class="nav nav-pills flex-column">
+            <li class="nav-item">
+                <a href="/my/operation" class="nav-link" id="operation_home">
+                    <i class="fa fa-home"/> Home
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/my/operation/inbounds" class="nav-link" id="operation_inbounds">
+                    <i class="fa fa-sign-in"/> Inbound Orders
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/my/operation/outbounds" class="nav-link" id="operation_outbounds">
+                    <i class="fa fa-sign-out"/> Outbound Orders
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/my/operation/transfers" class="nav-link" id="operation_transfers">
+                    <i class="fa fa-exchange"/> Transfer Orders
+                </a>
+            </li>
+        </ul>
+    </template>
+</odoo>
