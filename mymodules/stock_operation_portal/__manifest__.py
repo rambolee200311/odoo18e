@@ -12,7 +12,7 @@ Enable users to create and manage stock operations via PDA or PC:
 - Transfer/Internal Operations (仓内操作/调拨订单)
     """,
     "author": "World Depot B.V.",
-    "category": "仓库管理",
+    "category": "Warehouse",
     "version": "18.0.1.0.0",
     "depends": ["worlddepot", "portal", "website", "stock"],
     "data": [
