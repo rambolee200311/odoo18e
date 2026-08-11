@@ -22,10 +22,24 @@ class OutboundOrderInherit(models.Model):
     outgoing_picking_lines = fields.One2many("stock.picking", "outbound_order_id", string="Outgoing Pickings", tracking=True)
     sunrise_pallet_count = fields.Integer(string="Sunrise Pallet Count", compute="_compute_sunrise_pallet_count",
                                           store=True)
-    manual_pallet_count = fields.Integer(string="Manual Pallet Count", copy=False)
     eta = fields.Date(string='ETA', tracking=True)
     organic = fields.Boolean(string="Organic", compute="_compute_organic", store=True, copy=False, index=True)
+    new_pallet_count_total = fields.Integer(string="New Pallet Count Total", compute="_compute_new_pallet_count_total",
+                                            store=True, readonly=True, copy=False)
 
+    @api.depends(
+        "outgoing_picking_lines",
+        "outgoing_picking_lines.new_pallet_count",
+        "outgoing_picking_lines.picking_type_id.code",
+        "outgoing_picking_lines.state",
+    )
+    def _compute_new_pallet_count_total(self):
+        for rec in self:
+            rec.new_pallet_count_total = sum(
+                picking.new_pallet_count
+                for picking in rec.outgoing_picking_lines
+                if picking.picking_type_id.code == "outgoing" and picking.state != "cancel"
+            )
     @api.onchange("project")
     def onchange_project_warehouse(self):
         for record in self:

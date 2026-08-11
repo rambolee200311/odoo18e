@@ -10,6 +10,7 @@ class StockPicking(models.Model):
 
     outbound_scan_mode = fields.Selection([("whole_pallet", "Whole Pallet"), ("partial_pallet", "Partial Pallet")],
                                           string="Outbound Scan Mode", copy=False, index=True)
+    new_pallet_count = fields.Integer(string="New Pallet Count", default=0, copy=False)
     project_name = fields.Char(string='Project Name', related='project_id.name',stored=True)
     barcode_scan_mode = fields.Selection(related='project_id.barcode_scan_mode', store=True)
 
@@ -56,10 +57,18 @@ class StockPicking(models.Model):
 
     def button_validate(self):
         skip_scan_validation = self.env.context.get("skip_chenyang_scan_validation")
-        if not skip_scan_validation:
-            for rec in self:
+        for rec in self:
+            if not skip_scan_validation:
                 rec.check_incoming_pallet_location_updated()
                 rec.check_outgoing_pallet_scan_completed()
+            if (
+                rec.project_name == "SUNRISE"
+                and rec.picking_type_id.code == "outgoing"
+                and rec.outbound_order_id
+                and rec.state not in ("done", "cancel")
+                and rec.new_pallet_count < 0
+            ):
+                raise UserError(_("New pallet count must be greater than or equal to zero."))
         result = super().button_validate()
         quant_model = self.env["stock.quant"].sudo()
         for rec in self:
