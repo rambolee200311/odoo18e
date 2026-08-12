@@ -1,6 +1,6 @@
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
-
+from .delivery_address import build_address_key
 
 class OutboundOrder(models.Model):
     _inherit = "world.depot.outbound.order"
@@ -111,3 +111,58 @@ class OutboundOrder(models.Model):
                     "default_address_mode": default_address_mode,
                 },
             }
+
+    @api.model
+    def action_migrate_legacy_delivery_addresses(self):
+        address_model = self.env["world.depot.delivery.address"]
+        outbound_orders = self.sudo().search([
+            ("unload_company", "!=", False),
+            ("delivery_address_id", "=", False),
+            ("delivery_street", "!=", False),
+        ])
+
+        created_count = 0
+        linked_count = 0
+        for rec in outbound_orders:
+            country_code = rec.delivery_country_id.code if rec.delivery_country_id else ""
+            address_key = build_address_key(
+                rec.delivery_street,
+                rec.delivery_city,
+                rec.delivery_zip,
+                country_code,
+            )
+            delivery_address = address_model.sudo().search([
+                ("recipient_id", "=", rec.unload_company.id),
+                ("address_key", "=", address_key),
+                ("active", "=", True),
+            ], limit=1)
+
+            if not delivery_address:
+                delivery_address = address_model.create({
+                    "recipient_id": rec.unload_company.id,
+                    "street": rec.delivery_street,
+                    "city": rec.delivery_city,
+                    "zip": rec.delivery_zip,
+                    "country_id": rec.delivery_country_id.id,
+                    "phone": rec.delivery_phone,
+                    "mobile": rec.delivery_mobile,
+                    "email": rec.delivery_email,
+                })
+                created_count += 1
+
+            rec.write({"delivery_address_id": delivery_address.id})
+            linked_count += 1
+
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Migration Completed"),
+                "message": _("%(linked)s outbound order(s) linked; %(created)s delivery address(es) created.") % {
+                    "linked": linked_count,
+                    "created": created_count,
+                },
+                "type": "success",
+                "sticky": False,
+            },
+        }
