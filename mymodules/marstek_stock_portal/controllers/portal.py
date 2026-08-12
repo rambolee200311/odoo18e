@@ -142,9 +142,12 @@ class MarstekStockPortal(CustomerPortal):
         rows = all_rows[pager["offset"]: pager["offset"] + page_size]
 
         values = self.marstek_prepare_page_values("marstek_outbounds", "Outbound Orders", filters)
+        owner = request.env.user.sudo().marstek_owner_id
+        show_sunrise_outbound_filters = bool(owner and request.env["project.project"].sudo().search_count([("owner", "=", owner.id), ("name", "=", "SUNRISE")]))
         values.update({
             "rows": rows,
             "pager": pager,
+            "show_sunrise_outbound_filters": show_sunrise_outbound_filters,
         })
         return request.render("marstek_stock_portal.portal_marstek_outbounds", values)
 
