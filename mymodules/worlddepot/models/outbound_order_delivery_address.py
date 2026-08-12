@@ -7,6 +7,7 @@ class OutboundOrder(models.Model):
 
     delivery_address_id = fields.Many2one("world.depot.delivery.address", string="Delivery Address", copy=False, index=True)
 
+
     @api.constrains("unload_company", "delivery_address_id")
     def check_delivery_address_recipient(self):
         for record in self:

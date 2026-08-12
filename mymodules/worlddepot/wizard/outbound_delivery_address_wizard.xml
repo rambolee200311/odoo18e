@@ -8,31 +8,53 @@
                     <field name="outbound_order_id" invisible="1" required="1"/>
                     <field name="is_parsed" invisible="1" readonly="1"/>
                     <group>
-                        <field name="raw_text" placeholder="Paste address only. Do not include recipient, phone, or email."/>
-                        <button name="action_parse_delivery_text" type="object" string="Parse" icon="fa-map-marker" class="btn-secondary"/>
+                        <field name="raw_text"
+                               placeholder="Paste address only. Do not include recipient, phone, or email."/>
+                        <button name="action_parse_delivery_text" type="object" string="Parse" icon="fa-map-marker"
+                                class="btn-secondary"/>
                     </group>
                     <group>
                         <field name="parsed_recipient_name" readonly="1"/>
-                        <field name="recipient_id" required="1" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="recipient_id" required="1" readonly="1"
+                               options="{'no_create': True, 'no_open': True}"/>
                         <field name="address_mode" widget="radio"/>
                         <field name="address_id" domain="[('recipient_id', '=', recipient_id), ('active', '=', True)]"
-                               required="is_parsed and address_mode == 'existing'" invisible="address_mode != 'existing'"
+                               required="is_parsed and address_mode == 'existing'"
+                               invisible="address_mode != 'existing'"
                                options="{'no_create': True, 'no_open': True}"/>
                     </group>
-                    <group invisible="address_mode != 'new'">
-                        <field name="street" required="is_parsed and address_mode == 'new'"/>
-                        <field name="city" required="is_parsed and address_mode == 'new'"/>
-                        <field name="zip" required="is_parsed and address_mode == 'new'"/>
+                    <group>
+                        <field name="street"
+                               required="is_parsed and address_mode == 'new'"
+                               readonly="address_mode == 'existing'"/>
+
+                        <field name="city"
+                               required="is_parsed and address_mode == 'new'"
+                               readonly="address_mode == 'existing'"/>
+
+                        <field name="zip"
+                               required="is_parsed and address_mode == 'new'"
+                               readonly="address_mode == 'existing'"/>
+
                         <field name="country_id"
                                required="is_parsed and address_mode == 'new'"
+                               readonly="address_mode == 'existing'"
                                options="{'no_create': True, 'no_open': True}"/>
-                        <field name="phone"/>
-                        <field name="mobile"/>
-                        <field name="email"/>
+
+                        <field name="phone"
+                               readonly="address_mode == 'existing'"
+                               required="address_mode == 'new'"/>
+
+                        <field name="mobile"
+                               readonly="address_mode == 'existing'"/>
+
+                        <field name="email"
+                               readonly="address_mode == 'existing'"/>
                     </group>
                 </sheet>
                 <footer>
-                    <button name="action_apply_delivery_address" type="object" string="Use Address" class="btn-primary"/>
+                    <button name="action_apply_delivery_address" type="object" string="Use Address"
+                            class="btn-primary"/>
                     <button string="Cancel" special="cancel" class="btn-secondary"/>
                 </footer>
             </form>
