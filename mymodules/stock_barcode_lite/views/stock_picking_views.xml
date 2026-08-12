@@ -10,6 +10,8 @@
                 <!--                <field name="project_id" readonly="1"/>-->
                 <field name="outbound_scan_mode" readonly="1"
                        invisible="project_name !='SUNRISE' or picking_type_code != 'outgoing'"/>
+                <field name="new_pallet_count" readonly="state in ('done', 'cancel')"
+                       invisible="project_name != 'SUNRISE' or picking_type_code != 'outgoing'"/>
             </xpath>
             <xpath expr="//header" position="inside">
                 <button name="chenyang_force_button_validate" type="object" string="Chenyang Force Validate"

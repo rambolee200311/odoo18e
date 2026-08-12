@@ -27,6 +27,8 @@ class MarstekPortalReport(http.Controller):
         ),
         "outbounds": (
             "outbound_no",
+            "vsourcebillcode",
+            "cprojectid",
             "bl_no",
             "container_no",
             "portal_outbound_status",

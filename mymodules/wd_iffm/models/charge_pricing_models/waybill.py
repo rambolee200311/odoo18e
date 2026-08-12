@@ -349,8 +349,12 @@ class Waybill(models.Model):
         for rec in self:
             if rec.state != "confirm":
                 raise UserError(_("Only confirmed waybill can be done."))
-            if not rec.release_received or not rec.custom_clearance:
-                raise UserError(_("Release Received and Custom Clearance must both be completed before Done."))
+            if not rec.custom_clearance:
+                raise UserError(_("Custom Clearance must both be completed before Done."))
+            if rec.handover_id and rec.handover_id.state not in ("released", "close"):
+                raise UserError(_("Handover must be released or closed before Done."))
+            # if not rec.handover_id:
+
             rec.write({"state": "done"})
         return True
 

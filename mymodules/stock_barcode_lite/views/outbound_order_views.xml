@@ -78,7 +78,8 @@
                         class="oe_stat_button"
                         icon="fa-refresh"
                         confirm="This will return completed outbound pickings and remove old picking links. Continue?"
-                        invisible="project_name != 'SUNRISE' or state != 'confirm'"/>
+                        invisible="project_name != 'SUNRISE' or state != 'confirm'"
+                        groups="stock_barcode_lite.group_sunrise_stock_manager"/>
             </xpath>
             <xpath expr="//field[@name='outbound_order_product_ids']" position="after">
                 <group invisible="project_name != 'SUNRISE'">
