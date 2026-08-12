@@ -32,6 +32,8 @@ class OutboundOrder(models.Model):
         portal_outbound_status = filters.get("portal_outbound_status")
         container_no = filters.get("container_no")
         bl_no = filters.get("bl_no")
+        vsourcebillcode = filters.get("vsourcebillcode")
+        cprojectid = filters.get("cprojectid")
         domain.append(("state", "=", "confirm"))
         # if bl_no:
         #     domain.append(("bl_no", "ilike", bl_no))
@@ -39,6 +41,10 @@ class OutboundOrder(models.Model):
         #     domain.append(("cntr_no", "ilike", container_no))
         if outbound_no:
             domain = expression.AND([domain, ["|", ("billno", "ilike", outbound_no), ("reference", "ilike", outbound_no)]])
+        if vsourcebillcode:
+            domain.append(("vsourcebillcode", "ilike", vsourcebillcode))
+        if cprojectid:
+            domain.append(("outbound_order_product_ids.cprojectid", "ilike", cprojectid))
 
         if portal_outbound_status == "outbound_confirmed":
             domain.append(("picking_PICK", "=", False))
