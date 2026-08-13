@@ -87,11 +87,14 @@ class OutboundOrder(models.Model):
 
 
             product_names = rec.outbound_order_product_ids.mapped("product_id.name")
+            contract_no = ", ".join(dict.fromkeys(filter(None, rec.outbound_order_product_ids.mapped("cprojectid"))))
+
             first_product_name = product_names[0] if product_names else ""
             product_summary = f"{first_product_name},  etc.({total_quantity} pcs)" if first_product_name else ""
             rows.append({
                 "outbound_id": rec.id,
                 "outbound_no": rec.billno or rec.reference or "",
+                "contract_no": contract_no,
                 "reference": rec.reference or "",
                 "bl_no": ", ".join(sorted(bls)),
                 "container_no": ", ".join(sorted(containers)),
