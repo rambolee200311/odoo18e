@@ -9,7 +9,7 @@
                 <a href="/my/marstek" class="text-decoration-none">
                     <div class="card">
                         <div class="card-body">
-                            <h5><i class="fa fa-cubes me-2"/>Marstek Stock</h5>
+                            <h5><i class="fa fa-cubes me-2"/>Stock Portal</h5>
                             <p class="text-muted mb-0">View your inventory and order information</p>
                         </div>
                     </div>
@@ -29,7 +29,7 @@
             <div class="o_portal_content">
                 <h1 class="mb-4">
                     <i class="fa fa-cubes me-2 text-primary"/>
-                    Marstek Stock
+                    Stock Portal
                 </h1>
                 <p class="text-muted mb-4">Select a module below to view your inventory and order information.</p>
 

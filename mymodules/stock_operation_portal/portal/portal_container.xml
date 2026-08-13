@@ -7,7 +7,12 @@
             <t t-set="page_name" value="'operation_home'"/>
             <div class="o_portal_wrap">
                 <div class="container py-5">
-                    <h1 class="mb-4">Stock Operations</h1>
+                    <div class="mb-3">
+                        <a href="/my/home" class="btn btn-outline-secondary">
+                            <i class="fa fa-arrow-left"/> Back to Home
+                        </a>
+                    </div>
+                    <h1 class="mb-4">Stock Order</h1>
                     <div class="row">
                         <div class="col-md-4 mb-3">
                             <div class="card">
