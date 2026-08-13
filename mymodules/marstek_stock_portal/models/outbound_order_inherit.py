@@ -42,7 +42,7 @@ class OutboundOrder(models.Model):
         if outbound_no:
             domain = expression.AND([domain, ["|", ("billno", "ilike", outbound_no), ("reference", "ilike", outbound_no)]])
         if vsourcebillcode:
-            domain.append(("vsourcebillcode", "ilike", vsourcebillcode))
+            domain = expression.AND([domain, ["|", ("vsourcebillcode", "ilike", vsourcebillcode), ("outbound_order_product_ids.cprojectid", "ilike", vsourcebillcode)]])
         if cprojectid:
             domain.append(("outbound_order_product_ids.cprojectid", "ilike", cprojectid))
 
