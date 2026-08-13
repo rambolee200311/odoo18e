@@ -1,6 +1,7 @@
 /** @odoo-module **/
 
 import {ListRenderer} from "@web/views/list/list_renderer";
+import {Domain} from "@web/core/domain";
 import {patch} from "@web/core/utils/patch";
 import {onMounted, onWillUnmount, onPatched} from "@odoo/owl";
 
@@ -526,7 +527,38 @@ patch(ListRenderer.prototype, {
         return domain;
     },
 
+    get_filtered_records(list) {
+        const records = list.records;
+        const columnDomain = this._buildDomain();
+        if (!this.isX2Many || !columnDomain.length) return records;
+
+        return records.filter((record) => columnDomain.every((condition) => {
+            const [fieldPath, operator] = condition;
+            const fieldName = fieldPath.split(".")[0];
+            const colInfo = this.columnInfoMap[fieldName];
+            const context = {...record.evalContext};
+
+            if (["many2one", "many2many", "one2many"].includes(colInfo?.type)) {
+                const fieldValue = record.data[fieldName];
+                let names = [];
+                if (colInfo.type === "many2one") {
+                    names = fieldValue ? [fieldValue[1]] : [];
+                } else {
+                    names = fieldValue?.records?.map((item) => item.data.display_name || item.data.name || "") || [];
+                }
+                context[fieldName] = {name: operator === "in" ? names : names.join(", ")};
+            }
+            return new Domain([condition]).contains(context);
+        }));
+    },
+
     _applyColumnFilters() {
+        if (this.isX2Many) {
+            this._searchRowInjected = false;
+            this.render();
+            return;
+        }
+
         const columnDomain = this._buildDomain();
         const searchModel = this.env?.searchModel;
         if (searchModel) {
