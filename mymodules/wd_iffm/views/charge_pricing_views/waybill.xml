@@ -37,13 +37,22 @@
                             invisible="state != 'confirm'"
                             class="btn-primary"
                             groups="base.group_system"/>
-                    <button name="action_done_order" type="object" string="Done" class="btn-success"
-                            invisible="state != 'confirm' or not release_received or not custom_clearance"/>
-                    <button name="action_cancel_order"
+                    <button name="action_done_order"
                             type="object"
-                            string="Cancel"
-                            invisible="state != 'new'"
-                            class="btn-warning"/>
+                            string="Done"
+                            class="btn-success"
+                            confirm="No handover has been created for this waybill. Are you sure you want to complete it?"
+                            invisible="state != 'confirm' or not custom_clearance or handover_id"/>
+                    <button name="action_done_order"
+                            type="object"
+                            string="Done"
+                            class="btn-success"
+                            invisible="state != 'confirm' or not custom_clearance or not handover_id"/>                    <button
+                        name="action_cancel_order"
+                        type="object"
+                        string="Cancel"
+                        invisible="state != 'new'"
+                        class="btn-warning"/>
                     <field
                             name="state"
                             widget="statusbar"
@@ -407,8 +416,6 @@
     </record>
 
     <menuitem id="waybill_logi_menu" name="Waybill" parent="menu_wd_charge_root" sequence="40"/>
-    <menuitem id="waybill_menu" name="Waybills" parent="waybill_logi_menu" action="action_import_bill_kanban"
-              sequence="801"/>
     <menuitem id="container_menu" name="Containers" parent="waybill_logi_menu" action="action_waybill_container"
               sequence="802"/>
     <menuitem id="packing_list_menu" name="Packing Lists" parent="waybill_logi_menu"

@@ -201,6 +201,11 @@ class SunriseStockReport(models.Model):
 
                 product_lot_quantity_map = defaultdict(float)
                 product_lot_period_map = defaultdict(lambda: {"opening_quantity": 0.0, "inbound_quantity": 0.0, "outbound_quantity": 0.0})
+                location_quantity_map = defaultdict(float)
+                location_last_sequence_map = {}
+                product_lot_last_location_map = {}
+                product_lot_last_location_sequence_map = {}
+                package_last_location_id = False
                 lifecycle_start_datetime = False
                 lifecycle_start_move_line = False
                 consumed_datetime = False
@@ -212,10 +217,27 @@ class SunriseStockReport(models.Model):
                 opening_set = False
                 package_matches_filter = not (rec.product_template_id or lot_filter)
 
-                for package_event in package_events:
+                for event_sequence, package_event in enumerate(package_events):
                     move_line = package_event["move_line"]
                     product_template = move_line.product_id.product_tmpl_id
                     move_lot_name = move_line.lot_id.name or ""
+                    quantity_key = (move_line.product_id.id, move_line.lot_id.id)
+                    source_package_id = move_line.package_id.id
+                    destination_package_id = move_line.result_package_id.id or source_package_id
+                    if move_line.location_id.usage == "internal" and source_package_id == package_id:
+                        location_key = (move_line.product_id.id, move_line.lot_id.id, move_line.location_id.id)
+                        location_quantity_map[location_key] -= move_line.quantity
+                        location_last_sequence_map[move_line.location_id.id] = event_sequence * 2
+                        product_lot_last_location_map[quantity_key] = move_line.location_id.id
+                        product_lot_last_location_sequence_map[quantity_key] = event_sequence * 2
+                        package_last_location_id = move_line.location_id.id
+                    if move_line.location_dest_id.usage == "internal" and destination_package_id == package_id:
+                        location_key = (move_line.product_id.id, move_line.lot_id.id, move_line.location_dest_id.id)
+                        location_quantity_map[location_key] += move_line.quantity
+                        location_last_sequence_map[move_line.location_dest_id.id] = event_sequence * 2 + 1
+                        product_lot_last_location_map[quantity_key] = move_line.location_dest_id.id
+                        product_lot_last_location_sequence_map[quantity_key] = event_sequence * 2 + 1
+                        package_last_location_id = move_line.location_dest_id.id
                     if (
                         (not rec.product_template_id or product_template == rec.product_template_id)
                         and (not lot_filter or lot_filter in move_lot_name.lower())
@@ -229,7 +251,6 @@ class SunriseStockReport(models.Model):
 
                     before_active = any(quantity > 0.000001 for quantity in product_lot_quantity_map.values())
                     if package_event["signed_quantity"]:
-                        quantity_key = (move_line.product_id.id, move_line.lot_id.id)
                         product_lot_quantity_map[quantity_key] += package_event["signed_quantity"]
                         period_data = product_lot_period_map[quantity_key]
                         if event_date < rec.date_from:
@@ -261,6 +282,15 @@ class SunriseStockReport(models.Model):
                     continue
                 if not package_matches_filter:
                     continue
+
+                product_lot_active_location_map = defaultdict(set)
+                for (product_id, lot_id, location_id), quantity in location_quantity_map.items():
+                    if quantity > 0.000001:
+                        product_lot_active_location_map[(product_id, lot_id)].add(location_id)
+                package_active_location_ids = set()
+                for active_location_ids in product_lot_active_location_map.values():
+                    package_active_location_ids.update(active_location_ids)
+                closing_location_id = max(package_active_location_ids, key=lambda location_id: (location_last_sequence_map.get(location_id, -1), location_id)) if package_active_location_ids else package_last_location_id
 
                 closing_age_days = 0
                 opening_age_days = 0
@@ -314,6 +344,9 @@ class SunriseStockReport(models.Model):
                         "outbound_quantity": period_data["outbound_quantity"],
                         "on_hand_quantity": on_hand_quantity,
                         "reserved_quantity": current_quant_map[(package_id, product_id, lot_id)],
+                        "active_location_ids": product_lot_active_location_map[quantity_key],
+                        "last_location_id": product_lot_last_location_map.get(quantity_key),
+                        "last_location_sequence": product_lot_last_location_sequence_map.get(quantity_key, -1),
                     })
 
                 anomaly_messages = []
@@ -325,6 +358,8 @@ class SunriseStockReport(models.Model):
                     anomaly_messages.append(_("Negative stock"))
                 if lifecycle_count > 1:
                     anomaly_messages.append(_("Repeated package lifecycle"))
+                if len(package_active_location_ids) > 1:
+                    anomaly_messages.append(_("Package in multiple locations"))
 
                 first_inbound_order = lifecycle_start_move_line.picking_id.inbound_order_id if lifecycle_start_move_line else False
                 first_inbound_picking = lifecycle_start_move_line.picking_id if lifecycle_start_move_line else False
@@ -396,6 +431,9 @@ class SunriseStockReport(models.Model):
                     uom_id = False
                     has_on_hand_quantity = False
                     has_outbound_quantity = False
+                    active_location_ids = set()
+                    last_location_id = False
+                    last_location_sequence = -1
                     for variant in variant_data:
                         product = variant["product"]
                         variant_name = product.display_name
@@ -419,6 +457,10 @@ class SunriseStockReport(models.Model):
                         })
                         has_on_hand_quantity = has_on_hand_quantity or variant["on_hand_quantity"] > 0.000001
                         has_outbound_quantity = has_outbound_quantity or variant["outbound_quantity"] > 0.000001
+                        active_location_ids.update(variant["active_location_ids"])
+                        if variant["last_location_id"] and variant["last_location_sequence"] > last_location_sequence:
+                            last_location_id = variant["last_location_id"]
+                            last_location_sequence = variant["last_location_sequence"]
                         if same_uom:
                             opening_quantity += variant["opening_quantity"]
                             inbound_quantity += variant["inbound_quantity"]
@@ -436,9 +478,11 @@ class SunriseStockReport(models.Model):
                         stock_state = "fully_outbound"
                     else:
                         stock_state = "out_of_stock"
+                    stock_location_id = max(active_location_ids, key=lambda location_id: (location_last_sequence_map.get(location_id, -1), location_id)) if active_location_ids else last_location_id
                     stock_values_list.append({
                         "product_template_id": detail_data["product_template"].id,
                         "lot_id": detail_data["lot"].id if detail_data["lot"] else False,
+                        "closing_location_id": stock_location_id,
                         "stock_state": stock_state,
                         "opening_quantity": opening_quantity,
                         "inbound_quantity": inbound_quantity,
@@ -481,6 +525,7 @@ class SunriseStockReport(models.Model):
                     "values": {
                         "package_id": package_id,
                         "pallet_no": package_data["pallet_no"],
+                        "closing_location_id": closing_location_id,
                         "warehouse_id": package_data["warehouse"].id if package_data["warehouse"] else False,
                         "owner_id": package_data["owner"].id if package_data["owner"] else False,
                         "lifecycle_state": "active" if closing_pallet_count else "consumed",
@@ -593,14 +638,15 @@ class SunriseStockReport(models.Model):
             if export_type == "pallet_summary":
                 sheet_name = "Pallet Summary"
                 file_prefix = "Sunrise_Pallet_Summary"
-                headers = ["Package", "Original Pallet", "Lifecycle State", "Lifecycle Start", "Consumed At", "Inbound Orders", "Outbound Orders", "Inbound Pickings", "Outbound Pickings", "Opening Pallets", "Inbound Pallet Operations", "Outbound Pallet Operations", "Closing Pallets", "Opening Age Days", "Closing Age Days", "Period Stock Days", "Anomaly"]
-                widths = [28, 22, 16, 20, 20, 24, 24, 24, 24, 14, 14, 15, 14, 16, 16, 17, 24]
+                headers = ["Package", "Original Pallet", "Cutoff / Last Location", "Lifecycle State", "Lifecycle Start", "Consumed At", "Inbound Orders", "Outbound Orders", "Inbound Pickings", "Outbound Pickings", "Opening Pallets", "Inbound Pallet Operations", "Outbound Pallet Operations", "Closing Pallets", "Opening Age Days", "Closing Age Days", "Period Stock Days", "Anomaly"]
+                widths = [28, 22, 28, 16, 20, 20, 24, 24, 24, 24, 14, 14, 15, 14, 16, 16, 17, 24]
                 state_label_map = dict(report_line_model._fields["lifecycle_state"].selection)
                 report_lines = report_line_model.search([("report_id", "=", rec.id)], order="pallet_no asc, id asc")
                 rows = [
                     [
                         line.package_id.name or "",
                         line.pallet_no or "",
+                        line.closing_location_id.display_name or "",
                         state_label_map.get(line.lifecycle_state, ""),
                         fields.Datetime.context_timestamp(rec, line.lifecycle_start_datetime).strftime("%Y-%m-%d %H:%M:%S") if line.lifecycle_start_datetime else "",
                         fields.Datetime.context_timestamp(rec, line.consumed_datetime).strftime("%Y-%m-%d %H:%M:%S") if line.consumed_datetime else "",
@@ -619,12 +665,12 @@ class SunriseStockReport(models.Model):
                     ]
                     for line in report_lines
                 ]
-                total_values = ["Total", "", "", "", "", "", "", "", "", sum(line.opening_pallet_count for line in report_lines), sum(line.inbound_pallet_count for line in report_lines), sum(line.outbound_pallet_count for line in report_lines), sum(line.closing_pallet_count for line in report_lines), "", "", "", ""]
+                total_values = ["Total", "", "", "", "", "", "", "", "", "", sum(line.opening_pallet_count for line in report_lines), sum(line.inbound_pallet_count for line in report_lines), sum(line.outbound_pallet_count for line in report_lines), sum(line.closing_pallet_count for line in report_lines), "", "", "", ""]
             elif export_type == "product_stock":
                 sheet_name = "Product Lot Stock"
                 file_prefix = "Sunrise_Product_Lot_Stock"
-                headers = ["Package", "Original Pallet", "Product", "Lot", "Stock State", "Opening Quantity", "Inbound Quantity", "Outbound Quantity", "Closing Quantity", "Reserved Quantity", "Available Quantity", "Unit", "Variant Specifications", "Variant Quantity Details", "Reservation Note"]
-                widths = [28, 22, 32, 20, 18, 16, 16, 17, 16, 17, 17, 12, 32, 36, 32]
+                headers = ["Package", "Original Pallet", "Product", "Lot", "Cutoff / Last Location", "Stock State", "Opening Quantity", "Inbound Quantity", "Outbound Quantity", "Closing Quantity", "Reserved Quantity", "Available Quantity", "Unit", "Variant Specifications", "Variant Quantity Details", "Reservation Note"]
+                widths = [28, 22, 32, 20, 28, 18, 16, 16, 17, 16, 17, 17, 12, 32, 36, 32]
                 state_label_map = dict(stock_line_model._fields["stock_state"].selection)
                 stock_lines = stock_line_model.search([("report_line_id.report_id", "=", rec.id)], order="report_line_id, product_template_id, lot_id, id")
                 rows = [
@@ -633,6 +679,7 @@ class SunriseStockReport(models.Model):
                         line.report_line_id.pallet_no or "",
                         line.product_template_id.display_name or "",
                         line.lot_id.name or "",
+                        line.closing_location_id.display_name or "",
                         state_label_map.get(line.stock_state, ""),
                         line.opening_quantity,
                         line.inbound_quantity,
@@ -741,6 +788,7 @@ class SunriseStockReportLine(models.Model):
     package_id = fields.Many2one("stock.quant.package", string="Package", readonly=True, index=True, copy=False)
     product_template_id = fields.Many2one("product.template", string="Product", readonly=True, index=True, copy=False)
     pallet_no = fields.Char(string="Original Pallet No", readonly=True, index=True, copy=False)
+    closing_location_id = fields.Many2one("stock.location", string="Cutoff / Last Location", readonly=True, index=True, copy=False)
     warehouse_id = fields.Many2one("stock.warehouse", string="Warehouse", readonly=True, index=True, copy=False)
     owner_id = fields.Many2one("res.partner", string="Owner", readonly=True, index=True, copy=False)
     lifecycle_state = fields.Selection([("active", "Active"), ("consumed", "Consumed"), ("closed", "Closed")], string="Lifecycle State", readonly=True, index=True, copy=False)
@@ -803,6 +851,7 @@ class SunriseStockReportProductLine(models.Model):
     report_line_id = fields.Many2one("sunrise.stock.report.line", string="Pallet Summary", required=True, ondelete="cascade", index=True, copy=False)
     product_template_id = fields.Many2one("product.template", string="Product", required=True, readonly=True, index=True, copy=False)
     lot_id = fields.Many2one("stock.lot", string="Lot", readonly=True, index=True, copy=False)
+    closing_location_id = fields.Many2one("stock.location", string="Cutoff / Last Location", readonly=True, index=True, copy=False)
     lot_name = fields.Char(related="lot_id.name", string="Lot No", readonly=True)
     stock_state = fields.Selection([("in_stock", "In Stock"), ("partial_outbound", "Partially Outbound"), ("fully_outbound", "Fully Outbound"), ("out_of_stock", "Out of Stock")], string="Stock State", readonly=True, copy=False, index=True)
     opening_quantity = fields.Float(string="Opening Quantity", readonly=True, copy=False)

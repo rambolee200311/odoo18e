@@ -126,7 +126,7 @@ class MarstekStockPortal(CustomerPortal):
     @http.route(["/my/marstek/outbounds","/my/marstek/outbounds/page/<int:page>"], type="http", auth="user", website=True)
     def marstek_outbounds_page(self, page=1, **kw):
         filters = self.marstek_filter_values(kw,
-                                             ["outbound_no","reference","bl_no", "container_no", "portal_outbound_status", "outbound_date_from",
+                                             ["outbound_no", "reference", "vsourcebillcode", "cprojectid", "bl_no", "container_no", "portal_outbound_status", "outbound_date_from",
                                               "outbound_date_to", "view_mode"])
         page_size = 20
         all_rows = request.env["world.depot.outbound.order"].get_outbound_list(filters)
@@ -142,9 +142,12 @@ class MarstekStockPortal(CustomerPortal):
         rows = all_rows[pager["offset"]: pager["offset"] + page_size]
 
         values = self.marstek_prepare_page_values("marstek_outbounds", "Outbound Orders", filters)
+        owner = request.env.user.sudo().marstek_owner_id
+        show_sunrise_outbound_filters = bool(owner and request.env["project.project"].sudo().search_count([("owner", "=", owner.id), ("name", "=", "SUNRISE")]))
         values.update({
             "rows": rows,
             "pager": pager,
+            "show_sunrise_outbound_filters": show_sunrise_outbound_filters,
         })
         return request.render("marstek_stock_portal.portal_marstek_outbounds", values)
 
@@ -172,11 +175,18 @@ class MarstekStockPortal(CustomerPortal):
         attachment_rows = outbound_env.get_outbound_attachments(outbound_id)
 
         values = self.marstek_prepare_page_values("marstek_outbound_detail", "Outbound Detail",filters)
+        contract_no = ", ".join(dict.fromkeys(filter(None, order.outbound_order_product_ids.mapped(
+            "cprojectid")))) if order.project.name == "SUNRISE" else ""
+        owner = request.env.user.sudo().marstek_owner_id
+        show_sunrise_outbound_filters = bool(owner and request.env["project.project"].sudo().search_count(
+            [("owner", "=", owner.id), ("name", "=", "SUNRISE")]))
         values.update({
             "order": order,
             "detail_rows": detail_rows,
             "attachment_rows": attachment_rows,
             "detail_pager": pager,
+            "contract_no": contract_no,
+            "show_sunrise_outbound_filters":show_sunrise_outbound_filters,
         })
         return request.render("marstek_stock_portal.portal_marstek_outbound_detail", values)
 

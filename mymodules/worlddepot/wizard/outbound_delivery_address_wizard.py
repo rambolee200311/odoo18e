@@ -3,7 +3,7 @@ import logging
 
 import requests
 
-from odoo import _, fields, models
+from odoo import _, fields, models, api
 from odoo.exceptions import UserError
 
 from ..models.delivery_address import build_address_key
@@ -30,6 +30,27 @@ class WorldDepotDeliveryAddressWizard(models.TransientModel):
     mobile = fields.Char(string="Mobile")
     email = fields.Char(string="Email")
 
+    def set_saved_address_snapshot(self):
+        for record in self:
+            if not record.address_id:
+                continue
+
+            address = record.address_id
+            record.update({
+                "street": address.street,
+                "city": address.city,
+                "zip": address.zip,
+                "country_id": address.country_id.id,
+                "phone": address.phone,
+                "mobile": address.mobile,
+                "email": address.email,
+            })
+
+    @api.onchange("address_id")
+    def onchange_address_id(self):
+        for record in self:
+            if record.address_id:
+                record.set_saved_address_snapshot()
     def set_matched_delivery_address(self):
         for record in self:
             record.write({"address_mode": "new", "address_id": False})
@@ -44,6 +65,7 @@ class WorldDepotDeliveryAddressWizard(models.TransientModel):
             ], limit=2)
             if len(address_records) == 1:
                 record.write({"address_mode": "existing", "address_id": address_records.id})
+                record.set_saved_address_snapshot()
             elif address_records:
                 record.write({"address_mode": "existing", "address_id": False})
 
@@ -61,61 +83,61 @@ class WorldDepotDeliveryAddressWizard(models.TransientModel):
         return action
 
     def action_parse_delivery_text(self):
-        #
-        # for record in self:
-        #
-        #     if not record.raw_text or not record.raw_text.strip():
-        #         raise UserError(_("Paste an address before parsing."))
-        #     if len(record.raw_text.strip()) > 1000:
-        #         raise UserError(_("Google address text cannot exceed 1,000 characters."))
-        #
-        #     google_maps_key = record.env["ir.config_parameter"].sudo().get_param("google_maps_api_key")
-        #     if not google_maps_key:
-        #         raise UserError(_("Google Maps API key is not configured."))
-        #
-        #     try:
-        #         google_response = requests.get(
-        #             "https://maps.googleapis.com/maps/api/geocode/json",
-        #             params={"address": record.raw_text.strip(), "key": google_maps_key},
-        #             timeout=(10, 30),
-        #         )
-        #     except requests.RequestException as error:
-        #         raise UserError(_("Google address parsing request failed: %s") % error) from error
-        #
-        #     if not google_response.ok:
-        #         raise UserError(_("Google address parsing failed with status %s.") % google_response.status_code)
-        #
-        #     try:
-        #         google_values = google_response.json()
-        #         if google_values.get("status") != "OK" or not google_values.get("results"):
-        #             raise UserError(_("Google could not find a matching address (%s).") % google_values.get("status", "UNKNOWN_ERROR"))
-        #         components = {}
-        #         for component in google_values["results"][0].get("address_components", []):
-        #             for component_type in component.get("types", []):
-        #                 components[component_type] = component
-        #     except (ValueError, KeyError, IndexError, TypeError) as error:
-        #         raise UserError(_("Google did not return a valid address result.")) from error
-        #
-        #     street = " ".join(part for part in [
-        #         components.get("street_number", {}).get("long_name"),
-        #         components.get("route", {}).get("long_name"),
-        #     ] if part)
-        #     city = (
-        #         components.get("locality", {}).get("long_name")
-        #         or components.get("postal_town", {}).get("long_name")
-        #         or components.get("administrative_area_level_2", {}).get("long_name")
-        #     )
-        #     country_code = components.get("country", {}).get("short_name")
-        #     country = record.env["res.country"].sudo().search([("code", "=", country_code)], limit=1) if country_code else False
-        #     record.write({
-        #         "is_parsed": True,
-        #         "parsed_recipient_name": False,
-        #         "street": street,
-        #         "city": city,
-        #         "zip": components.get("postal_code", {}).get("long_name"),
-        #         "country_id": country.id,
-        #     })
-        #     record.set_matched_delivery_address()
+
+        for record in self:
+
+            if not record.raw_text or not record.raw_text.strip():
+                raise UserError(_("Paste an address before parsing."))
+            if len(record.raw_text.strip()) > 1000:
+                raise UserError(_("Google address text cannot exceed 1,000 characters."))
+
+            google_maps_key = record.env["ir.config_parameter"].sudo().get_param("google_maps_api_key")
+            if not google_maps_key:
+                raise UserError(_("Google Maps API key is not configured."))
+
+            try:
+                google_response = requests.get(
+                    "https://maps.googleapis.com/maps/api/geocode/json",
+                    params={"address": record.raw_text.strip(), "key": google_maps_key},
+                    timeout=(10, 30),
+                )
+            except requests.RequestException as error:
+                raise UserError(_("Google address parsing request failed: %s") % error) from error
+
+            if not google_response.ok:
+                raise UserError(_("Google address parsing failed with status %s.") % google_response.status_code)
+
+            try:
+                google_values = google_response.json()
+                if google_values.get("status") != "OK" or not google_values.get("results"):
+                    raise UserError(_("Google could not find a matching address (%s).") % google_values.get("status", "UNKNOWN_ERROR"))
+                components = {}
+                for component in google_values["results"][0].get("address_components", []):
+                    for component_type in component.get("types", []):
+                        components[component_type] = component
+            except (ValueError, KeyError, IndexError, TypeError) as error:
+                raise UserError(_("Google did not return a valid address result.")) from error
+
+            street = " ".join(part for part in [
+                components.get("street_number", {}).get("long_name"),
+                components.get("route", {}).get("long_name"),
+            ] if part)
+            city = (
+                components.get("locality", {}).get("long_name")
+                or components.get("postal_town", {}).get("long_name")
+                or components.get("administrative_area_level_2", {}).get("long_name")
+            )
+            country_code = components.get("country", {}).get("short_name")
+            country = record.env["res.country"].sudo().search([("code", "=", country_code)], limit=1) if country_code else False
+            record.write({
+                "is_parsed": True,
+                "parsed_recipient_name": False,
+                "street": street,
+                "city": city,
+                "zip": components.get("postal_code", {}).get("long_name"),
+                "country_id": country.id,
+            })
+            record.set_matched_delivery_address()
         return self.get_wizard_form_action()
 
     def action_parse_delivery_text_with_deepseek(self):

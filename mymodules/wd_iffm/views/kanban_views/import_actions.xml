@@ -75,4 +75,8 @@
         <field name="view_id" ref="wd_iffm.view_world_depot_waybill_form"/>
 <!--        <field name="context">{'active_id': active_id}</field> -->
     </record>
+
+        <menuitem id="waybill_menu" name="Waybills" parent="waybill_logi_menu" action="action_import_bill_kanban"
+              sequence="801"/>
+
 </odoo>

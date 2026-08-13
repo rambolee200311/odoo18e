@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_stock_picking_portal,stock.picking.portal,stock.model_stock_picking,base.group_portal,1,1,1,1
+access_stock_picking_type_portal,stock.picking.type.portal,stock.model_stock_picking_type,base.group_portal,1,0,0,0
+access_stock_location_portal,stock.location.portal,stock.model_stock_location,base.group_portal,1,0,0,0
+access_stock_quant_portal,stock.quant.portal,stock.model_stock_quant,base.group_portal,1,0,0,0
+access_world_depot_inbound_portal,world.depot.inbound.portal,worlddepot.model_world_depot_inbound_order,base.group_portal,1,1,1,1
+access_world_depot_outbound_portal,world.depot.outbound.portal,worlddepot.model_world_depot_outbound_order,base.group_portal,1,1,1,1
