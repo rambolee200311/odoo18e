@@ -259,6 +259,12 @@
                                 <strong class="text-muted small">Reference</strong>
                                 <div><t t-esc="order.reference if order else ''"/></div>
                             </div>
+                            <t t-if="not show_sunrise_outbound_filters">
+                                <div class="col-md-3 mb-2">
+                                    <strong class="text-muted small">Contract No</strong>
+                                    <div><t t-esc="contract_no or ''"/></div>
+                                </div>
+                            </t>
                             <div class="col-md-3 mb-2">
                                 <strong class="text-muted small">Outbound Date</strong>
                                 <div><t t-esc="order.o_date if order else ''"/></div>
