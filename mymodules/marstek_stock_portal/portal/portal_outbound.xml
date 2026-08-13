@@ -22,10 +22,18 @@
                     <div id="outbound_filter_collapse" class="collapse show">
                     <div class="card-body">
                         <form action="/my/marstek/outbounds" method="get" class="row g-3">
-                            <div class="col-12 col-md-6 col-lg-4">
-                                <label for="outbound_no" class="form-label">Outbound No. / Reference</label>
-                                <input type="text" class="form-control" id="outbound_no" name="outbound_no" t-attf-value="#{filters.get('outbound_no', '')}" placeholder="Enter outbound no. or reference"/>
-                            </div>
+                            <t t-if="show_sunrise_outbound_filters">
+                                <div class="col-12 col-md-6 col-lg-4">
+                                    <label for="vsourcebillcode" class="form-label">Source Bill Code/Contract No</label>
+                                    <input type="text" class="form-control" id="vsourcebillcode" name="vsourcebillcode" t-attf-value="#{filters.get('vsourcebillcode', '')}" placeholder="Enter source bill code or contract no"/>
+                                </div>
+                            </t>
+                            <t t-else="">
+                                <div class="col-12 col-md-6 col-lg-4">
+                                    <label for="outbound_no" class="form-label">Outbound No. / Reference</label>
+                                    <input type="text" class="form-control" id="outbound_no" name="outbound_no" t-attf-value="#{filters.get('outbound_no', '')}" placeholder="Enter outbound no. or reference"/>
+                                </div>
+                            </t>
                             <div class="col-12 col-md-6 col-lg-4">
                                 <label for="bl_no" class="form-label">BL No.</label>
                                 <input type="text" class="form-control" id="bl_no" name="bl_no" t-attf-value="#{filters.get('bl_no', '')}" placeholder="Enter BL no."/>
@@ -172,7 +180,12 @@
                                                 <div class="summary-row" style="display: flex; align-items: center; gap: 8px; justify-content: flex-start;">
                                                     <span class="summary-item" style="display: flex; align-items: center; gap: 4px;">
                                                         <i class="fa fa-file-text-o me-1 text-primary"></i>
-                                                        <strong>Reference:</strong> <t t-esc="row.get('reference', 'N/A')"/>
+                                                        <t t-if="show_sunrise_outbound_filters">
+                                                            <strong>Contract No:</strong> <t t-esc="row.get('contract_no', 'N/A')"/>
+                                                        </t>
+                                                        <t t-else="">
+                                                            <strong>Reference:</strong> <t t-esc="row.get('reference', 'N/A')"/>
+                                                        </t>
                                                     </span>
                                                 </div>
                                                 <div class="summary-row" style="display: flex; align-items: center; gap: 8px; justify-content: flex-start;">
