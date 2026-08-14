@@ -44,7 +44,7 @@ class MarstekStockPortal(CustomerPortal):
     def marstek_stock_page(self, page=1, **kw):
         filters = self.marstek_filter_values(kw, ["container_no", "bl_no", "product_code", "location_id", "date_from", "date_to", "stock_group_mode", "view_mode"])
         if not filters.get("stck group mode"):
-            filters["stck group mode"] = 'package'
+            filters["stock_group_mode"] = 'package'
         page_size = 20
         all_rows = request.env["stock.quant.package"].get_all_stock(filters)
         total = len(all_rows)
