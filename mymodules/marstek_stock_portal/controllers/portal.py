@@ -5,6 +5,10 @@ from odoo.addons.portal.controllers.portal import CustomerPortal
 from odoo.http import request
 from odoo.addons.portal.controllers import portal
 from odoo.addons.portal.controllers.portal import CustomerPortal, pager as portal_pager
+
+from ..models.utils import portal_stock_location_options
+
+
 class MarstekStockPortal(CustomerPortal):
 
     def marstek_filter_values(self, kw, names):
@@ -38,10 +42,18 @@ class MarstekStockPortal(CustomerPortal):
 #库存总览页。
     @http.route(["/my/marstek/stock", "/my/marstek/stock/page/<int:page>"], type="http", auth="user", website=True)
     def marstek_stock_page(self, page=1, **kw):
-        filters = self.marstek_filter_values(kw, ["container_no", "bl_no", "product_code", "date_from", "date_to", "view_mode"])
+        filters = self.marstek_filter_values(kw, ["container_no", "bl_no", "product_code", "location_id", "date_from", "date_to", "stock_group_mode", "view_mode"])
         page_size = 20
         all_rows = request.env["stock.quant.package"].get_all_stock(filters)
         total = len(all_rows)
+        stock_summary = {}
+        if filters.get("stock_group_mode") == "package":
+            stock_summary = {
+                "total_pallet_count": len({
+                    row["package_id"] for row in all_rows if row.get("package_id")
+                }),
+                "total_quantity": sum(row.get("total_quantity", 0) for row in all_rows),
+            }
         pager = portal_pager(
             url="/my/marstek/stock",
             url_args=filters,
@@ -57,8 +69,14 @@ class MarstekStockPortal(CustomerPortal):
         values.update({
             "rows": rows,
             "pager": pager,
+            "stock_summary": stock_summary,
         })
         return request.render("marstek_stock_portal.portal_marstek_stock", values)
+
+    @http.route("/my/marstek/stock/location_options", type="http", auth="user", methods=["GET"], website=False)
+    def marstek_stock_location_options(self, **kw):
+        keyword = (kw.get("q") or "").strip()
+        return request.make_json_response(portal_stock_location_options(request.env, keyword))
 
    # 按柜号查询库存页。
     @http.route(["/my/marstek/container_stock"], type="http", auth="user", website=True)
