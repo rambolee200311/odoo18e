@@ -27,6 +27,29 @@ def portal_quant_domain(env):
     return domain
 
 
+def portal_stock_location_options(env, keyword=""):
+    if not portal_owner_partner(env):
+        return []
+    quants = env["stock.quant"].sudo().search(portal_quant_domain(env))
+    location_id_set = set()
+    for location in quants.mapped("location_id"):
+        location_id_set.add(location.id)
+        location_id_set.update(int(value) for value in (location.parent_path or "").split("/") if value)
+    if not location_id_set:
+        return []
+    location_domain = [("id", "in", list(location_id_set))]
+    if keyword:
+        location_domain = expression.AND([
+            location_domain,
+            ["|", ("name", "ilike", keyword), ("complete_name", "ilike", keyword)],
+        ])
+    locations = env["stock.location"].sudo().search(location_domain, order="complete_name asc, id asc")
+    return [
+        {"location_id": location.id, "location_name": location.complete_name or location.display_name or ""}
+        for location in locations
+    ]
+
+
 def portal_clean_text(value):
     return value or ""
 
