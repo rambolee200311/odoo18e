@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        彻底移除门户默认菜单项
+        
+        基于 Odoo 18e 源码分析，通过 CSS 方式隐藏
+    -->
+
+    <!-- 在 o_portal_docs 区域之前注入 CSS -->
+    <template id="hide_default_portal_menus" inherit_id="portal.portal_my_home">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="before">
+            <style type="text/css">
+                /* 隐藏 Sale 模块入口 */
+                .o_portal_docs .alert-primary a[href="/my/quotes"],
+                .o_portal_docs a[href="/my/orders"] {
+                    display: none !important;
+                }
+                /* 隐藏 Account 模块入口 */
+                .o_portal_docs a[href*="/my/invoices"] {
+                    display: none !important;
+                }
+                /* 隐藏 Portal 模块入口 */
+                .o_portal_docs a[href="/my/security"] {
+                    display: none !important;
+                }
+                /* 隐藏 Documents 模块入口 */
+                .o_portal_docs a[href="/odoo/documents_portal"] {
+                    display: none !important;
+                }
+                /* 隐藏 Project 模块入口 */
+                .o_portal_docs a[href="/my/projects"],
+                .o_portal_docs a[href="/my/tasks"] {
+                    display: none !important;
+                }
+            </style>
+        </xpath>
+    </template>
+
+</odoo>
