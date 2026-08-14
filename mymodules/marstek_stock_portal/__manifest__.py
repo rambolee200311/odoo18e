@@ -31,6 +31,7 @@ Read-only ORM methods for Marstek portal stock, inbound, outbound, SN, and attac
             "marstek_stock_portal/static/src/js/marstek_table_utils.js",
             "marstek_stock_portal/static/src/js/marstek_inbound_card.js",
             "marstek_stock_portal/static/src/js/marstek_outbound_card.js",
+            "marstek_stock_portal/static/src/js/marstek_stock_card.js",
             "marstek_stock_portal/static/src/css/marstek_collapsible.css",
             "marstek_stock_portal/static/src/css/portal.css",
         ],

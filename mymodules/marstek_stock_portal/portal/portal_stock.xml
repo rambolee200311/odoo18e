@@ -35,6 +35,23 @@
                                 <input type="text" class="form-control" id="product_code" name="product_code" t-attf-value="#{filters.get('product_code', '')}" placeholder="Enter product code"/>
                             </div>
                             <div class="col-12 col-md-6 col-lg-4">
+                                <label for="location_search" class="form-label">Location</label>
+                                <div class="position-relative" id="location_wrapper">
+                                    <input type="text"
+                                           class="form-control"
+                                           id="location_search"
+                                           name="location_search"
+                                           placeholder="Search location (e.g. 13仓)"
+                                           autocomplete="off"
+                                           t-attf-value="#{filters.get('location_name', '')}"/>
+                                    <input type="hidden" id="location_id" name="location_id" t-attf-value="#{filters.get('location_id', '')}" t-attf-data-name="#{filters.get('location_name', '')}"/>
+                                    <div id="location_dropdown" class="dropdown-menu" style="display:none; max-height:200px; overflow:auto;"></div>
+                                    <div id="location_loading" class="position-absolute top-50 end-0 translate-middle-y me-2" style="display:none;">
+                                        <i class="fa fa-spinner fa-spin text-muted"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6 col-lg-4">
                                 <label for="date_from" class="form-label">Start Date</label>
                                 <input type="date" class="form-control" id="date_from" name="date_from" t-attf-value="#{filters.get('date_from', '')}"/>
                             </div>
@@ -77,13 +94,13 @@
                                 </label>
                             </div>
                             <!-- 导出按钮 -->
-                            <a t-attf-href="/my/marstek/export/stock/csv?container_no=#{filters.get('container_no', '')}&amp;bl_no=#{filters.get('bl_no', '')}&amp;product_code=#{filters.get('product_code', '')}&amp;date_from=#{filters.get('date_from', '')}&amp;date_to=#{filters.get('date_to', '')}"
+                            <a t-attf-href="/my/marstek/export/stock/csv?container_no=#{filters.get('container_no', '')}&amp;bl_no=#{filters.get('bl_no', '')}&amp;product_code=#{filters.get('product_code', '')}&amp;location_id=#{filters.get('location_id', '')}&amp;date_from=#{filters.get('date_from', '')}&amp;date_to=#{filters.get('date_to', '')}"
                                t-attf-class="btn btn-primary export-btn #{'disabled' if not rows else ''}"
                                t-attf-title="#{'No data to export' if not rows else 'Export CSV'}">
                                 <i class="fa fa-file-text-o"/>
                                 <span class="d-none d-sm-inline ms-1">Export CSV</span>
                             </a>
-                            <a t-attf-href="/my/marstek/export/stock/pdf?container_no=#{filters.get('container_no', '')}&amp;bl_no=#{filters.get('bl_no', '')}&amp;product_code=#{filters.get('product_code', '')}&amp;date_from=#{filters.get('date_from', '')}&amp;date_to=#{filters.get('date_to', '')}"
+                            <a t-attf-href="/my/marstek/export/stock/pdf?container_no=#{filters.get('container_no', '')}&amp;bl_no=#{filters.get('bl_no', '')}&amp;product_code=#{filters.get('product_code', '')}&amp;location_id=#{filters.get('location_id', '')}&amp;date_from=#{filters.get('date_from', '')}&amp;date_to=#{filters.get('date_to', '')}"
                                t-attf-class="btn btn-primary export-btn #{'disabled' if not rows else ''}"
                                t-attf-title="#{'No data to export' if not rows else 'Export PDF'}">
                                 <i class="fa fa-file-pdf-o"/>
