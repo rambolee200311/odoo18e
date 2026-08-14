@@ -13,17 +13,21 @@ class OutboundOrderStatusHoymilesLimit(models.Model):
     logistics_info_sync_click_time=fields.Datetime(string='Logistics Info Sync Click Time', copy=False, index=True)
     outbound_result_sync_click_time=fields.Datetime(string='Outbound Result Sync Click Time', copy=False, index=True)
 
-    def get_hoymiles_success_log(self, request_source):
+    def get_hoymiles_success_log(self, request_source, ws_op_order_no):
         for order in self:
+            if not order.reference or not ws_op_order_no:
+                continue
             log_env = order.env['hoymiles.api.logs'].sudo()
-            log_list = log_env.search([('request_source', '=', request_source), ('request_data', 'ilike', order.reference or ''), ('response_data', 'ilike', 'failed')], order='id desc', limit=20)
+            log_list = log_env.search([('request_source', '=', request_source), ('request_data', 'ilike', order.reference or ''),('request_data', 'ilike', ws_op_order_no), ('response_data', 'ilike', 'failed')], order='id desc', limit=20)
             for log in log_list:
                 try:
                     request_data = json.loads(log.request_data or '{}')
                     response_data = json.loads(log.response_data or '{}')
                 except Exception:
                     continue
-                if request_data.get('reference') == order.reference and response_data.get('failed') is False:
+                #if request_data.get('reference') == order.reference and response_data.get('failed') is False:
+                if request_data.get('reference') == order.reference and request_data.get(
+                        'wsOpOrderNo') == ws_op_order_no and response_data.get('failed') is False:
                     return log
         return False
 
@@ -154,7 +158,7 @@ class OutboundOrderStatusHoymilesLimit(models.Model):
             if order.project and (order.project.name or '').lower() == 'hoymiles':
                 if order.set_status_to_confirmed:
                     return {'type': 'ir.actions.client', 'tag': 'display_notification', 'params': {'title': '提示', 'message': 'Start Operation 已回传成功，请勿重复回传。', 'type': 'warning', 'sticky': False}}
-                success_log = order.get_hoymiles_success_log('Outbound Order Start Operation')
+                success_log = order.get_hoymiles_success_log('Outbound Order Start Operation', order.billno or '')
                 if success_log:
                     order.write({'set_status_to_confirmed': True, 'set_status_to_confirmed_time': success_log.request_time or fields.Datetime.now(), 'status_to_confirmed_error_msg': False})
                     return {'type': 'ir.actions.client', 'tag': 'display_notification', 'params': {'title': '提示', 'message': '已根据成功日志修正 Start Operation 状态，请勿重复回传。', 'type': 'success', 'sticky': False,'next': {'type': 'ir.actions.client', 'tag': 'soft_reload'},}}
@@ -166,7 +170,7 @@ class OutboundOrderStatusHoymilesLimit(models.Model):
             if order.project and (order.project.name or '').lower() == 'hoymiles':
                 if order.set_status_to_pick_finished:
                     return {'type': 'ir.actions.client', 'tag': 'display_notification', 'params': {'title': '提示', 'message': 'Pick Finished 已回传成功，请勿重复回传。', 'type': 'warning', 'sticky': False}}
-                success_log = order.get_hoymiles_success_log('Outbound Order Pick Finished')
+                success_log = order.get_hoymiles_success_log('Outbound Order Pick Finished', order.billno or '')
                 if success_log:
                     order.write({'set_status_to_pick_finished': True, 'set_status_to_pick_finished_time': success_log.request_time or fields.Datetime.now(), 'status_to_pick_finished_error_msg': False})
                     return {'type': 'ir.actions.client', 'tag': 'display_notification', 'params': {'title': '提示', 'message': '已根据成功日志修正 Pick Finished 状态，请勿重复回传。', 'type': 'success', 'sticky': False,'next': {'type': 'ir.actions.client', 'tag': 'soft_reload'},}}
@@ -178,11 +182,13 @@ class OutboundOrderStatusHoymilesLimit(models.Model):
             if order.project and (order.project.name or '').lower() == 'hoymiles':
                 if order.set_outbound_pack_sync:
                     return {'type': 'ir.actions.client', 'tag': 'display_notification', 'params': {'title': '提示', 'message': 'Outbound Pack 已回传成功，请勿重复回传。', 'type': 'warning', 'sticky': False}}
-                success_log = order.get_hoymiles_success_log('Outbound Pack')
+                success_log = order.get_hoymiles_success_log('Outbound Pack', order.sudo().picking_PICK.name if order.sudo().picking_PICK else '')
                 if success_log:
                     order.write({'set_outbound_pack_sync': True, 'set_outbound_pack_sync_time': success_log.request_time or fields.Datetime.now(), 'outbound_pack_sync_error_msg': False})
                     return {'type': 'ir.actions.client', 'tag': 'display_notification', 'params': {'title': '提示', 'message': '已根据成功日志修正 Outbound Pack 状态，请勿重复回传。', 'type': 'success', 'sticky': False,'next': {'type': 'ir.actions.client', 'tag': 'soft_reload'},}}
-
+                pack_list = order.sudo().outbound_order_pack_ids
+                if not pack_list:
+                    raise UserError("请先维护打包信息。")
                 order.check_hoymiles_outbound_pack_sn()
 
                 order.check_hoymiles_click_time('outbound_pack_sync_click_time', 180103)
@@ -193,7 +199,7 @@ class OutboundOrderStatusHoymilesLimit(models.Model):
             if order.project and (order.project.name or '').lower() == 'hoymiles':
                 if order.set_logistics_info_sync:
                     return {'type': 'ir.actions.client', 'tag': 'display_notification', 'params': {'title': '提示', 'message': 'Logistics Info 已回传成功，请勿重复回传。', 'type': 'warning', 'sticky': False,'next': {'type': 'ir.actions.client', 'tag': 'soft_reload'},}}
-                success_log = order.get_hoymiles_success_log('Logistics Info')
+                success_log = order.get_hoymiles_success_log('Logistics Info', order.billno or '')
                 if success_log:
                     order.write({'set_logistics_info_sync': True, 'set_logistics_info_sync_time': success_log.request_time or fields.Datetime.now(), 'logistics_info_sync_error_msg': False})
                     return {'type': 'ir.actions.client', 'tag': 'display_notification', 'params': {'title': '提示', 'message': '已根据成功日志修正 Logistics Info 状态，请勿重复回传。', 'type': 'success', 'sticky': False}}
@@ -205,7 +211,29 @@ class OutboundOrderStatusHoymilesLimit(models.Model):
             if order.project and (order.project.name or '').lower() == 'hoymiles':
                 if order.set_outbound_result_sync:
                     return {'type': 'ir.actions.client', 'tag': 'display_notification', 'params': {'title': '提示', 'message': 'Outbound Result 已回传成功，请勿重复回传。', 'type': 'warning', 'sticky': False}}
-                success_log = order.get_hoymiles_success_log('Outbound Result')
+
+                picking_env = order.env['stock.picking'].sudo()
+                pick_list = picking_env.search([('outbound_order_id', '=', order.id), ('state', '=', 'done')])
+                outbound_list = picking_env.browse()
+
+                for pick in pick_list:
+                    current_outbound_list = picking_env.search(
+                        [('origin', '=', pick.name), ('picking_type_code', '=', 'outgoing'), ('state', '!=', 'cancel')])
+                    if not current_outbound_list:
+                        current_outbound_list = pick.move_ids.move_dest_ids.picking_id.filtered(
+                            lambda picking: picking.picking_type_code == 'outgoing' and picking.state != 'cancel'
+                        )
+                    if not current_outbound_list:
+                        current_outbound_list = picking_env.search([
+                            ('picking_type_code', '=', 'outgoing'),
+                            ('state', '!=', 'cancel'),
+                            ('move_ids.move_orig_ids.picking_id', '=', pick.id),
+                        ])
+                    outbound_list |= current_outbound_list
+
+                outbound_result_ws_op_order_no = outbound_list[0].name if outbound_list else ''
+                success_log = order.get_hoymiles_success_log('Outbound Result', outbound_result_ws_op_order_no)
+
                 if success_log:
                     order.write({'set_outbound_result_sync': True, 'set_outbound_result_sync_time': success_log.request_time or fields.Datetime.now(), 'outbound_result_sync_error_msg': False})
                     return {'type': 'ir.actions.client', 'tag': 'display_notification', 'params': {'title': '提示', 'message': '已根据成功日志修正 Outbound Result 状态，请勿重复回传。', 'type': 'success', 'sticky': False,'next': {'type': 'ir.actions.client', 'tag': 'soft_reload'},}}

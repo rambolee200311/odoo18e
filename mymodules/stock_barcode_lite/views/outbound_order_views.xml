@@ -74,11 +74,11 @@
                         invisible="project_name !='SUNRISE'"/>
                 <button name="action_sunrise_prepare_recreate_outgoing_picking"
                         type="object"
-                        string="Prepare Recreate Picking"
+                        string="Prepare Recreate Picking_NEW"
                         class="oe_stat_button"
                         icon="fa-refresh"
                         confirm="This will return completed outbound pickings and remove old picking links. Continue?"
-                        invisible="project_name != 'SUNRISE' or state != 'confirm'"/>
+                        />
             </xpath>
             <xpath expr="//field[@name='outbound_order_product_ids']" position="after">
                 <group invisible="project_name != 'SUNRISE'">

@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- =========================================== -->
+    <!-- 入口：门户主页卡片 -->
+    <!-- =========================================== -->
+    <template id="portal_my_home_marstek" name="Marstek Stock Portal" customize_show="True" inherit_id="portal.portal_my_home" priority="20">
+        <xpath expr="//*[hasclass('o_portal_my_home')]" position="inside">
+            <div class="mt-3">
+                <a href="/my/marstek" class="text-decoration-none">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5><i class="fa fa-cubes me-2"/>Stock Portal</h5>
+                            <p class="text-muted mb-0">View your inventory and order information</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </xpath>
+    </template>
+
+    <!-- =========================================== -->
+    <!-- 菜单页：Marstek 门户主页 -->
+    <!-- =========================================== -->
+    <template id="portal_marstek_home" name="Marstek Stock Portal">
+        <t t-call="portal.portal_layout">
+            <!-- 面包屑home-->
+            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': None, 'name': 'Marstek Stock'}]"/>
+
+            <div class="o_portal_content">
+                <h1 class="mb-4">
+                    <i class="fa fa-cubes me-2 text-primary"/>
+                    Stock Portal
+                </h1>
+                <p class="text-muted mb-4">Select a module below to view your inventory and order information.</p>
+
+                <div class="row o_marstek_module_cards">
+                    <!-- 库存概览 -->
+                    <div class="col-12 col-md-6 col-lg-4 mb-4">
+                        <a href="/my/marstek/stock" class="text-decoration-none">
+                            <div class="card h-100 o_marstek_card o_marstek_card_stock">
+                                <div class="card-body text-center">
+                                    <div class="o_marstek_icon mb-3">
+                                        <i class="fa fa-cubes fa-3x text-primary"/>
+                                    </div>
+                                    <h4 class="card-title">Stock Overview</h4>
+                                    <p class="text-muted">View all stock info<br/>Filter by pallet/container/BL</p>
+                                    <span class="btn btn-outline-primary mt-2">
+                                        Go <i class="fa fa-arrow-right ms-1"/>
+                                    </span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- 集装箱查询 -->
+                    <div class="col-12 col-md-6 col-lg-4 mb-4">
+                        <a href="/my/marstek/container_stock" class="text-decoration-none">
+                            <div class="card h-100 o_marstek_card o_marstek_card_container">
+                                <div class="card-body text-center">
+                                    <div class="o_marstek_icon mb-3">
+                                        <i class="fa fa-truck fa-3x text-success"/>
+                                    </div>
+                                    <h4 class="card-title">Container Query</h4>
+                                    <p class="text-muted">Query stock by container<br/>View all pallets in container</p>
+                                    <span class="btn btn-outline-success mt-2">
+                                        Go <i class="fa fa-arrow-right ms-1"/>
+                                    </span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- 入库单查询 -->
+                    <div class="col-12 col-md-6 col-lg-4 mb-4">
+                        <a href="/my/marstek/inbounds" class="text-decoration-none">
+                            <div class="card h-100 o_marstek_card o_marstek_card_inbound">
+                                <div class="card-body text-center">
+                                    <div class="o_marstek_icon mb-3">
+                                        <i class="fa fa-arrow-down fa-3x text-warning"/>
+                                    </div>
+                                    <h4 class="card-title">Inbound Orders</h4>
+                                    <p class="text-muted">View and manage inbound orders<br/>Download inbound attachments</p>
+                                    <span class="btn btn-outline-warning mt-2">
+                                        Go <i class="fa fa-arrow-right ms-1"/>
+                                    </span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- 出库单查询 -->
+                    <div class="col-12 col-md-6 col-lg-4 mb-4">
+                        <a href="/my/marstek/outbounds" class="text-decoration-none">
+                            <div class="card h-100 o_marstek_card o_marstek_card_outbound">
+                                <div class="card-body text-center">
+                                    <div class="o_marstek_icon mb-3">
+                                        <i class="fa fa-arrow-up fa-3x text-info"/>
+                                    </div>
+                                    <h4 class="card-title">Outbound Orders</h4>
+                                    <p class="text-muted">View and manage outbound orders<br/>Download outbound attachments</p>
+                                    <span class="btn btn-outline-info mt-2">
+                                        Go <i class="fa fa-arrow-right ms-1"/>
+                                    </span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- SN 查询 -->
+                    <div class="col-12 col-md-6 col-lg-4 mb-4">
+                        <a href="/my/marstek/sn_query" class="text-decoration-none">
+                            <div class="card h-100 o_marstek_card o_marstek_card_sn">
+                                <div class="card-body text-center">
+                                    <div class="o_marstek_icon mb-3">
+                                        <i class="fa fa-barcode fa-3x text-secondary"/>
+                                    </div>
+                                    <h4 class="card-title">SN Query</h4>
+                                    <p class="text-muted">Query by serial number<br/>Shipped product info</p>
+                                    <span class="btn btn-outline-secondary mt-2">
+                                        Go <i class="fa fa-arrow-right ms-1"/>
+                                    </span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+</odoo>
