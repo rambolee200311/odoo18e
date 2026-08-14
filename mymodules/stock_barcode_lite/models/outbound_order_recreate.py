@@ -106,6 +106,13 @@ class OutboundOrderRecreate(models.Model):
                 "picking_Out": False,
                 "picking_Out_date": False,
                 "status": "planning",
+                "set_sunrise_outbound_sync": False,
+                "set_sunrise_outbound_sync_time": False,
+                "sunrise_outbound_sync_error_msg": False,
+                "sunrise_outbound_task_number": False,
+                "set_sunrise_pickup_delivery_sync": False,
+                "set_sunrise_pickup_delivery_sync_time": False,
+                "sunrise_pickup_delivery_sync_error_msg": False,
             })
             rec.message_post(body=_(
                 "Prepared picking recreation. Old pickings: %s. "
