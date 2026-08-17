@@ -9,13 +9,13 @@ class OperationOrderHandoverCostLine(models.Model):
     _order = "id desc"
 
     # operation
-    handover_id = fields.Many2one("operation.order.handover", string="Handover", index=True)
+    handover_id = fields.Many2one("operation.order.handover",related="handover_invoice_line_id.handover_id", store=True, string="Handover", index=True)
 
     handover_invoice_line_id = fields.Many2one("operation.order.handover.invoice.line", string="Related Vendor Ticket", ondelete="set null", index=True)
     charge_type = fields.Selection([("quotation", "Quotation"), ("manual", "Manual")], string="Charge Source",
                                    default="manual", required=True)
 
-    currency_id = fields.Many2one("res.currency", string="Currency",related="handover_id.currency_id", store=True)
+    currency_id = fields.Many2one("res.currency", string="Currency",related="handover_invoice_line_id.currency_id", store=True)
     cost_nature = fields.Selection(
         [('at cost', 'At Cost'), ('real cost', 'Real Cost')],
         string='Cost Nature',
@@ -33,16 +33,14 @@ class OperationOrderHandoverCostLine(models.Model):
 
     remark = fields.Char(string="Remark")
 
-    @api.onchange("handover_invoice_line_id")
-    def onchange_cost_invoice(self):
-        if self.handover_invoice_line_id:
-            self.currency_id = self.handover_invoice_line_id.currency_id
+    # @api.onchange("handover_invoice_line_id")
+    # def onchange_cost_invoice(self):
+    #     if self.handover_invoice_line_id:
+    #         self.currency_id = self.handover_invoice_line_id.currency_id
 
     @api.depends("qty", "unit_price", "is_manual_amount", "manual_amount_total", "handover_id.state")
     def compute_amount_total(self):
         for rec in self:
-            if rec.handover_id and rec.handover_id.state == "close":
-                continue
 
             rec.amount_total = (rec.qty or 0.0) * (rec.unit_price or 0.0)
 

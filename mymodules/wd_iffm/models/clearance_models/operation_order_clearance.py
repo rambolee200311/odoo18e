@@ -24,6 +24,17 @@ class OperationOrderClearance(models.Model):
         for rec in self:
             rec.waybill_bill_number = rec.waybill_id.bl_number or rec.waybill_id.hbl_number or rec.waybill_id.obl_number
 
+    def action_open_vendor_bills(self):
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Vendor Bills"),
+            "res_model": "account.move",
+            "view_mode": "list,form",
+            "domain": [("move_type", "=", "in_invoice"), ("clearance_id", "in", self.ids)],
+            "context": {"default_move_type": "in_invoice", "create": False},
+            "target": "current",
+        }
+
     clearance_type = fields.Selection(
         [
         ('general', 'General Trade'),
@@ -552,7 +563,37 @@ class OperationOrderClearance(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        env_clearance = self.env["operation.order.clearance"].sudo()
+        env_project = self.env["project.project"].sudo()
+        env_waybill = self.env["world.depot.waybill"].sudo()
+        pricing_date = fields.Date.context_today(self)
+
         for vals in vals_list:
+            parent = env_clearance.browse(vals.get("parent_id")).exists() if vals.get("parent_id") else False
+            waybill = env_waybill.browse(vals.get("waybill_id")).exists() if vals.get("waybill_id") else False
+
+            if parent:
+                quotation = parent.quotation_id or parent.waybill_id.quotation_id
+                vals["project_id"] = parent.project_id.id
+            elif waybill:
+                quotation = waybill.quotation_id
+                vals["project_id"] = waybill.project.id
+            else:
+                project = env_project.browse(vals.get("project_id")).exists() if vals.get("project_id") else False
+                if not project:
+                    raise ValidationError(_("Project is required before creating manual clearance."))
+                quotation = project.quotation_id
+                if quotation and (quotation.state != "active" or not quotation.is_active):
+                    raise ValidationError(_("The project quotation must be active."))
+                if quotation and quotation.effective_from > pricing_date:
+                    raise ValidationError(_("The quotation effective date is later than the pricing date."))
+                if quotation and quotation.effective_to and quotation.effective_to < pricing_date:
+                    raise ValidationError(_("The quotation has expired on the pricing date."))
+
+            if not quotation:
+                raise ValidationError(_("A quotation is required before creating clearance."))
+
+            vals["quotation_id"] = quotation.id
             if vals.get("name", _("New")) == _("New"):
                 vals["name"] = self.env["ir.sequence"].next_by_code("operation.order.clearance") or _("New")
         return super().create(vals_list)
@@ -750,6 +791,10 @@ class OperationOrderClearanceInvoiceLine(models.Model):
             if rec.vendor_invoice_id:
                 if rec.vendor_invoice_id.move_type != "in_invoice":
                     raise ValidationError(_("Linked vendor invoice must be a Vendor Bill (in_invoice)."))
+                if rec.vendor_invoice_id.currency_id != rec.currency_id:
+                    raise ValidationError(
+                        _("The linked vendor bill currency must match the invoice line currency.")
+                    )
                 if rec.vendor_invoice_id.state != "posted":
                     raise ValidationError(_("Vendor bill must be posted before requesting payment."))
                 rec.write({"payment_state": "paying"})
@@ -777,19 +822,26 @@ class OperationOrderClearanceInvoiceLine(models.Model):
                 })]
 
             else:
+                env_account = self.env["account.account"]
+                expense_account = env_account.sudo().search([
+                    ("code", "=", "WDA5002"),
+                    ("account_type", "=", "expense"),
+                    ("company_ids", "in", rec.env.company.id),
+                ], limit=1)
+                if not expense_account:
+                    raise ValidationError(_("Clearance expense account WDA5002 is not configured."))
                 invoice_lines = []
                 for cost in rec.cost_line_ids:
-                    account = cost.charge_item_id.account_account_id
-                    if not account:
-                        raise ValidationError(
-                            _("Account not found for charge item %s.") % (cost.charge_item_id.item_name,))
-                    price = cost.manual_amount_total if cost.manual_amount_total>0 else cost.amount_total
+                    if not cost.charge_item_id:
+                        raise ValidationError(_("Charge item is required for each cost line."))
+                    manual_amount = cost.manual_amount_total if cost.manual_amount_total > 0 else False
                     name = _("Clearance Bill - %s") % (cost.charge_item_id.item_name,)
                     invoice_lines.append((0, 0, {
                         "name": name,
-                        "quantity": cost.qty or 1.0,
-                        "price_unit": price or 0.0,
-                        "account_id": account.id,
+                        "charge_item_id": cost.charge_item_id.id,
+                        "quantity": 1.0 if manual_amount else (cost.qty or 1.0),
+                        "price_unit": manual_amount or cost.unit_price or 0.0,
+                        "account_id": expense_account.id,
                     }))
             waybill = rec.clearance_id.waybill_id
             waybill_bill_number = waybill.bl_number or waybill.hbl_number or waybill.obl_number or False
@@ -802,6 +854,7 @@ class OperationOrderClearanceInvoiceLine(models.Model):
                 "journal_id": journal.id,
                 "ref": f"{rec.clearance_id.name}/{rec.id}",
                 "waybill_bill_number": waybill_bill_number,
+                "clearance_id": rec.clearance_id.id,
                 "invoice_line_ids": invoice_lines,
             }
             move = move_model.with_user(operator).create(move_vals)

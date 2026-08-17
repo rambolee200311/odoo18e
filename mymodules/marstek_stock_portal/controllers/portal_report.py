@@ -14,7 +14,7 @@ class MarstekPortalReport(http.Controller):
     allowed_export_formats = ("csv", "pdf")
 
     filter_fields_by_page_type = {
-        "stock": ("container_no", "bl_no", "product_code", "date_from", "date_to"),
+        "stock": ("container_no", "bl_no", "product_code", "location_id", "date_from", "date_to", "stock_group_mode"),
         "container_stock": ("container_no",),
         "inbounds": (
             "inbound_no",
@@ -87,16 +87,21 @@ class MarstekPortalReport(http.Controller):
         return []
 
     def stock_export_lines(self, rows):
-        return [[
-            row.get("package_name", ""),
-            row.get("container_no", ""),
-            row.get("bl_no", ""),
-            row.get("product_code", ""),
-            row.get("product_name", ""),
-            row.get("quantity", 0),
-            row.get("location_name", ""),
-            row.get("inbound_date", ""),
-        ] for row in rows]
+        export_rows = []
+        for row in rows:
+            product_lines = row.get("product_lines") or [row]
+            for product_line in product_lines:
+                export_rows.append([
+                    row.get("package_name", ""),
+                    row.get("container_no", ""),
+                    row.get("bl_no", ""),
+                    product_line.get("product_code", ""),
+                    product_line.get("product_name", ""),
+                    product_line.get("quantity", 0),
+                    row.get("location_name", ""),
+                    product_line.get("inbound_date", row.get("inbound_date", "")),
+                ])
+        return export_rows
 
     def container_stock_export_lines(self, stock_result):
         rows = stock_result.get("lines", [])
