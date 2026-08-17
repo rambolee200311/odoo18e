@@ -6,6 +6,7 @@ from odoo.osv import expression
 from .utils import (
     portal_apply_date_filters,
     portal_owner_partner,
+    portal_location_is_allowed,
     portal_package_container_from_name,
     portal_package_ids_by_shipping,
     portal_package_shipping_map,
@@ -64,7 +65,7 @@ class StockQuantPackage(models.Model):
             product_domain = ["|", ("product_id.default_code", "ilike", product_code), ("product_id.barcode", "ilike", product_code)]
             domain = expression.AND([domain, product_domain])
         if location_id:
-            if not str(location_id).isdigit():
+            if not portal_location_is_allowed(self.env, location_id):
                 return []
             domain.append(("location_id", "child_of", int(location_id)))
         portal_apply_date_filters(domain, filters, "in_date", ("date_from",), ("date_to",))

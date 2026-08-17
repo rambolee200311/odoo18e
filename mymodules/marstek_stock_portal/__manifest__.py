@@ -14,6 +14,7 @@ Read-only ORM methods for Marstek portal stock, inbound, outbound, SN, and attac
         "security/ir.model.access.csv",
         "security/security.xml",
         "views/res_user_views.xml",
+        "views/project_project_views.xml",
         "report/marstek_portal_export_report.xml",
         "report/report_stock_templates.xml",
         "portal/marstek_portal_menus.xml",
