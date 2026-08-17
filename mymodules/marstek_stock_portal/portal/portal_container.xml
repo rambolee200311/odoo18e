@@ -24,7 +24,7 @@
                         <form action="/my/marstek/container_stock" method="get" class="row g-3">
                             <div class="col-12 col-md-6">
                                 <label for="container_no" class="form-label">Container No. <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="container_no" name="container_no" t-attf-value="#{container_no or ''}" placeholder="Enter container no." required="1"/>
+                                <input type="search" class="form-control" id="container_no" name="container_no" t-attf-value="#{container_no or ''}" placeholder="Enter container no." required="1"/>
                             </div>
                             <div class="col-12 d-flex align-items-end">
                                 <button type="submit" class="btn btn-success">
