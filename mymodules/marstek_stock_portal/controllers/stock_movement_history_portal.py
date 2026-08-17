@@ -7,14 +7,15 @@ from odoo.addons.portal.controllers.portal import pager as portal_pager
 from odoo.http import request
 
 from ..models.utils import portal_location_is_allowed
+from .portal import MarstekStockPortal
 
 
-class StockMovementHistoryPortal(http.Controller):
+class StockMovementHistoryPortal(MarstekStockPortal):
 
     @http.route([
         "/my/world_depot/stock/movement_history",
         "/my/world_depot/stock/movement_history/page/<int:page>",
-    ], type="http", auth="user", methods=["GET"], website=False)
+    ], type="http", auth="user", methods=["GET"], website=True)
     def stock_movement_history_portal(self, page=1, **kw):
         filters = {
             "location_id": str(kw.get("location_id") or "").strip(),
@@ -65,13 +66,22 @@ class StockMovementHistoryPortal(http.Controller):
             page=page,
             step=page_size,
         )
-        pager["total"] = total
-        return request.make_json_response({
-            "page_name": "marstek_stock_movement_history",
-            "marstek_page_title": "Stock Movement History",
-            "filters": filters,
+
+        rows = all_rows[pager["offset"]: pager["offset"] + page_size]
+        values = self.marstek_prepare_page_values("marstek_stock_movement_history", "Stock Movement History", filters)
+        values.update({
             "summary": summary,
-            "rows": all_rows[pager["offset"]: pager["offset"] + page_size],
+            "rows": rows,
             "pager": pager,
             "error": error,
-        }, status=400 if error else 200)
+        })
+        return request.render("marstek_stock_portal.portal_marstek_stock_history", values)
+        # return request.make_json_response({
+        #     "page_name": "marstek_stock_movement_history",
+        #     "marstek_page_title": "Stock Movement History",
+        #     "filters": filters,
+        #     "summary": summary,
+        #     "rows": all_rows[pager["offset"]: pager["offset"] + page_size],
+        #     "pager": pager,
+        #     "error": error,
+        # }, status=400 if error else 200)
