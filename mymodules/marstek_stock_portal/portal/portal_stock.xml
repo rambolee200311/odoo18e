@@ -24,20 +24,20 @@
                         <form action="/my/marstek/stock" method="get" class="row g-3">
                             <div class="col-12 col-md-6 col-lg-4">
                                 <label for="container_no" class="form-label">Container No.</label>
-                                <input type="text" class="form-control" id="container_no" name="container_no" t-attf-value="#{filters.get('container_no', '')}" placeholder="Enter container no."/>
+                                <input type="search" class="form-control" id="container_no" name="container_no" t-attf-value="#{filters.get('container_no', '')}" placeholder="Enter container no." autocomplete="off"/>
                             </div>
                             <div class="col-12 col-md-6 col-lg-4">
                                 <label for="bl_no" class="form-label">BL No.</label>
-                                <input type="text" class="form-control" id="bl_no" name="bl_no" t-attf-value="#{filters.get('bl_no', '')}" placeholder="Enter BL no."/>
+                                <input type="search" class="form-control" id="bl_no" name="bl_no" t-attf-value="#{filters.get('bl_no', '')}" placeholder="Enter BL no." autocomplete="off"/>
                             </div>
                             <div class="col-12 col-md-6 col-lg-4">
                                 <label for="product_code" class="form-label">Product Code</label>
-                                <input type="text" class="form-control" id="product_code" name="product_code" t-attf-value="#{filters.get('product_code', '')}" placeholder="Enter product code"/>
+                                <input type="search" class="form-control" id="product_code" name="product_code" t-attf-value="#{filters.get('product_code', '')}" placeholder="Enter product code" autocomplete="off"/>
                             </div>
                             <div class="col-12 col-md-6 col-lg-4">
                                 <label for="location_search" class="form-label">Location</label>
                                 <div class="position-relative" id="location_wrapper">
-                                    <input type="text"
+                                    <input type="search"
                                            class="form-control"
                                            id="location_search"
                                            name="location_search"
@@ -93,6 +93,19 @@
                                     <span class="d-none d-sm-inline ms-1">Card</span>
                                 </label>
                             </div>
+                            <!-- 分组切换按钮 -->
+                            <div class="btn-group btn-group-sm" role="group" aria-label="Group Switch">
+                                <input type="radio" class="btn-check" name="stock_group_mode" id="group_product" value="product" t-att-checked="'checked' if filters.get('stock_group_mode') == 'product' else None" autocomplete="off"/>
+                                <label class="btn btn-outline-primary" for="group_product" title="Product View">
+                                    <i class="fa fa-cube"/>
+                                    <span class="d-none d-sm-inline ms-1">Product</span>
+                                </label>
+                                <input type="radio" class="btn-check" name="stock_group_mode" id="group_package" value="package" t-att-checked="'checked' if filters.get('stock_group_mode') != 'product' else None" autocomplete="off"/>
+                                <label class="btn btn-outline-primary" for="group_package" title="Package View">
+                                    <i class="fa fa-cubes"/>
+                                    <span class="d-none d-sm-inline ms-1">Package</span>
+                                </label>
+                            </div>
                             <!-- 导出按钮 -->
                             <a t-attf-href="/my/marstek/export/stock/csv?container_no=#{filters.get('container_no', '')}&amp;bl_no=#{filters.get('bl_no', '')}&amp;product_code=#{filters.get('product_code', '')}&amp;location_id=#{filters.get('location_id', '')}&amp;date_from=#{filters.get('date_from', '')}&amp;date_to=#{filters.get('date_to', '')}"
                                t-attf-class="btn btn-primary export-btn #{'disabled' if not rows else ''}"
@@ -127,11 +140,11 @@
                                                 <span class="d-md-none">Container</span>
                                             </th>
                                             <th class="text-nowrap">BL No.</th>
-                                            <th class="text-nowrap">Product Code</th>
-                                            <th class="text-nowrap">Product Name</th>
-                                            <th class="text-nowrap text-end">Qty</th>
+                                            <th t-if="filters.get('stock_group_mode') != 'package'" class="text-nowrap">Product Code</th>
+                                            <th t-if="filters.get('stock_group_mode') != 'package'" class="text-nowrap">Product Name</th>
+                                            <th t-if="filters.get('stock_group_mode') != 'package'" class="text-nowrap text-end">Qty</th>
                                             <th class="text-nowrap">Location</th>
-                                            <th class="text-nowrap">Inbound Date</th>
+                                            <th t-if="filters.get('stock_group_mode') != 'package'" class="text-nowrap">Inbound Date</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -150,16 +163,16 @@
                                                     </a>
                                                     <t t-else=""><t t-esc="row.get('bl_no', '')"/></t>
                                                 </td>
-                                                <td><t t-esc="row.get('product_code', '')"/></td>
-                                                <td><t t-esc="row.get('product_name', '')"/></td>
-                                                <td class="text-end"><t t-esc="row.get('quantity', 0)"/></td>
+                                                <td t-if="filters.get('stock_group_mode') != 'package'"><t t-esc="row.get('product_code', '')"/></td>
+                                                <td t-if="filters.get('stock_group_mode') != 'package'"><t t-esc="row.get('product_name', '')"/></td>
+                                                <td t-if="filters.get('stock_group_mode') != 'package'" class="text-end"><t t-esc="row.get('quantity', 0)"/></td>
                                                 <td><t t-esc="row.get('location_name', '')"/></td>
-                                                <td><t t-esc="row.get('inbound_date', '')"/></td>
+                                                <td t-if="filters.get('stock_group_mode') != 'package'"><t t-esc="row.get('inbound_date', '')"/></td>
                                             </tr>
                                         </t>
                                         <t t-if="not rows">
                                             <tr>
-                                                <td colspan="8" class="text-center text-muted py-4">No data found</td>
+                                                <td t-att-colspan="'4' if filters.get('stock_group_mode') == 'package' else '8'" class="text-center text-muted py-4">No data found</td>
                                             </tr>
                                         </t>
                                     </tbody>
@@ -170,6 +183,48 @@
                         <div id="card_view" class="card-body p-3" style="display: none;">
                             <div class="stock-card-list">
                                 <t t-foreach="rows" t-as="row">
+                                    <t t-if="filters.get('stock_group_mode') == 'package'">
+                                        <div class="stock-card-item">
+                                            <!-- 卡片标题：托盘名，点击折叠/展开 -->
+                                            <div class="card-item-header" onclick="marstekToggleCard(this)">
+                                                <div class="card-summary">
+                                                    <span class="summary-item">
+                                                        <i class="fa fa-cubes me-1 text-primary"></i>
+                                                        <t t-esc="row.get('package_name', '')"/>
+                                                    </span>
+                                                    <div class="summary-row">
+                                                        <span class="summary-item">
+                                                            <i class="fa fa-database me-1 text-success"></i>
+                                                            <t t-esc="row.get('total_quantity', 0)"/> pcs
+                                                        </span>
+                                                        <span class="summary-item ms-3">
+                                                            <i class="fa fa-th-list me-1 text-info"></i>
+                                                            Products: <t t-esc="row.get('product_count', 0)"/>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <i class="card-arrow fa fa-chevron-down"></i>
+                                            </div>
+                                            <!-- 卡片详情：产品行信息，产品名为子行标题 -->
+                                            <div class="card-item-details">
+                                                <div class="pallet-section">
+                                                    <t t-foreach="row.get('product_lines', [])" t-as="line">
+                                                        <div class="mb-2">
+                                                            <div class="fw-bold text-dark">
+                                                                <i class="fa fa-cube me-1 text-primary"></i>
+                                                                Product: <t t-esc="line.get('product_name', '')"/>
+                                                            </div>
+                                                            <div class="ms-3 text-muted small">
+                                                                <span class="fw-bold"><t t-esc="line.get('product_code', '')"/></span>
+                                                                <span class="text-success ms-1">Qty: <t t-esc="line.get('quantity', 0)"/></span>
+                                                            </div>
+                                                        </div>
+                                                    </t>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </t>
+                                    <t t-else="">
                                     <div class="stock-card-item">
                                         <!-- 卡片标题：点击折叠/展开 -->
                                         <div class="card-item-header" onclick="marstekToggleCard(this)">
@@ -233,6 +288,7 @@
                                             </div>
                                         </div>
                                     </div>
+                                    </t>
                                 </t>
                                 <t t-if="not rows">
                                     <div class="text-center text-muted py-5">

@@ -201,6 +201,34 @@
     }
 
     // ========================================
+    // 分组切换功能（库存页：product / package）
+    // ========================================
+    function initGroupModeSwitch() {
+        var groupProduct = document.getElementById('group_product');
+        var groupPackage = document.getElementById('group_package');
+
+        if (!groupProduct || !groupPackage) return;
+        if (groupProduct.getAttribute('data-group-bound') || groupPackage.getAttribute('data-group-bound')) return;
+        groupProduct.setAttribute('data-group-bound', '1');
+        groupPackage.setAttribute('data-group-bound', '1');
+
+        function navigateGroupMode(groupMode) {
+            var urlParams = new URLSearchParams(window.location.search);
+            var pathname = window.location.pathname.replace(/\/page\/\d+$/, '');
+            urlParams.set('stock_group_mode', groupMode);
+            window.location.href = pathname + '?' + urlParams.toString();
+        }
+
+        groupProduct.addEventListener('change', function() {
+            if (this.checked) navigateGroupMode('product');
+        });
+
+        groupPackage.addEventListener('change', function() {
+            if (this.checked) navigateGroupMode('package');
+        });
+    }
+
+    // ========================================
     // 初始化
     // ========================================
     function init() {
@@ -208,6 +236,7 @@
         initStickyHeaders();
         initCardToggle();
         initViewSwitch();
+        initGroupModeSwitch();
     }
 
     if (document.readyState === 'loading') {
