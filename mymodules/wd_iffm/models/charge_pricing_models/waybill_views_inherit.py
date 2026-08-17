@@ -239,7 +239,7 @@ class WaybillViewsInherit(models.Model):
                 "charge_origin_type": "quotation",
                 "unit_price": line.unit_price,
                 "is_fixed_fee": line.is_fixed_fee,
-            }) for line in rec.project.quotation_id.quotation_thc_lines] if rec.quotation_id else []
+            }) for line in rec.quotation_id.quotation_thc_lines] if rec.quotation_id else []
 
             handover = env_handover.create({
                 "waybill_id": rec.id,
@@ -316,7 +316,7 @@ class WaybillViewsInherit(models.Model):
                 "charge_origin_type": "quotation",
                 "unit_price": line.unit_price,
                 "is_fixed_fee": line.is_fixed_fee,
-            }) for line in rec.project.quotation_id.quotation_customs_lines] if rec.quotation_id else []
+            }) for line in rec.quotation_id.quotation_customs_lines] if rec.quotation_id else []
 
             clearance = env_clearance.create({
                 "waybill_id": rec.id,

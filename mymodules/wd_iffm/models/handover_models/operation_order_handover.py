@@ -33,6 +33,17 @@ class OperationOrderHandover(models.Model):
         for rec in self:
             rec.waybill_bill_number = rec.waybill_id.bl_number or rec.waybill_id.hbl_number or rec.waybill_id.obl_number
 
+    def action_open_vendor_bills(self):
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Vendor Bills"),
+            "res_model": "account.move",
+            "view_mode": "list,form",
+            "domain": [("move_type", "=", "in_invoice"), ("handover_id", "in", self.ids)],
+            "context": {"default_move_type": "in_invoice", "create": False},
+            "target": "current",
+        }
+
     #外部系统
     external_system_type = fields.Selection([("tms", "TMS"), ("oms", "OMS"), ("other", "Other")], string="External System Type")
     external_system_no = fields.Char(string="External Order No.", index=True)
@@ -568,6 +579,10 @@ class OperationOrderHandoverInvoiceLine(models.Model):
             if rec.vendor_invoice_id:
                 if rec.vendor_invoice_id.move_type != "in_invoice":
                     raise ValidationError(_("Linked vendor invoice must be a Vendor Bill (in_invoice)."))
+                if rec.vendor_invoice_id.currency_id != rec.currency_id:
+                    raise ValidationError(
+                        _("The linked vendor bill currency must match the invoice line currency.")
+                    )
                 if rec.vendor_invoice_id.state != "posted":
                     raise ValidationError(_("Vendor bill must be posted before requesting payment."))
                 rec.write({"payment_state": "paying"})
@@ -595,18 +610,27 @@ class OperationOrderHandoverInvoiceLine(models.Model):
                 })]
 
             else:
+                env_account = self.env["account.account"]
+                expense_account = env_account.sudo().search([
+                    ("code", "=", "WDA5001"),
+                    ("account_type", "=", "expense"),
+                    ("company_ids", "in", rec.env.company.id),
+                ], limit=1)
+                if not expense_account:
+                    raise ValidationError(_("Handover expense account WDA5001 is not configured."))
                 invoice_lines = []
                 for cost in rec.handover_cost_line_ids:
-                    account = cost.charge_item_id.account_account_id
-                    if not account:
-                        raise ValidationError(_("Account not found for charge item %s.") % (cost.charge_item_id.item_name,))
-                    price = cost.manual_amount_total if cost.manual_amount_total>0 else cost.amount_total
+                    if not cost.charge_item_id:
+                        raise ValidationError(_("Charge item is required for each cost line."))
+
+                    manual_amount = cost.manual_amount_total if cost.manual_amount_total > 0 else False
                     name= _("Handover Bill - %s") % (cost.charge_item_id.item_name,)
                     invoice_lines.append((0, 0, {
                         "name": name,
-                        "quantity": cost.qty or 1.0,
-                        "price_unit": price or 0.0,
-                        "account_id": account.id,
+                        "charge_item_id": cost.charge_item_id.id,
+                        "quantity": 1.0 if manual_amount else (cost.qty or 1.0),
+                        "price_unit": manual_amount or cost.unit_price or 0.0,
+                        "account_id": expense_account.id,
                     }))
             waybill = rec.handover_id.waybill_id
             waybill_bill_number = waybill.bl_number or waybill.hbl_number or waybill.obl_number or False
@@ -619,6 +643,7 @@ class OperationOrderHandoverInvoiceLine(models.Model):
                 "journal_id": journal.id,
                 "ref": f"{rec.handover_id.name}/{rec.id}",
                 "waybill_bill_number": waybill_bill_number,
+                "handover_id": rec.handover_id.id,
                 "invoice_line_ids": invoice_lines,
             }
             move = move_model.with_user(operator).create(move_vals)

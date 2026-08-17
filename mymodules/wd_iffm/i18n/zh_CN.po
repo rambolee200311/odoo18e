@@ -107,7 +107,7 @@ msgid ""
 "                            </span>"
 msgstr ""
 "<span class=\"text-muted\" invisible=\"parent_id == False\">\n"
-"                                (子交接单)\n"
+"                                (子换单)\n"
 "                            </span>"
 
 #. module: wd_iffm
@@ -813,7 +813,7 @@ msgstr "此费用项目已存在于本清关单中。"
 #. odoo-python
 #: code:addons/wd_iffm/models/handover_models/operation_order_handover_charge_line.py:0
 msgid "Charge item already exists in this handover."
-msgstr "此费用项目已存在于本交接单中。"
+msgstr "此费用项目已存在于本换单中。"
 
 #. module: wd_iffm
 #. odoo-python
@@ -872,12 +872,12 @@ msgstr "子清关单"
 #: model:ir.ui.menu,name:wd_iffm.menu_operation_handover_child
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_operation_order_handover_child_form
 msgid "Child Handover"
-msgstr "子交接单"
+msgstr "子换单"
 
 #. module: wd_iffm
 #: model:ir.actions.act_window,name:wd_iffm.operation_order_child_handover_action
 msgid "Child Handover Orders"
-msgstr "子交接单"
+msgstr "子换单"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_world_depot_charge_item__child_ids
@@ -1190,7 +1190,7 @@ msgstr "集装箱类型"
 #. module: wd_iffm
 #: model:ir.model.fields,help:wd_iffm.field_world_depot_waybill_container__mode
 msgid "Container mode, e.g., CY/CY, etc."
-msgstr "集装箱交接方式（如 CY/CY 等）"
+msgstr "集装箱换单方式（如 CY/CY 等）"
 
 #. module: wd_iffm
 #. odoo-python
@@ -1403,12 +1403,12 @@ msgstr "海关清关"
 #. module: wd_iffm
 #: model:account.account,name:wd_iffm.acc_clearance_expense_account
 msgid "Customer Clearance Expense Account"
-msgstr "客户清关费用科目"
+msgstr "Customer Clearance Expense Account"
 
 #. module: wd_iffm
 #: model:account.account,name:wd_iffm.acc_hanover_expense_account
 msgid "Customer Handover Expense Account"
-msgstr "客户交接费用科目"
+msgstr "Customer Handover Expense Account"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_statement_period__customer_invoice_id
@@ -1462,37 +1462,37 @@ msgstr "报关手续"
 #. module: wd_iffm
 #: model:account.account,name:wd_iffm.acc_customs_formalities_exportdocument_incl_1_hs_code
 msgid "Customs Formalities / Exportdocument (incl. 1 HS Code)"
-msgstr "报关手续/出口单证（含1个HS编码）"
+msgstr "Customs Formalities / Exportdocument (incl. 1 HS Code)"
 
 #. module: wd_iffm
 #: model:account.account,name:wd_iffm.acc_customs_formalities_extra_article_container
 msgid "Customs Formalities / Extra article & container"
-msgstr "报关手续/额外品名及集装箱"
+msgstr "Customs Formalities / Extra article & container"
 
 #. module: wd_iffm
 #: model:account.account,name:wd_iffm.acc_customs_formalities_normal_customs_clearance
 msgid "Customs Formalities / Normal Customs Clearance"
-msgstr "报关手续/普通清关"
+msgstr "Customs Formalities / Normal Customs Clearance"
 
 #. module: wd_iffm
 #: model:account.account,name:wd_iffm.acc_customs_formalities_processing_authorisation
 msgid "Customs Formalities / Processing authorisation"
-msgstr "报关手续/加工授权"
+msgstr "Customs Formalities / Processing authorisation"
 
 #. module: wd_iffm
 #: model:account.account,name:wd_iffm.acc_customs_formalities_t1_document
 msgid "Customs Formalities / T1 Document"
-msgstr "报关手续/T1单证"
+msgstr "Customs Formalities / T1 Document"
 
 #. module: wd_iffm
 #: model:account.account,name:wd_iffm.acc_customs_formalities_tariff
 msgid "Customs Formalities / Tariff"
-msgstr "报关手续/关税"
+msgstr "Customs Formalities / Tariff"
 
 #. module: wd_iffm
 #: model:account.account,name:wd_iffm.acc_customs_formalities_termination_t1
 msgid "Customs Formalities / Termination T1"
-msgstr "报关手续/T1终止"
+msgstr "Customs Formalities / Termination T1"
 
 #. module: wd_iffm
 #: model:ir.model.fields.selection,name:wd_iffm.selection__operation_order_clearance__extra_reason__customs_inspection
@@ -1900,7 +1900,7 @@ msgstr "成本确认日期"
 #. module: wd_iffm
 #: model:account.account,name:wd_iffm.acc_pay_expense
 msgid "Expense Payable Account"
-msgstr "应付费用科目"
+msgstr "Expense Payable Account"
 
 #. module: wd_iffm
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_charge_quotation_form
@@ -2130,7 +2130,7 @@ msgstr "换单作业"
 #: model:ir.model,name:wd_iffm.model_operation_order_clearance_attachment_line
 #: model:ir.model,name:wd_iffm.model_operation_order_handover_attachment_line
 msgid "Handover Attachment Line"
-msgstr "交接附件行"
+msgstr "换单附件行"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_workbench_alert_rule__handover_available_days
@@ -2142,17 +2142,17 @@ msgstr "换单允许时间"
 #: code:addons/wd_iffm/models/clearance_models/operation_order_clearance.py:0
 #: code:addons/wd_iffm/models/handover_models/operation_order_handover.py:0
 msgid "Handover Bill - %s"
-msgstr "交接账单 - %s"
+msgstr "Handover Bill - %s"
 
 #. module: wd_iffm
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_handover_statement_period_form
 msgid "Handover Charge Details"
-msgstr "交接费用明细"
+msgstr "换单费用明细"
 
 #. module: wd_iffm
 #: model:ir.model,name:wd_iffm.model_operation_order_handover_cost_line
 msgid "Handover Cost Line (AP Cost)"
-msgstr "交接成本明细 (应付成本)"
+msgstr "换单成本明细 (应付成本)"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_workbench_alert_rule__handover_near_hours
@@ -2162,12 +2162,12 @@ msgstr "换单临近时间"
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__name
 msgid "Handover No."
-msgstr "交接单号"
+msgstr "换单号"
 
 #. module: wd_iffm
 #: model:ir.model,name:wd_iffm.model_operation_order_handover
 msgid "Handover Operation"
-msgstr "交接操作"
+msgstr "换单操作"
 
 #. module: wd_iffm
 #: model:ir.actions.act_window,name:wd_iffm.operation_order_handover_action
@@ -2176,7 +2176,7 @@ msgstr "交接操作"
 #: model_terms:ir.ui.view,arch_db:wd_iffm.report_statement_period
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_statement_period_form
 msgid "Handover Orders"
-msgstr "交接单"
+msgstr "换单"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_workbench_card__handover_state
@@ -2187,13 +2187,13 @@ msgstr "换单状态"
 #: model:ir.model,name:wd_iffm.model_operation_order_clearance_invoice_line
 #: model:ir.model,name:wd_iffm.model_operation_order_handover_invoice_line
 msgid "Handover Vendor Invoice Line"
-msgstr "交接供应商发票明细"
+msgstr "换单供应商发票明细"
 
 #. module: wd_iffm
 #. odoo-python
 #: code:addons/wd_iffm/models/handover_models/operation_order_handover.py:0
 msgid "Handover must be close before creating child clearance."
-msgstr "创建子清关单前，主交接单必须已完成。"
+msgstr "创建子清关单前，主换单必须已完成。"
 
 #. module: wd_iffm
 #. odoo-python
@@ -2940,13 +2940,13 @@ msgstr "没有报价单明细可导出。"
 #. odoo-python
 #: code:addons/wd_iffm/models/settlement_account_models/account_move_inherit.py:0
 msgid "No related handover invoice line found."
-msgstr "未找到相关交接发票行。"
+msgstr "未找到相关换单发票行。"
 
 #. module: wd_iffm
 #. odoo-python
 #: code:addons/wd_iffm/models/settlement_account_models/account_move_inherit.py:0
 msgid "No related handover/clearance invoice line found."
-msgstr "未找到相关交接/清关发票行。"
+msgstr "未找到相关换单/清关发票行。"
 
 #. module: wd_iffm
 #. odoo-python
@@ -3146,7 +3146,7 @@ msgstr "只有已确认的运单才可生成清关单据。"
 #. odoo-python
 #: code:addons/wd_iffm/models/charge_pricing_models/waybill_views_inherit.py:0
 msgid "Only confirmed waybills can create handover orders."
-msgstr "仅已确认的运单才可创建交接单。"
+msgstr "仅已确认的运单才可创建换单。"
 
 #. module: wd_iffm
 #. odoo-python
@@ -3367,14 +3367,14 @@ msgstr "逾期结果说明"
 #: code:addons/wd_iffm/models/clearance_models/operation_order_clearance.py:0
 #: code:addons/wd_iffm/models/handover_models/operation_order_handover.py:0
 msgid "Overdue blocking reason is required for overdue handovers."
-msgstr "逾期交接操作需填写逾期拦截原因。"
+msgstr "逾期换单操作需填写逾期拦截原因。"
 
 #. module: wd_iffm
 #. odoo-python
 #: code:addons/wd_iffm/models/clearance_models/operation_order_clearance.py:0
 #: code:addons/wd_iffm/models/handover_models/operation_order_handover.py:0
 msgid "Overdue handle result is required for overdue handovers."
-msgstr "逾期交接需提供逾期处理结果。"
+msgstr "逾期换单需提供逾期处理结果。"
 
 #. module: wd_iffm
 #: model:ir.model.fields.selection,name:wd_iffm.selection__operation_order_clearance_attachment_line__doc_type__poa
@@ -3650,7 +3650,7 @@ msgstr "请先创建报价单"
 #. odoo-python
 #: code:addons/wd_iffm/models/settlement_account_models/statement_period.py:0
 msgid "Please enter the amount for handover and clearance orders."
-msgstr "请输入交接和清关订单的金额。"
+msgstr "请输入换单和清关订单的金额。"
 
 #. module: wd_iffm
 #. odoo-python
@@ -4467,27 +4467,27 @@ msgstr "码头操作费处理"
 #. module: wd_iffm
 #: model:account.account,name:wd_iffm.acc_thc_handling_custom_inspection
 msgid "THC Handling / Custom inspection"
-msgstr "码头操作费处理/海关查验"
+msgstr "THC Handling / Custom inspection"
 
 #. module: wd_iffm
 #: model:account.account,name:wd_iffm.acc_thc_handling_gas_inspection
 msgid "THC Handling / Gas inspection"
-msgstr "码头操作费处理/气体检验"
+msgstr "THC Handling / Gas inspection"
 
 #. module: wd_iffm
 #: model:account.account,name:wd_iffm.acc_thc_handling_handover_from_logistics_agency
 msgid "THC Handling / Handover from logistics agency"
-msgstr "码头操作费处理/物流公司交接"
+msgstr "THC Handling / Handover from logistics agency"
 
 #. module: wd_iffm
 #: model:account.account,name:wd_iffm.acc_thc_handling_shipping_lines_hand_over
 msgid "THC Handling / Shipping lines hand over"
-msgstr "码头操作费处理/船公司交接"
+msgstr "THC Handling / Shipping lines hand over"
 
 #. module: wd_iffm
 #: model:account.account,name:wd_iffm.acc_thc_handling_thc
 msgid "THC Handling / THC"
-msgstr "码头操作费处理/码头操作费"
+msgstr "THC Handling / THC"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation__quotation_thc_lines
@@ -4633,7 +4633,7 @@ msgstr "此运单已确认，无法创建正式的订单替换操作。"
 #. odoo-python
 #: code:addons/wd_iffm/models/handover_models/operation_order_handover.py:0
 msgid "This waybill is already used by another active handover order."
-msgstr "此运单已被另一张活跃的换单单使用。"
+msgstr "此运单已被另一张活跃的换单使用。"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_clearance__amount_total_change
@@ -4663,7 +4663,7 @@ msgstr "清关总金额"
 #: model:ir.model.fields,field_description:wd_iffm.field_statement_period__handover_total_amount
 #: model_terms:ir.ui.view,arch_db:wd_iffm.report_statement_period
 msgid "Total Handover Amount"
-msgstr "交接总金额"
+msgstr "换单总金额"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_world_depot_waybill_packing_list__total_packages

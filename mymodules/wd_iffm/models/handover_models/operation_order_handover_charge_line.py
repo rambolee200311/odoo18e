@@ -23,7 +23,7 @@ class OperationOrderHandoverChargeLine(models.Model):
     quotation_id = fields.Many2one("charge.quotation", string="Quotation",related="handover_id.waybill_id.quotation_id", store=True,
                                    readonly=True, index=True)
     project_id = fields.Many2one("project.project", string="Project/Customer",related="handover_id.project_id", store=True, readonly=True)
-    currency_id = fields.Many2one("res.currency", string="Currency", related="handover_id.waybill_id.quotation_id.currency_id", store=True, readonly=True)
+    currency_id = fields.Many2one("res.currency", string="Currency", related="handover_id.currency_id", store=True, readonly=True)
 
     charge_item_id = fields.Many2one("world.depot.charge.item", string="Charge Item",tracking= True)
     quotation_tab_category = fields.Selection(TAB_CATEGORY_LIST,related="charge_item_id.tab_category", string="Tab Category",tracking= True)
