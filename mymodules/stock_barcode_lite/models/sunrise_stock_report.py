@@ -21,6 +21,8 @@ class SunriseStockReport(models.Model):
     date_to = fields.Date(string="Date To", required=True, default=fields.Date.context_today, index=True)
     warehouse_id = fields.Many2one("stock.warehouse", string="Warehouse", copy=False, index=True)
     owner_id = fields.Many2one("res.partner", string="Owner", copy=False, index=True)
+    location_id = fields.Many2one("stock.location", string="Location", copy=False, index=True)
+    available_location_line_ids = fields.Many2many("stock.location", string="Available Locations", compute="_compute_available_location_line_ids")
     product_template_id = fields.Many2one("product.template", string="Product", copy=False, index=True)
     lot_name = fields.Char(string="Lot No", copy=False, index=True)
     state = fields.Selection([("draft", "Draft"), ("done", "Done")], string="State", default="draft", required=True, readonly=True, copy=False, index=True)
@@ -29,6 +31,14 @@ class SunriseStockReport(models.Model):
     average_age_days = fields.Float(string="Closing Average Age Days", readonly=True, copy=False)
     maximum_age_days = fields.Integer(string="Maximum Age Days", readonly=True, copy=False)
     over_180_pallet_count = fields.Integer(string="Over 180 Days Pallets", readonly=True, copy=False)
+    opening_pallet_count = fields.Integer(string="Opening Pallets", readonly=True, copy=False)
+    inbound_pallet_count = fields.Integer(string="Inbound Pallet Operations", readonly=True, copy=False)
+    outbound_pallet_count = fields.Integer(string="Outbound Pallet Operations", readonly=True, copy=False)
+    closing_pallet_count = fields.Integer(string="Closing Pallets", readonly=True, copy=False)
+    opening_product_summary = fields.Char(string="Opening Product Quantity", readonly=True, copy=False)
+    inbound_product_summary = fields.Char(string="Inbound Product Quantity", readonly=True, copy=False)
+    outbound_product_summary = fields.Char(string="Outbound Product Quantity", readonly=True, copy=False)
+    closing_product_summary = fields.Char(string="Closing Product Quantity", readonly=True, copy=False)
     line_ids = fields.One2many("sunrise.stock.report.line", "report_id", string="Pallet Summary Lines", readonly=True, copy=False)
 
     @api.depends("date_from", "date_to")
@@ -36,21 +46,42 @@ class SunriseStockReport(models.Model):
         for rec in self:
             rec.name = "%s ~ %s" % (rec.date_from or "", rec.date_to or "")
 
+    def _compute_available_location_line_ids(self):
+        project_model = self.env["project.project"].sudo()
+        location_model = self.env["stock.location"].sudo()
+        sunrise_projects = project_model.search([("name", "=", "SUNRISE")])
+        available_location_line_ids = sunrise_projects.mapped("portal_stock_location_line_ids") if "portal_stock_location_line_ids" in project_model._fields else location_model
+        for rec in self:
+            rec.available_location_line_ids = available_location_line_ids
+
     def action_refresh_report(self):
         inbound_move_line_model = self.env["stock.move.line"].sudo()
         move_line_model = self.env["stock.move.line"].sudo()
         quant_model = self.env["stock.quant"].sudo()
+        project_model = self.env["project.project"].sudo()
+        location_model = self.env["stock.location"].sudo()
         outbound_product_model = self.env["world.depot.outbound.order.product"].sudo()
         report_line_model = self.env["sunrise.stock.report.line"]
         stock_line_model = self.env["sunrise.stock.report.product.line"]
         operation_line_model = self.env["sunrise.stock.report.operation.line"]
         action = False
 
+        def format_product_summary(summary_by_uom):
+            return ", ".join("%g %s" % (quantity, uom_name) for uom_name, quantity in sorted(summary_by_uom.items()) if abs(quantity) > 0.000001)
+
         for rec in self:
             if rec.state == "done":
                 raise ValidationError(_("A refreshed report cannot be refreshed again."))
             if rec.date_from > rec.date_to:
                 raise ValidationError(_("Date From must not be later than Date To."))
+
+            location_ids = set()
+            if rec.location_id:
+                sunrise_projects = project_model.search([("name", "=", "SUNRISE")])
+                available_location_line_ids = sunrise_projects.mapped("portal_stock_location_line_ids") if "portal_stock_location_line_ids" in project_model._fields else location_model
+                if rec.location_id not in available_location_line_ids:
+                    raise ValidationError(_("Location must be configured on the SUNRISE project."))
+                location_ids = set(location_model.search([("id", "child_of", rec.location_id.id)]).ids)
 
             date_to_exclusive = datetime.combine(rec.date_to + timedelta(days=1), time.min)
             inbound_move_lines = inbound_move_line_model.search([
@@ -83,26 +114,6 @@ class SunriseStockReport(models.Model):
                 if rec.owner_id and package_data["owner"] != rec.owner_id:
                     continue
                 candidate_package_ids.append(package_id)
-
-            if not candidate_package_ids:
-                rec.line_ids.unlink()
-                rec.write({
-                    "state": "done",
-                    "refreshed_by_id": self.env.user.id,
-                    "refreshed_datetime": fields.Datetime.now(),
-                    "average_age_days": 0.0,
-                    "maximum_age_days": 0,
-                    "over_180_pallet_count": 0,
-                })
-                action = {
-                    "type": "ir.actions.act_window",
-                    "res_model": "sunrise.stock.report",
-                    "res_id": rec.id,
-                    "view_mode": "form",
-                    "views": [(False, "form")],
-                    "target": "current",
-                }
-                continue
 
             move_lines = move_line_model.search([
                 ("move_id.state", "=", "done"),
@@ -193,6 +204,7 @@ class SunriseStockReport(models.Model):
             lot_filter = (rec.lot_name or "").strip().lower()
             line_data_map = {}
             closing_age_days_list = []
+            report_product_summary_map = {"opening_product_summary": defaultdict(float), "inbound_product_summary": defaultdict(float), "outbound_product_summary": defaultdict(float), "closing_product_summary": defaultdict(float)}
             for package_id in candidate_package_ids:
                 package_data = package_data_map[package_id]
                 package_events = package_event_map[package_id]
@@ -291,6 +303,8 @@ class SunriseStockReport(models.Model):
                 for active_location_ids in product_lot_active_location_map.values():
                     package_active_location_ids.update(active_location_ids)
                 closing_location_id = max(package_active_location_ids, key=lambda location_id: (location_last_sequence_map.get(location_id, -1), location_id)) if package_active_location_ids else package_last_location_id
+                if location_ids and closing_location_id not in location_ids:
+                    continue
 
                 closing_age_days = 0
                 opening_age_days = 0
@@ -416,6 +430,7 @@ class SunriseStockReport(models.Model):
                     })
 
                 stock_values_list = []
+                line_product_summary_map = {"opening_product_summary": defaultdict(float), "inbound_product_summary": defaultdict(float), "outbound_product_summary": defaultdict(float), "closing_product_summary": defaultdict(float)}
                 for detail_data in detail_data_map.values():
                     variant_data = detail_data["variant_data"]
                     uom_ids = {variant["product"].uom_id.id for variant in variant_data}
@@ -436,6 +451,10 @@ class SunriseStockReport(models.Model):
                     last_location_sequence = -1
                     for variant in variant_data:
                         product = variant["product"]
+                        line_product_summary_map["opening_product_summary"][product.uom_id.name] += variant["opening_quantity"]
+                        line_product_summary_map["inbound_product_summary"][product.uom_id.name] += variant["inbound_quantity"]
+                        line_product_summary_map["outbound_product_summary"][product.uom_id.name] += variant["outbound_quantity"]
+                        line_product_summary_map["closing_product_summary"][product.uom_id.name] += variant["on_hand_quantity"]
                         variant_name = product.display_name
                         quantity_summary.append(
                             _("%(variant)s: opening %(opening)s %(uom)s, inbound %(inbound)s %(uom)s, outbound %(outbound)s %(uom)s, closing %(on_hand)s %(uom)s, reserved %(reserved)s %(uom)s, available %(available)s %(uom)s")
@@ -521,8 +540,9 @@ class SunriseStockReport(models.Model):
                     "%s: %s" % (state, count)
                     for state, count in sorted(picking_state_map.items())
                 )
-                line_data_map[package_id] = {
+                line_data_map[("package", package_id)] = {
                     "values": {
+                        "row_type": "package",
                         "package_id": package_id,
                         "pallet_no": package_data["pallet_no"],
                         "closing_location_id": closing_location_id,
@@ -545,19 +565,269 @@ class SunriseStockReport(models.Model):
                         "opening_age_days": opening_age_days,
                         "closing_age_days": closing_age_days,
                         "period_stock_days": period_stock_days,
+                        "opening_product_summary": format_product_summary(line_product_summary_map["opening_product_summary"]),
+                        "inbound_product_summary": format_product_summary(line_product_summary_map["inbound_product_summary"]),
+                        "outbound_product_summary": format_product_summary(line_product_summary_map["outbound_product_summary"]),
+                        "closing_product_summary": format_product_summary(line_product_summary_map["closing_product_summary"]),
                         "anomaly_message": "; ".join(anomaly_messages),
                     },
                     "stock_values_list": stock_values_list,
                     "operation_values_list": operation_values_list,
+                    "product_summary_map": line_product_summary_map,
+                }
+
+            loose_move_lines = move_line_model.search([
+                ("move_id.state", "=", "done"),
+                ("date", "<", date_to_exclusive),
+                ("package_id", "=", False),
+                ("result_package_id", "=", False),
+                "|",
+                ("picking_id.inbound_order_id.project.name", "=", "SUNRISE"),
+                ("picking_id.outbound_order_id.project.name", "=", "SUNRISE"),
+            ], order="date asc, id asc")
+            loose_event_map = defaultdict(list)
+            for move_line in loose_move_lines:
+                source_usage = move_line.location_id.usage
+                destination_usage = move_line.location_dest_id.usage
+                direction = False
+                signed_quantity = 0.0
+                if source_usage == "inventory" and destination_usage == "internal":
+                    direction = "adjustment"
+                    signed_quantity = move_line.quantity
+                elif source_usage == "internal" and destination_usage == "inventory":
+                    direction = "adjustment"
+                    signed_quantity = -move_line.quantity
+                elif source_usage != "internal" and destination_usage == "internal":
+                    direction = "inbound"
+                    signed_quantity = move_line.quantity
+                elif source_usage == "internal" and destination_usage != "internal":
+                    direction = "outbound"
+                    signed_quantity = -move_line.quantity
+                elif source_usage == "internal" and destination_usage == "internal":
+                    direction = "internal"
+                if not direction:
+                    continue
+                picking = move_line.picking_id
+                warehouse = picking.picking_type_id.warehouse_id
+                inbound_order = picking.inbound_order_id
+                outbound_order = picking.outbound_order_id
+                owner = inbound_order.owner if inbound_order else outbound_order.owner if outbound_order and "owner" in outbound_order._fields else False
+                if rec.warehouse_id and warehouse != rec.warehouse_id:
+                    continue
+                if rec.owner_id and owner != rec.owner_id:
+                    continue
+                product_template = move_line.product_id.product_tmpl_id
+                move_lot_name = move_line.lot_id.name or ""
+                if rec.product_template_id and product_template != rec.product_template_id:
+                    continue
+                if lot_filter and lot_filter not in move_lot_name.lower():
+                    continue
+                loose_key = (move_line.product_id.id, move_line.lot_id.id, move_line.product_uom_id.id)
+                loose_event_map[loose_key].append({
+                    "move_line": move_line,
+                    "date": move_line.date,
+                    "direction": direction,
+                    "signed_quantity": signed_quantity,
+                    "warehouse": warehouse,
+                    "owner": owner,
+                })
+
+            for loose_key, loose_events in loose_event_map.items():
+                product_id, lot_id, uom_id = loose_key
+                product = loose_events[0]["move_line"].product_id
+                lot = loose_events[0]["move_line"].lot_id
+                uom = loose_events[0]["move_line"].product_uom_id
+                product_lot_quantity = 0.0
+                opening_quantity = 0.0
+                inbound_quantity = 0.0
+                outbound_quantity = 0.0
+                location_quantity_map = defaultdict(float)
+                location_last_sequence_map = {}
+                last_location_id = False
+                lifecycle_start_datetime = False
+                lifecycle_start_move_line = False
+                consumed_datetime = False
+                lifecycle_count = 0
+                period_has_event = False
+                inbound_order_names = []
+                outbound_order_names = []
+                inbound_picking_names = []
+                outbound_picking_names = []
+                picking_state_map = defaultdict(int)
+                operation_values_list = []
+
+                for event_sequence, loose_event in enumerate(loose_events):
+                    move_line = loose_event["move_line"]
+                    picking = move_line.picking_id
+                    event_date = loose_event["date"].date()
+                    if move_line.location_id.usage == "internal":
+                        location_quantity_map[move_line.location_id.id] -= move_line.quantity
+                        location_last_sequence_map[move_line.location_id.id] = event_sequence * 2
+                        last_location_id = move_line.location_id.id
+                    if move_line.location_dest_id.usage == "internal":
+                        location_quantity_map[move_line.location_dest_id.id] += move_line.quantity
+                        location_last_sequence_map[move_line.location_dest_id.id] = event_sequence * 2 + 1
+                        last_location_id = move_line.location_dest_id.id
+                    before_active = product_lot_quantity > 0.000001
+                    if loose_event["signed_quantity"]:
+                        product_lot_quantity += loose_event["signed_quantity"]
+                        if event_date < rec.date_from:
+                            opening_quantity += loose_event["signed_quantity"]
+                        elif loose_event["direction"] == "inbound":
+                            inbound_quantity += loose_event["signed_quantity"]
+                        elif loose_event["direction"] == "outbound":
+                            outbound_quantity -= loose_event["signed_quantity"]
+                    after_active = product_lot_quantity > 0.000001
+                    if not before_active and after_active:
+                        lifecycle_count += 1
+                        lifecycle_start_datetime = loose_event["date"]
+                        lifecycle_start_move_line = move_line
+                        consumed_datetime = False
+                    elif before_active and not after_active:
+                        consumed_datetime = loose_event["date"]
+                    if event_date >= rec.date_from:
+                        period_has_event = True
+                        outbound_product = outbound_product_model.browse(move_line.move_id.outbound_order_product_id)
+                        outbound_order = picking.outbound_order_id or outbound_product.outbound_order_id
+                        operation_values_list.append({
+                            "direction": loose_event["direction"],
+                            "inbound_order_id": picking.inbound_order_id.id if picking.inbound_order_id else False,
+                            "outbound_order_id": outbound_order.id if outbound_order else False,
+                            "picking_id": picking.id,
+                            "picking_state": picking.state if picking else "draft",
+                            "product_id": product_id,
+                            "lot_id": lot_id,
+                            "planned_quantity": move_line.move_id.product_uom_qty,
+                            "reserved_quantity": 0.0,
+                            "done_quantity": move_line.quantity,
+                            "uom_id": uom_id,
+                            "operation_datetime": move_line.date,
+                        })
+                    if loose_event["direction"] == "inbound":
+                        if picking.inbound_order_id:
+                            inbound_order_names.append(picking.inbound_order_id.billno or picking.inbound_order_id.reference or str(picking.inbound_order_id.id))
+                        if picking:
+                            inbound_picking_names.append(picking.name)
+                    elif loose_event["direction"] == "outbound":
+                        outbound_product = outbound_product_model.browse(move_line.move_id.outbound_order_product_id)
+                        outbound_order = picking.outbound_order_id or outbound_product.outbound_order_id
+                        if outbound_order:
+                            outbound_order_names.append(outbound_order.billno or outbound_order.reference or str(outbound_order.id))
+                        if picking:
+                            outbound_picking_names.append(picking.name)
+                    if picking:
+                        picking_state_map[picking.state] += 1
+
+                if abs(opening_quantity) <= 0.000001 and not period_has_event:
+                    continue
+                active_location_ids = {location_id for location_id, quantity in location_quantity_map.items() if quantity > 0.000001}
+                closing_location_id = max(active_location_ids, key=lambda location_id: (location_last_sequence_map.get(location_id, -1), location_id)) if active_location_ids else last_location_id
+                if location_ids and closing_location_id not in location_ids:
+                    continue
+                closing_quantity = product_lot_quantity
+                closing_active = closing_quantity > 0.000001
+                opening_active = opening_quantity > 0.000001
+                closing_age_days = 0
+                opening_age_days = 0
+                period_stock_days = 0
+                if lifecycle_start_datetime:
+                    lifecycle_start_date = lifecycle_start_datetime.date()
+                    if opening_active:
+                        opening_age_days = (rec.date_from - lifecycle_start_date).days + 1
+                    closing_age_end_date = rec.date_to if closing_active else consumed_datetime.date() if consumed_datetime else False
+                    if closing_age_end_date:
+                        closing_age_days = (closing_age_end_date - lifecycle_start_date).days + 1
+                    lifecycle_end_date = consumed_datetime.date() if consumed_datetime else rec.date_to
+                    period_start_date = max(lifecycle_start_date, rec.date_from)
+                    period_end_date = min(lifecycle_end_date, rec.date_to)
+                    if period_start_date <= period_end_date:
+                        period_stock_days = (period_end_date - period_start_date).days + 1
+                if closing_active and outbound_quantity > 0.000001:
+                    stock_state = "partial_outbound"
+                elif closing_active:
+                    stock_state = "in_stock"
+                elif outbound_quantity > 0.000001:
+                    stock_state = "fully_outbound"
+                else:
+                    stock_state = "out_of_stock"
+                first_inbound_order = lifecycle_start_move_line.picking_id.inbound_order_id if lifecycle_start_move_line else False
+                first_inbound_picking = lifecycle_start_move_line.picking_id if lifecycle_start_move_line else False
+                line_product_summary_map = {
+                    "opening_product_summary": defaultdict(float, {uom.name: opening_quantity}),
+                    "inbound_product_summary": defaultdict(float, {uom.name: inbound_quantity}),
+                    "outbound_product_summary": defaultdict(float, {uom.name: outbound_quantity}),
+                    "closing_product_summary": defaultdict(float, {uom.name: closing_quantity}),
+                }
+                anomaly_messages = []
+                if not lot:
+                    anomaly_messages.append(_("Missing lot"))
+                if closing_quantity < -0.000001:
+                    anomaly_messages.append(_("Negative stock"))
+                if lifecycle_count > 1:
+                    anomaly_messages.append(_("Repeated loose goods lifecycle"))
+                if len(active_location_ids) > 1:
+                    anomaly_messages.append(_("Loose goods in multiple locations"))
+                line_data_map[("loose", product_id, lot_id, uom_id)] = {
+                    "values": {
+                        "row_type": "loose",
+                        "product_id": product_id,
+                        "product_template_id": product.product_tmpl_id.id,
+                        "lot_id": lot_id,
+                        "uom_id": uom_id,
+                        "pallet_no": "",
+                        "closing_location_id": closing_location_id,
+                        "warehouse_id": loose_events[0]["warehouse"].id if loose_events[0]["warehouse"] else False,
+                        "owner_id": loose_events[0]["owner"].id if loose_events[0]["owner"] else False,
+                        "lifecycle_state": "active" if closing_active else "consumed",
+                        "lifecycle_start_datetime": lifecycle_start_datetime,
+                        "consumed_datetime": consumed_datetime if not closing_active else False,
+                        "first_inbound_order_id": first_inbound_order.id if first_inbound_order else False,
+                        "first_inbound_picking_id": first_inbound_picking.id if first_inbound_picking else False,
+                        "inbound_order_names": ", ".join(dict.fromkeys(inbound_order_names)),
+                        "outbound_order_names": ", ".join(dict.fromkeys(outbound_order_names)),
+                        "inbound_picking_names": ", ".join(dict.fromkeys(inbound_picking_names)),
+                        "outbound_picking_names": ", ".join(dict.fromkeys(outbound_picking_names)),
+                        "picking_state_summary": ", ".join("%s: %s" % (state, count) for state, count in sorted(picking_state_map.items())),
+                        "opening_pallet_count": 0,
+                        "inbound_pallet_count": 0,
+                        "outbound_pallet_count": 0,
+                        "closing_pallet_count": 0,
+                        "opening_age_days": opening_age_days,
+                        "closing_age_days": closing_age_days,
+                        "period_stock_days": period_stock_days,
+                        "opening_product_summary": format_product_summary(line_product_summary_map["opening_product_summary"]),
+                        "inbound_product_summary": format_product_summary(line_product_summary_map["inbound_product_summary"]),
+                        "outbound_product_summary": format_product_summary(line_product_summary_map["outbound_product_summary"]),
+                        "closing_product_summary": format_product_summary(line_product_summary_map["closing_product_summary"]),
+                        "anomaly_message": "; ".join(anomaly_messages),
+                    },
+                    "stock_values_list": [{
+                        "product_template_id": product.product_tmpl_id.id,
+                        "lot_id": lot_id,
+                        "closing_location_id": closing_location_id,
+                        "stock_state": stock_state,
+                        "opening_quantity": opening_quantity,
+                        "inbound_quantity": inbound_quantity,
+                        "outbound_quantity": outbound_quantity,
+                        "on_hand_quantity": closing_quantity,
+                        "reserved_quantity": 0.0,
+                        "available_quantity": closing_quantity,
+                        "uom_id": uom_id,
+                        "quantity_summary": _("%(product)s: opening %(opening)s %(uom)s, inbound %(inbound)s %(uom)s, outbound %(outbound)s %(uom)s, closing %(closing)s %(uom)s") % {"product": product.display_name, "opening": opening_quantity, "inbound": inbound_quantity, "outbound": outbound_quantity, "closing": closing_quantity, "uom": uom.name},
+                        "variant_summary": _("%(product)s: %(quantity)s %(uom)s") % {"product": product.display_name, "quantity": closing_quantity, "uom": uom.name},
+                        "reservation_note": "" if rec.date_to == fields.Date.context_today(rec) else _("Reserved quantity is available for the current date only."),
+                    }],
+                    "operation_values_list": operation_values_list,
+                    "product_summary_map": line_product_summary_map,
                 }
 
             rec.line_ids.unlink()
             report_lines = report_line_model.create([dict(data["values"], report_id=rec.id) for data in line_data_map.values()]) if line_data_map else report_line_model
-            report_line_map = {line.package_id.id: line for line in report_lines}
+            report_line_map = {("package", line.package_id.id) if line.row_type == "package" else ("loose", line.product_id.id, line.lot_id.id, line.uom_id.id): line for line in report_lines}
             stock_values_list = []
             operation_values_list = []
-            for package_id, line_data in line_data_map.items():
-                report_line = report_line_map[package_id]
+            for line_key, line_data in line_data_map.items():
+                report_line = report_line_map[line_key]
                 for stock_values in line_data["stock_values_list"]:
                     stock_values["report_line_id"] = report_line.id
                     stock_values_list.append(stock_values)
@@ -569,6 +839,10 @@ class SunriseStockReport(models.Model):
             if operation_values_list:
                 operation_line_model.create(operation_values_list)
 
+            for line_data in line_data_map.values():
+                for summary_name, summary_by_uom in line_data["product_summary_map"].items():
+                    for uom_name, quantity in summary_by_uom.items():
+                        report_product_summary_map[summary_name][uom_name] += quantity
             rec.write({
                 "state": "done",
                 "refreshed_by_id": self.env.user.id,
@@ -576,6 +850,14 @@ class SunriseStockReport(models.Model):
                 "average_age_days": sum(closing_age_days_list) / len(closing_age_days_list) if closing_age_days_list else 0.0,
                 "maximum_age_days": max(closing_age_days_list) if closing_age_days_list else 0,
                 "over_180_pallet_count": len([age_days for age_days in closing_age_days_list if age_days > 180]),
+                "opening_pallet_count": sum(line_data["values"]["opening_pallet_count"] for line_data in line_data_map.values()),
+                "inbound_pallet_count": sum(line_data["values"]["inbound_pallet_count"] for line_data in line_data_map.values()),
+                "outbound_pallet_count": sum(line_data["values"]["outbound_pallet_count"] for line_data in line_data_map.values()),
+                "closing_pallet_count": sum(line_data["values"]["closing_pallet_count"] for line_data in line_data_map.values()),
+                "opening_product_summary": format_product_summary(report_product_summary_map["opening_product_summary"]),
+                "inbound_product_summary": format_product_summary(report_product_summary_map["inbound_product_summary"]),
+                "outbound_product_summary": format_product_summary(report_product_summary_map["outbound_product_summary"]),
+                "closing_product_summary": format_product_summary(report_product_summary_map["closing_product_summary"]),
             })
             action = {
                 "type": "ir.actions.act_window",
@@ -638,13 +920,18 @@ class SunriseStockReport(models.Model):
             if export_type == "pallet_summary":
                 sheet_name = "Pallet Summary"
                 file_prefix = "Sunrise_Pallet_Summary"
-                headers = ["Package", "Original Pallet", "Cutoff / Last Location", "Lifecycle State", "Lifecycle Start", "Consumed At", "Inbound Orders", "Outbound Orders", "Inbound Pickings", "Outbound Pickings", "Opening Pallets", "Inbound Pallet Operations", "Outbound Pallet Operations", "Closing Pallets", "Opening Age Days", "Closing Age Days", "Period Stock Days", "Anomaly"]
-                widths = [28, 22, 28, 16, 20, 20, 24, 24, 24, 24, 14, 14, 15, 14, 16, 16, 17, 24]
+                headers = ["Row Type", "Package", "Loose Product", "Loose Lot", "Loose Unit", "Original Pallet", "Cutoff / Last Location", "Lifecycle State", "Lifecycle Start", "Consumed At", "Inbound Orders", "Outbound Orders", "Inbound Pickings", "Outbound Pickings", "Opening Pallets", "Inbound Pallet Operations", "Outbound Pallet Operations", "Closing Pallets", "Opening Product Quantity", "Inbound Product Quantity", "Outbound Product Quantity", "Closing Product Quantity", "Opening Age Days", "Closing Age Days", "Period Stock Days", "Anomaly"]
+                widths = [14, 28, 32, 20, 12, 22, 28, 16, 20, 20, 24, 24, 24, 24, 14, 14, 15, 14, 20, 20, 20, 20, 16, 16, 17, 24]
+                row_type_label_map = dict(report_line_model._fields["row_type"].selection)
                 state_label_map = dict(report_line_model._fields["lifecycle_state"].selection)
                 report_lines = report_line_model.search([("report_id", "=", rec.id)], order="pallet_no asc, id asc")
                 rows = [
                     [
+                        row_type_label_map.get(line.row_type, ""),
                         line.package_id.name or "",
+                        line.product_id.display_name or "",
+                        line.lot_id.name or "",
+                        line.uom_id.name or "",
                         line.pallet_no or "",
                         line.closing_location_id.display_name or "",
                         state_label_map.get(line.lifecycle_state, ""),
@@ -658,6 +945,10 @@ class SunriseStockReport(models.Model):
                         line.inbound_pallet_count,
                         line.outbound_pallet_count,
                         line.closing_pallet_count,
+                        line.opening_product_summary or "",
+                        line.inbound_product_summary or "",
+                        line.outbound_product_summary or "",
+                        line.closing_product_summary or "",
                         line.opening_age_days,
                         line.closing_age_days,
                         line.period_stock_days,
@@ -665,18 +956,27 @@ class SunriseStockReport(models.Model):
                     ]
                     for line in report_lines
                 ]
-                total_values = ["Total", "", "", "", "", "", "", "", "", "", sum(line.opening_pallet_count for line in report_lines), sum(line.inbound_pallet_count for line in report_lines), sum(line.outbound_pallet_count for line in report_lines), sum(line.closing_pallet_count for line in report_lines), "", "", "", ""]
+                total_values = ["Total"] + [""] * (len(headers) - 1)
+                total_values[14] = sum(line.opening_pallet_count for line in report_lines)
+                total_values[15] = sum(line.inbound_pallet_count for line in report_lines)
+                total_values[16] = sum(line.outbound_pallet_count for line in report_lines)
+                total_values[17] = sum(line.closing_pallet_count for line in report_lines)
             elif export_type == "product_stock":
                 sheet_name = "Product Lot Stock"
                 file_prefix = "Sunrise_Product_Lot_Stock"
-                headers = ["Package", "Original Pallet", "Product", "Lot", "Cutoff / Last Location", "Stock State", "Opening Quantity", "Inbound Quantity", "Outbound Quantity", "Closing Quantity", "Reserved Quantity", "Available Quantity", "Unit", "Variant Specifications", "Variant Quantity Details", "Reservation Note"]
-                widths = [28, 22, 32, 20, 28, 18, 16, 16, 17, 16, 17, 17, 12, 32, 36, 32]
+                headers = ["Row Type", "Package", "Original Pallet", "Loose Product", "Loose Lot", "Loose Unit", "Product", "Lot", "Cutoff / Last Location", "Stock State", "Opening Quantity", "Inbound Quantity", "Outbound Quantity", "Closing Quantity", "Reserved Quantity", "Available Quantity", "Unit", "Variant Specifications", "Variant Quantity Details", "Reservation Note"]
+                widths = [14, 28, 22, 32, 20, 12, 32, 20, 28, 18, 16, 16, 17, 16, 17, 17, 12, 32, 36, 32]
+                row_type_label_map = dict(report_line_model._fields["row_type"].selection)
                 state_label_map = dict(stock_line_model._fields["stock_state"].selection)
                 stock_lines = stock_line_model.search([("report_line_id.report_id", "=", rec.id)], order="report_line_id, product_template_id, lot_id, id")
                 rows = [
                     [
+                        row_type_label_map.get(line.report_line_id.row_type, ""),
                         line.report_line_id.package_id.name or "",
                         line.report_line_id.pallet_no or "",
+                        line.report_line_id.product_id.display_name or "",
+                        line.report_line_id.lot_id.name or "",
+                        line.report_line_id.uom_id.name or "",
                         line.product_template_id.display_name or "",
                         line.lot_id.name or "",
                         line.closing_location_id.display_name or "",
@@ -697,15 +997,20 @@ class SunriseStockReport(models.Model):
             elif export_type == "operation":
                 sheet_name = "Operations"
                 file_prefix = "Sunrise_Pallet_Operations"
-                headers = ["Package", "Original Pallet", "Direction", "Inbound Order", "Outbound Order", "Picking", "Picking State", "Product Variant", "Lot", "Planned Quantity", "Reserved Quantity", "Done Quantity", "Unit", "Operation Datetime"]
-                widths = [28, 22, 16, 22, 22, 22, 16, 32, 20, 17, 17, 16, 12, 21]
+                headers = ["Row Type", "Package", "Original Pallet", "Loose Product", "Loose Lot", "Loose Unit", "Direction", "Inbound Order", "Outbound Order", "Picking", "Picking State", "Product Variant", "Lot", "Planned Quantity", "Reserved Quantity", "Done Quantity", "Unit", "Operation Datetime"]
+                widths = [14, 28, 22, 32, 20, 12, 16, 22, 22, 22, 16, 32, 20, 17, 17, 16, 12, 21]
+                row_type_label_map = dict(report_line_model._fields["row_type"].selection)
                 direction_label_map = dict(operation_line_model._fields["direction"].selection)
                 state_label_map = dict(operation_line_model._fields["picking_state"].selection)
                 operation_lines = operation_line_model.search([("report_line_id.report_id", "=", rec.id)], order="operation_datetime desc, id desc")
                 rows = [
                     [
+                        row_type_label_map.get(line.report_line_id.row_type, ""),
                         line.report_line_id.package_id.name or "",
                         line.report_line_id.pallet_no or "",
+                        line.report_line_id.product_id.display_name or "",
+                        line.report_line_id.lot_id.name or "",
+                        line.report_line_id.uom_id.name or "",
                         direction_label_map.get(line.direction, ""),
                         line.inbound_order_id.display_name or "",
                         line.outbound_order_id.display_name or "",
@@ -785,8 +1090,12 @@ class SunriseStockReportLine(models.Model):
     _order = "id desc"
 
     report_id = fields.Many2one("sunrise.stock.report", string="Report", required=True, ondelete="cascade", index=True, copy=False)
+    row_type = fields.Selection([("package", "Pallet"), ("loose", "Loose Goods")], string="Row Type", readonly=True, index=True, copy=False)
     package_id = fields.Many2one("stock.quant.package", string="Package", readonly=True, index=True, copy=False)
+    product_id = fields.Many2one("product.product", string="Loose Product", readonly=True, index=True, copy=False)
     product_template_id = fields.Many2one("product.template", string="Product", readonly=True, index=True, copy=False)
+    lot_id = fields.Many2one("stock.lot", string="Loose Lot", readonly=True, index=True, copy=False)
+    uom_id = fields.Many2one("uom.uom", string="Loose Unit", readonly=True, copy=False)
     pallet_no = fields.Char(string="Original Pallet No", readonly=True, index=True, copy=False)
     closing_location_id = fields.Many2one("stock.location", string="Cutoff / Last Location", readonly=True, index=True, copy=False)
     warehouse_id = fields.Many2one("stock.warehouse", string="Warehouse", readonly=True, index=True, copy=False)
@@ -805,6 +1114,10 @@ class SunriseStockReportLine(models.Model):
     inbound_pallet_count = fields.Integer(string="Inbound Pallet Operations", readonly=True, copy=False)
     outbound_pallet_count = fields.Integer(string="Outbound Pallet Operations", readonly=True, copy=False)
     closing_pallet_count = fields.Integer(string="Closing Pallets", readonly=True, copy=False)
+    opening_product_summary = fields.Char(string="Opening Product Quantity", readonly=True, copy=False)
+    inbound_product_summary = fields.Char(string="Inbound Product Quantity", readonly=True, copy=False)
+    outbound_product_summary = fields.Char(string="Outbound Product Quantity", readonly=True, copy=False)
+    closing_product_summary = fields.Char(string="Closing Product Quantity", readonly=True, copy=False)
     opening_age_days = fields.Integer(string="Opening Age Days", readonly=True, copy=False)
     closing_age_days = fields.Integer(string="Closing Age Days", readonly=True, copy=False)
     period_stock_days = fields.Integer(string="Period Stock Days", readonly=True, copy=False)
