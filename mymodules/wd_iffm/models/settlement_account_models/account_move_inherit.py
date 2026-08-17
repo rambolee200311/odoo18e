@@ -20,7 +20,10 @@ class AccountMoveInherit(models.Model):
         tracking=True,
     )
     waybill_bill_number = fields.Char(string="Waybill Bill Number", copy=False)
-
+    handover_id = fields.Many2one("operation.order.handover", string="Handover", ondelete="set null", copy=False, index=True)
+    clearance_id = fields.Many2one("operation.order.clearance", string="Clearance", ondelete="set null", copy=False, index=True)
+    is_operation_payment_confirmed = fields.Boolean(string="Operation Payment Confirmed", readonly=True, copy=False,
+                                                    tracking=True)
     def action_push_customer_invoice_files_to_period(self):
         for rec in self:
             if rec.move_type != "out_invoice":
@@ -58,6 +61,8 @@ class AccountMoveInherit(models.Model):
         for move in self:
             if move.move_type != "in_invoice":
                 raise ValidationError(_("Only vendor bills can be confirmed."))
+            if move.is_operation_payment_confirmed:
+                raise ValidationError(_("Operation payment has already been confirmed."))
             if move.state != "posted":
                 raise ValidationError(_("Vendor bill must be posted first."))
             if move.payment_state != "paid":
@@ -98,7 +103,7 @@ class AccountMoveInherit(models.Model):
 
             handover_lines.mapped("handover_id").action_recompute_state()
             clearance_lines.mapped("clearance_id").action_recompute_state()
-
+            move.write({"is_operation_payment_confirmed": True})
         return {
             "type": "ir.actions.client",
             "tag": "display_notification",
@@ -163,3 +168,7 @@ class AccountMoveInherit(models.Model):
                 "sticky": False,
             },
         }
+class AccountMoveLineInherit(models.Model):
+    _inherit = "account.move.line"
+
+    charge_item_id = fields.Many2one("world.depot.charge.item", string="Charge Item", ondelete="restrict", copy=False, index=True)

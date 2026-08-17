@@ -68,11 +68,11 @@
                             </group>
 
                             <field name="quotation_thc_lines" readonly="state != 'draft'"
-                                   context="{'default_tab_category': 'thc'}">
+                                   context="{'default_tab_category': 'handover'}">
                                 <list editable="bottom">
                                     <field name="charge_item_id" required="1"
                                            options="{'no_create': True, 'no_open': True}"
-                                           domain="[('tab_category', '=', context.get('default_tab_category')),('is_leaf','=',True)]"/>
+                                           domain="['|', ('operation_type', '=', 'handover'), ('operation_type', '=', False), ('is_leaf', '=', True)]"/>
                                     <field name="tab_category" column_invisible="1"/>
                                     <field name="is_fixed_fee"/>
                                     <field name="unit_price"/>
@@ -89,15 +89,15 @@
                                         type="action"
                                         class="btn-secondary"
                                         invisible="state != 'draft'"
-                                        context="{'default_quotation_id': id, 'default_tab_category': 'customs'}"/>
+                                        context="{'default_quotation_id': id, 'default_tab_category': 'clearance'}"/>
                             </group>
 
                             <field name="quotation_customs_lines" readonly="state != 'draft'"
-                                   context="{'default_tab_category': 'customs'}">
+                                   context="{'default_tab_category': 'clearance'}">
                                 <list editable="bottom">
                                     <field name="charge_item_id" required="1"
                                            options="{'no_create': True, 'no_open': True}"
-                                           domain="[('tab_category', '=', context.get('default_tab_category')),('is_leaf','=',True)]"/>
+                                           domain="['|', ('operation_type', '=', 'clearance'), ('operation_type', '=', False), ('is_leaf', '=', True)]"/>
                                     <field name="tab_category" column_invisible="1"/>
                                     <field name="is_fixed_fee"/>
                                     <field name="unit_price"/>

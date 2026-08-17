@@ -5,6 +5,7 @@ import io
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError, UserError
 from odoo.addons.wd_iffm.models.charge_item_inherit  import TAB_CATEGORY_LIST
+from odoo.addons.wd_iffm.models.charge_item_inherit import OPERATION_TYPE
 
 class ChargeQuotation(models.Model):
     _name = "charge.quotation"
@@ -50,61 +51,61 @@ class ChargeQuotation(models.Model):
         "charge.quotation.line",
         "quotation_id",
         string="THC Lines",
-        domain=[("tab_category", "=", "thc")],
+        domain=[("tab_category", "=", "handover")],
     )
     quotation_customs_lines = fields.One2many(
         "charge.quotation.line",
         "quotation_id",
         string="Customs Lines",
-        domain=[("tab_category", "=", "customs")],
+        domain=[("tab_category", "=", "clearance")],
     )
     quotation_trucking_lines = fields.One2many(
         "charge.quotation.line",
         "quotation_id",
         string="Trucking Lines",
-        domain=[("tab_category", "=", "trucking")],
+        domain=[("tab_category", "=", "clearance")],
     )
     quotation_wh_in_lines = fields.One2many(
         "charge.quotation.line",
         "quotation_id",
         string="WH Inbound Lines",
-        domain=[("tab_category", "=", "wh_in")],
+        domain=[("tab_category", "=", "clearance")],
     )
     quotation_storage_lines = fields.One2many(
         "charge.quotation.line",
         "quotation_id",
         string="Storage Lines",
-        domain=[("tab_category", "=", "storage")],
+        domain=[("tab_category", "=", "clearance")],
     )
     quotation_wh_out_lines = fields.One2many(
         "charge.quotation.line",
         "quotation_id",
         string="WH Outbound Lines",
-        domain=[("tab_category", "=", "wh_out")],
+        domain=[("tab_category", "=", "clearance")],
     )
     quotation_wh_extra_lines = fields.One2many(
         "charge.quotation.line",
         "quotation_id",
         string="WH Extra Lines",
-        domain=[("tab_category", "=", "wh_extra")],
+        domain=[("tab_category", "=", "clearance")],
     )
     quotation_wh_pack_lines = fields.One2many(
         "charge.quotation.line",
         "quotation_id",
         string="WH Packaging Lines",
-        domain=[("tab_category", "=", "wh_pack")],
+        domain=[("tab_category", "=", "clearance")],
     )
     quotation_wh_monthly_lines = fields.One2many(
         "charge.quotation.line",
         "quotation_id",
         string="WH Monthly Lines",
-        domain=[("tab_category", "=", "wh_monthly")],
+        domain=[("tab_category", "=", "clearance")],
     )
     quotation_wh_other_lines = fields.One2many(
         "charge.quotation.line",
         "quotation_id",
         string="WH Other Lines",
-        domain=[("tab_category", "=", "wh_other")],
+        domain=[("tab_category", "=", "clearance")],
     )
 
     @api.model_create_multi
@@ -114,6 +115,18 @@ class ChargeQuotation(models.Model):
                 vals["name"] = self.env["ir.sequence"].next_by_code("charge.quotation") or ""
         records = super().create(vals_list)
         return records
+
+    def write(self, vals):
+        if "currency_id" in vals:
+            env_waybill = self.env["world.depot.waybill"].sudo()
+            for rec in self:
+                if vals.get("currency_id") != rec.currency_id.id and env_waybill.search_count([
+                    ("quotation_id", "=", rec.id),
+                ], limit=1):
+                    raise ValidationError(
+                        _("The currency cannot be changed because this quotation is already used by a waybill.")
+                    )
+        return super().write(vals)
 
 
     def action_set_active(self):
@@ -298,10 +311,8 @@ class ChargeQuotationLine(models.Model):
         options="{'no_create': True, 'no_open': True}",
     )
     tab_category = fields.Selection(
-        TAB_CATEGORY_LIST,
+        OPERATION_TYPE,
         string="Tab Category",
-        related="charge_item_id.tab_category",
-        store=True,
         index=True,
     )
 

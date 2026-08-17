@@ -341,6 +341,21 @@ class StatementPeriod(models.Model):
                 raise ValidationError(_("Please confirm the expense first."))
             if period.handover_total_amount == 0 or period.clearance_total_amount == 0:
                 raise ValidationError(_("Please enter the amount for handover and clearance orders."))
+            if not period.currency_id:
+                raise ValidationError(_("Currency is required before creating the customer invoice."))
+
+            currencies = (
+                period.handover_order_lines.mapped("currency_id")
+                | period.clearance_order_lines.mapped("currency_id")
+            )
+            missing_currency = (
+                period.handover_order_lines.filtered(lambda order: not order.currency_id)
+                or period.clearance_order_lines.filtered(lambda order: not order.currency_id)
+            )
+            if missing_currency or len(currencies) != 1 or currencies.id != period.currency_id.id:
+                raise ValidationError(
+                    _("All orders in the statement period must use the statement currency.")
+                )
 
 
             journal = self.env["account.journal"].sudo().search(
@@ -371,7 +386,7 @@ class StatementPeriod(models.Model):
             }))
             invoice_vals = {
                 'partner_id': period.project_id.partner_id.id,
-                'currency_id': period.project_id.currency_id.id,
+                'currency_id': period.currency_id.id,
                 'invoice_date': fields.Date.today(),
                 "journal_id": journal.id,
                 "ref": f"{period.name}/{period.id}",

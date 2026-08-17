@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
-from odoo.addons.wd_iffm.models.charge_item_inherit  import TAB_CATEGORY_LIST
+from odoo.addons.wd_iffm.models.charge_item_inherit  import TAB_CATEGORY_LIST,OPERATION_TYPE
 
 class ChargeQuotationAddWizard(models.TransientModel):
     _name = "charge.quotation.add.wizard"
@@ -8,7 +8,7 @@ class ChargeQuotationAddWizard(models.TransientModel):
 
     quotation_id = fields.Many2one("charge.quotation", string="Quotation", required=True, readonly=True)
     tab_category = fields.Selection(
-        TAB_CATEGORY_LIST,
+        OPERATION_TYPE,
         string="Tab Category",
         required=True,
         index=True,
