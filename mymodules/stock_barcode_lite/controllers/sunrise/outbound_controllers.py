@@ -3,6 +3,7 @@
 import logging
 
 from odoo import http
+from odoo.exceptions import UserError
 from odoo.http import request
 from odoo.addons.worlddepot.controllers.api_logs import api_logger
 from odoo.addons.worlddepot.controllers.validator_token import validate_token
@@ -104,9 +105,12 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
                 if "is_bonded" in request.env["world.depot.outbound.order"]._fields:
                     order_vals["is_bonded"] = False
                 order = request.env["world.depot.outbound.order"].create(order_vals)
+                order.outbound_order_product_ids.validate_sunrise_source_product_specifications()
                 return self.success_response(order)
         except SunriseApiError as error:
             return self.error_response(error.code, error.message)
+        except UserError as error:
+            return self.error_response("4001", str(error))
         except Exception as error:
             _logger.exception("Unexpected Sunrise outbound create error: %s", error)
             return self.error_response("5000", str(error))
@@ -173,7 +177,7 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
                 self.format_field_error("is_lot", "must be N for non-lot-tracked product", row_number),
             )
         inbound_cntr_no = self.get_optional_text(line_data, "inbound_cntr_no")
-        package = self.find_outbound_package(
+        package_result = self.find_outbound_package(
             inbound_cntr_no,
             pallet_no,
             product,
@@ -183,6 +187,8 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
             de_palletize,
             package_modes,
         )
+        package = package_result["package"]
+        source_specification = package_result["source_specification"]
         return {
             "package": package,
             "product_vals": {
@@ -190,6 +196,8 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
                 "source_product_code": product_code,
                 "product_ean": product_ean,
                 "pallet_no": pallet_no,
+                "gross_weight": source_specification["gross_weight"],
+                "pallet_dimensions": source_specification["pallet_dimensions"],
                 "package_id": package.id,
                 "pallets": 1,
                 "quantity": box_qty,
@@ -261,7 +269,31 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
         for package in ordered_packages:
             if package.id in package_modes and package_modes[package.id] != de_palletize:
                 continue
-            return package[:1]
+            source_detail_lines = inbound_details.filtered(
+                lambda detail: detail.inbound_order_product_id.package_id == package
+            )
+            if not source_detail_lines:
+                raise SunriseApiError(
+                    "3004",
+                    self.format_field_error(
+                        "pallet_no",
+                        '"%s" has no matching inbound product detail for product "%s" and lot "%s".'
+                        % (pallet_no, product.display_name, lot_name or ""),
+                        row_number,
+                    ),
+                )
+
+            try:
+                source_specification = source_detail_lines.get_sunrise_product_specification()
+            except UserError as error:
+                raise SunriseApiError(
+                    "3004",
+                    self.format_field_error("pallet_no", str(error), row_number),
+                ) from error
+            return {
+                "package": package,
+                "source_specification": source_specification,
+            }
 
         raise SunriseApiError(
             "4001",

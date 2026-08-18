@@ -129,6 +129,10 @@ class OutboundOrderInherit(models.Model):
                     line_missing_fields.append(line._fields["is_lot"].string)
                 if line.is_lot == "Y" and not line.lot_name:
                     line_missing_fields.append(line._fields["lot_name"].string)
+                if not line.gross_weight:
+                    line_missing_fields.append(line._fields["gross_weight"].string)
+                if not line.pallet_dimensions:
+                    line_missing_fields.append(line._fields["pallet_dimensions"].string)
 
                 if line_missing_fields:
                     raise UserError(_("%s is missing required fields: %s") % (line_name, ", ".join(line_missing_fields)))
@@ -178,6 +182,8 @@ class OutboundOrderInherit(models.Model):
                         _("%s box_in_qty must not equal u8_conversion_rate when box_type is partial.")
                         % line_name
                     )
+
+                line.validate_sunrise_source_product_specifications()
 
 
 
@@ -878,7 +884,7 @@ class OutboundOrderProduct(models.Model):
     product_ean = fields.Char(string="Product EAN", copy=False, index=True)
 
     de_palletize = fields.Selection([("N", "Full Pallet Outbound"), ("Y", "Depalletize Outbound")],
-                                    string="Depalletize", default="N", copy=False, index=True)
+                                    string="Depalletize", default="Y", copy=False, index=True)
     is_lot = fields.Selection([("N", "No"), ("Y", "Yes")], string="Is Lot", default="N", copy=False, index=True)
     lot_name = fields.Char(string="Lot Name", copy=False, index=True, tracking=True)
     m_date = fields.Date(string="Manufacture Date", copy=False)
@@ -896,6 +902,89 @@ class OutboundOrderProduct(models.Model):
     castunitid = fields.Char(string="Assistant Unit", copy=False, index=True)
     u8_aux_uom_name = fields.Char(string="U8 Aux UOM Name", copy=False, index=True)
     cspaceid = fields.Char(string="Location Code", copy=False, index=True, tracking=True)#货位号
+    gross_weight = fields.Char(string="Gross Weight(kg)", copy=False)
+    pallet_dimensions = fields.Char(string="Carton Dimensions(m)", copy=False)
+
+    @api.onchange("package_id", "product_id", "is_lot", "lot_name")
+    def onchange_sunrise_source_product_specifications(self):
+        inbound_detail_model = self.env["world.depot.inbound.order.products.pallet"].sudo()
+
+        for rec in self:
+            project = rec.outbound_order_id.project or rec.project
+            if project.name != "SUNRISE":
+                continue
+
+            rec.gross_weight = False
+            rec.pallet_dimensions = False
+
+            if not rec.package_id or not rec.product_id or not rec.is_lot:
+                continue
+            if rec.is_lot == "Y" and not rec.lot_name:
+                continue
+
+            source_domain = [
+                ("inbound_order_product_id.package_id", "=", rec.package_id.id),
+                ("inbound_order_product_id.inbound_order_id.project", "=", project.id),
+                ("inbound_order_product_id.inbound_order_id.state", "!=", "cancel"),
+                ("product_id", "=", rec.product_id.id),
+                ("is_lot", "=", rec.is_lot),
+            ]
+            if rec.is_lot == "Y":
+                source_domain.append(("lot_name", "=", rec.lot_name))
+
+            source_detail_lines = inbound_detail_model.search(source_domain, order="id")
+            if not source_detail_lines:
+                continue
+
+            source_specification = source_detail_lines.get_sunrise_product_specification()
+            rec.gross_weight = source_specification["gross_weight"]
+            rec.pallet_dimensions = source_specification["pallet_dimensions"]
+
+    def validate_sunrise_source_product_specifications(self):
+        inbound_detail_model = self.env["world.depot.inbound.order.products.pallet"].sudo()
+        for rec in self:
+            source_domain = [
+                ("inbound_order_product_id.package_id", "=", rec.package_id.id),
+                ("inbound_order_product_id.inbound_order_id.project", "=", rec.project.id),
+                ("inbound_order_product_id.inbound_order_id.state", "!=", "cancel"),
+                ("product_id", "=", rec.product_id.id),
+                ("is_lot", "=", rec.is_lot),
+            ]
+            if rec.is_lot == "Y":
+                source_domain.append(("lot_name", "=", rec.lot_name))
+            source_detail_lines = inbound_detail_model.search(source_domain, order="id")
+            if not source_detail_lines:
+                raise UserError(
+                    _("No inbound source detail was found for product %s, pallet %s and lot %s.")
+                    % (rec.product_id.display_name, rec.pallet_no or "-", rec.lot_name or "-")
+                )
+
+            source_specification = source_detail_lines.get_sunrise_product_specification()
+            line_name = _("Product %s, pallet %s, lot %s") % (
+                rec.product_id.display_name,
+                rec.pallet_no or "-",
+                rec.lot_name or "-",
+            )
+            try:
+                gross_weight = float(rec.gross_weight)
+            except (TypeError, ValueError) as error:
+                raise UserError(_("%s gross weight must be a valid positive number.") % line_name) from error
+            if not math.isfinite(gross_weight) or gross_weight <= 0:
+                raise UserError(_("%s gross weight must be a valid positive number.") % line_name)
+
+            pallet_dimensions = "".join((rec.pallet_dimensions or "").upper().split())
+            if not pallet_dimensions:
+                raise UserError(_("%s carton dimensions must not be blank.") % line_name)
+            if not math.isclose(
+                    gross_weight,
+                    source_specification["gross_weight_value"],
+                    rel_tol=1e-9,
+                    abs_tol=1e-6,
+            ) or pallet_dimensions != source_specification["pallet_dimensions_value"]:
+                raise UserError(
+                    _("%s gross weight and carton dimensions must match the inbound source detail.") % line_name
+                )
+        return True
 
     def init(self):
         super().init()

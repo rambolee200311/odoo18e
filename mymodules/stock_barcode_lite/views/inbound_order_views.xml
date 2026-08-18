@@ -163,6 +163,8 @@
                 <field name="u8_aux_uom_name" optional="hide" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="is_lot" optional="hide" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="lot_name" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="gross_weight" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="pallet_dimensions" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="m_date" optional="hide" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="e_date" optional="hide" column_invisible="parent.project_name !='SUNRISE'"/>
             </xpath>
@@ -193,6 +195,8 @@
                 <field name="ninnum" optional="hide" invisible="project_name != 'SUNRISE'"/>
                 <field name="is_lot" optional="hide" invisible="project_name != 'SUNRISE'"/>
                 <field name="lot_name" optional="show" invisible="project_name != 'SUNRISE'"/>
+                <field name="gross_weight" optional="show" invisible="project_name != 'SUNRISE'"/>
+                <field name="pallet_dimensions" optional="show" invisible="project_name != 'SUNRISE'"/>
                 <field name="m_date" optional="hide" invisible="project_name != 'SUNRISE'"/>
                 <field name="e_date" optional="hide" invisible="project_name != 'SUNRISE'"/>
             </xpath>
@@ -272,6 +276,8 @@
                             <field name="u8_aux_uom_name"/>
                             <field name="u8_aux_qty"/>
                             <field name="u8_conversion_rate"/>
+                            <field name="gross_weight" optional="show" invisible="project_name != 'SUNRISE'"/>
+                            <field name="pallet_dimensions" optional="show" invisible="project_name != 'SUNRISE'"/>
                             <field name="m_date"/>
                             <field name="e_date"/>
                             <field name="vsourcebillcode"/>
@@ -300,6 +306,8 @@
                 <field name="box_qty"/>
                 <field name="ninnum"/>
                 <field name="cspaceid"/>
+                <field name="gross_weight" optional="show" invisible="project_name != 'SUNRISE'"/>
+                <field name="pallet_dimensions" optional="show" invisible="project_name != 'SUNRISE'"/>
                 <field name="m_date" optional="hide"/>
                 <field name="e_date" optional="hide"/>
                 <field name="castunitid" optional="hide"/>

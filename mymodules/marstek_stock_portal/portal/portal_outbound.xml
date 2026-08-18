@@ -25,22 +25,22 @@
                             <t t-if="show_sunrise_outbound_filters">
                                 <div class="col-12 col-md-6 col-lg-4">
                                     <label for="vsourcebillcode" class="form-label">Source Bill Code/Contract No</label>
-                                    <input type="text" class="form-control" id="vsourcebillcode" name="vsourcebillcode" t-attf-value="#{filters.get('vsourcebillcode', '')}" placeholder="Enter source bill code or contract no"/>
+                                    <input type="search" class="form-control" id="vsourcebillcode" name="vsourcebillcode" t-attf-value="#{filters.get('vsourcebillcode', '')}" placeholder="Enter source bill code or contract no"/>
                                 </div>
                             </t>
                             <t t-else="">
                                 <div class="col-12 col-md-6 col-lg-4">
                                     <label for="outbound_no" class="form-label">Outbound No. / Reference</label>
-                                    <input type="text" class="form-control" id="outbound_no" name="outbound_no" t-attf-value="#{filters.get('outbound_no', '')}" placeholder="Enter outbound no. or reference"/>
+                                    <input type="search" class="form-control" id="outbound_no" name="outbound_no" t-attf-value="#{filters.get('outbound_no', '')}" placeholder="Enter outbound no. or reference"/>
                                 </div>
                             </t>
                             <div class="col-12 col-md-6 col-lg-4">
                                 <label for="bl_no" class="form-label">BL No.</label>
-                                <input type="text" class="form-control" id="bl_no" name="bl_no" t-attf-value="#{filters.get('bl_no', '')}" placeholder="Enter BL no."/>
+                                <input type="search" class="form-control" id="bl_no" name="bl_no" t-attf-value="#{filters.get('bl_no', '')}" placeholder="Enter BL no."/>
                             </div>
                             <div class="col-12 col-md-6 col-lg-4">
                                 <label for="container_no" class="form-label">Container No.</label>
-                                <input type="text" class="form-control" id="container_no" name="container_no" t-attf-value="#{filters.get('container_no', '')}" placeholder="Enter container no."/>
+                                <input type="search" class="form-control" id="container_no" name="container_no" t-attf-value="#{filters.get('container_no', '')}" placeholder="Enter container no."/>
                             </div>
                             <div class="col-12 col-md-6 col-lg-4">
                                 <label for="portal_outbound_status" class="form-label">Status</label>

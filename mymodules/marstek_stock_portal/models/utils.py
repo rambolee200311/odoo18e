@@ -21,23 +21,38 @@ def portal_owner_domain(env, field_name):
     return [(field_name, "=", owner.id)]
 
 
+def portal_stock_location_ids(env):
+    owner = portal_owner_partner(env)
+    if not owner:
+        return []
+    projects = env["project.project"].sudo().search([("owner", "=", owner.id)])
+    return projects.mapped("portal_stock_location_line_ids").ids
+
+
+def portal_location_is_allowed(env, location_id):
+    if not str(location_id).isdigit():
+        return False
+    root_location_ids = portal_stock_location_ids(env)
+    if not root_location_ids:
+        return False
+    return int(location_id) in root_location_ids
+
+
 def portal_quant_domain(env):
     domain = portal_owner_domain(env, "owner_id")
     domain += [("quantity", ">", 0), ("location_id.usage", "in", ["internal", "transit"]), ("package_id", "!=", False)]
+    root_location_ids = portal_stock_location_ids(env)
+    if not root_location_ids:
+        return [("id", "=", 0)]
+    domain.append(("location_id", "child_of", root_location_ids))
     return domain
 
 
 def portal_stock_location_options(env, keyword=""):
-    if not portal_owner_partner(env):
+    root_location_ids = portal_stock_location_ids(env)
+    if not root_location_ids:
         return []
-    quants = env["stock.quant"].sudo().search(portal_quant_domain(env))
-    location_id_set = set()
-    for location in quants.mapped("location_id"):
-        location_id_set.add(location.id)
-        location_id_set.update(int(value) for value in (location.parent_path or "").split("/") if value)
-    if not location_id_set:
-        return []
-    location_domain = [("id", "in", list(location_id_set))]
+    location_domain = [("id", "in", root_location_ids)]
     if keyword:
         location_domain = expression.AND([
             location_domain,
