@@ -14,35 +14,53 @@
                     </div>
                     <h1 class="mb-4">Stock Order</h1>
                     <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <div class="card">
-                                <div class="card-body text-center">
-                                    <i class="fa fa-sign-in fa-3x mb-3 text-primary"/>
-                                    <h5>Inbound Orders</h5>
-                                    <a href="/my/operation/inbounds" class="btn btn-primary">View</a>
-                                    <a href="/my/operation/inbounds/create" class="btn btn-outline-primary">Create</a>
+                        <!-- Inbound Orders -->
+                        <div class="col-12 col-md-6 col-lg-4 mb-4">
+                            <a href="/my/operation/inbounds" class="text-decoration-none">
+                                <div class="card h-100 o_marstek_card o_stock_operation_card o_stock_operation_card_inbound">
+                                    <div class="card-body text-center">
+                                        <div class="o_marstek_icon mb-3">
+                                            <i class="fa fa-sign-in fa-3x text-primary"/>
+                                        </div>
+                                        <h4 class="text-black">Inbound Orders</h4>
+                                        <p class="text-muted">View and manage inbound orders</p>
+                                        <a href="/my/operation/inbounds" class="btn btn-primary">View</a>
+                                        <a href="/my/operation/inbounds/create" class="btn btn-outline-primary">Create</a>
+                                    </div>
                                 </div>
-                            </div>
+                            </a>
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <div class="card">
-                                <div class="card-body text-center">
-                                    <i class="fa fa-sign-out fa-3x mb-3 text-success"/>
-                                    <h5>Outbound Orders</h5>
-                                    <a href="/my/operation/outbounds" class="btn btn-success">View</a>
-                                    <a href="/my/operation/outbounds/create" class="btn btn-outline-success">Create</a>
+                        <!-- Outbound Orders -->
+                        <div class="col-12 col-md-6 col-lg-4 mb-4">
+                            <a href="/my/operation/outbounds" class="text-decoration-none">
+                                <div class="card h-100 o_marstek_card o_stock_operation_card o_stock_operation_card_outbound">
+                                    <div class="card-body text-center">
+                                        <div class="o_marstek_icon mb-3">
+                                            <i class="fa fa-sign-out fa-3x text-success"/>
+                                        </div>
+                                        <h4 class="text-black">Outbound Orders</h4>
+                                        <p class="text-muted">View and manage outbound orders</p>
+                                        <a href="/my/operation/outbounds" class="btn btn-success">View</a>
+                                        <a href="/my/operation/outbounds/create" class="btn btn-outline-success">Create</a>
+                                    </div>
                                 </div>
-                            </div>
+                            </a>
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <div class="card">
-                                <div class="card-body text-center">
-                                    <i class="fa fa-exchange fa-3x mb-3 text-warning"/>
-                                    <h5>Transfer Orders</h5>
-                                    <a href="/my/operation/transfers" class="btn btn-warning">View</a>
-                                    <a href="/my/operation/transfers/create" class="btn btn-outline-warning">Create</a>
+                        <!-- Transfer Orders -->
+                        <div class="col-12 col-md-6 col-lg-4 mb-4">
+                            <a href="/my/operation/transfers" class="text-decoration-none">
+                                <div class="card h-100 o_marstek_card o_stock_operation_card o_stock_operation_card_transfer">
+                                    <div class="card-body text-center">
+                                        <div class="o_marstek_icon mb-3">
+                                            <i class="fa fa-exchange fa-3x text-warning"/>
+                                        </div>
+                                        <h4 class="text-black">Transfer Orders</h4>
+                                        <p class="text-muted">View and manage transfer orders</p>
+                                        <a href="/my/operation/transfers" class="btn btn-warning">View</a>
+                                        <a href="/my/operation/transfers/create" class="btn btn-outline-warning">Create</a>
+                                    </div>
                                 </div>
-                            </div>
+                            </a>
                         </div>
                     </div>
                 </div>
