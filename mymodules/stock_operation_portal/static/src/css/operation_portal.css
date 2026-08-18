@@ -58,6 +58,30 @@
     color: #721c24;
 }
 
+/* Operation home cards */
+.o_stock_operation_card {
+    border: 2px solid transparent;
+}
+
+.o_stock_operation_card h4 {
+    color: #000 !important;
+}
+
+.o_stock_operation_card:hover,
+.o_stock_operation_card:focus-within {
+    border-color: #0d6efd;
+}
+
+.o_stock_operation_card_outbound:hover,
+.o_stock_operation_card_outbound:focus-within {
+    border-color: #198754;
+}
+
+.o_stock_operation_card_transfer:hover,
+.o_stock_operation_card_transfer:focus-within {
+    border-color: #ffc107;
+}
+
 /* Form styles */
 .operation-form-section {
     margin-bottom: 24px;
