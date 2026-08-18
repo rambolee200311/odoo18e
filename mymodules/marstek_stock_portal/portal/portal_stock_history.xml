@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="portal_marstek_stock_history" name="Stock History">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/marstek', 'name': 'Marstek Stock'}, {'url': None, 'name': 'Stock History'}]"/>
+
+            <div class="o_portal_content">
+                <div class="card mb-4" id="stock_history_filter_card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 d-inline">
+                            <i class="fa fa-filter me-2"/>
+                            Stock Movement History
+                        </h5>
+                        <button class="btn btn-link text-decoration-none p-0 border-0" type="button" data-bs-toggle="collapse" data-bs-target="#stock_history_filter_collapse" aria-expanded="true">
+                            <i class="fa fa-chevron-up collapse-icon"/>
+                        </button>
+                    </div>
+                    <div id="stock_history_filter_collapse" class="collapse show">
+                        <div class="card-body">
+                            <form id="stock_history_form" class="row g-3">
+                                <div class="col-12 col-md-6 col-lg-4">
+                                    <label for="location_search" class="form-label">Location</label>
+                                    <div class="position-relative" id="location_wrapper">
+                                        <input type="text"
+                                               class="form-control"
+                                               id="location_search"
+                                               name="location_search"
+                                               placeholder="Search location"
+                                               autocomplete="off"/>
+                                        <input type="hidden" id="location_id" name="location_id"/>
+                                        <div id="location_dropdown" class="dropdown-menu" style="display:none; max-height:200px; overflow:auto;"></div>
+                                        <div id="location_loading" class="position-absolute top-50 end-0 translate-middle-y me-2" style="display:none;">
+                                            <i class="fa fa-spinner fa-spin text-muted"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-6 col-lg-4">
+                                    <label for="date_from" class="form-label">Start Date</label>
+                                    <input type="date" class="form-control" id="date_from" name="date_from" required="required"/>
+                                </div>
+                                <div class="col-12 col-md-6 col-lg-4">
+                                    <label for="date_to" class="form-label">End Date</label>
+                                    <input type="date" class="form-control" id="date_to" name="date_to" required="required"/>
+                                </div>
+                                <div class="col-12 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-primary me-2">
+                                        <i class="fa fa-search me-1"/>
+                                        Search
+                                    </button>
+                                    <a href="/my/world_depot/stock/movement_history" class="btn btn-secondary">
+                                        <i class="fa fa-refresh me-1"/>
+                                        Reset
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="stock_history_error" class="alert alert-danger d-none" role="alert"></div>
+
+                <div class="card mb-4 d-none" id="stock_history_summary_card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="stock_history_summary" class="row g-3"></div>
+                    </div>
+                </div>
+
+                <div class="card" id="stock_history_table_card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Movement History</h5>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-primary me-3" id="stock_history_total">Total: 0</span>
+                            <div class="btn-group btn-group-sm" role="group" aria-label="View Switch">
+                                <input type="radio" class="btn-check" name="view_mode" id="view_table" value="table" autocomplete="off"/>
+                                <label class="btn btn-outline-primary" for="view_table" title="Table View">
+                                    <i class="fa fa-table"/>
+                                    <span class="d-none d-sm-inline ms-1">Table</span>
+                                </label>
+                                <input type="radio" class="btn-check" name="view_mode" id="view_card" value="card" autocomplete="off"/>
+                                <label class="btn btn-outline-primary" for="view_card" title="Card View">
+                                    <i class="fa fa-th-large"/>
+                                    <span class="d-none d-sm-inline ms-1">Card</span>
+                                </label>
+                            </div>
+                            <button class="btn btn-link text-decoration-none p-0 border-0" type="button" data-bs-toggle="collapse" data-bs-target="#stock_history_table_collapse" aria-expanded="true">
+                                <i class="fa fa-chevron-up collapse-icon"/>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="stock_history_table_collapse" class="collapse show">
+                        <div id="table_view" class="card-body p-0">
+                            <div class="table-responsive" id="table_scroll_container" style="max-height: 60vh; overflow: auto;">
+                                <div id="stock_history_loading" class="text-center text-muted py-5 d-none">
+                                    <i class="fa fa-spinner fa-spin me-1"></i>
+                                    Loading...
+                                </div>
+                                <table id="movement_history_table" class="table table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th class="text-nowrap">Pallet / Product</th>
+                                            <th class="text-nowrap">Lot</th>
+                                            <th class="text-nowrap">Location</th>
+                                            <th class="text-nowrap text-end">Opening</th>
+                                            <th class="text-nowrap text-end">Inbound</th>
+                                            <th class="text-nowrap text-end">Outbound</th>
+                                            <th class="text-nowrap text-end">Closing</th>
+                                            <th class="text-nowrap text-end">Period Days</th>
+                                            <th class="text-nowrap text-end">Closing Age</th>
+                                            <th class="text-nowrap">First Inbound</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="movement_history_tbody"></tbody>
+                                </table>
+                                <div id="movement_history_empty" class="text-center text-muted py-5 d-none">No data found</div>
+                            </div>
+                        </div>
+                        <div id="card_view" class="card-body p-3" style="display: none;">
+                            <div class="stock-card-list" id="movement_history_cards"></div>
+                            <div id="movement_history_card_empty" class="text-center text-muted py-5 d-none">No data found</div>
+                        </div>
+                        <div id="stock_history_pager" class="card-footer"></div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>
