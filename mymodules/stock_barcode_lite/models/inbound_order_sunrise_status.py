@@ -198,6 +198,8 @@ class InboundOrderSunrise(models.Model):
                     "vsourcerowno": detail_line.vsourcerowno,
                     "vbatchcode": move_line.lot_id.name or detail_line.lot_name or "",
                     "vuserdef10":pallet_code,
+                    "vmemo": detail_line.pallet_dimensions or "",
+                    "vdef7": detail_line.gross_weight or "",
                     "locator": [locator],
                 })
                 childrenvo.append(child)

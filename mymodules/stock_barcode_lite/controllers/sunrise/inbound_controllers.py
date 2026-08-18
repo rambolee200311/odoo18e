@@ -83,9 +83,12 @@ class SunriseInboundController(http.Controller, SunriseControllerMixin):
                     "inbound_order_product_ids": [(0, 0, values) for values in pallet_data.values()],
                 }
                 order = request.env["world.depot.inbound.order"].create(order_vals)
+                order.validate_sunrise_product_specifications()
                 return self.success_response(order)
         except SunriseApiError as error:
             return self.error_response(error.code, error.message)
+        except UserError as error:
+            return self.error_response("4001", str(error))
         except Exception as error:
             _logger.exception("Unexpected Sunrise inbound create error: %s", error)
             return self.error_response("5000", str(error))
@@ -119,6 +122,9 @@ class SunriseInboundController(http.Controller, SunriseControllerMixin):
         product_code = self.get_required_text(line_data, "product", row_number)
         product_ean = self.get_optional_text(line_data, "product_ean")
         pallet_no = self.get_required_text(line_data, "pallet_no", row_number)
+        gross_weight = self.get_required_text(line_data, "gross_weight", row_number)
+        self.get_positive_float(line_data, "gross_weight", row_number)
+        pallet_dimensions = self.get_required_text(line_data, "pallet_dimensions", row_number)
         cprojectid = self.get_required_text(line_data, "cprojectid", row_number)
         ndiscounttaxtype = self.get_required_text(line_data, "ndiscounttaxtype", row_number)
         vsourcebillcode = self.get_required_text(line_data, "vsourcebillcode", row_number)
@@ -164,6 +170,8 @@ class SunriseInboundController(http.Controller, SunriseControllerMixin):
                 "u8_conversion_rate": u8_conversion_rate,
                 "castunitid": castunitid,
                 "u8_aux_uom_name": u8_aux_uom_name,
+                "gross_weight": gross_weight,
+                "pallet_dimensions": pallet_dimensions,
                 "is_lot": is_lot,
                 "lot_name": lot_name,
                 "m_date": self.get_date_value(line_data, "m_date", row_number=row_number),
