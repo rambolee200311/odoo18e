@@ -284,7 +284,7 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
                 )
 
             try:
-                source_specification = source_detail_lines.get_sunrise_product_specification()
+                source_specification = source_detail_lines.get_sunrise_product_specification(allow_missing=True)
             except UserError as error:
                 raise SunriseApiError(
                     "3004",

@@ -844,28 +844,48 @@ class InboundOrderProductsPallet(models.Model):
     gross_weight = fields.Char(string="Gross Weight(kg)", copy=False)
     pallet_dimensions = fields.Char(string="Carton Dimensions(m)", copy=False)
 
-    def get_sunrise_product_specification(self):
+    def get_sunrise_product_specification(self, allow_missing=False):
         if not self:
             raise UserError(_("No inbound product detail was found for the Sunrise product specification."))
 
         specification_values = set()
+        has_missing = False
         for rec in self:
             line_name = _("Pallet %s, product %s, lot %s") % (
                 rec.pallet_no or "-",
                 rec.product_id.display_name or "-",
                 rec.lot_name or "-",
             )
+            gross_weight_raw = (rec.gross_weight or "").strip() if rec.gross_weight else ""
+            pallet_dimensions_raw = "".join((rec.pallet_dimensions or "").upper().split()) if rec.pallet_dimensions else ""
+
+            if not gross_weight_raw or not pallet_dimensions_raw:
+                has_missing = True
+                if not allow_missing:
+                    if not gross_weight_raw:
+                        raise UserError(_("%s gross weight must be a valid positive number.") % line_name)
+                    if not pallet_dimensions_raw:
+                        raise UserError(_("%s carton dimensions must not be blank.") % line_name)
+                continue
+
             try:
-                gross_weight = float(rec.gross_weight)
+                gross_weight = float(gross_weight_raw)
             except (TypeError, ValueError) as error:
                 raise UserError(_("%s gross weight must be a valid positive number.") % line_name) from error
             if not math.isfinite(gross_weight) or gross_weight <= 0:
                 raise UserError(_("%s gross weight must be a valid positive number.") % line_name)
 
-            pallet_dimensions = "".join((rec.pallet_dimensions or "").upper().split())
-            if not pallet_dimensions:
-                raise UserError(_("%s carton dimensions must not be blank.") % line_name)
-            specification_values.add((round(gross_weight, 6), pallet_dimensions))
+            specification_values.add((round(gross_weight, 6), pallet_dimensions_raw))
+
+        if has_missing and allow_missing:
+            first_line = self[:1]
+            return {
+                "gross_weight": False,
+                "gross_weight_value": False,
+                "pallet_dimensions": False,
+                "pallet_dimensions_value": False,
+                "has_specification": False,
+            }
 
         if len(specification_values) != 1:
             first_line = self[:1]
@@ -885,4 +905,5 @@ class InboundOrderProductsPallet(models.Model):
             "gross_weight_value": gross_weight_value,
             "pallet_dimensions": first_line.pallet_dimensions,
             "pallet_dimensions_value": pallet_dimensions_value,
+            "has_specification": True,
         }

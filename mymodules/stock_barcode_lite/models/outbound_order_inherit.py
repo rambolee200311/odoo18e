@@ -129,10 +129,6 @@ class OutboundOrderInherit(models.Model):
                     line_missing_fields.append(line._fields["is_lot"].string)
                 if line.is_lot == "Y" and not line.lot_name:
                     line_missing_fields.append(line._fields["lot_name"].string)
-                if not line.gross_weight:
-                    line_missing_fields.append(line._fields["gross_weight"].string)
-                if not line.pallet_dimensions:
-                    line_missing_fields.append(line._fields["pallet_dimensions"].string)
 
                 if line_missing_fields:
                     raise UserError(_("%s is missing required fields: %s") % (line_name, ", ".join(line_missing_fields)))
@@ -936,9 +932,10 @@ class OutboundOrderProduct(models.Model):
             if not source_detail_lines:
                 continue
 
-            source_specification = source_detail_lines.get_sunrise_product_specification()
-            rec.gross_weight = source_specification["gross_weight"]
-            rec.pallet_dimensions = source_specification["pallet_dimensions"]
+            source_specification = source_detail_lines.get_sunrise_product_specification(allow_missing=True)
+            if source_specification.get("has_specification"):
+                rec.gross_weight = source_specification["gross_weight"]
+                rec.pallet_dimensions = source_specification["pallet_dimensions"]
 
     def validate_sunrise_source_product_specifications(self):
         inbound_detail_model = self.env["world.depot.inbound.order.products.pallet"].sudo()
@@ -959,12 +956,16 @@ class OutboundOrderProduct(models.Model):
                     % (rec.product_id.display_name, rec.pallet_no or "-", rec.lot_name or "-")
                 )
 
-            source_specification = source_detail_lines.get_sunrise_product_specification()
+            source_specification = source_detail_lines.get_sunrise_product_specification(allow_missing=True)
             line_name = _("Product %s, pallet %s, lot %s") % (
                 rec.product_id.display_name,
                 rec.pallet_no or "-",
                 rec.lot_name or "-",
             )
+
+            if not source_specification.get("has_specification"):
+                continue
+
             try:
                 gross_weight = float(rec.gross_weight)
             except (TypeError, ValueError) as error:
