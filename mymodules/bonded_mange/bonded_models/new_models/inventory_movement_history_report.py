@@ -121,8 +121,6 @@ class BondedInventoryMovementHistoryReport(models.Model):
 
             left_info_list = [
                 ("Report Name", rec.name or ""),
-                ("Period Begin", fields.Date.to_string(rec.period_begin) if rec.period_begin else ""),
-                ("Period End", fields.Date.to_string(rec.period_end) if rec.period_end else ""),
                 ("Warehouse", rec.warehouse_id.display_name if rec.warehouse_id else ""),
                 ("Customs Status", bonded_label_map.get(rec.bonded_flag, "All")),
             ]
@@ -155,13 +153,11 @@ class BondedInventoryMovementHistoryReport(models.Model):
                 "Product Description",
                 "Marks/Article No./Tech Desc.",
                 "Commodity Code",
-                "Period Begin",
-                "Period End",
-                "Begin Stock Date",
+                "Date",
                 "Begin Stock Qty",
-                "Date of Mutation",
                 "Mutation Type",
-                "Inbound/Outbound No.",
+                "Inbound No.",
+                "Outbound No.",
                 "Unique Identifier",
                 "Corresponding MRN",
                 "Customs Status",
@@ -175,8 +171,8 @@ class BondedInventoryMovementHistoryReport(models.Model):
             worksheet.write_row(header_row, 0, header_list, header_format)
             worksheet.freeze_panes(header_row + 1, 0)
             column_width_list = [
-                30, 30, 34, 20, 14, 14, 16, 16, 16, 18,
-                22, 22, 22, 16, 18, 18, 20, 18, 16, 16,
+                30, 30, 34, 20, 22, 16, 18, 22, 22,
+                22, 22, 16, 18, 18, 20, 18, 16, 16,
             ]
             for column_index, width in enumerate(column_width_list):
                 worksheet.set_column(column_index, column_index, width)
@@ -191,22 +187,20 @@ class BondedInventoryMovementHistoryReport(models.Model):
                 worksheet.write(row_index, 1, line.product_description or "", line_cell_format)
                 worksheet.write(row_index, 2, line.marks_article_technical_description or "", line_cell_format)
                 worksheet.write(row_index, 3, line.commodity_code or "", line_cell_format)
-                worksheet.write(row_index, 4, fields.Date.to_string(line.period_begin) if line.period_begin else "", line_cell_format)
-                worksheet.write(row_index, 5, fields.Date.to_string(line.period_end) if line.period_end else "", line_cell_format)
-                worksheet.write(row_index, 6, fields.Date.to_string(line.begin_stock_date) if line.begin_stock_date else "", line_cell_format)
-                worksheet.write_number(row_index, 7, line.begin_stock_qty or 0.0, line_number_format)
-                worksheet.write(row_index, 8, fields.Date.to_string(line.date_of_mutation) if line.date_of_mutation else "", line_cell_format)
-                worksheet.write(row_index, 9, mutation_label_map.get(line.mutation_type, ""), line_cell_format)
-                worksheet.write(row_index, 10, line.inbound_outbound_number or "", line_cell_format)
-                worksheet.write(row_index, 11, line.unique_identifier or "", line_cell_format)
-                worksheet.write(row_index, 12, line.mrn_id.code if line.mrn_id else "", line_cell_format)
-                worksheet.write(row_index, 13, bonded_label_map.get(line.bonded_flag, ""), line_cell_format)
-                worksheet.write(row_index, 14, line.kind_of_colli or "", line_cell_format)
-                worksheet.write_number(row_index, 15, line.mutation_quantity or 0.0, line_number_format)
-                worksheet.write_number(row_index, 16, line.gross_weight or 0.0, line_number_format)
-                worksheet.write_number(row_index, 17, line.net_weight or 0.0, line_number_format)
-                worksheet.write(row_index, 18, fields.Date.to_string(line.end_stock_date) if line.end_stock_date else "", line_cell_format)
-                worksheet.write_number(row_index, 19, line.end_stock_qty or 0.0, line_number_format)
+                worksheet.write(row_index, 4, fields.Date.to_string(line.date_of_mutation) if line.date_of_mutation else "", line_cell_format)
+                worksheet.write_number(row_index, 5, line.begin_stock_qty or 0.0, line_number_format)
+                worksheet.write(row_index, 6, mutation_label_map.get(line.mutation_type, ""), line_cell_format)
+                worksheet.write(row_index, 7, line.inbound_number or "", line_cell_format)
+                worksheet.write(row_index, 8, line.outbound_number or "", line_cell_format)
+                worksheet.write(row_index, 9, line.unique_identifier or "", line_cell_format)
+                worksheet.write(row_index, 10, line.mrn_id.code if line.mrn_id else "", line_cell_format)
+                worksheet.write(row_index, 11, bonded_label_map.get(line.bonded_flag, ""), line_cell_format)
+                worksheet.write(row_index, 12, line.kind_of_colli or "", line_cell_format)
+                worksheet.write_number(row_index, 13, line.mutation_quantity or 0.0, line_number_format)
+                worksheet.write_number(row_index, 14, line.gross_weight or 0.0, line_number_format)
+                worksheet.write_number(row_index, 15, line.net_weight or 0.0, line_number_format)
+                worksheet.write(row_index, 16, fields.Date.to_string(line.end_stock_date) if line.end_stock_date else "", line_cell_format)
+                worksheet.write_number(row_index, 17, line.end_stock_qty or 0.0, line_number_format)
 
             if line_list:
                 worksheet.autofilter(
@@ -465,11 +459,28 @@ class BondedInventoryMovementHistoryReport(models.Model):
 
                 kind_of_colli = product_uom.name
 
-                inbound_outbound_number = False
+                inbound_number_set = set()
+                outbound_number_set = set()
+
                 if move_line.inbound_order_id:
-                    inbound_outbound_number = move_line.inbound_order_id.billno
+                    if move_line.inbound_order_id.billno:
+                        inbound_number_set.add(move_line.inbound_order_id.billno)
+
                 elif move_line.outbound_order_id:
-                    inbound_outbound_number = move_line.outbound_order_id.billno
+                    if move_line.outbound_order_id.billno:
+                        outbound_number_set.add(move_line.outbound_order_id.billno)
+
+                    inbound_number_list = move_line.outbound_order_id.mapped(
+                        "outbound_order_product_ids."
+                        "inbound_pallet_id."
+                        "inbound_order_product_id."
+                        "inbound_order_id."
+                        "billno"
+                    )
+
+                    inbound_number_set.update(
+                        filter(None, inbound_number_list)
+                    )
 
                 if mutation_type == "outbound" and move_line.outbound_order_id:
                     event_key = (
@@ -487,13 +498,16 @@ class BondedInventoryMovementHistoryReport(models.Model):
                     event_data["net_weight"] += net_weight
                     if not event_data["kind_of_colli"] and kind_of_colli:
                         event_data["kind_of_colli"] = kind_of_colli
+                    event_data["inbound_number_set"].update(inbound_number_set)
+                    event_data["outbound_number_set"].update(outbound_number_set)
                 else:
                     group_data["event_map"][event_key] = {
                         "source_move_line_id": move_line.id,
                         "date": move_datetime.date(),
                         "mutation_type": mutation_type,
                         "mutation_quantity": mutation_quantity,
-                        "inbound_outbound_number": inbound_outbound_number or False,
+                        "inbound_number_set": inbound_number_set,
+                        "outbound_number_set": outbound_number_set,
                         "mrn_id": move_line.mrn_id.id or False,
                         "kind_of_colli": kind_of_colli or False,
                         "gross_weight": gross_weight,
@@ -569,6 +583,8 @@ class BondedInventoryMovementHistoryReport(models.Model):
                 for event_data in event_data_list:
                     begin_qty = running_qty
                     running_qty += event_data["mutation_quantity"]
+                    inbound_number_text = ", ".join(sorted(event_data["inbound_number_set"])) or False
+                    outbound_number_text = ", ".join(sorted(event_data["outbound_number_set"])) or False
                     line_vals_list.append({
                         **base_vals,
                         "sequence": sequence,
@@ -577,7 +593,8 @@ class BondedInventoryMovementHistoryReport(models.Model):
                         "begin_stock_qty": begin_qty,
                         "date_of_mutation": event_data["date"],
                         "mutation_type": event_data["mutation_type"],
-                        "inbound_outbound_number": event_data["inbound_outbound_number"],
+                        "inbound_number": inbound_number_text,
+                        "outbound_number": outbound_number_text,
                         "mrn_id": event_data["mrn_id"],
                         "kind_of_colli": event_data["kind_of_colli"],
                         "mutation_quantity": event_data["mutation_quantity"],
@@ -700,7 +717,8 @@ class BondedInventoryMovementHistoryReportLine(models.Model):
     begin_stock_qty = fields.Float(string="Begin Stock Qty", readonly=True, copy=False)
     date_of_mutation = fields.Date(string="Date of Mutation", readonly=True, copy=False, index=True)
     mutation_type = fields.Selection(MUTATION_TYPE_SELECTION, string="Mutation Type", readonly=True, copy=False, index=True)
-    inbound_outbound_number = fields.Char(string="Inbound/Outbound No.", readonly=True, copy=False, index=True)
+    inbound_number = fields.Char(string="Inbound No.", readonly=True, copy=False, index=True)
+    outbound_number = fields.Char(string="Outbound No.", readonly=True, copy=False, index=True)
     unique_identifier = fields.Char(string="Unique Identifier", readonly=True, copy=False, index=True)
     mrn_id = fields.Many2one("bonded.mrn.master", string="Corresponding MRN", readonly=True, copy=False, index=True)
     bonded_flag = fields.Selection(BOND_FLAG_SELECTION, string="Customs Status", required=True, readonly=True, copy=False, index=True)

@@ -71,13 +71,11 @@
                                     <field name="product_description" optional="show"/>
                                     <field name="marks_article_technical_description" optional="hide"/>
                                     <field name="commodity_code" optional="show"/>
-                                    <field name="period_begin" optional="hide"/>
-                                    <field name="period_end" optional="hide"/>
-                                    <field name="begin_stock_date" optional="show"/>
+                                    <field name="date_of_mutation" string="Date" optional="show"/>
                                     <field name="begin_stock_qty" optional="show"/>
-                                    <field name="date_of_mutation" optional="show"/>
                                     <field name="mutation_type" optional="show"/>
-                                    <field name="inbound_outbound_number" optional="show"/>
+                                    <field name="inbound_number" optional="show"/>
+                                    <field name="outbound_number" optional="show"/>
                                     <field name="unique_identifier" optional="show"/>
                                     <field name="mrn_id" optional="show"
                                            options="{'no_create': True, 'no_open': True}"/>
@@ -111,13 +109,11 @@
                 <field name="product_description"/>
                 <field name="marks_article_technical_description"/>
                 <field name="commodity_code"/>
-                <field name="period_begin"/>
-                <field name="period_end"/>
-                <field name="begin_stock_date"/>
+                <field name="date_of_mutation" string="Date"/>
                 <field name="begin_stock_qty"/>
-                <field name="date_of_mutation"/>
                 <field name="mutation_type"/>
-                <field name="inbound_outbound_number"/>
+                <field name="inbound_number"/>
+                <field name="outbound_number"/>
                 <field name="unique_identifier"/>
                 <field name="mrn_id" options="{'no_create': True, 'no_open': True}"/>
                 <field name="bonded_flag" widget="badge"/>
@@ -141,16 +137,14 @@
                 <field name="product_id"/>
                 <field name="unique_identifier"/>
                 <field name="mrn_id"/>
-                <field name="inbound_outbound_number"/>
-                <field name="period_begin"/>
-                <field name="period_end"/>
-                <field name="date_of_mutation"/>
+                <field name="inbound_number"/>
+                <field name="outbound_number"/>
+                <field name="date_of_mutation" string="Date"/>
                 <field name="bonded_flag"/>
 
                 <filter name="filter_bonded" string="Bonded" domain="[('bonded_flag', '=', 'true')]"/>
                 <filter name="filter_non_bonded" string="Non-bonded" domain="[('bonded_flag', '=', 'false')]"/>
-                <filter name="filter_mutation_date" string="Mutation Date" date="date_of_mutation"/>
-
+                <filter name="filter_mutation_date" string="Date" date="date_of_mutation"/>
                 <group expand="0" string="Group By">
                     <filter name="group_by_product" string="Product" domain="[]" context="{'group_by': 'product_id'}"/>
                     <filter name="group_by_bonded_flag" string="Customs Status" domain="[]"
