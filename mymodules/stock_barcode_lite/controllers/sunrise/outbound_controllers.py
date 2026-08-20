@@ -9,7 +9,7 @@ from odoo.addons.worlddepot.controllers.api_logs import api_logger
 from odoo.addons.worlddepot.controllers.validator_token import validate_token
 
 from .common import SunriseApiError, SunriseControllerMixin
-
+import math
 _logger = logging.getLogger(__name__)
 
 
@@ -31,6 +31,21 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
                 u8c_delivery_method = self.get_required_text(data, "u8c_delivery_method").lower()
                 if u8c_delivery_method not in ("pickup", "wd"):
                     raise SunriseApiError("4001", "u8c_delivery_method must be pickup or wd.")
+
+                transport_cost_reference = self.get_optional_text(data, "transport_cost_reference")
+                transport_cost = 0.0
+                if u8c_delivery_method == "wd":
+                    transport_cost_reference = self.get_required_text(data, "transport_cost_reference")
+                    transport_cost_value = data.get("transport_cost")
+                    if isinstance(transport_cost_value, bool) or transport_cost_value in (None, ""):
+                        raise SunriseApiError("4001", "transport_cost is required for wd transport.")
+                    try:
+                        transport_cost = float(transport_cost_value)
+                    except (TypeError, ValueError) as error:
+                        raise SunriseApiError("4001", "transport_cost must be a non-negative number.") from error
+                    if not math.isfinite(transport_cost) or transport_cost < 0:
+                        raise SunriseApiError("4001", "transport_cost must be a non-negative number.")
+
                 delivery_method = self.get_delivery_method(data)
                 if not delivery_method and u8c_delivery_method == "pickup":
                     delivery_method = "pickup"
@@ -87,11 +102,13 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
                     "vsourcebillcode": vsourcebillcode,
                     "ccustomerid": ccustomerid,
                     "u8c_delivery_method": u8c_delivery_method,
+                    "transport_cost_reference": transport_cost_reference,
+                    "transport_cost": transport_cost,
                     "warehouse": project.warehouse.id if project.warehouse else False,
                     "pick_type": project.outbound_pick_type.id if project.outbound_pick_type else False,
                     "creation_source": "api",
                     "delivery_method": delivery_method,
-                    "load_ref": self.get_required_text(data, "load_ref"),
+                    "load_ref": self.get_optional_text(data, "load_ref"),
                     "unload_company": partner.id,
                     "delivery_street": self.get_required_text(data, "street"),
                     "delivery_zip": self.get_optional_text(data, "zip"),
