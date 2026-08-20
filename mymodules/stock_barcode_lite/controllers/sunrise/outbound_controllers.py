@@ -34,11 +34,10 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
 
                 transport_cost_reference = self.get_optional_text(data, "transport_cost_reference")
                 transport_cost = 0.0
-                if u8c_delivery_method == "wd":
-                    transport_cost_reference = self.get_required_text(data, "transport_cost_reference")
-                    transport_cost_value = data.get("transport_cost")
-                    if isinstance(transport_cost_value, bool) or transport_cost_value in (None, ""):
-                        raise SunriseApiError("4001", "transport_cost is required for wd transport.")
+                transport_cost_value = data.get("transport_cost")
+                if transport_cost_value not in (None, ""):
+                    if isinstance(transport_cost_value, bool):
+                        raise SunriseApiError("4001", "transport_cost must be a non-negative number.")
                     try:
                         transport_cost = float(transport_cost_value)
                     except (TypeError, ValueError) as error:

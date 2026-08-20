@@ -61,10 +61,8 @@
                 <field name="u8c_delivery_method" readonly="state != 'new'" required="project_name == 'SUNRISE'"
                        invisible="project_name != 'SUNRISE'"/>
                 <field name="transport_cost_reference" readonly="state != 'new'"
-                       required="u8c_delivery_method == 'wd' and project_name == 'SUNRISE'"
                        invisible="project_name != 'SUNRISE' or u8c_delivery_method != 'wd'"/>
                 <field name="transport_cost" readonly="state != 'new'"
-                       required="u8c_delivery_method == 'wd' and project_name == 'SUNRISE'"
                        invisible="project_name != 'SUNRISE' or u8c_delivery_method != 'wd'"/>
                 <field name="time_slot" readonly="state in ('confirm', 'cancel')"
                        required="u8c_delivery_method  == 'pickup' and project_name == 'SUNRISE'"
