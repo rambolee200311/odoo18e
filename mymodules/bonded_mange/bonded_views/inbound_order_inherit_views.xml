@@ -14,6 +14,7 @@
                 <field name="unique_identifier" readonly="1" optional="show"/>
                 <field name="origin_country" required="is_bonded" options="{'no_create': True, 'no_open': True}" optional="show"/>
                 <field name="goods_value" required="is_bonded" optional="show"/>
+                <field name="total_goods_value" optional="show"/>
                 <field name="hs_code" readonly="1" required="is_bonded" optional="show"/>
                 <field name="weight" required="is_bonded" optional="show"/>
                 <field name="customs_code" readonly="1" required="is_bonded" optional="show"/>

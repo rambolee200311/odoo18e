@@ -54,6 +54,16 @@ class StockPicking(models.Model):
 
     def actionSyncPickingMrnFields(self):
         for rec in self:
+            source_category_set = set()
+            if rec.picking_type_code == "outgoing" and rec.outbound_order_id:
+                source_category_set = rec.outbound_order_id.get_outbound_source_customs_category_map().get(
+                    rec.outbound_order_id.id, set()
+                )
+            if "free" in source_category_set:
+                if rec.mrn_id:
+                    rec.with_context(skip_mrn_master_sync=True).write({"mrn_id": False})
+                continue
+
             mrn = rec.mrn_id
             if rec.customs_document_id and rec.customs_document_id.mrn_id:
                 mrn = rec.customs_document_id.mrn_id

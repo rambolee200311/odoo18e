@@ -47,14 +47,18 @@ class OutboundOrder(models.Model):
     def check_customs_document_mrn_t1_consistency(self):
         for rec in self:
             doc = rec.customs_document_id
+            source_category_set = rec.get_outbound_source_customs_category_map().get(rec.id, set())
+            if "free" in source_category_set and rec.mrn_id:
+                raise ValidationError(_("Free goods outbound cannot have an MRN."))
             if not doc:
                 continue
+            if doc.customs_status == "vrij" and rec.mrn_id:
+                raise ValidationError(_("Free goods outbound cannot have an MRN."))
 
-            if not doc.mrn_id:
-                raise ValidationError(_("Customs Document must have MRN."))
-
-            if rec.mrn_id != doc.mrn_id:
-                raise ValidationError(_("MRN must match the selected Customs Document."))
+            # 如果海关单据有MRN且出库单有MRN，则两者必须一致
+            if doc.mrn_id and rec.mrn_id:
+                if rec.mrn_id != doc.mrn_id:
+                    raise ValidationError(_("MRN must match the selected Customs Document."))
 
             if (rec.t1_document_number or "") != (doc.t1_document_number or ""):
                 raise ValidationError(_("T1 Document Number must match the selected Customs Document."))
@@ -63,7 +67,7 @@ class OutboundOrder(models.Model):
     def onchange_customs_document_id(self):
         for rec in self:
             doc = rec.customs_document_id
-            rec.mrn_id = doc.mrn_id if doc else False
+            rec.mrn_id = doc.mrn_id if doc and doc.customs_status != "vrij" else False
             rec.customs_status = doc.customs_status if doc else False
             rec.t1_document_number = doc.t1_document_number if doc else False
             rec.t1_status = (doc.t1_status or "open") if doc else "open"
@@ -85,8 +89,12 @@ class OutboundOrder(models.Model):
 
     def write(self, vals):
         vals_write = dict(vals)
-        res = super().write(vals)
-        if "customs_document_id" in vals:
+        if vals_write.get("customs_document_id"):
+            customs_document = self.env["bonded.customs.document"].sudo().browse(vals_write["customs_document_id"])
+            if customs_document.customs_status == "vrij":
+                vals_write["mrn_id"] = False
+        res = super().write(vals_write)
+        if "customs_document_id" in vals_write:
             self.actionSyncCustomsDocumentMirrorVals()
             self.actionSyncCustomsDocumentToOutboundPicking()
         if any(x in vals_write for x in
@@ -104,7 +112,7 @@ class OutboundOrder(models.Model):
             target_t1_document_number = doc.t1_document_number if doc else False
             target_t1_status = (doc.t1_status or "open") if doc else "open"
             target_t1_closed_date = doc.t1_closed_date if doc else False
-            target_mrn_id = doc.mrn_id.id if doc and doc.mrn_id else False
+            target_mrn_id = doc.mrn_id.id if doc and doc.mrn_id and doc.customs_status != "vrij" else False
             if "mrn_id" in rec._fields and rec.mrn_id.id != target_mrn_id:
                 vals["mrn_id"] = target_mrn_id
             if "customs_status" in rec._fields and rec.customs_status != target_customs_status:
@@ -125,7 +133,7 @@ class OutboundOrder(models.Model):
         for rec in self:
             picking_ids = picking_env.sudo().search([("outbound_order_id", "=", rec.id), ("state", "!=", "cancel")]).ids
             target_doc_id = rec.customs_document_id.id if rec.customs_document_id else False
-            target_mrn_id = rec.customs_document_id.mrn_id.id if rec.customs_document_id and rec.customs_document_id.mrn_id else False
+            target_mrn_id = rec.mrn_id.id if rec.mrn_id else False
 
             for picking in picking_env.browse(picking_ids):
                 vals = {}
@@ -207,6 +215,11 @@ class OutboundOrder(models.Model):
     def onchangeMrnId(self):
         for rec in self:
             if rec.mrn_id:
+                source_category_set = rec.get_outbound_source_customs_category_map().get(rec.id, set())
+                if "free" in source_category_set:
+                    rec.mrn_id = False
+                    rec.mrn_status = False
+                    raise ValidationError(_("Free goods outbound cannot have an MRN."))
                 vals = rec.actionGetMrnMirrorVals(rec.mrn_id)
 
                 rec.mrn_status = vals["mrn_status"]
@@ -297,6 +310,19 @@ class OutboundOrderProduct(models.Model):
             if rec.inbound_pallet_id and rec.product_id and rec.inbound_pallet_id.product_id != rec.product_id:
                 rec.inbound_pallet_id = False
 
+    @api.onchange("inbound_pallet_id")
+    def onchange_inbound_pallet_clear_mrn_for_free_goods(self):
+        for rec in self:
+            if rec.inbound_pallet_id:
+                rec.goods_value = rec.inbound_pallet_id.goods_value
+            order = rec.outbound_order_id
+            if not order or not order.mrn_id:
+                continue
+            source_category_set = order.get_outbound_source_customs_category_map().get(order.id, set())
+            if "free" in source_category_set:
+                order.mrn_id = False
+                order.mrn_status = False
+
     @api.onchange("product_id")
     def onchange_auto_assign_inbound_pallet_id(self):
         for rec in self:
@@ -333,6 +359,7 @@ class OutboundOrderProduct(models.Model):
     def create(self, vals_list):
         product_env = self.env["product.product"].sudo()
         outbound_model = self.env["world.depot.outbound.order"].sudo()
+        inbound_pallet_model = self.env["world.depot.inbound.order.products.pallet"]
         for vals in vals_list:
             vals.pop("unique_identifier", None)
             product_id = vals.get("product_id")
@@ -351,6 +378,10 @@ class OutboundOrderProduct(models.Model):
                     pallet = pallet_map.get((product_id, unique_text))
                     if pallet:
                         vals["inbound_pallet_id"] = pallet.id
+            if vals.get("inbound_pallet_id"):
+                inbound_pallet = inbound_pallet_model.sudo().browse(vals["inbound_pallet_id"]).exists()
+                if inbound_pallet:
+                    vals["goods_value"] = inbound_pallet.goods_value
             vals_ref = get_reference_vals(product_env.browse(product_id))
             vals.setdefault("origin_country", vals_ref["origin_country"])
             vals.setdefault("goods_value", vals_ref["goods_value"])
@@ -361,6 +392,7 @@ class OutboundOrderProduct(models.Model):
 
     def write(self, vals):
         vals_write = dict(vals)
+        inbound_pallet_model = self.env["world.depot.inbound.order.products.pallet"]
         if ("hs_code" in vals_write or "customs_code" in vals_write) and "product_id" not in vals_write:
             raise UserError(_("HS Code and Customs Code are reference values and cannot be modified."))
 
@@ -384,6 +416,12 @@ class OutboundOrderProduct(models.Model):
                 if not pallet:
                     raise ValidationError(_("Cannot find inbound pallet for Unique Identifier [%s].") % unique_text)
                 vals_write["inbound_pallet_id"] = pallet.id
+
+        if vals_write.get("inbound_pallet_id"):
+            inbound_pallet = inbound_pallet_model.sudo().browse(vals_write["inbound_pallet_id"]).exists()
+            if not inbound_pallet:
+                raise ValidationError(_("Selected Inbound Pallet Line does not exist."))
+            vals_write["goods_value"] = inbound_pallet.goods_value
 
         if vals_write.get("product_id"):
             product = self.env["product.product"].sudo().browse(vals_write["product_id"])

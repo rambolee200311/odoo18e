@@ -105,6 +105,11 @@ class OutboundOrderSunrise(models.Model):
         picking_list = rec.get_outbound_sync_picking()
         done_date_list = [picking.date_done for picking in picking_list if picking.date_done]
         last_done_date = max(done_date_list) if done_date_list else False
+        if rec.u8c_delivery_method == "wd" and rec.delivery_method not in ("truck", "parcel"):
+            raise UserError(_("Delivery Method must be truck or parcel before syncing U8C outbound."))
+        if rec.u8c_delivery_method == "wd" and rec.delivery_method == "parcel" and not rec.load_ref:
+            raise UserError(_("Courier tracking number is required before syncing U8C outbound."))
+
         if rec.u8c_delivery_method == "wd" and not rec.eta:
             raise UserError(
                 _("ETA is required before syncing a warehouse-delivery outbound order.")
@@ -122,7 +127,7 @@ class OutboundOrderSunrise(models.Model):
             delivery_date = rec.p_date
         parentvo.update({
             "dbilldate": self.get_sunrise_date_text(rec.o_date or rec.picking_Out_date or last_done_date or rec.date),
-            "vnote": rec.load_ref or rec.remark or rec.reference or "",
+            "vnote": rec.remark or rec.load_ref or "",
             "vuserdef14": rec.load_ref if rec.u8c_delivery_method == "wd" and rec.delivery_method == "parcel" else "",
             "vuserdef17": self.get_sunrise_date_text(delivery_date),
             "vuserdef5": delivery_method,
