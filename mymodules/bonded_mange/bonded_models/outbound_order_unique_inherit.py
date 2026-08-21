@@ -10,6 +10,20 @@ class OutboundOrderBondedUniqueRule(models.Model):
         #return self.bonded_flag == "true"
         return bool(self.is_bonded)
 
+    def get_outbound_source_customs_category_map(self):
+        category_map = {}
+        for rec in self:
+            category_set = set()
+            line_list = rec.outbound_order_product_ids.filtered(lambda line: line.inbound_pallet_id)
+            for line in line_list:
+                inbound = line.inbound_pallet_id.inbound_order_product_id.inbound_order_id
+                if not inbound or not inbound.is_bonded:
+                    continue
+                customs_status = inbound.customs_document_id.customs_status if inbound.customs_document_id else False
+                category_set.add("free" if customs_status == "vrij" else "bonded")
+            category_map[rec.id] = category_set
+        return category_map
+
 
     def action_get_inbound_product_id_set(self, inbound):
         return set(inbound.inbound_order_product_ids.mapped("inbound_order_product_pallet_ids.product_id").ids)
@@ -137,6 +151,16 @@ class OutboundOrderBondedUniqueRule(models.Model):
                 if missing_line_list:
                     raise ValidationError(_("Bonded outbound lines must select Inbound Pallet Line."))
 
+            source_category_set = rec.get_outbound_source_customs_category_map().get(rec.id, set())
+            if len(source_category_set) > 1:
+                raise ValidationError(_("Outbound order cannot mix Bonded and Non-Bonded source goods."))
+            if "free" in source_category_set and rec.mrn_id:
+                raise ValidationError(_("Free goods outbound cannot have an MRN."))
+            if "bonded" in source_category_set and not rec.customs_document_id:
+                raise ValidationError(_("Bonded goods outbound requires a Customs Document."))
+            if "bonded" in source_category_set and not rec.mrn_id:
+                raise ValidationError(_("Bonded goods outbound requires an MRN."))
+
             use_line_list = line_list.filtered(lambda x: (x.unique_identifier or "").strip())
             if not use_line_list:
                 continue
@@ -175,10 +199,6 @@ class OutboundOrderBondedUniqueRule(models.Model):
         for rec in self:
             rec.action_apply_customs_mrn_status_mapping()
             if rec.is_bonded:
-                if not rec.customs_document_id:
-                    raise ValidationError(_("Bonded outbound requires Customs Document."))
-                if not rec.mrn_id:
-                    raise ValidationError(_("Bonded outbound requires MRN."))
                 rec.action_auto_assign_unique_identifier_for_lines()
         self.action_validate_outbound_unique_policy()
         return True

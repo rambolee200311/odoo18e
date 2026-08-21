@@ -282,6 +282,9 @@ class StockPicking(models.Model):
 
         outgoing_pickings = self.filtered(lambda x: x.picking_type_code == "outgoing")
         outgoing_pickings.action_check_outgoing_identifier_lines_required()
+        for rec in outgoing_pickings:
+            if rec.outbound_order_id:
+                rec.outbound_order_id.action_validate_outbound_unique_policy()
 
         for rec in self:
             rec.check_cmr_sign_time_before_done()

@@ -304,6 +304,7 @@ class InboundOrderProductsOfPallet(models.Model):
         string='Goods Value',
         currency_field='currency_id',
         tracking=True)
+    total_goods_value = fields.Monetary(string="Total Goods Value", currency_field="currency_id", compute="_compute_total_goods_value", inverse="_inverse_total_goods_value", store=True, tracking=True)
     hs_code = fields.Char(string="HS Code", tracking=True, related = 'product_id.hs_code',readonly=True, index=True)
 
     customs_code = fields.Char(string="Customs Code", tracking=True,related='product_id.customs_code', readonly=True, index=True)
@@ -314,6 +315,17 @@ class InboundOrderProductsOfPallet(models.Model):
     is_bonded = fields.Boolean(string="Bonded", related="inbound_order_product_id.inbound_order_id.is_bonded",
                                readonly=True)
     unique_identifier = fields.Char(string="Unique Identifier", related="inbound_order_product_id.unique_identifier", store=True, readonly=True, index=True, tracking=True)
+
+    @api.depends("quantity", "goods_value")
+    def _compute_total_goods_value(self):
+        for rec in self:
+            rec.total_goods_value = (rec.quantity or 0.0) * (rec.goods_value or 0.0)
+
+    def _inverse_total_goods_value(self):
+        for rec in self:
+            if not rec.quantity:
+                raise ValidationError(_("Quantity must be greater than zero before setting Total Goods Value."))
+            rec.goods_value = rec.total_goods_value / rec.quantity
 
     def _compute_display_name(self):
         if not self.env.context.get("outbound_show_unique_identifier_only"):

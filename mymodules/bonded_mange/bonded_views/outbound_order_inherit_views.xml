@@ -58,7 +58,7 @@
                 <field name="t1_status" readonly="1" force_save="1"/>
                 <field name="t1_closed_date" readonly="1" force_save="1"/>
 
-                <field name="mrn_id" readonly="state != 'new'" required="is_bonded == True" options="{'no_open': True, 'create_name_field': 'code'}"/>
+                <field name="mrn_id" readonly="state != 'new'" options="{'no_open': True, 'create_name_field': 'code'}"/>
                 <field name="mrn_status" readonly="1"/>
                 <field name="cmr_sign_time" readonly="1"/>
             </xpath>
@@ -79,7 +79,7 @@
            ('inbound_order_product_id.inbound_order_id.stock_picking_id.state', '=', 'done')]" optional="show"/>
                 <field name="unique_identifier" column_invisible="1"/>
                 <field name="origin_country" optional="show"/>
-                <field name="goods_value" optional="show"/>
+                <field name="goods_value" readonly="inbound_pallet_id" optional="show"/>
                 <field name="hs_code" readonly="1" optional="show"/>
                 <!--                <field name="weight"/>-->
                 <field name="customs_code" readonly="1" optional="show"/>

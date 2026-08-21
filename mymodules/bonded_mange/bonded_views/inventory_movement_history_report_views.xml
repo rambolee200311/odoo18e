@@ -60,37 +60,37 @@
                     <notebook>
                         <page string="Movement Lines">
                             <field name="movement_lines" nolabel="1" readonly="1"
+                                   domain="[('is_summary', '=', False), ('mutation_type', '!=', 'total')]"
                                    options="{'no_create': True, 'no_open': True}">
-                                <list create="0" edit="0" delete="0" default_order="sequence asc, id asc"
-                                      class="o_inventory_movement_history_report_line_list"
-                                      decoration-primary="mutation_type == 'total'"
-                                      decoration-bf="mutation_type == 'total'">
+                                <list create="0" edit="0" delete="0" default_order="sequence asc, id asc">
+
                                     <field name="sequence" column_invisible="1"/>
+
                                     <field name="product_id" optional="show"
                                            options="{'no_create': True, 'no_open': True}"/>
                                     <field name="product_description" optional="show"/>
                                     <field name="marks_article_technical_description" optional="hide"/>
                                     <field name="commodity_code" optional="show"/>
                                     <field name="date_of_mutation" string="Date" optional="show"/>
-                                    <field name="begin_stock_qty" optional="show"/>
+                                    <field name="mutation_quantity_display" string="Mutation Quantity" optional="show"/>
                                     <field name="mutation_type" optional="show"/>
                                     <field name="inbound_number" optional="show"/>
                                     <field name="outbound_number" optional="show"/>
                                     <field name="unique_identifier" optional="show"/>
+
                                     <field name="mrn_id" optional="show"
                                            options="{'no_create': True, 'no_open': True}"/>
+
                                     <field name="bonded_flag" widget="badge" optional="show"/>
+
                                     <field name="product_uom_id" optional="hide"
                                            options="{'no_create': True, 'no_open': True}"/>
+
                                     <field name="kind_of_colli" optional="show"/>
-                                    <field name="mutation_quantity" optional="show"/>
-                                    <field name="gross_weight" optional="show"/>
-                                    <field name="net_weight" optional="show"/>
-                                    <field name="end_stock_date" optional="show"/>
-                                    <field name="end_stock_qty" optional="show"/>
-                                    <field name="bonded_flag_again" widget="badge" optional="show"/>
-                                </list>
-                            </field>
+                                    <field name="value_euro" optional="show"/>
+                                    <field name="gross_weight_display" string="Gross Weight (kg)" optional="show"/>
+                                    <field name="net_weight_display" string="Net Weight (kg)" optional="show"/>
+                                </list></field>
                         </page>
                     </notebook>
                 </sheet>
@@ -101,30 +101,33 @@
         <field name="name">bonded.inventory.movement.history.report.line.export.list</field>
         <field name="model">bonded.inventory.movement.history.report.line</field>
         <field name="arch" type="xml">
-            <list create="0" edit="0" delete="0" default_order="sequence asc, id asc"
-                  class="o_inventory_movement_history_report_line_list"
-                  decoration-primary="mutation_type == 'total'"
-                  decoration-bf="mutation_type == 'total'">
-                <field name="product_id" options="{'no_create': True, 'no_open': True}"/>
+            <list create="0" edit="0" delete="0"
+                  default_order="sequence asc, id asc">
+
+                <field name="sequence" column_invisible="1"/>
+
+                <field name="product_id"
+                       options="{'no_create': True, 'no_open': True}"/>
+
                 <field name="product_description"/>
                 <field name="marks_article_technical_description"/>
                 <field name="commodity_code"/>
                 <field name="date_of_mutation" string="Date"/>
-                <field name="begin_stock_qty"/>
+                <field name="mutation_quantity_display" string="Mutation Quantity"/>
                 <field name="mutation_type"/>
                 <field name="inbound_number"/>
                 <field name="outbound_number"/>
                 <field name="unique_identifier"/>
-                <field name="mrn_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="mrn_id"
+                       options="{'no_create': True, 'no_open': True}"/>
                 <field name="bonded_flag" widget="badge"/>
-                <field name="product_uom_id" optional="hide" options="{'no_create': True, 'no_open': True}"/>
+                <field name="product_uom_id"
+                       optional="hide"
+                       options="{'no_create': True, 'no_open': True}"/>
                 <field name="kind_of_colli"/>
-                <field name="mutation_quantity"/>
-                <field name="gross_weight"/>
-                <field name="net_weight"/>
-                <field name="end_stock_date"/>
-                <field name="end_stock_qty"/>
-                <field name="bonded_flag_again"/>
+                <field name="value_euro"/>
+                <field name="gross_weight_display" string="Gross Weight (kg)" optional="show"/>
+                <field name="net_weight_display" string="Net Weight (kg)" optional="show"/>
             </list>
         </field>
     </record>

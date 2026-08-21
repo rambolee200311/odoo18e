@@ -21,7 +21,7 @@ class BondedCustomsDocument(models.Model):
     _sql_constraints = [("customs_document_number_unique", "unique(customs_document_number)",
                          "Customs Document Number must be unique.")]
 
-    customs_document_number = fields.Char(string="Customs Document Number", related="mrn_id.code", store=True, index=True, tracking=True, copy=False)
+    customs_document_number = fields.Char(string="Customs Document Number",index=True, tracking=True, copy=False)
 
     customs_document_type = fields.Selection(
         [("import_declaration", "Import Declaration"),
@@ -44,8 +44,14 @@ class BondedCustomsDocument(models.Model):
     t1_document_number = fields.Char(string="T1 Document Number", compute="_compute_t1_document_number", store=True, readonly=True, index=True, tracking=True)
     t1_status = fields.Selection(T1_STATUS_SELECTION, string="T1 Status", required=True, default="open", index=True, tracking=True)
     t1_closed_date = fields.Date(string="T1 Closed Date", tracking=True)
-    mrn_id = fields.Many2one("bonded.mrn.master", string="MRN", required=True, index=True, copy=False, tracking=True)
+    mrn_id = fields.Many2one("bonded.mrn.master", string="MRN", index=True, copy=False, tracking=True)
     #active = fields.Boolean(string="Active", default=True, index=True)
+
+    @api.onchange('mrn_id')
+    def _onchange_mrn_id(self):
+        if self.mrn_id:
+            self.customs_document_number = self.mrn_id.code if self.mrn_id.code else False
+
 
     @api.depends("customs_document_number")
     def _compute_t1_document_number(self):

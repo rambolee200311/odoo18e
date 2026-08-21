@@ -24,7 +24,7 @@
                 <sheet>
                     <group>
                         <field name="mrn_id" options="{'no_open': True, 'create_name_field': 'code'}"/>
-                        <field name="customs_document_number" required="1" readonly="1" force_save="1"/>
+                        <field name="customs_document_number" required="1" readonly="0" force_save="1"/>
 
                         <field name="customs_document_type"/>
                         <field name="inbound_order_id" readonly="1"/>
