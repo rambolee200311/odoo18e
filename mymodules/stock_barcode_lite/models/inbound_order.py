@@ -124,10 +124,10 @@ class InboundOrder(models.Model):
                         line_missing_fields.append(detail_line._fields["is_lot"].string)
                     if detail_line.is_lot == "Y" and not detail_line.lot_name:
                         line_missing_fields.append(detail_line._fields["lot_name"].string)
-                    if not detail_line.gross_weight:
-                        line_missing_fields.append(detail_line._fields["gross_weight"].string)
-                    if not detail_line.pallet_dimensions:
-                        line_missing_fields.append(detail_line._fields["pallet_dimensions"].string)
+                    # if not detail_line.gross_weight:
+                    #     line_missing_fields.append(detail_line._fields["gross_weight"].string)
+                    # if not detail_line.pallet_dimensions:
+                    #     line_missing_fields.append(detail_line._fields["pallet_dimensions"].string)
 
                     if line_missing_fields:
                         raise UserError(_("%s is missing required fields: %s") % (line_name, ", ".join(line_missing_fields)))
