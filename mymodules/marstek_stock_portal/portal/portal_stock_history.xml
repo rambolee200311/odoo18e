@@ -47,7 +47,7 @@
                                         <i class="fa fa-search me-1"/>
                                         Search
                                     </button>
-                                    <a href="/my/world_depot/stock/movement_history" class="btn btn-secondary">
+                                    <a href="/my/world_depot/stock/movement_history_page" class="btn btn-secondary">
                                         <i class="fa fa-refresh me-1"/>
                                         Reset
                                     </a>
