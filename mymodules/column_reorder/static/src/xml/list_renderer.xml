@@ -49,4 +49,10 @@
         </xpath>
     </t>
 
+    <t t-name="column_reorder_tspl.ListRendererRows" t-inherit="web.ListRenderer.Rows" t-inherit-mode="extension">
+        <xpath expr="//t[@t-foreach='list.records']" position="attributes">
+            <attribute name="t-foreach">get_filtered_records(list)</attribute>
+        </xpath>
+    </t>
+
 </templates>
