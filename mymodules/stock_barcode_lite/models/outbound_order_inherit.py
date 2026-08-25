@@ -16,6 +16,8 @@ class OutboundOrderInherit(models.Model):
     vsourcebillcode = fields.Char(string="Source Bill Code", copy=False, index=True, tracking=True)
     ccustomerid = fields.Char(string="U8C Customer ID", copy=False)
     u8c_delivery_method = fields.Selection([("pickup", "Pickup"), ("wd", "WD Transport")], string="U8C Delivery Method", copy=False, tracking=True)
+    transport_cost_reference = fields.Char(string="Transport Cost Reference", copy=False)
+    transport_cost = fields.Float(string="Transport Cost", default=0.0, copy=False)
 
     whole_pallet_picking_id = fields.Many2one("stock.picking", string="Whole Pallet Picking",copy=False,index=True)
     partial_pallet_picking_id = fields.Many2one("stock.picking", string="Partial Pallet Picking",copy=False, index=True)
