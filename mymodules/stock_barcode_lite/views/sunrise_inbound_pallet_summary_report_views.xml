@@ -54,8 +54,8 @@
                                     <field name="outbound_pallet_count" sum="Total"/>
                                     <field name="closing_pallet_count" sum="Total"/>
                                     <field name="closing_location_summary"/>
-                                    <field name="remain_period_age_days"/>
-                                    <field name="remain_total_age_days"/>
+                                    <field name="remain_period_age_days" sum="Total"/>
+                                    <field name="remain_total_age_days" sum="Total"/>
                                 </list>
                             </field>
                         </page>
@@ -95,7 +95,7 @@
                                     <field name="report_line_id" column_invisible="True"/>
                                     <field name="outbound_date"/>
                                     <field name="pallet_count" sum="Total"/>
-                                    <field name="stock_days"/>
+                                    <field name="stock_days" sum="Total"/>
                                 </list>
                             </field>
                         </page>
