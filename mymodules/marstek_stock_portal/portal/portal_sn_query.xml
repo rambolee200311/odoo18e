@@ -33,7 +33,7 @@
                         <form action="/my/marstek/sn_query" method="get" class="row g-3">
                             <div class="col-12 col-md-8">
                                 <label for="sn_code" class="form-label">SN Serial Number</label>
-                                <input type="text"
+                                <input type="search"
                                        class="form-control form-control-lg"
                                        id="sn_code"
                                        name="sn_code"

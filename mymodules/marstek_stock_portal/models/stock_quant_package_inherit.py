@@ -6,6 +6,7 @@ from odoo.osv import expression
 from .utils import (
     portal_apply_date_filters,
     portal_owner_partner,
+    portal_location_is_allowed,
     portal_package_container_from_name,
     portal_package_ids_by_shipping,
     portal_package_shipping_map,
@@ -48,6 +49,8 @@ class StockQuantPackage(models.Model):
         container_no = filters.get("container_no")
         bl_no = filters.get("bl_no")
         product_code = filters.get("product_code")
+        location_id = filters.get("location_id")
+        stock_group_mode = filters.get("stock_group_mode")
         if container_no:
             package_ids = portal_package_ids_by_shipping(self.env, "container_no", "ilike", container_no, owner)
             if not package_ids:
@@ -61,9 +64,49 @@ class StockQuantPackage(models.Model):
         if product_code:
             product_domain = ["|", ("product_id.default_code", "ilike", product_code), ("product_id.barcode", "ilike", product_code)]
             domain = expression.AND([domain, product_domain])
+        if location_id:
+            if not portal_location_is_allowed(self.env, location_id):
+                return []
+            domain.append(("location_id", "child_of", int(location_id)))
         portal_apply_date_filters(domain, filters, "in_date", ("date_from",), ("date_to",))
         quant_env = self.env["stock.quant"].sudo()
         quants = quant_env.search(domain, order="in_date desc, id desc", offset=offset, limit=limit)
+        if stock_group_mode == "package":
+            info_by_package = portal_package_shipping_map(self.env, quants.mapped("package_id").ids)
+            rows_by_key = {}
+            for quant in quants:
+                package = quant.package_id
+                product = quant.product_id
+                location = quant.location_id
+                key = (location.id, package.id)
+                row = rows_by_key.setdefault(key, {
+                    "package_id": package.id,
+                    "package_name": package.name or "",
+                    "container_no": info_by_package.get(package.id, {}).get("container_no") or "",
+                    "bl_no": info_by_package.get(package.id, {}).get("bl_no") or "",
+                    "location_id": location.id,
+                    "location_name": location.complete_name or location.display_name or "",
+                    "total_quantity": 0.0,
+                    "product_lines": {},
+                })
+                product_key = (product.id, product.uom_id.id)
+                product_line = row["product_lines"].setdefault(product_key, {
+                    "product_code": product.barcode or product.default_code or "",
+                    "product_name": product.display_name or product.name or "",
+                    "uom_name": product.uom_id.name or "",
+                    "quantity": 0.0,
+                })
+                product_line["quantity"] += quant.quantity
+                row["total_quantity"] += quant.quantity
+            rows = list(rows_by_key.values())
+            for row in rows:
+                row["product_lines"] = list(row["product_lines"].values())
+                row["product_count"] = len(row["product_lines"])
+                row["product_summary"] = ", ".join(
+                    "%s × %s" % (product_line["product_name"], product_line["quantity"])
+                    for product_line in row["product_lines"]
+                )
+            return rows
         return portal_stock_rows_from_quants(self.env, quants)
 
     @api.model
