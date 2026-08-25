@@ -72,7 +72,6 @@ class InboundOrder(models.Model):
 
             if missing_fields:
                 raise UserError(_("Sunrise inbound order %s is missing required fields: %s") % (rec.reference or rec.billno or rec.id, ", ".join(missing_fields)))
-
             for pallet_index, pallet_line in enumerate(rec.inbound_order_product_ids, start=1):
                 pallet_missing_fields = []
                 if not pallet_line.pallet_no:
@@ -125,10 +124,13 @@ class InboundOrder(models.Model):
                         line_missing_fields.append(detail_line._fields["is_lot"].string)
                     if detail_line.is_lot == "Y" and not detail_line.lot_name:
                         line_missing_fields.append(detail_line._fields["lot_name"].string)
+                    if not detail_line.gross_weight:
+                        line_missing_fields.append(detail_line._fields["gross_weight"].string)
+                    if not detail_line.pallet_dimensions:
+                        line_missing_fields.append(detail_line._fields["pallet_dimensions"].string)
 
                     if line_missing_fields:
                         raise UserError(_("%s is missing required fields: %s") % (line_name, ", ".join(line_missing_fields)))
-
                     if detail_line.vsourcebillcode != rec.vsourcebillcode:
                         raise UserError(_("%s vsourcebillcode must equal inbound order vsourcebillcode.") % line_name)
 
@@ -177,6 +179,27 @@ class InboundOrder(models.Model):
                         )
 
                 pallet_line.validate_sunrise_physical_pallet_identity()
+
+            rec.validate_sunrise_product_specifications()
+
+    def validate_sunrise_product_specifications(self):
+        detail_line_model = self.env["world.depot.inbound.order.products.pallet"]
+        for rec in self:
+            grouped_detail_lines = {}
+            for pallet_line in rec.inbound_order_product_ids:
+                for detail_line in pallet_line.inbound_order_product_pallet_ids:
+                    specification_key = (
+                        pallet_line.pallet_no,
+                        detail_line.product_id.id,
+                        (detail_line.lot_name or "").strip() if detail_line.is_lot == "Y" else "",
+                    )
+                    if specification_key not in grouped_detail_lines:
+                        grouped_detail_lines[specification_key] = detail_line_model
+                    grouped_detail_lines[specification_key] |= detail_line
+
+            for detail_lines in grouped_detail_lines.values():
+                detail_lines.get_sunrise_product_specification()
+        return True
 
 
     def action_cancel(self):
@@ -818,3 +841,69 @@ class InboundOrderProductsPallet(models.Model):
     m_date = fields.Date(string="Manufacture Date", copy=False)
     e_date = fields.Date(string="Expiration Date", copy=False)
     cspaceid = fields.Char(string="Location Code", copy=False, index=True)
+    gross_weight = fields.Char(string="Gross Weight(kg)", copy=False)
+    pallet_dimensions = fields.Char(string="Carton Dimensions(m)", copy=False)
+
+    def get_sunrise_product_specification(self, allow_missing=False):
+        if not self:
+            raise UserError(_("No inbound product detail was found for the Sunrise product specification."))
+
+        specification_values = set()
+        has_missing = False
+        for rec in self:
+            line_name = _("Pallet %s, product %s, lot %s") % (
+                rec.pallet_no or "-",
+                rec.product_id.display_name or "-",
+                rec.lot_name or "-",
+            )
+            gross_weight_raw = (rec.gross_weight or "").strip() if rec.gross_weight else ""
+            pallet_dimensions_raw = "".join((rec.pallet_dimensions or "").upper().split()) if rec.pallet_dimensions else ""
+
+            if not gross_weight_raw or not pallet_dimensions_raw:
+                has_missing = True
+                if not allow_missing:
+                    if not gross_weight_raw:
+                        raise UserError(_("%s gross weight must be a valid positive number.") % line_name)
+                    if not pallet_dimensions_raw:
+                        raise UserError(_("%s carton dimensions must not be blank.") % line_name)
+                continue
+
+            try:
+                gross_weight = float(gross_weight_raw)
+            except (TypeError, ValueError) as error:
+                raise UserError(_("%s gross weight must be a valid positive number.") % line_name) from error
+            if not math.isfinite(gross_weight) or gross_weight <= 0:
+                raise UserError(_("%s gross weight must be a valid positive number.") % line_name)
+
+            specification_values.add((round(gross_weight, 6), pallet_dimensions_raw))
+
+        if has_missing and allow_missing:
+            first_line = self[:1]
+            return {
+                "gross_weight": False,
+                "gross_weight_value": False,
+                "pallet_dimensions": False,
+                "pallet_dimensions_value": False,
+                "has_specification": False,
+            }
+
+        if len(specification_values) != 1:
+            first_line = self[:1]
+            raise UserError(
+                _("Pallet %s, product %s and lot %s must have the same gross weight and carton dimensions.")
+                % (
+                    first_line.pallet_no or "-",
+                    first_line.product_id.display_name or "-",
+                    first_line.lot_name or "-",
+                )
+            )
+
+        gross_weight_value, pallet_dimensions_value = next(iter(specification_values))
+        first_line = self[:1]
+        return {
+            "gross_weight": first_line.gross_weight,
+            "gross_weight_value": gross_weight_value,
+            "pallet_dimensions": first_line.pallet_dimensions,
+            "pallet_dimensions_value": pallet_dimensions_value,
+            "has_specification": True,
+        }

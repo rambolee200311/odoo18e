@@ -94,9 +94,6 @@ class InboundOrderRecreate(models.Model):
                     )
 
                 return_picking = picking_model.browse(return_picking_id)
-                rec.reserve_sunrise_inbound_return_from_original_packages(
-                    return_picking
-                )
                 return_picking.with_context(
                     skip_chenyang_scan_validation=True,
                     skip_backorder=True,
@@ -132,6 +129,10 @@ class InboundOrderRecreate(models.Model):
 
             rec.write({
                 "stock_picking_id": False,
+                "set_sunrise_inbound_sync": False,
+                "set_sunrise_inbound_sync_time": False,
+                "sunrise_inbound_sync_error_msg": False,
+                "sunrise_inbound_task_number": False,
             })
             rec.message_post(body=_(
                 "Prepared receipt recreation. Old receipts: %s. "
@@ -243,63 +244,6 @@ class InboundOrderRecreate(models.Model):
             result |= rec_picking_list
 
         return result
-
-    def reserve_sunrise_inbound_return_from_original_packages(self, return_picking):
-        for rec in self:
-            for return_move in return_picking.move_ids_without_package:
-                original_move = return_move.origin_returned_move_id
-                if not original_move:
-                    continue
-
-                return_move._do_unreserve()
-                rounding = return_move.product_id.uom_id.rounding
-                remaining_qty = return_move.product_uom._compute_quantity(
-                    return_move.product_uom_qty,
-                    return_move.product_id.uom_id,
-                    rounding_method="HALF-UP",
-                )
-                original_line_list = original_move.move_line_ids.filtered(
-                    lambda line: line.result_package_id
-                    and line.product_id == return_move.product_id
-                    and line.quantity > 0
-                )
-
-                for original_line in original_line_list:
-                    if float_compare(
-                        remaining_qty,
-                        0.0,
-                        precision_rounding=rounding,
-                    ) <= 0:
-                        break
-
-                    line_qty = original_line.product_uom_id._compute_quantity(
-                        original_line.quantity,
-                        return_move.product_id.uom_id,
-                        rounding_method="HALF-UP",
-                    )
-                    reserved_qty = return_move._update_reserved_quantity(
-                        min(remaining_qty, line_qty),
-                        original_line.location_dest_id,
-                        lot_id=original_line.lot_id,
-                        package_id=original_line.result_package_id,
-                        owner_id=original_line.owner_id,
-                        strict=True,
-                    )
-                    remaining_qty -= reserved_qty
-
-                if float_compare(
-                    remaining_qty,
-                    0.0,
-                    precision_rounding=rounding,
-                ) > 0:
-                    raise UserError(
-                        _(
-                            "Receipt return for product %s cannot be reserved "
-                            "from its original pallets. Move the stock back to "
-                            "the original pallets before recreating."
-                        )
-                        % return_move.product_id.display_name
-                    )
 
     def validate_sunrise_inbound_returned_before_recreate(self, picking_list):
         for rec in self:

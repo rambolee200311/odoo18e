@@ -74,16 +74,17 @@
                         invisible="project_name !='SUNRISE'"/>
                 <button name="action_sunrise_prepare_recreate_outgoing_picking"
                         type="object"
-                        string="Prepare Recreate Picking_NEW"
+                        string="Prepare Recreate Picking"
                         class="oe_stat_button"
                         icon="fa-refresh"
                         confirm="This will return completed outbound pickings and remove old picking links. Continue?"
-                        />
+                        invisible="project_name != 'SUNRISE' or state != 'confirm'"
+                        groups="stock_barcode_lite.group_sunrise_stock_manager"/>
             </xpath>
             <xpath expr="//field[@name='outbound_order_product_ids']" position="after">
                 <group invisible="project_name != 'SUNRISE'">
                     <field name="sunrise_pallet_count" readonly="1"/>
-<!--                    <field name="new_pallet_count_total" readonly="1"/>-->
+                    <!--                    <field name="new_pallet_count_total" readonly="1"/>-->
                 </group>
             </xpath>
             <xpath expr="//field[@name='outbound_order_product_ids']/list/field[@name='product_id']" position="after">
@@ -109,6 +110,8 @@
                 <field name="u8_aux_uom_name" optional="hide" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="is_lot" optional="hide" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="lot_name" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="gross_weight" readonly="1" force_save="1" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="pallet_dimensions" readonly="1" force_save="1" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="m_date" optional="hide" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="e_date" optional="hide" column_invisible="parent.project_name !='SUNRISE'"/>
             </xpath>
@@ -206,6 +209,8 @@
                        invisible="project_name != 'SUNRISE'"/>
                 <field name="lot_name" readonly="outbound_order_state != 'new'" required="is_lot == 'Y'"
                        invisible="project_name != 'SUNRISE'"/>
+                <field name="gross_weight" readonly="1" force_save="1" optional="show" invisible="project_name != 'SUNRISE'"/>
+                <field name="pallet_dimensions" readonly="1" force_save="1" optional="show" invisible="project_name != 'SUNRISE'"/>
                 <field name="m_date" readonly="outbound_order_state != 'new'"
                        invisible="project_name != 'SUNRISE'"/>
                 <field name="e_date" readonly="outbound_order_state != 'new'"
@@ -224,7 +229,7 @@
                 <field name="reference"/>
                 <field name="load_ref"/>
                 <field name="u8c_delivery_method"/>
-<!--                <field name="organic"/>-->
+                <!--                <field name="organic"/>-->
                 <field name="date"/>
                 <field name="p_date"/>
                 <field name="state"/>
