@@ -180,7 +180,7 @@ class InboundOrder(models.Model):
 
                 pallet_line.validate_sunrise_physical_pallet_identity()
 
-            rec.validate_sunrise_product_specifications()
+            #rec.validate_sunrise_product_specifications()
 
     def validate_sunrise_product_specifications(self):
         detail_line_model = self.env["world.depot.inbound.order.products.pallet"]
