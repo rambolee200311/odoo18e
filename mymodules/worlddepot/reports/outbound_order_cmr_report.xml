@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="paperformat_outbound_order_cmr" model="report.paperformat">
+        <field name="name">Outbound Order CMR A4</field>
+        <field name="default" eval="False"/>
+        <field name="format">A4</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">8</field>
+        <field name="margin_bottom">8</field>
+        <field name="margin_left">10</field>
+        <field name="margin_right">10</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">0</field>
+        <field name="dpi">96</field>
+    </record>
+
+    <record id="action_report_outbound_order_cmr" model="ir.actions.report">
+        <field name="name">CMR</field>
+        <field name="model">world.depot.outbound.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">worlddepot.report_outbound_order_cmr_document</field>
+        <field name="report_file">worlddepot.report_outbound_order_cmr_document</field>
+        <field name="print_report_name">'CRM-%s' % (object.reference or '')</field>
+        <field name="binding_model_id" ref="model_world_depot_outbound_order"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="paperformat_outbound_order_cmr"/>
+    </record>
+
+    <template id="report_outbound_order_cmr_document">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <div class="article"
+                     t-att-data-oe-model="doc._name"
+                     t-att-data-oe-id="doc.id"
+                     t-att-data-oe-lang="doc.env.context.get('lang')">
+                    <div class="page cmr-page">
+                    <style>
+                        .cmr-page { font-family: Calibri, SimSun, DengXian, Arial, sans-serif; color: #000; font-size: 10pt; }
+                        .cmr-company { font-size: 14pt; font-weight: 700; margin-bottom: 7px; }
+                        .cmr-address { font-size: 12pt; line-height: 1.4; min-height: 22px; white-space: normal; }
+                        .cmr-customer { margin-top: 38px; }
+                        .cmr-info { position: relative; width: 100%; min-height: 58px; margin-top: 42px; }
+                        .cmr-info .cmr-country { position: absolute; left: 0; top: 0; width: 55%; font-size: 14pt; font-weight: normal; text-transform: uppercase; }
+                        .cmr-info .cmr-reference-cell { position: absolute; right: 0; top: 0; width: 45%; padding-left: 12mm; box-sizing: border-box; font-size: 14pt; }
+                        .cmr-reference-row { padding: 7px 0; }
+                        .cmr-reference-row .cmr-label { display: inline-block; width: 42%; font-weight: 700; }
+                        .cmr-lines { width: 100%; border-collapse: collapse; margin-top: 58px; table-layout: fixed; }
+                        .cmr-lines th, .cmr-lines td { border: 1px solid #000; padding: 7px 6px; vertical-align: top; }
+                        .cmr-lines th { font-weight: 700; text-align: center; }
+                        .cmr-lines .cmr-commodity { width: 18%; }
+                        .cmr-lines .cmr-sku { width: 32%; }
+                        .cmr-lines .cmr-quantity { width: 10%; }
+                        .cmr-lines .cmr-weight { width: 14%; }
+                        .cmr-lines .cmr-total-weight { width: 14%; }
+                        .cmr-lines .cmr-points { width: 12%; }
+                        .cmr-lines .cmr-number { text-align: right; white-space: nowrap; }
+                        .cmr-lines .cmr-total td { font-weight: 700; vertical-align: middle; }
+                    </style>
+
+                    <div class="cmr-company"><span t-esc="doc.get_cmr_print_text(doc.project.name)"/></div>
+                    <div class="cmr-address">
+                        <strong>Warehouse Address:</strong>
+                        <span t-if="doc.warehouse.partner_id.street" t-esc="doc.get_cmr_print_text(doc.warehouse.partner_id.street)"/>
+                        <t t-if="doc.warehouse.partner_id.street and doc.warehouse.partner_id.city">, </t>
+                        <span t-if="doc.warehouse.partner_id.city" t-esc="doc.get_cmr_print_text(doc.warehouse.partner_id.city)"/>
+                        <t t-if="(doc.warehouse.partner_id.street or doc.warehouse.partner_id.city) and doc.warehouse.partner_id.zip">, </t>
+                        <span t-if="doc.warehouse.partner_id.zip" t-field="doc.warehouse.partner_id.zip"/>
+                        <t t-if="(doc.warehouse.partner_id.street or doc.warehouse.partner_id.city or doc.warehouse.partner_id.zip) and doc.warehouse.partner_id.country_id">, </t>
+                        <span t-if="doc.warehouse.partner_id.country_id" t-esc="doc.get_cmr_print_text(doc.warehouse.partner_id.country_id.name)"/>
+                    </div>
+
+                    <div class="cmr-customer">
+                        <div class="cmr-company" t-if="doc.unload_company"><span t-esc="doc.get_cmr_print_text(doc.unload_company.name)"/></div>
+                        <div class="cmr-address">
+                            <strong>Customer Address:</strong>
+                            <span t-if="doc.delivery_street" t-esc="doc.get_cmr_print_text(doc.delivery_street)"/>
+                            <t t-if="doc.delivery_street and doc.delivery_city">, </t>
+                            <span t-if="doc.delivery_city" t-esc="doc.get_cmr_print_text(doc.delivery_city)"/>
+                            <t t-if="(doc.delivery_street or doc.delivery_city) and doc.delivery_zip">, </t>
+                            <span t-if="doc.delivery_zip" t-field="doc.delivery_zip"/>
+                            <t t-if="(doc.delivery_street or doc.delivery_city or doc.delivery_zip) and doc.delivery_country_id">, </t>
+                            <span t-if="doc.delivery_country_id" t-esc="doc.get_cmr_print_text(doc.delivery_country_id.name)"/>
+                        </div>
+                    </div>
+
+                    <div class="cmr-info">
+                        <div class="cmr-country">NEDERLAND</div>
+                        <div class="cmr-reference-cell">
+                            <div class="cmr-reference-row"><span class="cmr-label">Order No:</span><span t-field="doc.billno"/></div>
+                            <div class="cmr-reference-row"><span class="cmr-label">REF:</span><span t-field="doc.load_ref"/></div>
+                        </div>
+                    </div>
+
+                    <table class="cmr-lines">
+                        <thead>
+                            <tr>
+                                <th class="cmr-commodity">Commodity</th>
+                                <th class="cmr-sku">SKU</th>
+                                <th class="cmr-quantity">Qty</th>
+                                <th class="cmr-weight">GW/PCS</th>
+                                <th class="cmr-total-weight">GW (kg)</th>
+                                <th class="cmr-points">Points</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="doc.outbound_order_product_ids" t-as="product">
+                                <tr>
+                                    <td><span t-esc="doc.get_cmr_print_text(product.default_code)"/></td>
+                                    <td><span t-esc="doc.get_cmr_print_text(product.product_id.display_name)"/></td>
+                                    <td class="cmr-number"><span t-esc="'%.2f' % (product.quantity or 0.0)"/></td>
+                                    <td class="cmr-number"><span t-esc="'%.2f' % (product.weight or 0.0)"/></td>
+                                    <td class="cmr-number"><span t-esc="'%.2f' % (product.weight_subtotal or 0.0)"/></td>
+                                    <td class="cmr-number"><span t-esc="'%.2f' % ((product.weight_subtotal or 0.0) * 3)"/></td>
+                                </tr>
+                            </t>
+                            <tr class="cmr-total">
+                                <td>Total</td>
+                                <td></td>
+                                <td class="cmr-number"><span t-esc="'%.2f' % sum(product.quantity or 0.0 for product in doc.outbound_order_product_ids)"/></td>
+                                <td></td>
+                                <td class="cmr-number"><span t-esc="'%.2f' % sum(product.weight_subtotal or 0.0 for product in doc.outbound_order_product_ids)"/></td>
+                                <td class="cmr-number"><span t-esc="'%.2f' % (sum(product.weight_subtotal or 0.0 for product in doc.outbound_order_product_ids) * 3)"/></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

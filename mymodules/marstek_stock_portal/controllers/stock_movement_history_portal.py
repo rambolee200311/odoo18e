@@ -10,12 +10,35 @@ from ..models.utils import portal_location_is_allowed
 from .portal import MarstekStockPortal
 
 
+
 class StockMovementHistoryPortal(MarstekStockPortal):
+
+    @http.route("/my/world_depot/stock/movement_history_page", type="http", auth="user", website=True)
+    def stock_movement_history_page(self, **kw):
+        filters = {
+            "location_id": str(kw.get("location_id") or "").strip(),
+            "location_search": str(kw.get("location_search") or "").strip(),
+            "location_name": str(kw.get("location_name") or "").strip(),
+            "date_from": str(kw.get("date_from") or "").strip(),
+            "date_to": str(kw.get("date_to") or "").strip(),
+            "view_mode": str(kw.get('view_mode') or "").strip(),
+        }
+        values = self._prepare_portal_layout_values()
+        values.update({
+            "page_name": "marstek_stock_movement_history",
+            "marstek_page_title": "Stock Movement History",
+            "filters": filters,
+            "summary": {},
+            "rows": [],
+            "pager": {},
+            "error": "",
+        })
+        return request.render("marstek_stock_portal.portal_marstek_stock_history", values)
 
     @http.route([
         "/my/world_depot/stock/movement_history",
         "/my/world_depot/stock/movement_history/page/<int:page>",
-    ], type="http", auth="user", methods=["GET"], website=True)
+    ], type="http", auth="user", methods=["GET"], website=False)
     def stock_movement_history_portal(self, page=1, **kw):
         filters = {
             "location_id": str(kw.get("location_id") or "").strip(),
@@ -66,22 +89,15 @@ class StockMovementHistoryPortal(MarstekStockPortal):
             page=page,
             step=page_size,
         )
-
+        pager["total"] = total
         rows = all_rows[pager["offset"]: pager["offset"] + page_size]
-        values = self.marstek_prepare_page_values("marstek_stock_movement_history", "Stock Movement History", filters)
-        values.update({
+        values = {
+            "page_name": "marstek_stock_movement_history",
+            "marstek_page_title": "Stock Movement History",
+            "filters": filters,
             "summary": summary,
             "rows": rows,
             "pager": pager,
             "error": error,
-        })
-        return request.render("marstek_stock_portal.portal_marstek_stock_history", values)
-        # return request.make_json_response({
-        #     "page_name": "marstek_stock_movement_history",
-        #     "marstek_page_title": "Stock Movement History",
-        #     "filters": filters,
-        #     "summary": summary,
-        #     "rows": all_rows[pager["offset"]: pager["offset"] + page_size],
-        #     "pager": pager,
-        #     "error": error,
-        # }, status=400 if error else 200)
+        }
+        return request.make_json_response(values, status=400 if error else 200)

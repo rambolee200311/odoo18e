@@ -1402,6 +1402,28 @@ class OutboundOrder(models.Model):
         if template_row_index in worksheet.row_dimensions:
             worksheet.row_dimensions[new_row_index].height = worksheet.row_dimensions[template_row_index].height
 
+    def action_print_cmr_pdf(self):
+        for rec in self:
+            if not rec.outbound_order_product_ids:
+                raise UserError(_('Please add at least one product before printing the CMR.'))
+            if not rec.warehouse or not rec.unload_company:
+                raise UserError(_('Please add at least one warehouse or unload company before printing the CMR.'))
+        return self.env.ref('worlddepot.action_report_outbound_order_cmr').report_action(self)
+
+    def get_cmr_print_text(self, text):
+        result = text or ''
+        for rec in self:
+            for attempt in range(2):
+                for encoding in ('latin1', 'cp1252'):
+                    try:
+                        result = result.encode(encoding).decode('utf-8')
+                        break
+                    except (UnicodeEncodeError, UnicodeDecodeError):
+                        continue
+                else:
+                    break
+        return result
+
     def cron_update_outbound_date(self):
         """Scheduled action to update inbound dates for confirmed orders without an inbound date."""
         orders = self.search([])
