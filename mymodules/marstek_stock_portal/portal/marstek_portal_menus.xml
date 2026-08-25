@@ -53,22 +53,22 @@
                     </div>
 
                     <!-- 库存历史 -->
-                    <div class="col-12 col-md-6 col-lg-4 mb-4">
-                        <a href="/my/world_depot/stock/movement_history" class="text-decoration-none">
-                            <div class="card h-100 o_marstek_card o_marstek_card_stock">
-                                <div class="card-body text-center">
-                                    <div class="o_marstek_icon mb-3">
-                                        <i class="fa fa-history fa-3x text-primary"/>
-                                    </div>
-                                    <h4 class="card-title">Stock History</h4>
-                                    <p class="text-muted">Query stock history by location<br/>Package grouped view</p>
-                                    <span class="btn btn-outline-primary mt-2">
-                                        Go <i class="fa fa-arrow-right ms-1"/>
-                                    </span>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
+<!--                    <div class="col-12 col-md-6 col-lg-4 mb-4">-->
+<!--                        <a href="/my/world_depot/stock/movement_history" class="text-decoration-none">-->
+<!--                            <div class="card h-100 o_marstek_card o_marstek_card_stock">-->
+<!--                                <div class="card-body text-center">-->
+<!--                                    <div class="o_marstek_icon mb-3">-->
+<!--                                        <i class="fa fa-history fa-3x text-primary"/>-->
+<!--                                    </div>-->
+<!--                                    <h4 class="card-title">Stock History</h4>-->
+<!--                                    <p class="text-muted">Query stock history by location<br/>Package grouped view</p>-->
+<!--                                    <span class="btn btn-outline-primary mt-2">-->
+<!--                                        Go <i class="fa fa-arrow-right ms-1"/>-->
+<!--                                    </span>-->
+<!--                                </div>-->
+<!--                            </div>-->
+<!--                        </a>-->
+<!--                    </div>-->
 
                     <!-- 集装箱查询 -->
                     <div class="col-12 col-md-6 col-lg-4 mb-4">
