@@ -23,6 +23,7 @@
     # always loaded
     'data': [
         'security/ir.model.access.csv',
+        'reports/outbound_order_cmr_report.xml',
         #'views/views.xml',
         #'views/templates.xml',
         #'vies/my_partner.xml',
