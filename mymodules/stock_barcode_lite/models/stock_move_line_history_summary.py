@@ -66,6 +66,7 @@ class StockMoveLineHistorySummary(models.Model):
                 "inbound_order_name": inbound_order.display_name,
                 "first_inbound_datetime": move_line.date,
                 "cproject_ids": set(),
+                "batch_names": set(),
                 "is_selected": True,
             })
             selected_package_ids.add(package.id)
@@ -74,6 +75,9 @@ class StockMoveLineHistorySummary(models.Model):
             pallet_detail = move_line.inbound_order_product_pallet_id
             if pallet_detail and pallet_detail.cprojectid:
                 segment["cproject_ids"].add(pallet_detail.cprojectid)
+            batch_name = (pallet_detail.lot_name if pallet_detail else "") or move_line.lot_id.name or move_line.lot_name or ""
+            if batch_name:
+                segment["batch_names"].add(batch_name)
         move_line_domain = [
             ("state", "=", "done"),
             ("date", "<", date_to_datetime),
@@ -97,7 +101,7 @@ class StockMoveLineHistorySummary(models.Model):
                 return {"date_from": date_from, "date_to": date_to, "timezone_name": timezone_name, "package_lifecycle_data": []}
         package_segment_map = defaultdict(dict)
         for (inbound_order_id, package_id), selected_segment in selected_segment_map.items():
-            package_segment_map[package_id][inbound_order_id] = dict(selected_segment, cproject_ids=set(selected_segment["cproject_ids"]))
+            package_segment_map[package_id][inbound_order_id] = dict(selected_segment, cproject_ids=set(selected_segment["cproject_ids"]), batch_names=set(selected_segment["batch_names"]))
         package_event_map = defaultdict(list)
         for move_line in move_lines:
             source_inside = move_line.location_id.id in location_ids if location_ids is not False else move_line.location_id.usage == "internal"
@@ -110,6 +114,7 @@ class StockMoveLineHistorySummary(models.Model):
                     "inbound_order_name": inbound_order.display_name,
                     "first_inbound_datetime": move_line.date,
                     "cproject_ids": set(),
+                    "batch_names": set(),
                     "is_selected": False,
                 })
                 if move_line.date < segment["first_inbound_datetime"]:
@@ -214,6 +219,7 @@ class StockMoveLineHistorySummary(models.Model):
                     "inbound_order_name": segment["inbound_order_name"],
                     "first_inbound_datetime": segment["first_inbound_datetime"],
                     "cproject_ids": sorted(segment["cproject_ids"]),
+                    "batch_names": sorted(segment["batch_names"]),
                     "is_selected": segment["is_selected"],
                 } for segment in segments],
                 "events": events,
@@ -232,6 +238,7 @@ class StockMoveLineHistorySummary(models.Model):
         inbound_data_map = {}
         for package_data in lifecycle_result["package_lifecycle_data"]:
             selected_inbound_order_ids = set()
+            segment_map = {segment["inbound_order_id"]: segment for segment in package_data["segments"]}
             for segment in package_data["segments"]:
                 if not segment["is_selected"]:
                     continue
@@ -264,7 +271,10 @@ class StockMoveLineHistorySummary(models.Model):
                 if event["event_date"] >= lifecycle_result["date_from"] and event["is_actual_outbound"] and event["before_active"] and not event["after_active"] and event["inbound_order_id"] in selected_inbound_order_ids:
                     inbound_data = inbound_data_map[event["inbound_order_id"]]
                     inbound_data["outbound_pallet_count"] += 1
-                    inbound_data["outbound_lines"][event["event_date"]] += 1
+                    outbound_segment = segment_map.get(event["inbound_order_id"], {})
+                    cproject_ids = ", ".join(outbound_segment.get("cproject_ids", []))
+                    batch_names = ", ".join(outbound_segment.get("batch_names", []))
+                    inbound_data["outbound_lines"][(event["event_date"], cproject_ids, batch_names)] += 1
         result = []
         for inbound_data in inbound_data_map.values():
             first_inbound_local_datetime = fields.Datetime.context_timestamp(self.with_context(tz=lifecycle_result["timezone_name"]), inbound_data["first_inbound_datetime"])
@@ -285,8 +295,10 @@ class StockMoveLineHistorySummary(models.Model):
                 "remain_total_age_days": (lifecycle_result["date_to"] - first_inbound_local_datetime.date()).days + 1 if closing_pallet_count else 0,
                 "outbound_lines": [{
                     "outbound_date": fields.Date.to_string(outbound_date),
+                    "cproject_ids": cproject_ids,
+                    "batch_names": batch_names,
                     "pallet_count": pallet_count,
                     "stock_days": (outbound_date - lifecycle_result["date_from"]).days + 1,
-                } for outbound_date, pallet_count in sorted(inbound_data["outbound_lines"].items())],
+                } for (outbound_date, cproject_ids, batch_names), pallet_count in sorted(inbound_data["outbound_lines"].items())],
             })
         return sorted(result, key=lambda inbound_data: (inbound_data["first_inbound_date"], inbound_data["inbound_order_id"]))
