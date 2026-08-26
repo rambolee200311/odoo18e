@@ -45,7 +45,9 @@ class StockMoveLineHistorySummary(models.Model):
         ]
         if filters.get("owner_id"):
             inbound_domain.append(("picking_id.inbound_order_id.owner", "=", filters["owner_id"]))
-        if filters.get("project_id"):
+        if filters.get("project_ids"):
+            inbound_domain.append(("picking_id.inbound_order_id.project", "in", filters["project_ids"]))
+        elif filters.get("project_id"):
             inbound_domain.append(("picking_id.inbound_order_id.project", "=", filters["project_id"]))
         cprojectid = str(filters.get("cprojectid") or "").strip()
         if cprojectid:

@@ -4,12 +4,14 @@ from collections import defaultdict
 from datetime import datetime, time
 
 from odoo import api, fields, models
+from odoo.osv import expression
 
 from .utils import (
     portal_format_datetime,
     portal_location_is_allowed,
-    portal_owner_partner,
+    portal_project_package_ids,
     portal_product_code,
+    portal_stock_operation_project_ids,
 )
 
 
@@ -29,10 +31,10 @@ class StockMoveLine(models.Model):
             date_to = fields.Date.to_date(date_to_value)
         except (TypeError, ValueError):
             return []
-        owner = portal_owner_partner(self.env)
-        if not owner:
-            return []
         location_id = int(location_id)
+        project_ids = portal_stock_operation_project_ids(self.env)
+        if not project_ids:
+            return []
         date_from_datetime = datetime.combine(date_from, time.min)
         date_to_datetime = datetime.combine(date_to, time.max)
         location_ids = set(self.env["stock.location"].sudo().search([
@@ -41,12 +43,24 @@ class StockMoveLine(models.Model):
         if not location_ids:
             return []
 
-        move_lines = self.sudo().search([
+        project_package_ids = portal_project_package_ids(self.env)
+        project_move_line_domain = expression.OR([
+            [("picking_id.inbound_order_id.project", "in", project_ids)],
+            [("picking_id.outbound_order_id.project", "in", project_ids)],
+        ])
+        package_domain = expression.OR([
+            [("package_id", "in", project_package_ids)],
+            [("result_package_id", "in", project_package_ids)],
+        ]) if project_package_ids else [("id", "=", 0)]
+        loose_domain = expression.AND([
+            [("package_id", "=", False), ("result_package_id", "=", False)],
+            project_move_line_domain,
+        ])
+        move_lines = self.sudo().search(expression.AND([[
             ("state", "=", "done"),
-            ("owner_id", "=", owner.id),
             ("date", "<=", date_to_datetime),
             "|", ("location_id", "child_of", location_id), ("location_dest_id", "child_of", location_id),
-        ], order="date asc, id asc")
+        ], expression.OR([package_domain, loose_domain])]), order="date asc, id asc")
         package_event_map = defaultdict(list)
         for move_line in move_lines:
             source_inside = move_line.location_id.id in location_ids
@@ -297,16 +311,17 @@ class StockMoveLine(models.Model):
 
         if date_to == fields.Date.context_today(self) and rows:
             reserved_quantity_map = defaultdict(float)
-            quant_domain = [
-                ("owner_id", "=", owner.id),
-                ("location_id", "child_of", location_id),
-                ("reserved_quantity", "!=", 0),
-            ]
-            quant_domain += ["|", ("package_id", "in", package_ids), ("package_id", "=", False)]
-            quants = self.env["stock.quant"].sudo().search(quant_domain)
-            for quant in quants:
-                reserved_quantity_map[(quant.package_id.id, quant.product_id.id, quant.lot_id.id)] += quant.reserved_quantity
+            if package_ids:
+                quants = self.env["stock.quant"].sudo().search([
+                    ("location_id", "child_of", location_id),
+                    ("reserved_quantity", "!=", 0),
+                    ("package_id", "in", package_ids),
+                ])
+                for quant in quants:
+                    reserved_quantity_map[(quant.package_id.id, quant.product_id.id, quant.lot_id.id)] += quant.reserved_quantity
             for row in rows:
+                if not row["package_id"]:
+                    continue
                 for stock_line in row["stock_line_ids"]:
                     stock_line["reserved_quantity"] = reserved_quantity_map[(row["package_id"], stock_line["product_id"], stock_line["lot_id"])]
                     stock_line["available_quantity"] = stock_line["on_hand_quantity"] - stock_line["reserved_quantity"]

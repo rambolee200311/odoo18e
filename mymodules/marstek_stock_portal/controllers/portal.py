@@ -6,7 +6,7 @@ from odoo.http import request
 from odoo.addons.portal.controllers import portal
 from odoo.addons.portal.controllers.portal import CustomerPortal, pager as portal_pager
 
-from ..models.utils import portal_owner_partner, portal_stock_location_options
+from ..models.utils import portal_stock_location_ids, portal_stock_location_options
 
 
 class MarstekStockPortal(CustomerPortal):
@@ -79,7 +79,7 @@ class MarstekStockPortal(CustomerPortal):
     def marstek_stock_location_options(self, **kw):
         keyword = (kw.get("q") or "").strip()
         options = portal_stock_location_options(request.env, keyword)
-        if portal_owner_partner(request.env):
+        if portal_stock_location_ids(request.env):
             options.append({"location_id": "other", "location_name": "Other"})
         return request.make_json_response(options)
 

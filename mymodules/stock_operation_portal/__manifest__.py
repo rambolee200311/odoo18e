@@ -18,6 +18,7 @@ Enable users to create and manage stock operations via PDA or PC:
     "data": [
         "security/ir.model.access.csv",
         "security/security.xml",
+        "views/res_users_views.xml",
         "portal/portal_menus.xml",
         "portal/portal_container.xml",
         "portal/portal_inbound.xml",

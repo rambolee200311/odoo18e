@@ -21,8 +21,7 @@ class SunriseStockReport(models.Model):
     date_to = fields.Date(string="Date To", required=True, default=fields.Date.context_today, index=True)
     warehouse_id = fields.Many2one("stock.warehouse", string="Warehouse", copy=False, index=True)
     owner_id = fields.Many2one("res.partner", string="Owner", copy=False, index=True)
-    location_id = fields.Many2one("stock.location", string="Location", copy=False, index=True)
-    available_location_line_ids = fields.Many2many("stock.location", string="Available Locations", compute="_compute_available_location_line_ids")
+    location_scope = fields.Selection(selection="get_location_scope_selection", string="Location", copy=False, index=True)
     product_template_id = fields.Many2one("product.template", string="Product", copy=False, index=True)
     lot_name = fields.Char(string="Lot No", copy=False, index=True)
     state = fields.Selection([("draft", "Draft"), ("done", "Done")], string="State", default="draft", required=True, readonly=True, copy=False, index=True)
@@ -46,13 +45,14 @@ class SunriseStockReport(models.Model):
         for rec in self:
             rec.name = "%s ~ %s" % (rec.date_from or "", rec.date_to or "")
 
-    def _compute_available_location_line_ids(self):
+    @api.model
+    def get_location_scope_selection(self):
         project_model = self.env["project.project"].sudo()
-        location_model = self.env["stock.location"].sudo()
-        sunrise_projects = project_model.search([("name", "=", "SUNRISE")])
-        available_location_line_ids = sunrise_projects.mapped("portal_stock_location_line_ids") if "portal_stock_location_line_ids" in project_model._fields else location_model
-        for rec in self:
-            rec.available_location_line_ids = available_location_line_ids
+        sunrise_project = project_model.search([("name", "=", "SUNRISE")], limit=1)
+        if not sunrise_project or "portal_stock_location_line_ids" not in project_model._fields:
+            return [("other", "Other")]
+        locations = sunrise_project.mapped("portal_stock_location_line_ids").sorted(key=lambda location: (location.complete_name or location.display_name, location.id))
+        return [("location_%s" % location.id, location.complete_name or location.display_name) for location in locations] + [("other", "Other")]
 
     def action_refresh_report(self):
         inbound_move_line_model = self.env["stock.move.line"].sudo()
@@ -76,12 +76,20 @@ class SunriseStockReport(models.Model):
                 raise ValidationError(_("Date From must not be later than Date To."))
 
             location_ids = set()
-            if rec.location_id:
-                sunrise_projects = project_model.search([("name", "=", "SUNRISE")])
-                available_location_line_ids = sunrise_projects.mapped("portal_stock_location_line_ids") if "portal_stock_location_line_ids" in project_model._fields else location_model
-                if rec.location_id not in available_location_line_ids:
+            sunrise_project = project_model.search([("name", "=", "SUNRISE")], limit=1)
+            configured_location_ids = set(sunrise_project.mapped("portal_stock_location_line_ids").ids) if sunrise_project and "portal_stock_location_line_ids" in project_model._fields else set()
+            if rec.location_scope == "other":
+                configured_internal_location_ids = set(location_model.search([("id", "child_of", list(configured_location_ids)), ("usage", "=", "internal")]).ids) if configured_location_ids else set()
+                all_internal_location_ids = set(location_model.search([("usage", "=", "internal")]).ids)
+                location_ids = all_internal_location_ids - configured_internal_location_ids
+            elif rec.location_scope:
+                try:
+                    location_id = int(rec.location_scope.removeprefix("location_"))
+                except ValueError:
+                    raise ValidationError(_("Location must be a valid record."))
+                if location_id not in configured_location_ids:
                     raise ValidationError(_("Location must be configured on the SUNRISE project."))
-                location_ids = set(location_model.search([("id", "child_of", rec.location_id.id)]).ids)
+                location_ids = set(location_model.search([("id", "child_of", location_id)]).ids)
 
             date_to_exclusive = datetime.combine(rec.date_to + timedelta(days=1), time.min)
             inbound_move_lines = inbound_move_line_model.search([
