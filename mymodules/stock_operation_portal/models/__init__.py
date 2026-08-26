@@ -1,3 +1,4 @@
 # -*- coding: utf-8 -*-
 
-# Models will be added later
+from . import res_users
+from . import inbound_order_inherit

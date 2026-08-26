@@ -11,7 +11,7 @@ from .utils import (
     portal_filter_value,
     portal_format_date,
 portal_format_datetime,
-    portal_owner_domain,
+    portal_project_domain,
     portal_product_code,
 )
 
@@ -22,7 +22,7 @@ class InboundOrder(models.Model):
     @api.model
     def get_inbound_list(self, filters=None, offset=0, limit=0):
         filters = filters or {}
-        domain = portal_owner_domain(self.env, "project.owner")
+        domain = portal_project_domain(self.env, "project")
         inbound_no = portal_filter_value(filters, "inbound_no", "reference")
         container_no = filters.get("container_no")
         bl_no = filters.get("bl_no")
@@ -244,5 +244,5 @@ class InboundOrder(models.Model):
     def get_inbound_order(self, inbound_id):
         if not inbound_id:
             return self.env["world.depot.inbound.order"].sudo()
-        domain = [("id", "=", inbound_id)] + portal_owner_domain(self.env, "project.owner")
+        domain = [("id", "=", inbound_id)] + portal_project_domain(self.env, "project")
         return self.env["world.depot.inbound.order"].sudo().search(domain, limit=1)
