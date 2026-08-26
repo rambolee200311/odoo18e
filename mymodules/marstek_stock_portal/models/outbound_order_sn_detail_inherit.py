@@ -4,7 +4,7 @@ from odoo import api, models
 
 from .utils import (
     portal_format_date,
-    portal_owner_domain,
+    portal_project_domain,
     portal_package_container_from_name,
     portal_package_shipping_map,
     portal_product_code,
@@ -35,7 +35,7 @@ class OutboundOrderSNDetail(models.Model):
         detail_domain = [
                             ("lot_name", "=", sn_code),
                             ("picking_PICK.state", "=", "done"),
-                        ] + portal_owner_domain(self.env, "project.owner")
+                        ] + portal_project_domain(self.env, "project")
         detail = detail_env.search(detail_domain, limit=1, order="p_date desc, id desc")
         if detail:
             return {
@@ -48,7 +48,7 @@ class OutboundOrderSNDetail(models.Model):
     @api.model
     def get_sn_move_line(self, sn_code):
         move_line_env = self.env["stock.move.line"].sudo()
-        domain = [("lot_id.name", "=", sn_code), ("product_id", "!=", False)] + portal_owner_domain(self.env, "owner_id")
+        domain = [("lot_id.name", "=", sn_code), ("product_id", "!=", False)] + portal_project_domain(self.env, "picking_id.outbound_order_id.project")
         return move_line_env.search(domain, limit=1, order="date desc, id desc")
 
     @api.model
@@ -56,7 +56,7 @@ class OutboundOrderSNDetail(models.Model):
         picking = move_line.picking_id
         if not picking:
             return self.env["world.depot.outbound.order"].sudo()
-        domain = ["|", ("picking_PICK", "=", picking.id), ("picking_Out", "=", picking.id)] + portal_owner_domain(self.env, "project.owner")
+        domain = ["|", ("picking_PICK", "=", picking.id), ("picking_Out", "=", picking.id)] + portal_project_domain(self.env, "project")
         return self.env["world.depot.outbound.order"].sudo().search(domain, limit=1)
 
     @api.model

@@ -30,6 +30,13 @@ def portal_stock_operation_project_ids(env):
     return env.user.sudo().stock_operation_project_line_ids.ids
 
 
+def portal_project_domain(env, field_name):
+    project_ids = portal_stock_operation_project_ids(env)
+    if not project_ids:
+        return [("id", "=", 0)]
+    return [(field_name, "in", project_ids)]
+
+
 def portal_project_package_ids(env):
     project_ids = portal_stock_operation_project_ids(env)
     if not project_ids:

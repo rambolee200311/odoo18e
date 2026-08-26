@@ -55,7 +55,6 @@ class SunriseStockReport(models.Model):
         return [("location_%s" % location.id, location.complete_name or location.display_name) for location in locations] + [("other", "Other")]
 
     def action_refresh_report(self):
-        inbound_move_line_model = self.env["stock.move.line"].sudo()
         move_line_model = self.env["stock.move.line"].sudo()
         quant_model = self.env["stock.quant"].sudo()
         project_model = self.env["project.project"].sudo()
@@ -92,15 +91,22 @@ class SunriseStockReport(models.Model):
                 location_ids = set(location_model.search([("id", "child_of", location_id)]).ids)
 
             date_to_exclusive = datetime.combine(rec.date_to + timedelta(days=1), time.min)
-            inbound_move_lines = inbound_move_line_model.search([
-                ("move_id.state", "=", "done"),
-                ("date", "<", date_to_exclusive),
-                ("picking_id.picking_type_id.code", "=", "incoming"),
-                ("picking_id.inbound_order_id.project.name", "=", "SUNRISE"),
-                ("result_package_id", "!=", False),
-            ], order="date asc, id asc")
+            lifecycle_result = move_line_model.get_package_movement_history({
+                "date_from": rec.date_from,
+                "date_to": rec.date_to,
+                "project_ids": sunrise_project.ids,
+                "timezone": "UTC",
+            })
+            lifecycle_move_line_ids = {
+                event["move_line_id"]
+                for package_data in lifecycle_result["package_lifecycle_data"]
+                for event in package_data["events"]
+            }
+            lifecycle_move_lines = move_line_model.search([("id", "in", list(lifecycle_move_line_ids))], order="date asc, id asc") if lifecycle_move_line_ids else move_line_model
             package_data_map = {}
-            for move_line in inbound_move_lines:
+            for move_line in lifecycle_move_lines:
+                if move_line.picking_id.picking_type_id.code != "incoming" or not move_line.picking_id.inbound_order_id or not move_line.result_package_id:
+                    continue
                 package = move_line.result_package_id
                 inbound_order = move_line.picking_id.inbound_order_id
                 inbound_detail = move_line.inbound_order_product_pallet_id
@@ -123,13 +129,7 @@ class SunriseStockReport(models.Model):
                     continue
                 candidate_package_ids.append(package_id)
 
-            move_lines = move_line_model.search([
-                ("move_id.state", "=", "done"),
-                ("date", "<", date_to_exclusive),
-                "|",
-                ("package_id", "in", candidate_package_ids),
-                ("result_package_id", "in", candidate_package_ids),
-            ], order="date asc, id asc")
+            move_lines = lifecycle_move_lines.filtered(lambda move_line: move_line.package_id.id in candidate_package_ids or move_line.result_package_id.id in candidate_package_ids)
             pending_move_lines = move_line_model.search([
                 ("move_id.state", "not in", ("done", "cancel")),
                 ("picking_id.state", "not in", ("done", "cancel")),

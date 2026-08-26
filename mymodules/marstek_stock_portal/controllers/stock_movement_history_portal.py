@@ -6,7 +6,7 @@ from odoo import fields, http
 from odoo.addons.portal.controllers.portal import pager as portal_pager
 from odoo.http import request
 
-from ..models.utils import portal_location_is_allowed
+from ..models.utils import portal_location_is_allowed, portal_stock_operation_project_ids
 from .portal import MarstekStockPortal
 
 
@@ -59,7 +59,10 @@ class StockMovementHistoryPortal(MarstekStockPortal):
                     error = "date_from cannot be later than date_to."
                 elif not portal_location_is_allowed(request.env, filters["location_id"]):
                     error = "location_id is not available for this portal user."
-        all_rows = request.env["stock.move.line"].get_portal_stock_movement_history(filters) if not error else []
+        project_ids = portal_stock_operation_project_ids(request.env)
+        history_filters = dict(filters, project_ids=project_ids)
+        history_result = request.env["stock.move.line"].sudo().get_package_movement_history(history_filters) if not error and project_ids else {"movement_rows": []}
+        all_rows = history_result["movement_rows"]
         summary = {
             "opening_pallet_count": sum(row["opening_pallet_count"] for row in all_rows),
             "inbound_pallet_count": sum(row["inbound_pallet_count"] for row in all_rows),

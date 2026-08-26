@@ -7,5 +7,4 @@ from . import outbound_order_sn_detail_inherit
 from . import ir_attachment_inherit
 from . import res_user_inherit
 from . import project_project_inherit
-from . import stock_move_line_history_inherit
 from . import portal
