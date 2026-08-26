@@ -267,7 +267,7 @@ class SunriseOrderImportLine(models.Model):
     u8_conversion_rate = fields.Char(string="U8 Conversion Rate", copy=False)
     vsourcebillcode = fields.Char(string="Source Bill Code", copy=False, index=True)
     vsourcerowno = fields.Char(string="Source Row No", copy=False, index=True)
-    cprojectid = fields.Char(string="Contract No", copy=False, index=True)
+    cprojectid = fields.Char(string="Sunrise Ref", copy=False, index=True)
     ndiscounttaxtype = fields.Char(string="Tax Deduction Type", copy=False, index=True)
     is_lot = fields.Char(string="Is Lot", copy=False, index=True)
     de_palletize = fields.Char(string="Depalletize", copy=False, index=True)

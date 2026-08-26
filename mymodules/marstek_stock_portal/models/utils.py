@@ -22,11 +22,32 @@ def portal_owner_domain(env, field_name):
 
 
 def portal_stock_location_ids(env):
-    owner = portal_owner_partner(env)
-    if not owner:
-        return []
-    projects = env["project.project"].sudo().search([("owner", "=", owner.id)])
+    projects = env.user.sudo().stock_operation_project_line_ids
     return projects.mapped("portal_stock_location_line_ids").ids
+
+
+def portal_stock_operation_project_ids(env):
+    return env.user.sudo().stock_operation_project_line_ids.ids
+
+
+def portal_project_domain(env, field_name):
+    project_ids = portal_stock_operation_project_ids(env)
+    if not project_ids:
+        return [("id", "=", 0)]
+    return [(field_name, "in", project_ids)]
+
+
+def portal_project_package_ids(env):
+    project_ids = portal_stock_operation_project_ids(env)
+    if not project_ids:
+        return []
+    move_lines = env["stock.move.line"].sudo().search([
+        ("state", "=", "done"),
+        ("picking_id.picking_type_id.code", "=", "incoming"),
+        ("picking_id.inbound_order_id.project", "in", project_ids),
+        ("result_package_id", "!=", False),
+    ], order="date asc, id asc")
+    return move_lines.mapped("result_package_id").ids
 
 
 def portal_location_is_allowed(env, location_id):
@@ -39,12 +60,11 @@ def portal_location_is_allowed(env, location_id):
 
 
 def portal_quant_domain(env):
-    domain = portal_owner_domain(env, "owner_id")
-    domain += [("quantity", ">", 0), ("location_id.usage", "in", ["internal", "transit"]), ("package_id", "!=", False)]
-    root_location_ids = portal_stock_location_ids(env)
-    if not root_location_ids:
+    domain = [("quantity", ">", 0), ("location_id.usage", "in", ["internal", "transit"]), ("package_id", "!=", False)]
+    package_ids = portal_project_package_ids(env)
+    if not package_ids:
         return [("id", "=", 0)]
-    domain.append(("location_id", "child_of", root_location_ids))
+    domain.append(("package_id", "in", package_ids))
     return domain
 
 

@@ -14,7 +14,7 @@ from .utils import (
     portal_filter_value,
     portal_format_date,
     portal_format_datetime,
-    portal_owner_domain,
+    portal_project_domain,
     portal_package_container_from_name,
     portal_package_shipping_map,
     portal_product_code,
@@ -27,7 +27,7 @@ class OutboundOrder(models.Model):
     @api.model
     def get_outbound_list(self, filters=None, offset=0, limit=0):
         filters = filters or {}
-        domain = portal_owner_domain(self.env, "project.owner")
+        domain = portal_project_domain(self.env, "project")
         outbound_no = portal_filter_value(filters, "outbound_no", "reference")
         portal_outbound_status = filters.get("portal_outbound_status")
         container_no = filters.get("container_no")
@@ -184,7 +184,7 @@ class OutboundOrder(models.Model):
     def get_outbound_order(self, outbound_id):
         if not outbound_id:
             return self.env["world.depot.outbound.order"].sudo()
-        domain = [("id", "=", outbound_id)] + portal_owner_domain(self.env, "project.owner")
+        domain = [("id", "=", outbound_id)] + portal_project_domain(self.env, "project")
         return self.env["world.depot.outbound.order"].sudo().search(domain, limit=1)
 
     @api.model

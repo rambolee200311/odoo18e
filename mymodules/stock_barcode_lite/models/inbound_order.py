@@ -826,7 +826,7 @@ class InboundOrderProductsPallet(models.Model):
     is_lot = fields.Selection([("N", "No"), ("Y", "Yes")], string="Is Lot", default="Y", copy=False, index=True)
     lot_name = fields.Char(string="Lot Name", copy=False, index=True)
 
-    cprojectid = fields.Char(string="Contract No", copy=False, index=True)
+    cprojectid = fields.Char(string="Sunrise Ref", copy=False, index=True)
     ndiscounttaxtype = fields.Char(string="Tax Deduction Type", copy=False, index=True)
     vsourcebillcode = fields.Char(string="Source Bill Code", copy=False, index=True)
     vsourcerowno = fields.Char(string="Source Row No", copy=False, index=True)

@@ -3,7 +3,7 @@
 from odoo import models
 from odoo.exceptions import AccessError
 
-from .utils import portal_owner_partner
+from .utils import portal_project_domain
 
 
 class IrAttachment(models.Model):
@@ -21,19 +21,16 @@ class IrAttachment(models.Model):
             raise
 
     def marstek_can_portal_read(self):
-        owner = portal_owner_partner(self.env)
-        if not owner:
-            return False
         attachment = self.sudo()
-        model_owner_fields = {
-            "world.depot.inbound.order": "project.owner",
-            "world.depot.outbound.order": "project.owner",
-            "world.depot.inbound.order.docs": "inbound_order_id.project.owner",
-            "world.depot.outbound.order.docs": "outbound_order_id.project.owner",
+        model_project_fields = {
+            "world.depot.inbound.order": "project",
+            "world.depot.outbound.order": "project",
+            "world.depot.inbound.order.docs": "inbound_order_id.project",
+            "world.depot.outbound.order.docs": "outbound_order_id.project",
         }
-        owner_field = model_owner_fields.get(attachment.res_model)
-        if not owner_field or not attachment.res_id:
+        project_field = model_project_fields.get(attachment.res_model)
+        if not project_field or not attachment.res_id:
             return False
         record_env = self.env[attachment.res_model].sudo()
-        record = record_env.search([("id", "=", attachment.res_id), (owner_field, "=", owner.id)], limit=1)
+        record = record_env.search([("id", "=", attachment.res_id)] + portal_project_domain(self.env, project_field), limit=1)
         return bool(record)
