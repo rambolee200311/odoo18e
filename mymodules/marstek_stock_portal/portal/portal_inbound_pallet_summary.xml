@@ -36,10 +36,12 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-12 col-md-6 col-lg-3">
-                                    <label for="ips_cprojectid" class="form-label">Project ID</label>
-                                    <input type="text" class="form-control" id="ips_cprojectid" name="cprojectid" placeholder="Enter project ID"/>
-                                </div>
+                                <t t-if="show_sunrise_outbound_filters">
+                                    <div class="col-12 col-md-6 col-lg-3">
+                                        <label for="ips_cprojectid" class="form-label">Sunrise Ref</label>
+                                        <input type="text" class="form-control" id="ips_cprojectid" name="cprojectid" placeholder="Enter project ID"/>
+                                    </div>
+                                </t>
                                 <div class="col-12 col-md-6 col-lg-3">
                                     <label for="ips_date_from" class="form-label">Start Date</label>
                                     <input type="date" class="form-control" id="ips_date_from" name="date_from" required="required"/>
