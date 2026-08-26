@@ -156,6 +156,7 @@ class StockMoveLineHistorySummary(models.Model):
                     "picking_state": move_line.picking_id.state,
                     "picking_type_code": move_line.picking_id.picking_type_id.code,
                     "is_outbound": source_inside and not destination_inside,
+                    "is_actual_outbound": source_inside and move_line.location_dest_id.usage != "internal" and move_line.picking_id.picking_type_id.code == "outgoing",
                 })
         package_lifecycle_data = []
         for package_id in selected_package_ids:
@@ -260,7 +261,7 @@ class StockMoveLineHistorySummary(models.Model):
             for event in package_data["events"]:
                 if event["event_date"] >= lifecycle_result["date_from"] and event["direction"] == "inbound" and not event["before_active"] and event["after_active"] and event["inbound_order_id"] in selected_inbound_order_ids:
                     inbound_data_map[event["inbound_order_id"]]["inbound_pallet_count"] += 1
-                if event["event_date"] >= lifecycle_result["date_from"] and event["is_outbound"] and event["before_active"] and not event["after_active"] and event["inbound_order_id"] in selected_inbound_order_ids:
+                if event["event_date"] >= lifecycle_result["date_from"] and event["is_actual_outbound"] and event["before_active"] and not event["after_active"] and event["inbound_order_id"] in selected_inbound_order_ids:
                     inbound_data = inbound_data_map[event["inbound_order_id"]]
                     inbound_data["outbound_pallet_count"] += 1
                     inbound_data["outbound_lines"][event["event_date"]] += 1

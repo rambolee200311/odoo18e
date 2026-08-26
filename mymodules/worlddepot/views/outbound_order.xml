@@ -94,8 +94,7 @@
                                 string="Create Picking"
                                 class="oe_stat_button" icon="fa-file-text"
                                 invisible="project_name != 'LINGLONG' or project_name == 'SUNRISE'"/>
-
-                        <button name="action_create_cmr"
+                        <button name="action_print_cmr_pdf"
                                 type="object"
                                 string="Create CMR"
                                 class="oe_stat_button" icon="fa-film"
@@ -186,7 +185,7 @@
                                     <field name="remark"/>
                                     <field name="locations" readonly="1" optional="show"/>
                                     <field name="weight" optional="show"/>
-                                    <field name="weight_subtotal" optional="show"/>
+                                    <field name="weight_subtotal" readonly="1" optional="show"/>
                                     <!--<field name="is_outbound_handling"/>
                                     <field name="outbound_handling_price"/>
                                     <field name="outbound_handling_unit"/>
@@ -435,7 +434,7 @@
                         <field name="remark" readonly="outbound_order_state != 'new'"/>
                         <field name="locations" readonly="1" optional="show"/>
                         <field name="weight" optional="show"/>
-                        <field name="weight_subtotal" optional="show" readonly="outbound_order_state != 'new'"/>
+                        <field name="weight_subtotal" optional="show" readonly="1"/>
                     </group>
                 </sheet>
                 <chatter/>
