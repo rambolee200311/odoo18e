@@ -3,7 +3,7 @@
 
     var BASE_URL = '/my/world_depot/stock/movement_history';
     var API_URL = BASE_URL;
-    var SHELL_URL = BASE_URL;
+    var SHELL_URL = BASE_URL + '_page';
 
 
     function init() {
