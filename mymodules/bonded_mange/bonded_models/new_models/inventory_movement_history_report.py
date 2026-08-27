@@ -907,6 +907,8 @@ class BondedInventoryMovementHistoryReport(models.Model):
                 product = group_data["product"]
                 opening_qty = group_data["opening_qty"]
                 running_qty = opening_qty
+                running_gross_weight = group_data["opening_gross_weight"]
+                running_net_weight = group_data["opening_net_weight"]
                 summary_key = (product.id, group_data["bonded_flag"], group_data["product_uom_id"])
                 summary_data = summary_data_map.setdefault(summary_key, {
                     "product": product,
@@ -963,6 +965,8 @@ class BondedInventoryMovementHistoryReport(models.Model):
                 for event_data in event_data_list:
                     begin_qty = running_qty
                     running_qty += event_data["mutation_quantity"]
+                    running_gross_weight += event_data["gross_weight"]
+                    running_net_weight += event_data["net_weight"]
                     inbound_number_text = ", ".join(sorted(event_data["inbound_number_set"])) or False
                     outbound_number_text = ", ".join(sorted(event_data["outbound_number_set"])) or False
                     line_vals_list.append({
@@ -1031,6 +1035,8 @@ class BondedInventoryMovementHistoryReport(models.Model):
                     "inbound_number": source_inbound_number_map.get((product.id, group_data["unique_identifier"])) or False,
                     "mutation_quantity": running_qty,
                     "value_euro": running_qty * group_data["goods_value"],
+                    "gross_weight": running_gross_weight,
+                    "net_weight": running_net_weight,
                     "end_stock_date": rec.period_end,
                     "end_stock_qty": running_qty,
                 })
