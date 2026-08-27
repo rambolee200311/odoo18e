@@ -40,7 +40,7 @@
                             <field name="period_end" required="1" readonly="state == 'done'"/>
                             <field name="warehouse_id" required="1" readonly="state == 'done'"
                                    options="{'no_create': True, 'no_open': True}"/>
-                            <field name="bonded_flag" readonly="state == 'done'"/>
+                            <field name="bonded_flag" required="1" readonly="state == 'done'"/>
 
                         </group>
                         <group>
@@ -69,7 +69,7 @@
                                     <field name="product_id" optional="show"
                                            options="{'no_create': True, 'no_open': True}"/>
                                     <field name="product_description" optional="show"/>
-                                    <field name="marks_article_technical_description" optional="hide"/>
+                                    <field name="marks_article_technical_description" optional="show"/>
                                     <field name="commodity_code" optional="show"/>
                                     <field name="date_of_mutation" string="Date" optional="show"/>
                                     <field name="mutation_quantity_display" string="Mutation Quantity" optional="show"/>
