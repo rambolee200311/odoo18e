@@ -3,15 +3,13 @@
     <!-- Operation Portal Home -->
     <template id="portal_operation_home" name="Stock Operations Home">
         <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': None, 'name': 'Stock Operation'}]"/>
             <t t-set="breadcrumbs_searchbar" t-value="False"/>
+            <t t-call="stock_operation_portal.portal_breadcrumbs_slash"/>
             <t t-set="page_name" value="'operation_home'"/>
             <div class="o_portal_wrap">
                 <div class="container py-5">
-                    <div class="mb-3">
-                        <a href="/my/home" class="btn btn-outline-secondary">
-                            <i class="fa fa-arrow-left"/> Back to Home
-                        </a>
-                    </div>
+                    
                     <h1 class="mb-4">Stock Order</h1>
                     <div class="row">
                         <!-- Inbound Orders -->

@@ -4,6 +4,7 @@
     <template id="portal_marstek_inbound_pallet_summary_page" name="Inbound Pallet Summary">
         <t t-call="portal.portal_layout">
             <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/marstek', 'name': 'Marstek Stock'}, {'url': None, 'name': 'Inbound Pallet Summary'}]"/>
+            <t t-call="marstek_stock_portal.portal_breadcrumbs_slash"/>
 
             <div class="o_portal_content">
                 <!-- 筛选表单 -->

@@ -6,6 +6,7 @@
     <template id="portal_marstek_outbounds" name="Outbound Orders">
             <t t-call="portal.portal_layout">
             <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/marstek', 'name': 'Marstek Stock'}, {'url': None, 'name': 'Outbound Orders'}]"/>
+            <t t-call="marstek_stock_portal.portal_breadcrumbs_slash"/>
 
             <div class="o_portal_content">
                 <!-- 筛选表单 - 可折叠 -->
@@ -235,6 +236,7 @@
     <template id="portal_marstek_outbound_detail" name="Outbound Detail">
             <t t-call="portal.portal_layout">
             <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/marstek', 'name': 'Marstek Stock'}, {'url': '/my/marstek/outbounds', 'name': 'Outbound Orders'}, {'url': None, 'name': 'Outbound Detail'}]"/>
+            <t t-call="marstek_stock_portal.portal_breadcrumbs_slash"/>
 
             <div class="o_portal_content">
                 <!-- 出库单信息 - 可折叠 -->
@@ -438,13 +440,7 @@
                     </div>
                 </t>
 
-                <!-- 返回按钮 -->
-                <div class="mt-4">
-                    <a href="/my/marstek/outbounds" class="btn btn-secondary">
-                        <i class="fa fa-arrow-left me-1"/>
-                        Back to List
-                    </a>
-                </div>
+                
             </div>
         </t>
     </template>
