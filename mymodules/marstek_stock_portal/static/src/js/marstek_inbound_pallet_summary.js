@@ -258,7 +258,7 @@
         }).join('');
     }
 
-    // ===== Table View =====
+    // ===== 表格视图 =====
     function renderTable(groups) {
         var tbody = document.getElementById('ips_tbody');
         var empty = document.getElementById('ips_empty');
@@ -313,7 +313,7 @@
                     + '<td class="text-end">' + formatNumber(group.inbound_pallet_count) + '</td>'
                     + '<td class="text-end">' + formatNumber(group.outbound_pallet_count) + '</td>'
                     + '<td class="text-end">' + formatNumber(group.closing_pallet_count) + '</td>'
-                    + '<td>' + escapeHtml(group.closing_location_summary) + '</td>'
+//                    + '<td>' + escapeHtml(group.closing_location_summary) + '</td>'
                     + '<td>-</td>'
                     + '<td class="text-end">-</td>'
                     + '<td class="text-end">-</td>'
@@ -321,7 +321,7 @@
             }
         });
 
-        // Summary row
+        // 汇总行
         html += '<tr class="table-info fw-bold">'
             + '<td colspan="2" class="text-end">Summary</td>'
             + '<td class="text-end">' + formatNumber(totalOpening) + '</td>'
@@ -337,7 +337,7 @@
         tbody.innerHTML = html;
     }
 
-    // ===== Card View =====
+    // ===== 卡片视图 =====
     function renderCards(groups) {
         var container = document.getElementById('ips_cards');
         if (!container) return;
@@ -365,7 +365,7 @@
                 + '<div class="col-6 col-md-3"><span class="text-muted small">Inbound:</span><br/><strong>' + formatNumber(group.inbound_pallet_count) + '</strong></div>'
                 + '<div class="col-6 col-md-3"><span class="text-muted small">Outbound:</span><br/><strong>' + formatNumber(group.outbound_pallet_count) + '</strong></div>'
                 + '<div class="col-6 col-md-3"><span class="text-muted small">Closing:</span><br/><strong>' + formatNumber(group.closing_pallet_count) + '</strong></div>'
-                + '<div class="col-6 col-md-3"><span class="text-muted small">Location:</span><br/>' + escapeHtml(group.closing_location_summary || '-') + '</div>'
+//                + '<div class="col-6 col-md-3"><span class="text-muted small">Location:</span><br/>' + escapeHtml(group.closing_location_summary || '-') + '</div>'
                 + '</div>';
             if (outboundLines.length > 0) {
                 html += '<div id="' + detailId + '" class="collapse mt-2">'
@@ -385,7 +385,7 @@
             html += '</div></div>';
         });
         container.innerHTML = html;
-        // Bind toggle detail buttons
+        // 绑定切换详情按钮
         container.querySelectorAll('.ips-toggle-detail').forEach(function (btn) {
             btn.addEventListener('click', function () {
                 var targetId = this.getAttribute('data-target');
@@ -401,7 +401,7 @@
         });
     }
 
-    // ===== Pager =====
+    // ===== 页码 =====
     function renderPager(pager) {
         var container = document.getElementById('ips_pager');
         if (!container) return;
