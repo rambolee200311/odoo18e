@@ -96,7 +96,16 @@
                     </div>
                     <group col="2">
                         <group col="2" string="MAIN">
-                            <field name="project" readonly="state!='new'"/>
+                            <field name="project"
+                                   readonly="state != 'new'"
+                                   domain="[('allowed_user_ids', 'in', [uid])]"
+                                   options="{'no_create': True, 'no_open': True}"
+                                   groups="!wd_iffm.group_import_manager,!base.group_system"/>
+
+                            <field name="project"
+                                   readonly="state != 'new'"
+                                   options="{'no_create': True, 'no_open': True}"
+                                   groups="wd_iffm.group_import_manager,base.group_system"/>
                             <field name="bl_number" required="1" readonly="state!='new'"/>
                             <field name="hbl_number" readonly="state!='new'" invisible="1"/>
                             <field name="obl_number" readonly="state!='new'" invisible="1"/>
