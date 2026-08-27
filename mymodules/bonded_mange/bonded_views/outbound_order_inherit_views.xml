@@ -71,7 +71,6 @@
                        options="{'no_create': True, 'no_open': True}"
                        context="{
                        'outbound_show_unique_identifier_only': 1,
-                       'outbound_bonded_flag': parent.bonded_flag,
            'outbound_warehouse_id': parent.warehouse,
            'list_view_ref': 'bonded_mange.view_inbound_pallet_line_m2o_list_simple',}"
                        domain="[('product_id', '=', product_id),

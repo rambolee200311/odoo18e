@@ -353,10 +353,6 @@ class InboundOrderProductsOfPallet(models.Model):
             ("inbound_order_product_id.inbound_order_id.stock_picking_id.state", "=", "done"),
         ])
 
-        bonded_flag = self.env.context.get("outbound_bonded_flag")
-        if bonded_flag in ("true", "false"):
-            domain.append(("inbound_order_product_id.inbound_order_id.is_bonded", "=", bonded_flag == "true"))
-
         warehouse_id = self.env.context.get("outbound_warehouse_id")
         if warehouse_id:
             domain.append(("inbound_order_product_id.inbound_order_id.warehouse", "=", warehouse_id))
