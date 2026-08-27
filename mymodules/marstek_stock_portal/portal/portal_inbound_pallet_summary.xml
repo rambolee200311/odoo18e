@@ -23,7 +23,7 @@
                                 <div class="col-12 col-md-6 col-lg-3">
                                     <label for="ips_location_search" class="form-label">Location</label>
                                     <div class="position-relative" id="ips_location_wrapper">
-                                        <input type="text"
+                                        <input type="search"
                                                class="form-control"
                                                id="ips_location_search"
                                                name="location_search"
@@ -39,7 +39,7 @@
                                 <t t-if="show_sunrise_outbound_filters">
                                     <div class="col-12 col-md-6 col-lg-3">
                                         <label for="ips_cprojectid" class="form-label">Sunrise Ref</label>
-                                        <input type="text" class="form-control" id="ips_cprojectid" name="cprojectid" placeholder="Enter project ID"/>
+                                        <input type="search" class="form-control" id="ips_cprojectid" name="cprojectid" placeholder="Enter project ID"/>
                                     </div>
                                 </t>
                                 <div class="col-12 col-md-6 col-lg-3">
@@ -117,7 +117,7 @@
                                             <th class="text-nowrap text-end">Inbound</th>
                                             <th class="text-nowrap text-end">Outbound</th>
                                             <th class="text-nowrap text-end">Closing</th>
-                                            <th class="text-nowrap">Closing Location</th>
+<!--                                            <th class="text-nowrap">Closing Location</th>-->
                                             <th class="text-nowrap">Outbound Date</th>
                                             <th class="text-nowrap text-end">Pallet Count</th>
                                             <th class="text-nowrap text-end">Stock Days</th>

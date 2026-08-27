@@ -79,11 +79,15 @@
             hiddenInput.value = '';
             var query = this.value.trim();
             clearTimeout(locationTimer);
-            if (query.length < 1) { hideDropdown(); return; }
+            if (query.length < 1) { hiddenInput.value = ''; searchLocations(''); return; }
             locationTimer = setTimeout(function () { searchLocations(query); }, 300);
         });
         searchInput.addEventListener('focus', function () {
-            if (this.value.trim().length >= 1 && !hiddenInput.value) { searchLocations(this.value.trim()); }
+            var query = this.value.trim();
+            if (!hiddenInput.value) {
+                console.log('[IPS] calling searchLocations with:', query || '(empty)');
+                searchLocations(query);
+            }
         });
         document.addEventListener('click', function (e) {
             var wrapper = document.getElementById('ips_location_wrapper');
@@ -94,7 +98,7 @@
     function searchLocations(query) {
         var loading = document.getElementById('ips_location_loading');
         if (loading) loading.style.display = 'block';
-        var url = '/my/marstek/stock/location_options?q=' + encodeURIComponent(query);
+        var url = '/my/marstek/stock/location_options' + (query ? '?q=' + encodeURIComponent(query) : '');
         fetch(url, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
             .then(function (response) { return response.json(); })
             .then(function (locations) {
@@ -291,7 +295,7 @@
                     + '<td rowspan="' + rowSpan + '" class="text-end">' + formatNumber(group.inbound_pallet_count) + '</td>'
                     + '<td rowspan="' + rowSpan + '" class="text-end">' + formatNumber(group.outbound_pallet_count) + '</td>'
                     + '<td rowspan="' + rowSpan + '" class="text-end">' + formatNumber(group.closing_pallet_count) + '</td>'
-                    + '<td rowspan="' + rowSpan + '">' + escapeHtml(group.closing_location_summary) + '</td>'
+//                    + '<td rowspan="' + rowSpan + '">' + escapeHtml(group.closing_location_summary) + '</td>'
                     + '<td class="text-nowrap">' + escapeHtml(outboundLines[0].outbound_date) + '</td>'
                     + '<td class="text-end">' + formatNumber(outboundLines[0].pallet_count) + '</td>'
                     + '<td class="text-end">' + formatNumber(outboundLines[0].stock_days) + '</td>'
