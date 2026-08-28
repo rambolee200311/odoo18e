@@ -1,7 +1,8 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 
 import csv
 import io
+import zipfile
 
 from odoo import http
 from odoo.http import content_disposition, request
@@ -10,8 +11,8 @@ from werkzeug.exceptions import BadRequest, NotFound
 
 class MarstekPortalReport(http.Controller):
 
-    allowed_page_types = ("stock", "container_stock", "inbounds", "outbounds","outbound_sn")
-    allowed_export_formats = ("csv", "pdf")
+    allowed_page_types = ("stock", "container_stock", "inbounds", "outbounds", "outbound_sn", "outbound_all")
+    allowed_export_formats = ("csv", "pdf", "zip")
 
     filter_fields_by_page_type = {
         "stock": ("container_no", "bl_no", "product_code", "location_id", "date_from", "date_to", "stock_group_mode"),
@@ -36,6 +37,7 @@ class MarstekPortalReport(http.Controller):
             "outbound_date_to",
         ),
         "outbound_sn": ("outbound_id",),
+        "outbound_all": ("outbound_id",),
     }
 
     csv_headers_by_page_type = {
@@ -85,6 +87,29 @@ class MarstekPortalReport(http.Controller):
             rows = request.env["world.depot.outbound.order"].get_outbound_sn_export_rows(outbound_id)
             return self.outbound_sn_export_lines(rows)
         return []
+
+    def get_outbound_all_export_data(self, outbound_id):
+        """获取出库单的所有导出数据"""
+        order = request.env["world.depot.outbound.order"].sudo().browse(outbound_id)
+        if not order.exists():
+            return None
+        
+        # 获取SN明细数据
+        sn_rows = request.env["world.depot.outbound.order"].get_outbound_sn_export_rows(outbound_id)
+        sn_data = self.outbound_sn_export_lines(sn_rows)
+        
+        # 获取附件数据
+        attachments = request.env["ir.attachment"].sudo().search([
+            ("res_model", "=", "world.depot.outbound.order"),
+            ("res_id", "=", outbound_id),
+        ])
+        
+        return {
+            "order": order,
+            "sn_data": sn_data,
+            "sn_headers": self.csv_headers_by_page_type["outbound_sn"],
+            "attachments": attachments,
+        }
 
     def stock_export_lines(self, rows):
         export_rows = []
@@ -158,6 +183,7 @@ class MarstekPortalReport(http.Controller):
             row.get("sn_code", ""),
             row.get("quantity", 0),
         ] for row in rows]
+
     def make_csv_response(self, page_type, headers, rows):
         output = io.StringIO()
         writer = csv.writer(output)
@@ -189,6 +215,45 @@ class MarstekPortalReport(http.Controller):
             ],
         )
 
+    def make_zip_response(self, filters):
+        """生成包含多个文件的zip压缩包"""
+        outbound_id = int(filters.get("outbound_id") or 0)
+        data = self.get_outbound_all_export_data(outbound_id)
+        
+        if not data:
+            raise NotFound()
+        
+        order = data["order"]
+        outbound_no = order.billno or order.reference or "unknown"
+        
+        # 创建内存中的zip文件
+        zip_buffer = io.BytesIO()
+        
+        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+            # 1. 添加SN明细CSV
+            if data["sn_data"]:
+                sn_csv = io.StringIO()
+                writer = csv.writer(sn_csv)
+                writer.writerow(data["sn_headers"])
+                writer.writerows(data["sn_data"])
+                zip_file.writestr(f"{outbound_no}_SN_details.csv", sn_csv.getvalue().encode("utf-8-sig"))
+            
+            # 2. 添加附件文件
+            for attachment in data["attachments"]:
+                file_data = attachment.raw
+                if file_data:
+                    zip_file.writestr(attachment.name, file_data)
+        
+        zip_buffer.seek(0)
+        
+        return request.make_response(
+            zip_buffer.getvalue(),
+            headers=[
+                ("Content-Type", "application/zip"),
+                ("Content-Disposition", content_disposition(f"{outbound_no}_export.zip")),
+            ],
+        )
+
     @http.route("/my/marstek/export/<string:page_type>/<string:export_format>", type="http", auth="user", website=True)
     def marstek_export(self, page_type, export_format, **kw):
         if page_type not in self.allowed_page_types:
@@ -197,6 +262,11 @@ class MarstekPortalReport(http.Controller):
             raise BadRequest()
 
         filters = self.marstek_filter_values(kw, page_type)
+        
+        # 处理zip导出
+        if export_format == "zip" and page_type == "outbound_all":
+            return self.make_zip_response(filters)
+        
         rows = self.get_export_data(page_type, filters)
 
         if export_format == "csv":
