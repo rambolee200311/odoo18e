@@ -624,12 +624,12 @@ msgstr "提单号"
 #. odoo-python
 #: code:addons/wd_iffm/models/charge_pricing_models/waybill.py:0
 msgid "Bill of Lading must be unique per Waybill"
-msgstr "每票运单的提单号必须唯一"
+msgstr "每票提单的提单号必须唯一"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_world_depot_waybill__billno
 msgid "BillNo"
-msgstr "运单号"
+msgstr "WMS提单号"
 
 #. module: wd_iffm
 #: model:ir.actions.act_window,name:wd_iffm.action_operation_blocking_reason
@@ -2915,7 +2915,7 @@ msgstr "追踪货品中无提单编号"
 #. odoo-python
 #: code:addons/wd_iffm/models/charge_pricing_models/waybill.py:0
 msgid "No container found on this waybill."
-msgstr "此运单上未找到集装箱。"
+msgstr "此提单上未找到集装箱。"
 
 #. module: wd_iffm
 #. odoo-python
@@ -3116,7 +3116,7 @@ msgstr "仅预付款发票可以申请付款。"
 #. odoo-python
 #: code:addons/wd_iffm/models/charge_pricing_models/waybill.py:0
 msgid "Only arrived waybill can create pickup requirement."
-msgstr "仅已到港的运单可以创建提货需求单。"
+msgstr "仅已到港的提单可以创建提货需求单。"
 
 #. module: wd_iffm
 #. odoo-python
@@ -3134,19 +3134,19 @@ msgstr "仅‘清关中’状态的订单可以退回至已付款状态以进行
 #. odoo-python
 #: code:addons/wd_iffm/models/charge_pricing_models/waybill.py:0
 msgid "Only confirmed waybill can be done."
-msgstr "仅可录入已确认的运单。"
+msgstr "仅可录入已确认的提单。"
 
 #. module: wd_iffm
 #. odoo-python
 #: code:addons/wd_iffm/models/charge_pricing_models/waybill_views_inherit.py:0
 msgid "Only confirmed waybills can create clearance orders."
-msgstr "只有已确认的运单才可生成清关单据。"
+msgstr "只有已确认的提单才可生成清关单据。"
 
 #. module: wd_iffm
 #. odoo-python
 #: code:addons/wd_iffm/models/charge_pricing_models/waybill_views_inherit.py:0
 msgid "Only confirmed waybills can create handover orders."
-msgstr "仅已确认的运单才可创建换单。"
+msgstr "仅已确认的提单才可创建换单。"
 
 #. module: wd_iffm
 #. odoo-python
@@ -3224,7 +3224,7 @@ msgstr "仅供应商账单可以确认。"
 #: code:addons/wd_iffm/models/charge_pricing_models/waybill.py:0
 #: code:addons/wd_iffm/wizard/waybill_arrival_wizard.py:0
 msgid "Only waybills in confirm status can confirm cargo arrival"
-msgstr "仅确认状态的运单可以进行到货确认"
+msgstr "仅确认状态的提单可以进行到货确认"
 
 #. module: wd_iffm
 #: model:ir.model.fields.selection,name:wd_iffm.selection__operation_order_clearance__state__open
@@ -3312,7 +3312,7 @@ msgstr "其他文件"
 msgid ""
 "Other documents related to the waybill, such as invoices, packing lists, "
 "etc."
-msgstr "与运单相关的其他文件，如发票、装箱单等。"
+msgstr "与提单相关的其他文件，如发票、装箱单等。"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_import_pickup_requirement__warehouse_id
@@ -3632,7 +3632,7 @@ msgstr "请先将状态更改为确认"
 #: code:addons/wd_iffm/models/charge_pricing_models/waybill_views_inherit.py:0
 #: code:addons/wd_iffm/wizard/waybill_create_clearance_wizard.py:0
 msgid "Please change the waybill status to confirm first."
-msgstr "请先将运单状态更改为确认。"
+msgstr "请先将提单状态更改为确认。"
 
 #. module: wd_iffm
 #. odoo-python
@@ -3730,7 +3730,7 @@ msgstr "Portbase 访问状态"
 #: model:ir.ui.menu,name:wd_iffm.menu_portbase_waybill_import_wizard
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_portbase_waybill_import_wizard_form
 msgid "Portbase Waybill Import"
-msgstr "Portbase 运单订阅"
+msgstr "Portbase 提单订阅"
 
 #. module: wd_iffm
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_portbase_webhook_log_form
@@ -4141,7 +4141,7 @@ msgstr "场景详情"
 #. module: wd_iffm
 #: model:ir.model.fields.selection,name:wd_iffm.selection__operation_order_handover__bl_release_type__seawaybill
 msgid "Sea Waybill"
-msgstr "海运单"
+msgstr "海提单"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_world_depot_waybill_container__seal_number
@@ -4562,7 +4562,7 @@ msgstr ""
 #. odoo-python
 #: code:addons/wd_iffm/models/transportation_models/import_pickup_requirement.py:0
 msgid "The container must belong to the current waybill."
-msgstr "集装箱必须属于当前运单。"
+msgstr "集装箱必须属于当前提单。"
 
 #. module: wd_iffm
 #. odoo-python
@@ -4627,13 +4627,13 @@ msgstr "该甬道不支持创建子项。"
 msgid ""
 "This waybill has been done. Formal order replacement operations cannot be "
 "created."
-msgstr "此运单已确认，无法创建正式的订单替换操作。"
+msgstr "此提单已确认，无法创建正式的订单替换操作。"
 
 #. module: wd_iffm
 #. odoo-python
 #: code:addons/wd_iffm/models/handover_models/operation_order_handover.py:0
 msgid "This waybill is already used by another active handover order."
-msgstr "此运单已被另一张活跃的换单使用。"
+msgstr "此提单已被另一张活跃的换单使用。"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_clearance__amount_total_change
@@ -4989,12 +4989,12 @@ msgstr "仓储 - 存储"
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_waybill_container_form
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_world_depot_waybill_form
 msgid "Waybill"
-msgstr "运单"
+msgstr "提单"
 
 #. module: wd_iffm
 #: model:ir.model,name:wd_iffm.model_waybill_arrival_wizard
 msgid "Waybill Arrival Wizard"
-msgstr "运单到货向导"
+msgstr "提单到货向导"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_account_bank_statement_line__waybill_bill_number
@@ -5009,29 +5009,29 @@ msgstr "提单号"
 #: model:ir.model.fields,field_description:wd_iffm.field_world_depot_waybill_other_docs__waybill_id
 #: model:ir.model.fields,field_description:wd_iffm.field_world_depot_waybill_packing_list__waybill_id
 msgid "Waybill BillNo"
-msgstr "运单号"
+msgstr "WMS提单号"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_pickup_container_line__waybill_container_id
 msgid "Waybill Container"
-msgstr "运单集装箱"
+msgstr "提单集装箱"
 
 #. module: wd_iffm
 #: model:ir.actions.act_window,name:wd_iffm.action_waybill_container
 msgid "Waybill Containers"
-msgstr "运单集装箱"
+msgstr "提单集装箱"
 
 #. module: wd_iffm
 #: model:ir.model,name:wd_iffm.model_waybill_create_clearance_wizard
 msgid "Waybill Create Clearance Wizard"
-msgstr "运单创建清关向导"
+msgstr "提单创建清关向导"
 
 #. module: wd_iffm
 #. odoo-python
 #: code:addons/wd_iffm/models/clearance_models/operation_order_clearance.py:0
 #: code:addons/wd_iffm/models/handover_models/operation_order_handover.py:0
 msgid "Waybill ETA and Terminal of Arrival is required before Released."
-msgstr "在放行前，必须提供运单预计到港时间和目的港码头。"
+msgstr "在放行前，必须提供提单预计到港时间和目的港码头。"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_workbench_card__waybill_state
@@ -5055,7 +5055,7 @@ msgstr "提单未找到"
 #: model:ir.actions.act_window,name:wd_iffm.action_world_depot_waybill
 #: model:ir.ui.menu,name:wd_iffm.waybill_menu
 msgid "Waybills"
-msgstr "运单"
+msgstr "提单"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation__website_message_ids
