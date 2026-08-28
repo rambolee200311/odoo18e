@@ -3,7 +3,7 @@
     <!-- Shell page route template -->
     <template id="portal_marstek_inbound_pallet_summary_page" name="Inbound Pallet Summary">
         <t t-call="portal.portal_layout">
-            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/marstek', 'name': 'Marstek Stock'}, {'url': None, 'name': 'Inbound Pallet Summary'}]"/>
+            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/marstek', 'name': 'WMS Stock'}, {'url': None, 'name': 'Inbound Pallet Summary'}]"/>
             <t t-call="marstek_stock_portal.portal_breadcrumbs_slash"/>
 
             <div class="o_portal_content">
@@ -113,7 +113,7 @@
                                     <thead class="table-light">
                                         <tr>
                                             <th class="text-nowrap">Inbound Order</th>
-                                            <th class="text-nowrap">Project IDs</th>
+                                            <th class="text-nowrap">Sunrise Ref</th>
                                             <th class="text-nowrap text-end">Opening</th>
                                             <th class="text-nowrap text-end">Inbound</th>
                                             <th class="text-nowrap text-end">Outbound</th>

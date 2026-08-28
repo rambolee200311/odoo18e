@@ -5,7 +5,7 @@
     <!-- =========================================== -->
     <template id="portal_marstek_inbounds" name="Inbound Orders">
             <t t-call="portal.portal_layout">
-            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/marstek', 'name': 'Marstek Stock'}, {'url': None, 'name': 'Inbound Orders'}]"/>
+            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/marstek', 'name': 'WMS Stock'}, {'url': None, 'name': 'Inbound Orders'}]"/>
             <t t-call="marstek_stock_portal.portal_breadcrumbs_slash"/>
 
             <div class="o_portal_content">
@@ -240,7 +240,7 @@
     <!-- =========================================== -->
     <template id="portal_marstek_inbound_detail" name="Inbound Detail">
             <t t-call="portal.portal_layout">
-            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/marstek', 'name': 'Marstek Stock'}, {'url': '/my/marstek/inbounds', 'name': 'Inbound Orders'}, {'url': None, 'name': 'Inbound Detail'}]"/>
+            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/marstek', 'name': 'WMS Stock'}, {'url': '/my/marstek/inbounds', 'name': 'Inbound Orders'}, {'url': None, 'name': 'Inbound Detail'}]"/>
             <t t-call="marstek_stock_portal.portal_breadcrumbs_slash"/>
 
             <div class="o_portal_content">

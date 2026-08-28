@@ -23,7 +23,7 @@
     <!-- =========================================== -->
     <template id="portal_marstek_home" name="Marstek Stock Portal">
         <t t-call="portal.portal_layout">
-            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': None, 'name': 'Marstek Stock'}]"/>
+            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': None, 'name': 'WMS Stock'}]"/>
             <t t-call="marstek_stock_portal.portal_breadcrumbs_slash"/>
 
             <div class="o_portal_content">
