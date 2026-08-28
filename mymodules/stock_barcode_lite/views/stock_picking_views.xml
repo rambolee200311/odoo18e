@@ -72,4 +72,18 @@
             </search>
         </field>
     </record>
+
+    <record id="view_stock_lot_form_inherit_sunrise_specification" model="ir.ui.view">
+        <field name="name">stock.lot.form.inherit.sunrise.specification</field>
+        <field name="model">stock.lot</field>
+        <field name="inherit_id" ref="stock.view_production_lot_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/group[@name='main_group']" position="inside">
+                <group col="2">
+                    <field name="gross_weight"/>
+                    <field name="product_dimensions"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
 </odoo>
