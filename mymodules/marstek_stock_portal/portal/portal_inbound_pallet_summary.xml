@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- Shell page route template -->
     <template id="portal_marstek_inbound_pallet_summary_page" name="Inbound Pallet Summary">
@@ -109,7 +109,7 @@
                                     Loading...
                                 </div>
                                 <!-- 表格视图 -->
-                                <table id="ips_table" class="table table-hover mb-0">
+                                <table id="ips_table" class="table table-hover table-striped mb-0">
                                     <thead class="table-light">
                                         <tr>
                                             <th class="text-nowrap">Inbound Order</th>

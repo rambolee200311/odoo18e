@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Marstek Stock Portal - Portal Styles
  *
  * This file contains scoped styles for the Marstek Portal.
@@ -283,4 +283,13 @@
     z-index: 1050;
     max-height: 360px;
     overflow-y: auto;
+}
+
+/* 入库托盘汇总 - 斑马纹 */
+#ips_table > tbody > tr:nth-of-type(odd) > td:not([rowspan]) {
+    background-color: #f2f4f8 !important;
+}
+
+#ips_cards .table > tbody > tr:nth-of-type(odd) > td {
+    background-color: #f2f4f8 !important;
 }

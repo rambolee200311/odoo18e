@@ -322,9 +322,9 @@
                     + '<td class="text-end">' + formatNumber(group.outbound_pallet_count) + '</td>'
                     + '<td class="text-end">' + formatNumber(group.closing_pallet_count) + '</td>'
 //                    + '<td>' + escapeHtml(group.closing_location_summary) + '</td>'
-                    + '<td>-</td>'
-                    + '<td class="text-end">-</td>'
-                    + '<td class="text-end">-</td>'
+                    + '<td class="text-center">-</td>'
+                    + '<td class="text-center">-</td>'
+                    + '<td class="text-center">-</td>'
                     + '<td class="text-end">-</td>'
                     + '<td class="text-end">-</td>'
                     + '</tr>';
@@ -382,11 +382,13 @@
                 html += '<div id="' + detailId + '" class="collapse mt-2">'
                     + '<table class="table table-sm table-bordered mb-0">'
                     + '<thead class="table-light"><tr>'
-                    + '<th>Outbound Date</th><th class="text-end">Pallet Count</th><th class="text-end">Stock Days</th>'
+                    + '<th>Outbound Date</th><th>Sunrise Ref</th><th>Batch No</th><th class="text-end">Pallet Count</th><th class="text-end">Stock Days</th>'
                     + '</tr></thead><tbody>';
                 outboundLines.forEach(function (line) {
                     html += '<tr>'
                         + '<td>' + escapeHtml(line.outbound_date) + '</td>'
+                        + '<td>' + escapeHtml(line.cproject_ids) + '</td>'
+                        + '<td>' + escapeHtml(line.batch_names) + '</td>'
                         + '<td class="text-end">' + formatNumber(line.pallet_count) + '</td>'
                         + '<td class="text-end">' + formatNumber(line.stock_days) + '</td>'
                         + '</tr>';
