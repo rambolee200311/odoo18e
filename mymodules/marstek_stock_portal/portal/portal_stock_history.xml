@@ -2,7 +2,8 @@
 <odoo>
     <template id="portal_marstek_stock_history" name="Stock History">
         <t t-call="portal.portal_layout">
-            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/marstek', 'name': 'Marstek Stock'}, {'url': None, 'name': 'Stock History'}]"/>
+            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/marstek', 'name': 'WMS Stock'}, {'url': None, 'name': 'Stock History'}]"/>
+            <t t-call="marstek_stock_portal.portal_breadcrumbs_slash"/>
 
             <div class="o_portal_content">
                 <div class="card mb-4" id="stock_history_filter_card">

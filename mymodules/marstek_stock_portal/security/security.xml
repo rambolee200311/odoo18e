@@ -1,9 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
+        <delete id="access_marstek_inbound_order_portal" model="ir.model.access"/>
+        <delete id="access_marstek_inbound_order_product_portal" model="ir.model.access"/>
+        <delete id="access_marstek_inbound_order_products_pallet_portal" model="ir.model.access"/>
+        <delete id="access_marstek_inbound_order_docs_portal" model="ir.model.access"/>
+        <delete id="access_marstek_ir_attachment_portal" model="ir.model.access"/>
+        <delete id="rule_marstek_inbound_order_portal" model="ir.rule"/>
+        <delete id="rule_marstek_inbound_order_product_portal" model="ir.rule"/>
+        <delete id="rule_marstek_inbound_order_products_pallet_portal" model="ir.rule"/>
+        <delete id="rule_marstek_inbound_order_docs_portal" model="ir.rule"/>
         <function model="ir.model.data" name="write">
             <function model="ir.model.data" name="search">
-                <value eval="[('module', '=', 'marstek_stock_portal'), ('name', 'in', ['rule_marstek_stock_quant_portal', 'rule_marstek_stock_move_line_portal', 'rule_marstek_stock_quant_package_portal', 'rule_marstek_inbound_order_portal', 'rule_marstek_inbound_order_product_portal', 'rule_marstek_inbound_order_products_pallet_portal', 'rule_marstek_inbound_order_docs_portal', 'rule_marstek_outbound_order_portal', 'rule_marstek_outbound_order_product_portal', 'rule_marstek_outbound_order_docs_portal', 'rule_marstek_outbound_order_sn_detail_portal', 'rule_marstek_ir_attachment_portal'])]"/>
+                <value eval="[('module', '=', 'marstek_stock_portal'), ('name', 'in', ['rule_marstek_stock_quant_portal', 'rule_marstek_stock_move_line_portal', 'rule_marstek_stock_quant_package_portal', 'rule_marstek_outbound_order_portal', 'rule_marstek_outbound_order_product_portal', 'rule_marstek_outbound_order_docs_portal', 'rule_marstek_outbound_order_sn_detail_portal', 'rule_marstek_ir_attachment_portal'])]"/>
             </function>
             <value eval="{'noupdate': False}"/>
         </function>
@@ -34,50 +43,6 @@
             <field name="name">Marstek Portal Stock Package Project</field>
             <field name="model_id" ref="stock.model_stock_quant_package"/>
             <field name="domain_force">[('id', 'in', user.env['stock.move.line'].sudo().search([('state', '=', 'done'), ('picking_id.picking_type_id.code', '=', 'incoming'), ('picking_id.inbound_order_id.project', 'in', user.stock_operation_project_line_ids.ids), ('result_package_id', '!=', False)]).mapped('result_package_id').ids)]</field>
-            <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
-            <field name="perm_read" eval="True"/>
-            <field name="perm_write" eval="False"/>
-            <field name="perm_create" eval="False"/>
-            <field name="perm_unlink" eval="False"/>
-        </record>
-
-        <record id="rule_marstek_inbound_order_portal" model="ir.rule">
-            <field name="name">Marstek Portal Inbound Project</field>
-            <field name="model_id" ref="worlddepot.model_world_depot_inbound_order"/>
-            <field name="domain_force">[('project', 'in', user.stock_operation_project_line_ids.ids)]</field>
-            <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
-            <field name="perm_read" eval="True"/>
-            <field name="perm_write" eval="False"/>
-            <field name="perm_create" eval="False"/>
-            <field name="perm_unlink" eval="False"/>
-        </record>
-
-        <record id="rule_marstek_inbound_order_product_portal" model="ir.rule">
-            <field name="name">Marstek Portal Inbound Product Project</field>
-            <field name="model_id" ref="worlddepot.model_world_depot_inbound_order_product"/>
-            <field name="domain_force">[('inbound_order_id.project', 'in', user.stock_operation_project_line_ids.ids)]</field>
-            <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
-            <field name="perm_read" eval="True"/>
-            <field name="perm_write" eval="False"/>
-            <field name="perm_create" eval="False"/>
-            <field name="perm_unlink" eval="False"/>
-        </record>
-
-        <record id="rule_marstek_inbound_order_products_pallet_portal" model="ir.rule">
-            <field name="name">Marstek Portal Inbound Pallet Product Project</field>
-            <field name="model_id" ref="worlddepot.model_world_depot_inbound_order_products_pallet"/>
-            <field name="domain_force">[('inbound_order_product_id.inbound_order_id.project', 'in', user.stock_operation_project_line_ids.ids)]</field>
-            <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
-            <field name="perm_read" eval="True"/>
-            <field name="perm_write" eval="False"/>
-            <field name="perm_create" eval="False"/>
-            <field name="perm_unlink" eval="False"/>
-        </record>
-
-        <record id="rule_marstek_inbound_order_docs_portal" model="ir.rule">
-            <field name="name">Marstek Portal Inbound Docs Project</field>
-            <field name="model_id" ref="worlddepot.model_world_depot_inbound_order_docs"/>
-            <field name="domain_force">[('inbound_order_id.project', 'in', user.stock_operation_project_line_ids.ids)]</field>
             <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
             <field name="perm_read" eval="True"/>
             <field name="perm_write" eval="False"/>
@@ -130,13 +95,10 @@
         </record>
 
         <record id="rule_marstek_ir_attachment_portal" model="ir.rule">
-            <field name="name">Marstek Portal Attachment Read Only</field>
+            <field name="name">Marstek Portal Outbound Attachment</field>
             <field name="model_id" ref="base.model_ir_attachment"/>
-            <field name="domain_force">[
-                '|', '|', '|',
-                '&amp;', ('res_model', '=', 'world.depot.inbound.order'), ('res_id', 'in', user.env['world.depot.inbound.order'].sudo().search([('project', 'in', user.stock_operation_project_line_ids.ids)]).ids),
+            <field name="domain_force">['|',
                 '&amp;', ('res_model', '=', 'world.depot.outbound.order'), ('res_id', 'in', user.env['world.depot.outbound.order'].sudo().search([('project', 'in', user.stock_operation_project_line_ids.ids)]).ids),
-                '&amp;', ('res_model', '=', 'world.depot.inbound.order.docs'), ('res_id', 'in', user.env['world.depot.inbound.order.docs'].sudo().search([('inbound_order_id.project', 'in', user.stock_operation_project_line_ids.ids)]).ids),
                 '&amp;', ('res_model', '=', 'world.depot.outbound.order.docs'), ('res_id', 'in', user.env['world.depot.outbound.order.docs'].sudo().search([('outbound_order_id.project', 'in', user.stock_operation_project_line_ids.ids)]).ids)
             ]</field>
             <field name="groups" eval="[(4, ref('base.group_portal'))]"/>

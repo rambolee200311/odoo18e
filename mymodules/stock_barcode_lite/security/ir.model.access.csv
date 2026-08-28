@@ -19,3 +19,5 @@ access_sunrise_inbound_pallet_summary_outbound_line,sunrise.inbound.pallet.summa
 #access_sunrise_location_occupancy_report,sunrise.location.occupancy.report,model_sunrise_location_occupancy_report,,1,1,1,1
 #access_sunrise_location_occupancy_report_line,sunrise.location.occupancy.report.line,model_sunrise_location_occupancy_report_line,,1,1,1,1
 access_stock_picking_package_scan,stock.picking.package.scan,model_stock_picking_package_scan,,1,1,1,1
+access_sunrise_product_specification_import,sunrise.product.specification.import,model_sunrise_product_specification_import,,1,1,1,1
+access_sunrise_product_specification_import_line,sunrise.product.specification.import.line,model_sunrise_product_specification_import_line,,1,1,1,1

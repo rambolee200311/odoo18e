@@ -1,9 +1,10 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- Shell page route template -->
     <template id="portal_marstek_inbound_pallet_summary_page" name="Inbound Pallet Summary">
         <t t-call="portal.portal_layout">
-            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/marstek', 'name': 'Marstek Stock'}, {'url': None, 'name': 'Inbound Pallet Summary'}]"/>
+            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/marstek', 'name': 'WMS Stock'}, {'url': None, 'name': 'Inbound Pallet Summary'}]"/>
+            <t t-call="marstek_stock_portal.portal_breadcrumbs_slash"/>
 
             <div class="o_portal_content">
                 <!-- 筛选表单 -->
@@ -30,7 +31,7 @@
                                                placeholder="Search location"
                                                autocomplete="off"/>
                                         <input type="hidden" id="ips_location_id" name="location_id"/>
-                                        <div id="ips_location_dropdown" class="dropdown-menu" style="display:none; max-height:200px; overflow:auto;"></div>
+                                        <div id="ips_location_dropdown" class="dropdown-menu" style="display:none; max-height:360px; overflow:auto; z-index:1050;"></div>
                                         <div id="ips_location_loading" class="position-absolute top-50 end-0 translate-middle-y me-2" style="display:none;">
                                             <i class="fa fa-spinner fa-spin text-muted"></i>
                                         </div>
@@ -39,7 +40,7 @@
                                 <t t-if="show_sunrise_outbound_filters">
                                     <div class="col-12 col-md-6 col-lg-3">
                                         <label for="ips_cprojectid" class="form-label">Sunrise Ref</label>
-                                        <input type="search" class="form-control" id="ips_cprojectid" name="cprojectid" placeholder="Enter project ID"/>
+                                        <input type="search" class="form-control" id="ips_cprojectid" name="cprojectid" placeholder="Enter Sunrise Ref"/>
                                     </div>
                                 </t>
                                 <div class="col-12 col-md-6 col-lg-3">
@@ -108,17 +109,19 @@
                                     Loading...
                                 </div>
                                 <!-- 表格视图 -->
-                                <table id="ips_table" class="table table-hover mb-0">
+                                <table id="ips_table" class="table table-hover table-striped mb-0">
                                     <thead class="table-light">
                                         <tr>
                                             <th class="text-nowrap">Inbound Order</th>
-                                            <th class="text-nowrap">Project IDs</th>
+                                            <th class="text-nowrap">Sunrise Ref</th>
                                             <th class="text-nowrap text-end">Opening</th>
                                             <th class="text-nowrap text-end">Inbound</th>
                                             <th class="text-nowrap text-end">Outbound</th>
                                             <th class="text-nowrap text-end">Closing</th>
 <!--                                            <th class="text-nowrap">Closing Location</th>-->
                                             <th class="text-nowrap">Outbound Date</th>
+                                            <th class="text-nowrap">Sunrise Ref</th>
+                                            <th class="text-nowrap">Batch No</th>
                                             <th class="text-nowrap text-end">Pallet Count</th>
                                             <th class="text-nowrap text-end">Stock Days</th>
                                         </tr>

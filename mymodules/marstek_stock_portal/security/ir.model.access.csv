@@ -2,12 +2,7 @@ id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_marstek_stock_quant_package_portal,marstek.stock.quant.package.portal,stock.model_stock_quant_package,base.group_portal,1,0,0,0
 access_marstek_stock_quant_portal,marstek.stock.quant.portal,stock.model_stock_quant,base.group_portal,1,0,0,0
 access_marstek_stock_move_line_portal,marstek.stock.move.line.portal,stock.model_stock_move_line,base.group_portal,1,0,0,0
-access_marstek_inbound_order_portal,marstek.inbound.order.portal,worlddepot.model_world_depot_inbound_order,base.group_portal,1,0,0,0
-access_marstek_inbound_order_product_portal,marstek.inbound.order.product.portal,worlddepot.model_world_depot_inbound_order_product,base.group_portal,1,0,0,0
-access_marstek_inbound_order_products_pallet_portal,marstek.inbound.order.products.pallet.portal,worlddepot.model_world_depot_inbound_order_products_pallet,base.group_portal,1,0,0,0
-access_marstek_inbound_order_docs_portal,marstek.inbound.order.docs.portal,worlddepot.model_world_depot_inbound_order_docs,base.group_portal,1,0,0,0
 access_marstek_outbound_order_portal,marstek.outbound.order.portal,worlddepot.model_world_depot_outbound_order,base.group_portal,1,0,0,0
 access_marstek_outbound_order_product_portal,marstek.outbound.order.product.portal,worlddepot.model_world_depot_outbound_order_product,base.group_portal,1,0,0,0
 access_marstek_outbound_order_docs_portal,marstek.outbound.order.docs.portal,worlddepot.model_world_depot_outbound_order_docs,base.group_portal,1,0,0,0
 access_marstek_outbound_order_sn_detail_portal,marstek.outbound.order.sn.detail.portal,worlddepot.model_world_depot_outbound_order_sn_detail,base.group_portal,1,0,0,0
-access_marstek_ir_attachment_portal,marstek.ir.attachment.portal,base.model_ir_attachment,base.group_portal,1,0,0,0
