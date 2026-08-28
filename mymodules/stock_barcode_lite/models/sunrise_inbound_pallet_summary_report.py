@@ -117,7 +117,7 @@ class SunriseInboundPalletSummaryReport(models.Model):
             headers = ["First Inbound Date", "Inbound", "Sunrise Ref", "Opening Pallets"]
             for outbound_index in range(max_outbound_count):
                 outbound_number = outbound_index + 1
-                headers.extend(["Outbound %s - Outbound Date" % outbound_number, "Outbound %s - Pallet Count" % outbound_number, "Outbound %s - Stock Days" % outbound_number])
+                headers.extend(["Outbound %s - Outbound Date" % outbound_number, "Outbound %s - Sunrise Ref" % outbound_number, "Outbound %s - Batch No" % outbound_number, "Outbound %s - Pallet Count" % outbound_number, "Outbound %s - Stock Days" % outbound_number])
             headers.extend(["Closing Pallets", "Remaining Period Age Days", "Remaining Total Age Days"])
             rows = []
             for line in report_lines:
@@ -128,6 +128,8 @@ class SunriseInboundPalletSummaryReport(models.Model):
                     outbound_line = outbound_lines[outbound_index] if outbound_index < len(outbound_lines) else False
                     values.extend([
                         fields.Date.to_string(outbound_line.outbound_date) if outbound_line else None,
+                        outbound_line.cproject_ids if outbound_line else None,
+                        outbound_line.batch_names if outbound_line else None,
                         outbound_line.pallet_count if outbound_line else None,
                         outbound_line.stock_days if outbound_line else None,
                     ])
