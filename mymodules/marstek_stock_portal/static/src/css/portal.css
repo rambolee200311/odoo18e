@@ -222,3 +222,65 @@
 /* ============================================================
    Responsive Adjustments
    ============================================================ */
+
+/* ============================================================
+   Unified Breadcrumb Styles with Slash Separator
+   ============================================================ */
+
+.o_portal_breadcrumbs .breadcrumb {
+    background-color: transparent;
+    padding: 0;
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.o_portal_breadcrumbs .breadcrumb-item + .breadcrumb-item::before {
+    content: "/";
+    padding: 0 0.5rem;
+    color: #6c757d;
+}
+
+.o_portal_breadcrumbs .breadcrumb-item a {
+    color: #0d6efd;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.o_portal_breadcrumbs .breadcrumb-item a:hover {
+    color: #0a58ca;
+    text-decoration: underline;
+}
+
+.o_portal_breadcrumbs .breadcrumb-item.active {
+    color: #495057;
+    font-weight: 500;
+}
+
+/* Responsive breadcrumb adjustments */
+@media (max-width: 768px) {
+    .o_portal_breadcrumbs .breadcrumb {
+        font-size: 0.85rem;
+    }
+    
+    .o_portal_breadcrumbs .breadcrumb-item + .breadcrumb-item::before {
+        padding: 0 0.3rem;
+    }
+}
+
+/* ============================================================
+   Location Dropdown Fix - 防止父容器裁剪下拉框
+   ============================================================ */
+#ips_filter_card,
+#ips_filter_collapse {
+    overflow: visible !important;
+}
+
+#ips_location_wrapper .dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 1050;
+    max-height: 360px;
+    overflow-y: auto;
+}
