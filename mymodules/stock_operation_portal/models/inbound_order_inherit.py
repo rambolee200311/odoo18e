@@ -193,3 +193,10 @@ class InboundOrder(models.Model):
             return self.env["world.depot.inbound.order"].sudo()
         domain = [("id", "=", inbound_id)] + portal_project_domain(self.env, "project")
         return self.env["world.depot.inbound.order"].sudo().search(domain, limit=1)
+
+
+class InboundOrderProductsPallet(models.Model):
+    _inherit = "world.depot.inbound.order.products.pallet"
+
+    stock_operation_gross_weight = fields.Float(string="Gross Weight (kg)", copy=False)
+    stock_operation_net_weight = fields.Float(string="Net Weight (kg)", copy=False)

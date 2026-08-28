@@ -6,6 +6,7 @@ from . import outbound_order_inherit
 from . import outbound_order_sunrise_status
 from . import sunrise_api
 from . import sunrise_product_master_import
+from . import sunrise_product_batch_specification_import
 from . import sunrise_order_import
 from . import sunrise_stock_report
 from . import sunrise_inbound_pallet_summary_report

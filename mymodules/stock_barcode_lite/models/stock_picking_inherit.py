@@ -144,3 +144,10 @@ class StockPicking(models.Model):
                     _("Please complete outbound scanning before validating. Missing lines: %s")
                     % "; ".join(missing_messages)
                 )
+
+
+class StockLotInherit(models.Model):
+    _inherit = "stock.lot"
+
+    gross_weight = fields.Float(string="Gross Weight (kg)", copy=False)
+    product_dimensions = fields.Char(string="Product Dimensions (m)", copy=False)
