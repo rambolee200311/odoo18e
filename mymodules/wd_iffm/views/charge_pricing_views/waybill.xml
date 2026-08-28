@@ -209,11 +209,11 @@
         <field name="model">world.depot.waybill</field>
         <field name="arch" type="xml">
             <search>
-                <field name="search_bl_hbl"
-                       string="MBL / HBL No"
-                       filter_domain="['|', ('bl_number', 'ilike', self), ('hbl_number', 'ilike', self)]"/>
-                <field name="billno"/>
+<!--                <field name="search_bl_hbl"-->
+<!--                       string="MBL / HBL No"-->
+<!--                       filter_domain="['|', ('bl_number', 'ilike', self), ('hbl_number', 'ilike', self)]"/>-->
                 <field name="bl_number"/>
+                <field name="billno"/>
                 <field name="eta"/>
                 <field name="document_number"/>
                 <field name="reference_number"/>
