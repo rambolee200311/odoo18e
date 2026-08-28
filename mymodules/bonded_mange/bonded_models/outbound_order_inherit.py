@@ -410,7 +410,6 @@ class OutboundOrderProduct(models.Model):
                 pallet_map = order.action_get_inbound_pallet_map_by_product_unique(
                     [product_id],
                     unique_list=[unique_text],
-                    bonded_value=order.get_is_bonded_outbound_order(),
                 )
                 pallet = pallet_map.get((product_id, unique_text))
                 if not pallet:

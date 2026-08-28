@@ -175,9 +175,6 @@ class OutboundOrderBondedUniqueRule(models.Model):
                 unique_set.add(uid)
                 if line.inbound_pallet_id and line.inbound_pallet_id.product_id != line.product_id:
                     raise ValidationError(_("Product [%s] does not match selected Inbound Pallet Line.") % line.product_id.display_name)
-                inbound = line.inbound_pallet_id.inbound_order_product_id.inbound_order_id if line.inbound_pallet_id else False
-                if inbound and bool(inbound.is_bonded) != bool(is_bonded):
-                    raise ValidationError(_("Unique Identifier [%s] does not match current bonded policy.") % uid)
                 key = (line.product_id.id, uid)
                 demand_map[key] = demand_map.get(key, 0.0) + (line.quantity or 0.0)
 
