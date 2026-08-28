@@ -266,3 +266,21 @@
         padding: 0 0.3rem;
     }
 }
+
+/* ============================================================
+   Location Dropdown Fix - 防止父容器裁剪下拉框
+   ============================================================ */
+#ips_filter_card,
+#ips_filter_collapse {
+    overflow: visible !important;
+}
+
+#ips_location_wrapper .dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 1050;
+    max-height: 360px;
+    overflow-y: auto;
+}

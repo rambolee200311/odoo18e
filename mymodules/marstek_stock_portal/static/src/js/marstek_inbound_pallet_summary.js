@@ -297,6 +297,8 @@
                     + '<td rowspan="' + rowSpan + '" class="text-end">' + formatNumber(group.closing_pallet_count) + '</td>'
 //                    + '<td rowspan="' + rowSpan + '">' + escapeHtml(group.closing_location_summary) + '</td>'
                     + '<td class="text-nowrap">' + escapeHtml(outboundLines[0].outbound_date) + '</td>'
+                    + '<td>' + escapeHtml(outboundLines[0].cproject_ids) + '</td>'
+                    + '<td>' + escapeHtml(outboundLines[0].batch_names) + '</td>'
                     + '<td class="text-end">' + formatNumber(outboundLines[0].pallet_count) + '</td>'
                     + '<td class="text-end">' + formatNumber(outboundLines[0].stock_days) + '</td>'
                     + '</tr>';
@@ -304,6 +306,8 @@
                 for (var i = 1; i < outboundLines.length; i++) {
                     html += '<tr>'
                         + '<td class="text-nowrap">' + escapeHtml(outboundLines[i].outbound_date) + '</td>'
+                        + '<td>' + escapeHtml(outboundLines[i].cproject_ids) + '</td>'
+                        + '<td>' + escapeHtml(outboundLines[i].batch_names) + '</td>'
                         + '<td class="text-end">' + formatNumber(outboundLines[i].pallet_count) + '</td>'
                         + '<td class="text-end">' + formatNumber(outboundLines[i].stock_days) + '</td>'
                         + '</tr>';
@@ -321,6 +325,8 @@
                     + '<td>-</td>'
                     + '<td class="text-end">-</td>'
                     + '<td class="text-end">-</td>'
+                    + '<td class="text-end">-</td>'
+                    + '<td class="text-end">-</td>'
                     + '</tr>';
             }
         });
@@ -332,6 +338,7 @@
             + '<td class="text-end">' + formatNumber(totalInbound) + '</td>'
             + '<td class="text-end">' + formatNumber(totalOutbound) + '</td>'
             + '<td class="text-end">' + formatNumber(totalClosing) + '</td>'
+            + '<td></td>'
             + '<td></td>'
             + '<td></td>'
             + '<td></td>'
