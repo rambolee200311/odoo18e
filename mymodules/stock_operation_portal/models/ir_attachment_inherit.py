@@ -16,11 +16,11 @@ class IrAttachment(models.Model):
             if access_token or not self.env.user._is_portal():
                 raise
             self.ensure_one()
-            if self.marstek_can_portal_read():
+            if self.stock_operation_can_portal_read():
                 return self.sudo()
             raise
 
-    def marstek_can_portal_read(self):
+    def stock_operation_can_portal_read(self):
         attachment = self.sudo()
         model_project_fields = {
             "world.depot.inbound.order": "project",
