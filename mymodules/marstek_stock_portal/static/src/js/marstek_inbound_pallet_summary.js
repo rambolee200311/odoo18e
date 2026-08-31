@@ -371,7 +371,7 @@
             }
             html += '</div>'
                 + '<div class="row g-2 mb-2">'
-                + '<div class="col-6 col-md-3"><span class="text-muted small">Project IDs:</span><br/>' + escapeHtml(group.cproject_ids || '-') + '</div>'
+                + '<div class="col-6 col-md-3"><span class="text-muted small">Sunrise Ref:</span><br/>' + escapeHtml(group.cproject_ids || '-') + '</div>'
                 + '<div class="col-6 col-md-3"><span class="text-muted small">Opening:</span><br/><strong>' + formatNumber(group.opening_pallet_count) + '</strong></div>'
                 + '<div class="col-6 col-md-3"><span class="text-muted small">Inbound:</span><br/><strong>' + formatNumber(group.inbound_pallet_count) + '</strong></div>'
                 + '<div class="col-6 col-md-3"><span class="text-muted small">Outbound:</span><br/><strong>' + formatNumber(group.outbound_pallet_count) + '</strong></div>'

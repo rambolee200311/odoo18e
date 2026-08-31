@@ -14,7 +14,7 @@
         </record>
 
         <record id="action_report_marstek_stock_export_pdf" model="ir.actions.report">
-            <field name="name">Marstek Stock Export PDF</field>
+            <field name="name">WMS Stock Export PDF</field>
             <field name="model">res.users</field>
             <field name="report_type">qweb-pdf</field>
             <field name="report_name">marstek_stock_portal.report_marstek_stock_export_pdf</field>
