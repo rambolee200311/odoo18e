@@ -90,6 +90,7 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
 
                 country = self.get_country(data)
                 partner = self.get_partner(data, country)
+                consignee = self.get_consignee_partner(data, partner)
                 order_vals = {
                     "type": order_type,
                     "date": self.get_date_value(data, "date", required=True),
@@ -109,6 +110,7 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
                     "delivery_method": delivery_method,
                     "load_ref": self.get_optional_text(data, "load_ref"),
                     "unload_company": partner.id,
+                    "consignee_id": consignee.id,
                     "delivery_street": self.get_required_text(data, "street"),
                     "delivery_zip": self.get_optional_text(data, "zip"),
                     "delivery_city": self.get_optional_text(data, "city"),
@@ -338,6 +340,25 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
             "zip": self.get_optional_text(data, "zip"),
             "city": self.get_optional_text(data, "city"),
             "country_id": country.id if country else False,
+            "phone": self.get_required_text(data, "phone"),
+            "mobile": self.get_optional_text(data, "mobile"),
+        })
+
+    def get_consignee_partner(self, data, company_partner):
+        consignee_name = self.get_required_text(data, "consignee_name")
+        partner_model = request.env["res.partner"]
+        partner = partner_model.sudo().search([("name", "=", consignee_name), ("parent_id", "=", company_partner.id)],
+                                              limit=1)
+        if partner:
+            return partner
+        return partner_model.create({
+            "name": consignee_name,
+            "parent_id": company_partner.id,
+            "type": "delivery",
+            "street": self.get_required_text(data, "street"),
+            "zip": self.get_optional_text(data, "zip"),
+            "city": self.get_optional_text(data, "city"),
+            "country_id": company_partner.country_id.id,
             "phone": self.get_required_text(data, "phone"),
             "mobile": self.get_optional_text(data, "mobile"),
         })

@@ -28,6 +28,7 @@ class OutboundOrderInherit(models.Model):
     organic = fields.Boolean(string="Organic", compute="_compute_organic", store=True, copy=False, index=True)
     new_pallet_count_total = fields.Integer(string="New Pallet Count Total", compute="_compute_new_pallet_count_total",
                                             store=True, readonly=True, copy=False)
+    consignee_id = fields.Many2one("res.partner", string="Consignee", copy=False, index=True)
 
     @api.depends(
         "outgoing_picking_lines",
@@ -85,6 +86,8 @@ class OutboundOrderInherit(models.Model):
                 missing_fields.append(rec._fields["load_ref"].string)
             if not rec.unload_company:
                 missing_fields.append(rec._fields["unload_company"].string)
+            if not rec.consignee_id:
+                missing_fields.append(rec._fields["consignee_id"].string)
             if not rec.delivery_street:
                 missing_fields.append(rec._fields["delivery_street"].string)
             if not rec.delivery_phone:
