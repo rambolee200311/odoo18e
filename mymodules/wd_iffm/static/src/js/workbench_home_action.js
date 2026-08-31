@@ -13,7 +13,7 @@ export class WdIffmWorkbench extends Component {
 
         this.state = useState({
             activeTab: "waybill_near_due",
-            activeView: "kanban",  // 默认显示看板视图
+            activeView: "list",  // 默认显示看板视图
             filters: {
                 project_id: "",
                 shipping_company_id: "",
