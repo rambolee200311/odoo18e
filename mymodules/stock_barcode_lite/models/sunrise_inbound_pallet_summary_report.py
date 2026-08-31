@@ -18,7 +18,7 @@ class SunriseInboundPalletSummaryReport(models.Model):
     date_from = fields.Date(string="Date From", required=True, default=lambda self: fields.Date.context_today(self).replace(day=1), index=True)
     date_to = fields.Date(string="Date To", required=True, default=fields.Date.context_today, index=True)
     location_scope = fields.Selection(selection="get_location_scope_selection", string="Location", copy=False, index=True)
-    cprojectid = fields.Char(string="Contract No", copy=False, index=True)
+    cprojectid = fields.Char(string="Sunrise Ref", copy=False, index=True)
     state = fields.Selection([("draft", "Draft"), ("done", "Done")], string="State", default="draft", required=True, readonly=True, copy=False, index=True)
     refreshed_by_id = fields.Many2one("res.users", string="Last Refreshed By", readonly=True, copy=False)
     refreshed_datetime = fields.Datetime(string="Last Refreshed At", readonly=True, copy=False, index=True)
@@ -93,6 +93,8 @@ class SunriseInboundPalletSummaryReport(models.Model):
                     "remain_total_age_days": summary_data["remain_total_age_days"],
                     "outbound_lines": [(0, 0, {
                         "outbound_date": outbound_data["outbound_date"],
+                        "cproject_ids": outbound_data["cproject_ids"],
+                        "batch_names": outbound_data["batch_names"],
                         "pallet_count": outbound_data["pallet_count"],
                         "stock_days": outbound_data["stock_days"],
                     }) for outbound_data in summary_data["outbound_lines"]],
@@ -112,10 +114,10 @@ class SunriseInboundPalletSummaryReport(models.Model):
                 raise ValidationError(_("Please refresh the report before exporting."))
             report_lines = report_line_model.search([("report_id", "=", rec.id)], order="first_inbound_date asc, id asc")
             max_outbound_count = max((len(line.outbound_lines) for line in report_lines), default=0)
-            headers = ["First Inbound Date", "Inbound", "Contract No", "Opening Pallets"]
+            headers = ["First Inbound Date", "Inbound", "Sunrise Ref", "Opening Pallets"]
             for outbound_index in range(max_outbound_count):
                 outbound_number = outbound_index + 1
-                headers.extend(["Outbound %s - Outbound Date" % outbound_number, "Outbound %s - Pallet Count" % outbound_number, "Outbound %s - Stock Days" % outbound_number])
+                headers.extend(["Outbound %s - Outbound Date" % outbound_number, "Outbound %s - Sunrise Ref" % outbound_number, "Outbound %s - Batch No" % outbound_number, "Outbound %s - Pallet Count" % outbound_number, "Outbound %s - Stock Days" % outbound_number])
             headers.extend(["Closing Pallets", "Remaining Period Age Days", "Remaining Total Age Days"])
             rows = []
             for line in report_lines:
@@ -126,6 +128,8 @@ class SunriseInboundPalletSummaryReport(models.Model):
                     outbound_line = outbound_lines[outbound_index] if outbound_index < len(outbound_lines) else False
                     values.extend([
                         fields.Date.to_string(outbound_line.outbound_date) if outbound_line else None,
+                        outbound_line.cproject_ids if outbound_line else None,
+                        outbound_line.batch_names if outbound_line else None,
                         outbound_line.pallet_count if outbound_line else None,
                         outbound_line.stock_days if outbound_line else None,
                     ])
@@ -175,7 +179,7 @@ class SunriseInboundPalletSummaryReportLine(models.Model):
     first_inbound_date = fields.Datetime(string="First Inbound Date", required=True, readonly=True, index=True, copy=False)
     inbound_order_id = fields.Many2one("world.depot.inbound.order", string="Inbound", required=True, readonly=True, ondelete="restrict", index=True, copy=False)
 
-    cproject_ids = fields.Char(string="Contract No", readonly=True, copy=False)
+    cproject_ids = fields.Char(string="Sunrise Ref", readonly=True, copy=False)
     opening_pallet_count = fields.Integer(string="Opening Pallets", readonly=True, copy=False)
     inbound_pallet_count = fields.Integer(string="Inbound Pallets", readonly=True, copy=False)
     outbound_pallet_count = fields.Integer(string="Outbound Pallets", readonly=True, copy=False)
@@ -193,5 +197,7 @@ class SunriseInboundPalletSummaryOutboundLine(models.Model):
 
     report_line_id = fields.Many2one("sunrise.inbound.pallet.summary.report.line", string="Inbound Summary", required=True, readonly=True, ondelete="cascade", index=True, copy=False)
     outbound_date = fields.Date(string="Outbound Date", required=True, readonly=True, index=True, copy=False)
+    cproject_ids = fields.Char(string="Sunrise Ref", readonly=True, copy=False)
+    batch_names = fields.Char(string="Batch No", readonly=True, copy=False)
     pallet_count = fields.Integer(string="Pallet Count", required=True, readonly=True, copy=False)
     stock_days = fields.Integer(string="Stock Days", required=True, readonly=True, copy=False)

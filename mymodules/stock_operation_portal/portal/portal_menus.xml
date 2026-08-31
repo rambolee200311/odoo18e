@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- =========================================== -->
+    <!-- 顶级应用菜单 -->
+    <!-- =========================================== -->
+    <menuitem id="menu_stock_operation_portal_root"
+              name="Stock Order"
+              web_icon="stock_operation_portal,static/description/icon.png"
+              groups="base.group_user"/>
+
+    <!-- 子菜单项 (无 action，纯菜单结构) -->
+    <menuitem id="menu_stock_operation_inbounds"
+              name="Inbound Orders"
+              parent="menu_stock_operation_portal_root"
+              sequence="10"/>
+
+    <menuitem id="menu_stock_operation_outbounds"
+              name="Outbound Orders"
+              parent="menu_stock_operation_portal_root"
+              sequence="20"/>
+
+    <menuitem id="menu_stock_operation_transfers"
+              name="Transfer Orders"
+              parent="menu_stock_operation_portal_root"
+              sequence="30"/>
+
+    <!-- =========================================== -->
+    <!-- 门户主页入口卡片 -->
+    <!-- =========================================== -->
+    <template id="portal_my_home_operation" name="Stock Operation Portal" customize_show="True" inherit_id="portal.portal_my_home" priority="25">
+<!--        <xpath expr="//*[hasclass('o_portal_my_home')]" position="inside">-->
+<!--            <div class="mt-3">-->
+<!--                <a href="/my/operation" class="text-decoration-none">-->
+<!--                    <div class="card">-->
+<!--                        <div class="card-body">-->
+<!--                            <h5><i class="fa fa-cogs me-2"/>Stock Order</h5>-->
+<!--                            <p class="text-muted mb-0">Manage Inbound, Outbound and Transfer orders</p>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                </a>-->
+<!--            </div>-->
+<!--        </xpath>-->
+    </template>
+
+    <!-- =========================================== -->
+    <!-- 侧边栏导航菜单 -->
+    <!-- =========================================== -->
+    <template id="portal_menus" name="Operation Portal Menus">
+        <ul class="nav nav-pills flex-column">
+            <li class="nav-item">
+                <a href="/my/operation" class="nav-link" id="operation_home">
+                    <i class="fa fa-home"/> Home
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/my/operation/inbounds" class="nav-link" id="operation_inbounds">
+                    <i class="fa fa-sign-in"/> Inbound Orders
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/my/operation/outbounds" class="nav-link" id="operation_outbounds">
+                    <i class="fa fa-sign-out"/> Outbound Orders
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="/my/operation/transfers" class="nav-link" id="operation_transfers">
+                    <i class="fa fa-exchange"/> Transfer Orders
+                </a>
+            </li>
+        </ul>
+    </template>
+</odoo>

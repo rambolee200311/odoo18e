@@ -6,7 +6,7 @@ from odoo.http import request
 from odoo.addons.portal.controllers import portal
 from odoo.addons.portal.controllers.portal import CustomerPortal, pager as portal_pager
 
-from ..models.utils import portal_owner_partner, portal_stock_location_options
+from ..models.utils import portal_stock_location_ids, portal_stock_location_options
 
 
 class MarstekStockPortal(CustomerPortal):
@@ -79,7 +79,7 @@ class MarstekStockPortal(CustomerPortal):
     def marstek_stock_location_options(self, **kw):
         keyword = (kw.get("q") or "").strip()
         options = portal_stock_location_options(request.env, keyword)
-        if portal_owner_partner(request.env):
+        if portal_stock_location_ids(request.env):
             options.append({"location_id": "other", "location_name": "Other"})
         return request.make_json_response(options)
 
@@ -165,8 +165,8 @@ class MarstekStockPortal(CustomerPortal):
         rows = all_rows[pager["offset"]: pager["offset"] + page_size]
 
         values = self.marstek_prepare_page_values("marstek_outbounds", "Outbound Orders", filters)
-        owner = request.env.user.sudo().marstek_owner_id
-        show_sunrise_outbound_filters = bool(owner and request.env["project.project"].sudo().search_count([("owner", "=", owner.id), ("name", "=", "SUNRISE")]))
+        projects = request.env.user.sudo().stock_operation_project_line_ids
+        show_sunrise_outbound_filters = bool(projects.filtered(lambda project: project.name == "SUNRISE"))
         values.update({
             "rows": rows,
             "pager": pager,
@@ -200,9 +200,8 @@ class MarstekStockPortal(CustomerPortal):
         values = self.marstek_prepare_page_values("marstek_outbound_detail", "Outbound Detail",filters)
         contract_no = ", ".join(dict.fromkeys(filter(None, order.outbound_order_product_ids.mapped(
             "cprojectid")))) if order.project.name == "SUNRISE" else ""
-        owner = request.env.user.sudo().marstek_owner_id
-        show_sunrise_outbound_filters = bool(owner and request.env["project.project"].sudo().search_count(
-            [("owner", "=", owner.id), ("name", "=", "SUNRISE")]))
+        projects = request.env.user.sudo().stock_operation_project_line_ids
+        show_sunrise_outbound_filters = bool(projects.filtered(lambda project: project.name == "SUNRISE"))
         values.update({
             "order": order,
             "detail_rows": detail_rows,

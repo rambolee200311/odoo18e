@@ -5,7 +5,6 @@ from odoo.osv import expression
 
 from .utils import (
     portal_apply_date_filters,
-    portal_owner_partner,
     portal_location_is_allowed,
     portal_package_container_from_name,
     portal_package_ids_by_shipping,
@@ -42,9 +41,6 @@ class StockQuantPackage(models.Model):
     @api.model
     def get_all_stock(self, filters=None, offset=0, limit=0):
         filters = filters or {}
-        owner = portal_owner_partner(self.env)
-        if not owner:
-            return []
         domain = portal_quant_domain(self.env)
         container_no = filters.get("container_no")
         bl_no = filters.get("bl_no")
@@ -52,12 +48,12 @@ class StockQuantPackage(models.Model):
         location_id = filters.get("location_id")
         stock_group_mode = filters.get("stock_group_mode")
         if container_no:
-            package_ids = portal_package_ids_by_shipping(self.env, "container_no", "ilike", container_no, owner)
+            package_ids = portal_package_ids_by_shipping(self.env, "container_no", "ilike", container_no)
             if not package_ids:
                 return []
             domain.append(("package_id", "in", package_ids))
         if bl_no:
-            package_ids = portal_package_ids_by_shipping(self.env, "bl_no", "ilike", bl_no, owner)
+            package_ids = portal_package_ids_by_shipping(self.env, "bl_no", "ilike", bl_no)
             if not package_ids:
                 return []
             domain.append(("package_id", "in", package_ids))
@@ -112,12 +108,11 @@ class StockQuantPackage(models.Model):
     @api.model
     def get_stock_by_container_no(self, container_no):
         result = {"container_no": container_no or "", "bl_no": "", "total_quantity": 0.0, "lines": []}
-        owner = portal_owner_partner(self.env)
-        if not owner or not container_no:
+        if not container_no:
             return result
-        package_ids = portal_package_ids_by_shipping(self.env, "container_no", "=", container_no, owner)
+        package_ids = portal_package_ids_by_shipping(self.env, "container_no", "=", container_no)
         if not package_ids:
-            package_ids = portal_package_ids_by_shipping(self.env, "container_no", "ilike", container_no, owner)
+            package_ids = portal_package_ids_by_shipping(self.env, "container_no", "ilike", container_no)
         if not package_ids:
             return result
         domain = portal_quant_domain(self.env)

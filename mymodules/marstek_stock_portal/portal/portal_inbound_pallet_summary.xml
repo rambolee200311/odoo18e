@@ -1,0 +1,147 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Shell page route template -->
+    <template id="portal_marstek_inbound_pallet_summary_page" name="Inbound Pallet Summary">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/marstek', 'name': 'WMS Stock'}, {'url': None, 'name': 'Inbound Pallet Summary'}]"/>
+            <t t-call="marstek_stock_portal.portal_breadcrumbs_slash"/>
+
+            <div class="o_portal_content">
+                <!-- 筛选表单 -->
+                <div class="card mb-4" id="ips_filter_card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 d-inline">
+                            <i class="fa fa-filter me-2"/>
+                            Inbound Pallet Summary
+                        </h5>
+                        <button class="btn btn-link text-decoration-none p-0 border-0" type="button" data-bs-toggle="collapse" data-bs-target="#ips_filter_collapse" aria-expanded="true">
+                            <i class="fa fa-chevron-up collapse-icon"/>
+                        </button>
+                    </div>
+                    <div id="ips_filter_collapse" class="collapse show">
+                        <div class="card-body">
+                            <form id="ips_form" class="row g-3">
+                                <div class="col-12 col-md-6 col-lg-3">
+                                    <label for="ips_location_search" class="form-label">Location</label>
+                                    <div class="position-relative" id="ips_location_wrapper">
+                                        <input type="search"
+                                               class="form-control"
+                                               id="ips_location_search"
+                                               name="location_search"
+                                               placeholder="Search location"
+                                               autocomplete="off"/>
+                                        <input type="hidden" id="ips_location_id" name="location_id"/>
+                                        <div id="ips_location_dropdown" class="dropdown-menu" style="display:none; max-height:360px; overflow:auto; z-index:1050;"></div>
+                                        <div id="ips_location_loading" class="position-absolute top-50 end-0 translate-middle-y me-2" style="display:none;">
+                                            <i class="fa fa-spinner fa-spin text-muted"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                <t t-if="show_sunrise_outbound_filters">
+                                    <div class="col-12 col-md-6 col-lg-3">
+                                        <label for="ips_cprojectid" class="form-label">Sunrise Ref</label>
+                                        <input type="search" class="form-control" id="ips_cprojectid" name="cprojectid" placeholder="Enter Sunrise Ref"/>
+                                    </div>
+                                </t>
+                                <div class="col-12 col-md-6 col-lg-3">
+                                    <label for="ips_date_from" class="form-label">Start Date</label>
+                                    <input type="date" class="form-control" id="ips_date_from" name="date_from" required="required"/>
+                                </div>
+                                <div class="col-12 col-md-6 col-lg-3">
+                                    <label for="ips_date_to" class="form-label">End Date</label>
+                                    <input type="date" class="form-control" id="ips_date_to" name="date_to" required="required"/>
+                                </div>
+                                <div class="col-12 d-flex align-items-end">
+                                    <button type="submit" class="btn btn-primary me-2">
+                                        <i class="fa fa-search me-1"/>
+                                        Search
+                                    </button>
+                                    <a href="/my/world_depot/stock/inbound_pallet_summary_page" class="btn btn-secondary">
+                                        <i class="fa fa-refresh me-1"/>
+                                        Reset
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 错误提醒 -->
+                <div id="ips_error" class="alert alert-danger d-none" role="alert"></div>
+
+                <!-- 汇总卡片 -->
+                <div class="card mb-4 d-none" id="ips_summary_card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="ips_summary" class="row g-3"></div>
+                    </div>
+                </div>
+
+                <!-- 数据查询结果 - 可折叠 -->
+                <div class="card" id="ips_table_card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Inbound Pallet Summary</h5>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-primary me-2" id="ips_total">Total: 0</span>
+                            <!-- 视图切换按钮 -->
+                            <div class="btn-group btn-group-sm me-2" role="group">
+                                <button type="button" class="btn btn-primary" id="ips_view_table" title="Table View">
+                                    <i class="fa fa-table"></i>
+                                    <span class="d-none d-sm-inline ms-1">Table</span>
+                                </button>
+                                <button type="button" class="btn btn-outline-primary" id="ips_view_card" title="Card View">
+                                    <i class="fa fa-th-large"></i>
+                                    <span class="d-none d-sm-inline ms-1">Card</span>
+                                </button>
+                            </div>
+                            <button class="btn btn-link text-decoration-none p-0 border-0" type="button" data-bs-toggle="collapse" data-bs-target="#ips_table_collapse" aria-expanded="true">
+                                <i class="fa fa-chevron-up collapse-icon"/>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="ips_table_collapse" class="collapse show">
+                        <div class="card-body p-0">
+                            <div class="table-responsive" id="ips_table_scroll" style="max-height: 60vh; overflow: auto;">
+                                <div id="ips_loading" class="text-center text-muted py-5 d-none">
+                                    <i class="fa fa-spinner fa-spin me-1"></i>
+                                    Loading...
+                                </div>
+                                <!-- 表格视图 -->
+                                <table id="ips_table" class="table table-hover table-striped mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th class="text-nowrap">Inbound Order</th>
+                                            <th class="text-nowrap">Sunrise Ref</th>
+                                            <th class="text-nowrap text-end">Opening</th>
+                                            <th class="text-nowrap text-end">Inbound</th>
+                                            <th class="text-nowrap text-end">Outbound</th>
+                                            <th class="text-nowrap text-end">Closing</th>
+<!--                                            <th class="text-nowrap">Closing Location</th>-->
+                                            <th class="text-nowrap">Outbound Date</th>
+                                            <th class="text-nowrap">Sunrise Ref</th>
+                                            <th class="text-nowrap">Batch No</th>
+                                            <th class="text-nowrap text-end">Pallet Count</th>
+                                            <th class="text-nowrap text-end">Stock Days</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ips_tbody"></tbody>
+                                </table>
+                                <!-- 卡片视图 -->
+                                <div id="ips_cards" class="p-3 d-none"></div>
+                                <div id="ips_empty" class="text-center text-muted py-5 d-none">No data found</div>
+                            </div>
+                        </div>
+                        <div id="ips_pager" class="card-footer"></div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- Data API render template (server-side fallback) -->
+    <template id="portal_marstek_inbound_pallet_summary" name="Inbound Pallet Summary Data">
+        <t t-call="marstek_stock_portal.portal_marstek_inbound_pallet_summary_page"/>
+    </template>
+</odoo>

@@ -14,6 +14,8 @@ class ProductTemplateInherit(models.Model):
     category_name = fields.Char(string="Sunrise Category Name", related="categ_id.name", store=True)
     organic = fields.Boolean(string="Organic", default=False, copy=False, index=True)
     sunrise_product_category_name = fields.Char(string="Sunrise Product Category", copy=False, index=True)#类别
+    gross_weight = fields.Float(string="Gross Weight (kg)", copy=False)
+    product_dimensions = fields.Char(string="Product Dimensions (m)", copy=False)
 
     def action_update_sunrise_organic(self):
         template_model = self.env["product.template"]

@@ -59,17 +59,24 @@ class StockReturnPickingInherit(models.TransientModel):
         allocations = []
         package_location_map = {}
 
+        rounding = return_move.product_id.uom_id.rounding
+        remaining_qty = return_move.product_uom._compute_quantity(
+            return_move.product_uom_qty,
+            return_move.product_id.uom_id,
+            rounding_method="HALF-UP",
+        )
+
         original_lines = original_move.move_line_ids.filtered(
             lambda line: line.product_id == return_move.product_id
-            and (line.package_id or line.result_package_id)
-            and not float_is_zero(line.quantity, precision_rounding=rounding)
+                         and not float_is_zero(line.quantity_product_uom, precision_rounding=rounding)
         )
 
         for original_line in original_lines:
             if float_is_zero(remaining_qty, precision_rounding=rounding):
                 break
 
-            qty = min(remaining_qty, original_line.quantity)
+            line_qty = original_line.quantity_product_uom
+            qty = min(remaining_qty, line_qty)
             if float_is_zero(qty, precision_rounding=rounding):
                 continue
             package = original_line.package_id
@@ -145,9 +152,8 @@ class StockReturnPickingInherit(models.TransientModel):
                 rounding_method="HALF-UP",
             )
             original_line_list = original_move.move_line_ids.filtered(
-                lambda line: line.result_package_id
-                and line.product_id == return_move.product_id
-                and line.quantity > 0
+                lambda line: line.product_id == return_move.product_id
+                             and line.quantity_product_uom > 0
             )
 
             for original_line in original_line_list:

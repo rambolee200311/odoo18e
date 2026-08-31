@@ -114,8 +114,7 @@
                 <field name="u8_aux_uom_name" optional="hide" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="is_lot" optional="hide" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="lot_name" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>
-                <field name="gross_weight" readonly="1" force_save="1" optional="show"
-                       column_invisible="parent.project_name !='SUNRISE'"/>
+                <field name="gross_weight" readonly="1" force_save="1" optional="show"/>
                 <field name="pallet_dimensions" readonly="1" force_save="1" optional="show"
                        column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="m_date" optional="hide" column_invisible="parent.project_name !='SUNRISE'"/>
@@ -215,8 +214,7 @@
                        invisible="project_name != 'SUNRISE'"/>
                 <field name="lot_name" readonly="outbound_order_state != 'new'" required="is_lot == 'Y'"
                        invisible="project_name != 'SUNRISE'"/>
-                <field name="gross_weight" readonly="1" force_save="1" optional="show"
-                       invisible="project_name != 'SUNRISE'"/>
+                <field name="gross_weight" readonly="1" force_save="1" optional="show"/>
                 <field name="pallet_dimensions" readonly="1" force_save="1" optional="show"
                        invisible="project_name != 'SUNRISE'"/>
                 <field name="m_date" readonly="outbound_order_state != 'new'"

@@ -23,8 +23,8 @@
     <!-- =========================================== -->
     <template id="portal_marstek_home" name="Marstek Stock Portal">
         <t t-call="portal.portal_layout">
-            <!-- 面包屑home-->
-            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': None, 'name': 'Marstek Stock'}]"/>
+            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': None, 'name': 'WMS Stock'}]"/>
+            <t t-call="marstek_stock_portal.portal_breadcrumbs_slash"/>
 
             <div class="o_portal_content">
                 <h1 class="mb-4">
@@ -54,7 +54,7 @@
 
                     <!-- 库存历史 -->
 <!--                    <div class="col-12 col-md-6 col-lg-4 mb-4">-->
-<!--                        <a href="/my/world_depot/stock/movement_history" class="text-decoration-none">-->
+<!--                        <a href="/my/world_depot/stock/movement_history_page" class="text-decoration-none">-->
 <!--                            <div class="card h-100 o_marstek_card o_marstek_card_stock">-->
 <!--                                <div class="card-body text-center">-->
 <!--                                    <div class="o_marstek_icon mb-3">-->
@@ -70,7 +70,25 @@
 <!--                        </a>-->
 <!--                    </div>-->
 
-                    <!-- 集装箱查询 -->
+                    <!-- 历史托盘汇总查询 -->
+                    <div class="col-12 col-md-6 col-lg-4 mb-4">
+                        <a href="/my/world_depot/stock/inbound_pallet_summary_page" class="text-decoration-none">
+                            <div class="card h-100 o_marstek_card o_marstek_card_stock">
+                                <div class="card-body text-center">
+                                    <div class="o_marstek_icon mb-3">
+                                        <i class="fa fa-th-list fa-3x text-primary"/>
+                                    </div>
+                                    <h4 class="card-title">Outbound Pallet Summary</h4>
+                                    <p class="text-muted">Historical inbound pallet summary<br/>Grouped by outbound order</p>
+                                    <span class="btn btn-outline-primary mt-2">
+                                        Go <i class="fa fa-arrow-right ms-1"/>
+                                    </span>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+
+                    <!-- 入库单查询 -->
                     <div class="col-12 col-md-6 col-lg-4 mb-4">
                         <a href="/my/marstek/container_stock" class="text-decoration-none">
                             <div class="card h-100 o_marstek_card o_marstek_card_container">

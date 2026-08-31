@@ -887,7 +887,7 @@ class OutboundOrderProduct(models.Model):
     lot_name = fields.Char(string="Lot Name", copy=False, index=True, tracking=True)
     m_date = fields.Date(string="Manufacture Date", copy=False)
     e_date = fields.Date(string="Expiration Date", copy=False)
-    cprojectid = fields.Char(string="Contract No", copy=False, index=True)
+    cprojectid = fields.Char(string="Sunrise Ref", copy=False, index=True)
     ndiscounttaxtype = fields.Char(string="Tax Deduction Type", copy=False, index=True, tracking=True)
     vsourcebillcode = fields.Char(string="Source Bill Code", copy=False, index=True)
     vsourcerowno = fields.Char(string="Source Row No", copy=False, index=True, tracking=True)

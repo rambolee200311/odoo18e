@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Inbound Orders List -->
+    <template id="portal_operation_inbounds" name="Inbound Orders">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/operation', 'name': 'Stock Operation'}, {'url': None, 'name': 'Inbound Orders'}]"/>
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+            <t t-call="stock_operation_portal.portal_breadcrumbs_slash"/>
+            <t t-set="page_name" value="'operation_inbounds'"/>
+            <div class="o_portal_wrap">
+                <div class="container py-4">
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2>Inbound Orders</h2>
+                        <a href="/my/operation/inbounds/create" class="btn btn-primary">
+                            <i class="fa fa-plus"/> Create Inbound Order
+                        </a>
+                    </div>
+                    
+                    <!-- Filter Form -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <form method="get" class="row g-3">
+                                <div class="col-md-2">
+                                    <input type="text" name="reference" class="form-control" 
+                                           placeholder="Reference" t-att-value="filters.get('reference', '')"/>
+                                </div>
+                                <div class="col-md-2">
+                                    <input type="text" name="bl_no" class="form-control" 
+                                           placeholder="B/L No" t-att-value="filters.get('bl_no', '')"/>
+                                </div>
+                                <div class="col-md-2">
+                                    <input type="text" name="container_no" class="form-control" 
+                                           placeholder="Container No" t-att-value="filters.get('container_no', '')"/>
+                                </div>
+                                <div class="col-md-2">
+                                    <select name="state" class="form-control">
+                                        <option value="">All Status</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <button type="submit" class="btn btn-primary">Search</button>
+                                    <a href="/my/operation/inbounds" class="btn btn-secondary">Reset</a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Table -->
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Reference</th>
+                                    <th>B/L No</th>
+                                    <th>Container No</th>
+                                    <th>Expected Date</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="rows" t-as="row">
+                                    <td><span t-esc="row.get('reference', '-')"/></td>
+                                    <td><span t-esc="row.get('bl_no', '-')"/></td>
+                                    <td><span t-esc="row.get('container_no', '-')"/></td>
+                                    <td><span t-esc="row.get('expected_date', '-')"/></td>
+                                    <td><span t-esc="row.get('state', '-')"/></td>
+                                    <td>
+                                        <a t-attf-href="/my/operation/inbounds/{{ row.get('id') }}" 
+                                           class="btn btn-sm btn-info">View</a>
+                                    </td>
+                                </tr>
+                                <tr t-if="not rows">
+                                    <td colspan="6" class="text-center text-muted">No records found</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- Inbound Order Detail -->
+    <template id="portal_operation_inbound_detail" name="Inbound Order Detail">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/operation', 'name': 'Stock Operation'}, {'url': '/my/operation/inbounds', 'name': 'Inbound Orders'}, {'url': None, 'name': 'Inbound Detail'}]"/>
+            <t t-set="breadcrumbs_searchbar" t-value="False"/>
+            <t t-call="stock_operation_portal.portal_breadcrumbs_slash"/>
+            <t t-set="page_name" value="'operation_inbound_detail'"/>
+            <div class="o_portal_wrap">
+                <div class="container py-4">
+                    
+                    <h2>Inbound Order Detail</h2>
+                    <div class="alert alert-info">Order details will be displayed here</div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- Inbound Order Form -->
+    <template id="portal_operation_inbound_form" name="Create Inbound Order">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/operation', 'name': 'Stock Operation'}, {'url': '/my/operation/inbounds', 'name': 'Inbound Orders'}, {'url': None, 'name': 'Create Inbound Order'}]"/>
+            <t t-set="breadcrumbs_searchbar" t-value="False"/>
+            <t t-call="stock_operation_portal.portal_breadcrumbs_slash"/>
+            <t t-set="page_name" value="'operation_inbound_create'"/>
+            <div class="o_portal_wrap">
+                <div class="container py-4">
+                    
+                    <h2>Create Inbound Order</h2>
+                    <div class="alert alert-info">Form will be available soon</div>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>
+

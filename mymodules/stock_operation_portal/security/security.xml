@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="stock_operation_portal_inbound_rule" model="ir.rule">
+        <field name="name">Stock Operation Portal Inbound Order</field>
+        <field name="model_id" ref="worlddepot.model_world_depot_inbound_order"/>
+        <field name="domain_force">[('project', 'in', user.stock_operation_project_line_ids.ids)]</field>
+        <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="stock_operation_portal_inbound_write_rule" model="ir.rule">
+        <field name="name">Stock Operation Portal Draft Inbound Write</field>
+        <field name="model_id" ref="worlddepot.model_world_depot_inbound_order"/>
+        <field name="domain_force">[('project', 'in', user.stock_operation_project_line_ids.ids), ('state', '=', 'new')]</field>
+        <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="stock_operation_portal_inbound_confirm_write_rule" model="ir.rule">
+        <field name="name">Stock Operation Portal Confirmed Inbound Write</field>
+        <field name="model_id" ref="worlddepot.model_world_depot_inbound_order"/>
+        <field name="domain_force">[('project', 'in', user.stock_operation_project_line_ids.ids), ('state', '=', 'confirm')]</field>
+        <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="stock_operation_portal_inbound_product_rule" model="ir.rule">
+        <field name="name">Stock Operation Portal Draft Inbound Product</field>
+        <field name="model_id" ref="worlddepot.model_world_depot_inbound_order_product"/>
+        <field name="domain_force">[('inbound_order_id.project', 'in', user.stock_operation_project_line_ids.ids), ('inbound_order_id.state', '=', 'new')]</field>
+        <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="stock_operation_portal_inbound_pallet_rule" model="ir.rule">
+        <field name="name">Stock Operation Portal Draft Inbound Pallet</field>
+        <field name="model_id" ref="worlddepot.model_world_depot_inbound_order_products_pallet"/>
+        <field name="domain_force">[('inbound_order_product_id.inbound_order_id.project', 'in', user.stock_operation_project_line_ids.ids), ('inbound_order_product_id.inbound_order_id.state', '=', 'new')]</field>
+        <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="stock_operation_portal_inbound_docs_rule" model="ir.rule">
+        <field name="name">Stock Operation Portal Inbound Docs</field>
+        <field name="model_id" ref="worlddepot.model_world_depot_inbound_order_docs"/>
+        <field name="domain_force">[('inbound_order_id.project', 'in', user.stock_operation_project_line_ids.ids)]</field>
+        <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="stock_operation_portal_inbound_docs_write_rule" model="ir.rule">
+        <field name="name">Stock Operation Portal Draft Inbound Docs</field>
+        <field name="model_id" ref="worlddepot.model_world_depot_inbound_order_docs"/>
+        <field name="domain_force">[('inbound_order_id.project', 'in', user.stock_operation_project_line_ids.ids), ('inbound_order_id.state', '=', 'new'), ('inbound_order_id.stock_operation_portal_confirmed', '=', False)]</field>
+        <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+    <record id="stock_operation_portal_attachment_rule" model="ir.rule">
+        <field name="name">Stock Operation Portal Inbound Attachment</field>
+        <field name="model_id" ref="base.model_ir_attachment"/>
+        <field name="domain_force">['|', '&amp;', ('res_model', '=', 'world.depot.inbound.order'), ('res_id', 'in', user.env['world.depot.inbound.order'].sudo().search([('project', 'in', user.stock_operation_project_line_ids.ids)]).ids), '&amp;', ('res_model', '=', 'world.depot.inbound.order.docs'), ('res_id', 'in', user.env['world.depot.inbound.order.docs'].sudo().search([('inbound_order_id.project', 'in', user.stock_operation_project_line_ids.ids)]).ids)]</field>
+        <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+    <record id="stock_operation_portal_attachment_write_rule" model="ir.rule">
+        <field name="name">Stock Operation Portal Draft Inbound Attachment</field>
+        <field name="model_id" ref="base.model_ir_attachment"/>
+        <field name="domain_force">['|', '&amp;', ('res_model', '=', 'world.depot.inbound.order'), ('res_id', 'in', user.env['world.depot.inbound.order'].sudo().search([('project', 'in', user.stock_operation_project_line_ids.ids), ('state', '=', 'new'), ('stock_operation_portal_confirmed', '=', False)]).ids), '&amp;', ('res_model', '=', 'world.depot.inbound.order.docs'), ('res_id', 'in', user.env['world.depot.inbound.order.docs'].sudo().search([('inbound_order_id.project', 'in', user.stock_operation_project_line_ids.ids), ('inbound_order_id.state', '=', 'new'), ('inbound_order_id.stock_operation_portal_confirmed', '=', False)]).ids)]</field>
+        <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+        <field name="perm_read" eval="False"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+</odoo>

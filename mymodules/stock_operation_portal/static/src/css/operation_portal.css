@@ -1,0 +1,164 @@
+/* Stock Operation Portal - Styles */
+
+.operation-portal-card {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    transition: box-shadow 0.3s;
+}
+
+.operation-portal-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.operation-portal-card .card-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+}
+
+.operation-filter-form {
+    background-color: #f8f9fa;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.operation-table {
+    background-color: white;
+}
+
+.operation-table th {
+    background-color: #f1f1f1;
+    font-weight: 600;
+}
+
+.operation-status-badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.operation-status-draft {
+    background-color: #e9ecef;
+    color: #495057;
+}
+
+.operation-status-confirmed {
+    background-color: #cce5ff;
+    color: #004085;
+}
+
+.operation-status-done {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.operation-status-cancelled {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* Operation home cards */
+.o_stock_operation_card {
+    border: 2px solid transparent;
+}
+
+.o_stock_operation_card h4 {
+    color: #000 !important;
+}
+
+.o_stock_operation_card:hover,
+.o_stock_operation_card:focus-within {
+    border-color: #0d6efd;
+}
+
+.o_stock_operation_card_outbound:hover,
+.o_stock_operation_card_outbound:focus-within {
+    border-color: #198754;
+}
+
+.o_stock_operation_card_transfer:hover,
+.o_stock_operation_card_transfer:focus-within {
+    border-color: #ffc107;
+}
+
+/* Form styles */
+.operation-form-section {
+    margin-bottom: 24px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+.operation-form-section h4 {
+    margin-bottom: 16px;
+    border-bottom: 2px solid #dee2e6;
+    padding-bottom: 8px;
+}
+
+.operation-line-item {
+    padding: 12px;
+    background-color: white;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    margin-bottom: 8px;
+}
+
+.operation-line-item:hover {
+    border-color: #007bff;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .operation-portal-card {
+        margin-bottom: 16px;
+    }
+    
+    .operation-table {
+        font-size: 14px;
+    }
+}
+
+/* ============================================================
+   Unified Breadcrumb Styles with Slash Separator
+   ============================================================ */
+
+.o_portal_breadcrumbs .breadcrumb {
+    background-color: transparent;
+    padding: 0;
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.o_portal_breadcrumbs .breadcrumb-item + .breadcrumb-item::before {
+    content: "/";
+    padding: 0 0.5rem;
+    color: #6c757d;
+}
+
+.o_portal_breadcrumbs .breadcrumb-item a {
+    color: #0d6efd;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.o_portal_breadcrumbs .breadcrumb-item a:hover {
+    color: #0a58ca;
+    text-decoration: underline;
+}
+
+.o_portal_breadcrumbs .breadcrumb-item.active {
+    color: #495057;
+    font-weight: 500;
+}
+
+/* Responsive breadcrumb adjustments */
+@media (max-width: 768px) {
+    .o_portal_breadcrumbs .breadcrumb {
+        font-size: 0.85rem;
+    }
+    
+    .o_portal_breadcrumbs .breadcrumb-item + .breadcrumb-item::before {
+        padding: 0 0.3rem;
+    }
+}

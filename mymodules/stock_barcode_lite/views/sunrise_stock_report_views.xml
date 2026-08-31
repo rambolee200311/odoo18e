@@ -10,7 +10,7 @@
                 <field name="date_to"/>
                 <field name="warehouse_id" options="{'no_create': True, 'no_open': True}"/>
                 <field name="owner_id" options="{'no_create': True, 'no_open': True}"/>
-                <field name="location_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="location_scope"/>
                 <field name="product_template_id" options="{'no_create': True, 'no_open': True}"/>
                 <field name="lot_name"/>
                 <field name="opening_product_summary"/>
@@ -52,8 +52,7 @@
                             <field name="date_to" readonly="state == 'done'" required="1"/>
                             <field name="warehouse_id" required="1" readonly="state == 'done'" options="{'no_create': True, 'no_open': True}"/>
 <!--                            <field name="owner_id" options="{'no_create': True, 'no_open': True}"/>-->
-                            <field name="available_location_line_ids" invisible="1"/>
-                            <field name="location_id" readonly="state == 'done'" options="{'no_create': True, 'no_open': True}" domain="[('id', 'in', available_location_line_ids)]"/>
+                            <field name="location_scope" readonly="state == 'done'"/>
                             <field name="product_template_id" readonly="state == 'done'" options="{'no_create': True, 'no_open': True}"/>
                             <field name="lot_name" readonly="state == 'done'"/>
                         </group>
