@@ -181,7 +181,7 @@ class InboundOrder(models.Model):
                 pallet_line.validate_sunrise_physical_pallet_identity()
 
             #rec.validate_sunrise_product_specifications()
-
+#入库重量、尺寸一致性校验方法
     def validate_sunrise_product_specifications(self):
         detail_line_model = self.env["world.depot.inbound.order.products.pallet"]
         for rec in self:
@@ -192,6 +192,9 @@ class InboundOrder(models.Model):
                         pallet_line.pallet_no,
                         detail_line.product_id.id,
                         (detail_line.lot_name or "").strip() if detail_line.is_lot == "Y" else "",
+                        detail_line.box_type,
+                        round(detail_line.box_in_qty, 6),
+                        round(detail_line.u8_conversion_rate, 6),
                     )
                     if specification_key not in grouped_detail_lines:
                         grouped_detail_lines[specification_key] = detail_line_model
@@ -601,11 +604,17 @@ class InboundOrder(models.Model):
                         ], limit=1)
 
                         if not lot:
-                            lot = lot_model.create({
+                            lot_values = {
                                 "name": detail_line.lot_name,
                                 "product_id": product.id,
                                 "company_id": picking.company_id.id,
-                            })
+                            }
+                            if record.creation_source == "api":
+                                if detail_line.gross_weight:
+                                    lot_values["gross_weight"] = float(detail_line.gross_weight)
+                                if detail_line.pallet_dimensions:
+                                    lot_values["product_dimensions"] = detail_line.pallet_dimensions
+                            lot = lot_model.create(lot_values)
 
                     move_line_values = {
                         "picking_id": picking.id,
@@ -843,6 +852,32 @@ class InboundOrderProductsPallet(models.Model):
     cspaceid = fields.Char(string="Location Code", copy=False, index=True)
     gross_weight = fields.Char(string="Gross Weight(kg)", copy=False)
     pallet_dimensions = fields.Char(string="Carton Dimensions(m)", copy=False)
+
+    @api.onchange("product_id", "is_lot", "lot_name", "box_type", "box_in_qty", "u8_conversion_rate")
+    def onchange_sunrise_lot_specification(self):
+        lot_model = self.env["stock.lot"].sudo()
+        template_model = self.env["product.template"].sudo()
+        for rec in self:
+            inbound_order = rec.inbound_order_product_id.inbound_order_id
+            if not inbound_order or inbound_order.project.name != "SUNRISE":
+                continue
+            rec.gross_weight = False
+            rec.pallet_dimensions = False
+            if not rec.product_id:
+                continue
+            template = template_model.browse(rec.product_id.product_tmpl_id.id)
+            lot = False
+            if rec.is_lot == "Y" and rec.lot_name:
+                lot = lot_model.search([
+                    ("product_id", "=", rec.product_id.id),
+                    ("name", "=", rec.lot_name),
+                ], limit=1)
+            gross_weight = lot.gross_weight if lot and lot.gross_weight else template.gross_weight
+            if rec.box_type == "partial" and not (lot and lot.gross_weight):
+                if template.gross_weight and rec.box_in_qty > 0 and rec.u8_conversion_rate > 0:
+                    gross_weight = template.gross_weight / rec.u8_conversion_rate * rec.box_in_qty
+            rec.gross_weight = str(gross_weight) if gross_weight else False
+            rec.pallet_dimensions = (lot.product_dimensions if lot and lot.product_dimensions else template.product_dimensions) or False
 
     def get_sunrise_product_specification(self, allow_missing=False):
         if not self:

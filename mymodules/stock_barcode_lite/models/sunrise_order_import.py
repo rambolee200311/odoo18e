@@ -227,6 +227,14 @@ class SunriseOrderImport(models.Model):
             "params": {"title": _("Retry Import"), "message": _("Retry finished."), "type": "success", "sticky": False},
         }
 
+    def action_open_import_lines(self):
+        for rec in self:
+            action = self.env.ref("stock_barcode_lite.action_sunrise_order_import_line").sudo().read()[0]
+            action["domain"] = [("import_id", "=", rec.id)]
+            action["context"] = {"default_import_id": rec.id}
+            return action
+        return {"type": "ir.actions.act_window_close"}
+
 
 class SunriseOrderImportLine(models.Model):
     _name = "stock.barcode.lite.sunrise.order.import.line"

@@ -171,6 +171,15 @@ class SunriseControllerMixin:
             raise SunriseApiError("4001",
                                   self.format_field_error("lot_name", "is required when is_lot is Y", row_number))
         return is_lot, lot_name
+
+    def get_sunrise_lot(self, product, lot_name):
+        if not product or not lot_name:
+            return request.env["stock.lot"].sudo().browse()
+        return request.env["stock.lot"].sudo().search([
+            ("product_id", "=", product.id),
+            ("name", "=", lot_name),
+        ], limit=1)
+
     def get_sunrise_package_value_name(self, box_type, box_in_qty):
         if box_type == "full":
             return "Standard Packaging"

@@ -30,6 +30,8 @@
                             invisible="state not in ('failed', 'validated')"/>
                     <button name="action_confirm_import" type="object" string="Confirm Import" class="btn-primary"
                             invisible="state != 'validated'"/>
+                    <button name="action_open_import_lines" type="object" string="View Import Lines"
+                            invisible="not import_lines"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,validated,failed,imported"/>
                 </header>
                 <sheet>
@@ -205,19 +207,9 @@
         <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="view_move_line_location_import_line_search"/>
     </record>
-    <menuitem id="menu_move_line_location_import_parent"
-              name="Sunrise Move Line Location Import"
-              parent="menu_stock_barcode_lite_configuration"
-              sequence="29"/>
     <menuitem id="menu_move_line_location_import"
               name="Sunrise Move Line Location Imports"
-              parent="menu_move_line_location_import_parent"
+              parent="menu_stock_barcode_lite_import"
               action="action_move_line_location_import"
-              sequence="30"/>
-
-    <menuitem id="menu_move_line_location_import_line"
-              name="Sunrise Move Line Location Import Lines"
-              parent="menu_move_line_location_import_parent"
-              action="action_move_line_location_import_line"
-              sequence="31"/>
+              sequence="50"/>
 </odoo>
