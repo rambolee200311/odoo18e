@@ -89,7 +89,6 @@
             #'worlddepot/static/src/js/pallet_scan.js',
             #'worlddepot/static/src/js/pallet_barcode_patch.js',
             'worlddepot/static/src/models/barcode_picking_model_patch.js',
-            'worlddepot/static/src/components/grouped_line_patch.js',
             'worlddepot/static/src/scss/barcode_overdone.scss',
             'worlddepot/static/src/scss/worlddepot_required_field_highlight.scss',
         ],

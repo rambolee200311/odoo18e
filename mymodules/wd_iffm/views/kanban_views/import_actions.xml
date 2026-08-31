@@ -13,12 +13,12 @@
     <record id="action_import_bill_kanban" model="ir.actions.act_window">
         <field name="name">Import Bill Kanban</field>
         <field name="res_model">world.depot.waybill</field>
-        <field name="view_mode">kanban,list,form</field>
+        <field name="view_mode">list,kanban,form</field>
 <!--        <field name="domain">[('state', '!=', 'cancel')]</field>-->
         <field name="view_ids" eval="[
             (5, 0, 0),
-            (0, 0, {'view_mode': 'kanban', 'view_id': ref('wd_iffm.view_waybill_kanban_level1')}),
             (0, 0, {'view_mode': 'list', 'view_id': ref('wd_iffm.view_world_depot_waybill_tree')}),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('wd_iffm.view_waybill_kanban_level1')}),
             (0, 0, {'view_mode': 'form', 'view_id': ref('wd_iffm.view_world_depot_waybill_form')})
             ]"/>
         <field name="search_view_id" ref="view_world_depot_waybill_search"/>

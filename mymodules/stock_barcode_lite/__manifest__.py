@@ -47,7 +47,6 @@ Chenyang Chemical warehouse customizations.
             "stock_barcode_lite/static/src/js/whole_outbound.js",
             "stock_barcode_lite/static/src/js/disassembly_outbound.js",
             "stock_barcode_lite/static/src/js/internal_transfer.js",
-            "stock_barcode_lite/static/src/js/barcode_kanban_patch.js",
             "stock_barcode_lite/static/src/xml/homepage.xml",
             "stock_barcode_lite/static/src/xml/internal_transfer.xml",
             "stock_barcode_lite/static/src/xml/inbound.xml",
