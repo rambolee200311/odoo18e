@@ -1457,7 +1457,7 @@ msgstr "报关日期"
 #: model:ir.model.fields.selection,name:wd_iffm.selection__world_depot_charge_item__tab_category__customs
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_charge_quotation_form
 msgid "Customs Formalities"
-msgstr "报关手续"
+msgstr "清关费用"
 
 #. module: wd_iffm
 #: model:account.account,name:wd_iffm.acc_customs_formalities_exportdocument_incl_1_hs_code
@@ -4462,7 +4462,7 @@ msgstr "T1过境"
 #: model:ir.model.fields.selection,name:wd_iffm.selection__world_depot_charge_item__tab_category__thc
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_charge_quotation_form
 msgid "THC Handling"
-msgstr "码头操作费处理"
+msgstr "换单操作费"
 
 #. module: wd_iffm
 #: model:account.account,name:wd_iffm.acc_thc_handling_custom_inspection

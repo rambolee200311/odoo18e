@@ -192,6 +192,39 @@
                                 </list>
                             </field>
                         </page>
+                        <page string="Handover">
+                            <button name="action_create_handover_popup"
+                                    type="object"
+                                    string="Create Handover"
+                                    class="btn-primary"
+                                    invisible="handover_id or state != 'confirm'"/>
+                            <field name="handover_lines" readonly="0">
+                                <list create="0" edit="0" delete="0">
+                                    <field name="name"/>
+                                    <field name="state"/>
+                                    <field name="container_qty"/>
+                                    <field name="bl_release_type"/>
+                                </list>
+                            </field>
+
+                        </page>
+                        <page string="Clearance">
+                            <button name="action_create_clearance_popup"
+                                    type="object"
+                                    string="Create Clearance"
+                                    class="btn-primary"
+                                    invisible="clearance_id or state != 'confirm'"/>
+                            <field name="clearance_lines" readonly="0">
+                                <list create="0" edit="0" delete="0">
+                                    <field name="name"/>
+                                    <field name="state"/>
+                                    <field name="clearance_type"/>
+                                    <field name="container_qty"/>
+                                    <field name="hs_code_qty"/>
+                                </list>
+                            </field>
+
+                        </page>
                         <page string="Packing List" invisible="1">
                             <field name="packing_list_ids" readonly="state!='new'"/>
                         </page>
