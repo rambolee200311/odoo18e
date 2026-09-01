@@ -44,8 +44,9 @@ class MarstekPortalReport(http.Controller):
         "stock": ["Pallet No", "Container No", "BL No", "Product Code", "Product Name", "Quantity", "Location", "Inbound Date"],
         "container_stock": ["Container No", "BL No", "Total Quantity", "Pallet Count", "Pallet No", "Product", "Quantity", "Location", "Inbound Date"],
         "inbounds": ["Inbound No", "Reference", "BL No", "Container No", "Inbound Date", "Status", "Total Quantity", "Pallet Count"],
-
-        "outbound_sn": ["Outbound Order", "Project", "Type", "Outbound Reference", "Date", "Picking", "Product", "Product Name", "Serial/Lot Name", "Quantity"], }
+        "outbounds": ["Outbound No", "BL No", "Container No", "Outbound Date", "Status", "Total Quantity", "Picking No"],
+        "outbound_sn": ["Outbound Order", "Project", "Type", "Outbound Reference", "Date", "Picking", "Product", "Product Name", "Serial/Lot Name", "Quantity"],
+    }
 
     pdf_report_xmlid_by_page_type = {
         "stock": "marstek_stock_portal.report_marstek_stock_export_pdf",
