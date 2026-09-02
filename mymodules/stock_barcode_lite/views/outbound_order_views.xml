@@ -69,9 +69,8 @@
                        invisible="project_name !='SUNRISE'or u8c_delivery_method  != 'pickup'"/>
                 <field name="consignee_id"
                        readonly="state != 'new'"
-                       required="project_name == 'SUNRISE'"
                        invisible="project_name != 'SUNRISE'"
-                       options="{'no_create': True, 'no_open': True}"/>
+                       options="{'no_create': False, 'no_open': False}"/>
             </xpath>
 
             <xpath expr="//button[@name='action_create_picking_PICK']" position="after">

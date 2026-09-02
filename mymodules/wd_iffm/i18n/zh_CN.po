@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0+e-20250619\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-21 06:23+0000\n"
-"PO-Revision-Date: 2026-05-21 06:23+0000\n"
+"POT-Creation-Date: 2026-09-02 03:08+0000\n"
+"PO-Revision-Date: 2026-09-02 03:08+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -20,6 +20,12 @@ msgstr ""
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__parent_id
 msgid " Partner Operation"
 msgstr "上级作业单"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/wizard/waybill_container_batch_create_wizard.py:0
+msgid "%s containers created."
+msgstr "%s 容器已创建。"
 
 #. module: wd_iffm
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_operation_workbench_card_kanban
@@ -61,17 +67,15 @@ msgstr "45尺高柜"
 msgid ""
 "<br/>\n"
 "                            <strong>Currency:</strong>"
-msgstr ""
-"<br/>\n"
-"                            <strong>币种：</strong>"
+msgstr "<br/>\n"
+"                            <strong>货币：</strong>"
 
 #. module: wd_iffm
 #: model_terms:ir.ui.view,arch_db:wd_iffm.report_statement_period
 msgid ""
 "<br/>\n"
 "                            <strong>Period:</strong>"
-msgstr ""
-"<br/>\n"
+msgstr "<br/>\n"
 "                            <strong>周期：</strong>"
 
 #. module: wd_iffm
@@ -79,8 +83,7 @@ msgstr ""
 msgid ""
 "<br/>\n"
 "                            <strong>State:</strong>"
-msgstr ""
-"<br/>\n"
+msgstr "<br/>\n"
 "                            <strong>状态：</strong>"
 
 #. module: wd_iffm
@@ -94,9 +97,8 @@ msgid ""
 "<span class=\"text-muted\" invisible=\"parent_id == False\">\n"
 "                                (Child Clearancce)\n"
 "                            </span>"
-msgstr ""
-"<span class=\"text-muted\" invisible=\"parent_id == False\">\n"
-"                                (子清关单)\n"
+msgstr "<span class=\"text-muted\" invisible=\"parent_id == False\">\n"
+"                                （子清关单）\n"
 "                            </span>"
 
 #. module: wd_iffm
@@ -105,9 +107,8 @@ msgid ""
 "<span class=\"text-muted\" invisible=\"parent_id == False\">\n"
 "                                (Child Handover)\n"
 "                            </span>"
-msgstr ""
-"<span class=\"text-muted\" invisible=\"parent_id == False\">\n"
-"                                (子换单)\n"
+msgstr "<span class=\"text-muted\" invisible=\"parent_id == False\">\n"
+"                                （子换单）\n"
 "                            </span>"
 
 #. module: wd_iffm
@@ -119,56 +120,56 @@ msgstr "<span class=\"text-muted\">实际到港时间: </span>"
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_operation_workbench_card_kanban
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_waybill_kanban_level1
 msgid "<span class=\"text-muted\">B/L: </span>"
-msgstr ""
+msgstr "<span class=\"text-muted\">B/L: </span>"
 
 #. module: wd_iffm
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_operation_workbench_card_kanban
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_waybill_kanban_level1
 msgid "<span class=\"text-muted\">Bill No: </span>"
-msgstr ""
+msgstr "<span class=\"text-muted\">提单号: </span>"
 
 #. module: wd_iffm
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_operation_workbench_card_kanban
 msgid "<span class=\"text-muted\">Clearance Date: </span>"
-msgstr ""
+msgstr "<span class=\"text-muted\">清关日期: </span>"
 
 #. module: wd_iffm
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_operation_workbench_card_kanban
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_waybill_kanban_level1
 msgid "<span class=\"text-muted\">Container Number: </span>"
-msgstr ""
+msgstr "<span class=\"text-muted\">集装箱号: </span>"
 
 #. module: wd_iffm
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_waybill_kanban_level1
 msgid "<span class=\"text-muted\">ETA: </span>"
-msgstr ""
-
-#. module: wd_iffm
-#: model_terms:ir.ui.view,arch_db:wd_iffm.view_operation_workbench_card_kanban
-#: model_terms:ir.ui.view,arch_db:wd_iffm.view_waybill_kanban_level1
-msgid "<span class=\"text-muted\">HBL: </span>"
-msgstr ""
+msgstr "<span class=\"text-muted\">ETA：</span>"
 
 #. module: wd_iffm
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_operation_workbench_card_kanban
 msgid "<span class=\"text-muted\">Issue Date: </span>"
-msgstr ""
-
-#. module: wd_iffm
-#: model_terms:ir.ui.view,arch_db:wd_iffm.view_operation_workbench_card_kanban
-#: model_terms:ir.ui.view,arch_db:wd_iffm.view_waybill_kanban_level1
-msgid "<span class=\"text-muted\">MBL: </span>"
-msgstr ""
+msgstr "<span class=\"text-muted\">发行日期：</span>"
 
 #. module: wd_iffm
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_waybill_kanban_level1
 msgid "<span class=\"text-muted\">Overdue Reason: </span>"
-msgstr ""
+msgstr "<span class=\"text-muted\">逾期原因：</span>"
 
 #. module: wd_iffm
 #: model_terms:ir.ui.view,arch_db:wd_iffm.report_statement_period
 msgid "<strong>Project:</strong>"
 msgstr "<strong>项目：</strong>"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/models/clearance_models/operation_order_clearance.py:0
+msgid "A quotation is required before creating clearance."
+msgstr "创建清仓前需要报价。"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/models/clearance_models/operation_order_clearance.py:0
+msgid "A quotation is required before creating manual clearance."
+msgstr "创建手动清关之前需要报价。"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_world_depot_waybill_packing_list__adr
@@ -187,7 +188,7 @@ msgstr "实际到港时间"
 #: model:ir.model,name:wd_iffm.model_account_account
 #: model:ir.model.fields,field_description:wd_iffm.field_world_depot_charge_item__account_account_id
 msgid "Account"
-msgstr "账户"
+msgstr "科目"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_account_account__account_category
@@ -195,11 +196,9 @@ msgid "Account Category"
 msgstr "科目类别"
 
 #. module: wd_iffm
-#. odoo-python
-#: code:addons/wd_iffm/models/clearance_models/operation_order_clearance.py:0
-#: code:addons/wd_iffm/models/handover_models/operation_order_handover.py:0
-msgid "Account not found for charge item %s."
-msgstr "未找到费用项目 %s 对应的会计科目。"
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_clearance__invoice_line_ids
+msgid "Accrued expenses"
+msgstr "应付费用"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation__message_needaction
@@ -233,6 +232,7 @@ msgstr "激活"
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_workbench_lane__active
 #: model:ir.model.fields,field_description:wd_iffm.field_world_depot_port_node__active
 #: model:ir.model.fields.selection,name:wd_iffm.selection__charge_quotation__state__active
+#: model_terms:ir.ui.view,arch_db:wd_iffm.view_world_depot_waybill_search
 msgid "Active"
 msgstr "激活"
 
@@ -330,6 +330,12 @@ msgid "Actual arrival date is required"
 msgstr "必须提供实际到港日期"
 
 #. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/models/clearance_models/operation_order_clearance.py:0
+msgid "Actual arrival time is required before clearance completion."
+msgstr "清关完成前需要实际到达时间。"
+
+#. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_clearance__extra_reason
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__extra_reason
 msgid "Additional Reason"
@@ -351,7 +357,7 @@ msgstr "附加服务"
 #: model:ir.model.fields,field_description:wd_iffm.field_world_depot_port_node__address
 #: model:ir.model.fields,field_description:wd_iffm.field_world_depot_port_node__terminal_address
 msgid "Address"
-msgstr ""
+msgstr "地址"
 
 #. module: wd_iffm
 #: model:ir.model.fields,help:wd_iffm.field_world_depot_port_node__state
@@ -376,9 +382,26 @@ msgid "All Advance Paid"
 msgstr "所有预付款已付"
 
 #. module: wd_iffm
+#. odoo-javascript
+#: code:addons/wd_iffm/static/src/xml/workbench_home_page.xml:0
+msgid "All Projects"
+msgstr "所有项目"
+
+#. module: wd_iffm
+#. odoo-javascript
+#: code:addons/wd_iffm/static/src/xml/workbench_home_page.xml:0
+msgid "All Shipping Companies"
+msgstr "所有运输公司"
+
+#. module: wd_iffm
+#. odoo-javascript
+#: code:addons/wd_iffm/static/src/xml/workbench_home_page.xml:0
+msgid "All Waybills"
+msgstr "所有运单"
+
+#. module: wd_iffm
 #. odoo-python
 #: code:addons/wd_iffm/models/clearance_models/operation_order_clearance.py:0
-#: code:addons/wd_iffm/models/handover_models/operation_order_handover.py:0
 msgid "All advance invoices must be paid before Close."
 msgstr "在完成前，所有预付款发票必须已支付。"
 
@@ -390,6 +413,12 @@ msgstr "在放行前，所有预付款发票必须已支付。"
 
 #. module: wd_iffm
 #. odoo-python
+#: code:addons/wd_iffm/models/settlement_account_models/statement_period.py:0
+msgid "All orders in the statement period must use the statement currency."
+msgstr "报表周期内的所有订单必须使用报表货币。"
+
+#. module: wd_iffm
+#. odoo-python
 #: code:addons/wd_iffm/models/workbench_models/operation_workbench_alert_rule.py:0
 msgid "All rule values must be greater than zero."
 msgstr "所有规则值必须大于零。"
@@ -397,6 +426,7 @@ msgstr "所有规则值必须大于零。"
 #. module: wd_iffm
 #. odoo-python
 #: code:addons/wd_iffm/models/clearance_models/operation_order_clearance.py:0
+#: code:addons/wd_iffm/models/handover_models/operation_order_handover.py:0
 msgid "All vendor invoice lines must be paid before Close."
 msgstr "所有供应商发票行项目必须在结账前完成付款。"
 
@@ -491,6 +521,12 @@ msgstr "实报实销"
 
 #. module: wd_iffm
 #. odoo-python
+#: code:addons/wd_iffm/models/clearance_models/operation_order_clearance.py:0
+msgid "At least one container is required before manual clearance completion."
+msgstr "手动清关完成前至少需要一个集装箱。"
+
+#. module: wd_iffm
+#. odoo-python
 #: code:addons/wd_iffm/models/transportation_models/import_pickup_requirement.py:0
 msgid "At least one container must be selected."
 msgstr "必须至少选择一个集装箱。"
@@ -555,11 +591,6 @@ msgid "BL file is required."
 msgstr "必须提供提单文件。"
 
 #. module: wd_iffm
-#: model_terms:ir.ui.view,arch_db:wd_iffm.operation_order_clearance_form_view
-msgid "Back To Paid"
-msgstr "退回已付款"
-
-#. module: wd_iffm
 #: model:ir.model.fields.selection,name:wd_iffm.selection__world_depot_waybill__arrival_overdue_result__backfill_ata
 msgid "Backfilled ATA"
 msgstr "回填的ATA"
@@ -589,6 +620,12 @@ msgstr "银行水单附件"
 
 #. module: wd_iffm
 #. odoo-python
+#: code:addons/wd_iffm/models/settlement_account_models/account_payment_inherit.py:0
+msgid "Bank proof (water slip) is required before creating payment for: %s"
+msgstr "创建付款前需要提供银行证明（水单）： %s"
+
+#. module: wd_iffm
+#. odoo-python
 #: code:addons/wd_iffm/models/settlement_account_models/account_move_inherit.py:0
 msgid "Bank proof (water slip) is required."
 msgstr "必须提供银行水单。"
@@ -613,6 +650,33 @@ msgstr "基础配置"
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_charge_quotation_form
 msgid "Batch Add"
 msgstr "批量添加"
+
+#. module: wd_iffm
+#: model_terms:ir.ui.view,arch_db:wd_iffm.view_world_depot_waybill_form
+msgid "Batch Create"
+msgstr "批量创建"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/models/clearance_models/operation_order_clearance.py:0
+#: code:addons/wd_iffm/wizard/waybill_container_batch_create_wizard.py:0
+#: model:ir.actions.act_window,name:wd_iffm.action_waybill_container_batch_create_wizard
+#: model_terms:ir.ui.view,arch_db:wd_iffm.operation_order_clearance_form_view
+#: model_terms:ir.ui.view,arch_db:wd_iffm.view_waybill_container_batch_create_wizard_form
+msgid "Batch Create Containers"
+msgstr "批量创建集装箱"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/wizard/waybill_container_batch_create_wizard.py:0
+msgid ""
+"Batch creation is only available for manual clearance without a waybill."
+msgstr "批量创建仅适用于无运单的手动清关。"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_world_depot_waybill_container__bl_number
+msgid "Bill Number"
+msgstr "帐单编号"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__bl_number
@@ -656,6 +720,12 @@ msgstr "取消"
 #: model:ir.model.fields.selection,name:wd_iffm.selection__statement_period__state__calculated
 msgid "Calculated"
 msgstr "已计算"
+
+#. module: wd_iffm
+#. odoo-javascript
+#: code:addons/wd_iffm/static/src/xml/workbench_home_page.xml:0
+msgid "Calendar"
+msgstr "日历"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_clearance__can_complete
@@ -726,7 +796,6 @@ msgstr "看板名称"
 #. odoo-python
 #: code:addons/wd_iffm/models/charge_pricing_models/waybill.py:0
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_waybill_arrival_wizard_form
-#: model_terms:ir.ui.view,arch_db:wd_iffm.view_world_depot_waybill_form
 msgid "Cargo Arrival Confirmation"
 msgstr "货物到港确认"
 
@@ -750,6 +819,7 @@ msgstr "基于集装箱或HS编码最大数量计费"
 
 #. module: wd_iffm
 #: model:ir.model,name:wd_iffm.model_world_depot_charge_item
+#: model:ir.model.fields,field_description:wd_iffm.field_account_move_line__charge_item_id
 #: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation_add_wizard_line__charge_item_id
 #: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation_line__charge_item_id
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_clearance_charge_line__charge_item_id
@@ -828,14 +898,19 @@ msgid "Charge item already exists in this quotation."
 msgstr "此费用项目已存在于本报价单中。"
 
 #. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/models/clearance_models/operation_order_clearance.py:0
+#: code:addons/wd_iffm/models/handover_models/operation_order_handover.py:0
+msgid "Charge item is required for each cost line."
+msgstr "每个成本行都需要费用项目。"
+
+#. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_clearance__charge_line_ids
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__charge_line_ids
-#: model_terms:ir.ui.view,arch_db:wd_iffm.operation_order_clearance_form_view
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_clearance_statement_period_form
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_handover_statement_period_form
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_operation_order_clearance_child_form
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_operation_order_handover_child_form
-#: model_terms:ir.ui.view,arch_db:wd_iffm.view_operation_order_handover_form
 msgid "Charges"
 msgstr "应收费用"
 
@@ -847,6 +922,7 @@ msgid "Charges are required before Close."
 msgstr "完成前必须填写费用。"
 
 #. module: wd_iffm
+#: model:ir.actions.act_window,name:wd_iffm.action_wd_iffm_expense_account
 #: model:ir.ui.menu,name:wd_iffm.menu_chart_of_accounts_readonly
 msgid "Chart of Accounts"
 msgstr "会计科目表"
@@ -912,16 +988,32 @@ msgid "City"
 msgstr "城市"
 
 #. module: wd_iffm
+#. odoo-javascript
+#: code:addons/wd_iffm/static/src/xml/workbench_home_page.xml:0
+msgid "Clear"
+msgstr "清除"
+
+#. module: wd_iffm
+#. odoo-javascript
+#. odoo-python
+#: code:addons/wd_iffm/models/charge_pricing_models/waybill.py:0
+#: code:addons/wd_iffm/static/src/xml/workbench_home_page.xml:0
+#: model:ir.model.fields,field_description:wd_iffm.field_account_bank_statement_line__clearance_id
+#: model:ir.model.fields,field_description:wd_iffm.field_account_move__clearance_id
 #: model:ir.model.fields,field_description:wd_iffm.field_clearance_reclearance_wizard__clearance_id
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_clearance_charge_line__clearance_id
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_clearance_container_line__clearance_id
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_clearance_cost_line__clearance_id
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_clearance_invoice_line__clearance_id
+#: model:ir.model.fields,field_description:wd_iffm.field_waybill_container_batch_create_wizard__clearance_id
 #: model:ir.model.fields,field_description:wd_iffm.field_world_depot_waybill__clearance_id
+#: model:ir.model.fields.selection,name:wd_iffm.selection__charge_quotation_add_wizard__tab_category__clearance
+#: model:ir.model.fields.selection,name:wd_iffm.selection__charge_quotation_line__tab_category__clearance
 #: model:ir.model.fields.selection,name:wd_iffm.selection__operation_workbench_dashboard_data__lane_code__clearance
 #: model:ir.model.fields.selection,name:wd_iffm.selection__world_depot_charge_item__operation_type__clearance
 #: model:ir.ui.menu,name:wd_iffm.menu_operation_order_clearance_invoices
 #: model_terms:ir.ui.view,arch_db:wd_iffm.operation_order_clearance_form_view
+#: model_terms:ir.ui.view,arch_db:wd_iffm.view_world_depot_waybill_form
 msgid "Clearance"
 msgstr "清关"
 
@@ -963,20 +1055,9 @@ msgid "Clearance Exception"
 msgstr "清关异常"
 
 #. module: wd_iffm
-#. odoo-python
-#: code:addons/wd_iffm/models/clearance_models/operation_order_clearance.py:0
-msgid "Clearance Finish Date is required before Released."
-msgstr "放行前必须提供清关完成日期。"
-
-#. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_clearance__clearance_finish_datetime
 msgid "Clearance Finish Time"
 msgstr "清关完成时间"
-
-#. module: wd_iffm
-#: model_terms:ir.ui.view,arch_db:wd_iffm.operation_order_clearance_form_view
-msgid "Clearance Info"
-msgstr "清关信息"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_workbench_alert_rule__clearance_near_hours
@@ -1025,6 +1106,12 @@ msgstr "报关行"
 #. module: wd_iffm
 #. odoo-python
 #: code:addons/wd_iffm/models/clearance_models/operation_order_clearance.py:0
+msgid "Clearance expense account WDA5002 is not configured."
+msgstr "清除费用科目 WDA5002 未配置。"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/models/clearance_models/operation_order_clearance.py:0
 msgid "Clearance must be close before creating child clearance."
 msgstr "创建子清关单前，主清关单必须已完成。"
 
@@ -1042,11 +1129,33 @@ msgid "Clearanced"
 msgstr "已清关"
 
 #. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_world_depot_waybill__clearance_lines
+msgid "Clearances"
+msgstr "清关"
+
+#. module: wd_iffm
 #: model:ir.model.fields.selection,name:wd_iffm.selection__operation_order_clearance__state__clearancing
 #: model:ir.model.fields.selection,name:wd_iffm.selection__operation_workbench_card__clearance_state__clearancing
-#: model_terms:ir.ui.view,arch_db:wd_iffm.operation_order_clearance_form_view
 msgid "Clearancing"
 msgstr "清关中"
+
+#. module: wd_iffm
+#. odoo-javascript
+#: code:addons/wd_iffm/static/src/xml/workbench_home_page.xml:0
+msgid "Click"
+msgstr "点击"
+
+#. module: wd_iffm
+#: model_terms:ir.actions.act_window,help:wd_iffm.action_open_workbench_board_card
+msgid ""
+"Click on a waybill card from the waybill kanban to enter the operation "
+"kanban"
+msgstr "点击运单看板上的运单卡进入操作看板"
+
+#. module: wd_iffm
+#: model_terms:ir.actions.act_window,help:wd_iffm.action_import_bill_kanban
+msgid "Click the \"Create\" button to add a new import bill"
+msgstr "点击“创建”按钮添加新的进口提单"
 
 #. module: wd_iffm
 #: model:ir.model.fields.selection,name:wd_iffm.selection__operation_order_clearance__state__close
@@ -1166,6 +1275,11 @@ msgid "Container Number"
 msgstr "集装箱号"
 
 #. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_waybill_container_batch_create_wizard__container_numbers
+msgid "Container Numbers"
+msgstr "集装箱号"
+
+#. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_clearance__container_nums
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__container_nums
 msgid "Container Nums"
@@ -1191,6 +1305,24 @@ msgstr "集装箱类型"
 #: model:ir.model.fields,help:wd_iffm.field_world_depot_waybill_container__mode
 msgid "Container mode, e.g., CY/CY, etc."
 msgstr "集装箱换单方式（如 CY/CY 等）"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/models/world_depot_waybill_container_inherit.py:0
+msgid "Container number is required."
+msgstr "集装箱号是必需的。"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/wizard/waybill_container_batch_create_wizard.py:0
+msgid "Container numbers already exist: %s"
+msgstr "集装箱编号已存在：%s"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/wizard/waybill_container_batch_create_wizard.py:0
+msgid "Container numbers are required."
+msgstr "需要集装箱编号。"
 
 #. module: wd_iffm
 #. odoo-python
@@ -1223,6 +1355,13 @@ msgstr "待清关集装箱"
 #: model:ir.model.fields,help:wd_iffm.field_world_depot_waybill__container_ids
 msgid "Containers associated with this waybill"
 msgstr "关联集装箱"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/models/clearance_models/operation_order_clearance.py:0
+#: code:addons/wd_iffm/wizard/waybill_container_batch_create_wizard.py:0
+msgid "Containers can only be created for Open clearance."
+msgstr "集装箱只能为开放清关创建。"
 
 #. module: wd_iffm
 #: model_terms:ir.ui.view,arch_db:wd_iffm.operation_order_clearance_invoice_line_form_view
@@ -1261,6 +1400,11 @@ msgid "Country"
 msgstr "国家"
 
 #. module: wd_iffm
+#: model_terms:ir.ui.view,arch_db:wd_iffm.view_waybill_container_batch_create_wizard_form
+msgid "Create"
+msgstr "创建"
+
+#. module: wd_iffm
 #: model_terms:ir.ui.view,arch_db:wd_iffm.operation_order_clearance_form_view
 msgid "Create Child Clearance"
 msgstr "创建子清关单"
@@ -1279,6 +1423,11 @@ msgstr "创建清关"
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_world_depot_waybill_form
 msgid "Create Handover"
 msgstr "创建换单"
+
+#. module: wd_iffm
+#: model_terms:ir.ui.view,arch_db:wd_iffm.view_world_depot_waybill_form
+msgid "Create Inbound Order"
+msgstr "创建入库订单"
 
 #. module: wd_iffm
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_waybill_create_clearance_wizard_form
@@ -1325,6 +1474,7 @@ msgstr "创建您的第一份报价单。"
 #: model:ir.model.fields,field_description:wd_iffm.field_portbase_webhook_log__create_uid
 #: model:ir.model.fields,field_description:wd_iffm.field_statement_period__create_uid
 #: model:ir.model.fields,field_description:wd_iffm.field_waybill_arrival_wizard__create_uid
+#: model:ir.model.fields,field_description:wd_iffm.field_waybill_container_batch_create_wizard__create_uid
 #: model:ir.model.fields,field_description:wd_iffm.field_waybill_create_clearance_wizard__create_uid
 #: model:ir.model.fields,field_description:wd_iffm.field_world_depot_port_node__create_uid
 #: model:ir.model.fields,field_description:wd_iffm.field_world_depot_waybill__create_uid
@@ -1362,6 +1512,7 @@ msgstr "创建人"
 #: model:ir.model.fields,field_description:wd_iffm.field_portbase_webhook_log__create_date
 #: model:ir.model.fields,field_description:wd_iffm.field_statement_period__create_date
 #: model:ir.model.fields,field_description:wd_iffm.field_waybill_arrival_wizard__create_date
+#: model:ir.model.fields,field_description:wd_iffm.field_waybill_container_batch_create_wizard__create_date
 #: model:ir.model.fields,field_description:wd_iffm.field_waybill_create_clearance_wizard__create_date
 #: model:ir.model.fields,field_description:wd_iffm.field_world_depot_port_node__create_date
 #: model:ir.model.fields,field_description:wd_iffm.field_world_depot_waybill__create_date
@@ -1370,6 +1521,11 @@ msgstr "创建人"
 #: model:ir.model.fields,field_description:wd_iffm.field_world_depot_waybill_packing_list__create_date
 msgid "Created on"
 msgstr "创建于"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_world_depot_waybill__creation_method
+msgid "Creation Method"
+msgstr "创建方法"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation__currency_id
@@ -1390,10 +1546,22 @@ msgstr "货币"
 
 #. module: wd_iffm
 #. odoo-python
+#: code:addons/wd_iffm/models/settlement_account_models/statement_period.py:0
+msgid "Currency is required before creating the customer invoice."
+msgstr "在创建客户发票之前需要货币。"
+
+#. module: wd_iffm
+#. odoo-python
 #: code:addons/wd_iffm/models/clearance_models/operation_order_clearance.py:0
 #: code:addons/wd_iffm/models/handover_models/operation_order_handover.py:0
 msgid "Currency is required."
 msgstr "必须选择货币。"
+
+#. module: wd_iffm
+#. odoo-javascript
+#: code:addons/wd_iffm/static/src/xml/workbench_home_page.xml:0
+msgid "Current:"
+msgstr "当前："
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_world_depot_waybill__custom_clearance
@@ -1401,14 +1569,20 @@ msgid "Custom Clearance"
 msgstr "海关清关"
 
 #. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/models/charge_pricing_models/waybill.py:0
+msgid "Custom Clearance must both be completed before Done."
+msgstr "清关必须在完成之前完成。"
+
+#. module: wd_iffm
 #: model:account.account,name:wd_iffm.acc_clearance_expense_account
 msgid "Customer Clearance Expense Account"
-msgstr "Customer Clearance Expense Account"
+msgstr "客户清关费用科目"
 
 #. module: wd_iffm
 #: model:account.account,name:wd_iffm.acc_hanover_expense_account
 msgid "Customer Handover Expense Account"
-msgstr "Customer Handover Expense Account"
+msgstr "客户移交费用科目"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_statement_period__customer_invoice_id
@@ -1453,46 +1627,10 @@ msgid "Customs Declaration Date"
 msgstr "报关日期"
 
 #. module: wd_iffm
-#: model:ir.model.fields.selection,name:wd_iffm.selection__charge_quotation_add_wizard__tab_category__customs
 #: model:ir.model.fields.selection,name:wd_iffm.selection__world_depot_charge_item__tab_category__customs
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_charge_quotation_form
 msgid "Customs Formalities"
-msgstr "报关手续"
-
-#. module: wd_iffm
-#: model:account.account,name:wd_iffm.acc_customs_formalities_exportdocument_incl_1_hs_code
-msgid "Customs Formalities / Exportdocument (incl. 1 HS Code)"
-msgstr "Customs Formalities / Exportdocument (incl. 1 HS Code)"
-
-#. module: wd_iffm
-#: model:account.account,name:wd_iffm.acc_customs_formalities_extra_article_container
-msgid "Customs Formalities / Extra article & container"
-msgstr "Customs Formalities / Extra article & container"
-
-#. module: wd_iffm
-#: model:account.account,name:wd_iffm.acc_customs_formalities_normal_customs_clearance
-msgid "Customs Formalities / Normal Customs Clearance"
-msgstr "Customs Formalities / Normal Customs Clearance"
-
-#. module: wd_iffm
-#: model:account.account,name:wd_iffm.acc_customs_formalities_processing_authorisation
-msgid "Customs Formalities / Processing authorisation"
-msgstr "Customs Formalities / Processing authorisation"
-
-#. module: wd_iffm
-#: model:account.account,name:wd_iffm.acc_customs_formalities_t1_document
-msgid "Customs Formalities / T1 Document"
-msgstr "Customs Formalities / T1 Document"
-
-#. module: wd_iffm
-#: model:account.account,name:wd_iffm.acc_customs_formalities_tariff
-msgid "Customs Formalities / Tariff"
-msgstr "Customs Formalities / Tariff"
-
-#. module: wd_iffm
-#: model:account.account,name:wd_iffm.acc_customs_formalities_termination_t1
-msgid "Customs Formalities / Termination T1"
-msgstr "Customs Formalities / Termination T1"
+msgstr "清关费用"
 
 #. module: wd_iffm
 #: model:ir.model.fields.selection,name:wd_iffm.selection__operation_order_clearance__extra_reason__customs_inspection
@@ -1532,36 +1670,10 @@ msgid "Customs declaration date is required."
 msgstr "必须提供报关日期。"
 
 #. module: wd_iffm
-#. odoo-python
-#: code:addons/wd_iffm/models/clearance_models/operation_order_clearance.py:0
-msgid ""
-"Customs release document is required when clearance finish time or release "
-"number is filled."
-msgstr "当填写清关完成时间或放行编号时，需提供海关放行文件。"
-
-#. module: wd_iffm
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_operation_order_handover_child_form
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_operation_order_handover_form
 msgid "DO"
 msgstr "提货单"
-
-#. module: wd_iffm
-#. odoo-python
-#: code:addons/wd_iffm/models/handover_models/operation_order_handover.py:0
-msgid "DO / Telex Release document is required before Close."
-msgstr "完成前必须提供提货单/电放文件。"
-
-#. module: wd_iffm
-#. odoo-python
-#: code:addons/wd_iffm/models/handover_models/operation_order_handover.py:0
-msgid "DO / Telex Release document is required before Released."
-msgstr "放行前必须提供提货单/电放文件。"
-
-#. module: wd_iffm
-#. odoo-python
-#: code:addons/wd_iffm/models/handover_models/operation_order_handover.py:0
-msgid "DO / Telex Release document is required when DO Issue Date is filled."
-msgstr "若已填写提货单签发日期，则必须提供提货单/电放文件。"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__do_issue_datetime
@@ -1578,6 +1690,12 @@ msgstr "提货单/电放"
 #: model_terms:ir.ui.view,arch_db:wd_iffm.report_statement_period
 msgid "Date"
 msgstr "日期"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/models/clearance_models/operation_order_clearance.py:0
+msgid "Delete child clearance records before deleting the main clearance."
+msgstr "在删除主清关之前先删除子清关记录。"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_import_pickup_requirement__delivery_city
@@ -1681,6 +1799,11 @@ msgid "Detention"
 msgstr "滞箱费"
 
 #. module: wd_iffm
+#: model_terms:ir.ui.view,arch_db:wd_iffm.view_waybill_container_batch_create_wizard_form
+msgid "Discard"
+msgstr "丢弃"
+
+#. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation__display_name
 #: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation_add_wizard__display_name
 #: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation_add_wizard_line__display_name
@@ -1708,6 +1831,7 @@ msgstr "滞箱费"
 #: model:ir.model.fields,field_description:wd_iffm.field_portbase_webhook_log__display_name
 #: model:ir.model.fields,field_description:wd_iffm.field_statement_period__display_name
 #: model:ir.model.fields,field_description:wd_iffm.field_waybill_arrival_wizard__display_name
+#: model:ir.model.fields,field_description:wd_iffm.field_waybill_container_batch_create_wizard__display_name
 #: model:ir.model.fields,field_description:wd_iffm.field_waybill_create_clearance_wizard__display_name
 #: model:ir.model.fields,field_description:wd_iffm.field_world_depot_port_node__display_name
 #: model:ir.model.fields,field_description:wd_iffm.field_world_depot_waybill__display_name
@@ -1726,12 +1850,6 @@ msgstr "显示状态"
 #: model:ir.model.fields,help:wd_iffm.field_operation_workbench_lane__sequence
 msgid "Display order of the lane"
 msgstr "显示作业甬道"
-
-#. module: wd_iffm
-#. odoo-python
-#: code:addons/wd_iffm/models/handover_models/operation_order_handover.py:0
-msgid "Do issue date is required."
-msgstr "必须提供提货单签发日期。"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_clearance__attachment_line_ids
@@ -1759,10 +1877,6 @@ msgid "Document Type"
 msgstr "文件类型"
 
 #. module: wd_iffm
-#: model_terms:ir.ui.view,arch_db:wd_iffm.operation_order_clearance_form_view
-#: model_terms:ir.ui.view,arch_db:wd_iffm.view_operation_order_clearance_child_form
-#: model_terms:ir.ui.view,arch_db:wd_iffm.view_operation_order_handover_child_form
-#: model_terms:ir.ui.view,arch_db:wd_iffm.view_operation_order_handover_form
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_world_depot_waybill_form
 msgid "Documents"
 msgstr "单据"
@@ -1799,6 +1913,12 @@ msgid "Dropoff Location"
 msgstr "还箱地点"
 
 #. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/wizard/waybill_container_batch_create_wizard.py:0
+msgid "Duplicate container numbers were entered."
+msgstr "输入了重复的容器编号。"
+
+#. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_clearance__eu_eori_no
 #: model:ir.model.fields,field_description:wd_iffm.field_res_partner__eu_eori_no
 #: model:ir.model.fields,field_description:wd_iffm.field_res_users__eu_eori_no
@@ -1809,6 +1929,7 @@ msgstr "EORI号码"
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_clearance__eta
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__eta
 #: model:ir.model.fields,field_description:wd_iffm.field_world_depot_waybill__eta
+#: model_terms:ir.ui.view,arch_db:wd_iffm.view_waybill_calendar
 msgid "ETA"
 msgstr "预计到港时间"
 
@@ -1822,12 +1943,6 @@ msgstr "预计到港时间"
 #: code:addons/wd_iffm/static/src/xml/workbench_home_page.xml:0
 msgid "ETA:"
 msgstr "预计到港时间"
-
-#. module: wd_iffm
-#. odoo-python
-#: code:addons/wd_iffm/models/clearance_models/operation_order_clearance.py:0
-msgid "EU EORI No or VAT Tax No is required."
-msgstr "必须提供欧盟EORI号或增值税税号。"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation__effective_from
@@ -1852,9 +1967,20 @@ msgid "Either Bill of Lading or House Bill of Lading must be provided."
 msgstr "必须提供主提单或分提单。"
 
 #. module: wd_iffm
+#. odoo-javascript
+#: code:addons/wd_iffm/static/src/xml/workbench_home_page.xml:0
+msgid "End"
+msgstr "结束"
+
+#. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_statement_period__date_end
 msgid "End Date"
 msgstr "结束日期"
+
+#. module: wd_iffm
+#: model_terms:ir.ui.view,arch_db:wd_iffm.view_waybill_container_batch_create_wizard_form
+msgid "Enter one container number per line."
+msgstr "每行输入一个集装箱编号。"
 
 #. module: wd_iffm
 #: model:ir.model.fields.selection,name:wd_iffm.selection__portbase_webhook_log__process_status__error
@@ -1875,7 +2001,14 @@ msgstr "事件类型"
 #. module: wd_iffm
 #: model:ir.model.fields,help:wd_iffm.field_operation_workbench_dashboard_data__record_ids_text
 msgid "Example: 11,12,13"
-msgstr ""
+msgstr "示例：11,12,13"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/wizard/waybill_container_batch_create_wizard.py:0
+msgid ""
+"Existing containers are linked to another clearance and cannot be deleted."
+msgstr "现有集装箱链接到另一个间隙，无法删除。"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__expected_pickup_datetime
@@ -1900,7 +2033,7 @@ msgstr "成本确认日期"
 #. module: wd_iffm
 #: model:account.account,name:wd_iffm.acc_pay_expense
 msgid "Expense Payable Account"
-msgstr "Expense Payable Account"
+msgstr "应付费用账户"
 
 #. module: wd_iffm
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_charge_quotation_form
@@ -2070,6 +2203,11 @@ msgid ""
 msgstr "对于'提货至我司仓库'的场景，必须选择仓库。"
 
 #. module: wd_iffm
+#: model:ir.ui.menu,name:wd_iffm.menu_wd_workbench
+msgid "Freight Forwarder Workbench"
+msgstr "货运代理工作台"
+
+#. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_waybill_create_clearance_wizard__from_workbench
 msgid "From Workbench"
 msgstr "来自工作台"
@@ -2112,6 +2250,12 @@ msgid "HS Code Qty"
 msgstr "HS编码数量"
 
 #. module: wd_iffm
+#. odoo-javascript
+#. odoo-python
+#: code:addons/wd_iffm/models/charge_pricing_models/waybill.py:0
+#: code:addons/wd_iffm/static/src/xml/workbench_home_page.xml:0
+#: model:ir.model.fields,field_description:wd_iffm.field_account_bank_statement_line__handover_id
+#: model:ir.model.fields,field_description:wd_iffm.field_account_move__handover_id
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_clearance__handover_id
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_clearance_attachment_line__clearance_id
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_attachment_line__handover_id
@@ -2119,10 +2263,13 @@ msgstr "HS编码数量"
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_cost_line__handover_id
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_invoice_line__handover_id
 #: model:ir.model.fields,field_description:wd_iffm.field_world_depot_waybill__handover_id
+#: model:ir.model.fields.selection,name:wd_iffm.selection__charge_quotation_add_wizard__tab_category__handover
+#: model:ir.model.fields.selection,name:wd_iffm.selection__charge_quotation_line__tab_category__handover
 #: model:ir.model.fields.selection,name:wd_iffm.selection__operation_workbench_dashboard_data__lane_code__handover
 #: model:ir.model.fields.selection,name:wd_iffm.selection__world_depot_charge_item__operation_type__handover
 #: model:ir.ui.menu,name:wd_iffm.menu_operation_handover
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_operation_order_handover_form
+#: model_terms:ir.ui.view,arch_db:wd_iffm.view_world_depot_waybill_form
 msgid "Handover"
 msgstr "换单作业"
 
@@ -2142,7 +2289,7 @@ msgstr "换单允许时间"
 #: code:addons/wd_iffm/models/clearance_models/operation_order_clearance.py:0
 #: code:addons/wd_iffm/models/handover_models/operation_order_handover.py:0
 msgid "Handover Bill - %s"
-msgstr "Handover Bill - %s"
+msgstr "交接单 - %s"
 
 #. module: wd_iffm
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_handover_statement_period_form
@@ -2192,14 +2339,31 @@ msgstr "换单供应商发票明细"
 #. module: wd_iffm
 #. odoo-python
 #: code:addons/wd_iffm/models/handover_models/operation_order_handover.py:0
+msgid "Handover expense account WDA5001 is not configured."
+msgstr "未配置移交费用科目 WDA5001。"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/models/handover_models/operation_order_handover.py:0
 msgid "Handover must be close before creating child clearance."
 msgstr "创建子清关单前，主换单必须已完成。"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/models/charge_pricing_models/waybill.py:0
+msgid "Handover must be released or closed before Done."
+msgstr "切换必须在完成之前释放或关闭。"
 
 #. module: wd_iffm
 #. odoo-python
 #: code:addons/wd_iffm/models/charge_pricing_models/waybill_views_inherit.py:0
 msgid "Handover order created successfully."
 msgstr "换单作业创建成功"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_world_depot_waybill__handover_lines
+msgid "Handovers"
+msgstr "交接"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_clearance__has_advance_invoice
@@ -2235,13 +2399,18 @@ msgstr "有未付预付款发票"
 #. module: wd_iffm
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_portbase_webhook_log_form
 msgid "Headers"
-msgstr ""
+msgstr "表头"
 
 #. module: wd_iffm
 #. odoo-python
 #: code:addons/wd_iffm/models/charge_pricing_models/port_node.py:0
 msgid "Hierarchy recursion is not allowed."
 msgstr "不允许层级递归。"
+
+#. module: wd_iffm
+#: model:ir.actions.act_window,name:wd_iffm.action_home_page
+msgid "Home"
+msgstr "首页"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__hbl_number
@@ -2287,6 +2456,7 @@ msgstr "冷藏箱湿度控制"
 #: model:ir.model.fields,field_description:wd_iffm.field_portbase_webhook_log__id
 #: model:ir.model.fields,field_description:wd_iffm.field_statement_period__id
 #: model:ir.model.fields,field_description:wd_iffm.field_waybill_arrival_wizard__id
+#: model:ir.model.fields,field_description:wd_iffm.field_waybill_container_batch_create_wizard__id
 #: model:ir.model.fields,field_description:wd_iffm.field_waybill_create_clearance_wizard__id
 #: model:ir.model.fields,field_description:wd_iffm.field_world_depot_port_node__id
 #: model:ir.model.fields,field_description:wd_iffm.field_world_depot_waybill__id
@@ -2294,7 +2464,7 @@ msgstr "冷藏箱湿度控制"
 #: model:ir.model.fields,field_description:wd_iffm.field_world_depot_waybill_other_docs__id
 #: model:ir.model.fields,field_description:wd_iffm.field_world_depot_waybill_packing_list__id
 msgid "ID"
-msgstr ""
+msgstr "ID"
 
 #. module: wd_iffm
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_world_depot_waybill_form
@@ -2393,9 +2563,25 @@ msgid "If checked, some messages have a delivery error."
 msgstr "如果选中，某些消息存在传递错误。"
 
 #. module: wd_iffm
+#: model:ir.actions.act_window,name:wd_iffm.action_import_bill_kanban
+#: model:ir.ui.menu,name:wd_iffm.menu_import_bill_kanban
+msgid "Import Bill Kanban"
+msgstr "进口票据看板"
+
+#. module: wd_iffm
 #: model:ir.ui.menu,name:wd_iffm.menu_wd_charge_root
 msgid "Import Freight Forwarder Management"
 msgstr "进口货代"
+
+#. module: wd_iffm
+#: model:ir.actions.client,name:wd_iffm.action_wd_iffm_workbench
+msgid "Import Freight Forwarding Home"
+msgstr "进口货运代理首页"
+
+#. module: wd_iffm
+#: model:ir.ui.menu,name:wd_iffm.menu_wd_iffm_root
+msgid "Import Freight Forwarding Management"
+msgstr "进口货运代理管理"
 
 #. module: wd_iffm
 #: model:ir.module.category,description:wd_iffm.module_category_import_management
@@ -2418,6 +2604,25 @@ msgstr "进口商"
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_clearance__inbound_release_datetime
 msgid "Inbound Bonded Release Date"
 msgstr "进境保税放行日期"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/models/world_depot_waybill_container_inherit.py:0
+#: model:ir.model,name:wd_iffm.model_world_depot_inbound_order
+#: model:ir.model.fields,field_description:wd_iffm.field_world_depot_waybill_container__inbound_order_id
+msgid "Inbound Order"
+msgstr "入库单"
+
+#. module: wd_iffm
+#: model:ir.model,name:wd_iffm.model_world_depot_inbound_order_products_pallet
+msgid "Inbound Order Products of Pallet"
+msgstr "入库单托盘产品"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/models/world_depot_waybill_container_inherit.py:0
+msgid "Inbound Orders"
+msgstr "入库订单"
 
 #. module: wd_iffm
 #: model:ir.model.fields,help:wd_iffm.field_world_depot_waybill_packing_list__adr
@@ -2456,6 +2661,11 @@ msgstr "发票日期"
 #: model_terms:ir.ui.view,arch_db:wd_iffm.operation_order_handover_invoice_line_form_view
 msgid "Invoice Line"
 msgstr "发票行"
+
+#. module: wd_iffm
+#: model:ir.ui.menu,name:wd_iffm.menu_wd_invoice_management
+msgid "Invoice Management"
+msgstr "发票管理"
 
 #. module: wd_iffm
 #. odoo-python
@@ -2505,7 +2715,7 @@ msgstr "是叶子节点"
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_workbench_card__is_main
 msgid "Is Main"
-msgstr ""
+msgstr "主要"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_world_depot_waybill__is_waybill_overdue
@@ -2516,6 +2726,23 @@ msgstr "提单逾期"
 #: model:ir.model,name:wd_iffm.model_account_move
 msgid "Journal Entry"
 msgstr "日记账分录"
+
+#. module: wd_iffm
+#: model:ir.model,name:wd_iffm.model_account_move_line
+msgid "Journal Item"
+msgstr "日记账项目"
+
+#. module: wd_iffm
+#. odoo-javascript
+#: code:addons/wd_iffm/static/src/xml/workbench_home_page.xml:0
+#: model:ir.ui.menu,name:wd_iffm.menu_kanban_root
+msgid "Kanban"
+msgstr "看板"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_waybill_container_batch_create_wizard__keep_existing_containers
+msgid "Keep Existing Containers"
+msgstr "保留现有容器"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_workbench_card__lane_id
@@ -2587,6 +2814,7 @@ msgstr "上次返单操作人"
 #: model:ir.model.fields,field_description:wd_iffm.field_portbase_webhook_log__write_uid
 #: model:ir.model.fields,field_description:wd_iffm.field_statement_period__write_uid
 #: model:ir.model.fields,field_description:wd_iffm.field_waybill_arrival_wizard__write_uid
+#: model:ir.model.fields,field_description:wd_iffm.field_waybill_container_batch_create_wizard__write_uid
 #: model:ir.model.fields,field_description:wd_iffm.field_waybill_create_clearance_wizard__write_uid
 #: model:ir.model.fields,field_description:wd_iffm.field_world_depot_port_node__write_uid
 #: model:ir.model.fields,field_description:wd_iffm.field_world_depot_waybill__write_uid
@@ -2624,6 +2852,7 @@ msgstr "最后更新人"
 #: model:ir.model.fields,field_description:wd_iffm.field_portbase_webhook_log__write_date
 #: model:ir.model.fields,field_description:wd_iffm.field_statement_period__write_date
 #: model:ir.model.fields,field_description:wd_iffm.field_waybill_arrival_wizard__write_date
+#: model:ir.model.fields,field_description:wd_iffm.field_waybill_container_batch_create_wizard__write_date
 #: model:ir.model.fields,field_description:wd_iffm.field_waybill_create_clearance_wizard__write_date
 #: model:ir.model.fields,field_description:wd_iffm.field_world_depot_port_node__write_date
 #: model:ir.model.fields,field_description:wd_iffm.field_world_depot_waybill__write_date
@@ -2648,6 +2877,12 @@ msgid "Linked vendor invoice must be a Vendor Bill (in_invoice)."
 msgstr "关联的供应商发票必须是供应商账单（in_invoice）。"
 
 #. module: wd_iffm
+#. odoo-javascript
+#: code:addons/wd_iffm/static/src/xml/workbench_home_page.xml:0
+msgid "List"
+msgstr "列表"
+
+#. module: wd_iffm
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_waybill_container_form
 msgid "Loading"
 msgstr "装货信息"
@@ -2663,14 +2898,15 @@ msgid "Loading Reference"
 msgstr "装货参考"
 
 #. module: wd_iffm
+#. odoo-javascript
+#: code:addons/wd_iffm/static/src/xml/workbench_home_page.xml:0
+msgid "Loading..."
+msgstr "正在加载..."
+
+#. module: wd_iffm
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_world_depot_waybill_form
 msgid "MAIN"
 msgstr "主要信息"
-
-#. module: wd_iffm
-#: model_terms:ir.ui.view,arch_db:wd_iffm.view_world_depot_waybill_search
-msgid "MBL / HBL No"
-msgstr "主提单/分提单号"
 
 #. module: wd_iffm
 #. odoo-python
@@ -2680,6 +2916,7 @@ msgstr "主卡已存在于通道%s中。"
 
 #. module: wd_iffm
 #. odoo-python
+#: code:addons/wd_iffm/models/charge_pricing_models/waybill.py:0
 #: code:addons/wd_iffm/models/charge_pricing_models/waybill_views_inherit.py:0
 #: code:addons/wd_iffm/wizard/waybill_create_clearance_wizard.py:0
 msgid "Main clearance already exists."
@@ -2707,6 +2944,7 @@ msgstr "管理结算周期"
 #: model:ir.model.fields.selection,name:wd_iffm.selection__operation_order_clearance_cost_line__charge_type__manual
 #: model:ir.model.fields.selection,name:wd_iffm.selection__operation_order_handover_charge_line__charge_origin_type__manual
 #: model:ir.model.fields.selection,name:wd_iffm.selection__operation_order_handover_cost_line__charge_type__manual
+#: model:ir.model.fields.selection,name:wd_iffm.selection__world_depot_waybill__creation_method__manual
 msgid "Manual"
 msgstr "手动"
 
@@ -2824,6 +3062,12 @@ msgid "Near Due Count"
 msgstr "即将临近数量"
 
 #. module: wd_iffm
+#. odoo-javascript
+#: code:addons/wd_iffm/static/src/xml/workbench_home_page.xml:0
+msgid "Near Expiry"
+msgstr "即将到期"
+
+#. module: wd_iffm
 #. odoo-python
 #: code:addons/wd_iffm/models/charge_pricing_models/waybill.py:0
 #: code:addons/wd_iffm/models/clearance_models/operation_order_clearance.py:0
@@ -2840,7 +3084,7 @@ msgstr "新建"
 #. odoo-python
 #: code:addons/wd_iffm/models/workbench_lane.py:0
 msgid "New stage"
-msgstr ""
+msgstr "新阶段"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation__activity_date_deadline
@@ -2924,11 +3168,28 @@ msgid "No equipmentNumber in tracked item"
 msgstr "跟踪项中无设备编号"
 
 #. module: wd_iffm
+#: model_terms:ir.ui.view,arch_db:wd_iffm.view_world_depot_waybill_form
+msgid ""
+"No handover has been created for this waybill. Are you sure you want to "
+"complete it?"
+msgstr "尚未为此运单创建移交。您确定要完成它吗？"
+
+#. module: wd_iffm
+#: model_terms:ir.actions.act_window,help:wd_iffm.action_import_bill_kanban
+msgid "No import bill data"
+msgstr "无进口票据数据"
+
+#. module: wd_iffm
 #. odoo-python
 #: code:addons/wd_iffm/models/clearance_models/operation_order_clearance.py:0
 #: code:addons/wd_iffm/models/handover_models/operation_order_handover.py:0
 msgid "No linked vendor invoice found."
 msgstr "未找到关联的供应商发票。"
+
+#. module: wd_iffm
+#: model_terms:ir.actions.act_window,help:wd_iffm.action_open_workbench_board_card
+msgid "No operation data"
+msgstr "无操作数据"
 
 #. module: wd_iffm
 #. odoo-python
@@ -3085,8 +3346,15 @@ msgstr "仅‘已清关’状态的单据可被完成。"
 #. module: wd_iffm
 #. odoo-python
 #: code:addons/wd_iffm/models/clearance_models/operation_order_clearance.py:0
-msgid "Only Clearancing can be set to Clearanced."
-msgstr "仅‘清关中’状态的单据可被设为已清关。"
+#: code:addons/wd_iffm/models/handover_models/operation_order_handover.py:0
+msgid "Only Open orders can be deleted."
+msgstr "仅可删除未结订单。"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/models/clearance_models/operation_order_clearance.py:0
+msgid "Only Open, Paying or Paid can be set to Clearanced."
+msgstr "仅开放、付款或已付款可设置为已清算。"
 
 #. module: wd_iffm
 #. odoo-python
@@ -3097,14 +3365,16 @@ msgstr "仅开放/待付费/已付费状态可进入清关流程。"
 #. module: wd_iffm
 #. odoo-python
 #: code:addons/wd_iffm/models/handover_models/operation_order_handover.py:0
-msgid "Only Released can be closed."
-msgstr "仅‘已放行’状态的单据可被完成。"
+msgid ""
+"Only Paid handover or Open handover without vendor invoices can be set to "
+"Released."
+msgstr "仅付费移交或无供应商发票的开放移交可设置为已发布。"
 
 #. module: wd_iffm
 #. odoo-python
 #: code:addons/wd_iffm/models/handover_models/operation_order_handover.py:0
-msgid "Only Releasing can be set to Released."
-msgstr "仅‘放行中’状态的单据可被设为已放行。"
+msgid "Only Released can be closed."
+msgstr "仅‘已放行’状态的单据可被完成。"
 
 #. module: wd_iffm
 #. odoo-python
@@ -3135,6 +3405,12 @@ msgstr "仅‘清关中’状态的订单可以退回至已付款状态以进行
 #: code:addons/wd_iffm/models/charge_pricing_models/waybill.py:0
 msgid "Only confirmed waybill can be done."
 msgstr "仅可录入已确认的提单。"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/models/charge_pricing_models/waybill.py:0
+msgid "Only confirmed waybills can be unconfirmed."
+msgstr "只有已确认的运单才可以取消确认。"
 
 #. module: wd_iffm
 #. odoo-python
@@ -3177,6 +3453,18 @@ msgstr "仅草稿或已提交状态可以取消"
 #: code:addons/wd_iffm/models/workbench_models/operation_workbench_card.py:0
 msgid "Only main card can create child."
 msgstr "只有主看板才能创建子看板"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/models/charge_pricing_models/waybill.py:0
+msgid "Only new waybills can be cancelled."
+msgstr "只能取消新运单。"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/models/charge_pricing_models/waybill.py:0
+msgid "Only new waybills can be confirmed."
+msgstr "只能确认新运单。"
 
 #. module: wd_iffm
 #: model:ir.model.constraint,message:wd_iffm.constraint_operation_workbench_alert_rule_uniq_operation_workbench_alert_rule_company
@@ -3240,6 +3528,11 @@ msgid "Operation Blocking Reason"
 msgstr "作业阻塞原因"
 
 #. module: wd_iffm
+#: model:ir.actions.act_window,name:wd_iffm.action_world_depot_waybill_form_detail
+msgid "Operation Details"
+msgstr "操作详情"
+
+#. module: wd_iffm
 #: model:ir.model,name:wd_iffm.model_operation_order_clearance_container_line
 msgid "Operation Order Container Line"
 msgstr "作业单集装箱明细行"
@@ -3248,6 +3541,12 @@ msgstr "作业单集装箱明细行"
 #: model:ir.model.fields,field_description:wd_iffm.field_statement_period__operation_order_scope
 msgid "Operation Order Scope"
 msgstr "作业单范围"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_account_bank_statement_line__is_operation_payment_confirmed
+#: model:ir.model.fields,field_description:wd_iffm.field_account_move__is_operation_payment_confirmed
+msgid "Operation Payment Confirmed"
+msgstr "操作付款已确认"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_clearance_charge_line__charge_item_operation_type
@@ -3275,6 +3574,12 @@ msgstr "作业工作台看板"
 #: model:ir.model,name:wd_iffm.model_operation_workbench_lane
 msgid "Operation Workbench Lane"
 msgstr "作业工作台甬道"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/models/settlement_account_models/account_move_inherit.py:0
+msgid "Operation payment has already been confirmed."
+msgstr "操作付款已确认。"
 
 #. module: wd_iffm
 #: model:ir.ui.menu,name:wd_iffm.menu_operation_handover_root
@@ -3323,6 +3628,12 @@ msgstr "我司仓库"
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_clearance__outbound_release_datetime
 msgid "Outbound Bonded Release Date"
 msgstr "出境保税放行日期"
+
+#. module: wd_iffm
+#. odoo-javascript
+#: code:addons/wd_iffm/static/src/xml/workbench_home_page.xml:0
+msgid "Overdue"
+msgstr "逾期"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_clearance__overdue_blocking_reason_id
@@ -3461,6 +3772,11 @@ msgstr "父路径"
 #: code:addons/wd_iffm/models/charge_pricing_models/port_node.py:0
 msgid "Parent node cannot be itself."
 msgstr "父节点不能为自身"
+
+#. module: wd_iffm
+#: model:ir.model,name:wd_iffm.model_account_payment_register
+msgid "Pay"
+msgstr "支付"
 
 #. module: wd_iffm
 #: model:ir.model.fields.selection,name:wd_iffm.selection__operation_order_clearance__state__paying
@@ -3636,6 +3952,12 @@ msgstr "请先将提单状态更改为确认。"
 
 #. module: wd_iffm
 #. odoo-python
+#: code:addons/wd_iffm/models/charge_pricing_models/waybill.py:0
+msgid "Please configure a quotation for the project."
+msgstr "请为项目配置报价。"
+
+#. module: wd_iffm
+#. odoo-python
 #: code:addons/wd_iffm/models/settlement_account_models/statement_period.py:0
 msgid "Please confirm the expense first."
 msgstr "请先确认成本。"
@@ -3643,8 +3965,8 @@ msgstr "请先确认成本。"
 #. module: wd_iffm
 #. odoo-python
 #: code:addons/wd_iffm/models/charge_pricing_models/waybill.py:0
-msgid "Please create quotation first"
-msgstr "请先创建报价单"
+msgid "Please create container first."
+msgstr "请先创建容器。创建入库订单之前需要"
 
 #. module: wd_iffm
 #. odoo-python
@@ -3660,6 +3982,7 @@ msgstr "请先接收放行和清关文件。"
 
 #. module: wd_iffm
 #. odoo-python
+#: code:addons/wd_iffm/models/charge_pricing_models/waybill.py:0
 #: code:addons/wd_iffm/wizard/waybill_create_clearance_wizard.py:0
 msgid "Please select at least one container."
 msgstr "请至少选择一个集装箱。"
@@ -3682,6 +4005,11 @@ msgstr "港口和码头"
 #: code:addons/wd_iffm/models/charge_pricing_models/port_node.py:0
 msgid "Port node cannot only be under another port node."
 msgstr "港口不能仅隶属于另一个港口之下。"
+
+#. module: wd_iffm
+#: model:ir.model.fields.selection,name:wd_iffm.selection__world_depot_waybill__creation_method__portbase
+msgid "Portbase"
+msgstr "端口库"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_world_depot_waybill_container__portbase_gate_out_time
@@ -3775,6 +4103,18 @@ msgid "Project"
 msgstr "项目"
 
 #. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/models/world_depot_waybill_container_inherit.py:0
+msgid "Project is required before creating an inbound order."
+msgstr "项目。创建手动间隙之前需要"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/models/clearance_models/operation_order_clearance.py:0
+msgid "Project is required before creating manual clearance."
+msgstr "项目。"
+
+#. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_clearance_charge_line__project_id
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_charge_line__project_id
 msgid "Project/Customer"
@@ -3804,6 +4144,7 @@ msgstr "数量"
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation_add_wizard__quotation_id
 #: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation_line__quotation_id
+#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_clearance__quotation_id
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_clearance_charge_line__quotation_id
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_charge_line__quotation_id
 #: model:ir.model.fields,field_description:wd_iffm.field_project_project__quotation_id
@@ -3824,6 +4165,11 @@ msgstr "报价单页签费用分类"
 #: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation__date
 msgid "Quotation Date"
 msgstr "报价日期"
+
+#. module: wd_iffm
+#: model:ir.model.fields,field_description:wd_iffm.field_world_depot_waybill__quotation_effective_date
+msgid "Quotation Effective Date"
+msgstr "报价生效日期"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation__quotation_lines
@@ -3938,14 +4284,6 @@ msgid "Received At"
 msgstr "接收时间"
 
 #. module: wd_iffm
-#: model_terms:ir.ui.view,arch_db:wd_iffm.operation_order_clearance_form_view
-#: model_terms:ir.ui.view,arch_db:wd_iffm.view_operation_order_clearance_child_form
-#: model_terms:ir.ui.view,arch_db:wd_iffm.view_operation_order_handover_child_form
-#: model_terms:ir.ui.view,arch_db:wd_iffm.view_operation_order_handover_form
-msgid "Recompute State"
-msgstr "重新计算状态"
-
-#. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_workbench_dashboard_data__record_ids_text
 msgid "Record IDs (CSV)"
 msgstr "记录编号（逗号分隔值格式）"
@@ -3972,13 +4310,6 @@ msgid "Release Received"
 msgstr "放行单已收到"
 
 #. module: wd_iffm
-#. odoo-python
-#: code:addons/wd_iffm/models/charge_pricing_models/waybill.py:0
-msgid ""
-"Release Received and Custom Clearance must both be completed before Done."
-msgstr "放行签收与清关手续均需完成后方可办结。"
-
-#. module: wd_iffm
 #: model:ir.model.fields.selection,name:wd_iffm.selection__operation_order_handover__state__released
 #: model:ir.model.fields.selection,name:wd_iffm.selection__operation_workbench_card__handover_state__released
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_operation_order_handover_form
@@ -3988,7 +4319,6 @@ msgstr "已放货"
 #. module: wd_iffm
 #: model:ir.model.fields.selection,name:wd_iffm.selection__operation_order_handover__state__releasing
 #: model:ir.model.fields.selection,name:wd_iffm.selection__operation_workbench_card__handover_state__releasing
-#: model_terms:ir.ui.view,arch_db:wd_iffm.view_operation_order_handover_form
 msgid "Releasing"
 msgstr "放货中"
 
@@ -4028,12 +4358,12 @@ msgstr "移除"
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_portbase_webhook_log__request_headers
 msgid "Request Headers"
-msgstr ""
+msgstr "请求标头"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_portbase_webhook_log__request_ip
 msgid "Request Ip"
-msgstr ""
+msgstr "请求 Ip"
 
 #. module: wd_iffm
 #: model_terms:ir.ui.view,arch_db:wd_iffm.operation_order_clearance_invoice_line_form_view
@@ -4097,7 +4427,7 @@ msgstr "当逾期结果为其他时，必须填写结果备注。"
 #: model_terms:ir.ui.view,arch_db:wd_iffm.operation_order_clearance_invoice_line_form_view
 #: model_terms:ir.ui.view,arch_db:wd_iffm.operation_order_handover_invoice_line_form_view
 msgid "Revoke Request"
-msgstr ""
+msgstr "撤销请求"
 
 #. module: wd_iffm
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_partner_form_inherit_eori_vat_tax
@@ -4159,6 +4489,12 @@ msgstr "选择集装箱"
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_waybill_create_clearance_wizard_form
 msgid "Select Containers for Clearance"
 msgstr "选择待清关集装箱"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/wizard/waybill_container_batch_create_wizard.py:0
+msgid "Select either Waybill or Clearance."
+msgstr "选择运单或清关。"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_import_pickup_requirement__self_pickup_contact_id
@@ -4243,12 +4579,12 @@ msgstr "简称"
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_workbench_card__source_id
 msgid "Source ID"
-msgstr ""
+msgstr "源 ID"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_workbench_card__source_model
 msgid "Source Model"
-msgstr ""
+msgstr "源模型"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_clearance_cost_line__source_snapshot
@@ -4258,13 +4594,13 @@ msgstr "来源快照"
 #. module: wd_iffm
 #: model:ir.model.constraint,message:wd_iffm.constraint_operation_workbench_card_uniq_workbench_source
 msgid "Source model and source id must be unique."
-msgstr ""
+msgstr "源模型和源 ID 必须是唯一的。"
 
 #. module: wd_iffm
 #. odoo-python
 #: code:addons/wd_iffm/models/workbench_models/operation_workbench_card.py:0
 msgid "Source record is missing."
-msgstr ""
+msgstr "源记录丢失。"
 
 #. module: wd_iffm
 #: model:ir.model.fields.selection,name:wd_iffm.selection__operation_order_clearance__extra_reason__split_container
@@ -4278,7 +4614,13 @@ msgstr "拆箱"
 msgid ""
 "Stable key for logic (waybill / handover / clearance) or a unique key for "
 "custom lanes."
-msgstr ""
+msgstr "用于逻辑（运单/移交/清关）的稳定密钥或用于自定义通道的独特密钥。"
+
+#. module: wd_iffm
+#. odoo-javascript
+#: code:addons/wd_iffm/static/src/xml/workbench_home_page.xml:0
+msgid "Start"
+msgstr "开始"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_statement_period__date_start
@@ -4364,7 +4706,7 @@ msgid ""
 "Overdue: Due date is already passed\n"
 "Today: Activity date is today\n"
 "Planned: Future activities."
-msgstr ""
+msgstr "基于活动的状态 逾期：截止日期已过 今天：活动日期是今天 已计划：未来的活动。"
 "基于活动的状态\n"
 "逾期：截止日期已过\n"
 "今天：活动日期为今天\n"
@@ -4458,36 +4800,10 @@ msgid "T1 Transit"
 msgstr "T1过境"
 
 #. module: wd_iffm
-#: model:ir.model.fields.selection,name:wd_iffm.selection__charge_quotation_add_wizard__tab_category__thc
 #: model:ir.model.fields.selection,name:wd_iffm.selection__world_depot_charge_item__tab_category__thc
 #: model_terms:ir.ui.view,arch_db:wd_iffm.view_charge_quotation_form
 msgid "THC Handling"
-msgstr "码头操作费处理"
-
-#. module: wd_iffm
-#: model:account.account,name:wd_iffm.acc_thc_handling_custom_inspection
-msgid "THC Handling / Custom inspection"
-msgstr "THC Handling / Custom inspection"
-
-#. module: wd_iffm
-#: model:account.account,name:wd_iffm.acc_thc_handling_gas_inspection
-msgid "THC Handling / Gas inspection"
-msgstr "THC Handling / Gas inspection"
-
-#. module: wd_iffm
-#: model:account.account,name:wd_iffm.acc_thc_handling_handover_from_logistics_agency
-msgid "THC Handling / Handover from logistics agency"
-msgstr "THC Handling / Handover from logistics agency"
-
-#. module: wd_iffm
-#: model:account.account,name:wd_iffm.acc_thc_handling_shipping_lines_hand_over
-msgid "THC Handling / Shipping lines hand over"
-msgstr "THC Handling / Shipping lines hand over"
-
-#. module: wd_iffm
-#: model:account.account,name:wd_iffm.acc_thc_handling_thc
-msgid "THC Handling / THC"
-msgstr "THC Handling / THC"
+msgstr "换单操作费"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation__quotation_thc_lines
@@ -4556,13 +4872,21 @@ msgid ""
 "The Tax Identification Number. Values here will be validated based on the "
 "country format. You can use '/' to indicate that the partner is not subject "
 "to tax."
-msgstr ""
+msgstr "纳税识别号。此处的值将根据国家/地区格式进行验证。您可以使用“/”来表示合作伙伴无需纳税。"
 
 #. module: wd_iffm
 #. odoo-python
 #: code:addons/wd_iffm/models/transportation_models/import_pickup_requirement.py:0
 msgid "The container must belong to the current waybill."
 msgstr "集装箱必须属于当前提单。"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/models/charge_pricing_models/charge_quotation.py:0
+msgid ""
+"The currency cannot be changed because this quotation is already used by a "
+"waybill."
+msgstr "无法更改币种，因为该报价已被运单使用。"
 
 #. module: wd_iffm
 #. odoo-python
@@ -4583,11 +4907,52 @@ msgstr "在'提货至客户指定地点'场景中，缺少以下必填字段：%
 #. module: wd_iffm
 #. odoo-python
 #: code:addons/wd_iffm/models/clearance_models/operation_order_clearance.py:0
+#: code:addons/wd_iffm/models/handover_models/operation_order_handover.py:0
+msgid "The linked vendor bill currency must match the invoice line currency."
+msgstr "链接的供应商账单货币必须与发票行货币匹配。"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/models/clearance_models/operation_order_clearance.py:0
+msgid "The main clearance must be closed before creating a child clearance."
+msgstr "在创建子间隙之前必须关闭主间隙。"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/models/handover_models/operation_order_handover.py:0
+msgid "The main handover must be closed before creating a child handover."
+msgstr "在创建子切换之前必须关闭主切换。"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/models/charge_pricing_models/waybill.py:0
+#: code:addons/wd_iffm/models/clearance_models/operation_order_clearance.py:0
+msgid "The project quotation must be active."
+msgstr "项目报价必须处于活动状态。"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/models/charge_pricing_models/waybill.py:0
+#: code:addons/wd_iffm/models/clearance_models/operation_order_clearance.py:0
+msgid "The quotation effective date is later than the pricing date."
+msgstr "报价生效日期晚于定价日期。"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/models/charge_pricing_models/waybill.py:0
+#: code:addons/wd_iffm/models/clearance_models/operation_order_clearance.py:0
+msgid "The quotation has expired on the pricing date."
+msgstr "报价已在定价日期到期。"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/models/clearance_models/operation_order_clearance.py:0
 msgid "The remark for a sub-record must be at least 10 characters."
 msgstr "子记录的备注必须至少10个字符。"
 
 #. module: wd_iffm
 #. odoo-python
+#: code:addons/wd_iffm/models/charge_pricing_models/waybill.py:0
 #: code:addons/wd_iffm/wizard/waybill_create_clearance_wizard.py:0
 msgid "These containers are already in clearance orders: %s"
 msgstr "这些集装箱已在清关单中：%s"
@@ -4596,6 +4961,12 @@ msgstr "这些集装箱已在清关单中：%s"
 #: model:ir.model.fields.selection,name:wd_iffm.selection__operation_order_handover__bl_release_type__third_party
 msgid "Third Party Release"
 msgstr "第三方放货"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/models/clearance_models/operation_order_clearance.py:0
+msgid "This action is only available for manual clearance without a waybill."
+msgstr "此操作仅适用于无运单的手动清关。"
 
 #. module: wd_iffm
 #. odoo-python
@@ -4698,7 +5069,6 @@ msgid "Transport Information"
 msgstr "运输信息"
 
 #. module: wd_iffm
-#: model:ir.model.fields.selection,name:wd_iffm.selection__charge_quotation_add_wizard__tab_category__trucking
 #: model:ir.model.fields.selection,name:wd_iffm.selection__world_depot_charge_item__tab_category__trucking
 msgid "Trucking"
 msgstr "拖车运输"
@@ -4815,17 +5185,21 @@ msgid "VAT No"
 msgstr "增值税号"
 
 #. module: wd_iffm
-#. odoo-python
-#: code:addons/wd_iffm/models/clearance_models/operation_order_clearance.py:0
-msgid ""
-"VAT Tax No, Clearance Receipt No, EU EORI No is required before Released."
-msgstr "在放行前，必须提供增值税号、海关放行单号、欧盟EORI号。"
-
-#. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_clearance_invoice_line__vendor_partner_id
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover_invoice_line__shipping_line_id
 msgid "Vendor (Shipping Line / Agent)"
 msgstr "供应商（船公司/代理）"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/models/clearance_models/operation_order_clearance.py:0
+#: code:addons/wd_iffm/models/handover_models/operation_order_handover.py:0
+#: model:ir.actions.act_window,name:wd_iffm.action_wd_iffm_vendor_bill
+#: model:ir.ui.menu,name:wd_iffm.menu_wd_vendor_bill
+#: model_terms:ir.ui.view,arch_db:wd_iffm.operation_order_clearance_form_view
+#: model_terms:ir.ui.view,arch_db:wd_iffm.view_operation_order_handover_form
+msgid "Vendor Bills"
+msgstr "供应商账单"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_clearance_invoice_line__vendor_invoice_id
@@ -4840,9 +5214,8 @@ msgid "Vendor Invoice Attachments"
 msgstr "供应商发票附件"
 
 #. module: wd_iffm
-#: model:ir.model.fields,field_description:wd_iffm.field_operation_order_clearance__invoice_line_ids
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_handover__invoice_line_ids
-msgid "Accrued expenses"
+msgid "Vendor Invoice Lines"
 msgstr "应付费用"
 
 #. module: wd_iffm
@@ -4880,6 +5253,7 @@ msgstr "必须先过账供应商账单。"
 #. module: wd_iffm
 #. odoo-python
 #: code:addons/wd_iffm/models/clearance_models/operation_order_clearance.py:0
+#: code:addons/wd_iffm/models/handover_models/operation_order_handover.py:0
 msgid "Vendor invoice lines are required before Close."
 msgstr "结账前必须录入供应商发票明细行。"
 
@@ -4931,49 +5305,44 @@ msgid "Warehouse Contact"
 msgstr "仓库联系人"
 
 #. module: wd_iffm
-#: model:ir.model.fields.selection,name:wd_iffm.selection__charge_quotation_add_wizard__tab_category__wh_extra
 #: model:ir.model.fields.selection,name:wd_iffm.selection__world_depot_charge_item__tab_category__wh_extra
 msgid "Warehousing - Extra handling"
 msgstr "仓储 - 额外操作"
 
 #. module: wd_iffm
-#: model:ir.model.fields.selection,name:wd_iffm.selection__charge_quotation_add_wizard__tab_category__wh_in
 #: model:ir.model.fields.selection,name:wd_iffm.selection__world_depot_charge_item__tab_category__wh_in
 msgid "Warehousing - Inbound"
 msgstr "仓储 - 进库"
 
 #. module: wd_iffm
-#: model:ir.model.fields.selection,name:wd_iffm.selection__charge_quotation_add_wizard__tab_category__wh_monthly
 #: model:ir.model.fields.selection,name:wd_iffm.selection__world_depot_charge_item__tab_category__wh_monthly
 msgid "Warehousing - Monthly fixed"
 msgstr "仓储 - 月度固定"
 
 #. module: wd_iffm
-#: model:ir.model.fields.selection,name:wd_iffm.selection__charge_quotation_add_wizard__tab_category__wh_other
 #: model:ir.model.fields.selection,name:wd_iffm.selection__world_depot_charge_item__tab_category__wh_other
 msgid "Warehousing - Other"
 msgstr "仓储 - 其他"
 
 #. module: wd_iffm
-#: model:ir.model.fields.selection,name:wd_iffm.selection__charge_quotation_add_wizard__tab_category__wh_out
 #: model:ir.model.fields.selection,name:wd_iffm.selection__world_depot_charge_item__tab_category__wh_out
 msgid "Warehousing - Outbound"
 msgstr "仓储 - 出库"
 
 #. module: wd_iffm
-#: model:ir.model.fields.selection,name:wd_iffm.selection__charge_quotation_add_wizard__tab_category__wh_pack
 #: model:ir.model.fields.selection,name:wd_iffm.selection__world_depot_charge_item__tab_category__wh_pack
 msgid "Warehousing - Packaging"
 msgstr "仓储 - 包装"
 
 #. module: wd_iffm
-#: model:ir.model.fields.selection,name:wd_iffm.selection__charge_quotation_add_wizard__tab_category__storage
 #: model:ir.model.fields.selection,name:wd_iffm.selection__world_depot_charge_item__tab_category__storage
 msgid "Warehousing - Storage"
 msgstr "仓储 - 存储"
 
 #. module: wd_iffm
+#. odoo-javascript
 #. odoo-python
+#: code:addons/wd_iffm/static/src/xml/workbench_home_page.xml:0
 #: code:addons/wd_iffm/wizard/protbase_import/portbase_waybill_import_wizard.py:0
 #: model:ir.model,name:wd_iffm.model_world_depot_waybill
 #: model:ir.model.fields,field_description:wd_iffm.field_import_pickup_requirement__waybill_id
@@ -4982,7 +5351,9 @@ msgstr "仓储 - 存储"
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_workbench_card__waybill_id
 #: model:ir.model.fields,field_description:wd_iffm.field_portbase_waybill_import_wizard__waybill_id
 #: model:ir.model.fields,field_description:wd_iffm.field_waybill_arrival_wizard__waybill_id
+#: model:ir.model.fields,field_description:wd_iffm.field_waybill_container_batch_create_wizard__waybill_id
 #: model:ir.model.fields,field_description:wd_iffm.field_waybill_create_clearance_wizard__waybill_id
+#: model:ir.model.fields,field_description:wd_iffm.field_world_depot_inbound_order__waybill_id
 #: model:ir.model.fields.selection,name:wd_iffm.selection__operation_workbench_dashboard_data__lane_code__waybill
 #: model:ir.ui.menu,name:wd_iffm.waybill_logi_menu
 #: model_terms:ir.ui.view,arch_db:wd_iffm.report_statement_period
@@ -5017,6 +5388,11 @@ msgid "Waybill Container"
 msgstr "提单集装箱"
 
 #. module: wd_iffm
+#: model:ir.model,name:wd_iffm.model_waybill_container_batch_create_wizard
+msgid "Waybill Container Batch Create Wizard"
+msgstr "运单容器批量创建向导"
+
+#. module: wd_iffm
 #: model:ir.actions.act_window,name:wd_iffm.action_waybill_container
 msgid "Waybill Containers"
 msgstr "提单集装箱"
@@ -5028,10 +5404,9 @@ msgstr "提单创建清关向导"
 
 #. module: wd_iffm
 #. odoo-python
-#: code:addons/wd_iffm/models/clearance_models/operation_order_clearance.py:0
 #: code:addons/wd_iffm/models/handover_models/operation_order_handover.py:0
-msgid "Waybill ETA and Terminal of Arrival is required before Released."
-msgstr "在放行前，必须提供提单预计到港时间和目的港码头。"
+msgid "Waybill ETA is required before Released."
+msgstr "运单 ETA 发布前需要。"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_workbench_card__waybill_state
@@ -5046,6 +5421,25 @@ msgstr "提单工作台"
 
 #. module: wd_iffm
 #. odoo-python
+#: code:addons/wd_iffm/models/clearance_models/operation_order_clearance.py:0
+#: code:addons/wd_iffm/wizard/waybill_container_batch_create_wizard.py:0
+msgid "Waybill containers cannot be deleted from manual clearance."
+msgstr "运单容器无法从手动清关中删除。需要"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/models/world_depot_waybill_container_inherit.py:0
+msgid "Waybill is required."
+msgstr "运单。创建入库订单之前必须确认"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/models/world_depot_waybill_container_inherit.py:0
+msgid "Waybill must be confirmed before creating an inbound order."
+msgstr "运单。"
+
+#. module: wd_iffm
+#. odoo-python
 #: code:addons/wd_iffm/models/charge_pricing_models/waybill_views_inherit.py:0
 #: code:addons/wd_iffm/models/workbench_models/operation_workbench_card.py:0
 msgid "Waybill not found."
@@ -5056,6 +5450,19 @@ msgstr "提单未找到"
 #: model:ir.ui.menu,name:wd_iffm.waybill_menu
 msgid "Waybills"
 msgstr "提单"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/models/charge_pricing_models/waybill.py:0
+msgid "Waybills with active handover or clearance orders cannot be cancelled."
+msgstr "已有效移交或清关订单的运单无法取消。带有有效移交或清关单的"
+
+#. module: wd_iffm
+#. odoo-python
+#: code:addons/wd_iffm/models/charge_pricing_models/waybill.py:0
+msgid ""
+"Waybills with active handover or clearance orders cannot be unconfirmed."
+msgstr "运单不能被取消确认。"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation__website_message_ids
@@ -5098,9 +5505,15 @@ msgstr "网站沟通记录"
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_operation_order_clearance_container_line__weight
 #: model:ir.model.fields,field_description:wd_iffm.field_pickup_container_line__weight
+#: model:ir.model.fields,field_description:wd_iffm.field_world_depot_inbound_order_products_pallet__weight
 #: model:ir.model.fields,field_description:wd_iffm.field_world_depot_waybill_container__weight
 msgid "Weight (kg)"
 msgstr "重量(公斤)"
+
+#. module: wd_iffm
+#: model:ir.model.fields,help:wd_iffm.field_world_depot_inbound_order_products_pallet__weight
+msgid "Weight of the product in kilograms"
+msgstr "产品重量（千克）"
 
 #. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_charge_quotation_add_wizard_line__wizard_id
@@ -5124,11 +5537,6 @@ msgid "Workbench Dashboard Data"
 msgstr "工作台仪表盘数据"
 
 #. module: wd_iffm
-#: model:ir.ui.menu,name:wd_iffm.menu_operation_workbench_dashboard_data
-msgid "Workbench Dashboard data"
-msgstr "工作台仪表盘数据"
-
-#. module: wd_iffm
 #: model:ir.actions.act_window,name:wd_iffm.action_operation_workbench_lane
 msgid "Workbench Lane"
 msgstr "工作台甬道"
@@ -5137,6 +5545,11 @@ msgstr "工作台甬道"
 #: model:ir.ui.menu,name:wd_iffm.menu_operation_workbench_lane
 msgid "Workbench Lane Management"
 msgstr "工作台甬道管理"
+
+#. module: wd_iffm
+#: model:ir.actions.act_window,name:wd_iffm.action_open_workbench_board_card
+msgid "Workbench Operation Kanban"
+msgstr "工作台操作看板"
 
 #. module: wd_iffm
 #. odoo-python
@@ -5158,27 +5571,9 @@ msgid "You do not have permission to create handover orders."
 msgstr "你没有权限创建换单。"
 
 #. module: wd_iffm
-#. odoo-python
-#: code:addons/wd_iffm/models/charge_pricing_models/waybill.py:0
-msgid "You only can cancel New Order"
-msgstr "您只能取消新建订单"
-
-#. module: wd_iffm
-#. odoo-python
-#: code:addons/wd_iffm/models/charge_pricing_models/waybill.py:0
-msgid "You only can confirm New Order"
-msgstr "您只能确认新建订单"
-
-#. module: wd_iffm
-#. odoo-python
-#: code:addons/wd_iffm/models/charge_pricing_models/waybill.py:0
-msgid "You only can unconfirm Confirmed Order"
-msgstr "您只能取消确认已确认的订单"
-
-#. module: wd_iffm
 #: model:ir.model.fields,field_description:wd_iffm.field_world_depot_port_node__zip
 msgid "Zip"
-msgstr ""
+msgstr "Zip"
 
 #. module: wd_iffm
 #. odoo-python
@@ -5189,12 +5584,18 @@ msgstr "[返单] %s"
 #. module: wd_iffm
 #: model:ir.model,name:wd_iffm.model_portbase_waybill_import_wizard
 msgid "portbase.waybill.import.wizard"
-msgstr ""
+msgstr "portbase.waybill.import.wizard"
 
 #. module: wd_iffm
 #: model:ir.model,name:wd_iffm.model_portbase_webhook_log
 msgid "portbase.webhook.log"
-msgstr ""
+msgstr "portbase.webhook.log"
+
+#. module: wd_iffm
+#. odoo-javascript
+#: code:addons/wd_iffm/static/src/xml/workbench_home_page.xml:0
+msgid "to"
+msgstr "至"
 
 #. module: wd_iffm
 #. odoo-python
@@ -5222,167 +5623,3 @@ msgstr "装箱清单"
 #: code:addons/wd_iffm/models/charge_pricing_models/charge_quotation.py:0
 msgid "xlsxwriter not installed: %s"
 msgstr "xlsxwriter 未安装：%s"
-
-#. module: wd_iffm
-#. odoo-javascript
-#: code:addons/wd_iffm/static/src/xml/workbench_home_page.xml:0
-msgid "临期提醒"
-msgstr ""
-
-#. module: wd_iffm
-#: model_terms:ir.actions.act_window,help:wd_iffm.action_open_workbench_board_card
-msgid "从提单看板中点击提单卡片进入作业看板"
-msgstr ""
-
-#. module: wd_iffm
-#: model:ir.actions.act_window,name:wd_iffm.action_world_depot_waybill_form_detail
-msgid "作业详情"
-msgstr ""
-
-#. module: wd_iffm
-#. odoo-javascript
-#: code:addons/wd_iffm/static/src/xml/workbench_home_page.xml:0
-msgid "全部提单"
-msgstr ""
-
-#. module: wd_iffm
-#. odoo-javascript
-#: code:addons/wd_iffm/static/src/xml/workbench_home_page.xml:0
-msgid "全部船公司"
-msgstr ""
-
-#. module: wd_iffm
-#. odoo-javascript
-#: code:addons/wd_iffm/static/src/xml/workbench_home_page.xml:0
-msgid "全部项目"
-msgstr ""
-
-#. module: wd_iffm
-#. odoo-javascript
-#: code:addons/wd_iffm/static/src/xml/workbench_home_page.xml:0
-msgid "列表"
-msgstr ""
-
-#. module: wd_iffm
-#. odoo-javascript
-#: code:addons/wd_iffm/static/src/xml/workbench_home_page.xml:0
-msgid "加载中..."
-msgstr ""
-
-#. module: wd_iffm
-#. odoo-javascript
-#: code:addons/wd_iffm/static/src/xml/workbench_home_page.xml:0
-msgid "开始"
-msgstr ""
-
-#. module: wd_iffm
-#. odoo-javascript
-#: code:addons/wd_iffm/static/src/xml/workbench_home_page.xml:0
-msgid "当前:"
-msgstr ""
-
-#. module: wd_iffm
-#. odoo-javascript
-#: code:addons/wd_iffm/static/src/xml/workbench_home_page.xml:0
-msgid "换单"
-msgstr ""
-
-#. module: wd_iffm
-#. odoo-javascript
-#: code:addons/wd_iffm/static/src/xml/workbench_home_page.xml:0
-msgid "提单"
-msgstr ""
-
-#. module: wd_iffm
-#: model:ir.actions.act_window,name:wd_iffm.action_open_workbench_board_card
-msgid "提单作业看板"
-msgstr ""
-
-#. module: wd_iffm
-#. odoo-javascript
-#: code:addons/wd_iffm/static/src/xml/workbench_home_page.xml:0
-msgid "日历"
-msgstr ""
-
-#. module: wd_iffm
-#: model_terms:ir.actions.act_window,help:wd_iffm.action_open_workbench_board_card
-msgid "暂无作业数据"
-msgstr ""
-
-#. module: wd_iffm
-#: model_terms:ir.actions.act_window,help:wd_iffm.action_import_bill_kanban
-msgid "暂无进口提单数据"
-msgstr ""
-
-#. module: wd_iffm
-#. odoo-javascript
-#: code:addons/wd_iffm/static/src/xml/workbench_home_page.xml:0
-msgid "清关"
-msgstr ""
-
-#. module: wd_iffm
-#. odoo-javascript
-#: code:addons/wd_iffm/static/src/xml/workbench_home_page.xml:0
-msgid "清空"
-msgstr ""
-
-#. module: wd_iffm
-#: model_terms:ir.actions.act_window,help:wd_iffm.action_import_bill_kanban
-msgid "点击\"创建\"按钮添加新的进口提单"
-msgstr ""
-
-#. module: wd_iffm
-#. odoo-javascript
-#: code:addons/wd_iffm/static/src/xml/workbench_home_page.xml:0
-msgid "点击查看"
-msgstr ""
-
-#. module: wd_iffm
-#. odoo-javascript
-#: code:addons/wd_iffm/static/src/xml/workbench_home_page.xml:0
-#: model:ir.ui.menu,name:wd_iffm.menu_kanban_root
-msgid "看板"
-msgstr ""
-
-#. module: wd_iffm
-#. odoo-javascript
-#: code:addons/wd_iffm/static/src/xml/workbench_home_page.xml:0
-msgid "结束"
-msgstr ""
-
-#. module: wd_iffm
-#: model:ir.ui.menu,name:wd_iffm.menu_wd_workbench
-msgid "货代工作台"
-msgstr ""
-
-#. module: wd_iffm
-#: model:ir.actions.act_window,name:wd_iffm.action_import_bill_kanban
-#: model:ir.ui.menu,name:wd_iffm.menu_import_bill_kanban
-msgid "进口提单看板"
-msgstr ""
-
-#. module: wd_iffm
-#: model:ir.ui.menu,name:wd_iffm.menu_wd_iffm_root
-msgid "进口货代管理"
-msgstr ""
-
-#. module: wd_iffm
-#: model:ir.actions.client,name:wd_iffm.action_wd_iffm_workbench
-msgid "进口货代首页"
-msgstr ""
-
-#. module: wd_iffm
-#. odoo-javascript
-#: code:addons/wd_iffm/static/src/xml/workbench_home_page.xml:0
-msgid "逾期提醒"
-msgstr ""
-
-#. module: wd_iffm
-#: model_terms:ir.ui.view,arch_db:wd_iffm.view_waybill_calendar
-msgid "预计到港时间"
-msgstr ""
-
-#. module: wd_iffm
-#: model:ir.actions.act_window,name:wd_iffm.action_home_page
-msgid "首页"
-msgstr ""

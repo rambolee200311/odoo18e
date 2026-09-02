@@ -90,7 +90,7 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
 
                 country = self.get_country(data)
                 partner = self.get_partner(data, country)
-                consignee = self.get_consignee_partner(data, partner)
+                #consignee = self.get_consignee_partner(data, partner)
                 order_vals = {
                     "type": order_type,
                     "date": self.get_date_value(data, "date", required=True),
@@ -110,7 +110,7 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
                     "delivery_method": delivery_method,
                     "load_ref": self.get_optional_text(data, "load_ref"),
                     "unload_company": partner.id,
-                    "consignee_id": consignee.id,
+                    #"consignee_id": consignee.id,
                     "delivery_street": self.get_required_text(data, "street"),
                     "delivery_zip": self.get_optional_text(data, "zip"),
                     "delivery_city": self.get_optional_text(data, "city"),
@@ -123,7 +123,6 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
                 if "is_bonded" in request.env["world.depot.outbound.order"]._fields:
                     order_vals["is_bonded"] = False
                 order = request.env["world.depot.outbound.order"].create(order_vals)
-                order.outbound_order_product_ids.validate_sunrise_source_product_specifications()
                 return self.success_response(order)
         except SunriseApiError as error:
             return self.error_response(error.code, error.message)
@@ -206,7 +205,12 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
             package_modes,
         )
         package = package_result["package"]
-        source_specification = package_result["source_specification"]
+        lot = self.get_sunrise_lot(product, lot_name if is_lot == "Y" else "")
+        product_template = request.env["product.template"].sudo().browse(product.product_tmpl_id.id)
+        gross_weight = lot.gross_weight if lot and lot.gross_weight else product_template.gross_weight
+        if box_type == "partial" and not (lot and lot.gross_weight):
+            if product_template.gross_weight and u8_conversion_rate > 0 and box_in_qty > 0:
+                gross_weight = product_template.gross_weight / u8_conversion_rate * box_in_qty
         return {
             "package": package,
             "product_vals": {
@@ -214,8 +218,8 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
                 "source_product_code": product_code,
                 "product_ean": product_ean,
                 "pallet_no": pallet_no,
-                "gross_weight": source_specification["gross_weight"],
-                "pallet_dimensions": source_specification["pallet_dimensions"],
+                "gross_weight": str(gross_weight) if gross_weight else False,
+                "pallet_dimensions": (lot.product_dimensions if lot and lot.product_dimensions else product_template.product_dimensions) or False,
                 "package_id": package.id,
                 "pallets": 1,
                 "quantity": box_qty,
@@ -301,16 +305,8 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
                     ),
                 )
 
-            try:
-                source_specification = source_detail_lines.get_sunrise_product_specification(allow_missing=True)
-            except UserError as error:
-                raise SunriseApiError(
-                    "3004",
-                    self.format_field_error("pallet_no", str(error), row_number),
-                ) from error
             return {
                 "package": package,
-                "source_specification": source_specification,
             }
 
         raise SunriseApiError(

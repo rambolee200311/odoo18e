@@ -141,10 +141,17 @@ class OutboundOrderInherit(models.Model):
                 if line.vsourcebillcode != rec.vsourcebillcode:
                     raise UserError(_("%s vsourcebillcode must equal outbound order vsourcebillcode.") % line_name)
 
-                if line.box_type not in ("full", "partial"):
-                    raise UserError(_("%s box_type must be full or partial.") % line_name)
+                if line.box_type not in ("full", "partial", "bulk"):
+                    raise UserError(_("%s box_type must be full, partial, or bulk.") % line_name)
                 if line.box_qty <= 0:
                     raise UserError(_("%s box_qty must be greater than 0.") % line_name)
+                if line.box_type in ("full", "partial") and not math.isclose(
+                        line.box_qty,
+                        round(line.box_qty),
+                        rel_tol=1e-9,
+                        abs_tol=1e-6,
+                ):
+                    raise UserError(_("%s box_qty must be an integer when box_type is full or partial.") % line_name)
                 if line.box_in_qty <= 0:
                     raise UserError(_("%s box_in_qty must be greater than 0.") % line_name)
                 if line.ninnum <= 0:
@@ -183,8 +190,13 @@ class OutboundOrderInherit(models.Model):
                         _("%s box_in_qty must not equal u8_conversion_rate when box_type is partial.")
                         % line_name
                     )
-
-                line.validate_sunrise_source_product_specifications()
+                if line.box_type == "bulk" and not math.isclose(
+                        line.box_in_qty,
+                        1.0,
+                        rel_tol=1e-9,
+                        abs_tol=1e-6,
+                ):
+                    raise UserError(_("%s box_in_qty must equal 1 when box_type is bulk.") % line_name)
 
 
 
@@ -894,8 +906,8 @@ class OutboundOrderProduct(models.Model):
     ndiscounttaxtype = fields.Char(string="Tax Deduction Type", copy=False, index=True, tracking=True)
     vsourcebillcode = fields.Char(string="Source Bill Code", copy=False, index=True)
     vsourcerowno = fields.Char(string="Source Row No", copy=False, index=True, tracking=True)
-    box_type = fields.Selection([("full", "Full"), ("partial", "Non-standard")], string="Box Type", copy=False, index=True)
-    box_qty = fields.Integer(string="Box Qty", copy=False, tracking=True)
+    box_type = fields.Selection([("full", "Full"), ("partial", "Non-standard"), ("bulk", "Bulk")], string="Box Type", copy=False, index=True)
+    box_qty = fields.Float(string="Box Qty", copy=False, tracking=True)
     ninnum = fields.Float(string="Received Units", copy=False, tracking=True)
     box_in_qty = fields.Float(string="Box In Qty", copy=False, tracking=True)
     u8_aux_qty = fields.Float(string="U8 Aux Qty", copy=False)
@@ -906,9 +918,10 @@ class OutboundOrderProduct(models.Model):
     gross_weight = fields.Char(string="Gross Weight(kg)", copy=False)
     pallet_dimensions = fields.Char(string="Carton Dimensions(m)", copy=False)
 
-    @api.onchange("package_id", "product_id", "is_lot", "lot_name")
+    @api.onchange("package_id", "product_id", "is_lot", "lot_name", "box_type", "box_in_qty", "u8_conversion_rate")
     def onchange_sunrise_source_product_specifications(self):
-        inbound_detail_model = self.env["world.depot.inbound.order.products.pallet"].sudo()
+        lot_model = self.env["stock.lot"].sudo()
+        template_model = self.env["product.template"].sudo()
 
         for rec in self:
             project = rec.outbound_order_id.project or rec.project
@@ -918,79 +931,22 @@ class OutboundOrderProduct(models.Model):
             rec.gross_weight = False
             rec.pallet_dimensions = False
 
-            if not rec.package_id or not rec.product_id or not rec.is_lot:
+            if not rec.package_id or not rec.product_id:
                 continue
-            if rec.is_lot == "Y" and not rec.lot_name:
-                continue
+            template = template_model.browse(rec.product_id.product_tmpl_id.id)
+            lot = False
+            if rec.is_lot == "Y" and rec.lot_name:
+                lot = lot_model.search([
+                    ("product_id", "=", rec.product_id.id),
+                    ("name", "=", rec.lot_name),
+                ], limit=1)
+            gross_weight = lot.gross_weight if lot and lot.gross_weight else template.gross_weight
+            if rec.box_type == "partial" and not (lot and lot.gross_weight):
+                if template.gross_weight and rec.box_in_qty > 0 and rec.u8_conversion_rate > 0:
+                    gross_weight = template.gross_weight / rec.u8_conversion_rate * rec.box_in_qty
+            rec.gross_weight = str(gross_weight) if gross_weight else False
+            rec.pallet_dimensions = (lot.product_dimensions if lot and lot.product_dimensions else template.product_dimensions) or False
 
-            source_domain = [
-                ("inbound_order_product_id.package_id", "=", rec.package_id.id),
-                ("inbound_order_product_id.inbound_order_id.project", "=", project.id),
-                ("inbound_order_product_id.inbound_order_id.state", "!=", "cancel"),
-                ("product_id", "=", rec.product_id.id),
-                ("is_lot", "=", rec.is_lot),
-            ]
-            if rec.is_lot == "Y":
-                source_domain.append(("lot_name", "=", rec.lot_name))
-
-            source_detail_lines = inbound_detail_model.search(source_domain, order="id")
-            if not source_detail_lines:
-                continue
-
-            source_specification = source_detail_lines.get_sunrise_product_specification(allow_missing=True)
-            if source_specification.get("has_specification"):
-                rec.gross_weight = source_specification["gross_weight"]
-                rec.pallet_dimensions = source_specification["pallet_dimensions"]
-
-    def validate_sunrise_source_product_specifications(self):
-        inbound_detail_model = self.env["world.depot.inbound.order.products.pallet"].sudo()
-        for rec in self:
-            source_domain = [
-                ("inbound_order_product_id.package_id", "=", rec.package_id.id),
-                ("inbound_order_product_id.inbound_order_id.project", "=", rec.project.id),
-                ("inbound_order_product_id.inbound_order_id.state", "!=", "cancel"),
-                ("product_id", "=", rec.product_id.id),
-                ("is_lot", "=", rec.is_lot),
-            ]
-            if rec.is_lot == "Y":
-                source_domain.append(("lot_name", "=", rec.lot_name))
-            source_detail_lines = inbound_detail_model.search(source_domain, order="id")
-            if not source_detail_lines:
-                raise UserError(
-                    _("No inbound source detail was found for product %s, pallet %s and lot %s.")
-                    % (rec.product_id.display_name, rec.pallet_no or "-", rec.lot_name or "-")
-                )
-
-            source_specification = source_detail_lines.get_sunrise_product_specification(allow_missing=True)
-            line_name = _("Product %s, pallet %s, lot %s") % (
-                rec.product_id.display_name,
-                rec.pallet_no or "-",
-                rec.lot_name or "-",
-            )
-
-            if not source_specification.get("has_specification"):
-                continue
-
-            try:
-                gross_weight = float(rec.gross_weight)
-            except (TypeError, ValueError) as error:
-                raise UserError(_("%s gross weight must be a valid positive number.") % line_name) from error
-            if not math.isfinite(gross_weight) or gross_weight <= 0:
-                raise UserError(_("%s gross weight must be a valid positive number.") % line_name)
-
-            pallet_dimensions = "".join((rec.pallet_dimensions or "").upper().split())
-            if not pallet_dimensions:
-                raise UserError(_("%s carton dimensions must not be blank.") % line_name)
-            if not math.isclose(
-                    gross_weight,
-                    source_specification["gross_weight_value"],
-                    rel_tol=1e-9,
-                    abs_tol=1e-6,
-            ) or pallet_dimensions != source_specification["pallet_dimensions_value"]:
-                raise UserError(
-                    _("%s gross weight and carton dimensions must match the inbound source detail.") % line_name
-                )
-        return True
 
     def init(self):
         super().init()

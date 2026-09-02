@@ -74,6 +74,8 @@ class Waybill(models.Model):
 
     handover_id = fields.Many2one("operation.order.handover", string="Handover")
     clearance_id = fields.Many2one("operation.order.clearance", string="Clearance")
+    handover_lines = fields.One2many("operation.order.handover", "waybill_id", string="Handovers", copy=False)
+    clearance_lines = fields.One2many("operation.order.clearance", "waybill_id", string="Clearances", copy=False)
 
     # 货到港码头信息
     port_id = fields.Many2one("world.depot.port.node", string="Port", tracking=True)
@@ -222,6 +224,23 @@ class Waybill(models.Model):
                 "res_id": handover_id.id,
                 "target": "current",
             }
+
+    def action_create_handover_popup(self):
+        self.ensure_one()
+        if self.handover_id:
+            return {
+                "type": "ir.actions.act_window",
+                "name": _("Handover"),
+                "res_model": "operation.order.handover",
+                "views": [(self.env.ref("wd_iffm.view_operation_order_handover_form").id, "form")],
+                "view_mode": "form",
+                "res_id": self.handover_id.id,
+                "target": "new",
+            }
+        result = self.action_create_handover()
+        result["target"] = "new"
+        return result
+
     def action_create_clearance(self):
         self.ensure_one()
         if self.state == "done":
@@ -243,6 +262,22 @@ class Waybill(models.Model):
                 "active_id": self.id,
             },
         }
+
+    def action_create_clearance_popup(self):
+        self.ensure_one()
+        if self.clearance_id:
+            return {
+                "type": "ir.actions.act_window",
+                "name": _("Clearance"),
+                "res_model": "operation.order.clearance",
+                "views": [(self.env.ref("wd_iffm.operation_order_clearance_form_view").id, "form")],
+                "view_mode": "form",
+                "res_id": self.clearance_id.id,
+                "target": "new",
+            }
+        result = self.action_create_clearance_all_create()
+        result["target"] = "new"
+        return result
 
     def action_create_pickup_requirement(self):
         self.ensure_one()

@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
 
+    <t t-name="column_reorder_tspl.X2ManyField" t-inherit="web.X2ManyField" t-inherit-mode="extension">
+        <xpath expr="//div[contains(concat(' ', normalize-space(@class), ' '), ' o_cp_pager ')]" position="attributes">
+            <attribute name="t-if">props.record.data[props.name]._columnFilterActive ? props.record.data[props.name]._columnFilterIds.length &gt; props.record.data[props.name].limit : props.record.data[props.name].count &gt; props.record.data[props.name].limit</attribute>
+        </xpath>
+    </t>
+
     <t t-name="column_reorder_tspl.ListRenderer" t-inherit="web.ListRenderer" t-inherit-mode="extension">
         <xpath expr="//t[@t-foreach='columns']/th[@t-if=&quot;column.type === 'field'&quot;]" position="attributes">
             <attribute name="t-att-class">(getColumnClass(column) + ' opacity-trigger-hover w-print-auto o_column_reorder_header').trim()</attribute>
