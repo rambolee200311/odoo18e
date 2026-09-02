@@ -141,10 +141,17 @@ class OutboundOrderInherit(models.Model):
                 if line.vsourcebillcode != rec.vsourcebillcode:
                     raise UserError(_("%s vsourcebillcode must equal outbound order vsourcebillcode.") % line_name)
 
-                if line.box_type not in ("full", "partial"):
-                    raise UserError(_("%s box_type must be full or partial.") % line_name)
+                if line.box_type not in ("full", "partial", "bulk"):
+                    raise UserError(_("%s box_type must be full, partial, or bulk.") % line_name)
                 if line.box_qty <= 0:
                     raise UserError(_("%s box_qty must be greater than 0.") % line_name)
+                if line.box_type in ("full", "partial") and not math.isclose(
+                        line.box_qty,
+                        round(line.box_qty),
+                        rel_tol=1e-9,
+                        abs_tol=1e-6,
+                ):
+                    raise UserError(_("%s box_qty must be an integer when box_type is full or partial.") % line_name)
                 if line.box_in_qty <= 0:
                     raise UserError(_("%s box_in_qty must be greater than 0.") % line_name)
                 if line.ninnum <= 0:
@@ -183,6 +190,13 @@ class OutboundOrderInherit(models.Model):
                         _("%s box_in_qty must not equal u8_conversion_rate when box_type is partial.")
                         % line_name
                     )
+                if line.box_type == "bulk" and not math.isclose(
+                        line.box_in_qty,
+                        1.0,
+                        rel_tol=1e-9,
+                        abs_tol=1e-6,
+                ):
+                    raise UserError(_("%s box_in_qty must equal 1 when box_type is bulk.") % line_name)
 
 
 
@@ -892,8 +906,8 @@ class OutboundOrderProduct(models.Model):
     ndiscounttaxtype = fields.Char(string="Tax Deduction Type", copy=False, index=True, tracking=True)
     vsourcebillcode = fields.Char(string="Source Bill Code", copy=False, index=True)
     vsourcerowno = fields.Char(string="Source Row No", copy=False, index=True, tracking=True)
-    box_type = fields.Selection([("full", "Full"), ("partial", "Non-standard")], string="Box Type", copy=False, index=True)
-    box_qty = fields.Integer(string="Box Qty", copy=False, tracking=True)
+    box_type = fields.Selection([("full", "Full"), ("partial", "Non-standard"), ("bulk", "Bulk")], string="Box Type", copy=False, index=True)
+    box_qty = fields.Float(string="Box Qty", copy=False, tracking=True)
     ninnum = fields.Float(string="Received Units", copy=False, tracking=True)
     box_in_qty = fields.Float(string="Box In Qty", copy=False, tracking=True)
     u8_aux_qty = fields.Float(string="U8 Aux Qty", copy=False)

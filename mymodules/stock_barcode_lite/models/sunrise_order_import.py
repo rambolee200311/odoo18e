@@ -552,9 +552,9 @@ class SunriseOrderImportLine(models.Model):
 
     def validate_box_values(self):
         box_type = self.get_required_text("box_type").lower()
-        if box_type not in ("full", "partial"):
-            raise UserError(_("Row %s: box_type must be full or partial.") % self.row_number)
-        box_qty = self.get_positive_int("box_qty")
+        if box_type not in ("full", "partial", "bulk"):
+            raise UserError(_("Row %s: box_type must be full, partial, or bulk.") % self.row_number)
+        box_qty = self.get_positive_float("box_qty") if box_type == "bulk" else self.get_positive_int("box_qty")
         box_in_qty = self.get_positive_float("box_in_qty")
         ninnum = self.get_positive_float("ninnum")
         u8_aux_qty = self.get_positive_float("u8_aux_qty")
@@ -573,6 +573,8 @@ class SunriseOrderImportLine(models.Model):
                 _("Row %s: box_in_qty must not equal u8_conversion_rate when box_type is partial.")
                 % self.row_number
             )
+        if box_type == "bulk" and not math.isclose(box_in_qty, 1.0, rel_tol=1e-9, abs_tol=1e-6):
+            raise UserError(_("Row %s: box_in_qty must equal 1 when box_type is bulk.") % self.row_number)
         return box_type, box_qty, box_in_qty, ninnum, u8_aux_qty, u8_conversion_rate
 
     def validate_lot_values(self):
@@ -705,7 +707,7 @@ class SunriseOrderImportLine(models.Model):
         if len(standard_products) > 1:
             raise UserError(_('Row %s: barcode "%s" matched multiple standard carton products.') % (self.row_number, product_code))
         standard_product = product_model.browse(standard_products[:1].id)
-        if box_type == "full":
+        if box_type in ("full", "bulk"):
             return standard_product
 
         template = standard_product.product_tmpl_id

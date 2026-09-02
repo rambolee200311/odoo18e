@@ -132,9 +132,9 @@ class SunriseControllerMixin:
 
     def validate_box_values(self, line_data, row_number=None):
         box_type = self.get_required_text(line_data, "box_type", row_number).lower()
-        if box_type not in ("full", "partial"):
-            raise SunriseApiError("4001", self.format_field_error("box_type", "must be full or partial", row_number))
-        box_qty = self.get_positive_int(line_data, "box_qty", row_number)
+        if box_type not in ("full", "partial", "bulk"):
+            raise SunriseApiError("4001", self.format_field_error("box_type", "must be full, partial, or bulk", row_number))
+        box_qty = self.get_positive_float(line_data, "box_qty", row_number) if box_type == "bulk" else self.get_positive_int(line_data, "box_qty", row_number)
         box_in_qty = self.get_positive_float(line_data, "box_in_qty", row_number)
         ninnum = self.get_positive_float(line_data, "ninnum", row_number)
         u8_aux_qty = self.get_positive_float(line_data, "u8_aux_qty", row_number)
@@ -160,6 +160,8 @@ class SunriseControllerMixin:
                     row_number,
                 ),
             )
+        if box_type == "bulk" and not math.isclose(box_in_qty, 1.0, rel_tol=1e-9, abs_tol=1e-6):
+            raise SunriseApiError("4001", self.format_field_error("box_in_qty", "must equal 1 when box_type is bulk", row_number))
         return box_type, box_qty, box_in_qty, ninnum, u8_aux_qty, u8_conversion_rate
 
     def validate_lot_values(self, line_data, row_number=None):
@@ -222,7 +224,7 @@ class SunriseControllerMixin:
         standard_product = product_model.browse(standard_products[:1].id)
 
         # 传入产品编码对应的 barcode 就是标准箱产品。
-        if box_type == "full":
+        if box_type in ("full", "bulk"):
             return standard_product
 
         template = standard_product.product_tmpl_id
