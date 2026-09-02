@@ -1,6 +1,7 @@
 /** @odoo-module **/
 
 import {ListRenderer} from "@web/views/list/list_renderer";
+import {X2ManyField} from "@web/views/fields/x2many/x2many_field";
 import {Domain} from "@web/core/domain";
 import {patch} from "@web/core/utils/patch";
 import {onMounted, onWillUnmount, onPatched} from "@odoo/owl";
@@ -13,6 +14,7 @@ patch(ListRenderer.prototype, {
         this.columnInfoMap = {};
         this._searchTimeout = null;
         this._searchRowInjected = false;
+        this._columnFilterRequestId = 0;
         this.baseGlobalDomain = Array.isArray(this.env?.searchModel?.globalDomain)
             ? [...this.env.searchModel.globalDomain]
             : [];
@@ -528,34 +530,78 @@ patch(ListRenderer.prototype, {
     },
 
     get_filtered_records(list) {
-        const records = list.records;
-        const columnDomain = this._buildDomain();
-        if (!this.isX2Many || !columnDomain.length) return records;
+        if (!this.isX2Many || !list._columnFilterActive) return list.records;
+        return list._columnFilterIds.map((id) => list._cache[id]).filter(Boolean).slice(
+            list.offset,
+            list.offset + list.limit
+        );
+    },
 
-        return records.filter((record) => columnDomain.every((condition) => {
-            const [fieldPath, operator] = condition;
-            const fieldName = fieldPath.split(".")[0];
-            const colInfo = this.columnInfoMap[fieldName];
-            const context = {...record.evalContext};
+    get_x2many_filtered_ids(list, columnDomain) {
+        return list.currentIds.filter((id) => {
+            const record = list._cache[id];
+            if (!record) return false;
+            return columnDomain.every((condition) => {
+                const [fieldPath, operator] = condition;
+                const fieldName = fieldPath.split(".")[0];
+                const colInfo = this.columnInfoMap[fieldName];
+                const context = {...record.evalContext};
 
-            if (["many2one", "many2many", "one2many"].includes(colInfo?.type)) {
-                const fieldValue = record.data[fieldName];
-                let names = [];
-                if (colInfo.type === "many2one") {
-                    names = fieldValue ? [fieldValue[1]] : [];
-                } else {
-                    names = fieldValue?.records?.map((item) => item.data.display_name || item.data.name || "") || [];
+                if (["many2one", "many2many", "one2many"].includes(colInfo?.type)) {
+                    const fieldValue = record.data[fieldName];
+                    let names = [];
+                    if (colInfo.type === "many2one") {
+                        names = fieldValue ? [fieldValue[1]] : [];
+                    } else {
+                        names = fieldValue?.records?.map((item) => item.data.display_name || item.data.name || "") || [];
+                    }
+                    context[fieldName] = {name: operator === "in" ? names : names.join(", ")};
                 }
-                context[fieldName] = {name: operator === "in" ? names : names.join(", ")};
-            }
-            return new Domain([condition]).contains(context);
-        }));
+                return new Domain([condition]).contains(context);
+            });
+        });
     },
 
     _applyColumnFilters() {
         if (this.isX2Many) {
-            this._searchRowInjected = false;
-            this.render();
+            const list = this.props.list;
+            const requestId = ++this._columnFilterRequestId;
+            const idsToLoad = list._getResIdsToLoad(
+                list.currentIds.filter((id) => typeof id === "number"),
+                list.fieldNames
+            );
+            if (idsToLoad.length) {
+                list.model._loadRecords(
+                    {...list.config, resIds: idsToLoad},
+                    list.evalContext
+                ).then((loadedRecords) => {
+                    if (requestId !== this._columnFilterRequestId) return;
+                    for (const data of loadedRecords) {
+                        const record = list._cache[data.id];
+                        if (record) {
+                            record._applyValues(data);
+                        } else {
+                            list._createRecordDatapoint(data);
+                        }
+                    }
+                    this._applyColumnFilters();
+                }).catch((error) => {
+                    if (requestId === this._columnFilterRequestId) {
+                        console.warn("CF load x2many records error:", error);
+                    }
+                });
+                return;
+            }
+            const columnDomain = this._buildDomain();
+            list._columnFilterActive = Boolean(columnDomain.length);
+            list._columnFilterIds = columnDomain.length
+                ? this.get_x2many_filtered_ids(list, columnDomain)
+                : null;
+            list.load({limit: list.limit, offset: 0}).then(() => {
+                if (requestId !== this._columnFilterRequestId) return;
+                this._searchRowInjected = false;
+                this.render();
+            });
             return;
         }
 
@@ -655,5 +701,16 @@ patch(ListRenderer.prototype, {
                 qf.style.display = "none";
             });
         });
+    },
+});
+
+patch(X2ManyField.prototype, {
+    get pagerProps() {
+        const pagerProps = super.pagerProps;
+        const list = this.list;
+        if (list._columnFilterActive) {
+            pagerProps.total = list._columnFilterIds.length;
+        }
+        return pagerProps;
     },
 });
