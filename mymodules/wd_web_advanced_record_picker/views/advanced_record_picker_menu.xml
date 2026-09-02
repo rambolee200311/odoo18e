@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem
+        id="menu_advanced_record_picker_profiles"
+        name="Advanced Record Picker Profiles"
+        parent="base.menu_administration"
+        action="action_advanced_record_picker_profiles"
+        sequence="80"
+        groups="base.group_user"
+    />
+</odoo>
