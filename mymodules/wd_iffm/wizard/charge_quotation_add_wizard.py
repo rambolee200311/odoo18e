@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
-from odoo.addons.wd_iffm.models.charge_item_inherit  import TAB_CATEGORY_LIST,OPERATION_TYPE
+from odoo.exceptions import ValidationError
+from odoo.addons.wd_iffm.models.charge_item_inherit import OPERATION_TYPE
 
 class ChargeQuotationAddWizard(models.TransientModel):
     _name = "charge.quotation.add.wizard"
@@ -25,17 +26,36 @@ class ChargeQuotationAddWizard(models.TransientModel):
         res = super().default_get(fields_list)
         quotation_id = self.env.context.get("default_quotation_id")
         if quotation_id:
-            quotation = self.env["charge.quotation"].browse(quotation_id)
+            quotation = self.env["charge.quotation"].sudo().browse(quotation_id)
             res["currency_id"] = quotation.currency_id.id
         return res
 
     def action_confirm(self):
         for rec in self:
+            if rec.quotation_id.state != "draft":
+                raise ValidationError(_("Only draft quotations can add charge items."))
+
+            selected_item_ids = []
+            for line in rec.wizard_lines:
+                if line.charge_item_id.id in selected_item_ids:
+                    raise ValidationError(_("The same charge item cannot be added more than once."))
+                selected_item_ids.append(line.charge_item_id.id)
+
+            existing_lines = self.env["charge.quotation.line"].sudo().search([
+                ("quotation_id", "=", rec.quotation_id.id),
+                ("tab_category", "=", rec.tab_category),
+                ("charge_item_id", "in", selected_item_ids),
+            ])
+            if existing_lines:
+                raise ValidationError(_("These charge items already exist in the quotation: %s") %
+                                      ", ".join(existing_lines.mapped("charge_item_id.display_name")))
+
             lines_to_create = []
             for line in rec.wizard_lines:
                 lines_to_create.append({
                     "quotation_id": rec.quotation_id.id,
                     "charge_item_id": line.charge_item_id.id,
+                    "tab_category": rec.tab_category,
                     "is_fixed_fee": line.is_fixed_fee,
                     "unit_price": line.unit_price,
                     "remark": line.remark,
