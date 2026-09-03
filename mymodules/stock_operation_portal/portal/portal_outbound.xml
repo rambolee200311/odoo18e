@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Outbound Orders List -->
+    <!-- 出库订单列表 -->
     <template id="portal_operation_outbounds" name="Outbound Orders">
         <t t-call="portal.portal_layout">
             <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/operation', 'name': 'Stock Operation'}, {'url': None, 'name': 'Outbound Orders'}]"/>
@@ -17,7 +17,7 @@
                         </a>
                     </div>
                     
-                    <!-- Filter Form -->
+                    <!-- 检索条件 -->
                     <div class="card mb-4">
                         <div class="card-body">
                             <form method="get" class="row g-3">
@@ -46,7 +46,7 @@
                         </div>
                     </div>
 
-                    <!-- Table -->
+                    <!-- 检索结果-表格 -->
                     <div class="table-responsive">
                         <table class="table table-hover">
                             <thead class="table-light">
@@ -82,7 +82,7 @@
         </t>
     </template>
 
-    <!-- Outbound Order Detail -->
+    <!-- 出库订单详情 -->
     <template id="portal_operation_outbound_detail" name="Outbound Order Detail">
         <t t-call="portal.portal_layout">
             <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/operation', 'name': 'Stock Operation'}, {'url': '/my/operation/outbounds', 'name': 'Outbound Orders'}, {'url': None, 'name': 'Outbound Detail'}]"/>
@@ -99,7 +99,7 @@
         </t>
     </template>
 
-    <!-- Outbound Order Form -->
+    <!-- 出库订单创建-表单 -->
     <template id="portal_operation_outbound_form" name="Create Outbound Order">
         <t t-call="portal.portal_layout">
             <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/operation', 'name': 'Stock Operation'}, {'url': '/my/operation/outbounds', 'name': 'Outbound Orders'}, {'url': None, 'name': 'Create Outbound Order'}]"/>

@@ -1,6 +1,8 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Inbound Orders List -->
+    <!-- ================================================================
+         1. 入库订单列表
+         ================================================================ -->
     <template id="portal_operation_inbounds" name="Inbound Orders">
         <t t-call="portal.portal_layout">
             <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/operation', 'name': 'Stock Operation'}, {'url': None, 'name': 'Inbound Orders'}]"/>
@@ -9,80 +11,60 @@
             <t t-set="page_name" value="'operation_inbounds'"/>
             <div class="o_portal_wrap">
                 <div class="container py-4">
-                    
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h2>Inbound Orders</h2>
-                        <a href="/my/operation/inbounds/create" class="btn btn-primary">
-                            <i class="fa fa-plus"/> Create Inbound Order
-                        </a>
+                        <a href="/my/operation/inbounds/create" class="btn btn-primary"><i class="fa fa-plus"/> Create Inbound Order</a>
                     </div>
-                    
-                    <!-- Filter Form -->
+                    <!-- 检索条件 -->
                     <div class="card mb-4">
                         <div class="card-body">
                             <form method="get" class="row g-3">
-                                <div class="col-md-2">
-                                    <input type="text" name="reference" class="form-control" 
-                                           placeholder="Reference" t-att-value="filters.get('reference', '')"/>
-                                </div>
-                                <div class="col-md-2">
-                                    <input type="text" name="bl_no" class="form-control" 
-                                           placeholder="B/L No" t-att-value="filters.get('bl_no', '')"/>
-                                </div>
-                                <div class="col-md-2">
-                                    <input type="text" name="container_no" class="form-control" 
-                                           placeholder="Container No" t-att-value="filters.get('container_no', '')"/>
-                                </div>
+                                <div class="col-md-2"><input type="text" name="reference" class="form-control" placeholder="Reference" t-att-value="filters.get('reference', '')"/></div>
+                                <div class="col-md-2"><input type="text" name="bl_no" class="form-control" placeholder="B/L No" t-att-value="filters.get('bl_no', '')"/></div>
+                                <div class="col-md-2"><input type="text" name="container_no" class="form-control" placeholder="Container No" t-att-value="filters.get('container_no', '')"/></div>
                                 <div class="col-md-2">
                                     <select name="state" class="form-control">
                                         <option value="">All Status</option>
+                                        <option value="new" t-att-selected="'selected' if filters.get('state') == 'new' else None">New</option>
+                                        <option value="portal_confirmed" t-att-selected="'selected' if filters.get('state') == 'portal_confirmed' else None">Portal Confirmed</option>
+                                        <option value="confirm" t-att-selected="'selected' if filters.get('state') == 'confirm' else None">Confirmed</option>
+                                        <option value="cancel" t-att-selected="'selected' if filters.get('state') == 'cancel' else None">Cancelled</option>
                                     </select>
                                 </div>
-                                <div class="col-md-4">
-                                    <button type="submit" class="btn btn-primary">Search</button>
-                                    <a href="/my/operation/inbounds" class="btn btn-secondary">Reset</a>
-                                </div>
+                                <div class="col-md-2"><input type="date" name="date_from" class="form-control" t-att-value="filters.get('date_from', '')"/></div>
+                                <div class="col-md-2"><button type="submit" class="btn btn-primary">Search</button> <a href="/my/operation/inbounds" class="btn btn-secondary">Reset</a></div>
                             </form>
                         </div>
                     </div>
-
-                    <!-- Table -->
+                    <!-- 检索结果 -->
                     <div class="table-responsive">
                         <table class="table table-hover">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Reference</th>
-                                    <th>B/L No</th>
-                                    <th>Container No</th>
-                                    <th>Expected Date</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
+                            <thead class="table-light"><tr><th>Reference</th><th>B/L No</th><th>Container No</th><th>Expected Date</th><th>Status</th><th>Action</th></tr></thead>
                             <tbody>
                                 <tr t-foreach="rows" t-as="row">
                                     <td><span t-esc="row.get('reference', '-')"/></td>
                                     <td><span t-esc="row.get('bl_no', '-')"/></td>
                                     <td><span t-esc="row.get('container_no', '-')"/></td>
                                     <td><span t-esc="row.get('expected_date', '-')"/></td>
-                                    <td><span t-esc="row.get('state', '-')"/></td>
                                     <td>
-                                        <a t-attf-href="/my/operation/inbounds/{{ row.get('id') }}" 
-                                           class="btn btn-sm btn-info">View</a>
+                                        <t t-set="row_st" t-value="row.get('state', '')"/>
+                                        <span t-att-class="'badge ' + ('bg-success' if row_st == 'confirm' else 'bg-info' if row_st == 'portal_confirmed' else 'bg-danger' if row_st == 'cancel' else 'bg-secondary')"><t t-esc="row_st"/></span>
                                     </td>
+                                    <td><a t-attf-href="/my/operation/inbounds/{{ row.get('id') }}" class="btn btn-sm btn-info">View</a></td>
                                 </tr>
-                                <tr t-if="not rows">
-                                    <td colspan="6" class="text-center text-muted">No records found</td>
-                                </tr>
+                                <tr t-if="not rows"><td colspan="6" class="text-center text-muted">No records found</td></tr>
                             </tbody>
                         </table>
                     </div>
+                    <t t-if="pager"><t t-call="portal.pager"/></t>
                 </div>
             </div>
         </t>
     </template>
 
-    <!-- Inbound Order Detail -->
+    <!-- ================================================================
+         2. 入库订单详情
+         ================================================================ -->
     <template id="portal_operation_inbound_detail" name="Inbound Order Detail">
         <t t-call="portal.portal_layout">
             <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/operation', 'name': 'Stock Operation'}, {'url': '/my/operation/inbounds', 'name': 'Inbound Orders'}, {'url': None, 'name': 'Inbound Detail'}]"/>
@@ -91,26 +73,285 @@
             <t t-set="page_name" value="'operation_inbound_detail'"/>
             <div class="o_portal_wrap">
                 <div class="container py-4">
-                    
-                    <h2>Inbound Order Detail</h2>
-                    <div class="alert alert-info">Order details will be displayed here</div>
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2 class="mb-0">Inbound Order Detail</h2>
+                        <div>
+                            <t t-if="order.get('state') == 'new'">
+                                <a t-attf-href="/my/operation/inbounds/{{ order.get('id') }}/edit" class="btn btn-warning btn-sm"><i class="fa fa-pencil"/> Edit</a>
+                                <form t-attf-action="/my/operation/inbounds/{{ order.get('id') }}/portal_confirm" method="post" class="d-inline">
+                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                    <button type="submit" class="btn btn-success btn-sm"><i class="fa fa-check"/> Portal Confirm</button>
+                                </form>
+                                <form t-attf-action="/my/operation/inbounds/{{ order.get('id') }}/cancel" method="post" class="d-inline">
+                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                    <button type="submit" class="btn btn-danger btn-sm"><i class="fa fa-times"/> Cancel</button>
+                                </form>
+                            </t>
+                            <t t-if="order.get('state') == 'portal_confirmed'">
+                                <form t-attf-action="/my/operation/inbounds/{{ order.get('id') }}/portal_unconfirm" method="post" class="d-inline">
+                                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                    <button type="submit" class="btn btn-warning btn-sm"><i class="fa fa-undo"/> Unconfirm</button>
+                                </form>
+                            </t>
+                            <a href="/my/operation/inbounds" class="btn btn-secondary btn-sm"><i class="fa fa-arrow-left"/> Back</a>
+                        </div>
+                    </div>
+                    <div t-if="error" class="alert alert-danger"><t t-esc="error"/></div>
+                    <div class="card mb-4">
+                        <div class="card-header"><h5 class="mb-0"><i class="fa fa-info-circle me-2"/>Order Information</h5></div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <table class="table table-borderless mb-0">
+                                        <tr><th class="text-muted" style="width:140px">Reference</th><td><t t-esc="order.get('reference', '-')"/></td></tr>
+                                        <tr><th class="text-muted">Order Date</th><td><t t-esc="order.get('date', '-')"/></td></tr>
+                                        <tr><th class="text-muted">Arrival Date</th><td><t t-esc="order.get('a_date', '-')"/></td></tr>
+                                        <tr><th class="text-muted">Project</th><td><t t-esc="order.get('project_name', '-')"/></td></tr>
+                                    </table>
+                                </div>
+                                <div class="col-md-6">
+                                    <table class="table table-borderless mb-0">
+                                        <tr><th class="text-muted" style="width:140px">B/L No</th><td><t t-esc="order.get('bl_no', '-')"/></td></tr>
+                                        <tr><th class="text-muted">Container No</th><td><t t-esc="order.get('container_no', '-')"/></td></tr>
+                                        <tr><th class="text-muted">Type</th><td><t t-esc="order.get('type', '-')"/></td></tr>
+                                        <tr><th class="text-muted">Status</th><td><span class="badge bg-secondary"><t t-esc="order.get('status', '-')"/></span></td></tr>
+                                        <tr>
+                                            <th class="text-muted">State</th>
+                                            <td>
+                                                <t t-set="st" t-value="order.get('state', '')"/>
+                                                <span t-att-class="'badge ' + ('bg-success' if st == 'confirm' else 'bg-info' if st == 'portal_confirmed' else 'bg-danger' if st == 'cancel' else 'bg-secondary')"><t t-esc="st"/></span>
+                                            </td>
+                                        </tr>
+                                        <tr><th class="text-muted">ADR</th><td><t t-if="order.get('is_adr')"><span class="badge bg-warning">Yes</span></t><t t-else=""><span class="badge bg-secondary">No</span></t></td></tr>
+                                    </table>
+                                </div>
+                            </div>
+                            <div t-if="order.get('remark')" class="row mt-2"><div class="col-12"><strong class="text-muted">Remark</strong><p class="mt-1"><t t-esc="order.get('remark')"/></p></div></div>
+                        </div>
+                    </div>
+                    <div class="card mb-4">
+                        <div class="card-header"><h5 class="mb-0"><i class="fa fa-cubes me-2"/>Pallet Details</h5></div>
+                        <div class="card-body p-0">
+                            <t t-foreach="detail_rows" t-as="pkg">
+                                <div class="border-bottom p-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="mb-0"><i class="fa fa-th me-1"/><t t-esc="pkg.get('package_name', '-')"/></h6>
+                                        <span class="badge bg-primary">Total: <t t-esc="pkg.get('total_quantity', 0)"/></span>
+                                    </div>
+                                    <div class="ms-3">
+                                        <small class="text-muted me-3" t-if="pkg.get('bl_no')">B/L: <t t-esc="pkg.get('bl_no')"/></small>
+                                        <small class="text-muted" t-if="pkg.get('container_no')">Container: <t t-esc="pkg.get('container_no')"/></small>
+                                    </div>
+                                    <table class="table table-sm mt-2 mb-0">
+                                        <thead class="table-light"><tr><th>Product Code</th><th>Product Name</th><th class="text-end">Quantity</th></tr></thead>
+                                        <tbody>
+                                            <tr t-foreach="pkg.get('products', [])" t-as="prod">
+                                                <td><t t-esc="prod.get('product_code', '-')"/></td>
+                                                <td><t t-esc="prod.get('product_name', '-')"/></td>
+                                                <td class="text-end"><t t-esc="prod.get('quantity', 0)"/></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </t>
+                            <div t-if="not detail_rows" class="text-center text-muted py-4"><i class="fa fa-inbox fa-2x mb-2 d-block"/>No pallet detail available</div>
+                        </div>
+                    </div>
+                    <div class="card mb-4">
+                        <div class="card-header"><h5 class="mb-0"><i class="fa fa-paperclip me-2"/>Attachments</h5></div>
+                        <div class="card-body p-0">
+                            <t t-foreach="attachment_rows" t-as="att">
+                                <div class="d-flex align-items-center justify-content-between border-bottom px-3 py-2">
+                                    <div><i class="fa fa-file-o me-2"/><t t-esc="att.get('file_name', '-')"/><small class="text-muted ms-2">(<t t-esc="att.get('file_type', '')"/>)</small></div>
+                                    <a t-att-href="att.get('download_url', '#')" class="btn btn-sm btn-outline-primary" target="_blank"><i class="fa fa-download"/> Download</a>
+                                </div>
+                            </t>
+                            <div t-if="not attachment_rows" class="text-center text-muted py-4"><i class="fa fa-paperclip fa-2x mb-2 d-block"/>No attachments</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </t>
     </template>
 
-    <!-- Inbound Order Form -->
-    <template id="portal_operation_inbound_form" name="Create Inbound Order">
+    <!-- ================================================================
+         3. 创建/编辑入库订单表单
+         ================================================================ -->
+    <template id="portal_operation_inbound_form" name="Inbound Order Form">
         <t t-call="portal.portal_layout">
-            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/operation', 'name': 'Stock Operation'}, {'url': '/my/operation/inbounds', 'name': 'Inbound Orders'}, {'url': None, 'name': 'Create Inbound Order'}]"/>
+            <t t-set="is_edit" t-value="bool(order)"/>
+            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/operation', 'name': 'Stock Operation'}, {'url': '/my/operation/inbounds', 'name': 'Inbound Orders'}, {'url': None, 'name': 'Edit Inbound Order' if is_edit else 'Create Inbound Order'}]"/>
             <t t-set="breadcrumbs_searchbar" t-value="False"/>
             <t t-call="stock_operation_portal.portal_breadcrumbs_slash"/>
-            <t t-set="page_name" value="'operation_inbound_create'"/>
+            <t t-set="page_name" t-value="'operation_inbound_edit' if is_edit else 'operation_inbound_create'"/>
             <div class="o_portal_wrap">
-                <div class="container py-4">
-                    
-                    <h2>Create Inbound Order</h2>
-                    <div class="alert alert-info">Form will be available soon</div>
+                <div class="container py-4 operation_form">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2 class="mb-0">
+                            <t t-if="is_edit">Edit Inbound Order</t>
+                            <t t-else="">Create Inbound Order</t>
+                        </h2>
+                        <a href="/my/operation/inbounds" class="btn btn-secondary btn-sm"><i class="fa fa-arrow-left"/> Back</a>
+                    </div>
+
+                    <div t-if="error" class="alert alert-danger"><t t-esc="error"/></div>
+
+                    <t t-set="fv" t-value="order if is_edit else form_values"/>
+
+                    <form id="inbound_order_form">
+
+                        <!-- ===== 第1部分：基础信息 ===== -->
+                        <div class="operation-form-section mb-3">
+                            <h4 class="d-flex align-items-center" onclick="toggleSection('section_basic')" style="cursor:pointer; user-select:none;">
+                                <i class="fa fa-file-text-o me-2"/>Basic Information
+                                <i class="fa fa-chevron-down ms-auto transition-icon" id="icon_basic"/>
+                            </h4>
+                            <div class="section-content" id="section_basic">
+                                <div class="row g-3 mt-1">
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold">Project <span class="text-danger">*</span></label>
+                                        <select name="project_id" class="form-select" required="required" t-att-disabled="'disabled' if is_edit else None">
+                                            <option value="">-- Select Project --</option>
+                                            <t t-foreach="projects" t-as="proj">
+                                                <option t-att-value="proj['id']" t-att-selected="'selected' if (active_project and active_project['id'] == proj['id']) else None"><t t-esc="proj['name']"/></option>
+                                            </t>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold">Reference <span class="text-danger">*</span></label>
+                                        <input type="text" name="reference" class="form-control" required="required" placeholder="e.g. PO-20260824-001" t-att-value="fv.get('reference', '')"/>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold">ADR (Dangerous Goods)</label>
+                                        <div class="form-check form-switch mt-2">
+                                            <input type="checkbox" class="form-check-input" name="is_adr" value="1" t-att-checked="'checked' if fv.get('is_adr', True) else None"/>
+                                            <label class="form-check-label">Is ADR</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold">Order Date <span class="text-danger">*</span></label>
+                                        <input type="date" name="date" class="form-control" required="required" t-att-value="fv.get('date', '')"/>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold">Arrival Date <span class="text-danger">*</span></label>
+                                        <input type="date" name="a_date" class="form-control" required="required" t-att-value="fv.get('a_date', '')"/>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold">B/L No</label>
+                                        <input type="text" name="bl_no" class="form-control" placeholder="e.g. BL20260824001" t-att-value="fv.get('bl_no', '')"/>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold">Container No</label>
+                                        <input type="text" name="cntr_no" class="form-control" placeholder="e.g. MSCU1234567" t-att-value="fv.get('container_no', '') or fv.get('cntr_no', '')"/>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <label class="form-label fw-bold">Remark</label>
+                                        <input type="text" name="remark" class="form-control" placeholder="Optional remark" t-att-value="fv.get('remark', '')"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ===== 第2部分：托盘行数据 ===== -->
+                        <div class="operation-form-section mb-3">
+                            <div class="d-flex align-items-center">
+                                <h4 class="mb-0 py-2 px-3 flex-grow-1" onclick="toggleSection('section_pallets')" style="cursor:pointer; user-select:none;">
+                                    <i class="fa fa-th me-2"/>Pallet Lines
+                                </h4>
+                                <button type="button" class="btn btn-sm btn-success add-line me-2"><i class="fa fa-plus"/> Add Pallet</button>
+                                <i class="fa fa-chevron-down me-3 transition-icon" id="icon_pallets" onclick="toggleSection('section_pallets')" style="cursor:pointer;"/>
+                            </div>
+                            <div class="section-content" id="section_pallets">
+                                <div id="pallet_lines_container" class="mt-1">
+                                    <t t-set="lines_data" t-value="fv.get('lines', [])"/>
+                                    <t t-if="lines_data">
+                                        <t t-foreach="lines_data" t-as="line">
+                                            <div class="operation-line-item pallet-line" t-att-data-line-id="line.get('id', '')">
+                                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                                    <h6 class="mb-0">Pallet #<t t-esc="line_index + 1"/></h6>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger remove-line"><i class="fa fa-trash"/></button>
+                                                </div>
+                                                <div class="row g-2 mb-2">
+                                                    <div class="col-md-3"><label class="form-label">Pallet No</label><input type="text" class="form-control pallet_no" placeholder="e.g. PALLET-001" t-att-value="line.get('pallet_no', '')"/></div>
+                                                    <div class="col-md-2"><label class="form-label">Pallets <span class="text-danger">*</span></label><input type="number" class="form-control pallets" min="0.01" step="0.01" required="required" t-att-value="line.get('pallets', 1)"/></div>
+                                                    <div class="col-md-2"><label class="form-label">Type</label><input type="text" class="form-control pallet_type" placeholder="e.g. WOOD" t-att-value="line.get('pallet_type', '')"/></div>
+                                                    <div class="col-md-5"><label class="form-label">Remark</label><input type="text" class="form-control line_remark" t-att-value="line.get('remark', '')"/></div>
+                                                </div>
+                                                <div class="ms-3">
+                                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                                        <small class="fw-bold text-muted">Products</small>
+                                                        <button type="button" class="btn btn-sm btn-outline-success add-product"><i class="fa fa-plus"/> Add Product</button>
+                                                    </div>
+                                                    <table class="table table-sm table-bordered product-table mb-0">
+                                                        <thead class="table-light">
+                                                            <tr>
+                                                                <th style="min-width:200px">Product <span class="text-danger">*</span></th>
+                                                                <th style="width:100px">Qty <span class="text-danger">*</span></th>
+                                                                <th style="width:110px">Gross Wt (kg)</th>
+                                                                <th style="width:110px">Net Wt (kg)</th>
+                                                                <th>Remark</th>
+                                                                <th style="width:40px"></th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <t t-foreach="line.get('products', [])" t-as="pline">
+                                                                <tr class="product-line" t-att-data-product-line-id="pline.get('id', '')">
+                                                                    <td>
+                                                                        <select class="form-select form-select-sm product-select" required="required">
+                                                                            <option value="">-- Select --</option>
+                                                                            <t t-foreach="products" t-as="prod">
+                                                                                <option t-att-value="prod['id']" t-att-selected="'selected' if (str(pline.get('product_id', '')) == str(prod['id'])) else None"><t t-esc="prod['default_name']"/></option>
+                                                                            </t>
+                                                                        </select>
+                                                                    </td>
+                                                                    <td><input type="number" class="form-control form-control-sm product-qty" min="0.01" step="0.01" required="required" t-att-value="pline.get('quantity', 1)"/></td>
+                                                                    <td><input type="number" class="form-control form-control-sm product-gross" min="0" step="0.01" t-att-value="pline.get('gross_weight', 0)"/></td>
+                                                                    <td><input type="number" class="form-control form-control-sm product-net" min="0" step="0.01" t-att-value="pline.get('net_weight', 0)"/></td>
+                                                                    <td><input type="text" class="form-control form-control-sm product-remark" t-att-value="pline.get('remark', '')"/></td>
+                                                                    <td class="text-center"><button type="button" class="btn btn-sm btn-link text-danger remove-product"><i class="fa fa-times"/></button></td>
+                                                                </tr>
+                                                            </t>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </t>
+                                    </t>
+                                </div>
+                                <div t-if="not lines_data" class="text-center text-muted py-3" id="empty_lines_hint">
+                                    <i class="fa fa-inbox fa-2x mb-2 d-block"/>No pallet lines yet. Click <strong>"Add Pallet"</strong> to start.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ===== 第3部分：附件（仅可编辑） ===== -->
+                        <t t-if="is_edit and attachment_rows">
+                            <div class="operation-form-section mb-3">
+                                <h4 class="d-flex align-items-center" onclick="toggleSection('section_attachments')" style="cursor:pointer; user-select:none;">
+                                    <i class="fa fa-paperclip me-2"/>Attachments
+                                    <i class="fa fa-chevron-down ms-auto transition-icon" id="icon_attachments"/>
+                                </h4>
+                                <div class="section-content" id="section_attachments">
+                                    <t t-foreach="attachment_rows" t-as="att">
+                                        <div class="d-flex align-items-center justify-content-between border-bottom px-2 py-2">
+                                            <div><i class="fa fa-file-o me-2"/><t t-esc="att.get('file_name', '-')"/><small class="text-muted ms-2">(<t t-esc="att.get('file_type', '')"/>)</small></div>
+                                            <a t-att-href="att.get('download_url', '#')" class="btn btn-sm btn-outline-primary" target="_blank"><i class="fa fa-download"/></a>
+                                        </div>
+                                    </t>
+                                </div>
+                            </div>
+                        </t>
+
+                        <!-- ===== 确认提交 ===== -->
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <a href="/my/operation/inbounds" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary" id="btn_submit_inbound">
+                                <i class="fa fa-paper-plane me-1"/>
+                                <t t-if="is_edit">Save Changes</t>
+                                <t t-else="">Create Order</t>
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </t>

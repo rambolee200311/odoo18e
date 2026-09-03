@@ -1,4 +1,4 @@
-/* Stock Operation Portal - Styles */
+﻿/* Stock Operation Portal - Styles */
 
 .operation-portal-card {
     border: 1px solid #dee2e6;
@@ -84,16 +84,29 @@
 
 /* Form styles */
 .operation-form-section {
-    margin-bottom: 24px;
-    padding: 20px;
-    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
     border-radius: 8px;
+    overflow: hidden;
 }
 
 .operation-form-section h4 {
-    margin-bottom: 16px;
-    border-bottom: 2px solid #dee2e6;
-    padding-bottom: 8px;
+    background-color: #f8f9fa;
+    padding: 12px 16px;
+    margin: 0;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.operation-form-section h4:hover {
+    background-color: #e9ecef;
+}
+
+.operation-form-section .section-content {
+    padding: 16px;
+}
+
+.transition-icon {
+    transition: transform 0.2s ease;
+    font-size: 0.75em;
 }
 
 .operation-line-item {
