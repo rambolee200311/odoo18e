@@ -23,6 +23,8 @@
                 <header>
                     <button name="action_import_sunrise_product_master" type="object" string="Import"
                             class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_open_import_lines" type="object" string="View Import Lines"
+                            invisible="not line_ids"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,done,partial,failed"/>
                 </header>
                 <sheet>
@@ -263,16 +265,10 @@
 
     <menuitem id="menu_sunrise_product_master_import"
               name="Sunrise Product Master Imports"
-              parent="menu_stock_barcode_lite_configuration"
+              parent="menu_stock_barcode_lite_import"
               action="action_sunrise_product_master_import"
               sequence="30"
               groups="base.group_system"/>
 
-    <menuitem id="menu_sunrise_product_master_import_line"
-              name="Sunrise Product Master Import Lines"
-              parent="menu_stock_barcode_lite_configuration"
-              action="action_sunrise_product_master_import_line"
-              sequence="31"
-              groups="base.group_system"/>
 
 </odoo>

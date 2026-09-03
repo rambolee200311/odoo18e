@@ -308,6 +308,14 @@ class SunriseProductBatchSpecificationImport(models.Model):
             return str(int(value))
         return str(value).strip()
 
+    def action_open_import_lines(self):
+        for rec in self:
+            action = self.env.ref("stock_barcode_lite.action_sunrise_product_specification_import_line").sudo().read()[0]
+            action["domain"] = [("import_id", "=", rec.id)]
+            action["context"] = {"default_import_id": rec.id}
+            return action
+        return {"type": "ir.actions.act_window_close"}
+
 
 class SunriseProductBatchSpecificationImportLine(models.Model):
     _name = "sunrise.product.specification.import.line"

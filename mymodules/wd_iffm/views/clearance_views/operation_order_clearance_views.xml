@@ -294,7 +294,7 @@
                         </page>
                         <page string="Containers">
                             <field name="clearance_container_ids" readonly="1">
-                                <list>
+                                <list no_open="1" create="0" edit="0" delete="0">
                                     <field name="container_number"/>
                                     <field name="container_type"/>
                                     <field name="weight"/>

@@ -20,7 +20,7 @@
 
                             <field name="charge_item_id" required="1"
                                    options="{'no_create': True, 'no_open': True}"
-                                   domain="[('tab_category', '=',  parent.tab_category),('is_leaf','=',True)]"/>
+                                   domain="['|', ('operation_type', '=', parent.tab_category), ('operation_type', '=', False), ('is_leaf', '=', True)]"/>
                             <field name="is_fixed_fee"/>
                             <field name="unit_price"/>
                             <field name="remark"/>

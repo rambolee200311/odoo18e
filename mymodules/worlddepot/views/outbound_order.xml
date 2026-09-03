@@ -94,7 +94,7 @@
                                 string="Create Picking"
                                 class="oe_stat_button" icon="fa-file-text"
                                 invisible="project_name != 'LINGLONG' or project_name == 'SUNRISE'"/>
-                        <button name="action_print_cmr_pdf"
+                        <button name="action_create_cmr"
                                 type="object"
                                 string="Create CMR"
                                 class="oe_stat_button" icon="fa-film"
@@ -226,7 +226,7 @@
                         </page>
                         <page string="Charges">
                             <field name="outbound_order_charge_ids" readonly="state=='cancel'">
-                                <list>
+                                <list editable="bottom">
                                     <field name="charge_item_id"/>
                                     <field name="quantity" sum="Total Quantity"/>
                                     <field name="charge_unit_name"/>

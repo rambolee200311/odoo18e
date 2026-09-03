@@ -347,6 +347,59 @@ class StockOperationPortal(CustomerPortal):
         values.update({'order': order, 'detail_rows': inbound_env.get_inbound_detail_grouped(order_id), 'attachment_rows': inbound_env.get_inbound_attachments(order_id)})
         return request.render("stock_operation_portal.portal_operation_inbound_detail", values)
 
+    @http.route(["/my/operation/inbounds/<int:order_id>/cancel"], type="http", auth="user", website=True,
+                methods=["POST"])
+    def operation_inbound_cancel(self, order_id, **kw):
+        inbound_model = request.env['world.depot.inbound.order']
+        order_sudo = inbound_model.sudo().search([('id', '=', order_id), ('state', 'in', ['new', 'confirm']), (
+        'stock_operation_portal_confirmed', '=', False)] + self.get_stock_operation_project_domain(), limit=1)
+        if not order_sudo:
+            return request.not_found()
+        if self.get_inbound_picking(order_sudo.id):
+            raise UserError(_('Cannot cancel an inbound order after a receipt has been created.'))
+        inbound_model.browse(order_sudo.id).action_cancel()
+        return request.redirect('/my/operation/inbounds/%s' % order_sudo.id)
+
+    # @http.route(["/my/operation/inbounds/<int:order_id>/unconfirm"], type="http", auth="user", website=True, methods=["POST"])
+    # def operation_inbound_unconfirm(self, order_id, **kw):
+    #     inbound_model = request.env['world.depot.inbound.order']
+    #     order_sudo = inbound_model.sudo().search([('id', '=', order_id), ('state', '=', 'confirm'), ('stock_operation_portal_confirmed', '=', False)] + self.get_stock_operation_project_domain(), limit=1)
+    #     if not order_sudo:
+    #         return request.not_found()
+    #     if self.get_inbound_picking(order_sudo.id):
+    #         raise UserError(_('Cannot return an inbound order to draft after a receipt has been created.'))
+    #     inbound_model.browse(order_sudo.id).write({
+    #         'state': 'new', 'confirm_user_id': False, 'confirm_time_user_tz': False, 'confirm_time_server': False,
+    #     })
+    #     return request.redirect('/my/operation/inbounds/%s' % order_sudo.id)
+
+    @http.route(["/my/operation/inbounds/<int:order_id>/portal_confirm"], type="http", auth="user", website=True,
+                methods=["POST"])
+    def operation_inbound_portal_confirm(self, order_id, **kw):
+        inbound_model = request.env['world.depot.inbound.order']
+        order_sudo = inbound_model.sudo().search([('id', '=', order_id), ('state', '=', 'new'), (
+        'stock_operation_portal_confirmed', '=', False)] + self.get_stock_operation_project_domain(), limit=1)
+        if not order_sudo:
+            return request.not_found()
+        inbound_model.browse(order_sudo.id).write({
+            'stock_operation_portal_confirmed': True, 'stock_operation_portal_confirm_user_id': request.env.user.id,
+            'stock_operation_portal_confirm_time': fields.Datetime.now(),
+        })
+        return request.redirect('/my/operation/inbounds/%s' % order_sudo.id)
+
+    @http.route(["/my/operation/inbounds/<int:order_id>/portal_unconfirm"], type="http", auth="user", website=True,
+                methods=["POST"])
+    def operation_inbound_portal_unconfirm(self, order_id, **kw):
+        inbound_model = request.env['world.depot.inbound.order']
+        order_sudo = inbound_model.sudo().search([('id', '=', order_id), ('state', 'in', ['new', 'confirm']), (
+        'stock_operation_portal_confirmed', '=', True)] + self.get_stock_operation_project_domain(), limit=1)
+        if not order_sudo:
+            return request.not_found()
+        inbound_model.browse(order_sudo.id).write({
+            'stock_operation_portal_confirmed': False, 'stock_operation_portal_confirm_user_id': False,
+            'stock_operation_portal_confirm_time': False,
+        })
+        return request.redirect('/my/operation/inbounds/%s' % order_sudo.id)
     # ============================================================
     # 出库订单
     # ============================================================
