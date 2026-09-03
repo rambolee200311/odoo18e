@@ -3,9 +3,9 @@
     <record id="view_project_form_portal_stock_location_inherit" model="ir.ui.view">
         <field name="name">project.project.form.portal.stock.location.inherit</field>
         <field name="model">project.project</field>
-        <field name="inherit_id" ref="worlddepot.view_project_form_inherit"/>
+        <field name="inherit_id" ref="project.edit_project"/>
         <field name="arch" type="xml">
-            <field name="owner" position="after">
+            <field name="outbound_pick_type" position="after">
                 <field name="portal_stock_location_line_ids" widget="many2many_tags" domain="[('usage', 'in', ('view', 'internal', 'transit'))]" options="{'no_create': True, 'no_open': True}"/>
             </field>
         </field>
