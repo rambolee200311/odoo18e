@@ -84,6 +84,7 @@ class SunriseInboundPalletSummaryReport(models.Model):
                     "first_inbound_date": summary_data["first_inbound_datetime"],
                     "inbound_order_id": summary_data["inbound_order_id"],
                     "cproject_ids": summary_data["cproject_ids"],
+                    "outbound_cproject_ids": summary_data["outbound_cproject_ids"],
                     "opening_pallet_count": summary_data["opening_pallet_count"],
                     "inbound_pallet_count": summary_data["inbound_pallet_count"],
                     "outbound_pallet_count": summary_data["outbound_pallet_count"],
@@ -94,6 +95,7 @@ class SunriseInboundPalletSummaryReport(models.Model):
                     "outbound_lines": [(0, 0, {
                         "outbound_date": outbound_data["outbound_date"],
                         "cproject_ids": outbound_data["cproject_ids"],
+                        "outbound_cproject_ids": outbound_data["outbound_cproject_ids"],
                         "batch_names": outbound_data["batch_names"],
                         "pallet_count": outbound_data["pallet_count"],
                         "stock_days": outbound_data["stock_days"],
@@ -114,21 +116,22 @@ class SunriseInboundPalletSummaryReport(models.Model):
                 raise ValidationError(_("Please refresh the report before exporting."))
             report_lines = report_line_model.search([("report_id", "=", rec.id)], order="first_inbound_date asc, id asc")
             max_outbound_count = max((len(line.outbound_lines) for line in report_lines), default=0)
-            headers = ["First Inbound Date", "Inbound", "Sunrise Ref", "Opening Pallets"]
+            headers = ["First Inbound Date", "Inbound", "Inbound Sunrise Ref", "Outbound Sunrise Ref", "Opening Pallets"]
             for outbound_index in range(max_outbound_count):
                 outbound_number = outbound_index + 1
-                headers.extend(["Outbound %s - Outbound Date" % outbound_number, "Outbound %s - Sunrise Ref" % outbound_number, "Outbound %s - Batch No" % outbound_number, "Outbound %s - Pallet Count" % outbound_number, "Outbound %s - Stock Days" % outbound_number])
+                headers.extend(["Outbound %s - Outbound Date" % outbound_number, "Outbound %s - Inbound Sunrise Ref" % outbound_number, "Outbound %s - Outbound Sunrise Ref" % outbound_number, "Outbound %s - Batch No" % outbound_number, "Outbound %s - Pallet Count" % outbound_number, "Outbound %s - Stock Days" % outbound_number])
             headers.extend(["Closing Pallets", "Remaining Period Age Days", "Remaining Total Age Days"])
             rows = []
             for line in report_lines:
                 first_inbound_date = fields.Datetime.context_timestamp(rec, line.first_inbound_date).strftime("%Y-%m-%d %H:%M:%S") if line.first_inbound_date else ""
-                values = [first_inbound_date, line.inbound_order_id.display_name or "", line.cproject_ids or "", line.opening_pallet_count]
+                values = [first_inbound_date, line.inbound_order_id.display_name or "", line.cproject_ids or "", line.outbound_cproject_ids or "", line.opening_pallet_count]
                 outbound_lines = sorted(line.outbound_lines, key=lambda outbound_line: (outbound_line.outbound_date, outbound_line.id))
                 for outbound_index in range(max_outbound_count):
                     outbound_line = outbound_lines[outbound_index] if outbound_index < len(outbound_lines) else False
                     values.extend([
                         fields.Date.to_string(outbound_line.outbound_date) if outbound_line else None,
                         outbound_line.cproject_ids if outbound_line else None,
+                        outbound_line.outbound_cproject_ids if outbound_line else None,
                         outbound_line.batch_names if outbound_line else None,
                         outbound_line.pallet_count if outbound_line else None,
                         outbound_line.stock_days if outbound_line else None,
@@ -142,20 +145,31 @@ class SunriseInboundPalletSummaryReport(models.Model):
             header_format = workbook.add_format({"bold": True, "align": "center", "valign": "vcenter", "text_wrap": True, "bg_color": "#D9EAF7", "border": 1})
             text_format = workbook.add_format({"border": 1, "valign": "vcenter", "text_wrap": True})
             number_format = workbook.add_format({"border": 1, "valign": "vcenter", "align": "right", "num_format": "0"})
+            outbound_color_pairs = [("#9DC3E6", "#DDEBF7"), ("#A9D18E", "#E2F0D9"), ("#FFD966", "#FFF2CC"), ("#F4B183", "#FCE4D6"), ("#B4A7D6", "#E4DFEC")]
+            outbound_header_format_list = [workbook.add_format({"bold": True, "align": "center", "valign": "vcenter", "text_wrap": True, "bg_color": header_color, "border": 1}) for header_color, data_color in outbound_color_pairs]
+            outbound_text_format_list = [workbook.add_format({"border": 1, "valign": "vcenter", "text_wrap": True, "bg_color": data_color}) for header_color, data_color in outbound_color_pairs]
+            outbound_number_format_list = [workbook.add_format({"border": 1, "valign": "vcenter", "align": "right", "num_format": "0", "bg_color": data_color}) for header_color, data_color in outbound_color_pairs]
             worksheet.merge_range(0, 0, 0, len(headers) - 1, "%s - %s" % (_("Inbound Pallet Summary"), rec.name or rec.id), title_format)
-            worksheet.write_row(2, 0, headers, header_format)
+            for column_index, header in enumerate(headers):
+                outbound_index = (column_index - 5) // 6
+                cell_format = outbound_header_format_list[outbound_index % len(outbound_header_format_list)] if 5 <= column_index < 5 + max_outbound_count * 6 else header_format
+                worksheet.write(2, column_index, header, cell_format)
             for row_index, values in enumerate(rows, start=3):
                 for column_index, value in enumerate(values):
+                    outbound_index = (column_index - 5) // 6
+                    text_cell_format = outbound_text_format_list[outbound_index % len(outbound_text_format_list)] if 5 <= column_index < 5 + max_outbound_count * 6 else text_format
+                    number_cell_format = outbound_number_format_list[outbound_index % len(outbound_number_format_list)] if 5 <= column_index < 5 + max_outbound_count * 6 else number_format
                     if isinstance(value, (int, float)) and not isinstance(value, bool):
-                        worksheet.write_number(row_index, column_index, value, number_format)
+                        worksheet.write_number(row_index, column_index, value, number_cell_format)
                     else:
-                        worksheet.write(row_index, column_index, "" if value is None else value, text_format)
+                        worksheet.write(row_index, column_index, "" if value is None else value, text_cell_format)
             worksheet.freeze_panes(3, 0)
             worksheet.autofilter(2, 0, max(2, len(rows) + 2), len(headers) - 1)
             worksheet.set_column(0, 0, 22)
             worksheet.set_column(1, 1, 24)
             worksheet.set_column(2, 2, 24)
-            worksheet.set_column(3, len(headers) - 1, 16)
+            worksheet.set_column(3, 3, 24)
+            worksheet.set_column(4, len(headers) - 1, 16)
             workbook.close()
             output.seek(0)
             attachment = attachment_model.create({
@@ -179,7 +193,8 @@ class SunriseInboundPalletSummaryReportLine(models.Model):
     first_inbound_date = fields.Datetime(string="First Inbound Date", required=True, readonly=True, index=True, copy=False)
     inbound_order_id = fields.Many2one("world.depot.inbound.order", string="Inbound", required=True, readonly=True, ondelete="restrict", index=True, copy=False)
 
-    cproject_ids = fields.Char(string="Sunrise Ref", readonly=True, copy=False)
+    cproject_ids = fields.Char(string="Inbound Sunrise Ref", readonly=True, copy=False)
+    outbound_cproject_ids = fields.Char(string="Outbound Sunrise Ref", readonly=True, copy=False)
     opening_pallet_count = fields.Integer(string="Opening Pallets", readonly=True, copy=False)
     inbound_pallet_count = fields.Integer(string="Inbound Pallets", readonly=True, copy=False)
     outbound_pallet_count = fields.Integer(string="Outbound Pallets", readonly=True, copy=False)
@@ -197,7 +212,8 @@ class SunriseInboundPalletSummaryOutboundLine(models.Model):
 
     report_line_id = fields.Many2one("sunrise.inbound.pallet.summary.report.line", string="Inbound Summary", required=True, readonly=True, ondelete="cascade", index=True, copy=False)
     outbound_date = fields.Date(string="Outbound Date", required=True, readonly=True, index=True, copy=False)
-    cproject_ids = fields.Char(string="Sunrise Ref", readonly=True, copy=False)
+    cproject_ids = fields.Char(string="Inbound Sunrise Ref", readonly=True, copy=False)
+    outbound_cproject_ids = fields.Char(string="Outbound Sunrise Ref", readonly=True, copy=False)
     batch_names = fields.Char(string="Batch No", readonly=True, copy=False)
     pallet_count = fields.Integer(string="Pallet Count", required=True, readonly=True, copy=False)
     stock_days = fields.Integer(string="Stock Days", required=True, readonly=True, copy=False)
