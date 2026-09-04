@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 
+import base64
+import io
 from collections import defaultdict
 from datetime import datetime, time, timedelta
+
+import xlsxwriter
 
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
@@ -25,7 +29,7 @@ class SunriseOutboundPalletSummaryReport(models.Model):
     date_from = fields.Date(string="Date From", required=True, default=lambda self: fields.Date.context_today(self).replace(day=1), index=True)
     date_to = fields.Date(string="Date To", required=True, default=fields.Date.context_today, index=True)
     location_scope = fields.Selection(selection="get_location_scope_selection", string="Location", copy=False, index=True)
-    cprojectid = fields.Char(string="Sunrise Ref", copy=False, index=True)
+    cprojectid = fields.Char(string="Outbound Sunrise Ref", copy=False, index=True)
     state = fields.Selection([("draft", "Draft"), ("done", "Done")], string="State", default="draft", required=True, readonly=True, copy=False, index=True)
     refreshed_by_id = fields.Many2one("res.users", string="Last Refreshed By", readonly=True, copy=False)
     refreshed_datetime = fields.Datetime(string="Last Refreshed At", readonly=True, copy=False, index=True)
@@ -239,6 +243,72 @@ class SunriseOutboundPalletSummaryReport(models.Model):
             action = {"type": "ir.actions.act_window", "name": _("Outbound Pallet Summary Report"), "res_model": "sunrise.outbound.pallet.summary.report", "view_mode": "form", "res_id": rec.id, "target": "current"}
         return action
 
+    def action_export_excel(self):
+        report_line_model = self.env["sunrise.outbound.pallet.summary.report.line"].sudo()
+        attachment_model = self.env["ir.attachment"]
+        action = False
+        for rec in self:
+            if rec.state != "done":
+                raise ValidationError(_("Please refresh the report before exporting."))
+            report_lines = report_line_model.search([("report_id", "=", rec.id)], order="order_date asc, id asc")
+            headers = ["Outbound Order Date", "Outbound Sunrise Ref", "Outbound Picking Validation Time", "Outbound No", "Total Outbound Pallets", "Completed Outbound Pallets", "Outbound Products", "Pallet Outbound Product Quantity", "Pallet No", "Inbound Datetime", "Fully Outbound Datetime", "Pallet Inbound Product Quantity"]
+            rows = []
+            for line in report_lines:
+                outbound_order = line.outbound_order_id
+                outbound_datetime = outbound_order.picking_Out_date or (outbound_order.picking_Out.date_done if outbound_order.picking_Out else False) or line.outbound_datetime
+                outbound_datetime = fields.Datetime.context_timestamp(rec, outbound_datetime).strftime("%Y-%m-%d %H:%M:%S") if outbound_datetime else ""
+                for pallet_line in line.pallet_line_ids.sorted(key=lambda item: (item.package_id.display_name or item.package_id.name or "", item.id)):
+                    rows.append([
+                        fields.Date.to_string(outbound_order.date or line.order_date) if outbound_order.date or line.order_date else "",
+                        pallet_line.sunrise_ref or line.sunrise_ref or "",
+                        outbound_datetime,
+                        line.system_document_no or outbound_order.billno or "",
+                        line.outbound_pallet_count or 0,
+                        line.completed_outbound_pallet_count or 0,
+                        line.product_names or pallet_line.product_names or "",
+                        pallet_line.outbound_quantity or 0.0,
+                        pallet_line.package_id.display_name or pallet_line.package_id.name or "",
+                        fields.Datetime.context_timestamp(rec, pallet_line.inbound_datetime).strftime("%Y-%m-%d %H:%M:%S") if pallet_line.inbound_datetime else "",
+                        fields.Datetime.context_timestamp(rec, pallet_line.consumed_datetime).strftime("%Y-%m-%d %H:%M:%S") if pallet_line.consumed_datetime else "",
+                        pallet_line.inbound_quantity_summary or 0.0,
+                    ])
+            output = io.BytesIO()
+            workbook = xlsxwriter.Workbook(output, {"in_memory": True})
+            worksheet = workbook.add_worksheet("Outbound Summary")
+            title_format = workbook.add_format({"bold": True, "font_size": 14, "align": "center", "valign": "vcenter"})
+            header_format = workbook.add_format({"bold": True, "align": "center", "valign": "vcenter", "text_wrap": True, "bg_color": "#D9EAF7", "border": 1})
+            text_format = workbook.add_format({"border": 1, "valign": "vcenter", "text_wrap": True})
+            number_format = workbook.add_format({"border": 1, "valign": "vcenter", "align": "right", "num_format": "0.####"})
+            worksheet.merge_range(0, 0, 0, len(headers) - 1, "%s - %s" % (_("Outbound Pallet Summary"), rec.name or rec.id), title_format)
+            for column_index, header in enumerate(headers):
+                worksheet.write(2, column_index, header, header_format)
+            for row_index, values in enumerate(rows, start=3):
+                for column_index, value in enumerate(values):
+                    worksheet.write_number(row_index, column_index, value, number_format) if isinstance(value, (int, float)) and not isinstance(value, bool) else worksheet.write(row_index, column_index, value, text_format)
+            worksheet.freeze_panes(3, 0)
+            worksheet.autofilter(2, 0, max(2, len(rows) + 2), len(headers) - 1)
+            worksheet.set_column(0, 0, 20)
+            worksheet.set_column(1, 2, 24)
+            worksheet.set_column(3, 3, 18)
+            worksheet.set_column(4, 5, 12)
+            worksheet.set_column(6, 6, 32)
+            worksheet.set_column(7, 8, 18)
+            worksheet.set_column(9, 10, 20)
+            worksheet.set_column(11, 11, 18)
+            workbook.close()
+            output.seek(0)
+            report_name = (rec.name or "Outbound_Pallet_Summary").replace("/", "_").replace("\\", "_").replace(":", "_")
+            attachment = attachment_model.create({
+                "name": "Outbound_Pallet_Summary_%s_%s.xlsx" % (report_name, rec.id),
+                "type": "binary",
+                "datas": base64.b64encode(output.read()),
+                "res_model": rec._name,
+                "res_id": rec.id,
+                "mimetype": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            })
+            action = {"type": "ir.actions.act_url", "url": "/web/content/%s?download=true" % attachment.id, "target": "self"}
+        return action
+
 
 class SunriseOutboundPalletSummaryReportLine(models.Model):
     _name = "sunrise.outbound.pallet.summary.report.line"
@@ -248,10 +318,10 @@ class SunriseOutboundPalletSummaryReportLine(models.Model):
     report_id = fields.Many2one("sunrise.outbound.pallet.summary.report", string="Report", required=True, readonly=True, ondelete="cascade", index=True, copy=False)
     outbound_order_id = fields.Many2one("world.depot.outbound.order", string="Outbound Order", required=True, readonly=True, ondelete="restrict", index=True, copy=False)
     order_date = fields.Date(string="Order Date", readonly=True, index=True, copy=False)
-    sunrise_ref = fields.Char(string="Sunrise Ref", readonly=True, copy=False)
+    sunrise_ref = fields.Char(string="Outbound Sunrise Ref", readonly=True, copy=False)
     outbound_datetime = fields.Datetime(string="Outbound Datetime", required=True, readonly=True, index=True, copy=False)
     system_document_no = fields.Char(string="Outbound No", readonly=True, copy=False)
-    outbound_pallet_count = fields.Integer(string="Outbound Pallets", readonly=True, copy=False)
+    outbound_pallet_count = fields.Integer(string="Total Outbound Pallets", readonly=True, copy=False)
     completed_outbound_pallet_count = fields.Integer(string="Completed Outbound Pallets", readonly=True, copy=False)
     product_names = fields.Char(string="Outbound Products", readonly=True, copy=False)
     product_quantity_summary = fields.Float(string="Outbound Total product Quantity", readonly=True, copy=False)
@@ -265,7 +335,7 @@ class SunriseOutboundPalletSummaryReportPalletLine(models.Model):
 
     report_line_id = fields.Many2one("sunrise.outbound.pallet.summary.report.line", string="Outbound Summary", required=True, readonly=True, ondelete="cascade", index=True, copy=False)
     package_id = fields.Many2one("stock.quant.package", string="Pallet No", required=True, readonly=True, ondelete="restrict", index=True, copy=False)
-    sunrise_ref = fields.Char(string="Sunrise Ref", readonly=True, copy=False)
+    sunrise_ref = fields.Char(string="Outbound Sunrise Ref", readonly=True, copy=False)
     product_names = fields.Char(string="Products", readonly=True, copy=False)
     inbound_quantity_summary = fields.Float(string="Inbound Product Quantity", readonly=True, copy=False)
     outbound_quantity = fields.Float(string="Outbound Product Quantity", readonly=True, copy=False)
