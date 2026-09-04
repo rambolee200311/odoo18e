@@ -751,7 +751,7 @@ class InboundOrderProductsOfPallet(models.Model):
     product_id = fields.Many2one(
         'product.product',
         string='Product',
-        domain="[('categ_id', '=', parent.project_category_id)]"
+        domain="[('categ_id', '=', project_category_id)]"
     )
     adr = fields.Boolean(string='ADR', help='Indicates if the product is classified as ADR (dangerous goods)',
                          related='product_id.is_dg', store=True, readonly=True)

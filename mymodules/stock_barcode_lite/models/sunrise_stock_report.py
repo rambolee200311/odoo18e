@@ -19,7 +19,6 @@ class SunriseStockReport(models.Model):
     name = fields.Char(string="Name", compute="_compute_name", store=True, readonly=True, copy=False, index=True)
     date_from = fields.Date(string="Date From", required=True, default=lambda self: fields.Date.context_today(self).replace(day=1), index=True)
     date_to = fields.Date(string="Date To", required=True, default=fields.Date.context_today, index=True)
-    warehouse_id = fields.Many2one("stock.warehouse", string="Warehouse", copy=False, index=True)
     owner_id = fields.Many2one("res.partner", string="Owner", copy=False, index=True)
     location_scope = fields.Selection(selection="get_location_scope_selection", string="Location", copy=False, index=True)
     product_template_id = fields.Many2one("product.template", string="Product", copy=False, index=True)
@@ -34,10 +33,10 @@ class SunriseStockReport(models.Model):
     inbound_pallet_count = fields.Integer(string="Inbound Pallet Operations", readonly=True, copy=False)
     outbound_pallet_count = fields.Integer(string="Outbound Pallet Operations", readonly=True, copy=False)
     closing_pallet_count = fields.Integer(string="Closing Pallets", readonly=True, copy=False)
-    opening_product_summary = fields.Char(string="Opening Product Quantity", readonly=True, copy=False)
-    inbound_product_summary = fields.Char(string="Inbound Product Quantity", readonly=True, copy=False)
-    outbound_product_summary = fields.Char(string="Outbound Product Quantity", readonly=True, copy=False)
-    closing_product_summary = fields.Char(string="Closing Product Quantity", readonly=True, copy=False)
+    opening_product_summary = fields.Float(string="Opening Product Quantity", readonly=True, copy=False)
+    inbound_product_summary = fields.Float(string="Inbound Product Quantity", readonly=True, copy=False)
+    outbound_product_summary = fields.Float(string="Outbound Product Quantity", readonly=True, copy=False)
+    closing_product_summary = fields.Float(string="Closing Product Quantity", readonly=True, copy=False)
     line_ids = fields.One2many("sunrise.stock.report.line", "report_id", string="Pallet Summary Lines", readonly=True, copy=False)
 
     @api.depends("date_from", "date_to")
@@ -66,11 +65,9 @@ class SunriseStockReport(models.Model):
         action = False
 
         def format_product_summary(summary_by_uom):
-            return ", ".join("%g %s" % (quantity, uom_name) for uom_name, quantity in sorted(summary_by_uom.items()) if abs(quantity) > 0.000001)
+            return sum(summary_by_uom.values())
 
         for rec in self:
-            if rec.state == "done":
-                raise ValidationError(_("A refreshed report cannot be refreshed again."))
             if rec.date_from > rec.date_to:
                 raise ValidationError(_("Date From must not be later than Date To."))
 
@@ -110,6 +107,7 @@ class SunriseStockReport(models.Model):
                 package = move_line.result_package_id
                 inbound_order = move_line.picking_id.inbound_order_id
                 inbound_detail = move_line.inbound_order_product_pallet_id
+                cprojectid = (inbound_detail.cprojectid or "").strip() if inbound_detail else ""
                 warehouse = inbound_order.warehouse or move_line.picking_id.picking_type_id.warehouse_id
                 pallet_no = inbound_detail.inbound_order_product_id.pallet_no if inbound_detail else ""
                 package_data = package_data_map.setdefault(package.id, {
@@ -117,14 +115,15 @@ class SunriseStockReport(models.Model):
                     "warehouse": warehouse,
                     "owner": inbound_order.owner,
                     "pallet_no": pallet_no or "",
+                    "cproject_ids": set(),
                 })
                 if not package_data["pallet_no"] and pallet_no:
                     package_data["pallet_no"] = pallet_no
+                if cprojectid:
+                    package_data["cproject_ids"].add(cprojectid)
 
             candidate_package_ids = []
             for package_id, package_data in package_data_map.items():
-                if rec.warehouse_id and package_data["warehouse"] != rec.warehouse_id:
-                    continue
                 if rec.owner_id and package_data["owner"] != rec.owner_id:
                     continue
                 candidate_package_ids.append(package_id)
@@ -233,9 +232,27 @@ class SunriseStockReport(models.Model):
                 opening_pallet_count = 0
                 inbound_pallet_count = 0
                 outbound_pallet_count = 0
+                original_product_quantity = 0.0
                 period_has_event = False
                 opening_set = False
                 package_matches_filter = not (rec.product_template_id or lot_filter)
+
+                original_inbound_picking = next(
+                    (
+                        package_event["move_line"].picking_id
+                        for package_event in package_events
+                        if package_event["direction"] == "inbound"
+                        and package_event["move_line"].picking_id.picking_type_id.code == "incoming"
+                    ),
+                    False,
+                )
+                if original_inbound_picking:
+                    original_product_quantity = sum(
+                        package_event["move_line"].quantity
+                        for package_event in package_events
+                        if package_event["direction"] == "inbound"
+                        and package_event["move_line"].picking_id == original_inbound_picking
+                    )
 
                 for event_sequence, package_event in enumerate(package_events):
                     move_line = package_event["move_line"]
@@ -315,12 +332,9 @@ class SunriseStockReport(models.Model):
                     continue
 
                 closing_age_days = 0
-                opening_age_days = 0
                 period_stock_days = 0
                 if lifecycle_start_datetime:
                     lifecycle_start_date = lifecycle_start_datetime.date()
-                    if opening_pallet_count:
-                        opening_age_days = (rec.date_from - lifecycle_start_date).days + 1
                     closing_age_end_date = rec.date_to if closing_pallet_count else consumed_datetime.date() if consumed_datetime else False
                     if closing_age_end_date:
                         closing_age_days = (closing_age_end_date - lifecycle_start_date).days + 1
@@ -552,6 +566,7 @@ class SunriseStockReport(models.Model):
                     "values": {
                         "row_type": "package",
                         "package_id": package_id,
+                        "cproject_ids": ", ".join(sorted(package_data["cproject_ids"])),
                         "pallet_no": package_data["pallet_no"],
                         "closing_location_id": closing_location_id,
                         "warehouse_id": package_data["warehouse"].id if package_data["warehouse"] else False,
@@ -570,7 +585,7 @@ class SunriseStockReport(models.Model):
                         "inbound_pallet_count": inbound_pallet_count,
                         "outbound_pallet_count": outbound_pallet_count,
                         "closing_pallet_count": closing_pallet_count,
-                        "opening_age_days": opening_age_days,
+                        "original_product_quantity": original_product_quantity,
                         "closing_age_days": closing_age_days,
                         "period_stock_days": period_stock_days,
                         "opening_product_summary": format_product_summary(line_product_summary_map["opening_product_summary"]),
@@ -620,8 +635,6 @@ class SunriseStockReport(models.Model):
                 inbound_order = picking.inbound_order_id
                 outbound_order = picking.outbound_order_id
                 owner = inbound_order.owner if inbound_order else outbound_order.owner if outbound_order and "owner" in outbound_order._fields else False
-                if rec.warehouse_id and warehouse != rec.warehouse_id:
-                    continue
                 if rec.owner_id and owner != rec.owner_id:
                     continue
                 product_template = move_line.product_id.product_tmpl_id
@@ -734,14 +747,10 @@ class SunriseStockReport(models.Model):
                     continue
                 closing_quantity = product_lot_quantity
                 closing_active = closing_quantity > 0.000001
-                opening_active = opening_quantity > 0.000001
                 closing_age_days = 0
-                opening_age_days = 0
                 period_stock_days = 0
                 if lifecycle_start_datetime:
                     lifecycle_start_date = lifecycle_start_datetime.date()
-                    if opening_active:
-                        opening_age_days = (rec.date_from - lifecycle_start_date).days + 1
                     closing_age_end_date = rec.date_to if closing_active else consumed_datetime.date() if consumed_datetime else False
                     if closing_age_end_date:
                         closing_age_days = (closing_age_end_date - lifecycle_start_date).days + 1
@@ -800,7 +809,6 @@ class SunriseStockReport(models.Model):
                         "inbound_pallet_count": 0,
                         "outbound_pallet_count": 0,
                         "closing_pallet_count": 0,
-                        "opening_age_days": opening_age_days,
                         "closing_age_days": closing_age_days,
                         "period_stock_days": period_stock_days,
                         "opening_product_summary": format_product_summary(line_product_summary_map["opening_product_summary"]),
@@ -928,47 +936,32 @@ class SunriseStockReport(models.Model):
             if export_type == "pallet_summary":
                 sheet_name = "Pallet Summary"
                 file_prefix = "Sunrise_Pallet_Summary"
-                headers = ["Row Type", "Package", "Loose Product", "Loose Lot", "Loose Unit", "Original Pallet", "Cutoff / Last Location", "Lifecycle State", "Lifecycle Start", "Consumed At", "Inbound Orders", "Outbound Orders", "Inbound Pickings", "Outbound Pickings", "Opening Pallets", "Inbound Pallet Operations", "Outbound Pallet Operations", "Closing Pallets", "Opening Product Quantity", "Inbound Product Quantity", "Outbound Product Quantity", "Closing Product Quantity", "Opening Age Days", "Closing Age Days", "Period Stock Days", "Anomaly"]
-                widths = [14, 28, 32, 20, 12, 22, 28, 16, 20, 20, 24, 24, 24, 24, 14, 14, 15, 14, 20, 20, 20, 20, 16, 16, 17, 24]
-                row_type_label_map = dict(report_line_model._fields["row_type"].selection)
-                state_label_map = dict(report_line_model._fields["lifecycle_state"].selection)
+                headers = ["Package", "Sunrise Ref", "Product Name", "Lifecycle Start", "Consumed At", "Cutoff / Last Location", "Original Product Quantity", "Opening Product Quantity", "Outbound Product Quantity", "Closing Product Quantity", "Closing Age Days", "Period Stock Days", "Anomaly"]
+                widths = [28, 24, 36, 20, 20, 28, 22, 20, 20, 20, 16, 17, 24]
                 report_lines = report_line_model.search([("report_id", "=", rec.id)], order="pallet_no asc, id asc")
+                product_name_map = defaultdict(set)
+                stock_lines = stock_line_model.search([("report_line_id", "in", report_lines.ids)], order="report_line_id, product_template_id, id")
+                for stock_line in stock_lines:
+                    if stock_line.product_template_id:
+                        product_name_map[stock_line.report_line_id.id].add(stock_line.product_template_id.display_name)
                 rows = [
                     [
-                        row_type_label_map.get(line.row_type, ""),
                         line.package_id.name or "",
-                        line.product_id.display_name or "",
-                        line.lot_id.name or "",
-                        line.uom_id.name or "",
-                        line.pallet_no or "",
-                        line.closing_location_id.display_name or "",
-                        state_label_map.get(line.lifecycle_state, ""),
+                        line.cproject_ids or "",
+                        ", ".join(sorted(product_name_map.get(line.id, set()))),
                         fields.Datetime.context_timestamp(rec, line.lifecycle_start_datetime).strftime("%Y-%m-%d %H:%M:%S") if line.lifecycle_start_datetime else "",
                         fields.Datetime.context_timestamp(rec, line.consumed_datetime).strftime("%Y-%m-%d %H:%M:%S") if line.consumed_datetime else "",
-                        line.inbound_order_names or "",
-                        line.outbound_order_names or "",
-                        line.inbound_picking_names or "",
-                        line.outbound_picking_names or "",
-                        line.opening_pallet_count,
-                        line.inbound_pallet_count,
-                        line.outbound_pallet_count,
-                        line.closing_pallet_count,
-                        line.opening_product_summary or "",
-                        line.inbound_product_summary or "",
-                        line.outbound_product_summary or "",
-                        line.closing_product_summary or "",
-                        line.opening_age_days,
+                        line.closing_location_id.display_name or "",
+                        line.original_product_quantity,
+                        line.opening_product_summary,
+                        line.outbound_product_summary,
+                        line.closing_product_summary,
                         line.closing_age_days,
                         line.period_stock_days,
                         line.anomaly_message or "",
                     ]
                     for line in report_lines
                 ]
-                total_values = ["Total"] + [""] * (len(headers) - 1)
-                total_values[14] = sum(line.opening_pallet_count for line in report_lines)
-                total_values[15] = sum(line.inbound_pallet_count for line in report_lines)
-                total_values[16] = sum(line.outbound_pallet_count for line in report_lines)
-                total_values[17] = sum(line.closing_pallet_count for line in report_lines)
             elif export_type == "product_stock":
                 sheet_name = "Product Lot Stock"
                 file_prefix = "Sunrise_Product_Lot_Stock"
@@ -1048,31 +1041,45 @@ class SunriseStockReport(models.Model):
             number_format = workbook.add_format({"border": 1, "valign": "vcenter", "align": "right", "num_format": "0.00"})
             total_text_format = workbook.add_format({"bold": True, "border": 1, "valign": "vcenter"})
             total_number_format = workbook.add_format({"bold": True, "border": 1, "valign": "vcenter", "align": "right", "num_format": "0.00"})
-            header_row = 13
+            header_row = 12 if export_type == "pallet_summary" else 13
 
             worksheet.merge_range(0, 0, 0, len(headers) - 1, "%s - %s" % (sheet_name, rec.name or ""), title_format)
             worksheet.write(2, 0, "Period", label_format)
             worksheet.merge_range(2, 1, 2, 3, "%s to %s" % (rec.date_from or "", rec.date_to or ""), value_format)
-            worksheet.write(3, 0, "Warehouse", label_format)
-            worksheet.merge_range(3, 1, 3, 3, rec.warehouse_id.display_name or "", value_format)
             worksheet.write(4, 0, "Project", label_format)
             worksheet.merge_range(4, 1, 4, 3, "SUNRISE", value_format)
-            worksheet.write(5, 0, "Opening Pallets", label_format)
-            worksheet.merge_range(5, 1, 5, 3, rec.opening_pallet_count or 0, value_format)
-            worksheet.write(6, 0, "Inbound Pallet Operations", label_format)
-            worksheet.merge_range(6, 1, 6, 3, rec.inbound_pallet_count or 0, value_format)
-            worksheet.write(7, 0, "Outbound Pallet Operations", label_format)
-            worksheet.merge_range(7, 1, 7, 3, rec.outbound_pallet_count or 0, value_format)
-            worksheet.write(8, 0, "Closing Pallets", label_format)
-            worksheet.merge_range(8, 1, 8, 3, rec.closing_pallet_count or 0, value_format)
-            worksheet.write(9, 0, "Opening Product Quantity", label_format)
-            worksheet.merge_range(9, 1, 9, 3, rec.opening_product_summary or "", value_format)
-            worksheet.write(10, 0, "Inbound Product Quantity", label_format)
-            worksheet.merge_range(10, 1, 10, 3, rec.inbound_product_summary or "", value_format)
-            worksheet.write(11, 0, "Outbound Product Quantity", label_format)
-            worksheet.merge_range(11, 1, 11, 3, rec.outbound_product_summary or "", value_format)
-            worksheet.write(12, 0, "Closing Product Quantity", label_format)
-            worksheet.merge_range(12, 1, 12, 3, rec.closing_product_summary or "", value_format)
+            if export_type == "pallet_summary":
+                worksheet.write(5, 0, "Opening Pallets", label_format)
+                worksheet.merge_range(5, 1, 5, 3, rec.opening_pallet_count or 0, value_format)
+                worksheet.write(6, 0, "Inbound Pallet Operations", label_format)
+                worksheet.merge_range(6, 1, 6, 3, rec.inbound_pallet_count or 0, value_format)
+                worksheet.write(7, 0, "Outbound Pallet Operations", label_format)
+                worksheet.merge_range(7, 1, 7, 3, rec.outbound_pallet_count or 0, value_format)
+                worksheet.write(8, 0, "Closing Pallets", label_format)
+                worksheet.merge_range(8, 1, 8, 3, rec.closing_pallet_count or 0, value_format)
+                worksheet.write(9, 0, "Opening Product Quantity", label_format)
+                worksheet.merge_range(9, 1, 9, 3, rec.opening_product_summary or 0.0, value_format)
+                worksheet.write(10, 0, "Outbound Product Quantity", label_format)
+                worksheet.merge_range(10, 1, 10, 3, rec.outbound_product_summary or 0.0, value_format)
+                worksheet.write(11, 0, "Closing Product Quantity", label_format)
+                worksheet.merge_range(11, 1, 11, 3, rec.closing_product_summary or 0.0, value_format)
+            else:
+                worksheet.write(5, 0, "Opening Pallets", label_format)
+                worksheet.merge_range(5, 1, 5, 3, rec.opening_pallet_count or 0, value_format)
+                worksheet.write(6, 0, "Inbound Pallet Operations", label_format)
+                worksheet.merge_range(6, 1, 6, 3, rec.inbound_pallet_count or 0, value_format)
+                worksheet.write(7, 0, "Outbound Pallet Operations", label_format)
+                worksheet.merge_range(7, 1, 7, 3, rec.outbound_pallet_count or 0, value_format)
+                worksheet.write(8, 0, "Closing Pallets", label_format)
+                worksheet.merge_range(8, 1, 8, 3, rec.closing_pallet_count or 0, value_format)
+                worksheet.write(9, 0, "Opening Product Quantity", label_format)
+                worksheet.merge_range(9, 1, 9, 3, rec.opening_product_summary or 0.0, value_format)
+                worksheet.write(10, 0, "Inbound Product Quantity", label_format)
+                worksheet.merge_range(10, 1, 10, 3, rec.inbound_product_summary or 0.0, value_format)
+                worksheet.write(11, 0, "Outbound Product Quantity", label_format)
+                worksheet.merge_range(11, 1, 11, 3, rec.outbound_product_summary or 0.0, value_format)
+                worksheet.write(12, 0, "Closing Product Quantity", label_format)
+                worksheet.merge_range(12, 1, 12, 3, rec.closing_product_summary or 0.0, value_format)
             worksheet.write_row(header_row, 0, headers, header_format)
             worksheet.freeze_panes(header_row + 1, 0)
             worksheet.autofilter(header_row, 0, header_row + len(rows), len(headers) - 1)
@@ -1116,6 +1123,7 @@ class SunriseStockReportLine(models.Model):
     report_id = fields.Many2one("sunrise.stock.report", string="Report", required=True, ondelete="cascade", index=True, copy=False)
     row_type = fields.Selection([("package", "Pallet"), ("loose", "Loose Goods")], string="Row Type", readonly=True, index=True, copy=False)
     package_id = fields.Many2one("stock.quant.package", string="Package", readonly=True, index=True, copy=False)
+    cproject_ids = fields.Char(string="Sunrise Ref", readonly=True, copy=False)
     product_id = fields.Many2one("product.product", string="Loose Product", readonly=True, index=True, copy=False)
     product_template_id = fields.Many2one("product.template", string="Product", readonly=True, index=True, copy=False)
     lot_id = fields.Many2one("stock.lot", string="Loose Lot", readonly=True, index=True, copy=False)
@@ -1138,11 +1146,11 @@ class SunriseStockReportLine(models.Model):
     inbound_pallet_count = fields.Integer(string="Inbound Pallet Operations", readonly=True, copy=False)
     outbound_pallet_count = fields.Integer(string="Outbound Pallet Operations", readonly=True, copy=False)
     closing_pallet_count = fields.Integer(string="Closing Pallets", readonly=True, copy=False)
-    opening_product_summary = fields.Char(string="Opening Product Quantity", readonly=True, copy=False)
-    inbound_product_summary = fields.Char(string="Inbound Product Quantity", readonly=True, copy=False)
-    outbound_product_summary = fields.Char(string="Outbound Product Quantity", readonly=True, copy=False)
-    closing_product_summary = fields.Char(string="Closing Product Quantity", readonly=True, copy=False)
-    opening_age_days = fields.Integer(string="Opening Age Days", readonly=True, copy=False)
+    original_product_quantity = fields.Float(string="Original Product Quantity", readonly=True, copy=False)
+    opening_product_summary = fields.Float(string="Opening Product Quantity", readonly=True, copy=False)
+    inbound_product_summary = fields.Float(string="Inbound Product Quantity", readonly=True, copy=False)
+    outbound_product_summary = fields.Float(string="Outbound Product Quantity", readonly=True, copy=False)
+    closing_product_summary = fields.Float(string="Closing Product Quantity", readonly=True, copy=False)
     closing_age_days = fields.Integer(string="Closing Age Days", readonly=True, copy=False)
     period_stock_days = fields.Integer(string="Period Stock Days", readonly=True, copy=False)
     anomaly_message = fields.Char(string="Anomaly", readonly=True, copy=False)
@@ -1218,6 +1226,6 @@ class SunriseStockReportOperationLine(models.Model):
     lot_id = fields.Many2one("stock.lot", string="Lot", readonly=True, index=True, copy=False)
     planned_quantity = fields.Float(string="Planned Quantity", readonly=True, copy=False)
     reserved_quantity = fields.Float(string="Reserved Quantity", readonly=True, copy=False)
-    done_quantity = fields.Float(string="Done Quantity", readonly=True, copy=False)
+    done_quantity = fields.Float(string="Pallet Done Quantity", readonly=True, copy=False)
     uom_id = fields.Many2one("uom.uom", string="Unit", readonly=True, copy=False)
     operation_datetime = fields.Datetime(string="Operation Datetime", readonly=True, index=True, copy=False)
