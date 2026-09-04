@@ -7,6 +7,15 @@ from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
 
+def format_product_template_name(product_template):
+    if not product_template:
+        return ""
+    standard_product = product_template.product_variant_ids.filtered(lambda product: "Standard Packaging" in product.product_template_attribute_value_ids.mapped("name"))[:1]
+    product_code = standard_product.barcode or standard_product.default_code or product_template.barcode or product_template.default_code or ""
+    product_name = product_template.name or ""
+    return "[%s] %s" % (product_code, product_name) if product_code and product_name else product_code or product_name
+
+
 class SunriseOutboundPalletSummaryReport(models.Model):
     _name = "sunrise.outbound.pallet.summary.report"
     _description = "Sunrise Outbound Pallet Summary Report"
@@ -100,14 +109,14 @@ class SunriseOutboundPalletSummaryReport(models.Model):
                     "outbound_order": outbound_order,
                     "outbound_datetime": move_line.date,
                     "cprojectid_set": set(),
-                    "product_name_set": {line.product_id.product_tmpl_id.display_name for line in outbound_order_product_lines if line.product_id and line.product_id.product_tmpl_id},
+                    "product_name_set": {format_product_template_name(line.product_id.product_tmpl_id) for line in outbound_order_product_lines if line.product_id and line.product_id.product_tmpl_id},
                     "product_quantity_total": sum(line.quantity or 0.0 for line in outbound_order_product_lines),
                     "pallet_data_map": {},
                 })
                 order_data["outbound_datetime"] = max(order_data["outbound_datetime"], move_line.date)
                 if cprojectid:
                     order_data["cprojectid_set"].add(cprojectid)
-                product_name = move_line.product_id.product_tmpl_id.display_name
+                product_name = format_product_template_name(move_line.product_id.product_tmpl_id)
                 if not move_line.package_id:
                     continue
                 pallet_data = order_data["pallet_data_map"].setdefault(move_line.package_id.id, {

@@ -106,16 +106,16 @@
         </field>
     </record>
 
-    <record id="view_stock_barcode_lite_sunrise_inbound_ai_verification_form_inherit" model="ir.ui.view">
-        <field name="name">stock.barcode.lite.sunrise.inbound.ai.verification.form.inherit</field>
-        <field name="model">world.depot.inbound.order</field>
-        <field name="inherit_id" ref="worlddepot.view_inbound_order_form_inherit"/>
-        <field name="arch" type="xml">
-            <xpath expr="//page[@name='deepseek_verification_page']" position="attributes">
-                <attribute name="invisible">project_name == 'SUNRISE'</attribute>
-            </xpath>
-        </field>
-    </record>
+<!--    <record id="view_stock_barcode_lite_sunrise_inbound_ai_verification_form_inherit" model="ir.ui.view">-->
+<!--        <field name="name">stock.barcode.lite.sunrise.inbound.ai.verification.form.inherit</field>-->
+<!--        <field name="model">world.depot.inbound.order</field>-->
+<!--        <field name="inherit_id" ref="worlddepot.view_inbound_order_form_inherit"/>-->
+<!--        <field name="arch" type="xml">-->
+<!--            <xpath expr="//page[@name='deepseek_verification_page']" position="attributes">-->
+<!--                <attribute name="invisible">project_name == 'SUNRISE'</attribute>-->
+<!--            </xpath>-->
+<!--        </field>-->
+<!--    </record>-->
     <!--    <record id="view_chenyang_chemical_inbound_order_product_tree_inherit" model="ir.ui.view">-->
     <!--        <field name="name">chenyang.chemical.inbound.order.product.tree.inherit</field>-->
     <!--        <field name="model">world.depot.inbound.order.product</field>-->

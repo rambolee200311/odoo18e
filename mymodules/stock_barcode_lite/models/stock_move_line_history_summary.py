@@ -358,10 +358,12 @@ class StockMoveLineHistorySummary(models.Model):
                 product = move_line.product_id
                 lot = move_line.lot_id
                 uom = move_line.product_uom_id
+                product_code = product.barcode or product.default_code or ""
+                product_display_name = "[%s] %s" % (product_code, product.name or "") if product_code and product.name else product_code or product.name or ""
                 product_key = (product.id, lot.id, uom.id)
                 product_data = product_data_map.setdefault(product_key, {
                     "product_id": product.id,
-                    "product_name": product.display_name or product.name or "",
+                    "product_name": product_display_name,
                     "product_code": product.barcode or product.default_code or "",
                     "lot_id": lot.id if lot else False,
                     "lot_name": lot.name if lot else move_line.lot_name or "",
@@ -444,7 +446,7 @@ class StockMoveLineHistorySummary(models.Model):
                     "picking_name": picking.name if picking else "",
                     "picking_state": picking.state if picking else "",
                     "product_id": product.id,
-                    "product_name": product.display_name or product.name or "",
+                    "product_name": product_display_name,
                     "product_code": product.barcode or product.default_code or "",
                     "lot_id": lot.id if lot else False,
                     "lot_name": lot.name if lot else move_line.lot_name or "",
@@ -502,13 +504,20 @@ class StockMoveLineHistorySummary(models.Model):
                 summary_map["closing_product_summary"][product_data["uom_name"]] += product_data["on_hand_quantity"]
             if not stock_line_ids and not operation_line_ids:
                 continue
+            loose_product = first_move_line.product_id
+            loose_product_code = loose_product.barcode or loose_product.default_code or ""
+            loose_product_name = loose_product.name or ""
+            if loose_product_code and loose_product_name:
+                loose_product_name = "[%s] %s" % (loose_product_code, loose_product_name)
+            elif loose_product_code:
+                loose_product_name = loose_product_code
             row = {
                 "row_type": "loose" if is_loose else "package",
                 "package_id": package.id if package else False,
                 "package_name": "No Pallet" if is_loose else package.name or "",
                 "pallet_no": pallet_no,
                 "product_id": first_move_line.product_id.id if is_loose else False,
-                "product_name": (first_move_line.product_id.display_name or first_move_line.product_id.name or "") if is_loose else "",
+                "product_name": loose_product_name if is_loose else "",
                 "lot_name": (first_move_line.lot_id.name or first_move_line.lot_name or "") if is_loose else "",
                 "uom_name": first_move_line.product_uom_id.name or "" if is_loose else "",
                 "lot_summary": ", ".join(lot_names),

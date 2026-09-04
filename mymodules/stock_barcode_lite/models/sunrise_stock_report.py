@@ -11,6 +11,23 @@ from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
 
+def format_product_name(product):
+    if not product:
+        return ""
+    product_code = product.barcode or product.default_code or ""
+    product_name = product.name or ""
+    return "[%s] %s" % (product_code, product_name) if product_code and product_name else product_code or product_name
+
+
+def format_product_template_name(product_template):
+    if not product_template:
+        return ""
+    standard_product = product_template.product_variant_ids.filtered(lambda product: "Standard Packaging" in product.product_template_attribute_value_ids.mapped("name"))[:1]
+    product_code = standard_product.barcode or standard_product.default_code or product_template.barcode or product_template.default_code or ""
+    product_name = product_template.name or ""
+    return "[%s] %s" % (product_code, product_name) if product_code and product_name else product_code or product_name
+
+
 class SunriseStockReport(models.Model):
     _name = "sunrise.stock.report"
     _description = "Sunrise Pallet Aging Report"
@@ -477,7 +494,7 @@ class SunriseStockReport(models.Model):
                         line_product_summary_map["inbound_product_summary"][product.uom_id.name] += variant["inbound_quantity"]
                         line_product_summary_map["outbound_product_summary"][product.uom_id.name] += variant["outbound_quantity"]
                         line_product_summary_map["closing_product_summary"][product.uom_id.name] += variant["on_hand_quantity"]
-                        variant_name = product.display_name
+                        variant_name = format_product_name(product)
                         quantity_summary.append(
                             _("%(variant)s: opening %(opening)s %(uom)s, inbound %(inbound)s %(uom)s, outbound %(outbound)s %(uom)s, closing %(on_hand)s %(uom)s, reserved %(reserved)s %(uom)s, available %(available)s %(uom)s")
                             % {
@@ -829,8 +846,8 @@ class SunriseStockReport(models.Model):
                         "reserved_quantity": 0.0,
                         "available_quantity": closing_quantity,
                         "uom_id": uom_id,
-                        "quantity_summary": _("%(product)s: opening %(opening)s %(uom)s, inbound %(inbound)s %(uom)s, outbound %(outbound)s %(uom)s, closing %(closing)s %(uom)s") % {"product": product.display_name, "opening": opening_quantity, "inbound": inbound_quantity, "outbound": outbound_quantity, "closing": closing_quantity, "uom": uom.name},
-                        "variant_summary": _("%(product)s: %(quantity)s %(uom)s") % {"product": product.display_name, "quantity": closing_quantity, "uom": uom.name},
+                        "quantity_summary": _("%(product)s: opening %(opening)s %(uom)s, inbound %(inbound)s %(uom)s, outbound %(outbound)s %(uom)s, closing %(closing)s %(uom)s") % {"product": format_product_name(product), "opening": opening_quantity, "inbound": inbound_quantity, "outbound": outbound_quantity, "closing": closing_quantity, "uom": uom.name},
+                        "variant_summary": _("%(product)s: %(quantity)s %(uom)s") % {"product": format_product_name(product), "quantity": closing_quantity, "uom": uom.name},
                         "reservation_note": "" if rec.date_to == fields.Date.context_today(rec) else _("Reserved quantity is available for the current date only."),
                     }],
                     "operation_values_list": operation_values_list,
@@ -943,7 +960,7 @@ class SunriseStockReport(models.Model):
                 stock_lines = stock_line_model.search([("report_line_id", "in", report_lines.ids)], order="report_line_id, product_template_id, id")
                 for stock_line in stock_lines:
                     if stock_line.product_template_id:
-                        product_name_map[stock_line.report_line_id.id].add(stock_line.product_template_id.display_name)
+                        product_name_map[stock_line.report_line_id.id].add(format_product_template_name(stock_line.product_template_id))
                 rows = [
                     [
                         line.package_id.name or "",
@@ -975,10 +992,10 @@ class SunriseStockReport(models.Model):
                         row_type_label_map.get(line.report_line_id.row_type, ""),
                         line.report_line_id.package_id.name or "",
                         line.report_line_id.pallet_no or "",
-                        line.report_line_id.product_id.display_name or "",
+                        format_product_name(line.report_line_id.product_id),
                         line.report_line_id.lot_id.name or "",
                         line.report_line_id.uom_id.name or "",
-                        line.product_template_id.display_name or "",
+                        format_product_template_name(line.product_template_id),
                         line.lot_id.name or "",
                         line.closing_location_id.display_name or "",
                         state_label_map.get(line.stock_state, ""),
@@ -1009,7 +1026,7 @@ class SunriseStockReport(models.Model):
                         row_type_label_map.get(line.report_line_id.row_type, ""),
                         line.report_line_id.package_id.name or "",
                         line.report_line_id.pallet_no or "",
-                        line.report_line_id.product_id.display_name or "",
+                        format_product_name(line.report_line_id.product_id),
                         line.report_line_id.lot_id.name or "",
                         line.report_line_id.uom_id.name or "",
                         direction_label_map.get(line.direction, ""),
@@ -1017,7 +1034,7 @@ class SunriseStockReport(models.Model):
                         line.outbound_order_id.display_name or "",
                         line.picking_id.name or "",
                         state_label_map.get(line.picking_state, ""),
-                        line.product_id.display_name or "",
+                        format_product_name(line.product_id),
                         line.lot_id.name or "",
                         line.planned_quantity,
                         line.reserved_quantity,

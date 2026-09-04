@@ -18,6 +18,7 @@ from .utils import (
     portal_package_container_from_name,
     portal_package_shipping_map,
     portal_product_code,
+    portal_product_name,
 )
 
 
@@ -86,7 +87,7 @@ class OutboundOrder(models.Model):
             # pallet_summary = f"{first_package_name},etc.{total_pallets}Pallet" if first_package_name else ""
 
 
-            product_names = rec.outbound_order_product_ids.mapped("product_id.name")
+            product_names = [portal_product_name(product) for product in rec.outbound_order_product_ids.mapped("product_id") if product]
             contract_no = ", ".join(dict.fromkeys(filter(None, rec.outbound_order_product_ids.mapped("cprojectid"))))
 
             first_product_name = product_names[0] if product_names else ""
@@ -129,7 +130,7 @@ class OutboundOrder(models.Model):
                 "container_no": lot.cntrno or "",
                 "package_name": "",
                 "product_code": portal_product_code(product),
-                "product_name": product.display_name or detail.product_name or "",
+                "product_name": portal_product_name(product) or detail.product_name or "",
                 "quantity": 1,
                 "sn_code": detail.lot_name or "",
                 "scan_time": portal_format_datetime(detail.p_date),
@@ -266,7 +267,7 @@ class OutboundOrder(models.Model):
                 "container_no": container_no,
                 "package_name": package.name if package else "",
                 "product_code": portal_product_code(product),
-                "product_name": product.display_name or product.name or "",
+                "product_name": portal_product_name(product),
                 "quantity": quantity,
                 "sn_code": sn_code,
                 "scan_time": portal_format_datetime(move_line.date or move_line.picking_id.date_done),
@@ -287,7 +288,7 @@ class OutboundOrder(models.Model):
 
             product_row = products_by_id.setdefault(product.id, {
                 "product_code": portal_product_code(product),
-                "product_name": product.display_name or product.name or "",
+                "product_name": portal_product_name(product),
                 "quantity": 0.0,
             })
             product_row["quantity"] += line.quantity or 0.0

@@ -7,6 +7,7 @@ from .utils import (
     portal_apply_date_filters,
     portal_filter_value,
     portal_format_datetime,
+    portal_product_name,
     portal_project_domain,
 )
 
@@ -59,7 +60,7 @@ class InboundOrder(models.Model):
                 package_names = [name for name in package_names if name]
             first_package_name = package_names[0] if package_names else ""
             pallet_summary = f"{first_package_name}Etc.{total_pallets}Pallet" if first_package_name else ""
-            product_names  = rec.inbound_order_product_ids.inbound_order_product_pallet_ids.mapped('product_id.name')
+            product_names = [portal_product_name(product) for product in rec.inbound_order_product_ids.inbound_order_product_pallet_ids.mapped('product_id') if product]
             product_names = [name for name in product_names if name]
             first_product_name = product_names[0] if product_names else ""
             product_summary = f"{first_product_name},  etc.({total_quantity} pcs)" if first_product_name else ""

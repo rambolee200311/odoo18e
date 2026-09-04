@@ -8,6 +8,7 @@ from .utils import (
     portal_package_container_from_name,
     portal_package_shipping_map,
     portal_product_code,
+    portal_product_name,
 )
 
 
@@ -111,7 +112,7 @@ class OutboundOrderSNDetail(models.Model):
         return {
             "sn_code": detail.lot_name or "",
             "product_code": portal_product_code(product),
-            "product_name": product.display_name or detail.product_name or "",
+            "product_name": portal_product_name(product) or detail.product_name or "",
             "outbound_no": order.billno or order.reference or detail.reference or "",
             "outbound_date": portal_format_date(order.o_date or detail.p_date),
             "container_no": container_no,
@@ -137,7 +138,7 @@ class OutboundOrderSNDetail(models.Model):
         return {
             "sn_code": lot.name or "",
             "product_code": portal_product_code(product),
-            "product_name": product.display_name or product.name or "",
+            "product_name": portal_product_name(product),
             "outbound_no": order.billno or order.reference or "",
             "outbound_date": portal_format_date(order.o_date or move_line.picking_id.date_done or move_line.date),
             "container_no": lot.cntrno or info.get("container_no") or portal_package_container_from_name(package.name if package else ""),
