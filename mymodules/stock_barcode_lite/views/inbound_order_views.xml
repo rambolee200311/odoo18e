@@ -20,6 +20,11 @@
                        invisible="project_name !='SUNRISE' or type != 'service'"/>
                 <field name="project_package_generation_mode" invisible="1"/>
             </xpath>
+            <xpath expr="//field[@name='confirm_time_server']" position="after">
+                <field name="actual_inbound_date"
+                       invisible="project_name != 'SUNRISE'"
+                       readonly="0"/>
+            </xpath>
             <xpath expr="//field[@name='inbound_order_product_ids']" position="before">
                 <div class="mb-2">
                     <button name="action_open_inbound_product_import_wizard"

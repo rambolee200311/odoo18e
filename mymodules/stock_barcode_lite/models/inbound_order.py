@@ -16,6 +16,7 @@ class InboundOrder(models.Model):
     vsourcebillcode = fields.Char(string="Source Bill Code", copy=False, index=True)
     project_package_generation_mode = fields.Selection(related="project.package_generation_mode", string="Package Generation Mode", readonly=True)
     organic = fields.Boolean(string="Organic", copy=False, index=True)
+    actual_inbound_date = fields.Date(string="Manual Inbound Date", copy=False, index=True, tracking=True)
 
     @api.onchange("project")
     def onchange_project_warehouse(self):
