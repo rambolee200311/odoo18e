@@ -953,7 +953,7 @@ class SunriseStockReport(models.Model):
             if export_type == "pallet_summary":
                 sheet_name = "Pallet Summary"
                 file_prefix = "Sunrise_Pallet_Summary"
-                headers = ["Package", "Sunrise Ref", "Product Name", "Lifecycle Start", "Consumed At", "Cutoff / Last Location", "Original Product Quantity", "Opening Product Quantity", "Outbound Product Quantity", "Closing Product Quantity", "Closing Age Days", "Period Stock Days", "Anomaly"]
+                headers = ["Package", "Inbound Sunrise Ref", "Product Name", "Lifecycle Start", "Consumed At", "Cutoff / Last Location", "Original Product Quantity", "Opening Product Quantity", "Outbound Product Quantity", "Closing Product Quantity", "Closing Age Days", "Period Stock Days", "Anomaly"]
                 widths = [28, 24, 36, 20, 20, 28, 22, 20, 20, 20, 16, 17, 24]
                 report_lines = report_line_model.search([("report_id", "=", rec.id)], order="pallet_no asc, id asc")
                 product_name_map = defaultdict(set)
@@ -1140,7 +1140,7 @@ class SunriseStockReportLine(models.Model):
     report_id = fields.Many2one("sunrise.stock.report", string="Report", required=True, ondelete="cascade", index=True, copy=False)
     row_type = fields.Selection([("package", "Pallet"), ("loose", "Loose Goods")], string="Row Type", readonly=True, index=True, copy=False)
     package_id = fields.Many2one("stock.quant.package", string="Package", readonly=True, index=True, copy=False)
-    cproject_ids = fields.Char(string="Sunrise Ref", readonly=True, copy=False)
+    cproject_ids = fields.Char(string="Inbound Sunrise Ref", readonly=True, copy=False)
     product_id = fields.Many2one("product.product", string="Loose Product", readonly=True, index=True, copy=False)
     product_template_id = fields.Many2one("product.template", string="Product", readonly=True, index=True, copy=False)
     lot_id = fields.Many2one("stock.lot", string="Loose Lot", readonly=True, index=True, copy=False)
