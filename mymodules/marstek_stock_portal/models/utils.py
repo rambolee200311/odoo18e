@@ -3,7 +3,7 @@
 from odoo.osv import expression
 from odoo.addons.stock_operation_portal.models.utils import (
     portal_attachment_row, portal_binary_field_row, portal_detect_attachment_type, portal_doc_binary_row,
-    portal_format_date, portal_format_datetime, portal_product_code, portal_project_domain,
+    portal_format_date, portal_format_datetime, portal_product_code, portal_product_name, portal_project_domain,
     portal_stock_operation_project_ids,
 )
 
@@ -184,7 +184,7 @@ def portal_stock_rows_from_quants(env, quants, forced_container_no=""):
             "container_no": forced_container_no or info.get("container_no") or "",
             "bl_no": info.get("bl_no") or "",
             "product_code": portal_product_code(product),
-            "product_name": product.display_name or product.name or "",
+            "product_name": portal_product_name(product),
             "quantity": 0.0,
             "location_name": location.complete_name or location.display_name or "",
             "inbound_date": portal_format_date(quant.in_date),

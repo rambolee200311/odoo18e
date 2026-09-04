@@ -1,0 +1,48 @@
+<odoo>
+    <record id="view_outbound_order_form_payable" model="ir.ui.view">
+        <field name="name">world.depot.outbound.order.form.payable</field>
+        <field name="model">world.depot.outbound.order</field>
+        <field name="inherit_id" ref="worlddepot.view_outbound_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[field[@name='outbound_order_charge_ids']]" position="after">
+                <page string="Payables">
+                    <field name="payable_lines" context="{'default_outbound_order_id': id}" readonly="state == 'cancel'">
+                        <list>
+                            <field name="vendor_partner_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="vendor_invoice_num" required='1'/>
+                            <field name="payable_date"/>
+                            <field name="amount_total" readonly="1"/>
+                            <field name="currency_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="remark"/>
+                        </list>
+                        <form string="Outbound Payable" duplicate="false">
+                            <sheet>
+                                <group>
+                                    <field name="outbound_order_id" required="1" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="vendor_invoice_num" required='1'/>
+                                    <field name="vendor_partner_id" required="1" options="{'no_create': False, 'no_open': True}"/>
+                                    <field name="payable_date" required="1"/>
+                                    <field name="currency_id" required="1" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="amount_total" readonly="1"/>
+                                    <field name="remark"/>
+                                </group>
+                                <field name="charge_lines">
+                                    <list editable="bottom">
+                                        <field name="payable_id" column_invisible="1" required="1"/>
+                                        <field name="charge_item_id" required="1" options="{'no_create': True, 'no_open': True}"/>
+                                        <field name="quantity" required="1"/>
+                                        <field name="charge_unit_id" options="{'no_create': True, 'no_open': True}"/>
+                                        <field name="unit_price" required="1"/>
+                                        <field name="amount" readonly="1"/>
+                                        <field name="currency_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                                        <field name="remark"/>
+                                    </list>
+                                </field>
+                            </sheet>
+                        </form>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

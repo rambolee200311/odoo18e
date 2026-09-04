@@ -47,6 +47,14 @@ def portal_product_code(product):
     return product.barcode or product.default_code or ""
 
 
+def portal_product_name(product):
+    if not product:
+        return ""
+    product_code = product.barcode or product.default_code or ""
+    product_name = product.name or ""
+    return "[%s] %s" % (product_code, product_name) if product_code and product_name else product_code or product_name
+
+
 def portal_detect_attachment_type(name, doc_type=""):
     doc_type = (doc_type or "").lower()
     if doc_type == "cmr":

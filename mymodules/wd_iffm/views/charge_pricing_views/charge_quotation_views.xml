@@ -64,7 +64,7 @@
                                         type="action"
                                         class="btn-secondary"
                                         invisible="state != 'draft'"
-                                        context="{'default_quotation_id': id, 'default_tab_category': 'thc'}"/>
+                                        context="{'default_quotation_id': id, 'default_tab_category': 'handover'}"/>
                             </group>
 
                             <field name="quotation_thc_lines" readonly="state != 'draft'"

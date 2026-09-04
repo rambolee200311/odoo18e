@@ -290,7 +290,7 @@
                         <!-- Tab 3: Containers (read only from waybill) -->
                         <page string="Containers">
                             <field name="container_line_ids">
-                                <list>
+                                <list no_open="1" create="0" edit="0" delete="0">
                                     <field name="container_number"/>
                                     <field name="container_type"/>
                                     <field name="weight"/>

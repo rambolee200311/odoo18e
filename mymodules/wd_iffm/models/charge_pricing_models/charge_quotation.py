@@ -331,7 +331,7 @@ class ChargeQuotationLine(models.Model):
     active = fields.Boolean(string="Active", default=True, index=True)
 
     _sql_constraints = [
-        ("uniq_quotation_item", "unique(quotation_id, charge_item_id)", "Charge item already exists in this quotation."),
+        ("uniq_quotation_item", "unique(quotation_id, tab_category, charge_item_id)", "Charge item already exists in this quotation tab."),
     ]
 
     @api.constrains("quotation_id", "tab_category", "charge_item_id")

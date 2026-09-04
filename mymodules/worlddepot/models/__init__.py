@@ -34,6 +34,7 @@ from . import charge_item
 from . import inbound_order_charge
 from . import outbound_order_pack_info
 from . import outbound_order_charge
+from . import outbound_order_payable
 from . import my_dashboard
 #from . import my_stock_report
 from . import my_stock_report_linglong

@@ -28,7 +28,7 @@
         #'views/templates.xml',
         #'vies/my_partner.xml',
         'views/location_type.xml',
-        'views/my_project.xml',
+        #'views/my_project.xml',
         'views/my_stock.xml',
         'views/my_product.xml',
        # 'views/my_user.xml',
@@ -36,6 +36,7 @@
         'views/my_picking_type.xml',
         'views/inbound_order.xml',
         'views/outbound_order.xml',
+        'views/outbound_order_payable.xml',
         #'views/portal_inventory_reporting.xml',
         'views/api_logs.xml',
 

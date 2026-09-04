@@ -172,7 +172,27 @@
             </xpath>
         </field>
     </record>
+<!--    <record id="view_stock_barcode_lite_sunrise_outbound_ai_verification_form_inherit" model="ir.ui.view">-->
+<!--        <field name="name">stock.barcode.lite.sunrise.outbound.ai.verification.form.inherit</field>-->
+<!--        <field name="model">world.depot.outbound.order</field>-->
+<!--        <field name="inherit_id" ref="worlddepot.view_outbound_order_form_inherit"/>-->
+<!--        <field name="arch" type="xml">-->
+<!--            <xpath expr="//page[@name='deepseek_verification_page']" position="attributes">-->
+<!--                <attribute name="invisible">project_name == 'SUNRISE'</attribute>-->
+<!--            </xpath>-->
+<!--        </field>-->
+<!--    </record>-->
 
+<!--    <record id="view_stock_barcode_lite_sunrise_outbound_payables_form_inherit" model="ir.ui.view">-->
+<!--        <field name="name">stock.barcode.lite.sunrise.outbound.payables.form.inherit</field>-->
+<!--        <field name="model">world.depot.outbound.order</field>-->
+<!--        <field name="inherit_id" ref="worlddepot.view_outbound_order_form_payable"/>-->
+<!--        <field name="arch" type="xml">-->
+<!--            <xpath expr="//page[field[@name='payable_lines']]" position="attributes">-->
+<!--                <attribute name="invisible">project_name == 'SUNRISE'</attribute>-->
+<!--            </xpath>-->
+<!--        </field>-->
+<!--    </record>-->
 
     <record id="view_stock_barcode_lite_outbound_order_product_form_inherit" model="ir.ui.view">
         <field name="name">stock.barcode.lite.outbound.order.product.form.inherit</field>
