@@ -66,9 +66,9 @@ class Waybill(models.Model):
                                        help='Packing lists associated with this container')
     obl_number = fields.Char(string="OBL No")
 
-    quotation_id = fields.Many2one("charge.quotation", string="Quotation", readonly=True, copy=False, index=True,
+    quotation_id = fields.Many2one("charge.quotation", string="Quotation", copy=False, index=True,
                                    tracking=True)
-    quotation_effective_date = fields.Date(string="Quotation Effective Date", readonly=True, copy=False, index=True,
+    quotation_effective_date = fields.Date(string="Quotation Effective Date", copy=False, index=True,
                                            tracking=True)
     container_qty = fields.Integer(string="Container Qty",compute="_compute_container_ids", tracking=True)
 

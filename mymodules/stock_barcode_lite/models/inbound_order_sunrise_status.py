@@ -157,13 +157,19 @@ class InboundOrderSunrise(models.Model):
                 raise UserError(_("Inbound order %s has no stock picking.") % (rec.billno or rec.reference))
             if picking.state != "done":
                 raise UserError(_("Inbound picking %s must be done before syncing to U8C.") % picking.name)
-
+            if not rec.actual_inbound_date:
+                raise UserError(
+                    _("Manual inbound date is required before syncing inbound order %s.")
+                    % (rec.billno or rec.reference)
+                )
             move_lines = picking.move_line_ids.filtered(lambda line: line.quantity > 0)
             if not move_lines:
                 raise UserError(_("Inbound picking %s has no move lines to sync.") % picking.name)
 
             parentvo["vuserdef3"] = rec.cntr_no or ""
             parentvo["cwarehouseid"] = rec.cwarehouseid
+            dbizdate = rec.get_sunrise_date_text(rec.actual_inbound_date)
+            parentvo["dbizdate"] = dbizdate
 
             child_parameters = parameters.get("childrenvo") if isinstance(parameters.get("childrenvo"), dict) else {}
             locator_parameters = parameters.get("locator") if isinstance(parameters.get("locator"), dict) else {}
@@ -197,6 +203,7 @@ class InboundOrderSunrise(models.Model):
                     "vsourcebillcode": detail_line.vsourcebillcode,
                     "vsourcerowno": detail_line.vsourcerowno,
                     "vbatchcode": move_line.lot_id.name or detail_line.lot_name or "",
+                    "dbizdate": dbizdate,
                     "vuserdef10":pallet_code,
                     "vmemo": detail_line.pallet_dimensions or "",
                     "vdef7": detail_line.gross_weight or "",

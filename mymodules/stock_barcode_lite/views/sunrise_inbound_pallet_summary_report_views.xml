@@ -49,6 +49,7 @@
                                     <field name="first_inbound_date"/>
                                     <field name="inbound_order_id" options="{'no_create': True, 'no_open': True}"/>
                                     <field name="cproject_ids"/>
+                                    <field name="outbound_cproject_ids"/>
                                     <field name="opening_pallet_count" sum="Total"/>
                                     <field name="inbound_pallet_count" sum="Total"/>
                                     <field name="outbound_pallet_count" sum="Total"/>
@@ -77,6 +78,7 @@
                             <field name="first_inbound_date" readonly="1"/>
                             <field name="inbound_order_id" readonly="1" options="{'no_create': True, 'no_open': False}"/>
                             <field name="cproject_ids" readonly="1"/>
+                            <field name="outbound_cproject_ids" readonly="1"/>
                             <field name="closing_location_summary" readonly="1"/>
                         </group>
                         <group>
@@ -95,6 +97,7 @@
                                     <field name="report_line_id" column_invisible="True"/>
                                     <field name="outbound_date"/>
                                     <field name="cproject_ids"/>
+                                    <field name="outbound_cproject_ids"/>
                                     <field name="batch_names"/>
                                     <field name="pallet_count" sum="Total"/>
                                     <field name="stock_days" sum="Total"/>

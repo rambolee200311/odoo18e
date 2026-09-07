@@ -10,6 +10,8 @@ from odoo.exceptions import UserError, ValidationError
 from odoo.http import request
 from odoo.addons.portal.controllers.portal import pager as portal_pager
 
+from ..models.utils import portal_product_name
+
 
 class StockOperationPortal(CustomerPortal):
     """Stock Operation Portal - Handles Inbound, Outbound and Transfer orders"""
@@ -249,7 +251,7 @@ class StockOperationPortal(CustomerPortal):
                 'products': [{
                     'id': product_line.id,
                     'product_id': product_line.product_id.id,
-                    'product_name': product_line.product_id.display_name or product_line.product_id.name or '',
+                    'product_name': portal_product_name(product_line.product_id),
                     'quantity': product_line.quantity or 0.0,
                     'gross_weight': getattr(product_line, 'stock_operation_gross_weight', 0.0) or 0.0,
                     'net_weight': getattr(product_line, 'stock_operation_net_weight', 0.0) or 0.0,

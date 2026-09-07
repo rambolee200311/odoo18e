@@ -24,6 +24,7 @@
             <form string="Outbound Pallet Summary Report" duplicate="false">
                 <header>
                     <button name="action_refresh_report" type="object" string="Refresh Report" class="oe_highlight" invisible="state == 'done'"/>
+                    <button name="action_export_excel" type="object" string="Export Excel" invisible="state != 'done'"/>
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>

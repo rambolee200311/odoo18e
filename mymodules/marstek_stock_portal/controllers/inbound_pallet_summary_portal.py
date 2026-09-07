@@ -3,7 +3,7 @@
 from odoo import fields, http
 from odoo.addons.portal.controllers.portal import pager as portal_pager
 from odoo.exceptions import ValidationError
-from odoo.http import request
+from odoo.http import content_disposition, request
 
 from ..models.utils import portal_location_is_allowed, portal_stock_location_ids, portal_stock_operation_project_ids
 from .portal import MarstekStockPortal
@@ -30,194 +30,53 @@ class InboundPalletSummaryPortal(MarstekStockPortal):
         values.update({"summary": {}, "rows": [], "pager": {},"show_sunrise_outbound_filters":show_sunrise_outbound_filters,})
         return request.render("marstek_stock_portal.portal_marstek_inbound_pallet_summary_page", values)
 
+    def get_inbound_pallet_summary_filters(self, kw):
+        date_from_value = str(kw.get("date_from") or "").strip()
+        date_to_value = str(kw.get("date_to") or "").strip()
+        location_value = str(kw.get("location_id") or "").strip()
+        cprojectid = str(kw.get("cprojectid") or "").strip()
+        request_filters = {"date_from": date_from_value, "date_to": date_to_value, "location_id": location_value, "cprojectid": cprojectid}
+        if not date_from_value or not date_to_value:
+            return request_filters, False, "date_from and date_to are required.", 400
+        try:
+            date_from = fields.Date.to_date(date_from_value)
+            date_to = fields.Date.to_date(date_to_value)
+        except (TypeError, ValueError):
+            return request_filters, False, "date_from and date_to must use YYYY-MM-DD.", 400
+        if not date_from or not date_to or date_from > date_to:
+            return request_filters, False, "date_from cannot be later than date_to.", 400
+        filters = {"date_from": date_from, "date_to": date_to, "cprojectid": cprojectid}
+        project_ids = portal_stock_operation_project_ids(request.env)
+        if not project_ids:
+            return request_filters, False, "The portal user has no stock operation projects configured.", 403
+        filters["project_ids"] = project_ids
+        location_model = request.env["stock.location"].sudo()
+        root_location_ids = portal_stock_location_ids(request.env)
+        if not root_location_ids:
+            return request_filters, False, "The portal user has no stock locations configured.", 403
+        if location_value == "other":
+            configured_location_ids = set(location_model.search([("id", "child_of", root_location_ids)]).ids) if root_location_ids else set()
+            internal_location_ids = set(location_model.search([("usage", "=", "internal")]).ids)
+            filters["location_ids"] = list(internal_location_ids - configured_location_ids)
+            request_filters["location_name"] = "Other"
+        elif location_value:
+            if not portal_location_is_allowed(request.env, location_value):
+                return request_filters, False, "location_id is not available for this portal user.", 400
+            filters["location_id"] = int(location_value)
+            location = location_model.browse(filters["location_id"])
+            request_filters["location_name"] = location.complete_name or location.display_name or ""
+        else:
+            filters["location_ids"] = location_model.search([("id", "child_of", root_location_ids)]).ids
+        return request_filters, filters, False, False
+
     @http.route([
         "/my/world_depot/stock/inbound_pallet_summary",
         "/my/world_depot/stock/inbound_pallet_summary/page/<int:page>",
     ], type="http", auth="user", methods=["GET"], website=False)
     def inbound_pallet_summary_data(self, page=1, **kw):
-        date_from_value = str(kw.get("date_from") or "").strip()
-        date_to_value = str(kw.get("date_to") or "").strip()
-        location_value = str(kw.get("location_id") or "").strip()
-        cprojectid = str(kw.get("cprojectid") or "").strip()
-        if not date_from_value or not date_to_value:
-            return request.make_json_response({"error": "date_from and date_to are required.", "rows": []}, status=400)
-        try:
-            date_from = fields.Date.to_date(date_from_value)
-            date_to = fields.Date.to_date(date_to_value)
-        except (TypeError, ValueError):
-            return request.make_json_response({"error": "date_from and date_to must use YYYY-MM-DD.", "rows": []}, status=400)
-        if not date_from or not date_to or date_from > date_to:
-            return request.make_json_response({"error": "date_from cannot be later than date_to.", "rows": []}, status=400)
-
-        request_filters = {"date_from": date_from_value, "date_to": date_to_value, "location_id": location_value, "cprojectid": cprojectid}
-
-        # ===== DEMO DATA START - 测试用，测完删除整段（含下面 if True 块） =====
-        if True:
-            demo_rows = [
-                {
-                    "first_inbound_date": "2026-06-26 09:30:00",
-                    "first_inbound_datetime": "2026-06-26 07:30:00",
-                    "inbound_order_id": 321,
-                    "inbound_order_name": "INB-20260626-001",
-                    "cproject_ids": "CP-001, CP-002",
-                    "opening_pallet_count": 5,
-                    "inbound_pallet_count": 2,
-                    "outbound_pallet_count": 3,
-                    "closing_pallet_count": 4,
-                    "closing_location_summary": "SPN/Stock/LOODS13: 4",
-                    "remain_period_age_days": 30,
-                    "remain_total_age_days": 35,
-                    "outbound_lines": [
-                        {
-                            "outbound_date": "2026-07-05",
-                            "cproject_ids": "SUN-20260705-001",
-                            "batch_names": "BATCH-A01, BATCH-A02",
-                            "pallet_count": 2,
-                            "stock_days": 5
-                        },
-                        {
-                            "outbound_date": "2026-07-18",
-                            "cproject_ids": "SUN-20260718-001",
-                            "batch_names": "BATCH-A03",
-                            "pallet_count": 1,
-                            "stock_days": 18
-                        }
-                    ]
-                },
-                {
-                    "first_inbound_date": "2026-06-26 09:30:00",
-                    "first_inbound_datetime": "2026-06-26 08:00:00",
-                    "inbound_order_id": 321,
-                    "inbound_order_name": "INB-20260626-001",
-                    "cproject_ids": "CP-001, CP-002",
-                    "opening_pallet_count": 5,
-                    "inbound_pallet_count": 3,
-                    "outbound_pallet_count": 1,
-                    "closing_pallet_count": 7,
-                    "closing_location_summary": "SPN/Stock/LOODS06: 7",
-                    "remain_period_age_days": 28,
-                    "remain_total_age_days": 33,
-                    "outbound_lines": [
-                        {
-                            "outbound_date": "2026-07-22",
-                            "cproject_ids": "SUN-20260722-001",
-                            "batch_names": "BATCH-B01",
-                            "pallet_count": 1,
-                            "stock_days": 22
-                        }
-                    ]
-                },
-                {
-                    "first_inbound_date": "2026-06-26 09:30:00",
-                    "first_inbound_datetime": "2026-06-26 09:30:00",
-                    "inbound_order_id": 321,
-                    "inbound_order_name": "INB-20260626-001",
-                    "cproject_ids": "CP-001, CP-002",
-                    "opening_pallet_count": 0,
-                    "inbound_pallet_count": 5,
-                    "outbound_pallet_count": 0,
-                    "closing_pallet_count": 5,
-                    "closing_location_summary": "SPN/Stock/LOODS13: 5",
-                    "remain_period_age_days": 15,
-                    "remain_total_age_days": 20,
-                    "outbound_lines": [
-                        {
-                            "outbound_date": "2026-08-01",
-                            "cproject_ids": "SUN-20260801-001",
-                            "batch_names": "BATCH-C01, BATCH-C02",
-                            "pallet_count": 3,
-                            "stock_days": 10
-                        },
-                        {
-                            "outbound_date": "2026-08-10",
-                            "cproject_ids": "SUN-20260810-001",
-                            "batch_names": "BATCH-C03",
-                            "pallet_count": 2,
-                            "stock_days": 19
-                        }
-                    ]
-                },
-                {
-                    "first_inbound_date": "2026-07-01 14:00:00",
-                    "first_inbound_datetime": "2026-07-01 12:00:00",
-                    "inbound_order_id": 322,
-                    "inbound_order_name": "INB-20260701-002",
-                    "cproject_ids": "CP-003",
-                    "opening_pallet_count": 0,
-                    "inbound_pallet_count": 8,
-                    "outbound_pallet_count": 2,
-                    "closing_pallet_count": 6,
-                    "closing_location_summary": "SPN/Stock/LOODS06: 4; SPN/Stock/LOODS07: 2",
-                    "remain_period_age_days": 25,
-                    "remain_total_age_days": 30,
-                    "outbound_lines": [
-                        {
-                            "outbound_date": "2026-07-20",
-                            "pallet_count": 2,
-                            "cproject_ids": "SUN-20260720-001",
-                            "batch_names": "BATCH-D01",
-                            "stock_days": 20
-                        }
-                    ]
-                },
-                {
-                    "first_inbound_date": "2026-07-10 08:15:00",
-                    "first_inbound_datetime": "2026-07-10 06:15:00",
-                    "inbound_order_id": 323,
-                    "inbound_order_name": "INB-20260710-003",
-                    "cproject_ids": "CP-004, CP-005, CP-006",
-                    "opening_pallet_count": 0,
-                    "inbound_pallet_count": 12,
-                    "outbound_pallet_count": 0,
-                    "closing_pallet_count": 12,
-                    "closing_location_summary": "SPN/Stock/LOODS13: 12",
-                    "remain_period_age_days": 20,
-                    "remain_total_age_days": 20,
-                    "outbound_lines": []
-                },
-            ]
-            demo_summary = {
-                "opening_pallet_count": sum(row["opening_pallet_count"] for row in demo_rows),
-                "outbound_pallet_count": sum(row["outbound_pallet_count"] for row in demo_rows),
-                "closing_pallet_count": sum(row["closing_pallet_count"] for row in demo_rows),
-            }
-            demo_pager = portal_pager(
-                url="/my/world_depot/stock/inbound_pallet_summary", url_args=request_filters,
-                total=len(demo_rows), page=page, step=20,
-            )
-            demo_rows_page = demo_rows[demo_pager["offset"]: demo_pager["offset"] + 20]
-            demo_values = {
-                "page_name": "marstek_inbound_pallet_summary",
-                "marstek_page_title": "Inbound Pallet Summary",
-                "filters": request_filters,
-                "summary": demo_summary,
-                "rows": demo_rows_page,
-                "pager": demo_pager,
-            }
-            if "application/json" in request.httprequest.headers.get("Accept", ""):
-                return request.make_json_response(demo_values)
-            return request.render("marstek_stock_portal.portal_marstek_inbound_pallet_summary", demo_values)
-        # ===== DEMO DATA END =====
-
-        filters = {"date_from": date_from, "date_to": date_to, "cprojectid": cprojectid}
-        project_ids = portal_stock_operation_project_ids(request.env)
-        if not project_ids:
-            return request.make_json_response({"error": "The portal user has no stock operation projects configured.", "rows": []}, status=403)
-        filters["project_ids"] = project_ids
-        location_model = request.env["stock.location"].sudo()
-        root_location_ids = portal_stock_location_ids(request.env)
-        if not root_location_ids:
-            return request.make_json_response({"error": "The portal user has no stock locations configured.", "rows": []}, status=403)
-        if location_value == "other":
-            configured_location_ids = set(location_model.search([("id", "child_of", root_location_ids)]).ids) if root_location_ids else set()
-            internal_location_ids = set(location_model.search([("usage", "=", "internal")]).ids)
-            filters["location_ids"] = list(internal_location_ids - configured_location_ids)
-        elif location_value:
-            if not portal_location_is_allowed(request.env, location_value):
-                return request.make_json_response({"error": "location_id is not available for this portal user.", "rows": []}, status=400)
-            filters["location_id"] = int(location_value)
-        else:
-            filters["location_ids"] = location_model.search([("id", "child_of", root_location_ids)]).ids
+        request_filters, filters, error_message, error_status = self.get_inbound_pallet_summary_filters(kw)
+        if error_message:
+            return request.make_json_response({"error": error_message, "rows": []}, status=error_status)
         try:
             all_rows = request.env["stock.move.line"].sudo().get_inbound_pallet_summary(filters)
         except ValidationError as error:
@@ -238,3 +97,25 @@ class InboundPalletSummaryPortal(MarstekStockPortal):
             "rows": rows_page,
             "pager": pager,
         })
+
+    @http.route("/my/world_depot/stock/inbound_pallet_summary/export", type="http", auth="user", methods=["GET"], website=True)
+    def inbound_pallet_summary_export(self, **kw):
+        request_filters, filters, error_message, error_status = self.get_inbound_pallet_summary_filters(kw)
+        if error_message:
+            return request.make_response(error_message, status=error_status)
+        try:
+            summary_data_list = request.env["stock.move.line"].sudo().get_inbound_pallet_summary(filters)
+        except ValidationError as error:
+            return request.make_response(str(error), status=400)
+        report_name_parts = ["%s ~ %s" % (request_filters["date_from"], request_filters["date_to"])]
+        if request_filters.get("location_name"):
+            report_name_parts.append(request_filters["location_name"])
+        if request_filters["cprojectid"]:
+            report_name_parts.append(request_filters["cprojectid"])
+        report_name = " / ".join(report_name_parts)
+        excel_data = request.env["sunrise.inbound.pallet.summary.report"].get_inbound_pallet_summary_excel_data(summary_data_list, "Inbound Pallet Summary - %s" % report_name)
+        export_file_name = report_name.replace("/", "-").replace("\\", "-")
+        return request.make_response(excel_data, headers=[
+            ("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
+            ("Content-Disposition", content_disposition("Inbound_Pallet_Summary_%s.xlsx" % export_file_name)),
+        ])
