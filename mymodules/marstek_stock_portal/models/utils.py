@@ -2,9 +2,10 @@
 
 from odoo.osv import expression
 from odoo.addons.stock_operation_portal.models.utils import (
-    portal_attachment_row, portal_binary_field_row, portal_detect_attachment_type, portal_doc_binary_row,
-    portal_format_date, portal_format_datetime, portal_product_code, portal_product_name, portal_project_domain,
-    portal_stock_operation_project_ids,
+    portal_apply_date_filters, portal_attachment_row, portal_binary_field_row, portal_detect_attachment_type,
+    portal_doc_binary_row, portal_filter_value, portal_format_date, portal_format_datetime,
+    portal_package_container_from_name, portal_package_shipping_map, portal_product_code, portal_product_name,
+    portal_project_domain, portal_stock_operation_project_ids,
 )
 
 
@@ -66,64 +67,6 @@ def portal_clean_text(value):
 
 def portal_float(value):
     return float(value or 0.0)
-
-
-def portal_package_container_from_name(name):
-    parts = (name or "").split("-")
-    if len(parts) >= 3:
-        return parts[-2]
-    return ""
-
-#给托盘补齐柜号和 BL
-def portal_package_shipping_map(env, package_ids, quants=None):
-    package_ids = [package_id for package_id in package_ids if package_id]
-    if not package_ids:
-        return {}
-
-    info_by_package = {
-        package_id: {
-            "container_no": "",
-            "bl_no": "",
-        }
-        for package_id in package_ids
-    }
-
-    move_line_env = env["stock.move.line"].sudo()
-    move_lines = move_line_env.search(
-        [
-            ("result_package_id", "in", package_ids),
-            ("picking_id.picking_type_id.code", "=", "incoming"),
-        ],
-        order="date desc, id desc",
-    )
-
-    for move_line in move_lines:
-        package = move_line.result_package_id
-        if not package:
-            continue
-
-        package_id = package.id
-        current_info = info_by_package.get(package_id, {})
-
-        if current_info.get("container_no") and current_info.get("bl_no"):
-            continue
-
-        picking = move_line.picking_id
-        inbound = picking.inbound_order_id
-
-        container_no = (inbound.cntr_no if inbound else "") or picking.cntrno or ""
-        bl_no = (inbound.bl_no if inbound else "") or picking.bill_of_lading or ""
-
-        if not container_no and not bl_no:
-            continue
-
-        info_by_package[package_id] = {
-            "container_no": current_info.get("container_no") or container_no,
-            "bl_no": current_info.get("bl_no") or bl_no,
-        }
-
-    return info_by_package
-
 
 
 #通过柜号或 BL 反查托盘 ID”
@@ -199,26 +142,6 @@ def portal_stock_rows_from_quants(env, quants, forced_container_no=""):
         row.pop("inbound_date_value", None)
     return rows
 
-
-
-def portal_filter_value(filters, *names):
-    if not isinstance(filters, dict):
-        return ""
-    for name in names:
-        value = filters.get(name)
-        if value not in (None, False, ""):
-            return value
-    return ""
-
-
-def portal_apply_date_filters(domain, filters, field_name, start_names, end_names):
-    date_from = portal_filter_value(filters, *start_names)
-    date_to = portal_filter_value(filters, *end_names)
-    if date_from:
-        domain.append((field_name, ">=", date_from))
-    if date_to:
-        domain.append((field_name, "<=", f"{date_to} 23:59:59" if field_name.endswith("date") or "datetime" in field_name else date_to))
-    return domain
 
 
 def portal_or_domain(base_domain, extra_domain):
