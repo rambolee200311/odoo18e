@@ -183,12 +183,12 @@
         }).then(function (data) {
             renderData(data); setLoading(false);
         }).catch(function (err) {
-            console.error('Inbound pallet summary load failed:', err);
+//            console.error('Inbound pallet summary load failed:', err);
             showError('Unable to load inbound pallet summary.'); clearData(); setLoading(false);
         });
     }
 
-    // ===== Data Rendering =====
+    // ===== 加载数据 =====
     function renderData(data) {
         if (!data || data.error) {
             showError(data && data.error ? data.error : 'Unable to load inbound pallet summary.');
@@ -206,8 +206,24 @@
         document.getElementById('ips_total').textContent = 'Total: ' + (pager.total || rows.length);
         showElement('ips_summary_card');
         toggleEmpty(rows.length === 0);
-        // Apply current view
+        // 刷新视图
         switchView(currentView);
+        // 更新导出按钮
+        var exportBtn = document.getElementById('ips_export_btn');
+        if (exportBtn) {
+            var exportParams = new URLSearchParams();
+            var locId = getParam('location_id');
+            var dateFrom = getParam('date_from');
+            var dateTo = getParam('date_to');
+            var cpid = getParam('cprojectid');
+            if (locId) exportParams.set('location_id', locId);
+            if (dateFrom) exportParams.set('date_from', dateFrom);
+            if (dateTo) exportParams.set('date_to', dateTo);
+            if (cpid) exportParams.set('cprojectid', cpid);
+            exportBtn.href = '/my/world_depot/stock/inbound_pallet_summary/export?' + exportParams.toString();
+            exportBtn.classList.remove('disabled');
+            exportBtn.title = 'Export Excel';
+        }
     }
 
     function groupRows(rows) {

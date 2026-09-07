@@ -96,6 +96,10 @@
                                     <span class="d-none d-sm-inline ms-1">Card</span>
                                 </button>
                             </div>
+                            <a id="ips_export_btn" class="btn btn-primary export-btn disabled" title="No data to export" href="#">
+                                <i class="fa fa-file-excel-o"></i>
+                                <span class="d-none d-sm-inline ms-1">Export Excel</span>
+                            </a>
                             <button class="btn btn-link text-decoration-none p-0 border-0" type="button" data-bs-toggle="collapse" data-bs-target="#ips_table_collapse" aria-expanded="true">
                                 <i class="fa fa-chevron-up collapse-icon"/>
                             </button>
