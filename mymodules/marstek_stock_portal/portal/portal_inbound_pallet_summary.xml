@@ -39,7 +39,7 @@
                                 </div>
                                 <t t-if="show_sunrise_outbound_filters">
                                     <div class="col-12 col-md-6 col-lg-3">
-                                        <label for="ips_cprojectid" class="form-label">Sunrise Ref</label>
+                                        <label for="ips_cprojectid" class="form-label">Inbound Sunrise Ref</label>
                                         <input type="search" class="form-control" id="ips_cprojectid" name="cprojectid" placeholder="Enter Sunrise Ref"/>
                                     </div>
                                 </t>
@@ -120,7 +120,8 @@
                                             <th class="text-nowrap text-end">Closing</th>
 <!--                                            <th class="text-nowrap">Closing Location</th>-->
                                             <th class="text-nowrap">Outbound Date</th>
-                                            <th class="text-nowrap">Sunrise Ref</th>
+                                            <th class="text-nowrap">Inbound Sunrise Ref</th>
+                                            <th class="text-nowrap">Outbound Sunrise Ref</th>
                                             <th class="text-nowrap">Batch No</th>
                                             <th class="text-nowrap text-end">Pallet Count</th>
                                             <th class="text-nowrap text-end">Stock Days</th>
