@@ -267,6 +267,13 @@ class OperationOrderHandover(models.Model):
                 },
             }
 
+    def action_select_for_waybill(self):
+        for rec in self:
+            if not rec.parent_id or not rec.waybill_id:
+                raise ValidationError(_("Only child handovers linked to a waybill can be selected."))
+            rec.waybill_id.write({"selected_child_handover_id": rec.id})
+        return {"type": "ir.actions.client", "tag": "soft_reload"}
+
 
 
     @api.constrains('extra_reason', 'extra_remark')

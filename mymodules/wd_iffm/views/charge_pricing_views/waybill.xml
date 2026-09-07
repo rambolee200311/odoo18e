@@ -192,38 +192,293 @@
                                 </list>
                             </field>
                         </page>
-                        <page string="Handover">
-                            <button name="action_create_handover_popup"
+                        <page name="handover" string="Handover">
+                            <button name="action_create_handover_from_waybill_tab"
                                     type="object"
                                     string="Create Handover"
                                     class="btn-primary"
                                     invisible="handover_id or state != 'confirm'"/>
-                            <field name="handover_lines" readonly="0">
-                                <list create="0" edit="0" delete="0">
-                                    <field name="name"/>
-                                    <field name="state"/>
-                                    <field name="container_qty"/>
-                                    <field name="bl_release_type"/>
-                                </list>
-                            </field>
-
+                            <group invisible="not handover_id">
+                                <group>
+                                    <field name="handover_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="handover_status" readonly="1"/>
+                                    <field name="handover_bl_release_type" required="handover_id" readonly="handover_status in ('released', 'close')"/>
+                                </group>
+                                <group>
+                                    <field name="handover_do_no" readonly="handover_status == 'close'"/>
+                                    <field name="handover_remark" readonly="handover_status == 'close'"/>
+                                </group>
+                            </group>
+                            <group invisible="not handover_is_overdue">
+                                <field name="handover_is_overdue" invisible="1"/>
+                                <field name="handover_overdue_blocking_reason_short_name" invisible="1"/>
+                                <field name="handover_overdue_blocking_reason_id" required="handover_is_overdue" options="{'no_create': True, 'no_open': True}"/>
+                                <field name="handover_overdue_reason_note" required="handover_overdue_blocking_reason_id and handover_overdue_blocking_reason_short_name == 'Others + Exp'" invisible="not (handover_overdue_blocking_reason_id and handover_overdue_blocking_reason_short_name == 'Others + Exp')"/>
+                                <field name="handover_overdue_handle_result" required="handover_is_overdue"/>
+                                <field name="handover_overdue_result_note" required="handover_overdue_handle_result == 'other'" invisible="handover_overdue_handle_result != 'other'"/>
+                            </group>
+                            <notebook invisible="not handover_id">
+                                <page string="Charge / Cost">
+                                    <group>
+                                        <field name="handover_invoice_lines" context="{'default_handover_id': handover_id}" readonly="handover_status == 'close'">
+                                            <list>
+                                                <field name="shipping_line_id"/>
+                                                <field name="vendor_invoice_id"/>
+                                                <field name="invoice_date"/>
+                                                <field name="amount_total"/>
+                                                <field name="payment_state"/>
+                                            </list>
+                                        </field>
+                                    </group>
+                                    <group>
+                                        <field name="handover_charge_lines" readonly="handover_status == 'close'">
+                                            <list editable="bottom">
+                                                <field name="charge_item_id" options="{'no_create': True, 'no_open': True}" domain="['|', ('operation_type', '=', 'handover'), ('operation_type', '=', False), ('is_leaf', '=', True)]" required="1"/>
+                                                <field name="is_fixed_fee" readonly="1"/>
+                                                <field name="qty" readonly="is_fixed_fee"/>
+                                                <field name="currency_id" readonly="1"/>
+                                                <field name="unit_price" readonly="is_fixed_fee"/>
+                                                <field name="amount_total" sum="Total Amount"/>
+                                                <field name="manual_amount_total" sum="Manual Total"/>
+                                                <field name="remark"/>
+                                            </list>
+                                        </field>
+                                    </group>
+                                </page>
+                                <page string="Containers">
+                                    <field name="handover_container_lines" readonly="1">
+                                        <list no_open="1" create="0" edit="0" delete="0">
+                                            <field name="container_number"/>
+                                            <field name="container_type"/>
+                                            <field name="weight"/>
+                                            <field name="quantity"/>
+                                        </list>
+                                    </field>
+                                </page>
+                            </notebook>
                         </page>
-                        <page string="Clearance">
-                            <button name="action_create_clearance_popup"
+                        <page name="clearance" string="Clearance">
+                            <button name="action_create_clearance_from_waybill_tab"
                                     type="object"
                                     string="Create Clearance"
                                     class="btn-primary"
                                     invisible="clearance_id or state != 'confirm'"/>
-                            <field name="clearance_lines" readonly="0">
-                                <list create="0" edit="0" delete="0">
-                                    <field name="name"/>
-                                    <field name="state"/>
-                                    <field name="clearance_type"/>
-                                    <field name="container_qty"/>
-                                    <field name="hs_code_qty"/>
+                            <group invisible="not clearance_id">
+                                <group>
+                                    <field name="clearance_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="clearance_status" readonly="1"/>
+                                    <field name="clearance_operation_type" required="clearance_id" readonly="clearance_status in ('clearanced', 'close')"/>
+                                </group>
+                                <group>
+                                    <field name="clearance_hs_code_qty" required="clearance_id" readonly="clearance_status in ('clearanced', 'close')"/>
+                                    <field name="clearance_receipt_no" readonly="clearance_status in ('clearanced', 'close')"/>
+                                    <field name="clearance_remark" readonly="clearance_status == 'close'"/>
+                                </group>
+                            </group>
+                            <group invisible="not clearance_is_overdue">
+                                <field name="clearance_is_overdue" invisible="1"/>
+                                <field name="clearance_overdue_blocking_reason_short_name" invisible="1"/>
+                                <field name="clearance_overdue_blocking_reason_id" required="clearance_is_overdue" options="{'no_create': True, 'no_open': True}"/>
+                                <field name="clearance_overdue_reason_note" required="clearance_overdue_blocking_reason_id and clearance_overdue_blocking_reason_short_name == 'Others + Exp'" invisible="not (clearance_overdue_blocking_reason_id and clearance_overdue_blocking_reason_short_name == 'Others + Exp')"/>
+                                <field name="clearance_overdue_handle_result" required="clearance_is_overdue"/>
+                                <field name="clearance_overdue_result_note" required="clearance_overdue_handle_result == 'other'" invisible="clearance_overdue_handle_result != 'other'"/>
+                            </group>
+                            <notebook invisible="not clearance_id">
+                                <page string="Charge / Cost">
+                                    <group>
+                                        <field name="clearance_invoice_lines" context="{'default_clearance_id': clearance_id}" readonly="clearance_status == 'close'">
+                                            <list>
+                                                <field name="vendor_invoice_id"/>
+                                                <field name="invoice_date"/>
+                                                <field name="amount_total"/>
+                                                <field name="payment_state"/>
+                                            </list>
+                                        </field>
+                                    </group>
+                                    <group>
+                                        <field name="clearance_charge_lines" readonly="clearance_status in ('clearanced', 'close')">
+                                            <list editable="bottom">
+                                                <field name="charge_qty" column_invisible="True"/>
+                                                <field name="charge_item_id" options="{'no_create': True, 'no_open': True}" domain="['|', ('operation_type', '=', 'clearance'), ('operation_type', '=', False), ('is_leaf', '=', True)]" required="1"/>
+                                                <field name="is_fixed_fee" readonly="1"/>
+                                                <field name="qty" readonly="is_fixed_fee"/>
+                                                <field name="currency_id" readonly="1"/>
+                                                <field name="unit_price" readonly="is_fixed_fee"/>
+                                                <field name="amount_total" sum="Total Amount"/>
+                                                <field name="manual_amount_total" sum="Manual Total"/>
+                                                <field name="remark"/>
+                                            </list>
+                                        </field>
+                                    </group>
+                                </page>
+                                <page string="Containers">
+                                    <field name="clearance_container_line_ids" readonly="1">
+                                        <list no_open="1" create="0" edit="0" delete="0">
+                                            <field name="container_number"/>
+                                            <field name="container_type"/>
+                                            <field name="weight"/>
+                                            <field name="quantity"/>
+                                        </list>
+                                    </field>
+                                </page>
+                            </notebook>
+                        </page>
+                        <page name="child_handover" string="Child Handover">
+                            <button name="action_create_child_handover_from_waybill_tab"
+                                    type="object"
+                                    string="Create Child Handover"
+                                    class="btn-primary"
+                                    invisible="not handover_id or handover_status != 'close'"/>
+                            <field name="selected_child_handover_id" invisible="1"/>
+                            <field name="handover_child_lines" readonly="not handover_id">
+                                <list no_open="1" create="0" delete="0">
+                                    <field name="name" readonly="1"/>
+                                    <field name="state" readonly="1"/>
+                                    <field name="container_qty" readonly="1"/>
+                                    <button name="action_select_for_waybill" type="object" string="View Details" class="btn-link"/>
                                 </list>
                             </field>
+                            <group invisible="not selected_child_handover_id">
+                                <group>
+                                    <field name="selected_child_handover_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="selected_child_handover_status" readonly="1"/>
+                                    <field name="selected_child_handover_bl_release_type" required="selected_child_handover_id" readonly="1"/>
+                                    <field name="selected_child_handover_do_no" readonly="1"/>
+                                    <field name="selected_child_handover_remark" readonly="selected_child_handover_status == 'close'"/>
+                                </group>
+                                <group>
+                                    <field name="selected_child_handover_extra_reason" required="selected_child_handover_id" readonly="selected_child_handover_status == 'close'"/>
+                                    <field name="selected_child_handover_extra_remark" required="selected_child_handover_extra_reason == 'other'" invisible="selected_child_handover_extra_reason != 'other'" readonly="selected_child_handover_status == 'close'"/>
+                                    <field name="selected_child_handover_actual_datetime" required="selected_child_handover_id" readonly="selected_child_handover_status == 'close'"/>
 
+                                </group>
+                            </group>
+                            <group invisible="not selected_child_handover_is_overdue">
+                                <field name="selected_child_handover_is_overdue" invisible="1"/>
+                                <field name="selected_child_handover_overdue_blocking_reason_short_name" invisible="1"/>
+                                <field name="selected_child_handover_overdue_blocking_reason_id" required="selected_child_handover_is_overdue" options="{'no_create': True, 'no_open': True}"/>
+                                <field name="selected_child_handover_overdue_reason_note" required="selected_child_handover_overdue_blocking_reason_id and selected_child_handover_overdue_blocking_reason_short_name == 'Others + Exp'" invisible="not (selected_child_handover_overdue_blocking_reason_id and selected_child_handover_overdue_blocking_reason_short_name == 'Others + Exp')"/>
+                                <field name="selected_child_handover_overdue_handle_result" required="selected_child_handover_is_overdue"/>
+                                <field name="selected_child_handover_overdue_result_note" required="selected_child_handover_overdue_handle_result == 'other'" invisible="selected_child_handover_overdue_handle_result != 'other'"/>
+                            </group>
+                            <notebook invisible="not selected_child_handover_id">
+                                <page string="Charge / Cost">
+                                    <group>
+                                        <field name="selected_child_handover_invoice_lines" context="{'default_handover_id': selected_child_handover_id}" readonly="selected_child_handover_status == 'close'">
+                                            <list>
+                                                <field name="shipping_line_id"/>
+                                                <field name="vendor_invoice_id"/>
+                                                <field name="invoice_date"/>
+                                                <field name="amount_total"/>
+                                                <field name="payment_state"/>
+                                            </list>
+                                        </field>
+                                    </group>
+                                    <group>
+                                        <field name="selected_child_handover_charge_lines" readonly="selected_child_handover_status == 'close'">
+                                            <list editable="bottom">
+                                                <field name="charge_item_id" options="{'no_create': True, 'no_open': True}" domain="['|', ('operation_type', '=', 'handover'), ('operation_type', '=', False), ('is_leaf', '=', True)]" required="1"/>
+                                                <field name="is_fixed_fee" readonly="1"/>
+                                                <field name="qty" readonly="is_fixed_fee"/>
+                                                <field name="currency_id" readonly="1"/>
+                                                <field name="unit_price" readonly="is_fixed_fee"/>
+                                                <field name="amount_total" sum="Total Amount"/>
+                                                <field name="manual_amount_total" sum="Manual Total"/>
+                                                <field name="remark"/>
+                                            </list>
+                                        </field>
+                                    </group>
+                                </page>
+                                <page string="Containers">
+                                    <field name="selected_child_handover_container_lines" readonly="1">
+                                        <list no_open="1" create="0" edit="0" delete="0">
+                                            <field name="container_number"/>
+                                            <field name="container_type"/>
+                                            <field name="weight"/>
+                                            <field name="quantity"/>
+                                        </list>
+                                    </field>
+                                </page>
+                            </notebook>
+                        </page>
+                        <page name="child_clearance" string="Child Clearance">
+                            <button name="action_create_child_clearance_from_waybill_tab"
+                                    type="object"
+                                    string="Create Child Clearance"
+                                    class="btn-primary"
+                                    invisible="not clearance_id or clearance_status != 'close'"/>
+                            <field name="selected_child_clearance_id" invisible="1"/>
+                            <field name="clearance_child_lines" readonly="not clearance_id">
+                                <list no_open="1" create="0" delete="0">
+                                    <field name="name" readonly="1"/>
+                                    <field name="state" readonly="1"/>
+                                    <field name="container_qty" readonly="1"/>
+                                    <button name="action_select_for_waybill" type="object" string="View Details" class="btn-link"/>
+                                </list>
+                            </field>
+                            <group invisible="not selected_child_clearance_id">
+                                <group>
+                                    <field name="selected_child_clearance_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="selected_child_clearance_status" readonly="1"/>
+                                    <field name="selected_child_clearance_operation_type" required="selected_child_clearance_id" readonly="1"/>
+                                    <field name="selected_child_clearance_hs_code_qty" required="selected_child_clearance_id" readonly="1"/>
+                                    <field name="selected_child_clearance_remark" readonly="selected_child_clearance_status == 'close'"/>
+                                </group>
+                                <group>
+                                    <field name="selected_child_clearance_receipt_no" readonly="selected_child_clearance_status in ('clearanced', 'close')"/>
+                                    <field name="selected_child_clearance_extra_reason" required="selected_child_clearance_id" readonly="selected_child_clearance_status == 'close'"/>
+                                    <field name="selected_child_clearance_extra_remark" required="selected_child_clearance_extra_reason == 'other'" invisible="selected_child_clearance_extra_reason != 'other'" readonly="selected_child_clearance_status == 'close'"/>
+                                    <field name="selected_child_clearance_actual_datetime" required="selected_child_clearance_id" readonly="selected_child_clearance_status == 'close'"/>
+
+                                </group>
+                            </group>
+                            <group invisible="not selected_child_clearance_is_overdue">
+                                <field name="selected_child_clearance_is_overdue" invisible="1"/>
+                                <field name="selected_child_clearance_overdue_blocking_reason_short_name" invisible="1"/>
+                                <field name="selected_child_clearance_overdue_blocking_reason_id" required="selected_child_clearance_is_overdue" options="{'no_create': True, 'no_open': True}"/>
+                                <field name="selected_child_clearance_overdue_reason_note" required="selected_child_clearance_overdue_blocking_reason_id and selected_child_clearance_overdue_blocking_reason_short_name == 'Others + Exp'" invisible="not (selected_child_clearance_overdue_blocking_reason_id and selected_child_clearance_overdue_blocking_reason_short_name == 'Others + Exp')"/>
+                                <field name="selected_child_clearance_overdue_handle_result" required="selected_child_clearance_is_overdue"/>
+                                <field name="selected_child_clearance_overdue_result_note" required="selected_child_clearance_overdue_handle_result == 'other'" invisible="selected_child_clearance_overdue_handle_result != 'other'"/>
+                            </group>
+                            <notebook invisible="not selected_child_clearance_id">
+                                <page string="Charge / Cost">
+                                    <group>
+                                        <field name="selected_child_clearance_invoice_lines" context="{'default_clearance_id': selected_child_clearance_id}" readonly="selected_child_clearance_status == 'close'">
+                                            <list>
+                                                <field name="vendor_invoice_id"/>
+                                                <field name="invoice_date"/>
+                                                <field name="amount_total"/>
+                                                <field name="payment_state"/>
+                                            </list>
+                                        </field>
+                                    </group>
+                                    <group>
+                                        <field name="selected_child_clearance_charge_lines" readonly="selected_child_clearance_status in ('clearanced', 'close')">
+                                            <list editable="bottom">
+                                                <field name="charge_qty" column_invisible="True"/>
+                                                <field name="charge_item_id" options="{'no_create': True, 'no_open': True}" domain="['|', ('operation_type', '=', 'clearance'), ('operation_type', '=', False), ('is_leaf', '=', True)]" required="1"/>
+                                                <field name="is_fixed_fee" readonly="1"/>
+                                                <field name="qty" readonly="is_fixed_fee"/>
+                                                <field name="currency_id" readonly="1"/>
+                                                <field name="unit_price" readonly="is_fixed_fee"/>
+                                                <field name="amount_total" sum="Total Amount"/>
+                                                <field name="manual_amount_total" sum="Manual Total"/>
+                                                <field name="remark"/>
+                                            </list>
+                                        </field>
+                                    </group>
+                                </page>
+                                <page string="Containers">
+                                    <field name="selected_child_clearance_container_line_ids" readonly="1">
+                                        <list no_open="1" create="0" edit="0" delete="0">
+                                            <field name="container_number"/>
+                                            <field name="container_type"/>
+                                            <field name="weight"/>
+                                            <field name="quantity"/>
+                                        </list>
+                                    </field>
+                                </page>
+                            </notebook>
                         </page>
                         <page string="Packing List" invisible="1">
                             <field name="packing_list_ids" readonly="state!='new'"/>
