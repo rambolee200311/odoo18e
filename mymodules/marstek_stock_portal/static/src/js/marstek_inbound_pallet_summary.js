@@ -289,7 +289,7 @@
             var rowSpan = outboundLines.length > 0 ? outboundLines.length : 1;
 
             if (outboundLines.length > 0) {
-                // First outbound line gets the merged cells
+                // 合并单元格
                 html += '<tr class="ips-row" data-inbound-order="' + escapeHtml(group.inbound_order_name) + '">'
                     + '<td rowspan="' + rowSpan + '">' + escapeHtml(group.inbound_order_name) + '</td>'
                     + '<td rowspan="' + rowSpan + '">' + escapeHtml(group.cproject_ids) + '</td>'
@@ -305,7 +305,7 @@
                     + '<td class="text-end">' + formatNumber(outboundLines[0].pallet_count) + '</td>'
                     + '<td class="text-end">' + formatNumber(outboundLines[0].stock_days) + '</td>'
                     + '</tr>';
-                // Remaining outbound lines
+                // 剩余出库行
                 for (var i = 1; i < outboundLines.length; i++) {
                     html += '<tr>'
                         + '<td class="text-nowrap">' + escapeHtml(outboundLines[i].outbound_date) + '</td>'
@@ -317,7 +317,7 @@
                         + '</tr>';
                 }
             } else {
-                // No outbound lines
+                // 没有出库行
                 html += '<tr class="ips-row" data-inbound-order="' + escapeHtml(group.inbound_order_name) + '">'
                     + '<td>' + escapeHtml(group.inbound_order_name) + '</td>'
                     + '<td>' + escapeHtml(group.cproject_ids) + '</td>'

@@ -113,7 +113,7 @@
                                     <thead class="table-light">
                                         <tr>
                                             <th class="text-nowrap">Inbound Order</th>
-                                            <th class="text-nowrap">Sunrise Ref</th>
+                                            <th class="text-nowrap">Inbound Sunrise Ref</th>
                                             <th class="text-nowrap text-end">Opening</th>
                                             <th class="text-nowrap text-end">Inbound</th>
                                             <th class="text-nowrap text-end">Outbound</th>
