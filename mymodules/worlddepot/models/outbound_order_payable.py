@@ -26,11 +26,11 @@ class OutboundOrderPayable(models.Model):
 
     @api.model
     def default_currency_id(self):
-        outbound_order_id = self.env.context.get("default_outbound_order_id")
-        if outbound_order_id:
-            outbound_order = self.env["world.depot.outbound.order"].sudo().browse(outbound_order_id)
-            if outbound_order.currency_id:
-                return outbound_order.currency_id.id
+        # outbound_order_id = self.env.context.get("default_outbound_order_id")
+        # if outbound_order_id:
+        #     outbound_order = self.env["world.depot.outbound.order"].sudo().browse(outbound_order_id)
+        #     if outbound_order.currency_id:
+        #         return outbound_order.currency_id.id
         return self.env.company.currency_id.id
 
     @api.constrains("outbound_order_id", "vendor_invoice_num")
