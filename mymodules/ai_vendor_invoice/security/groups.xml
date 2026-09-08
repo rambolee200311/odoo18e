@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- © 2024 Wukong Digital. License LGPL-3. -->
+<!--
+  T-028: group_config_manager must NOT use implied_ids to silently inherit
+         Reviewer permissions; permissions are composed explicitly.
+-->
+<odoo>
+    <data>
+        <record id="module_category_ai_vendor_invoice" model="ir.module.category">
+            <field name="name">WD AI Vendor Invoice</field>
+            <field name="sequence">80</field>
+        </record>
+
+        <!-- User: can create/upload tasks and trigger AI parse; cannot do review or config -->
+        <record id="group_ai_invoice_user" model="res.groups">
+            <field name="name">AI Invoice User</field>
+            <field name="category_id" ref="module_category_ai_vendor_invoice"/>
+        </record>
+
+        <!-- Reviewer: can do human review and generate bills; sees all tasks -->
+        <record id="group_reviewer" model="res.groups">
+            <field name="name">AI Invoice Reviewer</field>
+            <field name="category_id" ref="module_category_ai_vendor_invoice"/>
+            <field name="implied_ids" eval="[
+                (4, ref('group_ai_invoice_user')),
+                (4, ref('account.group_account_invoice'))
+            ]"/>
+        </record>
+
+        <!-- Config Manager: can configure providers and mappings.
+             T-028: no implied_ids of Reviewer; all permissions granted explicitly in ACL. -->
+        <record id="group_config_manager" model="res.groups">
+            <field name="name">AI Invoice Config Manager</field>
+            <field name="category_id" ref="module_category_ai_vendor_invoice"/>
+        </record>
+    </data>
+</odoo>

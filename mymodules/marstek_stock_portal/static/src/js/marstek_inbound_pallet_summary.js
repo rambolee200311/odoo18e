@@ -183,12 +183,12 @@
         }).then(function (data) {
             renderData(data); setLoading(false);
         }).catch(function (err) {
-            console.error('Inbound pallet summary load failed:', err);
+//            console.error('Inbound pallet summary load failed:', err);
             showError('Unable to load inbound pallet summary.'); clearData(); setLoading(false);
         });
     }
 
-    // ===== Data Rendering =====
+    // ===== 加载数据 =====
     function renderData(data) {
         if (!data || data.error) {
             showError(data && data.error ? data.error : 'Unable to load inbound pallet summary.');
@@ -206,8 +206,24 @@
         document.getElementById('ips_total').textContent = 'Total: ' + (pager.total || rows.length);
         showElement('ips_summary_card');
         toggleEmpty(rows.length === 0);
-        // Apply current view
+        // 刷新视图
         switchView(currentView);
+        // 更新导出按钮
+        var exportBtn = document.getElementById('ips_export_btn');
+        if (exportBtn) {
+            var exportParams = new URLSearchParams();
+            var locId = getParam('location_id');
+            var dateFrom = getParam('date_from');
+            var dateTo = getParam('date_to');
+            var cpid = getParam('cprojectid');
+            if (locId) exportParams.set('location_id', locId);
+            if (dateFrom) exportParams.set('date_from', dateFrom);
+            if (dateTo) exportParams.set('date_to', dateTo);
+            if (cpid) exportParams.set('cprojectid', cpid);
+            exportBtn.href = '/my/world_depot/stock/inbound_pallet_summary/export?' + exportParams.toString();
+            exportBtn.classList.remove('disabled');
+            exportBtn.title = 'Export Excel';
+        }
     }
 
     function groupRows(rows) {
@@ -219,6 +235,8 @@
                 map[key] = {
                     inbound_order_name: row.inbound_order_name || '',
                     cproject_ids: row.cproject_ids || '',
+                    outbound_cproject_ids: row.outbound_cproject_ids || '',
+                    batch_names: row.batch_names || '',
                     opening_pallet_count: 0,
                     inbound_pallet_count: 0,
                     outbound_pallet_count: 0,
@@ -287,7 +305,7 @@
             var rowSpan = outboundLines.length > 0 ? outboundLines.length : 1;
 
             if (outboundLines.length > 0) {
-                // First outbound line gets the merged cells
+                // 合并单元格
                 html += '<tr class="ips-row" data-inbound-order="' + escapeHtml(group.inbound_order_name) + '">'
                     + '<td rowspan="' + rowSpan + '">' + escapeHtml(group.inbound_order_name) + '</td>'
                     + '<td rowspan="' + rowSpan + '">' + escapeHtml(group.cproject_ids) + '</td>'
@@ -298,22 +316,24 @@
 //                    + '<td rowspan="' + rowSpan + '">' + escapeHtml(group.closing_location_summary) + '</td>'
                     + '<td class="text-nowrap">' + escapeHtml(outboundLines[0].outbound_date) + '</td>'
                     + '<td>' + escapeHtml(outboundLines[0].cproject_ids) + '</td>'
+                    + '<td>' + escapeHtml(outboundLines[0].outbound_cproject_ids) + '</td>'
                     + '<td>' + escapeHtml(outboundLines[0].batch_names) + '</td>'
                     + '<td class="text-end">' + formatNumber(outboundLines[0].pallet_count) + '</td>'
                     + '<td class="text-end">' + formatNumber(outboundLines[0].stock_days) + '</td>'
                     + '</tr>';
-                // Remaining outbound lines
+                // 剩余出库行
                 for (var i = 1; i < outboundLines.length; i++) {
                     html += '<tr>'
                         + '<td class="text-nowrap">' + escapeHtml(outboundLines[i].outbound_date) + '</td>'
                         + '<td>' + escapeHtml(outboundLines[i].cproject_ids) + '</td>'
+                        + '<td>' + escapeHtml(outboundLines[i].outbound_cproject_ids) + '</td>'
                         + '<td>' + escapeHtml(outboundLines[i].batch_names) + '</td>'
                         + '<td class="text-end">' + formatNumber(outboundLines[i].pallet_count) + '</td>'
                         + '<td class="text-end">' + formatNumber(outboundLines[i].stock_days) + '</td>'
                         + '</tr>';
                 }
             } else {
-                // No outbound lines
+                // 没有出库行
                 html += '<tr class="ips-row" data-inbound-order="' + escapeHtml(group.inbound_order_name) + '">'
                     + '<td>' + escapeHtml(group.inbound_order_name) + '</td>'
                     + '<td>' + escapeHtml(group.cproject_ids) + '</td>'
@@ -322,6 +342,7 @@
                     + '<td class="text-end">' + formatNumber(group.outbound_pallet_count) + '</td>'
                     + '<td class="text-end">' + formatNumber(group.closing_pallet_count) + '</td>'
 //                    + '<td>' + escapeHtml(group.closing_location_summary) + '</td>'
+                    + '<td class="text-center">-</td>'
                     + '<td class="text-center">-</td>'
                     + '<td class="text-center">-</td>'
                     + '<td class="text-center">-</td>'
@@ -371,7 +392,9 @@
             }
             html += '</div>'
                 + '<div class="row g-2 mb-2">'
-                + '<div class="col-6 col-md-3"><span class="text-muted small">Sunrise Ref:</span><br/>' + escapeHtml(group.cproject_ids || '-') + '</div>'
+                + '<div class="col-6 col-md-3"><span class="text-muted small">Inbound Sunrise Ref:</span><br/>' + escapeHtml(group.cproject_ids || '-') + '</div>'
+                + '<div class="col-6 col-md-3"><span class="text-muted small">Outbound Sunrise Ref:</span><br/>' + escapeHtml(group.outbound_cproject_ids || '-') + '</div>'
+                + '<div class="col-6 col-md-3"><span class="text-muted small">Batch No:</span><br/>' + escapeHtml(group.batch_names || '-') + '</div>'
                 + '<div class="col-6 col-md-3"><span class="text-muted small">Opening:</span><br/><strong>' + formatNumber(group.opening_pallet_count) + '</strong></div>'
                 + '<div class="col-6 col-md-3"><span class="text-muted small">Inbound:</span><br/><strong>' + formatNumber(group.inbound_pallet_count) + '</strong></div>'
                 + '<div class="col-6 col-md-3"><span class="text-muted small">Outbound:</span><br/><strong>' + formatNumber(group.outbound_pallet_count) + '</strong></div>'
@@ -382,12 +405,13 @@
                 html += '<div id="' + detailId + '" class="collapse mt-2">'
                     + '<table class="table table-sm table-bordered mb-0">'
                     + '<thead class="table-light"><tr>'
-                    + '<th>Outbound Date</th><th>Sunrise Ref</th><th>Batch No</th><th class="text-end">Pallet Count</th><th class="text-end">Stock Days</th>'
+                    + '<th>Outbound Date</th><th>Inbound Sunrise Ref</th><th>Outbound Sunrise Ref</th><th>Batch No</th><th class="text-end">Pallet Count</th><th class="text-end">Stock Days</th>'
                     + '</tr></thead><tbody>';
                 outboundLines.forEach(function (line) {
                     html += '<tr>'
                         + '<td>' + escapeHtml(line.outbound_date) + '</td>'
                         + '<td>' + escapeHtml(line.cproject_ids) + '</td>'
+                        + '<td>' + escapeHtml(line.outbound_cproject_ids) + '</td>'
                         + '<td>' + escapeHtml(line.batch_names) + '</td>'
                         + '<td class="text-end">' + formatNumber(line.pallet_count) + '</td>'
                         + '<td class="text-end">' + formatNumber(line.stock_days) + '</td>'

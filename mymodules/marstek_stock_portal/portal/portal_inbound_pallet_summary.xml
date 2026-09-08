@@ -39,7 +39,7 @@
                                 </div>
                                 <t t-if="show_sunrise_outbound_filters">
                                     <div class="col-12 col-md-6 col-lg-3">
-                                        <label for="ips_cprojectid" class="form-label">Sunrise Ref</label>
+                                        <label for="ips_cprojectid" class="form-label">Inbound Sunrise Ref</label>
                                         <input type="search" class="form-control" id="ips_cprojectid" name="cprojectid" placeholder="Enter Sunrise Ref"/>
                                     </div>
                                 </t>
@@ -96,6 +96,10 @@
                                     <span class="d-none d-sm-inline ms-1">Card</span>
                                 </button>
                             </div>
+                            <a id="ips_export_btn" class="btn btn-primary export-btn disabled" title="No data to export" href="#">
+                                <i class="fa fa-file-excel-o"></i>
+                                <span class="d-none d-sm-inline ms-1">Export Excel</span>
+                            </a>
                             <button class="btn btn-link text-decoration-none p-0 border-0" type="button" data-bs-toggle="collapse" data-bs-target="#ips_table_collapse" aria-expanded="true">
                                 <i class="fa fa-chevron-up collapse-icon"/>
                             </button>
@@ -113,14 +117,15 @@
                                     <thead class="table-light">
                                         <tr>
                                             <th class="text-nowrap">Inbound Order</th>
-                                            <th class="text-nowrap">Sunrise Ref</th>
+                                            <th class="text-nowrap">Inbound Sunrise Ref</th>
                                             <th class="text-nowrap text-end">Opening</th>
                                             <th class="text-nowrap text-end">Inbound</th>
                                             <th class="text-nowrap text-end">Outbound</th>
                                             <th class="text-nowrap text-end">Closing</th>
 <!--                                            <th class="text-nowrap">Closing Location</th>-->
                                             <th class="text-nowrap">Outbound Date</th>
-                                            <th class="text-nowrap">Sunrise Ref</th>
+                                            <th class="text-nowrap">Inbound Sunrise Ref</th>
+                                            <th class="text-nowrap">Outbound Sunrise Ref</th>
                                             <th class="text-nowrap">Batch No</th>
                                             <th class="text-nowrap text-end">Pallet Count</th>
                                             <th class="text-nowrap text-end">Stock Days</th>

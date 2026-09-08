@@ -76,6 +76,128 @@ class Waybill(models.Model):
     clearance_id = fields.Many2one("operation.order.clearance", string="Clearance")
     handover_lines = fields.One2many("operation.order.handover", "waybill_id", string="Handovers", copy=False)
     clearance_lines = fields.One2many("operation.order.clearance", "waybill_id", string="Clearances", copy=False)
+    handover_status = fields.Selection(related="handover_id.state", string="Handover Status", readonly=True)
+    handover_bl_release_type = fields.Selection(related="handover_id.bl_release_type", string="BL Release Type", readonly=False)
+    handover_do_no = fields.Char(related="handover_id.do_no", string="Delivery Order No.", readonly=False)
+    handover_remark = fields.Text(related="handover_id.remark", string="Handover Remark", readonly=False)
+    handover_invoice_lines = fields.One2many(related="handover_id.invoice_line_ids", string="Handover Vendor Invoice Lines", readonly=False)
+    handover_charge_lines = fields.One2many(related="handover_id.charge_line_ids", string="Handover Charge Lines", readonly=False)
+    handover_container_lines = fields.One2many(related="handover_id.container_line_ids", string="Handover Containers", readonly=True)
+    handover_is_overdue = fields.Boolean(related="handover_id.is_handover_overdue", string="Is Handover Overdue", readonly=True)
+    handover_overdue_blocking_reason_id = fields.Many2one(related="handover_id.overdue_blocking_reason_id", string="Handover Overdue Blocking Reason", readonly=False)
+    handover_overdue_blocking_reason_short_name = fields.Char(related="handover_id.overdue_blocking_reason_short_name", string="Handover Overdue Blocking Reason Short Name", readonly=True)
+    handover_overdue_reason_note = fields.Text(related="handover_id.overdue_reason_note", string="Handover Overdue Reason Note", readonly=False)
+    handover_overdue_handle_result = fields.Selection(related="handover_id.overdue_handle_result", string="Handover Overdue Handle Result", readonly=False)
+    handover_overdue_result_note = fields.Text(related="handover_id.overdue_result_note", string="Handover Overdue Result Note", readonly=False)
+    clearance_status = fields.Selection(related="clearance_id.state", string="Clearance Status", readonly=True)
+    clearance_operation_type = fields.Selection(related="clearance_id.clearance_type", string="Clearance Type", readonly=False)
+    clearance_receipt_no = fields.Char(related="clearance_id.clearance_receipt_no", string="Customs Clearance Receipt No.", readonly=False)
+    clearance_hs_code_qty = fields.Integer(related="clearance_id.hs_code_qty", string="HS Code Qty", readonly=False)
+    clearance_remark = fields.Text(related="clearance_id.remark", string="Clearance Remark", readonly=False)
+    clearance_invoice_lines = fields.One2many(related="clearance_id.invoice_line_ids", string="Clearance Vendor Invoice Lines", readonly=False)
+    clearance_charge_lines = fields.One2many(related="clearance_id.charge_line_ids", string="Clearance Charge Lines", readonly=False)
+    clearance_container_line_ids = fields.Many2many(related="clearance_id.clearance_container_ids", string="Clearance Containers", readonly=True)
+    clearance_is_overdue = fields.Boolean(related="clearance_id.is_clearance_overdue", string="Is Clearance Overdue", readonly=True)
+    clearance_overdue_blocking_reason_id = fields.Many2one(related="clearance_id.overdue_blocking_reason_id", string="Clearance Overdue Blocking Reason", readonly=False)
+    clearance_overdue_blocking_reason_short_name = fields.Char(related="clearance_id.overdue_blocking_reason_short_name", string="Clearance Overdue Blocking Reason Short Name", readonly=True)
+    clearance_overdue_reason_note = fields.Text(related="clearance_id.overdue_reason_note", string="Clearance Overdue Reason Note", readonly=False)
+    clearance_overdue_handle_result = fields.Selection(related="clearance_id.overdue_handle_result", string="Clearance Overdue Handle Result", readonly=False)
+    clearance_overdue_result_note = fields.Text(related="clearance_id.overdue_result_note", string="Clearance Overdue Result Note", readonly=False)
+    handover_child_lines = fields.One2many(related="handover_id.child_ids", string="Child Handovers", readonly=False)
+    clearance_child_lines = fields.One2many(related="clearance_id.child_lines", string="Child Clearances", readonly=False)
+    selected_child_handover_id = fields.Many2one("operation.order.handover", string="Selected Child Handover", copy=False, index=True)
+    selected_child_handover_status = fields.Selection(related="selected_child_handover_id.state", string="Child Handover Status", readonly=True)
+    selected_child_handover_bl_release_type = fields.Selection(related="selected_child_handover_id.bl_release_type", string="Child BL Release Type", readonly=False)
+    selected_child_handover_do_no = fields.Char(related="selected_child_handover_id.do_no", string="Child Delivery Order No.", readonly=False)
+    selected_child_handover_extra_reason = fields.Selection(related="selected_child_handover_id.extra_reason", string="Child Additional Reason", readonly=False)
+    selected_child_handover_extra_remark = fields.Char(related="selected_child_handover_id.extra_remark", string="Child Additional Remark", readonly=False)
+    selected_child_handover_actual_datetime = fields.Datetime(related="selected_child_handover_id.actual_datetime", string="Child Actual Date", readonly=False)
+    selected_child_handover_remark = fields.Text(related="selected_child_handover_id.remark", string="Child Handover Remark", readonly=False)
+    selected_child_handover_invoice_lines = fields.One2many(related="selected_child_handover_id.invoice_line_ids", string="Child Handover Vendor Invoice Lines", readonly=False)
+    selected_child_handover_charge_lines = fields.One2many(related="selected_child_handover_id.charge_line_ids", string="Child Handover Charge Lines", readonly=False)
+    selected_child_handover_container_lines = fields.One2many(related="selected_child_handover_id.container_line_ids", string="Child Handover Containers", readonly=True)
+    selected_child_handover_is_overdue = fields.Boolean(related="selected_child_handover_id.is_handover_overdue", string="Is Child Handover Overdue", readonly=True)
+    selected_child_handover_overdue_blocking_reason_id = fields.Many2one(related="selected_child_handover_id.overdue_blocking_reason_id", string="Child Handover Overdue Blocking Reason", readonly=False)
+    selected_child_handover_overdue_blocking_reason_short_name = fields.Char(related="selected_child_handover_id.overdue_blocking_reason_short_name", string="Child Handover Overdue Blocking Reason Short Name", readonly=True)
+    selected_child_handover_overdue_reason_note = fields.Text(related="selected_child_handover_id.overdue_reason_note", string="Child Handover Overdue Reason Note", readonly=False)
+    selected_child_handover_overdue_handle_result = fields.Selection(related="selected_child_handover_id.overdue_handle_result", string="Child Handover Overdue Handle Result", readonly=False)
+    selected_child_handover_overdue_result_note = fields.Text(related="selected_child_handover_id.overdue_result_note", string="Child Handover Overdue Result Note", readonly=False)
+    selected_child_clearance_id = fields.Many2one("operation.order.clearance", string="Selected Child Clearance", copy=False, index=True)
+    selected_child_clearance_status = fields.Selection(related="selected_child_clearance_id.state", string="Child Clearance Status", readonly=True)
+    selected_child_clearance_operation_type = fields.Selection(related="selected_child_clearance_id.clearance_type", string="Child Clearance Type", readonly=False)
+    selected_child_clearance_receipt_no = fields.Char(related="selected_child_clearance_id.clearance_receipt_no", string="Child Customs Clearance Receipt No.", readonly=False)
+    selected_child_clearance_hs_code_qty = fields.Integer(related="selected_child_clearance_id.hs_code_qty", string="Child HS Code Qty", readonly=False)
+    selected_child_clearance_extra_reason = fields.Selection(related="selected_child_clearance_id.extra_reason", string="Child Additional Reason", readonly=False)
+    selected_child_clearance_extra_remark = fields.Char(related="selected_child_clearance_id.extra_remark", string="Child Additional Remark", readonly=False)
+    selected_child_clearance_actual_datetime = fields.Datetime(related="selected_child_clearance_id.actual_datetime", string="Child Actual Date", readonly=False)
+    selected_child_clearance_remark = fields.Text(related="selected_child_clearance_id.remark", string="Child Clearance Remark", readonly=False)
+    selected_child_clearance_invoice_lines = fields.One2many(related="selected_child_clearance_id.invoice_line_ids", string="Child Clearance Vendor Invoice Lines", readonly=False)
+    selected_child_clearance_charge_lines = fields.One2many(related="selected_child_clearance_id.charge_line_ids", string="Child Clearance Charge Lines", readonly=False)
+    selected_child_clearance_container_line_ids = fields.Many2many(related="selected_child_clearance_id.clearance_container_ids", string="Child Clearance Containers", readonly=True)
+    selected_child_clearance_is_overdue = fields.Boolean(related="selected_child_clearance_id.is_clearance_overdue", string="Is Child Clearance Overdue", readonly=True)
+    selected_child_clearance_overdue_blocking_reason_id = fields.Many2one(related="selected_child_clearance_id.overdue_blocking_reason_id", string="Child Clearance Overdue Blocking Reason", readonly=False)
+    selected_child_clearance_overdue_blocking_reason_short_name = fields.Char(related="selected_child_clearance_id.overdue_blocking_reason_short_name", string="Child Clearance Overdue Blocking Reason Short Name", readonly=True)
+    selected_child_clearance_overdue_reason_note = fields.Text(related="selected_child_clearance_id.overdue_reason_note", string="Child Clearance Overdue Reason Note", readonly=False)
+    selected_child_clearance_overdue_handle_result = fields.Selection(related="selected_child_clearance_id.overdue_handle_result", string="Child Clearance Overdue Handle Result", readonly=False)
+    selected_child_clearance_overdue_result_note = fields.Text(related="selected_child_clearance_id.overdue_result_note", string="Child Clearance Overdue Result Note", readonly=False)
+
+    @api.onchange("handover_overdue_blocking_reason_id", "clearance_overdue_blocking_reason_id", "selected_child_handover_overdue_blocking_reason_id", "selected_child_clearance_overdue_blocking_reason_id")
+    def onchange_overdue_blocking_reason(self):
+        for rec in self:
+            rec.handover_overdue_blocking_reason_short_name = rec.handover_overdue_blocking_reason_id.short_name if rec.handover_overdue_blocking_reason_id else False
+            rec.clearance_overdue_blocking_reason_short_name = rec.clearance_overdue_blocking_reason_id.short_name if rec.clearance_overdue_blocking_reason_id else False
+            rec.selected_child_handover_overdue_blocking_reason_short_name = rec.selected_child_handover_overdue_blocking_reason_id.short_name if rec.selected_child_handover_overdue_blocking_reason_id else False
+            rec.selected_child_clearance_overdue_blocking_reason_short_name = rec.selected_child_clearance_overdue_blocking_reason_id.short_name if rec.selected_child_clearance_overdue_blocking_reason_id else False
+
+    def write(self, vals):
+        values = dict(vals)
+        handover_field_map = {
+            "handover_overdue_blocking_reason_id": "overdue_blocking_reason_id",
+            "handover_overdue_reason_note": "overdue_reason_note",
+            "handover_overdue_handle_result": "overdue_handle_result",
+            "handover_overdue_result_note": "overdue_result_note",
+        }
+        clearance_field_map = {
+            "clearance_overdue_blocking_reason_id": "overdue_blocking_reason_id",
+            "clearance_overdue_reason_note": "overdue_reason_note",
+            "clearance_overdue_handle_result": "overdue_handle_result",
+            "clearance_overdue_result_note": "overdue_result_note",
+        }
+        child_handover_field_map = {
+            "selected_child_handover_extra_reason": "extra_reason",
+            "selected_child_handover_extra_remark": "extra_remark",
+            "selected_child_handover_overdue_blocking_reason_id": "overdue_blocking_reason_id",
+            "selected_child_handover_overdue_reason_note": "overdue_reason_note",
+            "selected_child_handover_overdue_handle_result": "overdue_handle_result",
+            "selected_child_handover_overdue_result_note": "overdue_result_note",
+        }
+        child_clearance_field_map = {
+            "selected_child_clearance_extra_reason": "extra_reason",
+            "selected_child_clearance_extra_remark": "extra_remark",
+            "selected_child_clearance_overdue_blocking_reason_id": "overdue_blocking_reason_id",
+            "selected_child_clearance_overdue_reason_note": "overdue_reason_note",
+            "selected_child_clearance_overdue_handle_result": "overdue_handle_result",
+            "selected_child_clearance_overdue_result_note": "overdue_result_note",
+        }
+        handover_vals = {target_name: values.pop(source_name) for source_name, target_name in handover_field_map.items() if source_name in values}
+        clearance_vals = {target_name: values.pop(source_name) for source_name, target_name in clearance_field_map.items() if source_name in values}
+        child_handover_vals = {target_name: values.pop(source_name) for source_name, target_name in child_handover_field_map.items() if source_name in values}
+        child_clearance_vals = {target_name: values.pop(source_name) for source_name, target_name in child_clearance_field_map.items() if source_name in values}
+        values.pop("handover_overdue_blocking_reason_short_name", None)
+        values.pop("clearance_overdue_blocking_reason_short_name", None)
+        values.pop("selected_child_handover_overdue_blocking_reason_short_name", None)
+        values.pop("selected_child_clearance_overdue_blocking_reason_short_name", None)
+        result = super().write(values)
+        for rec in self:
+            if handover_vals and rec.handover_id:
+                rec.handover_id.write(handover_vals)
+            if clearance_vals and rec.clearance_id:
+                rec.clearance_id.write(clearance_vals)
+            if child_handover_vals and rec.selected_child_handover_id:
+                rec.selected_child_handover_id.write(child_handover_vals)
+            if child_clearance_vals and rec.selected_child_clearance_id:
+                rec.selected_child_clearance_id.write(child_clearance_vals)
+        return result
 
     # 货到港码头信息
     port_id = fields.Many2one("world.depot.port.node", string="Port", tracking=True)
@@ -225,21 +347,12 @@ class Waybill(models.Model):
                 "target": "current",
             }
 
-    def action_create_handover_popup(self):
-        self.ensure_one()
-        if self.handover_id:
-            return {
-                "type": "ir.actions.act_window",
-                "name": _("Handover"),
-                "res_model": "operation.order.handover",
-                "views": [(self.env.ref("wd_iffm.view_operation_order_handover_form").id, "form")],
-                "view_mode": "form",
-                "res_id": self.handover_id.id,
-                "target": "new",
-            }
-        result = self.action_create_handover()
-        result["target"] = "new"
-        return result
+    def action_create_handover_from_waybill_tab(self):
+        for rec in self:
+            if rec.handover_id:
+                raise UserError(_("Handover already exists."))
+            rec.action_create_handover()
+        return {"type": "ir.actions.client", "tag": "soft_reload"}
 
     def action_create_clearance(self):
         self.ensure_one()
@@ -263,21 +376,28 @@ class Waybill(models.Model):
             },
         }
 
-    def action_create_clearance_popup(self):
-        self.ensure_one()
-        if self.clearance_id:
-            return {
-                "type": "ir.actions.act_window",
-                "name": _("Clearance"),
-                "res_model": "operation.order.clearance",
-                "views": [(self.env.ref("wd_iffm.operation_order_clearance_form_view").id, "form")],
-                "view_mode": "form",
-                "res_id": self.clearance_id.id,
-                "target": "new",
-            }
-        result = self.action_create_clearance_all_create()
-        result["target"] = "new"
-        return result
+    def action_create_clearance_from_waybill_tab(self):
+        for rec in self:
+            if rec.clearance_id:
+                raise UserError(_("Clearance already exists."))
+            rec.action_create_clearance_all_create()
+        return {"type": "ir.actions.client", "tag": "soft_reload"}
+
+    def action_create_child_handover_from_waybill_tab(self):
+        for rec in self:
+            if not rec.handover_id:
+                raise UserError(_("Main handover is required before creating a child handover."))
+            result = rec.handover_id.action_create_child_handover_workbench()
+            rec.write({"selected_child_handover_id": result["child"]["id"]})
+        return {"type": "ir.actions.client", "tag": "soft_reload"}
+
+    def action_create_child_clearance_from_waybill_tab(self):
+        for rec in self:
+            if not rec.clearance_id:
+                raise UserError(_("Main clearance is required before creating a child clearance."))
+            result = rec.clearance_id.action_create_child_clearance_workbench()
+            rec.write({"selected_child_clearance_id": result["child"]["id"]})
+        return {"type": "ir.actions.client", "tag": "soft_reload"}
 
     def action_create_pickup_requirement(self):
         self.ensure_one()

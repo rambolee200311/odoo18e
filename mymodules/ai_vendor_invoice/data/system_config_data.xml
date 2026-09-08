@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- © 2024 Wukong Digital. License LGPL-3. -->
+<!--
+  Seed the singleton WD System Config with sensible defaults.
+  T-026: task_timeout_seconds is the cron timeout baseline.
+-->
+<odoo>
+    <data noupdate="1">
+
+        <record id="wd_system_config_default" model="wd.system.config">
+            <field name="name">Default</field>
+            <field name="task_timeout_seconds">3600</field>
+            <field name="cron_interval_minutes">5</field>
+            <field name="queue_wait_warning_seconds">300</field>
+            <field name="amount_tolerance">0.01</field>
+        </record>
+
+        <!-- Sequence for task reference numbers -->
+        <record id="seq_vendor_invoice_import_task" model="ir.sequence">
+            <field name="name">AI Vendor Invoice Import Task</field>
+            <field name="code">vendor.invoice.import.task</field>
+            <field name="prefix">AIINV/%(year)s/</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <record id="seq_vendor_invoice_statement" model="ir.sequence">
+            <field name="name">Vendor Statement</field>
+            <field name="code">vendor.invoice.statement</field>
+            <field name="prefix">vendor/stm/%(year)s</field>
+            <field name="padding">4</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+    </data>
+</odoo>

@@ -125,6 +125,7 @@ class OperationOrderClearance(models.Model):
                                                  tracking=True)
 
     parent_id = fields.Many2one("operation.order.clearance", string=" Partner Operation", index=True)
+    child_lines = fields.One2many("operation.order.clearance", "parent_id", string="Child Clearances")
     extra_reason = fields.Selection([('customs_inspection', 'Customs Inspection'),
                                      ('detention', 'Detention'),
                                      ('split_container', 'Split Container'),
@@ -375,6 +376,13 @@ class OperationOrderClearance(models.Model):
                     "container_qty": child.container_qty,
                 },
             }
+
+    def action_select_for_waybill(self):
+        for rec in self:
+            if not rec.parent_id or not rec.waybill_id:
+                raise ValidationError(_("Only child clearances linked to a waybill can be selected."))
+            rec.waybill_id.write({"selected_child_clearance_id": rec.id})
+        return {"type": "ir.actions.client", "tag": "soft_reload"}
 
 
     @api.constrains('extra_reason', 'extra_remark')

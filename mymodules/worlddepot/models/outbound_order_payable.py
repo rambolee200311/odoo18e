@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
+from odoo.exceptions import ValidationError
 
 
 class OutboundOrder(models.Model):
@@ -16,7 +17,7 @@ class OutboundOrderPayable(models.Model):
 
     outbound_order_id = fields.Many2one("world.depot.outbound.order", string="Outbound Order", required=True, ondelete="cascade", index=True, copy=False)
     vendor_partner_id = fields.Many2one("res.partner", string="Vendor", required=True, ondelete="restrict", index=True)
-    vendor_invoice_num = fields.Char(string="Vendor Invoice No")
+    vendor_invoice_num = fields.Char(string="Vendor Invoice No", index=True)
     payable_date = fields.Date(string="Payable Date", required=True, default=fields.Date.context_today, index=True)
     currency_id = fields.Many2one("res.currency", string="Currency", required=True, index=True, default=lambda self: self.default_currency_id())
     amount_total = fields.Monetary(string="Total Amount", currency_field="currency_id", compute="_compute_amount_total", store=True)
@@ -25,12 +26,27 @@ class OutboundOrderPayable(models.Model):
 
     @api.model
     def default_currency_id(self):
-        outbound_order_id = self.env.context.get("default_outbound_order_id")
-        if outbound_order_id:
-            outbound_order = self.env["world.depot.outbound.order"].sudo().browse(outbound_order_id)
-            if outbound_order.currency_id:
-                return outbound_order.currency_id.id
+        # outbound_order_id = self.env.context.get("default_outbound_order_id")
+        # if outbound_order_id:
+        #     outbound_order = self.env["world.depot.outbound.order"].sudo().browse(outbound_order_id)
+        #     if outbound_order.currency_id:
+        #         return outbound_order.currency_id.id
         return self.env.company.currency_id.id
+
+    @api.constrains("outbound_order_id", "vendor_invoice_num")
+    def check_vendor_invoice_num(self):
+        payable_model = self.env["world.depot.outbound.order.payable"]
+        for rec in self:
+            invoice_num = (rec.vendor_invoice_num or "").strip()
+            if not invoice_num or not rec.outbound_order_id:
+                continue
+            duplicate_count = payable_model.sudo().search_count([
+                ("outbound_order_id", "=", rec.outbound_order_id.id),
+                ("vendor_invoice_num", "=", invoice_num),
+                ("id", "!=", rec.id),
+            ])
+            if duplicate_count:
+                raise ValidationError(_("Vendor invoice number must be unique within the same outbound order."))
 
     @api.depends("charge_lines.amount")
     def _compute_amount_total(self):

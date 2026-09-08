@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_vendor_invoice_import_task_tree" model="ir.ui.view">
+        <field name="name">vendor.invoice.import.task.tree</field>
+        <field name="model">vendor.invoice.import.task</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="source_pdf_filename" string="File Name"/>
+                <field name="state"/>
+                <field name="selected_provider_config_id"/>
+                <field name="parse_error_summary" string="Error"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_vendor_invoice_statement_tree" model="ir.ui.view">
+        <field name="name">vendor.invoice.statement.tree</field>
+        <field name="model">vendor.invoice.statement</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="source_pdf_filename" string="File Name"/>
+                <field name="state"/>
+                <field name="invoice_number"/>
+                <field name="invoice_date"/>
+                <field name="supplier_id"/>
+                <field name="currency_id" readonly="state != 'draft'"/>
+                <field name="total_amount"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_vendor_invoice_statement_form" model="ir.ui.view">
+        <field name="name">vendor.invoice.statement.form</field>
+        <field name="model">vendor.invoice.statement</field>
+        <field name="arch" type="xml">
+            <form string="Vendor Statement">
+                <header>
+                    <button name="action_confirm_from_statement" type="object"
+                            string="Confirm"
+                            class="oe_highlight"
+                            invisible="state not in ('draft', 'confirmed')"/>
+                    <button name="action_cancel_statement" type="object"
+                            string="Cancel"
+                            confirm="Cancel this Statement?"
+                            invisible="state not in ('draft', 'confirmed')"/>
+                    <button name="action_open_import_task" type="object"
+                            string="Open Import Task"
+                            invisible="not task_id"/>
+                    <button name="action_open_source_pdf" type="object"
+                            string="Open Source PDF"
+                            invisible="not source_pdf_attachment_id"/>
+                    <button name="action_open_vendor_bill" type="object"
+                            string="Open Vendor Bill"
+                            invisible="not vendor_bill_id"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,confirmed,bill_created,cancelled"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" string="Vendor Statement"/>
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group col="2">
+                        <group>
+                            <field name="supplier_id" readonly="state != 'draft'"/>
+                            <field name="invoice_number" readonly="state != 'draft'"/>
+                            <field name="invoice_date" readonly="state != 'draft'"/>
+                        </group>
+                        <group>
+                            <field name="currency_id"/>
+                            <field name="task_id" readonly="1"/>
+                            <field name="source_parse_attempt_id" readonly="1"/>
+                            <field name="source_pdf_attachment_id" readonly="1"/>
+                            <field name="vendor_bill_id" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Statement Lines">
+                            <field name="line_ids" readonly="state != 'draft'">
+                                <list>
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="product_id"/>
+                                    <field name="description"/>
+                                    <field name="quantity"/>
+                                    <field name="price_unit"/>
+                                    <field name="tax_ids" widget="many2many_tags"/>
+                                    <field name="tax_rate"/>
+                                    <field name="tax_amount"/>
+                                    <field name="amount"/>
+                                    <field name="total_amount"/>
+                                    <field name="reconciliation_clue"/>
+                                </list>
+                                <form string="Statement Line">
+                                    <group>
+                                        <field name="statement_id" readonly="1"/>
+                                        <field name="product_id"
+                                               readonly="parent.state != 'draft'"/>
+                                        <field name="quantity"
+                                               readonly="parent.state != 'draft'"/>
+                                        <field name="price_unit"
+                                               readonly="parent.state != 'draft'"/>
+                                        <field name="amount"
+                                               readonly="parent.state != 'draft'"/>
+                                        <field name="tax_rate"
+                                               readonly="parent.state != 'draft'"/>
+                                        <field name="tax_amount"
+                                               readonly="parent.state != 'draft'"/>
+                                        <field name="total_amount"
+                                               readonly="parent.state != 'draft'"/>
+                                        <field name="tax_ids" widget="many2many_tags"
+                                               readonly="parent.state != 'draft'"/>
+                                        <field name="tax_raw_text"
+                                               readonly="parent.state != 'draft'"/>
+                                        <field name="reconciliation_clue"
+                                               readonly="parent.state != 'draft'"/>
+                                    </group>
+                                    <group string="Description">
+                                        <field name="description" nolabel="1"
+                                               readonly="parent.state != 'draft'"/>
+                                    </group>
+                                    <group string="Charge Details">
+                                        <field name="charge_details" nolabel="1"
+                                               readonly="parent.state != 'draft'"/>
+                                    </group>
+                                </form>
+                            </field>
+                        </page>
+                        <page string="Additional Information">
+                            <group col="2">
+                                <group string="Totals">
+                                    <field name="subtotal"/>
+                                    <field name="total_tax"/>
+                                    <field name="total_amount"/>
+                                    <field name="overall_tax_rate"/>
+                                </group>
+                                <group string="Notes">
+                                    <field name="note" nolabel="1" readonly="state != 'draft'"/>
+                                </group>
+                            </group>
+                            <group string="Review Warnings">
+                                <field name="review_warnings" readonly="1" nolabel="1"/>
+                            </group>
+                        </page>
+                        <page string="Technical Information">
+                            <group col="2">
+                                <field name="company_id" readonly="1"/>
+                                <field name="supplier_name" readonly="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_vendor_invoice_statement_line_form" model="ir.ui.view">
+        <field name="name">vendor.invoice.statement.line.form</field>
+        <field name="model">vendor.invoice.statement.line</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="statement_id" readonly="1"/>
+                        <field name="product_id"
+                               readonly="statement_id.state != 'draft'"/>
+                        <field name="quantity"
+                               readonly="statement_id.state != 'draft'"/>
+                        <field name="price_unit"
+                               readonly="statement_id.state != 'draft'"/>
+                        <field name="amount"
+                               readonly="statement_id.state != 'draft'"/>
+                        <field name="tax_ids" widget="many2many_tags"
+                               readonly="statement_id.state != 'draft'"/>
+                        <field name="tax_raw_text"
+                               readonly="statement_id.state != 'draft'"/>
+                        <field name="tax_rate"
+                               readonly="statement_id.state != 'draft'"/>
+                        <field name="tax_amount"
+                               readonly="statement_id.state != 'draft'"/>
+                        <field name="total_amount"
+                               readonly="statement_id.state != 'draft'"/>
+                        <field name="reconciliation_clue"
+                               readonly="statement_id.state != 'draft'"/>
+                    </group>
+                    <group string="Description">
+                        <field name="description" nolabel="1"
+                               readonly="statement_id.state != 'draft'"/>
+                    </group>
+                    <group string="Charge Details">
+                        <field name="charge_details" nolabel="1"
+                               readonly="statement_id.state != 'draft'"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_vendor_invoice_import_task_form" model="ir.ui.view">
+        <field name="name">vendor.invoice.import.task.form</field>
+        <field name="model">vendor.invoice.import.task</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_rerun_ai" type="object" string="Run AI"
+                            class="oe_highlight"
+                            invisible="state in ('parsing', 'bill_generated', 'cancelled')"/>
+                    <button name="action_cancel_task" type="object" string="Cancel"
+                            invisible="state in ('bill_generated', 'cancelled')"/>
+                    <button name="action_open_statement" type="object"
+                            string="Open Statement"
+                            class="oe_highlight"
+                            invisible="not statement_id"/>
+                    <button name="action_open_source_pdf" type="object"
+                            string="Open Source PDF"
+                            invisible="not source_pdf_attachment_id"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="to_parse,parsing,awaiting_review,bill_generated,cancelled"/>
+                </header>
+                <sheet>
+                    <group>
+                        <field name="name" readonly="1"/>
+                        <field name="source_pdf_upload"
+                               filename="source_pdf_filename"/>
+                        <field name="source_pdf_filename" invisible="1"/>
+                        <field name="source_pdf_attachment_id"/>
+                        <field name="selected_provider_config_id"/>
+                        <field name="synchronous_parse"/>
+                        <field name="statement_id" readonly="1"/>
+                        <field name="parse_status" readonly="1"/>
+                        <field name="parse_error_badge" widget="badge"
+                               class="text-bg-danger" readonly="1"/>
+                        <field name="parse_error_summary" readonly="1"/>
+                        <field name="queue_diagnostic" readonly="1"/>
+                    </group>
+                    <notebook>
+                        <page string="AI Attempts">
+                            <field name="parse_attempt_ids" readonly="1">
+                                <list>
+                                    <field name="sequence"/>
+                                    <field name="provider_config_id"/>
+                                    <field name="status"/>
+                                    <field name="submitted_at"/>
+                                    <field name="started_at"/>
+                                    <field name="completed_at"/>
+                                    <field name="finished_at"/>
+                                    <field name="error_summary"/>
+                                    <field name="queue_diagnostic"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Audit Log">
+                            <field name="audit_log_ids" readonly="1">
+                                <list>
+                                    <field name="action_datetime"/>
+                                    <field name="action"/>
+                                    <field name="user_id"/>
+                                    <field name="snapshot_delta"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_vendor_invoice_import_task" model="ir.actions.act_window">
+        <field name="name">Vendor Invoice AI Imports</field>
+        <field name="res_model">vendor.invoice.import.task</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="action_vendor_invoice_statement" model="ir.actions.act_window">
+        <field name="name">Vendor Invoice Statements</field>
+        <field name="res_model">vendor.invoice.statement</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <menuitem id="menu_ai_vendor_invoice_root"
+              name="AI Invoice"
+              sequence="80"/>
+    <menuitem id="menu_vendor_invoice_import_task"
+              name="Imports"
+              parent="menu_ai_vendor_invoice_root"
+              action="action_vendor_invoice_import_task"/>
+    <menuitem id="menu_vendor_invoice_statement"
+              name="Statements"
+              parent="menu_ai_vendor_invoice_root"
+              action="action_vendor_invoice_statement"/>
+</odoo>

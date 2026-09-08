@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_vendor_invoice_import_parse_attempt_form" model="ir.ui.view">
+        <field name="name">vendor.invoice.import.parse.attempt.form</field>
+        <field name="model">vendor.invoice.import.parse.attempt</field>
+        <field name="arch" type="xml">
+            <form create="0" edit="0" delete="0">
+                <sheet>
+                    <group>
+                        <field name="task_id"/>
+                        <field name="sequence"/>
+                        <field name="status"/>
+                        <field name="observability_status"/>
+                        <field name="evidence_pdf_status"/>
+                        <field name="evidence_page_extraction_status"/>
+                        <field name="evidence_canonical_status"/>
+                        <field name="evidence_mapping_status"/>
+                        <field name="submitted_at"/>
+                        <field name="started_at"/>
+                        <field name="completed_at"/>
+                        <field name="finished_at"/>
+                        <field name="provider_config_id"/>
+                        <field name="model_name_snapshot"/>
+                        <field name="prompt_version"/>
+                        <field name="extraction_contract_version"/>
+                        <field name="failure_stage"
+                               groups="ai_vendor_invoice.group_reviewer,ai_vendor_invoice.group_config_manager"/>
+                        <field name="failure_page_no"
+                               groups="ai_vendor_invoice.group_reviewer,ai_vendor_invoice.group_config_manager"/>
+                        <field name="failure_call_sequence"
+                               groups="ai_vendor_invoice.group_reviewer,ai_vendor_invoice.group_config_manager"/>
+                        <field name="failure_explanation"
+                               groups="ai_vendor_invoice.group_reviewer,ai_vendor_invoice.group_config_manager"/>
+                        <field name="error_summary"/>
+                    </group>
+                    <separator string="Source and Derived Pipeline Facts"/>
+                    <group>
+                        <field name="source_pdf_attachment_id"/>
+                    </group>
+                    <notebook>
+                        <page string="Page Artifacts"
+                              groups="ai_vendor_invoice.group_reviewer,ai_vendor_invoice.group_config_manager">
+                            <field name="page_artifact_ids">
+                                <list create="0" edit="0" delete="0">
+                                    <field name="page_no"/>
+                                    <field name="mime_type"/>
+                                    <field name="checksum"/>
+                                    <field name="byte_size"/>
+                                    <field name="rendered_at"/>
+                                    <field name="preview_status"/>
+                                </list>
+                                <form create="0" edit="0" delete="0">
+                                    <group>
+                                        <field name="page_no"/>
+                                        <field name="mime_type"/>
+                                        <field name="checksum"/>
+                                        <field name="byte_size"/>
+                                        <field name="rendered_at"/>
+                                        <field name="preview_status"/>
+                                        <field name="image_preview" widget="image"/>
+                                    </group>
+                                </form>
+                            </field>
+                        </page>
+                        <page string="Provider Calls"
+                              groups="ai_vendor_invoice.group_reviewer,ai_vendor_invoice.group_config_manager">
+                            <field name="provider_call_ids">
+                                <list create="0" edit="0" delete="0">
+                                    <field name="call_sequence"/>
+                                    <field name="retry_index"/>
+                                    <field name="page_artifact_id"/>
+                                    <field name="page_artifact_ids"/>
+                                    <field name="input_mode"/>
+                                    <field name="input_document_type"/>
+                                    <field name="input_page_count"/>
+                                    <field name="rendered_image_count"/>
+                                    <field name="returned_page_count"/>
+                                    <field name="provider_snapshot"/>
+                                    <field name="model_snapshot"/>
+                                    <field name="request_started_at"/>
+                                    <field name="response_received_at"/>
+                                    <field name="http_status"/>
+                                    <field name="outcome"/>
+                                    <field name="validation_status"/>
+                                    <field name="page_extraction_status"/>
+                                    <field name="failure_stage"/>
+                                </list>
+                                <form create="0" edit="0" delete="0">
+                                    <group>
+                                        <field name="call_sequence"/>
+                                        <field name="retry_index"/>
+                                        <field name="page_artifact_id"/>
+                                        <field name="page_artifact_ids"/>
+                                        <field name="input_mode"/>
+                                        <field name="input_document_type"/>
+                                        <field name="input_page_count"/>
+                                        <field name="rendered_image_count"/>
+                                        <field name="returned_page_count"/>
+                                        <field name="provider_snapshot"/>
+                                        <field name="model_snapshot"/>
+                                        <field name="request_started_at"/>
+                                        <field name="response_received_at"/>
+                                        <field name="http_status"/>
+                                        <field name="outcome"/>
+                                        <field name="validation_status"/>
+                                        <field name="failure_stage"/>
+                                        <field name="safe_error_summary"/>
+                                        <field name="effective_prompt_display"
+                                               widget="text"
+                                               groups="ai_vendor_invoice.group_config_manager"/>
+                                        <field name="raw_response_attachment_id"
+                                               groups="ai_vendor_invoice.group_config_manager"/>
+                                        <field name="page_extraction_result"/>
+                                        <field name="page_extraction_status"/>
+                                    </group>
+                                </form>
+                            </field>
+                        </page>
+                        <page string="Document Result"
+                              groups="ai_vendor_invoice.group_reviewer,ai_vendor_invoice.group_config_manager">
+                            <group>
+                                <div class="text-muted">
+                                    Only persisted results are shown; absent results are not inferred.
+                                </div>
+                                <field name="canonical_result"/>
+                                <field name="mapping_result"/>
+                                <field name="evidence_canonical_status"/>
+                                <field name="evidence_mapping_status"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>
