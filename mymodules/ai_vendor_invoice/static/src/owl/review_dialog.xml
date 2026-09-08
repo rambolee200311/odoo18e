@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="ai_vendor_invoice.VendorInvoiceReviewDialog">
+        <div class="o_vendor_invoice_review_dialog">
+            <h3>Review AI invoice result</h3>
+            <button class="btn btn-secondary" t-on-click="applyCandidate">
+                Apply AI candidate to untouched fields
+            </button>
+            <section class="o_vendor_invoice_review_header">
+                <t t-foreach="headerFields" t-as="field" t-key="field[0]">
+                    <label t-att-class="confidenceClass(field[0])">
+                        <t t-esc="field[1]"/>
+                        <input class="form-control"
+                               t-att-value="fieldValue(field[0])"
+                               t-on-input="(event) => setHeader(field[0], event.target.value)"/>
+                    </label>
+                </t>
+            </section>
+            <section class="o_vendor_invoice_review_lines">
+                <t t-foreach="state.result.lines" t-as="line" t-key="line_index">
+                    <div class="o_vendor_invoice_review_line">
+                        <t t-foreach="lineFields" t-as="field" t-key="field[0]">
+                            <label t-att-class="confidenceClass(field[0], candidateResult?.lines?.[line_index])">
+                                <t t-esc="field[1]"/>
+                                <input class="form-control"
+                                       t-att-value="lineValue(line, field[0])"
+                                       t-on-input="(event) => setLine(line_index, field[0], event.target.value)"/>
+                            </label>
+                        </t>
+                    </div>
+                </t>
+            </section>
+            <button class="btn btn-primary" t-on-click="confirm">
+                Confirm review and create draft bill
+            </button>
+            <button class="btn btn-secondary" t-on-click="props.close">Cancel</button>
+        </div>
+    </t>
+</templates>

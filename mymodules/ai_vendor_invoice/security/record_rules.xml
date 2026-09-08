@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- © 2024 Wukong Digital. License LGPL-3. -->
+<!--
+  Record rules for wd_ai_vendor_invoice:
+  - AI Invoice User: can only see their own tasks (created_uid).
+  - Reviewer / Config Manager: can see all tasks (no domain restriction).
+-->
+<odoo>
+    <data noupdate="1">
+
+        <record id="rule_statement_company_reviewer" model="ir.rule">
+            <field name="name">Statement: reviewer company access</field>
+            <field name="model_id" ref="model_vendor_invoice_statement"/>
+            <field name="domain_force">[('company_id', '=', user.company_id.id)]</field>
+            <field name="groups" eval="[(4, ref('ai_vendor_invoice.group_reviewer'))]"/>
+        </record>
+
+        <record id="rule_statement_own_user" model="ir.rule">
+            <field name="name">Statement: user sees own tasks</field>
+            <field name="model_id" ref="model_vendor_invoice_statement"/>
+            <field name="domain_force">[('task_id.create_uid', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('ai_vendor_invoice.group_ai_invoice_user'))]"/>
+        </record>
+
+        <record id="rule_statement_line_company_reviewer" model="ir.rule">
+            <field name="name">Statement Line: reviewer company access</field>
+            <field name="model_id" ref="model_vendor_invoice_statement_line"/>
+            <field name="domain_force">[('statement_id.company_id', '=', user.company_id.id)]</field>
+            <field name="groups" eval="[(4, ref('ai_vendor_invoice.group_reviewer'))]"/>
+        </record>
+
+        <record id="rule_statement_line_own_user" model="ir.rule">
+            <field name="name">Statement Line: user sees own tasks</field>
+            <field name="model_id" ref="model_vendor_invoice_statement_line"/>
+            <field name="domain_force">[('statement_id.task_id.create_uid', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('ai_vendor_invoice.group_ai_invoice_user'))]"/>
+        </record>
+
+        <!-- User-role: restrict task visibility to records created by the current user -->
+        <record id="rule_import_task_own_user" model="ir.rule">
+            <field name="name">Import Task: User sees own tasks only</field>
+            <field name="model_id" ref="model_vendor_invoice_import_task"/>
+            <field name="domain_force">[('create_uid', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('ai_vendor_invoice.group_ai_invoice_user'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- Reviewer: sees all tasks (open domain) -->
+        <record id="rule_import_task_all_reviewer" model="ir.rule">
+            <field name="name">Import Task: Reviewer sees all tasks</field>
+            <field name="model_id" ref="model_vendor_invoice_import_task"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('ai_vendor_invoice.group_reviewer'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- Config Manager: sees all tasks (open domain) -->
+        <record id="rule_import_task_all_config_manager" model="ir.rule">
+            <field name="name">Import Task: Config Manager sees all tasks</field>
+            <field name="model_id" ref="model_vendor_invoice_import_task"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('ai_vendor_invoice.group_config_manager'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+        <record id="rule_page_artifact_company_reviewer" model="ir.rule">
+            <field name="name">Page Artifact: reviewer company access</field>
+            <field name="model_id" ref="model_vendor_invoice_import_page_artifact"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+            <field name="groups" eval="[(4, ref('ai_vendor_invoice.group_reviewer'))]"/>
+        </record>
+
+        <record id="rule_page_artifact_company_config_manager" model="ir.rule">
+            <field name="name">Page Artifact: config manager company access</field>
+            <field name="model_id" ref="model_vendor_invoice_import_page_artifact"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+            <field name="groups" eval="[(4, ref('ai_vendor_invoice.group_config_manager'))]"/>
+        </record>
+
+        <record id="rule_provider_call_company_reviewer" model="ir.rule">
+            <field name="name">Provider Call: reviewer company access</field>
+            <field name="model_id" ref="model_vendor_invoice_import_provider_call"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+            <field name="groups" eval="[(4, ref('ai_vendor_invoice.group_reviewer'))]"/>
+        </record>
+
+        <record id="rule_provider_call_company_config_manager" model="ir.rule">
+            <field name="name">Provider Call: config manager company access</field>
+            <field name="model_id" ref="model_vendor_invoice_import_provider_call"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+            <field name="groups" eval="[(4, ref('ai_vendor_invoice.group_config_manager'))]"/>
+        </record>
+
+    </data>
+</odoo>
