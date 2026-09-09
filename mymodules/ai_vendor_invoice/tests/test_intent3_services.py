@@ -62,7 +62,9 @@ class TestTimeoutService(TransactionCase):
     def _task_with_attempt(self, status):
         attachment = self.env["ir.attachment"].create({
             "name": "timeout.pdf",
-            "datas": b"",
+            "datas": base64.b64encode(
+                ("timeout-%s" % status).encode()
+            ),
             "res_model": "vendor.invoice.import.task",
         })
         provider = self.env["wd.ai.provider.config"].create({
@@ -148,7 +150,7 @@ class TestBillCreatorGuards(TransactionCase):
         self.assertEqual(bill.company_id, task.company_id)
         self.assertEqual(task.vendor_bill_id, bill)
         self.assertTrue(copied)
-        self.assertEqual(source.res_id, 0)
+        self.assertEqual(source.res_id, task.id)
         with self.assertRaises(ValidationError):
             bill_creator.create_vendor_bill(self.env, task.id)
         self.assertEqual(

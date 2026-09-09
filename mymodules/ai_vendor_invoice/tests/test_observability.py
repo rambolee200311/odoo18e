@@ -6,6 +6,7 @@ from unittest.mock import Mock, patch
 import httpx
 from jsonschema import ValidationError
 from openai import APIConnectionError, APIStatusError
+from psycopg2 import OperationalError
 
 from odoo import api, fields
 from odoo.exceptions import AccessError
@@ -13,7 +14,7 @@ from odoo.modules.registry import Registry
 from odoo.tests.common import TransactionCase
 
 from ..adapters.deepseek import DeepSeekAIProviderAdapter
-from ..adapters.base import AIProviderTemporaryError
+from ..adapters.base import AIProviderPermanentError, AIProviderTemporaryError
 from ..adapters.openai import OpenAIAIProviderAdapter
 from ..services import observability_service, parse_service
 from ..schemas.document_extraction import INVOICE_EXTRACTION_RESULT_SCHEMA
@@ -37,10 +38,13 @@ def _strict_response_text():
 class ObservabilityCase(TransactionCase):
     def setUp(self):
         super().setUp()
+        test_pdf = (
+            "observability-%s" % self._testMethodName
+        ).encode()
         source = self.env["ir.attachment"].create({
             "name": "observability.pdf",
             "type": "binary",
-            "datas": base64.b64encode(b"%PDF-1.4"),
+            "datas": base64.b64encode(test_pdf),
             "res_model": "vendor.invoice.import.task",
             "public": False,
         })
@@ -160,6 +164,27 @@ class TestPageArtifactEvidence(ObservabilityCase):
 
 
 class TestProviderCallEvidence(ObservabilityCase):
+    def test_provider_call_uses_caller_transaction_until_attempt_is_committed(self):
+        with patch.object(observability_service, "config", {"test_enable": False}):
+            provider_call_id = observability_service.begin_provider_call(
+                self.attempt,
+                None,
+                0,
+                self.provider,
+                {"prompt_version": "test"},
+                input_page_count=1,
+                input_mode="native_pdf",
+                input_document_type="application/pdf",
+            )
+
+        self.assertTrue(provider_call_id)
+        self.assertEqual(
+            self.env["vendor.invoice.import.provider.call"].browse(
+                provider_call_id
+            ).parse_attempt_id,
+            self.attempt,
+        )
+
     def test_native_pdf_invalid_structured_output_has_schema_stage(self):
         adapter = OpenAIAIProviderAdapter.__new__(OpenAIAIProviderAdapter)
         response = Mock()
@@ -170,20 +195,21 @@ class TestProviderCallEvidence(ObservabilityCase):
         client.responses.create.return_value = response
         adapter._build_client = Mock(return_value=client)
 
-        with self.assertRaises(AIProviderPermanentError):
-            adapter.parse_native_pdf(
-                {
-                    "mode": "native_pdf",
-                    "document_bytes": b"%PDF",
-                    "source": {"page_count": 1},
-                },
-                self.provider,
-                "Extract as JSON.",
-                self.attempt,
-            )
+        with patch.object(observability_service, "config", {"test_enable": True}):
+            with self.assertRaises(AIProviderPermanentError) as raised:
+                adapter.parse_native_pdf(
+                    {
+                        "mode": "native_pdf",
+                        "document_bytes": b"%PDF",
+                        "source": {"page_count": 1},
+                    },
+                    self.provider,
+                    "Extract as JSON.",
+                    self.attempt,
+                )
 
         self.assertEqual(
-            self.attempt.provider_call_ids.failure_stage,
+            raised.exception.failure_stage,
             "PAGE_SCHEMA_VALIDATION",
         )
 
@@ -330,6 +356,45 @@ class TestProviderCallEvidence(ObservabilityCase):
 
 
 class TestFailureDiagnostics(ObservabilityCase):
+    def test_publish_attempt_running_uses_surrounding_transaction(self):
+        with patch.object(
+            parse_service,
+            "db_connect",
+            side_effect=AssertionError("worker start must not open a second transaction"),
+        ):
+            parse_service._publish_attempt_running(self.env, self.attempt)
+
+        self.assertEqual(self.attempt.status, "running")
+        self.assertTrue(self.attempt.started_at)
+        self.assertTrue(self.attempt.last_activity_at)
+
+    def test_attempt_raw_response_round_trips_original_json_bytes(self):
+        raw_response = b'{"invoice_number":"INV-RAW-001"}'
+
+        attachment = observability_service.persist_attempt_raw_response(
+            self.attempt,
+            raw_response,
+        )
+
+        self.assertEqual(attachment.raw, raw_response)
+        self.assertEqual(
+            self.attempt.raw_response_attachment_id.raw,
+            raw_response,
+        )
+
+    def test_attempt_result_persistence_does_not_swallow_database_errors(self):
+        attachment_model = type(self.env["ir.attachment"])
+        with patch.object(
+            attachment_model,
+            "create",
+            side_effect=OperationalError("serialization conflict"),
+        ):
+            with self.assertRaises(OperationalError):
+                observability_service.persist_attempt_raw_response(
+                    self.attempt,
+                    b"{}",
+                )
+
     def test_persistence_failure_is_logged(self):
         with patch.object(
             observability_service._logger,
@@ -409,7 +474,7 @@ class TestProviderCallEvidenceRegression(ObservabilityCase):
         self.assertEqual(len(calls), 2)
         self.assertEqual(calls.mapped("retry_index"), [0, 1])
         self.assertEqual(calls.mapped("outcome"), ["no_response", "success"])
-        self.assertEqual(calls[1].page_extraction_result, result)
+        self.assertEqual(calls[1].page_extraction_result, result[0])
         self.assertEqual(calls[1].validation_status, "pass")
         self.assertEqual(calls[1].raw_response_attachment_id.raw,
                          b'{"provider": "response"}')
@@ -513,6 +578,41 @@ class TestProviderCallEvidenceRegression(ObservabilityCase):
 
 
 class TestObservabilityFailureIsolation(ObservabilityCase):
+    def test_attempt_persistence_conflict_fails_without_queue_resubmission(self):
+        adapter = Mock()
+        adapter.parse_pdf.return_value = (
+            {"header": {}, "lines": [], "is_multi_invoice": False},
+            base64.b64encode(b"[]"),
+        )
+
+        with patch.object(
+            parse_service,
+            "_publish_attempt_running",
+        ), patch.object(
+            parse_service,
+            "prepare_provider_input",
+            return_value={"type": "pages", "images": [b"png"]},
+        ), patch.object(
+            parse_service,
+            "adapter_for",
+            return_value=adapter,
+        ), patch.object(
+            observability_service,
+            "persist_attempt_raw_response",
+            side_effect=OperationalError("could not serialize access to concurrent update"),
+        ):
+            result = parse_service.run_parse_attempt(
+                self.env,
+                self.task.id,
+                self.attempt.id,
+            )
+
+        self.assertFalse(result)
+        self.assertEqual(self.attempt.status, "failed")
+        self.assertEqual(self.attempt.failure_stage, "PERSISTENCE")
+        self.assertEqual(self.task.state, "error")
+        adapter.parse_pdf.assert_called_once()
+
     def test_partial_evidence_does_not_change_success_result(self):
         adapter = Mock()
         adapter.parse_pdf.return_value = (
@@ -786,7 +886,9 @@ class TestDurableEvidenceTransaction(TransactionCase):
                 | old_calls.mapped("raw_response_attachment_id")
             )
             old_tasks.unlink()
-            (old_sources | old_evidence_attachments).unlink()
+            setup_env["ir.attachment"].browse(
+                (old_sources | old_evidence_attachments).ids
+            ).exists().unlink()
             setup_env["wd.ai.provider.config"].search([
                 ("name", "=", "Durable Evidence DeepSeek"),
             ]).unlink()
@@ -879,13 +981,6 @@ class TestDurableEvidenceTransaction(TransactionCase):
                 provider_call.raw_response_attachment_id.raw,
                 b'{"durable": true}',
             )
-            attachments = (
-                artifact.image_attachment_id
-                | provider_call.raw_response_attachment_id
-                | check_env["vendor.invoice.import.task"]
-                .browse(task_id).source_pdf_attachment_id
-            )
             check_env["vendor.invoice.import.task"].browse(task_id).unlink()
-            attachments.unlink()
             check_env["wd.ai.provider.config"].browse(provider_id).unlink()
             check_cr.commit()
