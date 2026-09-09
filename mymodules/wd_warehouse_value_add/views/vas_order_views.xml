@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_vas_order_list" model="ir.ui.view">
+        <field name="name">wd.vas.order.list</field>
+        <field name="model">wd.vas.order</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="state"/>
+                <field name="order_type"/>
+                <field name="warehouse_order_billno"/>
+                <field name="warehouse_id"/>
+                <field name="operator_id"/>
+                <field name="create_uid"/>
+                <field name="submitter_id"/>
+                <field name="create_date"/>
+                <field name="submitted_at"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_vas_order_form" model="ir.ui.view">
+        <field name="name">wd.vas.order.form</field>
+        <field name="model">wd.vas.order</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_submit" type="object" string="Submit"
+                            class="oe_highlight"
+                            groups="wd_warehouse_value_add.group_vas_user"
+                            invisible="state != 'draft'"/>
+                    <button name="action_unsubmit" type="object" string="Unsubmit"
+                            groups="wd_warehouse_value_add.group_vas_user"
+                            invisible="state != 'submitted'"/>
+                    <button name="action_cancel" type="object" string="Cancel"
+                            groups="wd_warehouse_value_add.group_vas_user"
+                            invisible="state != 'draft'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,submitted,cancelled"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="order_type" readonly="state != 'draft'"/>
+                            <field name="warehouse_order_billno"
+                                   readonly="state != 'draft'"/>
+                            <field name="warehouse_order_display" readonly="1"/>
+                            <field name="warehouse_id" readonly="state != 'draft'"/>
+                        </group>
+                        <group>
+                            <field name="operator_id"
+                                   domain="[('active', '=', True)]"
+                                   readonly="state != 'draft'"/>
+                            <field name="create_uid" readonly="1"/>
+                            <field name="submitter_id" readonly="1"/>
+                            <field name="submitted_at" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Operations">
+                            <field name="line_ids" readonly="state != 'draft'">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="operation_type_id"/>
+                                    <field name="quantity_time"/>
+                                    <field name="unit_id" readonly="1"/>
+                                    <field name="note"/>
+                                </list>
+                                <kanban>
+                                    <field name="operation_type_id"/>
+                                    <field name="quantity_time"/>
+                                    <field name="unit_id"/>
+                                    <templates>
+                                        <t t-name="card">
+                                            <div class="oe_kanban_global_click">
+                                                <strong>
+                                                    <field name="operation_type_id"/>
+                                                </strong>
+                                                <div>
+                                                    <field name="quantity_time"/>
+                                                    <field name="unit_id"/>
+                                                </div>
+                                                <field name="note"/>
+                                            </div>
+                                        </t>
+                                    </templates>
+                                </kanban>
+                            </field>
+                        </page>
+                        <page string="Attachments">
+                            <field name="attachment_ids" widget="many2many_binary"
+                                   readonly="state != 'draft'"/>
+                        </page>
+                        <page string="Notes">
+                            <group>
+                                <field name="notes" readonly="state != 'draft'"/>
+                                <field name="cancel_reason" readonly="state == 'cancelled'"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_vas_order_search" model="ir.ui.view">
+        <field name="name">wd.vas.order.search</field>
+        <field name="model">wd.vas.order</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="order_type"/>
+                <field name="warehouse_order_billno"/>
+                <field name="operator_id"/>
+                <field name="state"/>
+                <field name="warehouse_id"/>
+                <field name="create_date"/>
+                <filter name="draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="submitted" string="Submitted"
+                        domain="[('state', '=', 'submitted')]"/>
+                <filter name="cancelled" string="Cancelled"
+                        domain="[('state', '=', 'cancelled')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_state" string="Status"
+                            context="{'group_by': 'state'}"/>
+                    <filter name="group_order_type" string="Order Type"
+                            context="{'group_by': 'order_type'}"/>
+                    <filter name="group_operator" string="Operator"
+                            context="{'group_by': 'operator_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_vas_order" model="ir.actions.act_window">
+        <field name="name">VAS Orders</field>
+        <field name="res_model">wd.vas.order</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_vas_order_search"/>
+    </record>
+</odoo>

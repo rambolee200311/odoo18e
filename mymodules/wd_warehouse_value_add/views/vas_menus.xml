@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_vas_root" name="Warehouse VAS"
+              action="action_vas_dashboard"
+              groups="wd_warehouse_value_add.group_vas_user"/>
+    <menuitem id="menu_vas_home" name="Home"
+              parent="menu_vas_root"
+              action="action_vas_dashboard"
+              groups="wd_warehouse_value_add.group_vas_user"
+              sequence="1"/>
+    <menuitem id="menu_vas_orders" name="VAS Orders"
+              parent="menu_vas_root"
+              action="action_vas_order"
+              groups="wd_warehouse_value_add.group_vas_user"
+              sequence="10"/>
+    <menuitem id="menu_vas_pda" name="PDA Work Entry"
+              parent="menu_vas_root"
+              action="action_vas_pda"
+              groups="wd_warehouse_value_add.group_vas_user"
+              sequence="5"/>
+    <menuitem id="menu_vas_configuration" name="Configuration"
+              parent="menu_vas_root"
+              groups="wd_warehouse_value_add.group_vas_manager"/>
+    <menuitem id="menu_vas_operation_types" name="Operation Types"
+              parent="menu_vas_configuration"
+              action="action_vas_operation_type"
+              groups="wd_warehouse_value_add.group_vas_manager"/>
+</odoo>
