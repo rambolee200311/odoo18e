@@ -129,6 +129,8 @@ def adapter_for(env, provider_config):
     from .openai import OpenAIAIProviderAdapter
 
     name = (provider_config.name or "").lower()
+    if "openai" in name:
+        return OpenAIAIProviderAdapter(env)
     if "claude" in name or "anthropic" in name:
         return ClaudeAIProviderAdapter(env)
     if "deepseek" in name:

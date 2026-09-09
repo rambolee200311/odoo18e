@@ -138,9 +138,11 @@ present."""
                     validate(parsed, INVOICE_EXTRACTION_RESULT_SCHEMA)
                 except (json.JSONDecodeError, ValidationError) as error:
                     error.failure_stage = "PAGE_SCHEMA_VALIDATION"
-                    raise AIProviderPermanentError(
+                    wrapped_error = AIProviderPermanentError(
                         "OpenAI native PDF structured output was invalid."
-                    ) from error
+                    )
+                    wrapped_error.failure_stage = error.failure_stage
+                    raise wrapped_error from error
                 observability_service.finish_provider_call(
                     attempt,
                     provider_call,
@@ -195,8 +197,13 @@ present."""
                     provider_call,
                     outcome="failed",
                     validation_status="not_run",
-                    failure_stage=getattr(
-                        error, "failure_stage", "PAGE_PROVIDER_REQUEST"
+                    failure_stage=(
+                        getattr(error, "failure_stage", None)
+                        or getattr(
+                            getattr(error, "__cause__", None),
+                            "failure_stage",
+                            "PAGE_PROVIDER_REQUEST",
+                        )
                     ),
                     safe_error_summary="OpenAI native PDF request failed.",
                 )

@@ -151,6 +151,8 @@ class BaseVisionAIProviderAdapter(BaseAIProviderAdapter):
         results, raw = self._parse_page_batch(
             client, provider_config, images, max_attempt_retry, attempt_obj,
             0, len(images), page_artifacts,
+            input_mode=provider_input.get("mode", "rendered_images"),
+            input_document_type=provider_input.get("source", {}).get("mime_type"),
         )
         if isinstance(results, dict):
             results = [results]
@@ -185,6 +187,8 @@ class BaseVisionAIProviderAdapter(BaseAIProviderAdapter):
         page_start,
         total_pages,
         page_artifact=None,
+        input_mode="rendered_images",
+        input_document_type="image/png",
     ):
         payload = self._build_payload(provider_config, images)
         prompt_components = {
@@ -216,12 +220,8 @@ class BaseVisionAIProviderAdapter(BaseAIProviderAdapter):
                 provider_config,
                 effective_prompt_snapshot,
                 input_page_count=len(images),
-                input_mode=provider_input.get("mode", "rendered_images"),
-                input_document_type=(
-                    "image/png"
-                    if provider_input.get("mode", "rendered_images") == "rendered_images"
-                    else provider_input.get("source", {}).get("mime_type")
-                ),
+                input_mode=input_mode,
+                input_document_type=input_document_type,
                 rendered_image_count=len(images),
             ) if attempt_obj else None
             try:
