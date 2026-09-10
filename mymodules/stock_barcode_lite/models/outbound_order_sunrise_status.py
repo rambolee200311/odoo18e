@@ -126,7 +126,7 @@ class OutboundOrderSunrise(models.Model):
         else:
             delivery_date = rec.p_date
         parentvo.update({
-            "dbilldate": self.get_sunrise_date_text(rec.o_date or rec.picking_Out_date or last_done_date or rec.date),
+            "dbilldate": self.get_sunrise_date_text(rec.o_date),
             "vnote": rec.remark or rec.load_ref or "",
             "vuserdef14": rec.load_ref if rec.u8c_delivery_method == "wd" and rec.delivery_method == "parcel" else "",
             "vuserdef17": self.get_sunrise_date_text(delivery_date),
@@ -152,6 +152,8 @@ class OutboundOrderSunrise(models.Model):
     def build_u8c_outbound_payload(self, config=False):
         result = []
         for rec in self:
+            if not rec.o_date:
+                raise UserError(_("Outbound date is required before syncing outbound order %s.") % (rec.billno or rec.reference))
             api_config = config or rec.get_sunrise_api_config("outbound")
             parentvo, parameters = rec.get_sunrise_outbound_parentvo(api_config, rec)
             #parentvo["cwarehouseid"] = rec.cwarehouseid

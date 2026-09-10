@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_vas_operation_type_list" model="ir.ui.view">
+        <field name="name">wd.vas.operation.type.list</field>
+        <field name="model">wd.vas.operation.type</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="unit_id"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_vas_operation_type_form" model="ir.ui.view">
+        <field name="name">wd.vas.operation.type.form</field>
+        <field name="model">wd.vas.operation.type</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="code"/>
+                        <field name="unit_id"/>
+                        <field name="sequence"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_vas_operation_type_search" model="ir.ui.view">
+        <field name="name">wd.vas.operation.type.search</field>
+        <field name="model">wd.vas.operation.type</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="unit_id"/>
+                <filter name="active" string="Active" domain="[('active', '=', True)]"/>
+                <filter name="inactive" string="Archived" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_vas_operation_type" model="ir.actions.act_window">
+        <field name="name">Operation Types</field>
+        <field name="res_model">wd.vas.operation.type</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_vas_operation_type_search"/>
+    </record>
+</odoo>

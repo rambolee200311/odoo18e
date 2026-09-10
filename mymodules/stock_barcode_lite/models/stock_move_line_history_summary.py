@@ -8,6 +8,15 @@ from odoo.exceptions import ValidationError
 from odoo.osv import expression
 
 
+def format_product_template_name(product_template):
+    if not product_template:
+        return ""
+    standard_product = product_template.product_variant_ids.filtered(lambda product: "Standard Packaging" in product.product_template_attribute_value_ids.mapped("name"))[:1]
+    product_code = standard_product.barcode or standard_product.default_code or product_template.barcode or product_template.default_code or ""
+    product_name = product_template.name or ""
+    return "[%s] %s" % (product_code, product_name) if product_code and product_name else product_code or product_name
+
+
 class StockMoveLineHistorySummary(models.Model):
     _inherit = "stock.move.line"
 
@@ -38,27 +47,53 @@ class StockMoveLineHistorySummary(models.Model):
         date_to_datetime = timezone.localize(datetime.combine(date_to + timedelta(days=1), time.min)).astimezone(pytz.UTC).replace(tzinfo=None)
         move_line_model = self.sudo()
         outbound_product_model = self.env["world.depot.outbound.order.product"].sudo()
+        project_model = self.env["project.project"].sudo()
+        if "project_ids" in filters:
+            if not filters["project_ids"]:
+                return {"date_from": date_from, "date_to": date_to, "timezone_name": timezone_name, "package_lifecycle_data": []}
+            project_ids = set(filters["project_ids"])
+        elif filters.get("project_id"):
+            project_ids = {filters["project_id"]}
+        else:
+            project_ids = set(project_model.search([]).ids)
+        business_project_ids = set(project_model.search([("id", "in", list(project_ids)), ("stock_report_date_mode", "=", "business")]).ids)
+        validation_project_ids = project_ids - business_project_ids
         inbound_domain = [
             ("state", "=", "done"),
-            ("date", "<", date_to_datetime),
             ("result_package_id", "!=", False),
             ("picking_id.inbound_order_id", "!=", False),
             ("picking_id.picking_type_id.code", "=", "incoming"),
         ]
         if filters.get("owner_id"):
             inbound_domain.append(("picking_id.inbound_order_id.owner", "=", filters["owner_id"]))
-        if "project_ids" in filters:
-            if not filters["project_ids"]:
-                return {"date_from": date_from, "date_to": date_to, "timezone_name": timezone_name, "package_lifecycle_data": []}
-            inbound_domain.append(("picking_id.inbound_order_id.project", "in", filters["project_ids"]))
-        elif filters.get("project_id"):
-            inbound_domain.append(("picking_id.inbound_order_id.project", "=", filters["project_id"]))
         cprojectid = str(filters.get("cprojectid") or "").strip()
         if cprojectid:
             inbound_pallets = self.env["world.depot.inbound.order.products.pallet"].sudo().search([("cprojectid", "ilike", cprojectid)])
             inbound_order_ids = inbound_pallets.mapped("inbound_order_product_id.inbound_order_id").ids
             inbound_domain.append(("picking_id.inbound_order_id", "in", inbound_order_ids))
-        inbound_move_lines = move_line_model.search(inbound_domain, order="date asc, id asc")
+        if business_project_ids:
+            missing_inbound_domain = [
+                ("state", "=", "done"),
+                ("date", "<", date_to_datetime),
+                ("result_package_id", "!=", False),
+                ("picking_id.inbound_order_id", "!=", False),
+                ("picking_id.picking_type_id.code", "=", "incoming"),
+                ("picking_id.inbound_order_id.actual_inbound_date", "=", False),
+                ("picking_id.inbound_order_id.project", "in", list(business_project_ids)),
+            ]
+            if filters.get("owner_id"):
+                missing_inbound_domain.append(("picking_id.inbound_order_id.owner", "=", filters["owner_id"]))
+            if cprojectid:
+                missing_inbound_domain.append(("picking_id.inbound_order_id", "in", inbound_order_ids))
+            missing_inbound_move_line = move_line_model.search(missing_inbound_domain, limit=1)
+            if missing_inbound_move_line:
+                raise ValidationError(_("Manual Inbound Date is required for inbound order %s.") % missing_inbound_move_line.picking_id.inbound_order_id.display_name)
+        inbound_move_lines = move_line_model.browse()
+        if business_project_ids:
+            inbound_move_lines |= move_line_model.search(inbound_domain + [("picking_id.inbound_order_id.project", "in", list(business_project_ids)), ("picking_id.inbound_order_id.actual_inbound_date", "<=", date_to)], order="date asc, id asc")
+        if validation_project_ids:
+            inbound_move_lines |= move_line_model.search(inbound_domain + [("picking_id.inbound_order_id.project", "in", list(validation_project_ids)), ("date", "<", date_to_datetime)], order="date asc, id asc")
+        inbound_move_lines = inbound_move_lines.sorted(key=lambda move_line: (move_line.date, move_line.id))
         if not inbound_move_lines:
             return {"date_from": date_from, "date_to": date_to, "timezone_name": timezone_name, "package_lifecycle_data": []}
         selected_segment_map = {}
@@ -66,18 +101,21 @@ class StockMoveLineHistorySummary(models.Model):
         for move_line in inbound_move_lines:
             inbound_order = move_line.picking_id.inbound_order_id
             package = move_line.result_package_id
+            use_business_date = inbound_order.project.id in business_project_ids
+            inbound_datetime = datetime.combine(inbound_order.actual_inbound_date, time.min) if use_business_date else move_line.date
             segment_key = (inbound_order.id, package.id)
             segment = selected_segment_map.setdefault(segment_key, {
                 "inbound_order_id": inbound_order.id,
                 "inbound_order_name": inbound_order.display_name,
-                "first_inbound_datetime": move_line.date,
+                "first_inbound_datetime": inbound_datetime,
+                "use_business_date": use_business_date,
                 "cproject_ids": set(),
                 "batch_names": set(),
                 "is_selected": True,
             })
             selected_package_ids.add(package.id)
-            if move_line.date < segment["first_inbound_datetime"]:
-                segment["first_inbound_datetime"] = move_line.date
+            if inbound_datetime < segment["first_inbound_datetime"]:
+                segment["first_inbound_datetime"] = inbound_datetime
             pallet_detail = move_line.inbound_order_product_pallet_id
             if pallet_detail and pallet_detail.cprojectid:
                 segment["cproject_ids"].add(pallet_detail.cprojectid)
@@ -86,7 +124,6 @@ class StockMoveLineHistorySummary(models.Model):
                 segment["batch_names"].add(batch_name)
         move_line_domain = [
             ("state", "=", "done"),
-            ("date", "<", date_to_datetime),
             "|",
             ("package_id", "in", list(selected_package_ids)),
             ("result_package_id", "in", list(selected_package_ids)),
@@ -112,19 +149,43 @@ class StockMoveLineHistorySummary(models.Model):
         for move_line in move_lines:
             source_inside = move_line.location_id.id in location_ids if location_ids is not False else move_line.location_id.usage == "internal"
             destination_inside = move_line.location_dest_id.id in location_ids if location_ids is not False else move_line.location_dest_id.usage == "internal"
+            picking = move_line.picking_id
+            inbound_order = picking.inbound_order_id
+            outbound_product = outbound_product_model.browse(move_line.move_id.outbound_order_product_id)
+            outbound_order = picking.outbound_order_id or outbound_product.outbound_order_id
+            event_datetime = move_line.date
+            event_date = fields.Datetime.context_timestamp(self.with_context(tz=timezone_name), move_line.date).date()
+            is_actual_inbound = move_line.location_id.usage != "internal" and move_line.location_dest_id.usage == "internal"
+            is_actual_outbound = move_line.location_id.usage == "internal" and move_line.location_dest_id.usage != "internal"
+            use_business_date = inbound_order.project.id in business_project_ids if inbound_order else outbound_order.project.id in business_project_ids if outbound_order else False
+            event_uses_business_date = use_business_date and (is_actual_inbound or is_actual_outbound)
+            if event_uses_business_date:
+                business_date = inbound_order.actual_inbound_date if inbound_order else outbound_order.o_date if outbound_order else False
+                if not business_date:
+                    if move_line.date < date_to_datetime:
+                        field_name = _("Manual Inbound Date") if inbound_order else _("Outbound Date")
+                        order_name = inbound_order.display_name if inbound_order else outbound_order.display_name
+                        raise ValidationError(_("%(field_name)s is required for order %(order_name)s.") % {"field_name": field_name, "order_name": order_name})
+                    continue
+                event_datetime = datetime.combine(business_date, time.min)
+                event_date = business_date
+            if event_uses_business_date and event_date > date_to:
+                continue
+            if not event_uses_business_date and event_datetime >= date_to_datetime:
+                continue
             package = move_line.result_package_id
-            inbound_order = move_line.picking_id.inbound_order_id
             if package.id in selected_package_ids and inbound_order and move_line.picking_id.picking_type_id.code == "incoming" and move_line.location_id.usage != "internal" and move_line.location_dest_id.usage == "internal":
                 segment = package_segment_map[package.id].setdefault(inbound_order.id, {
                     "inbound_order_id": inbound_order.id,
                     "inbound_order_name": inbound_order.display_name,
-                    "first_inbound_datetime": move_line.date,
+                    "first_inbound_datetime": event_datetime,
+                    "use_business_date": use_business_date,
                     "cproject_ids": set(),
                     "batch_names": set(),
                     "is_selected": False,
                 })
-                if move_line.date < segment["first_inbound_datetime"]:
-                    segment["first_inbound_datetime"] = move_line.date
+                if event_datetime < segment["first_inbound_datetime"]:
+                    segment["first_inbound_datetime"] = event_datetime
             if location_ids is not False and not source_inside and not destination_inside:
                 continue
             source_package_id = move_line.package_id.id
@@ -150,8 +211,8 @@ class StockMoveLineHistorySummary(models.Model):
                 outbound_cproject_ids = (outbound_product.cprojectid or "").strip()
                 package_event_map[package_id].append({
                     "move_line_id": move_line.id,
-                    "event_datetime": move_line.date,
-                    "event_date": fields.Datetime.context_timestamp(self.with_context(tz=timezone_name), move_line.date).date(),
+                    "event_datetime": event_datetime,
+                    "event_date": event_date,
                     "product_id": move_line.product_id.id,
                     "lot_id": move_line.lot_id.id,
                     "quantity": package_quantity_map[package_id],
@@ -172,6 +233,8 @@ class StockMoveLineHistorySummary(models.Model):
                     "is_actual_outbound": source_inside and move_line.location_dest_id.usage != "internal" and move_line.picking_id.picking_type_id.code == "outgoing",
                     "outbound_cproject_ids": outbound_cproject_ids,
                 })
+        for package_events in package_event_map.values():
+            package_events.sort(key=lambda event: (event["event_datetime"], event["move_line_id"]))
         package_lifecycle_data = []
         for package_id in selected_package_ids:
             segments = sorted(package_segment_map[package_id].values(), key=lambda segment: (segment["first_inbound_datetime"], segment["inbound_order_id"]))
@@ -188,7 +251,7 @@ class StockMoveLineHistorySummary(models.Model):
             location_name_map = {}
             events = []
             for event_sequence, event in enumerate(package_event_map[package_id]):
-                if not opening_captured and event["event_datetime"] >= date_from_datetime:
+                if not opening_captured and event["event_date"] >= date_from:
                     opening_inbound_order_id = current_inbound_order_id
                     opening_active = any(quantity > 0.000001 for quantity in quantity_map.values())
                     opening_captured = True
@@ -219,7 +282,7 @@ class StockMoveLineHistorySummary(models.Model):
                 closing_location_quantity_map[closing_location_id] += quantity
             closing_location_ids = [closing_location_id for closing_location_id, quantity in closing_location_quantity_map.items() if quantity > 0.000001]
             closing_location_id = max(closing_location_ids, key=lambda closing_location_id: (location_last_sequence_map.get(closing_location_id, -1), closing_location_id)) if closing_location_ids else False
-            if not opening_active and not closing_active and not any(event["event_datetime"] >= date_from_datetime for event in events):
+            if not opening_active and not closing_active and not any(event["event_date"] >= date_from for event in events):
                 continue
             package_lifecycle_data.append({
                 "package_id": package_id,
@@ -227,6 +290,7 @@ class StockMoveLineHistorySummary(models.Model):
                     "inbound_order_id": segment["inbound_order_id"],
                     "inbound_order_name": segment["inbound_order_name"],
                     "first_inbound_datetime": segment["first_inbound_datetime"],
+                    "use_business_date": segment["use_business_date"],
                     "cproject_ids": sorted(segment["cproject_ids"]),
                     "batch_names": sorted(segment["batch_names"]),
                     "is_selected": segment["is_selected"],
@@ -257,7 +321,6 @@ class StockMoveLineHistorySummary(models.Model):
             return dict(lifecycle_result, movement_rows=[])
         date_from = lifecycle_result["date_from"]
         date_to = lifecycle_result["date_to"]
-        date_from_datetime = datetime.combine(date_from, time.min)
         date_to_datetime = datetime.combine(date_to, time.max)
         location_ids = set(self.env["stock.location"].sudo().search([("id", "child_of", location_id)]).ids)
         if not location_ids:
@@ -269,6 +332,7 @@ class StockMoveLineHistorySummary(models.Model):
             for event in package_data["events"]
         }
         move_line_model = self.sudo()
+        outbound_product_model = self.env["world.depot.outbound.order.product"].sudo()
         lifecycle_move_lines = move_line_model.search([("id", "in", list(lifecycle_move_line_ids))], order="date asc, id asc") if lifecycle_move_line_ids else move_line_model
         move_line_by_id = {move_line.id: move_line for move_line in lifecycle_move_lines}
         package_event_map = defaultdict(list)
@@ -285,6 +349,8 @@ class StockMoveLineHistorySummary(models.Model):
                     "package": package,
                     "is_loose": False,
                     "move_line": move_line,
+                    "event_datetime": lifecycle_event["event_datetime"],
+                    "event_date": lifecycle_event["event_date"],
                     "direction": lifecycle_event["direction"],
                     "signed_quantity": lifecycle_event["quantity"],
                     "inside_location": move_line.location_dest_id if lifecycle_event["destination_inside"] else move_line.location_id,
@@ -295,12 +361,35 @@ class StockMoveLineHistorySummary(models.Model):
         ])
         loose_move_lines = move_line_model.search(expression.AND([[
             ("state", "=", "done"),
-            ("date", "<=", date_to_datetime),
             ("package_id", "=", False),
             ("result_package_id", "=", False),
             "|", ("location_id", "child_of", location_id), ("location_dest_id", "child_of", location_id),
         ], project_move_line_domain]), order="date asc, id asc")
         for move_line in loose_move_lines:
+            picking = move_line.picking_id
+            inbound_order = picking.inbound_order_id
+            outbound_product = outbound_product_model.browse(move_line.move_id.outbound_order_product_id)
+            outbound_order = picking.outbound_order_id or outbound_product.outbound_order_id
+            use_business_date = inbound_order.project.stock_report_date_mode == "business" if inbound_order else outbound_order.project.stock_report_date_mode == "business" if outbound_order else False
+            event_datetime = move_line.date
+            event_date = fields.Datetime.context_timestamp(self.with_context(tz=lifecycle_result["timezone_name"]), move_line.date).date()
+            is_actual_inbound = move_line.location_id.usage != "internal" and move_line.location_dest_id.usage == "internal"
+            is_actual_outbound = move_line.location_id.usage == "internal" and move_line.location_dest_id.usage != "internal"
+            event_uses_business_date = use_business_date and (is_actual_inbound or is_actual_outbound)
+            if event_uses_business_date:
+                business_date = inbound_order.actual_inbound_date if inbound_order else outbound_order.o_date if outbound_order else False
+                if not business_date:
+                    if move_line.date <= date_to_datetime:
+                        field_name = _("Manual Inbound Date") if inbound_order else _("Outbound Date")
+                        order_name = inbound_order.display_name if inbound_order else outbound_order.display_name
+                        raise ValidationError(_("%(field_name)s is required for order %(order_name)s.") % {"field_name": field_name, "order_name": order_name})
+                    continue
+                event_datetime = datetime.combine(business_date, time.min)
+                event_date = business_date
+            if event_uses_business_date and event_date > date_to:
+                continue
+            if not event_uses_business_date and event_datetime > date_to_datetime:
+                continue
             source_inside = move_line.location_id.id in location_ids
             destination_inside = move_line.location_dest_id.id in location_ids
             if source_inside == destination_inside:
@@ -321,15 +410,17 @@ class StockMoveLineHistorySummary(models.Model):
                 "package": False,
                 "is_loose": True,
                 "move_line": move_line,
+                "event_datetime": event_datetime,
+                "event_date": event_date,
                 "direction": direction,
                 "signed_quantity": signed_quantity,
                 "inside_location": inside_location,
             })
 
-        outbound_product_model = self.env["world.depot.outbound.order.product"].sudo()
         rows = []
         package_ids = []
         for package_events in package_event_map.values():
+            package_events.sort(key=lambda package_event: (package_event["event_datetime"], package_event["move_line"].date, package_event["move_line"].id))
             package = package_events[0]["package"]
             is_loose = package_events[0]["is_loose"]
             first_move_line = package_events[0]["move_line"]
@@ -358,12 +449,12 @@ class StockMoveLineHistorySummary(models.Model):
 
             for package_event in package_events:
                 move_line = package_event["move_line"]
-                event_datetime = move_line.date
+                event_datetime = package_event["event_datetime"]
+                event_date = package_event["event_date"]
                 product = move_line.product_id
                 lot = move_line.lot_id
                 uom = move_line.product_uom_id
-                product_code = product.barcode or product.default_code or ""
-                product_display_name = "[%s] %s" % (product_code, product.name or "") if product_code and product.name else product_code or product.name or ""
+                product_display_name = format_product_template_name(product.product_tmpl_id)
                 product_key = (product.id, lot.id, uom.id)
                 product_data = product_data_map.setdefault(product_key, {
                     "product_id": product.id,
@@ -384,7 +475,7 @@ class StockMoveLineHistorySummary(models.Model):
                 if not is_loose and not pallet_no and move_line.inbound_order_product_pallet_id:
                     pallet_no = move_line.inbound_order_product_pallet_id.inbound_order_product_id.pallet_no or ""
 
-                if not opening_set and event_datetime >= date_from_datetime:
+                if not opening_set and event_date >= date_from:
                     for product_key_value, quantity in quantity_map.items():
                         if product_key_value in product_data_map:
                             product_data_map[product_key_value]["opening_quantity"] = quantity
@@ -405,7 +496,7 @@ class StockMoveLineHistorySummary(models.Model):
                 elif before_active and not after_active:
                     consumed_datetime = event_datetime
 
-                if event_datetime < date_from_datetime:
+                if event_date < date_from:
                     continue
                 period_has_event = True
                 if package_event["direction"] == "inbound":
@@ -509,12 +600,7 @@ class StockMoveLineHistorySummary(models.Model):
             if not stock_line_ids and not operation_line_ids:
                 continue
             loose_product = first_move_line.product_id
-            loose_product_code = loose_product.barcode or loose_product.default_code or ""
-            loose_product_name = loose_product.name or ""
-            if loose_product_code and loose_product_name:
-                loose_product_name = "[%s] %s" % (loose_product_code, loose_product_name)
-            elif loose_product_code:
-                loose_product_name = loose_product_code
+            loose_product_name = format_product_template_name(loose_product.product_tmpl_id)
             row = {
                 "row_type": "loose" if is_loose else "package",
                 "package_id": package.id if package else False,
@@ -574,6 +660,7 @@ class StockMoveLineHistorySummary(models.Model):
 
     @api.model
     def get_inbound_pallet_summary(self, filters=None):
+        filters = filters or {}
         lifecycle_result = self.get_package_lifecycle_data(filters)
         inbound_data_map = {}
         for package_data in lifecycle_result["package_lifecycle_data"]:
@@ -587,6 +674,7 @@ class StockMoveLineHistorySummary(models.Model):
                     "first_inbound_datetime": segment["first_inbound_datetime"],
                     "inbound_order_id": segment["inbound_order_id"],
                     "inbound_order_name": segment["inbound_order_name"],
+                    "use_business_date": segment["use_business_date"],
                     "cproject_ids": set(),
                     "outbound_cproject_ids": set(),
                     "opening_pallet_count": 0,
@@ -623,10 +711,11 @@ class StockMoveLineHistorySummary(models.Model):
         result = []
         for inbound_data in inbound_data_map.values():
             first_inbound_local_datetime = fields.Datetime.context_timestamp(self.with_context(tz=lifecycle_result["timezone_name"]), inbound_data["first_inbound_datetime"])
+            first_inbound_date = inbound_data["first_inbound_datetime"].date() if inbound_data["use_business_date"] else first_inbound_local_datetime.date()
             closing_pallet_count = inbound_data["closing_pallet_count"]
-            remain_period_start_date = max(lifecycle_result["date_from"], first_inbound_local_datetime.date())
+            remain_period_start_date = max(lifecycle_result["date_from"], first_inbound_date)
             result.append({
-                "first_inbound_date": fields.Datetime.to_string(first_inbound_local_datetime),
+                "first_inbound_date": fields.Date.to_string(first_inbound_date) if inbound_data["use_business_date"] else fields.Datetime.to_string(first_inbound_local_datetime),
                 "first_inbound_datetime": fields.Datetime.to_string(inbound_data["first_inbound_datetime"]),
                 "inbound_order_id": inbound_data["inbound_order_id"],
                 "inbound_order_name": inbound_data["inbound_order_name"],
@@ -638,7 +727,7 @@ class StockMoveLineHistorySummary(models.Model):
                 "closing_pallet_count": closing_pallet_count,
                 "closing_location_summary": "; ".join("%s: %s" % (location_name, pallet_count) for location_name, pallet_count in sorted(inbound_data["closing_location_map"].items())),
                 "remain_period_age_days": (lifecycle_result["date_to"] - remain_period_start_date).days + 1 if closing_pallet_count else 0,
-                "remain_total_age_days": (lifecycle_result["date_to"] - first_inbound_local_datetime.date()).days + 1 if closing_pallet_count else 0,
+                "remain_total_age_days": (lifecycle_result["date_to"] - first_inbound_date).days + 1 if closing_pallet_count else 0,
                 "outbound_lines": [{
                     "outbound_date": fields.Date.to_string(outbound_date),
                     "cproject_ids": cproject_ids,

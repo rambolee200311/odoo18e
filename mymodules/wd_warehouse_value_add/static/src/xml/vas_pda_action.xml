@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="wd_warehouse_value_add.VasPdaAction">
+        <main class="o_wd_vas_pda_action d-flex flex-column h-100">
+            <header class="o_wd_vas_pda_header">
+                <button class="btn btn-link o_wd_vas_back" type="button" t-on-click="goBack">
+                    <span aria-hidden="true">←</span>
+                    <span>库内增值作业单</span>
+                </button>
+                <div class="o_wd_vas_header-context">
+                    <strong><t t-esc="state.order?.name || '新建作业单'"/></strong>
+                    <span t-att-class="'o_wd_vas_status o_wd_vas_status-' + (state.order?.state || 'new')">
+                        <t t-esc="statusLabel"/>
+                    </span>
+                </div>
+            </header>
+            <section class="flex-grow-1 overflow-auto p-3">
+                <div class="o_wd_vas_section-title">基础信息（只读）</div>
+                <div class="o_wd_vas_readonly-grid">
+                    <div>
+                        <span>作业单号</span>
+                        <strong><t t-esc="state.order?.name || '新建作业单'"/></strong>
+                    </div>
+                    <div>
+                        <span>新增时间</span>
+                        <strong><t t-esc="state.order?.create_date || '保存后生成'"/></strong>
+                    </div>
+                </div>
+
+                <div class="o_wd_vas_section-title">单据信息</div>
+                <div class="o_wd_vas_form-row">
+                    <label>关联对象</label>
+                    <select class="form-select" t-model="state.orderType" t-att-disabled="!isDraft">
+                        <option value="inbound">入库订单</option>
+                        <option value="outbound">出库订单</option>
+                        <option value="transfer">调拨订单</option>
+                    </select>
+                </div>
+                <div class="o_wd_vas_form-row">
+                    <label>关联单据号</label>
+                    <div class="input-group">
+                        <input class="form-control" t-model="state.billno" t-att-disabled="!isDraft"
+                               placeholder="请输入或扫描单据号"/>
+                        <button class="btn o_wd_vas_primary-btn" type="button"
+                                t-on-click="resolveWarehouseOrder" t-att-disabled="!isDraft">扫码</button>
+                    </div>
+                </div>
+                <div class="o_wd_vas_form-row">
+                    <label>客户（自动带出）</label>
+                    <div class="o_wd_vas_readonly-field">
+                        <t t-esc="state.warehouseOrder?.owner?.[1] || '解析订单后自动带出'"/>
+                    </div>
+                </div>
+                <div class="o_wd_vas_form-row">
+                    <label>操作员（当前登录）</label>
+                    <div class="o_wd_vas_readonly-field">
+                        <t t-esc="state.order?.operator_id?.[1] || user.name"/>
+                    </div>
+                </div>
+                <div t-if="state.warehouseOrder" class="o_wd_vas_resolved">
+                    <span>✓</span> 已解析：<t t-esc="state.warehouseOrder.billno"/>
+                </div>
+
+                <div class="o_wd_vas_section-heading">
+                    <span>作业明细（至少 1 条）</span>
+                    <button class="btn btn-sm o_wd_vas_outline-btn" type="button"
+                            t-on-click="openLineModal" t-att-disabled="!isDraft">+ 添加作业行</button>
+                </div>
+                <div class="o_wd_vas_lines">
+                    <div t-if="!state.lines.length" class="o_wd_vas_empty">暂无作业明细，请添加作业行</div>
+                    <article t-foreach="state.lines" t-as="line" t-key="line.id"
+                             class="o_wd_vas_line-card">
+                        <div class="o_wd_vas_line-top">
+                            <strong>操作类型：<t t-esc="line.operation_type_id?.[1]"/></strong>
+                            <button t-if="isDraft" class="btn btn-link o_wd_vas_delete" type="button"
+                                    t-on-click="() => removeLine(line.id)">删除</button>
+                        </div>
+                        <div class="o_wd_vas_line-value">
+                            数量/工时：<t t-esc="line.quantity_time"/>
+                            <span>单位：<t t-esc="line.unit_id?.[1] || '自动'"/></span>
+                        </div>
+                        <div class="o_wd_vas_line-note">
+                            备注：<t t-esc="line.note || '-'"/>
+                        </div>
+                    </article>
+                </div>
+
+                <div class="o_wd_vas_section-title">作业凭证附件</div>
+                <div class="o_wd_vas_attachment-actions">
+                    <label class="btn o_wd_vas_primary-btn">
+                        📷 拍照
+                        <input class="o_wd_vas_file-input" type="file" accept="image/*"
+                               capture="environment" t-on-change="onFileChange"/>
+                    </label>
+                    <label class="btn o_wd_vas_outline-btn">
+                        🗂 从相册多选
+                        <input class="o_wd_vas_file-input" type="file" accept="image/*,video/*,.pdf"
+                               multiple="multiple" t-on-change="onFileChange"/>
+                    </label>
+                </div>
+                <ul t-if="state.attachments.length" class="o_wd_vas_attachments">
+                        <li t-foreach="state.attachments" t-as="attachment" t-key="attachment.id"
+                            class="o_wd_vas_attachment">
+                            <span><t t-esc="attachment.name"/></span>
+                            <button t-if="isDraft" class="btn btn-sm btn-outline-danger" type="button"
+                                    t-on-click="() => removeAttachment(attachment.id)">删除</button>
+                        </li>
+                </ul>
+            </section>
+            <footer class="o_wd_vas_pda_bottom_bar position-sticky bg-white p-3">
+                <button class="btn o_wd_vas_outline-btn" type="button"
+                        t-att-disabled="state.busy" t-on-click="newOrder">新增</button>
+                <button t-if="isDraft" class="btn o_wd_vas_outline-btn" type="button"
+                        t-att-disabled="state.busy || !state.order" t-on-click="saveDraft">保存草稿</button>
+                <button t-if="isDraft" class="btn o_wd_vas_primary-btn" type="button"
+                        t-att-disabled="state.busy || !state.order" t-on-click="submit">提交</button>
+                <button t-if="state.order?.state === 'draft'" class="btn o_wd_vas_danger-btn"
+                        type="button" t-att-disabled="state.busy" t-on-click="openCancelModal">作废</button>
+                <span t-if="!isDraft" class="text-muted">只读</span>
+            </footer>
+            <div t-if="state.lineModalOpen" class="o_wd_vas_modal-backdrop">
+                <div class="o_wd_vas_line-modal" role="dialog" aria-modal="true">
+                    <div class="o_wd_vas_modal-header">
+                        <strong>新增作业明细</strong>
+                        <button class="btn btn-link" type="button" t-on-click="closeLineModal">×</button>
+                    </div>
+                    <div class="o_wd_vas_modal-body">
+                        <label>① 操作类型</label>
+                        <select class="form-select" t-model="state.lineDraft.operationTypeId">
+                            <option value="">请选择作业类型</option>
+                            <option t-foreach="state.operationTypes" t-as="operation"
+                                    t-key="operation.id" t-att-value="operation.id">
+                                <t t-esc="operation.name"/>
+                            </option>
+                        </select>
+                        <small>第一版仅下拉选择，暂不支持扫码</small>
+                        <label>② 数量/工时</label>
+                        <input class="form-control" type="number" min="0"
+                               t-model.number="state.lineDraft.quantityTime"/>
+                        <small>实物作业填数量，人工作业填工时，由操作类型决定</small>
+                        <label>③ 备注（选填）</label>
+                        <textarea class="form-control" rows="3"
+                                  t-model="state.lineDraft.note"/>
+                        <small>记录异常情况、特殊作业说明，可不填</small>
+                    </div>
+                    <div class="o_wd_vas_modal-actions">
+                        <button class="btn o_wd_vas_outline-btn" type="button"
+                                t-on-click="closeLineModal">取消</button>
+                        <button class="btn o_wd_vas_primary-btn" type="button"
+                                t-on-click="confirmAddLine">确认添加</button>
+                    </div>
+                </div>
+            </div>
+            <div t-if="state.cancelModalOpen" class="o_wd_vas_modal-backdrop">
+                <div class="o_wd_vas_line-modal" role="dialog" aria-modal="true">
+                    <div class="o_wd_vas_modal-header">
+                        <strong>作废作业单</strong>
+                        <button class="btn btn-link" type="button"
+                                t-on-click="closeCancelModal">×</button>
+                    </div>
+                    <div class="o_wd_vas_modal-body">
+                        <label for="vas-cancel-reason">作废原因</label>
+                        <textarea id="vas-cancel-reason" class="form-control" rows="3"
+                                  t-model="state.cancelReason"
+                                  placeholder="请输入作废原因"/>
+                    </div>
+                    <div class="o_wd_vas_modal-actions">
+                        <button class="btn o_wd_vas_outline-btn" type="button"
+                                t-on-click="closeCancelModal">取消</button>
+                        <button class="btn o_wd_vas_danger-btn" type="button"
+                                t-att-disabled="state.busy" t-on-click="confirmCancel">确认作废</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </t>
+</templates>

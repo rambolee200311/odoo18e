@@ -24,7 +24,7 @@
                 <field name="closing_pallet_count" optional="show"/>
                 <field name="state" optional="show"/>
                 <field name="refreshed_by_id" options="{'no_create': True, 'no_open': True}" optional="show"/>
-                <field name="refreshed_datetime" optional="show"/>
+                <field name="refreshed_datetime" options="{'show_time': False}" optional="show"/>
             </list>
         </field>
     </record>
@@ -66,7 +66,7 @@
                             <field name="outbound_product_summary" readonly="1"/>
                             <field name="closing_product_summary" readonly="1"/>
                             <field name="refreshed_by_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
-                            <field name="refreshed_datetime" readonly="1"/>
+                            <field name="refreshed_datetime" readonly="1" options="{'show_time': False}"/>
                         </group>
                     </group>
                     <notebook>
@@ -85,8 +85,8 @@
 <!--                                    <field name="pallet_no"/>-->
 
                                     <field name="lifecycle_state" optional="show"/>
-                                    <field name="lifecycle_start_datetime" optional="show"/>
-                                    <field name="consumed_datetime" optional="show"/>
+                                    <field name="lifecycle_start_datetime" options="{'show_time': False}" optional="show"/>
+                                    <field name="consumed_datetime" options="{'show_time': False}" optional="show"/>
                                     <field name="closing_location_id" options="{'no_create': True, 'no_open': True}" optional="show"/>
 <!--                                    <field name="inbound_order_names"/>-->
 <!--                                    <field name="outbound_order_names"/>-->
@@ -139,8 +139,8 @@
 <!--                            <field name="warehouse_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>-->
 <!--                            <field name="owner_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>-->
                             <field name="lifecycle_state" readonly="1"/>
-                            <field name="lifecycle_start_datetime" readonly="1"/>
-                            <field name="consumed_datetime" readonly="1"/>
+                            <field name="lifecycle_start_datetime" readonly="1" options="{'show_time': False}"/>
+                            <field name="consumed_datetime" readonly="1" options="{'show_time': False}"/>
 <!--                            <field name="first_inbound_order_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>-->
 <!--                            <field name="first_inbound_picking_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>-->
 <!--                            <field name="picking_state_summary" readonly="1"/>-->
@@ -169,7 +169,7 @@
                             <field name="stock_line_ids" readonly="1">
                                 <list create="0" delete="0" edit="0">
                                     <field name="report_line_id" column_invisible="True" optional="show"/>
-                                    <field name="product_template_id" options="{'no_create': True, 'no_open': True}" optional="show"/>
+                                    <field name="product_name" optional="show"/>
                                     <field name="lot_id" options="{'no_create': True, 'no_open': True}" optional="show"/>
                                     <field name="closing_location_id" options="{'no_create': True, 'no_open': True}" optional="show"/>
                                     <field name="stock_state" optional="show"/>
@@ -192,13 +192,13 @@
                                     <field name="outbound_order_id" options="{'no_create': True, 'no_open': True}" optional="show"/>
                                     <field name="picking_id" options="{'no_create': True, 'no_open': True}" optional="show"/>
                                     <field name="picking_state" optional="show"/>
-                                    <field name="product_id" options="{'no_create': True, 'no_open': True}" optional="show"/>
+                                    <field name="product_name" optional="show"/>
                                     <field name="lot_id" options="{'no_create': True, 'no_open': True}" optional="show"/>
                                     <field name="planned_quantity" optional="show" sum="Total"/>
 <!--                                    <field name="reserved_quantity" optional="show" sum="Total"/>-->
                                     <field name="done_quantity" optional="show" sum="Total"/>
                                     <field name="uom_id" options="{'no_create': True, 'no_open': True}" optional="show"/>
-                                    <field name="operation_datetime" optional="show"/>
+                                    <field name="operation_datetime" options="{'show_time': False}" optional="show"/>
                                 </list>
                             </field>
                         </page>
@@ -225,8 +225,8 @@
 <!--                <field name="pallet_no"/>-->
                 <field name="closing_location_id" options="{'no_create': True, 'no_open': True}" optional="show"/>
                 <field name="lifecycle_state" optional="show"/>
-                <field name="lifecycle_start_datetime" optional="show"/>
-                <field name="consumed_datetime" optional="show"/>
+                <field name="lifecycle_start_datetime" options="{'show_time': False}" optional="show"/>
+                <field name="consumed_datetime" options="{'show_time': False}" optional="show"/>
 <!--                <field name="first_inbound_order_id" options="{'no_create': True, 'no_open': True}" optional="show"/>-->
 <!--                <field name="first_inbound_picking_id" options="{'no_create': True, 'no_open': True}"/>-->
 <!--                <field name="inbound_order_names"/>-->
@@ -252,13 +252,26 @@
         </field>
     </record>
 
+    <record id="view_sunrise_stock_report_line_search" model="ir.ui.view">
+        <field name="name">sunrise.stock.report.line.search</field>
+        <field name="model">sunrise.stock.report.line</field>
+        <field name="arch" type="xml">
+            <search string="Sunrise Pallet Aging Lines">
+                <field name="pallet_no" string="Pallet No"/>
+                <field name="cproject_ids" string="Inbound Sunrise Ref"/>
+                <field name="lot_id" string="Lot" filter_domain="[('stock_line_ids.lot_id', '=', self)]"/>
+                <field name="product_template_id" string="Product" filter_domain="[('stock_line_ids.product_template_id', '=', self)]"/>
+            </search>
+        </field>
+    </record>
+
     <record id="view_sunrise_stock_report_product_line_list" model="ir.ui.view">
         <field name="name">sunrise.stock.report.product.line.list</field>
         <field name="model">sunrise.stock.report.product.line</field>
         <field name="arch" type="xml">
             <list string="Pallet Stock Details" create="0" delete="0" edit="0">
                 <field name="report_line_id" column_invisible="True" optional="show"/>
-                <field name="product_template_id" options="{'no_create': True, 'no_open': True}" optional="show"/>
+                <field name="product_name" optional="show"/>
                 <field name="lot_id" options="{'no_create': True, 'no_open': True}" optional="show"/>
                 <field name="closing_location_id" options="{'no_create': True, 'no_open': True}" optional="show"/>
                 <field name="stock_state" optional="show"/>
@@ -287,13 +300,13 @@
                 <field name="outbound_order_id" options="{'no_create': True, 'no_open': True}" optional="show"/>
                 <field name="picking_id" options="{'no_create': True, 'no_open': True}" optional="show"/>
                 <field name="picking_state" optional="show"/>
-                <field name="product_id" options="{'no_create': True, 'no_open': True}" optional="show"/>
+                <field name="product_name" optional="show"/>
                 <field name="lot_id" options="{'no_create': True, 'no_open': True}" optional="show"/>
                 <field name="planned_quantity" optional="show"/>
 <!--                <field name="reserved_quantity"/>-->
                 <field name="done_quantity" optional="show"/>
                 <field name="uom_id" options="{'no_create': True, 'no_open': True}" optional="show"/>
-                <field name="operation_datetime" optional="show"/>
+                <field name="operation_datetime" options="{'show_time': False}" optional="show"/>
             </list>
         </field>
     </record>

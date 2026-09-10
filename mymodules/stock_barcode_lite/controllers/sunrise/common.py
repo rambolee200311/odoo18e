@@ -198,7 +198,7 @@ class SunriseControllerMixin:
         return "%s-PARTIAL-%s" % (product_code, box_in_qty)
 
     def get_sunrise_product_variant(self, product_code, box_type, box_in_qty, project,
-                                    auto_create_variant=False):
+                                    auto_create_variant=False, validate_inbound_box_mode=False):
         product_model = request.env["product.product"]
         standard_products = product_model.sudo().search([
             ("barcode", "=", product_code),
@@ -223,11 +223,21 @@ class SunriseControllerMixin:
 
         standard_product = product_model.browse(standard_products[:1].id)
 
+        template = standard_product.product_tmpl_id
+        incoming_box_mode = "bulk" if box_type == "bulk" else "package"
+        if validate_inbound_box_mode and template.sunrise_inbound_box_mode and template.sunrise_inbound_box_mode != incoming_box_mode:
+            raise SunriseApiError(
+                "4001",
+                'Product barcode "%s" must use %s because its Sunrise inbound box mode has already been determined.'
+                % (product_code, "bulk" if template.sunrise_inbound_box_mode == "bulk" else "full or partial"),
+            )
+        if validate_inbound_box_mode and not template.sunrise_inbound_box_mode:
+            template.write({"sunrise_inbound_box_mode": incoming_box_mode})
+
         # 传入产品编码对应的 barcode 就是标准箱产品。
         if box_type in ("full", "bulk"):
             return standard_product
 
-        template = standard_product.product_tmpl_id
         target_value_name = self.get_sunrise_package_value_name(box_type, box_in_qty)
 
         variants = product_model.sudo().search([

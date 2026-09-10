@@ -1,0 +1,409 @@
+// Warehouse VAS frontend styles, following the existing PDA/Barcode visual language.
+
+.o_wd_vas_dashboard {
+    max-width: 650px;
+    min-height: calc(100vh - 50px);
+    margin: 0 auto;
+    padding: 24px 24px 80px;
+    box-sizing: border-box;
+
+    h1 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    > p {
+        margin: 4px 0 16px;
+        font-size: 14px;
+    }
+
+    .o_wd_vas_entry {
+        display: block;
+        min-height: 8rem;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        background: #fff;
+        cursor: pointer;
+        text-align: left;
+        transition: transform 0.2s, box-shadow 0.2s;
+
+        &:hover,
+        &:focus {
+            border-color: #adb5bd;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+            transform: translateY(-2px);
+        }
+
+        strong {
+            color: #333;
+            font-weight: 600;
+        }
+    }
+
+    @media (max-width: 768px), (pointer: coarse) {
+        min-height: 100vh;
+        min-height: 100dvh;
+        padding: 16px 16px 80px;
+    }
+}
+
+.o_wd_vas_pda_action {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 100vh;
+    overflow: hidden;
+    background: #f8f9fa;
+
+    .o_wd_vas_pda_header {
+        display: flex;
+        flex-direction: row;
+        flex-shrink: 0;
+        padding: 12px 16px !important;
+        background: #fff;
+        border-bottom: 1px solid #dee2e6 !important;
+
+        .o_wd_vas_back {
+            padding: 0;
+            color: #333;
+            font-size: 18px;
+            font-weight: 600;
+            text-decoration: none;
+
+            span:first-child {
+                margin-right: 8px;
+                font-size: 22px;
+                font-weight: 400;
+            }
+        }
+
+        .o_wd_vas_header-context {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+            font-size: 11px;
+            color: #555;
+
+            strong {
+                max-width: 120px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .o_wd_vas_status {
+                padding: 4px 8px;
+                border-radius: 12px;
+                font-weight: 600;
+                white-space: nowrap;
+            }
+
+            .o_wd_vas_status-new,
+            .o_wd_vas_status-draft {
+                color: #856404;
+                background: #fff3cd;
+            }
+
+            .o_wd_vas_status-submitted {
+                color: #155724;
+                background: #d4edda;
+            }
+
+            .o_wd_vas_status-cancelled {
+                color: #721c24;
+                background: #f8d7da;
+            }
+        }
+    }
+
+    > section {
+        flex: 1;
+        min-height: 0;
+        padding: 12px 16px 80px !important;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+    }
+
+    .o_wd_vas_section-title {
+        margin: 10px 0 8px;
+        font-size: 14px;
+        font-weight: 700;
+        color: #333;
+    }
+
+    .o_wd_vas_readonly-grid {
+        display: grid;
+        gap: 6px;
+        margin-bottom: 14px;
+
+        > div,
+        .o_wd_vas_readonly-field {
+            display: flex;
+            align-items: center;
+            min-height: 30px;
+            padding: 4px 8px;
+            background: #eee;
+            border: 1px solid #ccc;
+            color: #999;
+            font-size: 12px;
+
+            span {
+                width: 110px;
+                color: #666;
+            }
+
+            strong {
+                font-weight: 500;
+                color: #555;
+            }
+        }
+    }
+
+    .o_wd_vas_form-row {
+        display: grid;
+        grid-template-columns: 110px minmax(0, 1fr);
+        gap: 8px;
+        align-items: center;
+        margin-bottom: 8px;
+
+        > label {
+            margin: 0;
+            font-size: 12px;
+            color: #555;
+        }
+
+        .form-control,
+        .form-select,
+        .o_wd_vas_readonly-field {
+            min-height: 32px;
+            border-color: #bbb;
+            border-radius: 0;
+            font-size: 12px;
+        }
+
+        .o_wd_vas_readonly-field {
+            display: flex;
+            align-items: center;
+            padding: 6px 8px;
+            background: #eee;
+            color: #999;
+        }
+    }
+
+    .o_wd_vas_primary-btn {
+        color: #fff;
+        background: #71639e;
+        border-color: #71639e;
+        font-weight: 600;
+    }
+
+    .o_wd_vas_danger-btn {
+        color: #fff;
+        background: #b94a48;
+        border-color: #b94a48;
+        font-weight: 600;
+    }
+
+    .o_wd_vas_outline-btn {
+        color: #71639e;
+        background: #fff;
+        border: 1px solid #71639e;
+        font-weight: 600;
+    }
+
+    .o_wd_vas_resolved {
+        margin: 8px 0 14px;
+        color: #287a45;
+        font-size: 12px;
+    }
+
+    .o_wd_vas_section-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 18px 0 8px;
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    .o_wd_vas_lines {
+        .o_wd_vas_empty {
+            padding: 18px 8px;
+            color: #888;
+            font-size: 12px;
+            text-align: center;
+            background: #fff;
+            border: 1px dashed #ccc;
+        }
+
+        .o_wd_vas_line-card {
+            margin-bottom: 8px;
+            padding: 10px;
+            background: #f7f7f7;
+            border: 1px solid #ddd;
+            border-radius: 2px;
+            font-size: 12px;
+        }
+
+        .o_wd_vas_line-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .o_wd_vas_line-value {
+            margin-top: 6px;
+            color: #444;
+
+            span {
+                margin-left: 18px;
+                color: #666;
+            }
+        }
+
+        .o_wd_vas_line-note {
+            margin-top: 6px;
+            color: #777;
+        }
+
+        .o_wd_vas_delete {
+            padding: 0;
+            color: #c0392b;
+            font-size: 12px;
+        }
+    }
+
+    .o_wd_vas_attachment-actions {
+        display: flex;
+        gap: 8px;
+
+        .btn {
+            flex: 1;
+            min-height: 34px;
+            font-size: 12px;
+        }
+    }
+
+    .o_wd_vas_file-input {
+        display: none;
+    }
+
+    .o_wd_vas_attachments {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 0;
+        margin: 8px 0 0;
+        list-style: none;
+
+        .o_wd_vas_attachment {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 6px;
+            background: #f1f1f1;
+            border: 1px solid #ccc;
+            font-size: 11px;
+        }
+
+        .btn {
+            padding: 0 3px;
+            font-size: 11px;
+        }
+    }
+
+    .o_wd_vas_modal-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: rgba(0, 0, 0, 0.4);
+    }
+
+    .o_wd_vas_line-modal {
+        width: 100%;
+        max-width: 400px;
+        background: #fff;
+        border-radius: 6px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    }
+
+    .o_wd_vas_modal-header,
+    .o_wd_vas_modal-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .o_wd_vas_modal-header {
+        color: #fff;
+        background: #71639e;
+        border: 0;
+
+        .btn {
+            padding: 0;
+            color: #fff;
+            font-size: 22px;
+            line-height: 1;
+        }
+    }
+
+    .o_wd_vas_modal-body {
+        display: grid;
+        gap: 6px;
+        padding: 16px;
+
+        label {
+            margin-top: 6px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        small {
+            color: #999;
+            font-size: 10px;
+        }
+    }
+
+    .o_wd_vas_modal-actions {
+        gap: 8px;
+        border-top: 1px solid #ddd;
+        border-bottom: 0;
+
+        .btn {
+            flex: 1;
+            min-height: 42px;
+        }
+    }
+
+    .o_wd_vas_pda_bottom_bar {
+        display: flex;
+        gap: 8px;
+        flex-shrink: 0;
+        width: 100%;
+        min-height: 58px;
+        padding: 8px 12px !important;
+        background: #fff !important;
+        border-top: 1px solid #dee2e6;
+        box-sizing: border-box;
+        z-index: 2;
+
+        .btn {
+            flex: 1;
+            min-width: 0;
+            padding: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 6px;
+        }
+    }
+}

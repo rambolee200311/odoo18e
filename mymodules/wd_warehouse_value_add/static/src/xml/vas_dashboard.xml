@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="wd_warehouse_value_add.VasDashboard">
+        <main class="o_wd_vas_dashboard container py-4">
+            <h1>库内增值作业</h1>
+            <p class="text-muted">请选择工作入口</p>
+            <div class="row g-3 mt-2">
+                <div class="col-12 col-md-6">
+                    <button class="o_wd_vas_entry card w-100 text-start p-4"
+                            t-on-click="openPda">
+                        <strong class="fs-4 d-block">PDA 作业录入</strong>
+                        <span class="text-muted">现场录入、扫码、拍照、提交作业单</span>
+                    </button>
+                </div>
+                <div class="col-12 col-md-6">
+                    <button class="o_wd_vas_entry card w-100 text-start p-4"
+                            t-on-click="openOrders">
+                        <strong class="fs-4 d-block">作业单管理</strong>
+                        <span class="text-muted">查询、筛选、查看和管理已有作业单</span>
+                    </button>
+                </div>
+            </div>
+        </main>
+    </t>
+</templates>
