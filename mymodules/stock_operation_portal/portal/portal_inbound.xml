@@ -80,17 +80,21 @@
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h2 class="mb-0">Inbound Order Detail</h2>
                         <div>
+                            <!-- 未确认订单-->
                             <t t-if="order.get('state') == 'new'">
                                 <a t-attf-href="/my/operation/inbounds/{{ order.get('id') }}/edit" class="btn btn-warning btn-sm"><i class="fa fa-pencil"/> Edit</a>
+                                <!-- 订单确认-->
                                 <form t-attf-action="/my/operation/inbounds/{{ order.get('id') }}/portal_confirm" method="post" class="d-inline">
                                     <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                                     <button type="submit" class="btn btn-success btn-sm"><i class="fa fa-check"/> Portal Confirm</button>
                                 </form>
+                                <!-- 订单取消-->
                                 <form t-attf-action="/my/operation/inbounds/{{ order.get('id') }}/cancel" method="post" class="d-inline">
                                     <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                                     <button type="submit" class="btn btn-danger btn-sm"><i class="fa fa-times"/> Cancel</button>
                                 </form>
                             </t>
+                            <!-- 取消确认/验证-->
                             <t t-if="order.get('state') == 'portal_confirmed'">
                                 <form t-attf-action="/my/operation/inbounds/{{ order.get('id') }}/portal_unconfirm" method="post" class="d-inline">
                                     <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
@@ -102,8 +106,13 @@
                     </div>
                     <div t-if="error" class="alert alert-danger"><t t-esc="error"/></div>
                     <div class="card mb-4">
-                        <div class="card-header"><h5 class="mb-0"><i class="fa fa-info-circle me-2"/>Order Information</h5></div>
-                        <div class="card-body">
+                        <div class="card-header" onclick="toggleSection('section_order_info')" style="cursor:pointer; user-select:none;">
+                            <h5 class="mb-0 d-flex justify-content-between align-items-center">
+                                <span><i class="fa fa-info-circle me-2"/>Order Information</span>
+                                <i class="fa fa-chevron-down transition-icon" id="icon_order_info"/>
+                            </h5>
+                        </div>
+                        <div class="card-body section-content" id="section_order_info">
                             <div class="row">
                                 <div class="col-md-6">
                                     <table class="table table-borderless mb-0">
@@ -134,8 +143,13 @@
                         </div>
                     </div>
                     <div class="card mb-4">
-                        <div class="card-header"><h5 class="mb-0"><i class="fa fa-cubes me-2"/>Pallet Details</h5></div>
-                        <div class="card-body p-0">
+                        <div class="card-header" onclick="toggleSection('section_pallet_details')" style="cursor:pointer; user-select:none;">
+                            <h5 class="mb-0 d-flex justify-content-between align-items-center">
+                                <span><i class="fa fa-cubes me-2"/>Pallet Details</span>
+                                <i class="fa fa-chevron-down transition-icon" id="icon_pallet_details"/>
+                            </h5>
+                        </div>
+                        <div class="card-body p-0 section-content" id="section_pallet_details">
                             <t t-foreach="detail_rows" t-as="pkg">
                                 <div class="border-bottom p-3">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
@@ -162,8 +176,13 @@
                         </div>
                     </div>
                     <div class="card mb-4">
-                        <div class="card-header"><h5 class="mb-0"><i class="fa fa-paperclip me-2"/>Attachments</h5></div>
-                        <div class="card-body p-0">
+                        <div class="card-header" onclick="toggleSection('section_attachments')" style="cursor:pointer; user-select:none;">
+                            <h5 class="mb-0 d-flex justify-content-between align-items-center">
+                                <span><i class="fa fa-paperclip me-2"/>Attachments</span>
+                                <i class="fa fa-chevron-down transition-icon" id="icon_attachments"/>
+                            </h5>
+                        </div>
+                        <div class="card-body p-0 section-content" id="section_attachments">
                             <t t-foreach="attachment_rows" t-as="att">
                                 <div class="d-flex align-items-center justify-content-between border-bottom px-3 py-2">
                                     <div><i class="fa fa-file-o me-2"/><t t-esc="att.get('file_name', '-')"/><small class="text-muted ms-2">(<t t-esc="att.get('file_type', '')"/>)</small></div>
