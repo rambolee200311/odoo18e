@@ -4,3 +4,6 @@ access_world_depot_inbound_product_portal,world.depot.inbound.product.portal,wor
 access_world_depot_inbound_pallet_portal,world.depot.inbound.pallet.portal,worlddepot.model_world_depot_inbound_order_products_pallet,base.group_portal,0,1,1,1
 access_world_depot_inbound_docs_portal,world.depot.inbound.order.docs.portal,worlddepot.model_world_depot_inbound_order_docs,base.group_portal,1,1,1,1
 access_ir_attachment_stock_operation_portal,ir.attachment.stock.operation.portal,base.model_ir_attachment,base.group_portal,1,0,1,1
+access_world_depot_outbound_portal,world.depot.outbound.portal,worlddepot.model_world_depot_outbound_order,base.group_portal,1,1,1,0
+access_world_depot_outbound_product_portal,world.depot.outbound.product.portal,worlddepot.model_world_depot_outbound_order_product,base.group_portal,1,1,1,1
+access_world_depot_outbound_docs_portal,world.depot.outbound.order.docs.portal,worlddepot.model_world_depot_outbound_order_docs,base.group_portal,1,0,0,0

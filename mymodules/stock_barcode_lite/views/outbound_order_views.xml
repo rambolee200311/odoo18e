@@ -49,11 +49,11 @@
                 <field name="outgoing_picking_lines" readonly="1" invisible="project_name != 'SUNRISE'"
                        widget="many2many_tags"/>
                 <field name="o_date" string='Manual Outbound Date' invisible="project_name != 'SUNRISE'"
-                       readonly="set_sunrise_outbound_sync == True"
+                       readonly="0"
                        help="If filled in, the system will report the outbound transaction using this date and time. If left blank, it will use the outbound pick validation time."/>
                 <field name="eta"
                        invisible="project_name != 'SUNRISE'"
-                       readonly="set_sunrise_outbound_sync == True"
+                       readonly="0"
                        required="u8c_delivery_method == 'wd' and project_name == 'SUNRISE'"
                        help="For warehouse delivery (wd), enter the estimated arrival date at the customer's warehouse."/>
             </xpath>
@@ -172,16 +172,16 @@
             </xpath>
         </field>
     </record>
-    <record id="view_stock_barcode_lite_sunrise_outbound_ai_verification_form_inherit" model="ir.ui.view">
-        <field name="name">stock.barcode.lite.sunrise.outbound.ai.verification.form.inherit</field>
-        <field name="model">world.depot.outbound.order</field>
-        <field name="inherit_id" ref="worlddepot.view_outbound_order_form_inherit"/>
-        <field name="arch" type="xml">
-            <xpath expr="//page[@name='deepseek_verification_page']" position="attributes">
-                <attribute name="invisible">project_name == 'SUNRISE'</attribute>
-            </xpath>
-        </field>
-    </record>
+<!--    <record id="view_stock_barcode_lite_sunrise_outbound_ai_verification_form_inherit" model="ir.ui.view">-->
+<!--        <field name="name">stock.barcode.lite.sunrise.outbound.ai.verification.form.inherit</field>-->
+<!--        <field name="model">world.depot.outbound.order</field>-->
+<!--        <field name="inherit_id" ref="worlddepot.view_outbound_order_form_inherit"/>-->
+<!--        <field name="arch" type="xml">-->
+<!--            <xpath expr="//page[@name='deepseek_verification_page']" position="attributes">-->
+<!--                <attribute name="invisible">project_name == 'SUNRISE'</attribute>-->
+<!--            </xpath>-->
+<!--        </field>-->
+<!--    </record>-->
 
     <record id="view_stock_barcode_lite_sunrise_outbound_payables_form_inherit" model="ir.ui.view">
         <field name="name">stock.barcode.lite.sunrise.outbound.payables.form.inherit</field>

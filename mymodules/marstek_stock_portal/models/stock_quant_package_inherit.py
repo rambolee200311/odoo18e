@@ -9,6 +9,7 @@ from .utils import (
     portal_package_container_from_name,
     portal_package_ids_by_shipping,
     portal_package_shipping_map,
+    portal_product_name,
     portal_quant_domain,
     portal_stock_rows_from_quants,
 )
@@ -88,7 +89,7 @@ class StockQuantPackage(models.Model):
                 product_key = (product.id, product.uom_id.id)
                 product_line = row["product_lines"].setdefault(product_key, {
                     "product_code": product.barcode or product.default_code or "",
-                    "product_name": product.display_name or product.name or "",
+                    "product_name": portal_product_name(product),
                     "uom_name": product.uom_id.name or "",
                     "quantity": 0.0,
                 })

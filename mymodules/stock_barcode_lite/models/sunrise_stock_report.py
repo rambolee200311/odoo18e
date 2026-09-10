@@ -11,6 +11,23 @@ from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
 
+def format_product_name(product):
+    if not product:
+        return ""
+    product_code = product.barcode or product.default_code or ""
+    product_name = product.name or ""
+    return "[%s] %s" % (product_code, product_name) if product_code and product_name else product_code or product_name
+
+
+def format_product_template_name(product_template):
+    if not product_template:
+        return ""
+    standard_product = product_template.product_variant_ids.filtered(lambda product: "Standard Packaging" in product.product_template_attribute_value_ids.mapped("name"))[:1]
+    product_code = standard_product.barcode or standard_product.default_code or product_template.barcode or product_template.default_code or ""
+    product_name = product_template.name or ""
+    return "[%s] %s" % (product_code, product_name) if product_code and product_name else product_code or product_name
+
+
 class SunriseStockReport(models.Model):
     _name = "sunrise.stock.report"
     _description = "Sunrise Pallet Aging Report"
@@ -63,9 +80,30 @@ class SunriseStockReport(models.Model):
         stock_line_model = self.env["sunrise.stock.report.product.line"]
         operation_line_model = self.env["sunrise.stock.report.operation.line"]
         action = False
+        use_sunrise_business_date = False
 
         def format_product_summary(summary_by_uom):
             return sum(summary_by_uom.values())
+
+        def get_business_datetime(move_line, direction):
+            if not use_sunrise_business_date:
+                return move_line.date
+            picking = move_line.picking_id
+            if direction in ("inbound", "outbound"):
+                outbound_product = outbound_product_model.browse(move_line.move_id.outbound_order_product_id)
+                outbound_order = picking.outbound_order_id or outbound_product.outbound_order_id
+                business_date = picking.inbound_order_id.actual_inbound_date if picking.inbound_order_id else outbound_order.o_date if outbound_order else False
+            else:
+                return move_line.date
+            return datetime.combine(business_date, time.min) if business_date else False
+
+        def raise_missing_business_date(move_line):
+            picking = move_line.picking_id
+            if picking.inbound_order_id:
+                raise ValidationError(_("Manual Inbound Date is required for SUNRISE inbound order %s.") % picking.inbound_order_id.display_name)
+            outbound_product = outbound_product_model.browse(move_line.move_id.outbound_order_product_id)
+            outbound_order = picking.outbound_order_id or outbound_product.outbound_order_id
+            raise ValidationError(_("Outbound Date is required for SUNRISE outbound order %s.") % outbound_order.display_name)
 
         for rec in self:
             if rec.date_from > rec.date_to:
@@ -73,6 +111,7 @@ class SunriseStockReport(models.Model):
 
             location_ids = set()
             sunrise_project = project_model.search([("name", "=", "SUNRISE")], limit=1)
+            use_sunrise_business_date = sunrise_project.stock_report_date_mode == "business"
             configured_location_ids = set(sunrise_project.mapped("portal_stock_location_line_ids").ids) if sunrise_project and "portal_stock_location_line_ids" in project_model._fields else set()
             if rec.location_scope == "other":
                 configured_internal_location_ids = set(location_model.search([("id", "child_of", list(configured_location_ids)), ("usage", "=", "internal")]).ids) if configured_location_ids else set()
@@ -88,18 +127,30 @@ class SunriseStockReport(models.Model):
                 location_ids = set(location_model.search([("id", "child_of", location_id)]).ids)
 
             date_to_exclusive = datetime.combine(rec.date_to + timedelta(days=1), time.min)
-            lifecycle_result = move_line_model.get_package_movement_history({
-                "date_from": rec.date_from,
-                "date_to": rec.date_to,
-                "project_ids": sunrise_project.ids,
-                "timezone": "UTC",
-            })
-            lifecycle_move_line_ids = {
-                event["move_line_id"]
-                for package_data in lifecycle_result["package_lifecycle_data"]
-                for event in package_data["events"]
-            }
-            lifecycle_move_lines = move_line_model.search([("id", "in", list(lifecycle_move_line_ids))], order="date asc, id asc") if lifecycle_move_line_ids else move_line_model
+            lifecycle_move_line_domain = [
+                ("state", "=", "done"),
+                ("result_package_id", "!=", False),
+                ("picking_id.inbound_order_id", "!=", False),
+                ("picking_id.picking_type_id.code", "=", "incoming"),
+                ("picking_id.inbound_order_id.project", "in", sunrise_project.ids),
+            ]
+            if use_sunrise_business_date:
+                missing_inbound_domain = [
+                    ("state", "=", "done"),
+                    ("date", "<", date_to_exclusive),
+                    ("picking_id.picking_type_id.code", "=", "incoming"),
+                    ("picking_id.inbound_order_id.project", "in", sunrise_project.ids),
+                    ("picking_id.inbound_order_id.actual_inbound_date", "=", False),
+                ]
+                if rec.owner_id:
+                    missing_inbound_domain.append(("picking_id.inbound_order_id.owner", "=", rec.owner_id.id))
+                missing_inbound_move_line = move_line_model.search(missing_inbound_domain, limit=1)
+                if missing_inbound_move_line:
+                    raise_missing_business_date(missing_inbound_move_line)
+                lifecycle_move_line_domain.append(("picking_id.inbound_order_id.actual_inbound_date", "<=", rec.date_to))
+            else:
+                lifecycle_move_line_domain.append(("date", "<", date_to_exclusive))
+            lifecycle_move_lines = move_line_model.search(lifecycle_move_line_domain, order="date asc, id asc")
             package_data_map = {}
             for move_line in lifecycle_move_lines:
                 if move_line.picking_id.picking_type_id.code != "incoming" or not move_line.picking_id.inbound_order_id or not move_line.result_package_id:
@@ -128,7 +179,12 @@ class SunriseStockReport(models.Model):
                     continue
                 candidate_package_ids.append(package_id)
 
-            move_lines = lifecycle_move_lines.filtered(lambda move_line: move_line.package_id.id in candidate_package_ids or move_line.result_package_id.id in candidate_package_ids)
+            move_lines = move_line_model.search([
+                ("state", "=", "done"),
+                "|",
+                ("package_id", "in", candidate_package_ids),
+                ("result_package_id", "in", candidate_package_ids),
+            ], order="date asc, id asc") if candidate_package_ids else move_line_model.browse()
             pending_move_lines = move_line_model.search([
                 ("move_id.state", "not in", ("done", "cancel")),
                 ("picking_id.state", "not in", ("done", "cancel")),
@@ -177,16 +233,25 @@ class SunriseStockReport(models.Model):
 
                 if not package or package.id not in candidate_package_ids or not direction:
                     continue
+                business_datetime = get_business_datetime(move_line, direction)
+                if not business_datetime:
+                    if move_line.date < date_to_exclusive and direction in ("inbound", "outbound"):
+                        raise_missing_business_date(move_line)
+                    continue
+                if business_datetime.date() > rec.date_to:
+                    continue
                 product_map[move_line.product_id.id] = move_line.product_id
                 if move_line.lot_id:
                     lot_map[move_line.lot_id.id] = move_line.lot_id
                 package_event_map[package.id].append({
                     "move_line": move_line,
-                    "date": move_line.date,
+                    "date": business_datetime,
                     "direction": direction,
                     "signed_quantity": signed_quantity,
                     "package": package,
                 })
+            for package_events in package_event_map.values():
+                package_events.sort(key=lambda package_event: (package_event["date"], package_event["move_line"].date, package_event["move_line"].id))
 
             pending_operation_map = defaultdict(list)
             for move_line in pending_move_lines:
@@ -202,8 +267,12 @@ class SunriseStockReport(models.Model):
                     continue
                 if not package or package.id not in candidate_package_ids:
                     continue
+                business_datetime = get_business_datetime(move_line, direction)
+                if not business_datetime or not rec.date_from <= business_datetime.date() <= rec.date_to:
+                    continue
                 pending_operation_map[package.id].append({
                     "move_line": move_line,
+                    "date": business_datetime,
                     "direction": direction,
                     "package": package,
                 })
@@ -425,6 +494,7 @@ class SunriseStockReport(models.Model):
                     if package_event["date"].date() >= rec.date_from:
                         operation_data_list.append({
                             "move_line": move_line,
+                            "date": package_event["date"],
                             "direction": package_event["direction"],
                             "is_done": True,
                         })
@@ -447,6 +517,7 @@ class SunriseStockReport(models.Model):
                         picking_state_map[picking.state] += 1
                     operation_data_list.append({
                         "move_line": move_line,
+                        "date": pending_operation["date"],
                         "direction": pending_operation["direction"],
                         "is_done": False,
                     })
@@ -477,7 +548,7 @@ class SunriseStockReport(models.Model):
                         line_product_summary_map["inbound_product_summary"][product.uom_id.name] += variant["inbound_quantity"]
                         line_product_summary_map["outbound_product_summary"][product.uom_id.name] += variant["outbound_quantity"]
                         line_product_summary_map["closing_product_summary"][product.uom_id.name] += variant["on_hand_quantity"]
-                        variant_name = product.display_name
+                        variant_name = format_product_name(product)
                         quantity_summary.append(
                             _("%(variant)s: opening %(opening)s %(uom)s, inbound %(inbound)s %(uom)s, outbound %(outbound)s %(uom)s, closing %(on_hand)s %(uom)s, reserved %(reserved)s %(uom)s, available %(available)s %(uom)s")
                             % {
@@ -522,6 +593,7 @@ class SunriseStockReport(models.Model):
                     stock_location_id = max(active_location_ids, key=lambda location_id: (location_last_sequence_map.get(location_id, -1), location_id)) if active_location_ids else last_location_id
                     stock_values_list.append({
                         "product_template_id": detail_data["product_template"].id,
+                        "product_name": format_product_template_name(detail_data["product_template"]),
                         "lot_id": detail_data["lot"].id if detail_data["lot"] else False,
                         "closing_location_id": stock_location_id,
                         "stock_state": stock_state,
@@ -550,12 +622,13 @@ class SunriseStockReport(models.Model):
                         "picking_id": picking.id,
                         "picking_state": picking.state if picking else "draft",
                         "product_id": move_line.product_id.id,
+                        "product_name": format_product_template_name(move_line.product_id.product_tmpl_id),
                         "lot_id": move_line.lot_id.id,
                         "planned_quantity": move_line.move_id.product_uom_qty,
                         "reserved_quantity": move_line.quantity if not operation_data["is_done"] and picking.state == "assigned" else 0.0,
                         "done_quantity": move_line.quantity if operation_data["is_done"] else 0.0,
                         "uom_id": move_line.product_uom_id.id,
-                        "operation_datetime": move_line.date,
+                        "operation_datetime": operation_data["date"],
                     })
 
                 state_summary = ", ".join(
@@ -601,12 +674,11 @@ class SunriseStockReport(models.Model):
 
             loose_move_lines = move_line_model.search([
                 ("move_id.state", "=", "done"),
-                ("date", "<", date_to_exclusive),
                 ("package_id", "=", False),
                 ("result_package_id", "=", False),
                 "|",
-                ("picking_id.inbound_order_id.project.name", "=", "SUNRISE"),
-                ("picking_id.outbound_order_id.project.name", "=", "SUNRISE"),
+                ("picking_id.inbound_order_id.project", "in", sunrise_project.ids),
+                ("picking_id.outbound_order_id.project", "in", sunrise_project.ids),
             ], order="date asc, id asc")
             loose_event_map = defaultdict(list)
             for move_line in loose_move_lines:
@@ -633,9 +705,17 @@ class SunriseStockReport(models.Model):
                 picking = move_line.picking_id
                 warehouse = picking.picking_type_id.warehouse_id
                 inbound_order = picking.inbound_order_id
-                outbound_order = picking.outbound_order_id
+                outbound_product = outbound_product_model.browse(move_line.move_id.outbound_order_product_id)
+                outbound_order = picking.outbound_order_id or outbound_product.outbound_order_id
                 owner = inbound_order.owner if inbound_order else outbound_order.owner if outbound_order and "owner" in outbound_order._fields else False
                 if rec.owner_id and owner != rec.owner_id:
+                    continue
+                business_datetime = get_business_datetime(move_line, direction)
+                if not business_datetime:
+                    if move_line.date < date_to_exclusive and direction in ("inbound", "outbound"):
+                        raise_missing_business_date(move_line)
+                    continue
+                if business_datetime.date() > rec.date_to:
                     continue
                 product_template = move_line.product_id.product_tmpl_id
                 move_lot_name = move_line.lot_id.name or ""
@@ -646,12 +726,14 @@ class SunriseStockReport(models.Model):
                 loose_key = (move_line.product_id.id, move_line.lot_id.id, move_line.product_uom_id.id)
                 loose_event_map[loose_key].append({
                     "move_line": move_line,
-                    "date": move_line.date,
+                    "date": business_datetime,
                     "direction": direction,
                     "signed_quantity": signed_quantity,
                     "warehouse": warehouse,
                     "owner": owner,
                 })
+            for loose_events in loose_event_map.values():
+                loose_events.sort(key=lambda loose_event: (loose_event["date"], loose_event["move_line"].date, loose_event["move_line"].id))
 
             for loose_key, loose_events in loose_event_map.items():
                 product_id, lot_id, uom_id = loose_key
@@ -715,14 +797,15 @@ class SunriseStockReport(models.Model):
                             "inbound_order_id": picking.inbound_order_id.id if picking.inbound_order_id else False,
                             "outbound_order_id": outbound_order.id if outbound_order else False,
                             "picking_id": picking.id,
-                            "picking_state": picking.state if picking else "draft",
-                            "product_id": product_id,
+                        "picking_state": picking.state if picking else "draft",
+                        "product_id": product_id,
+                        "product_name": format_product_template_name(product.product_tmpl_id),
                             "lot_id": lot_id,
                             "planned_quantity": move_line.move_id.product_uom_qty,
                             "reserved_quantity": 0.0,
                             "done_quantity": move_line.quantity,
                             "uom_id": uom_id,
-                            "operation_datetime": move_line.date,
+                            "operation_datetime": loose_event["date"],
                         })
                     if loose_event["direction"] == "inbound":
                         if picking.inbound_order_id:
@@ -819,6 +902,7 @@ class SunriseStockReport(models.Model):
                     },
                     "stock_values_list": [{
                         "product_template_id": product.product_tmpl_id.id,
+                        "product_name": format_product_template_name(product.product_tmpl_id),
                         "lot_id": lot_id,
                         "closing_location_id": closing_location_id,
                         "stock_state": stock_state,
@@ -829,8 +913,8 @@ class SunriseStockReport(models.Model):
                         "reserved_quantity": 0.0,
                         "available_quantity": closing_quantity,
                         "uom_id": uom_id,
-                        "quantity_summary": _("%(product)s: opening %(opening)s %(uom)s, inbound %(inbound)s %(uom)s, outbound %(outbound)s %(uom)s, closing %(closing)s %(uom)s") % {"product": product.display_name, "opening": opening_quantity, "inbound": inbound_quantity, "outbound": outbound_quantity, "closing": closing_quantity, "uom": uom.name},
-                        "variant_summary": _("%(product)s: %(quantity)s %(uom)s") % {"product": product.display_name, "quantity": closing_quantity, "uom": uom.name},
+                        "quantity_summary": _("%(product)s: opening %(opening)s %(uom)s, inbound %(inbound)s %(uom)s, outbound %(outbound)s %(uom)s, closing %(closing)s %(uom)s") % {"product": format_product_name(product), "opening": opening_quantity, "inbound": inbound_quantity, "outbound": outbound_quantity, "closing": closing_quantity, "uom": uom.name},
+                        "variant_summary": _("%(product)s: %(quantity)s %(uom)s") % {"product": format_product_name(product), "quantity": closing_quantity, "uom": uom.name},
                         "reservation_note": "" if rec.date_to == fields.Date.context_today(rec) else _("Reserved quantity is available for the current date only."),
                     }],
                     "operation_values_list": operation_values_list,
@@ -936,21 +1020,21 @@ class SunriseStockReport(models.Model):
             if export_type == "pallet_summary":
                 sheet_name = "Pallet Summary"
                 file_prefix = "Sunrise_Pallet_Summary"
-                headers = ["Package", "Sunrise Ref", "Product Name", "Lifecycle Start", "Consumed At", "Cutoff / Last Location", "Original Product Quantity", "Opening Product Quantity", "Outbound Product Quantity", "Closing Product Quantity", "Closing Age Days", "Period Stock Days", "Anomaly"]
+                headers = ["Package", "Inbound Sunrise Ref", "Product Name", "Lifecycle Start", "Consumed At", "Cutoff / Last Location", "Original Product Quantity", "Opening Product Quantity", "Outbound Product Quantity", "Closing Product Quantity", "Closing Age Days", "Period Stock Days", "Anomaly"]
                 widths = [28, 24, 36, 20, 20, 28, 22, 20, 20, 20, 16, 17, 24]
                 report_lines = report_line_model.search([("report_id", "=", rec.id)], order="pallet_no asc, id asc")
                 product_name_map = defaultdict(set)
                 stock_lines = stock_line_model.search([("report_line_id", "in", report_lines.ids)], order="report_line_id, product_template_id, id")
                 for stock_line in stock_lines:
                     if stock_line.product_template_id:
-                        product_name_map[stock_line.report_line_id.id].add(stock_line.product_template_id.display_name)
+                        product_name_map[stock_line.report_line_id.id].add(format_product_template_name(stock_line.product_template_id))
                 rows = [
                     [
                         line.package_id.name or "",
                         line.cproject_ids or "",
                         ", ".join(sorted(product_name_map.get(line.id, set()))),
-                        fields.Datetime.context_timestamp(rec, line.lifecycle_start_datetime).strftime("%Y-%m-%d %H:%M:%S") if line.lifecycle_start_datetime else "",
-                        fields.Datetime.context_timestamp(rec, line.consumed_datetime).strftime("%Y-%m-%d %H:%M:%S") if line.consumed_datetime else "",
+                        fields.Datetime.context_timestamp(rec, line.lifecycle_start_datetime).strftime("%Y-%m-%d") if line.lifecycle_start_datetime else "",
+                        fields.Datetime.context_timestamp(rec, line.consumed_datetime).strftime("%Y-%m-%d") if line.consumed_datetime else "",
                         line.closing_location_id.display_name or "",
                         line.original_product_quantity,
                         line.opening_product_summary,
@@ -975,10 +1059,10 @@ class SunriseStockReport(models.Model):
                         row_type_label_map.get(line.report_line_id.row_type, ""),
                         line.report_line_id.package_id.name or "",
                         line.report_line_id.pallet_no or "",
-                        line.report_line_id.product_id.display_name or "",
+                        format_product_name(line.report_line_id.product_id),
                         line.report_line_id.lot_id.name or "",
                         line.report_line_id.uom_id.name or "",
-                        line.product_template_id.display_name or "",
+                        format_product_template_name(line.product_template_id),
                         line.lot_id.name or "",
                         line.closing_location_id.display_name or "",
                         state_label_map.get(line.stock_state, ""),
@@ -1009,7 +1093,7 @@ class SunriseStockReport(models.Model):
                         row_type_label_map.get(line.report_line_id.row_type, ""),
                         line.report_line_id.package_id.name or "",
                         line.report_line_id.pallet_no or "",
-                        line.report_line_id.product_id.display_name or "",
+                        format_product_name(line.report_line_id.product_id),
                         line.report_line_id.lot_id.name or "",
                         line.report_line_id.uom_id.name or "",
                         direction_label_map.get(line.direction, ""),
@@ -1017,13 +1101,13 @@ class SunriseStockReport(models.Model):
                         line.outbound_order_id.display_name or "",
                         line.picking_id.name or "",
                         state_label_map.get(line.picking_state, ""),
-                        line.product_id.display_name or "",
+                        format_product_name(line.product_id),
                         line.lot_id.name or "",
                         line.planned_quantity,
                         line.reserved_quantity,
                         line.done_quantity,
                         line.uom_id.name or "",
-                        fields.Datetime.context_timestamp(rec, line.operation_datetime).strftime("%Y-%m-%d %H:%M:%S") if line.operation_datetime else "",
+                        fields.Datetime.context_timestamp(rec, line.operation_datetime).strftime("%Y-%m-%d") if line.operation_datetime else "",
                     ]
                     for line in operation_lines
                 ]
@@ -1123,7 +1207,7 @@ class SunriseStockReportLine(models.Model):
     report_id = fields.Many2one("sunrise.stock.report", string="Report", required=True, ondelete="cascade", index=True, copy=False)
     row_type = fields.Selection([("package", "Pallet"), ("loose", "Loose Goods")], string="Row Type", readonly=True, index=True, copy=False)
     package_id = fields.Many2one("stock.quant.package", string="Package", readonly=True, index=True, copy=False)
-    cproject_ids = fields.Char(string="Sunrise Ref", readonly=True, copy=False)
+    cproject_ids = fields.Char(string="Inbound Sunrise Ref", readonly=True, copy=False, index=True)
     product_id = fields.Many2one("product.product", string="Loose Product", readonly=True, index=True, copy=False)
     product_template_id = fields.Many2one("product.template", string="Product", readonly=True, index=True, copy=False)
     lot_id = fields.Many2one("stock.lot", string="Loose Lot", readonly=True, index=True, copy=False)
@@ -1195,6 +1279,7 @@ class SunriseStockReportProductLine(models.Model):
 
     report_line_id = fields.Many2one("sunrise.stock.report.line", string="Pallet Summary", required=True, ondelete="cascade", index=True, copy=False)
     product_template_id = fields.Many2one("product.template", string="Product", required=True, readonly=True, index=True, copy=False)
+    product_name = fields.Char(string="Product", readonly=True, copy=False)
     lot_id = fields.Many2one("stock.lot", string="Lot", readonly=True, index=True, copy=False)
     closing_location_id = fields.Many2one("stock.location", string="Cutoff / Last Location", readonly=True, index=True, copy=False)
     lot_name = fields.Char(related="lot_id.name", string="Lot No", readonly=True)
@@ -1223,6 +1308,7 @@ class SunriseStockReportOperationLine(models.Model):
     picking_id = fields.Many2one("stock.picking", string="Picking", readonly=True, index=True, copy=False)
     picking_state = fields.Selection([("draft", "Draft"), ("waiting", "Waiting"), ("confirmed", "Ready"), ("assigned", "Assigned"), ("done", "Done"), ("cancel", "Cancelled")], string="Picking State", readonly=True, index=True, copy=False)
     product_id = fields.Many2one("product.product", string="Product Variant", readonly=True, index=True, copy=False)
+    product_name = fields.Char(string="Product", readonly=True, copy=False)
     lot_id = fields.Many2one("stock.lot", string="Lot", readonly=True, index=True, copy=False)
     planned_quantity = fields.Float(string="Planned Quantity", readonly=True, copy=False)
     reserved_quantity = fields.Float(string="Reserved Quantity", readonly=True, copy=False)

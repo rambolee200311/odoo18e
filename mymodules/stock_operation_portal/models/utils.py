@@ -47,6 +47,62 @@ def portal_product_code(product):
     return product.barcode or product.default_code or ""
 
 
+def portal_product_name(product):
+    if not product:
+        return ""
+    product_code = product.barcode or product.default_code or ""
+    product_name = product.name or ""
+    return "[%s] %s" % (product_code, product_name) if product_code and product_name else product_code or product_name
+
+
+def portal_package_container_from_name(name):
+    parts = (name or "").split("-")
+    return parts[-2] if len(parts) >= 3 else ""
+
+
+def portal_package_shipping_map(env, package_ids, quants=None):
+    package_ids = [package_id for package_id in package_ids if package_id]
+    if not package_ids:
+        return {}
+    info_by_package = {package_id: {"container_no": "", "bl_no": ""} for package_id in package_ids}
+    move_line_env = env["stock.move.line"].sudo()
+    move_lines = move_line_env.search([("result_package_id", "in", package_ids), ("picking_id.picking_type_id.code", "=", "incoming")], order="date desc, id desc")
+    for move_line in move_lines:
+        package = move_line.result_package_id
+        if not package:
+            continue
+        current_info = info_by_package.get(package.id, {})
+        if current_info.get("container_no") and current_info.get("bl_no"):
+            continue
+        picking = move_line.picking_id
+        inbound = picking.inbound_order_id
+        container_no = (inbound.cntr_no if inbound else "") or picking.cntrno or ""
+        bl_no = (inbound.bl_no if inbound else "") or picking.bill_of_lading or ""
+        if container_no or bl_no:
+            info_by_package[package.id] = {"container_no": current_info.get("container_no") or container_no, "bl_no": current_info.get("bl_no") or bl_no}
+    return info_by_package
+
+
+def portal_filter_value(filters, *names):
+    if not isinstance(filters, dict):
+        return ""
+    for name in names:
+        value = filters.get(name)
+        if value not in (None, False, ""):
+            return value
+    return ""
+
+
+def portal_apply_date_filters(domain, filters, field_name, start_names, end_names):
+    date_from = portal_filter_value(filters, *start_names)
+    date_to = portal_filter_value(filters, *end_names)
+    if date_from:
+        domain.append((field_name, ">=", date_from))
+    if date_to:
+        domain.append((field_name, "<=", f"{date_to} 23:59:59" if field_name.endswith("date") or "datetime" in field_name else date_to))
+    return domain
+
+
 def portal_detect_attachment_type(name, doc_type=""):
     doc_type = (doc_type or "").lower()
     if doc_type == "cmr":

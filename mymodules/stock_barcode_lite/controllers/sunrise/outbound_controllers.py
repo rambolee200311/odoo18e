@@ -327,11 +327,16 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
 
     def get_partner(self, data, country=False):
         partner_name = self.get_required_text(data, "unload_company")
-        partner = request.env["res.partner"].sudo().search([("name", "=", partner_name)], limit=1)
+        partner_model = request.env["res.partner"]
+        partner_id = partner_model.sudo().search([("name", "=", partner_name)], limit=1).id
+        partner = partner_model.browse(partner_id)
         if partner:
+            if partner.company_type == False:
+                partner.write({"company_type": "company"})
             return partner
-        return request.env["res.partner"].create({
+        return partner_model.create({
             "name": partner_name,
+            "company_type": "company",
             "street": self.get_required_text(data, "street"),
             "zip": self.get_optional_text(data, "zip"),
             "city": self.get_optional_text(data, "city"),
@@ -341,14 +346,17 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
         })
 
     def get_consignee_partner(self, data, company_partner):
-        consignee_name = self.get_optional_text(data, "consignee_name")
+        consignee_name = self.get_required_text(data, "consignee_name")
         partner_model = request.env["res.partner"]
-        partner = partner_model.sudo().search([("name", "=", consignee_name), ("parent_id", "=", company_partner.id)],
-                                              limit=1)
+        partner_id = partner_model.sudo().search([("name", "=", consignee_name), ("parent_id", "=", company_partner.id)], limit=1).id
+        partner = partner_model.browse(partner_id)
         if partner:
+            if partner.company_type == False:
+                partner.write({"company_type": "person"})
             return partner
         return partner_model.create({
             "name": consignee_name,
+            "company_type": "person",
             "parent_id": company_partner.id,
             "type": "delivery",
             "street": self.get_required_text(data, "street"),

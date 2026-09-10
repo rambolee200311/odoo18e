@@ -16,6 +16,7 @@ class InboundOrder(models.Model):
     vsourcebillcode = fields.Char(string="Source Bill Code", copy=False, index=True)
     project_package_generation_mode = fields.Selection(related="project.package_generation_mode", string="Package Generation Mode", readonly=True)
     organic = fields.Boolean(string="Organic", copy=False, index=True)
+    actual_inbound_date = fields.Date(string="Manual Inbound Date", copy=False, index=True, tracking=True)
 
     @api.onchange("project")
     def onchange_project_warehouse(self):
@@ -58,6 +59,7 @@ class InboundOrder(models.Model):
 
     def validate_sunrise_inbound_confirm_values(self):
         for rec in self:
+            product_box_modes = {}
             missing_fields = []
             if not rec.date:
                 missing_fields.append(rec._fields["date"].string)
@@ -136,6 +138,12 @@ class InboundOrder(models.Model):
 
                     if detail_line.box_type not in ("full", "partial", "bulk"):
                         raise UserError(_("%s box_type must be full, partial, or bulk.") % line_name)
+                    template = detail_line.product_id.product_tmpl_id
+                    incoming_box_mode = "bulk" if detail_line.box_type == "bulk" else "package"
+                    expected_box_mode = template.sunrise_inbound_box_mode or product_box_modes.get(template.id, (False, False))[1]
+                    if expected_box_mode and expected_box_mode != incoming_box_mode:
+                        raise UserError(_('%s product "%s" must use %s because its Sunrise inbound box mode has already been determined.') % (line_name, detail_line.product_id.display_name, "bulk" if expected_box_mode == "bulk" else "full or partial"))
+                    product_box_modes[template.id] = (template, incoming_box_mode)
                     if detail_line.box_qty <= 0:
                         raise UserError(_("%s box_qty must be greater than 0.") % line_name)
                     if detail_line.box_type in ("full", "partial") and not math.isclose(
@@ -193,6 +201,10 @@ class InboundOrder(models.Model):
                         raise UserError(_("%s box_in_qty must equal 1 when box_type is bulk.") % line_name)
 
                 pallet_line.validate_sunrise_physical_pallet_identity()
+
+            for template, box_mode in product_box_modes.values():
+                if not template.sunrise_inbound_box_mode:
+                    template.write({"sunrise_inbound_box_mode": box_mode})
 
             #rec.validate_sunrise_product_specifications()
 #入库重量、尺寸一致性校验方法

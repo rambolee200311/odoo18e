@@ -29,6 +29,11 @@
             <div class="o_row" name="sunrise_product_dimensions">
                 <field name="product_dimensions" class="oe_inline"/>
             </div>
+
+            <label for="sunrise_inbound_box_mode"/>
+            <div class="o_row" name="sunrise_inbound_box_mode">
+                <field name="sunrise_inbound_box_mode" readonly="1"/>
+            </div>
         </xpath>
         </field>
     </record>

@@ -2,7 +2,7 @@
 
 from odoo import api, fields, models
 
-from .utils import portal_attachment_row, portal_detect_attachment_type, portal_doc_binary_row, portal_product_code, portal_project_domain
+from .utils import portal_attachment_row, portal_detect_attachment_type, portal_doc_binary_row, portal_product_code, portal_product_name, portal_project_domain
 
 
 class InboundOrder(models.Model):
@@ -39,7 +39,7 @@ class InboundOrder(models.Model):
                 "container_no": order.cntr_no or "",
                 "bl_no": order.bl_no or "",
                 "product_code": portal_product_code(product),
-                "product_name": product.display_name or product.name or "",
+                "product_name": portal_product_name(product),
                 "quantity": 0.0,
             })
             row["quantity"] += move_line.quantity
@@ -54,7 +54,7 @@ class InboundOrder(models.Model):
                     "container_no": order.cntr_no or "",
                     "bl_no": order.bl_no or "",
                     "product_code": portal_product_code(product),
-                    "product_name": product.display_name or product.name or "",
+                    "product_name": portal_product_name(product),
                     "quantity": (product_line.quantity or 0.0) * (line.pallets or 0.0),
                 })
         return rows
@@ -121,7 +121,7 @@ class InboundOrder(models.Model):
 
                 package_row["products"].append({
                     "product_code": portal_product_code(product) if product else "",
-                    "product_name": product.display_name if product else product_data[1],
+                    "product_name": portal_product_name(product) if product else product_data[1],
                     "quantity": quantity,
                 })
                 package_row["total_quantity"] += quantity
@@ -142,7 +142,7 @@ class InboundOrder(models.Model):
                 quantity = (product_line.quantity or 0.0) * (line.pallets or 0.0)
                 package_row["products"].append({
                     "product_code": portal_product_code(product),
-                    "product_name": product.display_name or product.name or "",
+                    "product_name": portal_product_name(product),
                     "quantity": quantity,
                 })
                 package_row["total_quantity"] += quantity

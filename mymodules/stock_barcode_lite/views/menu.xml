@@ -147,6 +147,11 @@
               parent="menu_stock_barcode_lite_report"
               action="action_sunrise_inbound_pallet_summary_report"
               sequence="7"/>
+    <menuitem id="menu_sunrise_outbound_pallet_summary_report"
+              name="Outbound Pallet Summary Report"
+              parent="menu_stock_barcode_lite_report"
+              action="action_sunrise_outbound_pallet_summary_report"
+              sequence="8"/>
     <menuitem id="menu_sunrise_location_occupancy_report"
               name="Warehouse Location Occupancy"
               parent="menu_stock_barcode_lite_report"
