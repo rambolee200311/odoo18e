@@ -118,7 +118,7 @@ class SunriseInboundPalletSummaryReport(models.Model):
             summary_data_list = []
             for line in report_lines:
                 summary_data_list.append({
-                    "first_inbound_date": fields.Datetime.context_timestamp(rec, line.first_inbound_date).strftime("%Y-%m-%d %H:%M:%S") if line.first_inbound_date else "",
+                    "first_inbound_date": fields.Date.to_string(line.first_inbound_date.date()) if line.first_inbound_date else "",
                     "inbound_order_name": line.inbound_order_id.display_name or "",
                     "cproject_ids": line.cproject_ids or "",
                     "outbound_cproject_ids": line.outbound_cproject_ids or "",
