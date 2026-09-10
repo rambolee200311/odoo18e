@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="wd_web_advanced_record_picker.AdvancedRecordPickerField">
+        <div class="o_field_advanced_record_picker d-flex align-items-center">
+            <div class="flex-grow-1">
+                <Many2OneField t-props="nativeProps"/>
+            </div>
+            <button
+                t-if="canOpenAdvancedPicker"
+                type="button"
+                class="btn btn-link oi oi-search ms-1"
+                aria-label="Open advanced record picker"
+                title="Open advanced record picker"
+                t-on-click="openAdvancedPicker"
+            />
+        </div>
+    </t>
+
+    <t t-name="wd_web_advanced_record_picker.AdvancedRecordPickerDialog">
+        <Dialog title.translate="Advanced Record Picker" size="'lg'" withBodyPadding="true">
+            <div class="o_advanced_record_picker_dialog">
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <t t-foreach="filterColumns" t-as="column" t-key="column.id">
+                        <div class="flex-fill mb-2">
+                            <label class="form-label mb-1"><t t-esc="column.field.string"/></label>
+                            <t t-if="column.field.ttype === 'many2one'">
+                                <Many2XAutocomplete t-props="many2oneFilterProps(column)"/>
+                            </t>
+                            <select
+                                t-elif="column.field.ttype === 'selection'"
+                                class="form-select"
+                                t-att-data-column="column.field.name"
+                                t-on-change="onFilterInput"
+                            >
+                                <option value="">All</option>
+                                <t
+                                    t-foreach="fieldDefinition(column).selection"
+                                    t-as="option"
+                                    t-key="option[0]"
+                                >
+                                    <option t-att-value="option[0]"><t t-esc="option[1]"/></option>
+                                </t>
+                            </select>
+                            <select
+                                t-elif="column.field.ttype === 'boolean'"
+                                class="form-select"
+                                t-att-data-column="column.field.name"
+                                t-on-change="onBooleanFilterInput"
+                            >
+                                <option value="">All</option>
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                            <input
+                                t-else=""
+                                t-att-type="
+                                    ['integer', 'float'].includes(column.field.ttype)
+                                        ? 'number'
+                                        : column.field.ttype === 'date'
+                                          ? 'date'
+                                          : column.field.ttype === 'datetime'
+                                            ? 'datetime-local'
+                                            : 'text'
+                                "
+                                class="form-control"
+                                t-att-data-column="column.field.name"
+                                t-att-value="filterValue(column.field.name)"
+                                t-on-input="onFilterInput"
+                            />
+                        </div>
+                    </t>
+                </div>
+
+                <View t-key="state.reloadKey" t-props="viewProps"/>
+
+                <div class="d-flex justify-content-end">
+                    <button type="button" class="btn btn-secondary" t-on-click="onClose">Cancel</button>
+                </div>
+            </div>
+        </Dialog>
+    </t>
+</templates>

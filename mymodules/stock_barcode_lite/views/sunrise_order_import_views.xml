@@ -26,6 +26,8 @@
                 <header>
                     <button name="action_retry_failed_lines" type="object" string="Retry Failed Lines"
                             class="btn-primary" invisible="failed_count == 0"/>
+                    <button name="action_open_import_lines" type="object" string="View Import Lines"
+                            invisible="not import_line_ids"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,done,partial,failed"/>
                 </header>
                 <sheet>
@@ -267,13 +269,8 @@
 
         <menuitem id="menu_sunrise_order_import"
                   name="Sunrise Order Imports"
-                  parent="menu_stock_barcode_lite_configuration"
+                  parent="menu_stock_barcode_lite_import"
                   action="action_sunrise_order_import"
                   sequence="45"/>
 
-        <menuitem id="menu_sunrise_order_import_line"
-                  name="Sunrise Order Import Lines"
-                  parent="menu_stock_barcode_lite_configuration"
-                  action="action_sunrise_order_import_line"
-                  sequence="46"/>
 </odoo>

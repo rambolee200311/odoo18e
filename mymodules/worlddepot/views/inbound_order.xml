@@ -75,7 +75,8 @@
                         <page string="Products of A Pallet">
                             <field name="inbound_order_product_pallet_ids">
                                 <list editable="bottom" create="true" delete="true">
-                                    <field name="product_id" domain="[('categ_id', '=', parent.project_category_id)]"/>
+                                    <field name="project_category_id" column_invisible="True"/>
+                                    <field name="product_id"/>
                                     <field name="adr"/>
                                     <field name="un_number"/>
                                     <field name="quantity"/>

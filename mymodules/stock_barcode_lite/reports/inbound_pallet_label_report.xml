@@ -399,7 +399,7 @@
                             <div t-attf-class="page inbound-label-page {{ '' if pallet_index == 0 else 'pallet-label-page' }}">
                                 <t t-call="stock_barcode_lite.report_inbound_pallet_label_header"/>
                                 <div class="inbound-label-product-code">
-                                    <t t-set="full_product_line" t-value="pallet.inbound_order_product_pallet_ids.filtered(lambda line: line.box_type == 'full')[:1]"/>
+                                    <t t-set="full_product_line" t-value="pallet.inbound_order_product_pallet_ids.filtered(lambda line: line.box_type in ('full', 'bulk'))[:1]"/>
                                     <table class="inbound-label-product-code-layout">
                                         <tr>
                                             <td class="inbound-label-product-qr">

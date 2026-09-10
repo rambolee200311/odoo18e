@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_picker_profile_system,advanced.record.picker.profile system,model_advanced_record_picker_profile,base.group_system,1,1,1,1
+access_picker_profile_user,advanced.record.picker.profile user,model_advanced_record_picker_profile,base.group_user,1,0,0,0
+access_picker_column_system,advanced.record.picker.column system,model_advanced_record_picker_column,base.group_system,1,1,1,1
+access_picker_column_user,advanced.record.picker.column user,model_advanced_record_picker_column,base.group_user,1,0,0,0

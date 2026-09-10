@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_advanced_record_picker_profile_list" model="ir.ui.view">
+        <field name="name">advanced.record.picker.profile.list</field>
+        <field name="model">advanced.record.picker.profile</field>
+        <field name="arch" type="xml">
+            <list string="Picker Profiles">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="model_id"/>
+                <field name="page_size"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_advanced_record_picker_profile_form" model="ir.ui.view">
+        <field name="name">advanced.record.picker.profile.form</field>
+        <field name="model">advanced.record.picker.profile</field>
+        <field name="arch" type="xml">
+            <form string="Picker Profile">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="code"/>
+                            <field name="model_id" options="{'no_create': True}" readonly="id and column_ids"/>
+                            <field name="model_name" invisible="1"/>
+                            <field
+                                name="domain"
+                                widget="domain"
+                                options="{'model': 'model_name', 'in_dialog': True}"
+                            />
+                            <field name="active"/>
+                        </group>
+                        <group>
+                            <field name="page_size"/>
+                            <field name="default_order"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Columns">
+                            <field name="column_ids">
+                                <list string="Picker Columns" editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field
+                                        name="field_id"
+                                        options="{'no_create': True, 'no_create_edit': True}"
+                                        domain="[('model_id', '=', parent.model_id), ('ttype', 'in', ['char', 'text', 'many2one', 'selection', 'boolean', 'integer', 'float', 'monetary', 'date', 'datetime'])]"
+                                    />
+                                    <field name="filterable"/>
+                                    <field name="visible" column_invisible="True"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Description">
+                            <field name="description" nolabel="1" placeholder="Describe this Picker Profile..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_advanced_record_picker_profiles" model="ir.actions.act_window">
+        <field name="name">Picker Profiles</field>
+        <field name="res_model">advanced.record.picker.profile</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

@@ -97,6 +97,12 @@
               sequence="90"
               groups="base.group_system"/>
 
+    <menuitem id="menu_stock_barcode_lite_import"
+              name="Imports"
+              parent="menu_stock_barcode_lite_configuration"
+              sequence="20"
+              groups="base.group_system"/>
+
     <menuitem id="menu_stock_barcode_lite_homepage"
               name="Homepage"
               parent="menu_stock_barcode_lite_root"

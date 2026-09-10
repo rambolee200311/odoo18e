@@ -10,6 +10,7 @@ from . import sunrise_product_batch_specification_import
 from . import sunrise_order_import
 from . import sunrise_stock_report
 from . import sunrise_inbound_pallet_summary_report
+from . import sunrise_outbound_pallet_summary_report
 from . import sunrise_location_occupancy_report
 from . import stock_quant_package
 from . import stock_barcode_lite_scan_service

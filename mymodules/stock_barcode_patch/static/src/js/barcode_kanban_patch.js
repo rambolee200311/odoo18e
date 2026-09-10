@@ -8,8 +8,8 @@ const { openRecord } = StockBarcodeKanbanController.prototype;
 
 patch(StockBarcodeKanbanController.prototype, {
     openRecord(record) {
-//        console.log(record)
-        if (record.data.barcode_scan_mode != 'native') {
+        console.log(record)
+        if (record.data.barcode_scan_mode == 'custom') {
             this.model.notification.add(
                 "This picking order is managed via the custom barcode workflow. Please perform scanning operations on the custom barcode interface.",
                 { type: 'danger', title: 'Prohibited Operation' }

@@ -7,6 +7,7 @@ from odoo import api, fields, models
 
 class StockPicking(models.Model):
     _inherit = "stock.picking"
+    _order = "id desc"
 
     outbound_scan_mode = fields.Selection([("whole_pallet", "Whole Pallet"), ("partial_pallet", "Partial Pallet")],
                                           string="Outbound Scan Mode", copy=False, index=True)

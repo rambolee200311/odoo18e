@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_sunrise_outbound_pallet_summary_report_list" model="ir.ui.view">
+        <field name="name">sunrise.outbound.pallet.summary.report.list</field>
+        <field name="model">sunrise.outbound.pallet.summary.report</field>
+        <field name="arch" type="xml">
+            <list string="Outbound Pallet Summary Reports">
+                <field name="name"/>
+                <field name="date_from"/>
+                <field name="date_to"/>
+                <field name="location_scope"/>
+                <field name="cprojectid"/>
+                <field name="state"/>
+                <field name="refreshed_by_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="refreshed_datetime"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_sunrise_outbound_pallet_summary_report_form" model="ir.ui.view">
+        <field name="name">sunrise.outbound.pallet.summary.report.form</field>
+        <field name="model">sunrise.outbound.pallet.summary.report</field>
+        <field name="arch" type="xml">
+            <form string="Outbound Pallet Summary Report" duplicate="false">
+                <header>
+                    <button name="action_refresh_report" type="object" string="Refresh Report" class="oe_highlight" invisible="state == 'done'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" readonly="1"/>
+                            <field name="date_from" required="1" readonly="state == 'done'"/>
+                            <field name="date_to" required="1" readonly="state == 'done'"/>
+                            <field name="location_scope" readonly="state == 'done'"/>
+                            <field name="cprojectid" readonly="state == 'done'"/>
+                        </group>
+                        <group>
+                            <field name="refreshed_by_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="refreshed_datetime" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Outbound Summary">
+                            <field name="line_ids" readonly="1">
+                                <list create="0" delete="0" edit="0">
+                                    <field name="report_id" column_invisible="True"/>
+                                    <field name="order_date"/>
+                                    <field name="sunrise_ref"/>
+                                    <field name="outbound_datetime"/>
+                                    <field name="system_document_no"/>
+                                    <field name="outbound_pallet_count" sum="Total"/>
+                                    <field name="completed_outbound_pallet_count" sum="Total"/>
+                                    <field name="product_names"/>
+                                    <field name="product_quantity_summary" sum="Total"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_sunrise_outbound_pallet_summary_report_line_form" model="ir.ui.view">
+        <field name="name">sunrise.outbound.pallet.summary.report.line.form</field>
+        <field name="model">sunrise.outbound.pallet.summary.report.line</field>
+        <field name="arch" type="xml">
+            <form string="Outbound Summary" duplicate="false" create="0" edit="0" delete="0">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="report_id" invisible="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="outbound_order_id" readonly="1" options="{'no_create': True, 'no_open': False}"/>
+                            <field name="order_date" readonly="1"/>
+                            <field name="sunrise_ref" readonly="1"/>
+                            <field name="outbound_datetime" readonly="1"/>
+                            <field name="system_document_no" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="outbound_pallet_count" readonly="1"/>
+                            <field name="completed_outbound_pallet_count" readonly="1"/>
+                            <field name="product_names" readonly="1"/>
+                            <field name="product_quantity_summary" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Pallet Details">
+                            <field name="pallet_line_ids" readonly="1">
+                                <list create="0" delete="0" edit="0">
+                                    <field name="report_line_id" column_invisible="True"/>
+                                    <field name="package_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="sunrise_ref"/>
+                                    <field name="product_names"/>
+                                    <field name="inbound_quantity_summary"/>
+                                    <field name="outbound_quantity"/>
+                                    <field name="inbound_datetime"/>
+                                    <field name="consumed_datetime"/>
+                                    <field name="location_summary"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sunrise_outbound_pallet_summary_report" model="ir.actions.act_window">
+        <field name="name">Outbound Pallet Summary Report</field>
+        <field name="res_model">sunrise.outbound.pallet.summary.report</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_sunrise_outbound_pallet_summary_report_list"/>
+    </record>
+</odoo>

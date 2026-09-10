@@ -324,6 +324,14 @@ class MoveLineLocationImport(models.Model):
             },
         }
 
+    def action_open_import_lines(self):
+        for rec in self:
+            action = self.env.ref("stock_barcode_lite.action_move_line_location_import_line").sudo().read()[0]
+            action["domain"] = [("import_id", "=", rec.id)]
+            action["context"] = {"default_import_id": rec.id}
+            return action
+        return {"type": "ir.actions.act_window_close"}
+
 
 class MoveLineLocationImportLine(models.Model):
     _name = "move.line.location.import.line"

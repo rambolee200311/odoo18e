@@ -28,6 +28,8 @@
                             string="Import"
                             class="btn-primary"
                             invisible="state != 'draft'"/>
+                    <button name="action_open_import_lines" type="object" string="View Import Lines"
+                            invisible="not line_ids"/>
                     <field name="state"
                            widget="statusbar"
                            statusbar_visible="draft,done,partial,failed"/>
@@ -207,13 +209,8 @@
 
     <menuitem id="menu_sunrise_product_batch_specification_import"
               name="Sunrise Batch Specification Imports"
-              parent="menu_stock_barcode_lite_configuration"
+              parent="menu_stock_barcode_lite_import"
               action="action_sunrise_product_specification_import"
               sequence="35"/>
 
-    <menuitem id="menu_sunrise_product_batch_specification_import_line"
-              name="Sunrise Batch Specification Import Lines"
-              parent="menu_stock_barcode_lite_configuration"
-              action="action_sunrise_product_specification_import_line"
-              sequence="36"/>
 </odoo>

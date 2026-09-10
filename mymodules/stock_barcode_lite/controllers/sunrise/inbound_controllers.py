@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import logging
+import math
 from odoo.exceptions import UserError, ValidationError
 from odoo import http
 from odoo.http import request
@@ -123,7 +124,7 @@ class SunriseInboundController(http.Controller, SunriseControllerMixin):
         product_ean = self.get_optional_text(line_data, "product_ean")
         pallet_no = self.get_required_text(line_data, "pallet_no", row_number)
         gross_weight = self.get_required_text(line_data, "gross_weight", row_number)
-        self.get_positive_float(line_data, "gross_weight", row_number)
+        gross_weight_value = self.get_positive_float(line_data, "gross_weight", row_number)
         pallet_dimensions = self.get_required_text(line_data, "pallet_dimensions", row_number)
         cprojectid = self.get_required_text(line_data, "cprojectid", row_number)
         ndiscounttaxtype = self.get_required_text(line_data, "ndiscounttaxtype", row_number)
@@ -146,6 +147,30 @@ class SunriseInboundController(http.Controller, SunriseControllerMixin):
                 "4001",
                 self.format_field_error("is_lot", "must be N for non-lot-tracked product", row_number),
             )
+
+        lot = self.get_sunrise_lot(product, lot_name if is_lot == "Y" else "")
+        product_sudo = request.env["product.product"].sudo().browse(product.id)
+        product_template_sudo = request.env["product.template"].sudo().browse(product_sudo.product_tmpl_id.id)
+        product_template = request.env["product.template"].browse(product_template_sudo.id)
+        lot_values = {}
+        template_values = {}
+        if lot and not math.isclose(lot.gross_weight or 0.0, gross_weight_value, rel_tol=1e-9, abs_tol=1e-6):
+            lot_values["gross_weight"] = gross_weight_value
+        if box_type != "partial" and not product_template_sudo.gross_weight:
+            template_values["gross_weight"] = gross_weight_value
+
+        incoming_dimensions = "".join(pallet_dimensions.upper().split())
+        existing_dimensions = "".join((lot.product_dimensions or "").upper().split()) if lot else ""
+        if lot and incoming_dimensions != existing_dimensions:
+            lot_values["product_dimensions"] = pallet_dimensions
+        if not product_template_sudo.product_dimensions:
+            template_values["product_dimensions"] = pallet_dimensions
+
+        if lot_values:
+            request.env["stock.lot"].browse(lot.id).write(lot_values)
+        if template_values:
+            product_template.write(template_values)
+
         return {
             "pallet_no": pallet_no,
             "physical_key": (product_code, lot_name if is_lot == "Y" else "", pallet_no),

@@ -3,18 +3,36 @@
     <record id="view_project_form_stock_barcode_lite_inherit" model="ir.ui.view">
         <field name="name">project.project.form.stock.barcode.lite.inherit</field>
         <field name="model">project.project</field>
-        <field name="inherit_id" ref="worlddepot.view_project_form_inherit"/>
+        <field name="inherit_id" ref="project.edit_project"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='is_check_origin_doc']" position="before">
-                <field name="warehouse" options="{'no_create': True, 'no_open': True}"/>
-                <field name="package_generation_mode" groups="base.group_system"/>
-                <field name="barcode_scan_mode" required="1" groups="base.group_system"/>
-                <field name="inbound_pick_type" domain = "[('code', '=', 'incoming'),
+            <xpath expr="//page[@name='settings']" position="after">
+                <page name="advanced_settings" string="Advanced Settings" groups="base.group_system">
+                    <group>
+                        <field name="package_generation_mode" groups="base.group_system"/>
+                        <field name="barcode_scan_mode" required="1" groups="base.group_system"/>
+                        <field name="is_check_origin_doc"/>
+                        <field name="category"/>
+                        <field name="owner"/>
+                        <field name="charge_of_pallet"/>
+                        <field name="inbound_cmr_template_file" widget="binary"
+                               filename="inbound_cmr_template_file_name"/>
+                        <field name="inbound_cmr_template_file_name" invisible="1"/>
+                        <field name="outbound_cmr_template_file" widget="binary"
+                               filename="outbound_cmr_template_file_name"/>
+                        <field name="outbound_cmr_template_file_name" invisible="1"/>
+                    </group>
+                </page>
+            </xpath>
+            <xpath expr="//sheet" position="inside">
+                <group string="Info">
+                    <field name="warehouse" options="{'no_create': True, 'no_open': True}"/>
+                    <field name="inbound_pick_type" domain="[('code', '=', 'incoming'),
                      ('warehouse_id', '=', warehouse),
                      ('warehouse_id', '!=', False)]" options="{'no_create': True, 'no_open': False}"/>
-                <field name="outbound_pick_type" domain = "[('code', 'in',  ['outgoing', 'internal']),
+                    <field name="outbound_pick_type" domain="[('code', 'in',  ['outgoing', 'internal']),
                      ('warehouse_id', '=', warehouse),
                      ('warehouse_id', '!=', False)]" options="{'no_create': True, 'no_open': False}"/>
+                </group>
             </xpath>
         </field>
     </record>

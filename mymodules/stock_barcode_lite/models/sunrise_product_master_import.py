@@ -587,6 +587,14 @@ class SunriseProductMasterImport(models.Model):
             return 0
         return int(float(value_text))
 
+    def action_open_import_lines(self):
+        for rec in self:
+            action = self.env.ref("stock_barcode_lite.action_sunrise_product_master_import_line").sudo().read()[0]
+            action["domain"] = [("import_id", "=", rec.id)]
+            action["context"] = {"default_import_id": rec.id}
+            return action
+        return {"type": "ir.actions.act_window_close"}
+
 
 class SunriseProductMasterImportLine(models.Model):
     _name = "stock.barcode.lite.sunrise.product.master.import.line"
