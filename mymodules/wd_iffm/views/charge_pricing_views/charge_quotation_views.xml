@@ -323,7 +323,7 @@
 
     <!-- Action -->
     <record id="action_charge_quotation" model="ir.actions.act_window">
-        <field name="name">Quotations</field>
+        <field name="name">Receivable Quotations</field>
         <field name="res_model">charge.quotation</field>
         <field name="view_mode">list,form</field>
         <field name="view_id" ref="view_charge_quotation_tree"/>
@@ -334,8 +334,14 @@
 
     <!-- Menus -->
 
-    <menuitem id="menu_wd_charge_quotation" name="Quotations" parent="menu_wd_charge_root"
-              action="action_charge_quotation" sequence="50"/>
+    <record id="menu_wd_charge_quotation" model="ir.ui.menu">
+        <field name="name">Quotations</field>
+        <field name="parent_id" ref="menu_wd_charge_root"/>
+        <field name="action" eval="False"/>
+        <field name="sequence">50</field>
+    </record>
+    <menuitem id="menu_wd_receivable_quotation" name="Receivable Quotations" parent="menu_wd_charge_quotation"
+              action="action_charge_quotation" sequence="10"/>
 
 
 </odoo>

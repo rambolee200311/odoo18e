@@ -11,7 +11,7 @@
                 <field name="project_id"/>
                 <field name="shipping_line_id"/>
                 <field name="container_qty"/>
-                <field name="state" widget="badge" decoration-success="state == 'close'"
+                <field name="state" widget="badge" decoration-success="state in ('clearanced', 'close')"
                        decoration-primary="state == 'cancelled'"/>
                 <field name="eta"/>
                 <field name="create_date"/>
@@ -26,22 +26,11 @@
         <field name="arch" type="xml">
             <form string="Clearance" class="wd_iffm_required_highlight" create="false">
                 <header>
-                    <!--                    <button name="action_clearancing" type="object" string="Clearancing" class="btn-secondary"-->
-                    <!--                            invisible="state not in ('open','paying','paid')"/>-->
-                    <button name="action_clearanced" type="object" string="Clearanced" class="btn-secondary"
-                            invisible="state not in ('open','paying','paid')"/>
-                    <button name="action_close" type="object" string="Close" class="btn-success"
-                            invisible="state != 'clearanced'"/>
-                    <!--                    <button name="action_open_reclearance_wizard"-->
-                    <!--                            type="object"-->
-                    <!--                            string="Back To Paid"-->
-                    <!--                            class="btn-warning"-->
-                    <!--                            invisible="(state != 'clearancing') and (parent_id == False)"/>-->
-                    <!--                    <button name="action_recompute_state" type="object" string="Recompute State"-->
-                    <!--                            invisible="state in ('clearanced','close','cancelled')"/>-->
-
-                    <field name="state" widget="statusbar"
-                           statusbar_visible="open,paying,paid,clearanced,close"/>
+                    <button name="action_clearanced" type="object" string="Clearanced" class="btn-primary" invisible="state != 'open'"/>
+                    <button name="action_close" type="object" string="Close" class="btn-success" invisible="state != 'clearanced'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="open,clearanced,close,cancelled"/>
+                    <field name="payable_state" widget="statusbar" statusbar_visible="not_applied,paying,paid" readonly="1"/>
+                    <field name="receivable_state" widget="statusbar" statusbar_visible="draft,confirmed" readonly="1"/>
 
                 </header>
                 <sheet>
@@ -55,7 +44,8 @@
                                 type="object"
                                 string="Create Child Clearance"
                                 class="oe_stat_button"
-                                icon="fa-film"/>
+                                icon="fa-film"
+                                invisible="receivable_state != 'confirmed'"/>
                         <button name="action_open_vendor_bills"
                                 type="object"
                                 string="Vendor Bills"
@@ -71,17 +61,19 @@
                                    options="{'no_create': True, 'no_open': True}"/>
                             <!--                            <field name="project_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>-->
                             <field name="container_qty" readonly="state != 'open'"/>
-                            <field name="hs_code_qty" required="1" readonly="state in ('clearanced','close')"/>
+                            <field name="receivable_confirm_user_id" readonly="1" invisible="receivable_state != 'confirmed'"/>
+                            <field name="receivable_confirm_time" readonly="1" invisible="receivable_state != 'confirmed'"/>
+                            <field name="hs_code_qty" required="1" readonly="state == 'close'"/>
                             <field name="currency_id" force_save="1" invisible="1"/>
                             <field name="quotation_id" invisible="1" force_save="1"/>
                             <!--                            <field name="eu_eori_no" readonly="1"/>-->
                             <!--                            <field name="vat_tax_no" readonly="1"/>-->
-                            <field name="clearance_receipt_no" readonly="state in ('clearanced','close')"/>
+                            <field name="clearance_receipt_no" readonly="state == 'close'"/>
                             <!--                            <field name="customs_declaration_datetime"-->
                             <!--                                   readonly="state in ('clearancing','clearanced','close')"/>-->
 
-                            <field name="clearance_type" readonly="state in ('clearanced','close')" required="1"/>
-                            <field name="remark" readonly="state in ('close')"/>
+                            <field name="clearance_type" required="1" readonly="state == 'close'"/>
+                            <field name="remark" readonly="state == 'close'"/>
                             <!--                            <field name="customs_release_datetime"-->
                             <!--                                   invisible="clearance_type != 'general'" readonly="state in ('clearanced','close')"-->
                             <!--                            />-->
@@ -104,15 +96,15 @@
                         </group>
                         <group>
                             <field name="is_clearance_overdue" readonly="1" invisible="1"/>
-                            <field name="overdue_blocking_reason_id" required="is_clearance_overdue"
+                            <field name="overdue_blocking_reason_id" required="is_clearance_overdue" readonly="state == 'close'"
                                    invisible="is_clearance_overdue == False"/>
-                            <field name="overdue_reason_note"
+                            <field name="overdue_reason_note" readonly="state == 'close'"
                                    required="overdue_blocking_reason_id and overdue_blocking_reason_short_name == 'Others + Exp'"
                                    invisible="not (overdue_blocking_reason_id and overdue_blocking_reason_short_name == 'Others + Exp')"/>
 
-                            <field name="overdue_handle_result" required="is_clearance_overdue"
+                            <field name="overdue_handle_result" required="is_clearance_overdue" readonly="state == 'close'"
                                    invisible="is_clearance_overdue == False"/>
-                            <field name="overdue_result_note"
+                            <field name="overdue_result_note" readonly="state == 'close'"
                                    required="overdue_handle_result == 'other'"
                                    invisible="overdue_handle_result != 'other'"/>
                         </group>
@@ -120,8 +112,7 @@
                     <notebook>
                         <!-- Tab 1: Charge / Cost -->
                         <page string="Charge / Cost">
-                            <field name="invoice_line_ids" context="{'default_clearance_id': id}"
-                                   readonly="state in ('close')">
+                            <field name="invoice_line_ids" readonly="state == 'close'" context="{'default_clearance_id': id}">
                                 <list>
 
                                     <field name="vendor_invoice_id"/>
@@ -133,7 +124,9 @@
 
                             <!-- Charge Lines -->
                             <group>
-                                <field name="charge_line_ids" readonly="state in ('clearanced','close')">
+                                <button name="action_confirm_receivable" type="object" string="Confirm Receivable" class="btn-success" invisible="state == 'cancelled' or receivable_state == 'confirmed'"/>
+                                <button name="action_unconfirm_receivable" type="object" string="Unconfirm Receivable" class="btn-secondary" confirm="Are you sure you want to unconfirm receivable?" invisible="state in ('cancelled', 'close') or receivable_state != 'confirmed'"/>
+                                <field name="charge_line_ids" readonly="receivable_state == 'confirmed' or state == 'close'">
                                     <list editable="bottom">
                                         <field name="charge_qty" column_invisible="True"/>
                                         <field name="charge_item_id" options="{'no_create': True, 'no_open': True}"
@@ -157,7 +150,7 @@
                                     class="btn-secondary"
                                     invisible="waybill_id or state != 'open'"/>
                             <field name="clearance_container_ids"
-                                    readonly="waybill_id or state in ('clearancing', 'clearanced', 'close')">
+                                    readonly="waybill_id or state == 'close'">
                                 <list editable="bottom" no_open="1" create="true" delete="true">
                                     <field name="container_number"/>
                                     <field name="container_type"/>
@@ -192,12 +185,11 @@
         <field name="arch" type="xml">
             <form string="Child Clearance" duplicate="false" create="false">
                 <header>
-                    <button name="action_close" type="object" string="Close" class="btn-success"
-                            invisible="state == 'close'"/>
-                    <!--                    <button name="action_recompute_state" type="object" string="Recompute State"-->
-                    <!--                            invisible="state == 'close'"/>-->
-                    <field name="state" widget="statusbar"
-                           statusbar_visible="open,paying,paid,close"/>
+                    <button name="action_clearanced" type="object" string="Clearanced" class="btn-primary" invisible="state != 'open'"/>
+                    <button name="action_close" type="object" string="Close" class="btn-success" invisible="state != 'clearanced'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="open,clearanced,close,cancelled"/>
+                    <field name="payable_state" widget="statusbar" statusbar_visible="not_applied,paying,paid" readonly="1"/>
+                    <field name="receivable_state" widget="statusbar" statusbar_visible="draft,confirmed" readonly="1"/>
 
                 </header>
                 <sheet>
@@ -221,6 +213,8 @@
                                    context="{'form_view_ref': 'wd_iffm.operation_order_clearance_form_view'}"/>
                             <!--                            <field name="project_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>-->
                             <field name="container_qty" readonly="1"/>
+                            <field name="receivable_confirm_user_id" readonly="1" invisible="receivable_state != 'confirmed'"/>
+                            <field name="receivable_confirm_time" readonly="1" invisible="receivable_state != 'confirmed'"/>
                             <field name="hs_code_qty" required="1" readonly="1"/>
                             <field name="clearance_type" readonly="1"/>
                             <!--                            <field name="eu_eori_no" readonly="1"/>-->
@@ -240,21 +234,21 @@
                             <!--                                   invisible="clearance_type != 't1_transit'" readonly="1"/>-->
                             <!--                            <field name="t1_inbound_release_datetime"-->
                             <!--                                   invisible="clearance_type != 't1_bonded'" readonly="1"/>-->
-                            <field name="extra_reason"
+                            <field name="extra_reason" readonly="state == 'close'"
                                    invisible="parent_id == False"
                                    required="parent_id != False"
-                                   readonly="state in ('clearanced','close')"/>
+                                   />
 
-                            <field name="actual_datetime"
+                            <field name="actual_datetime" readonly="state == 'close'"
                                    invisible="parent_id == False"
                                    required="parent_id != False"
-                                   readonly="state in ('clearanced','close')"/>
+                                   />
 
-                            <field name="extra_remark"
+                            <field name="extra_remark" readonly="state == 'close'"
                                    invisible="extra_reason != 'other'"
                                    required="extra_reason == 'other'"
-                                   readonly="state in ('clearanced','close')"/>
-                            <field name="remark" readonly="state=='close'"/>
+                                   />
+                            <field name="remark" readonly="state == 'close'"/>
                         </group>
                     </group>
 
@@ -262,8 +256,7 @@
                         <!-- Tab 1: Charge / Cost -->
                         <page string="Charge / Cost">
 
-                            <field name="invoice_line_ids" context="{'default_clearance_id': id}"
-                                   readonly="state == 'close'">
+                            <field name="invoice_line_ids" readonly="state == 'close'" context="{'default_clearance_id': id}">
                                 <list>
 
                                     <field name="vendor_invoice_id"/>
@@ -276,7 +269,9 @@
 
                             <!-- Charge Lines -->
                             <group string="Charges">
-                                <field name="charge_line_ids" readonly="state == 'close'">
+                                <button name="action_confirm_receivable" type="object" string="Confirm Receivable" class="btn-success" invisible="state == 'cancelled' or receivable_state == 'confirmed'"/>
+                                <button name="action_unconfirm_receivable" type="object" string="Unconfirm Receivable" class="btn-secondary" confirm="Are you sure you want to unconfirm receivable?" invisible="state in ('cancelled', 'close') or receivable_state != 'confirmed'"/>
+                                <field name="charge_line_ids" readonly="receivable_state == 'confirmed' or state == 'close'">
                                     <list editable="bottom">
                                         <field name="charge_qty"/>
                                         <field name="charge_item_id" options="{'no_create': True, 'no_open': True}"

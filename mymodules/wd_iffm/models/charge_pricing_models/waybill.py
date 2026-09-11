@@ -77,6 +77,9 @@ class Waybill(models.Model):
     handover_lines = fields.One2many("operation.order.handover", "waybill_id", string="Handovers", copy=False)
     clearance_lines = fields.One2many("operation.order.clearance", "waybill_id", string="Clearances", copy=False)
     handover_status = fields.Selection(related="handover_id.state", string="Handover Status", readonly=True)
+    handover_receivable_state = fields.Selection(related="handover_id.receivable_state", string="Handover Receivable Status", readonly=True)
+    handover_payable_state = fields.Selection([("not_applicable", "N/A"), ("not_applied", "Not Applied"), ("paying", "Paying"), ("paid", "Paid")], string="Handover Payable Status", compute="_compute_operation_fee_states", store=True, readonly=True, index=True)
+    handover_receivable_summary_state = fields.Selection([("not_applicable", "N/A"), ("draft", "Unconfirmed"), ("confirmed", "Confirmed")], string="Handover Receivable Status", compute="_compute_operation_fee_states", store=True, readonly=True, index=True)
     handover_bl_release_type = fields.Selection(related="handover_id.bl_release_type", string="BL Release Type", readonly=False)
     handover_do_no = fields.Char(related="handover_id.do_no", string="Delivery Order No.", readonly=False)
     handover_remark = fields.Text(related="handover_id.remark", string="Handover Remark", readonly=False)
@@ -90,6 +93,10 @@ class Waybill(models.Model):
     handover_overdue_handle_result = fields.Selection(related="handover_id.overdue_handle_result", string="Handover Overdue Handle Result", readonly=False)
     handover_overdue_result_note = fields.Text(related="handover_id.overdue_result_note", string="Handover Overdue Result Note", readonly=False)
     clearance_status = fields.Selection(related="clearance_id.state", string="Clearance Status", readonly=True)
+    clearance_receivable_state = fields.Selection(related="clearance_id.receivable_state", string="Clearance Receivable Status", readonly=True)
+    clearance_payable_state = fields.Selection([("not_applied", "Not Applied"), ("paying", "Paying"), ("paid", "Paid")], string="Clearance Payable Status", compute="_compute_operation_fee_states", store=True, readonly=True, index=True)
+    clearance_receivable_summary_state = fields.Selection([("draft", "Unconfirmed"), ("confirmed", "Confirmed")], string="Clearance Receivable Status", compute="_compute_operation_fee_states", store=True, readonly=True, index=True)
+    operation_fee_completed = fields.Boolean(string="Operation Fee Completed", compute="_compute_operation_fee_states", store=True, readonly=True, index=True)
     clearance_operation_type = fields.Selection(related="clearance_id.clearance_type", string="Clearance Type", readonly=False)
     clearance_receipt_no = fields.Char(related="clearance_id.clearance_receipt_no", string="Customs Clearance Receipt No.", readonly=False)
     clearance_hs_code_qty = fields.Integer(related="clearance_id.hs_code_qty", string="HS Code Qty", readonly=False)
@@ -107,6 +114,8 @@ class Waybill(models.Model):
     clearance_child_lines = fields.One2many(related="clearance_id.child_lines", string="Child Clearances", readonly=False)
     selected_child_handover_id = fields.Many2one("operation.order.handover", string="Selected Child Handover", copy=False, index=True)
     selected_child_handover_status = fields.Selection(related="selected_child_handover_id.state", string="Child Handover Status", readonly=True)
+    selected_child_handover_payable_state = fields.Selection(related="selected_child_handover_id.payable_state", string="Child Handover Payable Status", readonly=True, store=True)
+    selected_child_handover_receivable_state = fields.Selection(related="selected_child_handover_id.receivable_state", string="Child Handover Receivable Status", readonly=True)
     selected_child_handover_bl_release_type = fields.Selection(related="selected_child_handover_id.bl_release_type", string="Child BL Release Type", readonly=False)
     selected_child_handover_do_no = fields.Char(related="selected_child_handover_id.do_no", string="Child Delivery Order No.", readonly=False)
     selected_child_handover_extra_reason = fields.Selection(related="selected_child_handover_id.extra_reason", string="Child Additional Reason", readonly=False)
@@ -124,6 +133,8 @@ class Waybill(models.Model):
     selected_child_handover_overdue_result_note = fields.Text(related="selected_child_handover_id.overdue_result_note", string="Child Handover Overdue Result Note", readonly=False)
     selected_child_clearance_id = fields.Many2one("operation.order.clearance", string="Selected Child Clearance", copy=False, index=True)
     selected_child_clearance_status = fields.Selection(related="selected_child_clearance_id.state", string="Child Clearance Status", readonly=True)
+    selected_child_clearance_payable_state = fields.Selection(related="selected_child_clearance_id.payable_state", string="Child Clearance Payable Status", readonly=True, store=True)
+    selected_child_clearance_receivable_state = fields.Selection(related="selected_child_clearance_id.receivable_state", string="Child Clearance Receivable Status", readonly=True)
     selected_child_clearance_operation_type = fields.Selection(related="selected_child_clearance_id.clearance_type", string="Child Clearance Type", readonly=False)
     selected_child_clearance_receipt_no = fields.Char(related="selected_child_clearance_id.clearance_receipt_no", string="Child Customs Clearance Receipt No.", readonly=False)
     selected_child_clearance_hs_code_qty = fields.Integer(related="selected_child_clearance_id.hs_code_qty", string="Child HS Code Qty", readonly=False)
@@ -148,6 +159,27 @@ class Waybill(models.Model):
             rec.clearance_overdue_blocking_reason_short_name = rec.clearance_overdue_blocking_reason_id.short_name if rec.clearance_overdue_blocking_reason_id else False
             rec.selected_child_handover_overdue_blocking_reason_short_name = rec.selected_child_handover_overdue_blocking_reason_id.short_name if rec.selected_child_handover_overdue_blocking_reason_id else False
             rec.selected_child_clearance_overdue_blocking_reason_short_name = rec.selected_child_clearance_overdue_blocking_reason_id.short_name if rec.selected_child_clearance_overdue_blocking_reason_id else False
+
+    @api.depends("handover_lines.parent_id", "handover_lines.state", "handover_lines.payable_state", "handover_lines.receivable_state", "clearance_lines.parent_id", "clearance_lines.state", "clearance_lines.payable_state", "clearance_lines.receivable_state")
+    def _compute_operation_fee_states(self):
+        for rec in self:
+            handovers = rec.handover_lines.filtered(lambda line: not line.parent_id and line.state != "cancelled")
+            clearances = rec.clearance_lines.filtered(lambda line: not line.parent_id and line.state != "cancelled")
+            if not handovers:
+                rec.handover_payable_state = "not_applicable"
+                rec.handover_receivable_summary_state = "not_applicable"
+            else:
+                handover_payable_states = set(handovers.mapped("payable_state"))
+                rec.handover_payable_state = "paid" if handover_payable_states == {"paid"} else "not_applied" if handover_payable_states == {"not_applied"} else "paying"
+                rec.handover_receivable_summary_state = "confirmed" if not handovers.filtered(lambda line: line.receivable_state != "confirmed") else "draft"
+            if not clearances:
+                rec.clearance_payable_state = "not_applied"
+                rec.clearance_receivable_summary_state = "draft"
+            else:
+                clearance_payable_states = set(clearances.mapped("payable_state"))
+                rec.clearance_payable_state = "paid" if clearance_payable_states == {"paid"} else "not_applied" if clearance_payable_states == {"not_applied"} else "paying"
+                rec.clearance_receivable_summary_state = "confirmed" if not clearances.filtered(lambda line: line.receivable_state != "confirmed") else "draft"
+            rec.operation_fee_completed = bool(clearances) and not clearances.filtered(lambda line: line.payable_state != "paid" or line.receivable_state != "confirmed") and not handovers.filtered(lambda line: line.payable_state != "paid" or line.receivable_state != "confirmed")
 
     def write(self, vals):
         values = dict(vals)
@@ -391,6 +423,42 @@ class Waybill(models.Model):
             rec.write({"selected_child_handover_id": result["child"]["id"]})
         return {"type": "ir.actions.client", "tag": "soft_reload"}
 
+    def action_confirm_handover_receivable_from_waybill_tab(self):
+        result = True
+        for rec in self:
+            if not rec.handover_id:
+                raise UserError(_("Main handover is required before confirming receivable."))
+            result = rec.handover_id.action_confirm_receivable()
+        result["params"]["next"] = {"type": "ir.actions.client", "tag": "soft_reload"}
+        return result
+
+    def action_confirm_child_handover_receivable_from_waybill_tab(self):
+        result = True
+        for rec in self:
+            if not rec.selected_child_handover_id:
+                raise UserError(_("Please select a child handover first."))
+            result = rec.selected_child_handover_id.action_confirm_receivable()
+        result["params"]["next"] = {"type": "ir.actions.client", "tag": "soft_reload"}
+        return result
+
+    def action_unconfirm_handover_receivable_from_waybill_tab(self):
+        result = True
+        for rec in self:
+            if not rec.handover_id:
+                raise UserError(_("Main handover is required before unconfirming receivable."))
+            result = rec.handover_id.action_unconfirm_receivable()
+        result["params"]["next"] = {"type": "ir.actions.client", "tag": "soft_reload"}
+        return result
+
+    def action_unconfirm_child_handover_receivable_from_waybill_tab(self):
+        result = True
+        for rec in self:
+            if not rec.selected_child_handover_id:
+                raise UserError(_("Please select a child handover first."))
+            result = rec.selected_child_handover_id.action_unconfirm_receivable()
+        result["params"]["next"] = {"type": "ir.actions.client", "tag": "soft_reload"}
+        return result
+
     def action_create_child_clearance_from_waybill_tab(self):
         for rec in self:
             if not rec.clearance_id:
@@ -398,6 +466,42 @@ class Waybill(models.Model):
             result = rec.clearance_id.action_create_child_clearance_workbench()
             rec.write({"selected_child_clearance_id": result["child"]["id"]})
         return {"type": "ir.actions.client", "tag": "soft_reload"}
+
+    def action_confirm_clearance_receivable_from_waybill_tab(self):
+        result = True
+        for rec in self:
+            if not rec.clearance_id:
+                raise UserError(_("Main clearance is required before confirming receivable."))
+            result = rec.clearance_id.action_confirm_receivable()
+        result["params"]["next"] = {"type": "ir.actions.client", "tag": "soft_reload"}
+        return result
+
+    def action_confirm_child_clearance_receivable_from_waybill_tab(self):
+        result = True
+        for rec in self:
+            if not rec.selected_child_clearance_id:
+                raise UserError(_("Please select a child clearance first."))
+            result = rec.selected_child_clearance_id.action_confirm_receivable()
+        result["params"]["next"] = {"type": "ir.actions.client", "tag": "soft_reload"}
+        return result
+
+    def action_unconfirm_clearance_receivable_from_waybill_tab(self):
+        result = True
+        for rec in self:
+            if not rec.clearance_id:
+                raise UserError(_("Main clearance is required before unconfirming receivable."))
+            result = rec.clearance_id.action_unconfirm_receivable()
+        result["params"]["next"] = {"type": "ir.actions.client", "tag": "soft_reload"}
+        return result
+
+    def action_unconfirm_child_clearance_receivable_from_waybill_tab(self):
+        result = True
+        for rec in self:
+            if not rec.selected_child_clearance_id:
+                raise UserError(_("Please select a child clearance first."))
+            result = rec.selected_child_clearance_id.action_unconfirm_receivable()
+        result["params"]["next"] = {"type": "ir.actions.client", "tag": "soft_reload"}
+        return result
 
     def action_create_pickup_requirement(self):
         self.ensure_one()
@@ -501,15 +605,25 @@ class Waybill(models.Model):
         return super().create(vals_list)
 
     def action_done_order(self):
+        env_handover = self.env["operation.order.handover"]
+        env_clearance = self.env["operation.order.clearance"]
         for rec in self:
             if rec.state != "confirm":
                 raise UserError(_("Only confirmed waybill can be done."))
-            if not rec.custom_clearance:
-                raise UserError(_("Custom Clearance must both be completed before Done."))
-            if rec.handover_id and rec.handover_id.state not in ("released", "close"):
-                raise UserError(_("Handover must be released or closed before Done."))
-            # if not rec.handover_id:
-
+            if not rec.ata:
+                raise UserError(_("ATA is required before Done."))
+            clearance_records = env_clearance.sudo().search([("waybill_id", "=", rec.id), ("parent_id", "=", False), ("state", "!=", "cancelled")])
+            if not clearance_records:
+                raise UserError(_("At least one active clearance is required before Done."))
+            if clearance_records.filtered(lambda line: line.receivable_state != "confirmed"):
+                raise UserError(_("All active clearance receivables must be confirmed before Done."))
+            if clearance_records.filtered(lambda line: not line.all_advance_paid):
+                raise UserError(_("All active clearance vendor invoices must be paid before Done."))
+            handover_records = env_handover.sudo().search([("waybill_id", "=", rec.id), ("parent_id", "=", False), ("state", "!=", "cancelled")])
+            if handover_records.filtered(lambda line: line.receivable_state != "confirmed"):
+                raise UserError(_("All active handover receivables must be confirmed before Done."))
+            if handover_records.filtered(lambda line: not line.all_advance_paid):
+                raise UserError(_("All active handover vendor invoices must be paid before Done."))
             rec.write({"state": "done"})
         return True
 

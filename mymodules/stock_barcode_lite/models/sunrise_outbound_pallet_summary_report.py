@@ -326,7 +326,7 @@ class SunriseOutboundPalletSummaryReport(models.Model):
             title_format = workbook.add_format({"bold": True, "font_size": 14, "align": "center", "valign": "vcenter"})
             header_format = workbook.add_format({"bold": True, "align": "center", "valign": "vcenter", "text_wrap": True, "bg_color": "#D9EAF7", "border": 1})
             text_format = workbook.add_format({"border": 1, "valign": "vcenter", "text_wrap": True})
-            number_format = workbook.add_format({"border": 1, "valign": "vcenter", "align": "right", "num_format": "0.####"})
+            number_format = workbook.add_format({"border": 1, "valign": "vcenter", "align": "right", "num_format": "0.00"})
             worksheet.merge_range(0, 0, 0, len(headers) - 1, "%s - %s" % (_("Outbound Pallet Summary"), rec.name or rec.id), title_format)
             for column_index, header in enumerate(headers):
                 worksheet.write(2, column_index, header, header_format)

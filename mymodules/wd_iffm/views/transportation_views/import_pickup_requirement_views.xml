@@ -142,16 +142,16 @@
             <field name="search_view_id" ref="view_import_pickup_requirement_search"/>
         </record>
 
-        <menuitem id="menu_import_pickup_requirement_root"
-                  name="Pickup Requirement"
-                  parent="menu_wd_charge_root"
-                  sequence="60"/>
+<!--        <menuitem id="menu_import_pickup_requirement_root"-->
+<!--                  name="Pickup Requirement"-->
+<!--                  parent="menu_wd_charge_root"-->
+<!--                  sequence="60"/>-->
 
-        <menuitem id="menu_import_pickup_requirement"
-                  name="Pickup Requirement"
-                  parent="menu_import_pickup_requirement_root"
-                  action="action_import_pickup_requirement"
-                  sequence="10"/>
+<!--        <menuitem id="menu_import_pickup_requirement"-->
+<!--                  name="Pickup Requirement"-->
+<!--                  parent="menu_import_pickup_requirement_root"-->
+<!--                  action="action_import_pickup_requirement"-->
+<!--                  sequence="10"/>-->
 
     </data>
 </odoo>

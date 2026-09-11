@@ -47,6 +47,7 @@ Long description of module's purpose
 
 
         'views/charge_pricing_views/charge_quotation_views.xml',
+        'views/charge_pricing_views/vendor_cost_quotation_views.xml',
         'views/charge_pricing_views/project_project_inherit_views.xml',
         'views/charge_pricing_views/waybill.xml',
         'wizard/protbase_import/portbase_waybill_import_wizard.xml',
@@ -95,6 +96,7 @@ Long description of module's purpose
             'wd_iffm/static/src/css/import_kanban_lane.css',
             'wd_iffm/static/src/css/home_page.css',
             'wd_iffm/static/src/scss/wd_required_field_highlight.scss',
+            'wd_iffm/static/src/scss/waybill_list.scss',
             'wd_iffm/static/src/xml/workbench_home_page.xml',
             'wd_iffm/static/src/js/workbench_kanban_record.js',
             'wd_iffm/static/src/js/workbench_kanban_registry.js',

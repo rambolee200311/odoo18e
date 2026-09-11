@@ -5,6 +5,7 @@ class ProjectProjectInherit(models.Model):
 
 
     quotation_id = fields.Many2one("charge.quotation", string="Quotation", index=True, tracking=True)
+    vendor_cost_quotation_id = fields.Many2one("vendor.cost.quotation", string="Vendor Cost Quotation", ondelete="restrict", index=True, tracking=True)
     allowed_user_ids = fields.Many2many(
         "res.users",
         "project_allowed_user_rel",

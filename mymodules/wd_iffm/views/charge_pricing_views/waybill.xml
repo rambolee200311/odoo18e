@@ -4,12 +4,17 @@
         <field name="name">world.depot.waybill.tree</field>
         <field name="model">world.depot.waybill</field>
         <field name="arch" type="xml">
-            <list>
+            <list class="o_waybill_list" decoration-success="operation_fee_completed" decoration-danger="not operation_fee_completed">
                 <field name="billno"/>
                 <field name="project"/>
                 <field name="bl_number"/>
                 <field name="eta"/>
                 <field name="state"/>
+                <field name="handover_payable_state"/>
+                <field name="handover_receivable_summary_state"/>
+                <field name="clearance_payable_state"/>
+                <field name="clearance_receivable_summary_state"/>
+                <field name="operation_fee_completed" column_invisible="1"/>
                 <field name="remark"/>
             </list>
         </field>
@@ -41,13 +46,8 @@
                             type="object"
                             string="Done"
                             class="btn-success"
-                            confirm="No handover has been created for this waybill. Are you sure you want to complete it?"
-                            invisible="state != 'confirm' or not custom_clearance or handover_id"/>
-                    <button name="action_done_order"
-                            type="object"
-                            string="Done"
-                            class="btn-success"
-                            invisible="state != 'confirm' or not custom_clearance or not handover_id"/>                    <button
+                            invisible="state != 'confirm'"/>
+                    <button
                         name="action_cancel_order"
                         type="object"
                         string="Cancel"
@@ -198,15 +198,29 @@
                                     string="Create Handover"
                                     class="btn-primary"
                                     invisible="handover_id or state != 'confirm'"/>
+                            <button name="action_confirm_handover_receivable_from_waybill_tab"
+                                    type="object"
+                                    string="Confirm Receivable"
+                                    class="btn-success"
+                                    invisible="not handover_id or handover_receivable_state == 'confirmed'"/>
+                            <button name="action_unconfirm_handover_receivable_from_waybill_tab"
+                                    type="object"
+                                    string="Unconfirm Receivable"
+                                    class="btn-secondary"
+                                    confirm="Are you sure you want to unconfirm receivable?"
+                                    invisible="not handover_id or handover_receivable_state != 'confirmed' or handover_status in ('close', 'cancelled')"/>
+                            <group invisible="not handover_id">
+                                <field name="handover_payable_state" widget="statusbar" statusbar_visible="not_applied,paying,paid" readonly="1"/>
+                                <field name="handover_receivable_state" widget="statusbar" statusbar_visible="draft,confirmed" readonly="1"/>
+                            </group>
                             <group invisible="not handover_id">
                                 <group>
                                     <field name="handover_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
-                                    <field name="handover_status" readonly="1"/>
-                                    <field name="handover_bl_release_type" required="handover_id" readonly="handover_status in ('released', 'close')"/>
+                                    <field name="handover_bl_release_type" required="handover_id"/>
                                 </group>
                                 <group>
-                                    <field name="handover_do_no" readonly="handover_status == 'close'"/>
-                                    <field name="handover_remark" readonly="handover_status == 'close'"/>
+                                    <field name="handover_do_no"/>
+                                    <field name="handover_remark"/>
                                 </group>
                             </group>
                             <group invisible="not handover_is_overdue">
@@ -231,7 +245,7 @@
                                         </field>
                                     </group>
                                     <group>
-                                        <field name="handover_charge_lines" readonly="handover_status == 'close'">
+                                        <field name="handover_charge_lines" readonly="handover_receivable_state == 'confirmed'">
                                             <list editable="bottom">
                                                 <field name="charge_item_id" options="{'no_create': True, 'no_open': True}" domain="['|', ('operation_type', '=', 'handover'), ('operation_type', '=', False), ('is_leaf', '=', True)]" required="1"/>
                                                 <field name="is_fixed_fee" readonly="1"/>
@@ -263,16 +277,30 @@
                                     string="Create Clearance"
                                     class="btn-primary"
                                     invisible="clearance_id or state != 'confirm'"/>
+                            <button name="action_confirm_clearance_receivable_from_waybill_tab"
+                                    type="object"
+                                    string="Confirm Receivable"
+                                    class="btn-success"
+                                    invisible="not clearance_id or clearance_receivable_state == 'confirmed'"/>
+                            <button name="action_unconfirm_clearance_receivable_from_waybill_tab"
+                                    type="object"
+                                    string="Unconfirm Receivable"
+                                    class="btn-secondary"
+                                    confirm="Are you sure you want to unconfirm receivable?"
+                                    invisible="not clearance_id or clearance_receivable_state != 'confirmed' or clearance_status in ('close', 'cancelled')"/>
+                            <group invisible="not clearance_id">
+                                <field name="clearance_payable_state" widget="statusbar" statusbar_visible="not_applied,paying,paid" readonly="1"/>
+                                <field name="clearance_receivable_state" widget="statusbar" statusbar_visible="draft,confirmed" readonly="1"/>
+                            </group>
                             <group invisible="not clearance_id">
                                 <group>
                                     <field name="clearance_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
-                                    <field name="clearance_status" readonly="1"/>
-                                    <field name="clearance_operation_type" required="clearance_id" readonly="clearance_status in ('clearanced', 'close')"/>
+                                    <field name="clearance_operation_type" required="clearance_id"/>
                                 </group>
                                 <group>
-                                    <field name="clearance_hs_code_qty" required="clearance_id" readonly="clearance_status in ('clearanced', 'close')"/>
-                                    <field name="clearance_receipt_no" readonly="clearance_status in ('clearanced', 'close')"/>
-                                    <field name="clearance_remark" readonly="clearance_status == 'close'"/>
+                                    <field name="clearance_hs_code_qty" required="clearance_id"/>
+                                    <field name="clearance_receipt_no"/>
+                                    <field name="clearance_remark"/>
                                 </group>
                             </group>
                             <group invisible="not clearance_is_overdue">
@@ -296,7 +324,7 @@
                                         </field>
                                     </group>
                                     <group>
-                                        <field name="clearance_charge_lines" readonly="clearance_status in ('clearanced', 'close')">
+                                        <field name="clearance_charge_lines" readonly="clearance_receivable_state == 'confirmed'">
                                             <list editable="bottom">
                                                 <field name="charge_qty" column_invisible="True"/>
                                                 <field name="charge_item_id" options="{'no_create': True, 'no_open': True}" domain="['|', ('operation_type', '=', 'clearance'), ('operation_type', '=', False), ('is_leaf', '=', True)]" required="1"/>
@@ -328,7 +356,7 @@
                                     type="object"
                                     string="Create Child Handover"
                                     class="btn-primary"
-                                    invisible="not handover_id or handover_status != 'close'"/>
+                                    invisible="not handover_id or handover_receivable_state != 'confirmed'"/>
                             <field name="selected_child_handover_id" invisible="1"/>
                             <field name="handover_child_lines" readonly="not handover_id">
                                 <list no_open="1" create="0" delete="0">
@@ -338,10 +366,24 @@
                                     <button name="action_select_for_waybill" type="object" string="View Details" class="btn-link"/>
                                 </list>
                             </field>
+                            <button name="action_confirm_child_handover_receivable_from_waybill_tab"
+                                    type="object"
+                                    string="Confirm Receivable"
+                                    class="btn-success"
+                                    invisible="not selected_child_handover_id or selected_child_handover_receivable_state == 'confirmed'"/>
+                            <button name="action_unconfirm_child_handover_receivable_from_waybill_tab"
+                                    type="object"
+                                    string="Unconfirm Receivable"
+                                    class="btn-secondary"
+                                    confirm="Are you sure you want to unconfirm receivable?"
+                                    invisible="not selected_child_handover_id or selected_child_handover_receivable_state != 'confirmed' or selected_child_handover_status in ('close', 'cancelled')"/>
+                            <group invisible="not selected_child_handover_id">
+                                <field name="selected_child_handover_payable_state" widget="statusbar" statusbar_visible="not_applied,paying,paid" readonly="1"/>
+                                <field name="selected_child_handover_receivable_state" widget="statusbar" statusbar_visible="draft,confirmed" readonly="1"/>
+                            </group>
                             <group invisible="not selected_child_handover_id">
                                 <group>
                                     <field name="selected_child_handover_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
-                                    <field name="selected_child_handover_status" readonly="1"/>
                                     <field name="selected_child_handover_bl_release_type" required="selected_child_handover_id" readonly="1"/>
                                     <field name="selected_child_handover_do_no" readonly="1"/>
                                     <field name="selected_child_handover_remark" readonly="selected_child_handover_status == 'close'"/>
@@ -375,7 +417,7 @@
                                         </field>
                                     </group>
                                     <group>
-                                        <field name="selected_child_handover_charge_lines" readonly="selected_child_handover_status == 'close'">
+                                        <field name="selected_child_handover_charge_lines" readonly="selected_child_handover_receivable_state == 'confirmed'">
                                             <list editable="bottom">
                                                 <field name="charge_item_id" options="{'no_create': True, 'no_open': True}" domain="['|', ('operation_type', '=', 'handover'), ('operation_type', '=', False), ('is_leaf', '=', True)]" required="1"/>
                                                 <field name="is_fixed_fee" readonly="1"/>
@@ -406,7 +448,7 @@
                                     type="object"
                                     string="Create Child Clearance"
                                     class="btn-primary"
-                                    invisible="not clearance_id or clearance_status != 'close'"/>
+                                    invisible="not clearance_id or clearance_receivable_state != 'confirmed'"/>
                             <field name="selected_child_clearance_id" invisible="1"/>
                             <field name="clearance_child_lines" readonly="not clearance_id">
                                 <list no_open="1" create="0" delete="0">
@@ -416,10 +458,24 @@
                                     <button name="action_select_for_waybill" type="object" string="View Details" class="btn-link"/>
                                 </list>
                             </field>
+                            <button name="action_confirm_child_clearance_receivable_from_waybill_tab"
+                                    type="object"
+                                    string="Confirm Receivable"
+                                    class="btn-success"
+                                    invisible="not selected_child_clearance_id or selected_child_clearance_receivable_state == 'confirmed'"/>
+                            <button name="action_unconfirm_child_clearance_receivable_from_waybill_tab"
+                                    type="object"
+                                    string="Unconfirm Receivable"
+                                    class="btn-secondary"
+                                    confirm="Are you sure you want to unconfirm receivable?"
+                                    invisible="not selected_child_clearance_id or selected_child_clearance_receivable_state != 'confirmed' or selected_child_clearance_status in ('close', 'cancelled')"/>
+                            <group invisible="not selected_child_clearance_id">
+                                <field name="selected_child_clearance_payable_state" widget="statusbar" statusbar_visible="not_applied,paying,paid" readonly="1"/>
+                                <field name="selected_child_clearance_receivable_state" widget="statusbar" statusbar_visible="draft,confirmed" readonly="1"/>
+                            </group>
                             <group invisible="not selected_child_clearance_id">
                                 <group>
                                     <field name="selected_child_clearance_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
-                                    <field name="selected_child_clearance_status" readonly="1"/>
                                     <field name="selected_child_clearance_operation_type" required="selected_child_clearance_id" readonly="1"/>
                                     <field name="selected_child_clearance_hs_code_qty" required="selected_child_clearance_id" readonly="1"/>
                                     <field name="selected_child_clearance_remark" readonly="selected_child_clearance_status == 'close'"/>
@@ -453,7 +509,7 @@
                                         </field>
                                     </group>
                                     <group>
-                                        <field name="selected_child_clearance_charge_lines" readonly="selected_child_clearance_status in ('clearanced', 'close')">
+                                        <field name="selected_child_clearance_charge_lines" readonly="selected_child_clearance_receivable_state == 'confirmed'">
                                             <list editable="bottom">
                                                 <field name="charge_qty" column_invisible="True"/>
                                                 <field name="charge_item_id" options="{'no_create': True, 'no_open': True}" domain="['|', ('operation_type', '=', 'clearance'), ('operation_type', '=', False), ('is_leaf', '=', True)]" required="1"/>
@@ -502,6 +558,7 @@
 <!--                       filter_domain="['|', ('bl_number', 'ilike', self), ('hbl_number', 'ilike', self)]"/>-->
                 <field name="bl_number"/>
                 <field name="billno"/>
+                <field name="project"/>
                 <field name="eta"/>
                 <field name="document_number"/>
                 <field name="reference_number"/>
@@ -509,6 +566,7 @@
                 <filter name="state_not_cancel"
                         string="Active"
                         domain="[('state', '!=', 'cancel')]"/>
+                <filter name="group_by_project" string="Project" context="{'group_by': 'project'}"/>
             </search>
         </field>
     </record>
