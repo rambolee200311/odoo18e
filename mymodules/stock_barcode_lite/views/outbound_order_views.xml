@@ -186,9 +186,12 @@
     <record id="view_stock_barcode_lite_sunrise_outbound_payables_form_inherit" model="ir.ui.view">
         <field name="name">stock.barcode.lite.sunrise.outbound.payables.form.inherit</field>
         <field name="model">world.depot.outbound.order</field>
-        <field name="inherit_id" ref="worlddepot.view_outbound_order_form_payable"/>
+        <field name="inherit_id" ref="wd_outbound_payable.view_outbound_order_form_payable"/>
         <field name="arch" type="xml">
-            <xpath expr="//page[field[@name='payable_lines']]" position="attributes">
+            <xpath expr="//separator[@name='outbound_payables_separator']" position="attributes">
+                <attribute name="invisible">project_name == 'SUNRISE'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='payable_lines']" position="attributes">
                 <attribute name="invisible">project_name == 'SUNRISE'</attribute>
             </xpath>
         </field>
