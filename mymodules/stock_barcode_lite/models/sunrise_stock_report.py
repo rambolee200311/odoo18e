@@ -30,7 +30,7 @@ def format_product_template_name(product_template):
 
 class SunriseStockReport(models.Model):
     _name = "sunrise.stock.report"
-    _description = "Sunrise Pallet Aging Report"
+    _description = "Sunrise Pallet Detail Report"
     _order = "id desc"
 
     name = fields.Char(string="Name", compute="_compute_name", store=True, readonly=True, copy=False, index=True)
@@ -975,7 +975,7 @@ class SunriseStockReport(models.Model):
         for rec in self:
             action = {
                 "type": "ir.actions.act_window",
-                "name": _("Sunrise Pallet Aging Lines"),
+                "name": _("Sunrise Pallet Detail Lines"),
                 "res_model": "sunrise.stock.report.line",
                 "view_mode": "list,form",
                 "domain": [("report_id", "=", rec.id)],
@@ -1201,7 +1201,7 @@ class SunriseStockReport(models.Model):
 
 class SunriseStockReportLine(models.Model):
     _name = "sunrise.stock.report.line"
-    _description = "Sunrise Pallet Aging Report Line"
+    _description = "Sunrise Pallet Detail Report Line"
     _order = "id desc"
 
     report_id = fields.Many2one("sunrise.stock.report", string="Report", required=True, ondelete="cascade", index=True, copy=False)
@@ -1274,7 +1274,7 @@ class SunriseStockReportLine(models.Model):
 
 class SunriseStockReportProductLine(models.Model):
     _name = "sunrise.stock.report.product.line"
-    _description = "Sunrise Pallet Aging Stock Line"
+    _description = "Sunrise Pallet Detail Stock Line"
     _order = "id desc"
 
     report_line_id = fields.Many2one("sunrise.stock.report.line", string="Pallet Summary", required=True, ondelete="cascade", index=True, copy=False)
@@ -1298,7 +1298,7 @@ class SunriseStockReportProductLine(models.Model):
 
 class SunriseStockReportOperationLine(models.Model):
     _name = "sunrise.stock.report.operation.line"
-    _description = "Sunrise Pallet Aging Operation Line"
+    _description = "Sunrise Pallet Detail Operation Line"
     _order = "operation_datetime desc, id desc"
 
     report_line_id = fields.Many2one("sunrise.stock.report.line", string="Pallet Summary", required=True, ondelete="cascade", index=True, copy=False)

@@ -138,7 +138,7 @@
               sequence="50"
               groups="stock_barcode_lite.group_sunrise_stock_manager"/>
     <menuitem id="menu_sunrise_stock_report"
-              name="Sunrise Inventory Report"
+              name="Sunrise Pallet Detail Report"
               parent="menu_stock_barcode_lite_report"
               action="action_sunrise_stock_report"
               sequence="5"/>
