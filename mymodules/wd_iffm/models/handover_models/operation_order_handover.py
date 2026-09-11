@@ -370,6 +370,8 @@ class OperationOrderHandover(models.Model):
                 raise ValidationError(_("Receivable is already confirmed."))
             if not rec.charge_line_ids:
                 raise ValidationError(_("Charge lines are required before confirming receivable."))
+            if rec.charge_line_ids.filtered(lambda line: (line.amount_total or 0.0) <= 0 and (line.manual_amount_total or 0.0) <= 0):
+                raise ValidationError(_("Each charge line must have a total amount or manual total amount greater than 0 before confirming receivable."))
             rec.write({"receivable_state": "confirmed", "receivable_confirm_user_id": self.env.user.id, "receivable_confirm_time": fields.Datetime.now()})
         return {"type": "ir.actions.client", "tag": "display_notification", "params": {"title": _("Receivable"), "message": _("Receivable confirmed successfully."), "type": "success", "sticky": False, "next": {"type": "ir.actions.client", "tag": "reload"}}}
 
@@ -449,7 +451,7 @@ class OperationOrderHandoverInvoiceLine(models.Model):
     _order = "id desc"
 
     handover_id = fields.Many2one("operation.order.handover", string="Handover", index=True)
-    shipping_line_id = fields.Many2one("res.partner", string="Vendor (Shipping Line / Agent)", related='handover_id.shipping_line_id', store=True,index=True)
+    shipping_line_id = fields.Many2one("res.partner", string="Vendor (Shipping Line / Agent)", domain=[("is_shipping_agent", "=", True)], index=True)
     vendor_invoice_id = fields.Many2one("account.move", string="Vendor Invoice (Optional)", ondelete="set null", index=True)
     invoice_date = fields.Date(string="Invoice Date",required=True, default=fields.Date.context_today)
     currency_id = fields.Many2one("res.currency", string="Currency", required=True, index=True,
@@ -519,6 +521,11 @@ class OperationOrderHandoverInvoiceLine(models.Model):
             if rec.handover_id and not rec.payment_company_id:
                 rec.payment_company_id = rec.handover_id.project_id.payment_company_id
 
+    @api.onchange("shipping_line_id")
+    def onchange_shipping_line_id(self):
+        for rec in self:
+            rec.receipt_company_id = rec.shipping_line_id
+
     def action_apply_vendor_cost_quotation(self):
         for rec in self:
             quotation = rec.handover_id.project_id.vendor_cost_quotation_id
@@ -585,6 +592,8 @@ class OperationOrderHandoverInvoiceLine(models.Model):
             operator = self.env.ref("base.user_admin")
             if not rec.handover_cost_line_ids:
                raise ValidationError(_("Cost lines are required before requesting payment."))
+            if rec.handover_cost_line_ids.filtered(lambda line: (line.amount_total or 0.0) <= 0 and (line.manual_amount_total or 0.0) <= 0):
+                raise ValidationError(_("Each cost line must have a total amount or manual total amount greater than 0 before requesting payment."))
 
             if rec.amount_total <= 0 and not rec.vendor_invoice_attachment_ids:
                 raise ValidationError(_("Amount or vendor invoice is required before requesting payment."))
