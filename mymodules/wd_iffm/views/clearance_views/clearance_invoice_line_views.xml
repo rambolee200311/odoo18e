@@ -7,7 +7,7 @@
             <form string="Invoice Line" class="wd_iffm_required_highlight">
                 <header>
                     <field name="payment_state" widget="statusbar"
-                           statusbar_visible="draft,paying,paid"/>
+                           statusbar_visible="draft,paying,paid" readonly="1"/>
                     <button name="action_request_clearance_payment"
                             type="object"
                             string="Request Payment"
@@ -21,14 +21,14 @@
                     <group>
                         <group>
                             <field name="clearance_id" readonly="1"/>
-                            <field name="customs_broker_id" required="1" readonly="payment_state!='draft'"
+                            <field name="customs_broker_id" required="1" readonly="payment_state != 'draft' or clearance_id.state == 'close'"
                                    options="{'no_create': True, 'no_open': True}"
                                    domain="[('is_customs_broker','=',True)]"/>
                             <field name="currency_id" options="{'no_create': True, 'no_open': True}"
-                                   readonly="payment_state != 'draft'"/>
-                            <field name="payment_company_id" required="1" readonly="payment_state != 'draft'"
+                                   readonly="payment_state != 'draft' or clearance_id.state == 'close'"/>
+                            <field name="payment_company_id" required="1" readonly="payment_state != 'draft' or clearance_id.state == 'close'"
                                    options="{'no_create': True, 'no_open': True}" domain="[('is_payment','=',True)]"/>
-                            <field name="receipt_company_id" required="1" readonly="payment_state != 'draft'"
+                            <field name="receipt_company_id" required="1" readonly="payment_state != 'draft' or clearance_id.state == 'close'"
                                    options="{'no_create': True, 'no_open': True}" domain="[('is_receipt','=',True)]"/>
 
                             <field name="vendor_invoice_id" readonly="1"
@@ -39,22 +39,23 @@
 
                         </group>
                         <group>
-                            <field name="vendor_invoice_num" required="1"/>
-                            <field name="invoice_date" required="1"/>
+                            <field name="vendor_invoice_num" required="1" readonly="payment_state != 'draft' or clearance_id.state == 'close'"/>
+                            <field name="invoice_date" required="1" readonly="payment_state != 'draft' or clearance_id.state == 'close'"/>
                             <field name="amount_total" readonly="1" required="1"/>
                             <field name="vendor_invoice_attachment_ids" widget="many2many_binary" required="1"
-                                   readonly="payment_state != 'draft'"/>
+                                   readonly="payment_state != 'draft' or clearance_id.state == 'close'"/>
 
 
-                            <field name="remark"/>
+                            <field name="remark" readonly="payment_state != 'draft' or clearance_id.state == 'close'"/>
                         </group>
                     </group>
                     <notebook>
                         <page string="Cost">
-                            <field name="cost_line_ids" readonly="payment_state !='draft'">
+                            <field name="cost_line_ids" readonly="payment_state != 'draft' or clearance_id.state == 'close'">
                                 <list editable="bottom">
                                     <field name="charge_item_id" options="{'no_create': True, 'no_open': True}"
                                            domain="['|', ('operation_type', '=', 'clearance'), ('operation_type', '=', False), ('is_leaf', '=', True)]"/>
+                                    <field name="create_receivable" width="150px"/>
 
                                     <field name="qty"/>
                                     <field name="unit_price"/>

@@ -39,6 +39,27 @@ class OperationOrderClearanceChargeLine(models.Model):
 
     remark = fields.Char(string="Remark")
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        env_clearance = self.env["operation.order.clearance"]
+        for vals in vals_list:
+            clearance = env_clearance.browse(vals.get("clearance_id")).exists()
+            if clearance and clearance.receivable_state == "confirmed":
+                raise ValidationError(_("Confirmed receivable charge lines cannot be changed."))
+        return super().create(vals_list)
+
+    def write(self, vals):
+        for rec in self:
+            if rec.clearance_id.receivable_state == "confirmed":
+                raise ValidationError(_("Confirmed receivable charge lines cannot be changed."))
+        return super().write(vals)
+
+    def unlink(self):
+        for rec in self:
+            if rec.clearance_id.receivable_state == "confirmed":
+                raise ValidationError(_("Confirmed receivable charge lines cannot be changed."))
+        return super().unlink()
+
     @api.depends('clearance_id.container_qty', 'clearance_id.hs_code_qty','charge_item_id','charge_item_id.charge_based_on_max')
     def compute_charge_qty(self):
         for rec in self:

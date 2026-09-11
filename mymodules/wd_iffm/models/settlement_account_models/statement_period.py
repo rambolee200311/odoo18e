@@ -114,7 +114,7 @@ class StatementPeriod(models.Model):
                 additional_time_field = 'eta'
 
             # 基础时间域
-            base_domain = [('state', '=', 'close'),('project_id', '=', rec.project_id.id)]
+            base_domain = [('receivable_state', '=', 'confirmed'), ('project_id', '=', rec.project_id.id)]
             #base_domain = []
 
             handover_time_domain = [
@@ -123,10 +123,9 @@ class StatementPeriod(models.Model):
                                    ] + base_domain
 
             clearance_time_domain = [
-                                        (clearance_time_field, '>=', rec.date_start),
-                                        (clearance_time_field, '<=', rec.date_end),
-                                        ("state", "in", ("clearanced", "close")),('project_id', '=', rec.project_id.id)
-                                    ]
+                                         (clearance_time_field, '>=', rec.date_start),
+                                         (clearance_time_field, '<=', rec.date_end),
+                                     ] + base_domain
 
             additional_time_domain = [
                                          (additional_time_field, '>=', rec.date_start),

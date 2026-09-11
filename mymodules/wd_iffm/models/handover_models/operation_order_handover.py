@@ -2,10 +2,7 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
 from datetime import datetime, time, timedelta
-HANDOVER_STATE = [("open", "Open"),
-         ("paying", "Paying"), ("paid", "Paid"), ("releasing", "Releasing"),
-         ("released", "Released"), ("close", "Close"),
-         ("cancelled", "Cancelled")]
+HANDOVER_STATE = [("open", "Open"), ("released", "Released"), ("close", "Close"), ("cancelled", "Cancelled")]
 
 class OperationOrderHandover(models.Model):
     _name = "operation.order.handover"
@@ -56,7 +53,9 @@ class OperationOrderHandover(models.Model):
     state = fields.Selection(
         HANDOVER_STATE,
         string="Status", default="open", required=True, tracking=True, index=True)
-    #结算状态
+    receivable_state = fields.Selection([("draft", "Charge Unconfirmed"), ("confirmed", "Charge Confirmed")], string="Receivable Status", default="draft", required=True, tracking=True, index=True, copy=False)
+    receivable_confirm_user_id = fields.Many2one("res.users", string="Receivable Confirmed By", readonly=True, copy=False, index=True)
+    receivable_confirm_time = fields.Datetime(string="Receivable Confirmed On", readonly=True, copy=False, index=True)
 
     confirm_user_id = fields.Many2one("res.users", string="Confirmed By", readonly=True)
     confirm_time = fields.Datetime(string="Confirmed On", readonly=True)
@@ -93,6 +92,7 @@ class OperationOrderHandover(models.Model):
     has_advance_invoice = fields.Boolean(string="Has Advance Invoice", compute="_compute_payment_summary", store=True)
     has_unpaid_advance_invoice = fields.Boolean(string="Has Unpaid Advance Invoice", compute="_compute_payment_summary", store=True)
     all_advance_paid = fields.Boolean(string="All Advance Paid", compute="_compute_payment_summary", store=True)
+    payable_state = fields.Selection([("not_applied", "Not Applied"), ("paying", "Paying"), ("paid", "Paid")], string="Payable Status", compute="_compute_payment_summary", store=True, index=True)
 
     # 费用明细
     charge_line_ids = fields.One2many("operation.order.handover.charge.line", "handover_id", string="Charges", copy=False)
@@ -185,47 +185,29 @@ class OperationOrderHandover(models.Model):
             rec.is_handover_overdue = compare_datetime >= handover_due_datetime
 
     def action_create_child_handover(self):
-        self.ensure_one()
-        if self.state != 'close':
-            raise ValidationError(_("Handover must be close before creating child clearance."))
-        vals = self.copy_data()[0]
-
-        child_count = self.env['operation.order.handover'].search_count([
-            ('parent_id', '=', self.id)
-        ]) + 1
-
-        vals.update({
-            "parent_id": self.id,
-            "name": f"{self.name}-{child_count}",
-            "attachment_line_ids": [(0, 0, {
-                "doc_type": line.doc_type,
-                "remark": line.remark,
-                "file": line.file,
-                "name": line.name,
-            }) for line in self.attachment_line_ids],
-        })
-
-        vals.pop("charge_line_ids", None)
-        vals.pop("invoice_line_ids", None)
-
-        child = self.sudo().create(vals)
-
-        return {
-            "type": "ir.actions.act_window",
-            "name": "Child Handover",
-            "res_model": "operation.order.handover",
-            "view_mode": "form",
-            "views": [(self.env.ref("wd_iffm.view_operation_order_handover_child_form").id, "form")],
-            "res_id": child.id,
-        }
+        env_handover = self.env["operation.order.handover"]
+        for rec in self:
+            if rec.receivable_state != "confirmed":
+                raise ValidationError(_("Receivable must be confirmed before creating a child handover."))
+            if not rec.all_advance_paid:
+                raise ValidationError(_("All vendor invoices must be paid before creating a child handover."))
+            vals = rec.copy_data()[0]
+            child_count = env_handover.sudo().search_count([("parent_id", "=", rec.id)]) + 1
+            vals.update({"parent_id": rec.id, "name": f"{rec.name}-{child_count}", "state": "open", "receivable_state": "draft", "attachment_line_ids": [(0, 0, {"doc_type": line.doc_type, "remark": line.remark, "file": line.file, "name": line.name}) for line in rec.attachment_line_ids]})
+            vals.pop("charge_line_ids", None)
+            vals.pop("invoice_line_ids", None)
+            child = env_handover.create(vals)
+            return {"type": "ir.actions.act_window", "name": "Child Handover", "res_model": "operation.order.handover", "view_mode": "form", "views": [(self.env.ref("wd_iffm.view_operation_order_handover_child_form").id, "form")], "res_id": child.id}
 
     def action_create_child_handover_workbench(self):
         env_handover = self.env["operation.order.handover"]
         for rec in self:
             if rec.parent_id:
                 raise ValidationError(_("Only the main switch bill can create a sub-switch bill."))
-            if rec.state != "close":
-                raise ValidationError(_("The main handover must be closed before creating a child handover."))
+            if rec.receivable_state != "confirmed":
+                raise ValidationError(_("Receivable must be confirmed before creating a child handover."))
+            if not rec.all_advance_paid:
+                raise ValidationError(_("All vendor invoices must be paid before creating a child handover."))
             child_count = env_handover.sudo().search_count([("parent_id", "=", rec.id)]) + 1
 
             vals = {
@@ -357,7 +339,7 @@ class OperationOrderHandover(models.Model):
                     _("This waybill is already used by another active handover order.")
                 )
 
-    @api.depends("invoice_line_ids.handover_cost_line_ids.cost_nature", "invoice_line_ids.payment_state")
+    @api.depends("invoice_line_ids", "invoice_line_ids.handover_cost_line_ids.cost_nature", "invoice_line_ids.payment_state")
     def _compute_payment_summary(self):
         for rec in self:
             lines = rec.invoice_line_ids
@@ -366,62 +348,74 @@ class OperationOrderHandover(models.Model):
             rec.has_advance_invoice = bool(lines)
             rec.has_unpaid_advance_invoice = bool(lines.filtered(lambda l: l.payment_state != "paid"))
             rec.all_advance_paid = bool(lines) and states == {"paid"}
+            if not lines or states == {"draft"}:
+                rec.payable_state = "not_applied"
+            elif states == {"paid"}:
+                rec.payable_state = "paid"
+            else:
+                rec.payable_state = "paying"
 
 
 
     def action_recompute_state(self):
         for rec in self:
-            if rec.state in ("releasing", "released", "close", "cancelled"):
-                continue
-            lines = rec.invoice_line_ids
-            if not lines:
-                rec.write({"state": "open"})
-                continue
+            rec.payable_state
+        return True
 
-            states = set(lines.mapped("payment_state"))
-            if states == {"draft"}:
-                rec.write({"state": "open"})
-            elif states == {"paid"}:
-                rec.write({"state": "paid"})
-            else:
-                rec.write({"state": "paying"})
-
-    def action_releasing(self):
+    def action_confirm_receivable(self):
         for rec in self:
-            rec.check_releasing_ready()
-            rec.write({"state": "releasing"})
+            if rec.state == "cancelled":
+                raise ValidationError(_("Cancelled handover cannot confirm receivable."))
+            if rec.receivable_state == "confirmed":
+                raise ValidationError(_("Receivable is already confirmed."))
+            if not rec.charge_line_ids:
+                raise ValidationError(_("Charge lines are required before confirming receivable."))
+            rec.write({"receivable_state": "confirmed", "receivable_confirm_user_id": self.env.user.id, "receivable_confirm_time": fields.Datetime.now()})
+        return {"type": "ir.actions.client", "tag": "display_notification", "params": {"title": _("Receivable"), "message": _("Receivable confirmed successfully."), "type": "success", "sticky": False, "next": {"type": "ir.actions.client", "tag": "reload"}}}
+
+    def action_unconfirm_receivable(self):
+        for rec in self:
+            if rec.state == "cancelled":
+                raise ValidationError(_("Cancelled handover cannot unconfirm receivable."))
+            if rec.state == "close":
+                raise ValidationError(_("Closed handover cannot unconfirm receivable."))
+            if rec.receivable_state != "confirmed":
+                raise ValidationError(_("Receivable is not confirmed."))
+            if rec.statement_period_id:
+                raise ValidationError(_("Receivable included in a statement period cannot be unconfirmed."))
+            rec.write({"receivable_state": "draft", "receivable_confirm_user_id": False, "receivable_confirm_time": False})
+        return {"type": "ir.actions.client", "tag": "display_notification", "params": {"title": _("Receivable"), "message": _("Receivable unconfirmed successfully."), "type": "success", "sticky": False, "next": {"type": "ir.actions.client", "tag": "reload"}}}
 
     def action_released(self):
         for rec in self:
-            rec.check_released_ready()
+            if rec.state != "open":
+                raise ValidationError(_("Only Open handover can be set to Released."))
+            if rec.waybill_id and not rec.waybill_id.ata:
+                raise ValidationError(_("Actual arrival time is required before handover completion."))
             vals = {"state": "released"}
             if not rec.do_issue_datetime:
                 vals["do_issue_datetime"] = fields.Datetime.now()
-
             rec.write(vals)
-            rec.waybill_id.write({
-                "release_received": True
-            })
+            if rec.waybill_id:
+                rec.waybill_id.write({"release_received": True})
+        return True
 
     def action_close(self):
         for rec in self:
-            if rec.parent_id:
-                if not rec.charge_line_ids:
-                    raise ValidationError(_("Charges are required before Close."))
-            else:
-                rec.check_close_ready()
-                if not rec.invoice_line_ids:
-                    raise ValidationError(_("Vendor invoice lines are required before Close."))
-
-            unpaid_lines = rec.invoice_line_ids.filtered(
-                lambda line: line.payment_state != "paid"
-            )
-            if unpaid_lines:
+            if rec.state == "cancelled":
+                raise ValidationError(_("Cancelled handover cannot be closed."))
+            if rec.state != "released":
+                raise ValidationError(_("Only Released handover can be closed."))
+            if not rec.charge_line_ids:
+                raise ValidationError(_("Charge lines are required before Close."))
+            if rec.receivable_state != "confirmed":
+                raise ValidationError(_("Receivable must be confirmed before Close."))
+            if not rec.parent_id and not rec.invoice_line_ids:
+                raise ValidationError(_("Vendor invoice lines are required before Close."))
+            if rec.invoice_line_ids.filtered(lambda line: line.payment_state != "paid"):
                 raise ValidationError(_("All vendor invoice lines must be paid before Close."))
-
-            rec.write({
-                "state": "close",
-            })
+            rec.write({"state": "close"})
+        return True
 
 
     # 暂不用
@@ -436,39 +430,6 @@ class OperationOrderHandover(models.Model):
         lines = self.attachment_line_ids.filtered(lambda l: l.doc_type == doc_type and l.file)
         return len(lines)
 
-
-    def check_releasing_ready(self):
-        for rec in self:
-            if rec.state not in ("paying", "paid"):
-                raise ValidationError(_("Only Apply/Paying/Paid can go to Releasing."))
-            if rec.has_advance_invoice and not rec.all_advance_paid:
-                raise ValidationError(_("All advance invoices must be paid before Releasing."))
-
-    def check_released_ready(self):
-        for rec in self:
-            can_release_without_invoice = rec.state == "open" and not rec.invoice_line_ids
-            if rec.state != "paid" and not can_release_without_invoice:
-                raise ValidationError(
-                    _("Only Paid handover or Open handover without vendor invoices can be set to Released.")
-                )
-            # if rec.get_required_doc_count("do") == 0:
-            #     raise ValidationError(_("DO / Telex Release document is required before Released."))
-            #if not rec.waybill_id.ata or not rec.waybill_id.terminal_id:
-            if not rec.waybill_id.ata:
-                raise ValidationError(_("Waybill ETA is required before Released."))
-            # if not rec.do_issue_datetime:
-            #     raise ValidationError(_("Do issue date is required."))
-            if not rec.bl_release_type:
-                raise ValidationError(_("BL Release type is required."))
-
-    def check_close_ready(self):
-        for rec in self:
-            if rec.state != "released":
-                raise ValidationError(_("Only Released can be closed."))
-            # if rec.get_required_doc_count("do") == 0:
-            #     raise ValidationError(_("DO / Telex Release document is required before Close."))
-            if len(rec.charge_line_ids) == 0:
-                raise ValidationError(_("Charges are required before Close."))
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -501,6 +462,20 @@ class OperationOrderHandoverInvoiceLine(models.Model):
             handover = self.env["operation.order.handover"].sudo().browse(handover_id)
             return handover.currency_id.id
         return self.env.company.currency_id.id
+
+    @api.model
+    def default_get(self, field_list):
+        values = super().default_get(field_list)
+        handover_id = values.get("handover_id") or self.env.context.get("default_handover_id")
+        if not handover_id or values.get("handover_cost_line_ids"):
+            return values
+        handover = self.env["operation.order.handover"].sudo().browse(handover_id).exists()
+        quotation = handover.project_id.vendor_cost_quotation_id
+        quotation_lines = quotation.line_ids.filtered(lambda line: line.operation_type == "handover") if quotation and quotation.state == "active" else self.env["vendor.cost.quotation.line"]
+        if quotation_lines:
+            values["currency_id"] = quotation.currency_id.id
+            values["handover_cost_line_ids"] = [(0, 0, {"charge_type": "quotation", "charge_item_id": line.charge_item_id.id, "create_receivable": line.create_receivable, "qty": 1.0 if line.is_fixed_fee else line.qty, "unit_price": line.unit_price, "cost_nature": "at cost", "remark": line.remark}) for line in quotation_lines]
+        return values
 
     amount_total = fields.Monetary(string="Amount", currency_field="currency_id", compute="_compute_amount_total", store=True)
 
@@ -543,11 +518,29 @@ class OperationOrderHandoverInvoiceLine(models.Model):
         for rec in self:
             if rec.handover_id and not rec.payment_company_id:
                 rec.payment_company_id = rec.handover_id.project_id.payment_company_id
-    @api.constrains("vendor_invoice_num")
-    def check_vendor_invoice_num(self):
+
+    def action_apply_vendor_cost_quotation(self):
         for rec in self:
-            if rec.vendor_invoice_num and self.search_count([("vendor_invoice_num", "=", rec.vendor_invoice_num), ("id", "!=", rec.id)]):
-                raise ValidationError(_("Vendor Invoice No must be unique."))
+            quotation = rec.handover_id.project_id.vendor_cost_quotation_id
+            if rec.payment_state != "draft":
+                raise ValidationError(_("Vendor cost quotation can only be applied to a draft invoice line."))
+            if not quotation:
+                raise ValidationError(_("Vendor cost quotation is required on the project."))
+            if quotation.state != "active":
+                raise ValidationError(_("Vendor cost quotation must be active."))
+            if rec.handover_cost_line_ids:
+                raise ValidationError(_("Clear existing cost lines before applying a vendor cost quotation."))
+            quotation_lines = quotation.line_ids.filtered(lambda line: line.operation_type == "handover")
+            if not quotation_lines:
+                raise ValidationError(_("The project vendor cost quotation has no handover cost lines."))
+            rec.write({"currency_id": quotation.currency_id.id, "handover_cost_line_ids": [(0, 0, {"charge_type": "quotation", "charge_item_id": line.charge_item_id.id, "create_receivable": line.create_receivable, "qty": 1.0 if line.is_fixed_fee else line.qty, "unit_price": line.unit_price, "cost_nature": "at cost", "remark": line.remark}) for line in quotation_lines]})
+
+    @api.constrains("handover_id", "vendor_invoice_num")
+    def check_vendor_invoice_num(self):
+        env_invoice_line = self.env["operation.order.handover.invoice.line"]
+        for rec in self:
+            if rec.handover_id and rec.vendor_invoice_num and env_invoice_line.sudo().search_count([("handover_id", "=", rec.handover_id.id), ("vendor_invoice_num", "=", rec.vendor_invoice_num), ("id", "!=", rec.id)]):
+                raise ValidationError(_("Vendor Invoice No must be unique within the same handover."))
 
     @api.constrains("vendor_invoice_attachment_ids", "amount_total")
     def check_vendor_invoice_attachment(self):
@@ -567,6 +560,22 @@ class OperationOrderHandoverInvoiceLine(models.Model):
     def action_request_payment(self):
         move_model = self.env["account.move"]
         for rec in self:
+            quotation = rec.handover_id.project_id.vendor_cost_quotation_id
+            if quotation and not rec.handover_cost_line_ids:
+                rec.action_apply_vendor_cost_quotation()
+            if rec.handover_cost_line_ids.filtered(lambda line: line.create_receivable):
+                if rec.handover_id.receivable_state == "confirmed":
+                    raise ValidationError(_("Confirmed receivable cannot be changed by vendor cost quotation."))
+                existing_item_ids = set(rec.handover_id.charge_line_ids.mapped("charge_item_id").ids)
+                quotation_lines = rec.handover_id.waybill_id.quotation_id.quotation_thc_lines
+                charge_vals = []
+                for cost_line in rec.handover_cost_line_ids.filtered(lambda line: line.create_receivable):
+                    if cost_line.charge_item_id.id in existing_item_ids:
+                        continue
+                    quotation_line = quotation_lines.filtered(lambda line: line.charge_item_id == cost_line.charge_item_id)[:1]
+                    charge_vals.append((0, 0, {"charge_origin_type": "quotation", "charge_item_id": cost_line.charge_item_id.id, "is_fixed_fee": quotation_line.is_fixed_fee if quotation_line else False, "qty": 1.0 if (quotation_line.is_fixed_fee if quotation_line else False) else cost_line.qty, "unit_price": quotation_line.unit_price if quotation_line else 0.0, "remark": cost_line.remark}))
+                if charge_vals:
+                    rec.handover_id.write({"charge_line_ids": charge_vals})
             if rec.handover_id.is_handover_overdue:
                 if not rec.handover_id.overdue_blocking_reason_id:
                     raise ValidationError(_("Overdue blocking reason is required for overdue handovers."))

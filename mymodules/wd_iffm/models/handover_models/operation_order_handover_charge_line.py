@@ -41,6 +41,27 @@ class OperationOrderHandoverChargeLine(models.Model):
     # source_snapshot = fields.Text(string="Source Snapshot")
     remark = fields.Char(string="Remark")
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        env_handover = self.env["operation.order.handover"]
+        for vals in vals_list:
+            handover = env_handover.browse(vals.get("handover_id")).exists()
+            if handover and handover.receivable_state == "confirmed":
+                raise ValidationError(_("Confirmed receivable charge lines cannot be changed."))
+        return super().create(vals_list)
+
+    def write(self, vals):
+        for rec in self:
+            if rec.handover_id.receivable_state == "confirmed":
+                raise ValidationError(_("Confirmed receivable charge lines cannot be changed."))
+        return super().write(vals)
+
+    def unlink(self):
+        for rec in self:
+            if rec.handover_id.receivable_state == "confirmed":
+                raise ValidationError(_("Confirmed receivable charge lines cannot be changed."))
+        return super().unlink()
+
 
 
     @api.depends("qty", "unit_price", "is_fixed_fee")

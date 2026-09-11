@@ -73,8 +73,8 @@ class AccountMoveInherit(models.Model):
             handover_line_env = self.env["operation.order.handover.invoice.line"]
             clearance_line_env = self.env["operation.order.clearance.invoice.line"]
 
-            handover_lines = handover_line_env.sudo().search([("vendor_invoice_id", "=", move.id)])
-            clearance_lines = clearance_line_env.sudo().search([("vendor_invoice_id", "=", move.id)])
+            handover_lines = handover_line_env.browse(handover_line_env.sudo().search([("vendor_invoice_id", "=", move.id)]).ids)
+            clearance_lines = clearance_line_env.browse(clearance_line_env.sudo().search([("vendor_invoice_id", "=", move.id)]).ids)
 
             if not handover_lines and not clearance_lines:
                 raise ValidationError(_("No related handover/clearance invoice line found."))
@@ -107,8 +107,8 @@ class AccountMoveInherit(models.Model):
         return {
             "type": "ir.actions.client",
             "tag": "display_notification",
-            "params": {"title": _("Payment Paid"), "message": _("Payment sync completed."), "type": "success",
-                       "sticky": False},
+            "params": {"title": _("Payment Paid"), "message": _("Payment sync completed."), "type": "success", "sticky": False,
+                       "next": {"type": "ir.actions.client", "tag": "soft_reload"}},
         }
 
     def action_confirm_paid_sync_handover(self):

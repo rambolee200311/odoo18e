@@ -23,6 +23,7 @@ class OperationOrderHandoverCostLine(models.Model):
         index=True,
     )
     charge_item_id = fields.Many2one("world.depot.charge.item", string="Charge Item", tracking=True)
+    create_receivable = fields.Boolean(string="Create Receivable", default=False)
     unit_price = fields.Monetary(string="Unit Price", currency_field="currency_id", default=0.0, tracking=True)
     qty = fields.Float(string="Qty", default=1.0, tracking=True)
     unit_id = fields.Many2one("world.depot.charge.unit", string="Unit", related="charge_item_id.unit_id", store=True)

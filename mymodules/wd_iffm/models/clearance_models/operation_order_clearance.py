@@ -2,10 +2,7 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
 from datetime import datetime, time, timedelta
-CLEARANCE_STATE = [("open", "Open"),
-         ("paying", "Paying"), ("paid", "Paid"), ("clearancing", "Clearancing"),
-         ("clearanced", "Clearanced"), ("close", "Close"),
-         ("cancelled", "Cancelled")]
+CLEARANCE_STATE = [("open", "Open"), ("clearanced", "Clearanced"), ("close", "Close"), ("cancelled", "Cancelled")]
 
 class OperationOrderClearance(models.Model):
     _name = "operation.order.clearance"
@@ -71,6 +68,9 @@ class OperationOrderClearance(models.Model):
     state = fields.Selection(
         CLEARANCE_STATE,
         string="Status", default="open", required=True, tracking=True, index=True)
+    receivable_state = fields.Selection([("draft", "Charge Unconfirmed"), ("confirmed", "Charge Confirmed")], string="Receivable Status", default="draft", required=True, tracking=True, index=True, copy=False)
+    receivable_confirm_user_id = fields.Many2one("res.users", string="Receivable Confirmed By", readonly=True, copy=False, index=True)
+    receivable_confirm_time = fields.Datetime(string="Receivable Confirmed On", readonly=True, copy=False, index=True)
     statement_period_id = fields.Many2one("statement.period", string="Statement Period")
     statement_period_id_state = fields.Selection([], string="Statement Period State",
                                                  related="statement_period_id.state", store=True)
@@ -109,6 +109,7 @@ class OperationOrderClearance(models.Model):
     has_advance_invoice = fields.Boolean(string="Has Advance Invoice", compute="_compute_payment_summary", store=True)
     has_unpaid_advance_invoice = fields.Boolean(string="Has Unpaid Advance Invoice", compute="_compute_payment_summary", store=True)
     all_advance_paid = fields.Boolean(string="All Advance Paid", compute="_compute_payment_summary", store=True)
+    payable_state = fields.Selection([("not_applied", "Not Applied"), ("paying", "Paying"), ("paid", "Paid")], string="Payable Status", compute="_compute_payment_summary", store=True, index=True)
 
     # 费用明细
     charge_line_ids = fields.One2many("operation.order.clearance.charge.line", "clearance_id", string="Charges", copy=False)
@@ -261,7 +262,6 @@ class OperationOrderClearance(models.Model):
 
     @api.depends("state", "waybill_id.ata", "waybill_id.eta","clearance_finish_datetime")
     def _compute_is_clearance_overdue(self):
-        done_states = {"clearanced", "close", "cancelled"}
         now_dt = fields.Datetime.now()
         rule = self.env["operation.workbench.alert.rule"].get_rule_values(company_id=self.env.company.id)
         available_days = int(rule.get("clearance_available_days", 5))
@@ -290,50 +290,43 @@ class OperationOrderClearance(models.Model):
 
 
     def action_create_child_clearance(self):
-        self.ensure_one()
-        if self.state != 'close':
-            raise ValidationError(_("Clearance must be close before creating child clearance."))
-        vals = self.copy_data()[0]
-
-        child_count = self.env['operation.order.clearance'].search_count([
-            ('parent_id', '=', self.id)
-        ]) + 1
-
-        vals.update({
-            "parent_id": self.id,
-            "name": f"{self.name}-{child_count}",
-            "project_id": self.project_id.id,
-            "quotation_id": self.quotation_id.id,
-            "currency_id": self.currency_id.id,
-            "attachment_line_ids": [(0, 0, {
+        env_clearance = self.env["operation.order.clearance"]
+        for rec in self:
+            if rec.receivable_state != "confirmed":
+                raise ValidationError(_("Receivable must be confirmed before creating a child clearance."))
+            if not rec.all_advance_paid:
+                raise ValidationError(_("All vendor invoices must be paid before creating a child clearance."))
+            vals = rec.copy_data()[0]
+            child_count = env_clearance.sudo().search_count([("parent_id", "=", rec.id)]) + 1
+            vals.update({
+                "parent_id": rec.id,
+                "name": f"{rec.name}-{child_count}",
+                "state": "open",
+                "receivable_state": "draft",
+                "project_id": rec.project_id.id,
+                "quotation_id": rec.quotation_id.id,
+                "currency_id": rec.currency_id.id,
+                "attachment_line_ids": [(0, 0, {
                 "doc_type": line.doc_type,
                 "remark": line.remark,
                 "file": line.file,
                 "name": line.name,
-            }) for line in self.attachment_line_ids],
-        })
-
-        vals.pop("charge_line_ids", None)
-        vals.pop("invoice_line_ids", None)
-
-        child = self.sudo().create(vals)
-
-        return {
-            "type": "ir.actions.act_window",
-            "name": "Child Clearance",
-            "res_model": "operation.order.clearance",
-            "view_mode": "form",
-            "views": [(self.env.ref("wd_iffm.view_operation_order_clearance_child_form").id, "form")],
-            "res_id": child.id,
-        }
+                }) for line in rec.attachment_line_ids],
+            })
+            vals.pop("charge_line_ids", None)
+            vals.pop("invoice_line_ids", None)
+            child = env_clearance.create(vals)
+            return {"type": "ir.actions.act_window", "name": "Child Clearance", "res_model": "operation.order.clearance", "view_mode": "form", "views": [(self.env.ref("wd_iffm.view_operation_order_clearance_child_form").id, "form")], "res_id": child.id}
 
     def action_create_child_clearance_workbench(self):
         env_clearance = self.env["operation.order.clearance"]
         for rec in self:
             if rec.parent_id:
                 raise ValidationError(_("Only the main customs clearance can create sub-customs clearances."))
-            if rec.state != "close":
-                raise ValidationError(_("The main clearance must be closed before creating a child clearance."))
+            if rec.receivable_state != "confirmed":
+                raise ValidationError(_("Receivable must be confirmed before creating a child clearance."))
+            if not rec.all_advance_paid:
+                raise ValidationError(_("All vendor invoices must be paid before creating a child clearance."))
             child_count = env_clearance.sudo().search_count([("parent_id", "=", rec.id)]) + 1
 
             vals = {
@@ -437,20 +430,6 @@ class OperationOrderClearance(models.Model):
     #                 _("This waybill is already used by another active clearance order.")
     #             )
 
-    def action_clearancing(self):
-        for rec in self:
-            if rec.state not in ("open", "paying", "paid"):
-                raise ValidationError(_("Only Open/Paying/Paid can go to Clearancing."))
-            # if rec.state not in ("paying", "paid"):
-            #     raise ValidationError(_("Only Apply/Paying/Paid can go to Clearancing."))
-            # if rec.has_advance_invoice and not rec.all_advance_paid:
-            #     raise ValidationError(_("All advance invoices must be paid before Clearancing."))
-            if not rec.customs_declaration_datetime:
-                raise ValidationError(_("Customs declaration date is required."))
-            # if not rec.eu_eori_no and not rec.vat_tax_no:
-            #     raise ValidationError(_("EU EORI No or VAT Tax No is required."))
-            rec.write({"state": "clearancing"})
-
     @api.depends("clearance_type", "customs_release_datetime", "inbound_release_datetime",
                  "outbound_release_datetime", "t1_closed_datetime", "t1_inbound_release_datetime")
     def _compute_can_complete(self):
@@ -478,91 +457,72 @@ class OperationOrderClearance(models.Model):
                 rec.can_complete = True
                 rec.clearance_finish_datetime = rec.t1_inbound_release_datetime
 
-    def sync_waybill_custom_clearance(self):
-        done_states = ("clearanced", "close")
-        env_clearance = self.env["operation.order.clearance"]
+    def action_confirm_receivable(self):
+        for rec in self:
+            if rec.state == "cancelled":
+                raise ValidationError(_("Cancelled clearance cannot confirm receivable."))
+            if rec.receivable_state == "confirmed":
+                raise ValidationError(_("Receivable is already confirmed."))
+            if not rec.charge_line_ids:
+                raise ValidationError(_("Charge lines are required before confirming receivable."))
+            rec.write({"receivable_state": "confirmed", "receivable_confirm_user_id": self.env.user.id, "receivable_confirm_time": fields.Datetime.now()})
+        return {"type": "ir.actions.client", "tag": "display_notification", "params": {"title": _("Receivable"), "message": _("Receivable confirmed successfully."), "type": "success", "sticky": False, "next": {"type": "ir.actions.client", "tag": "reload"}}}
 
-        for waybill in self.mapped("waybill_id"):
-            clearances = env_clearance.sudo().search([
-                ("waybill_id", "=", waybill.id),
-                ("state", "!=", "cancelled"),
-                ("parent_id", "=", False),
-            ])
-
-            clearance_container_ids = clearances.mapped("clearance_container_ids").ids
-            all_orders_done = bool(clearances) and all(rec.state in done_states for rec in clearances)
-            all_containers_covered = bool(waybill.container_ids) and all(
-                container.id in clearance_container_ids for container in waybill.container_ids
-            )
-
-            waybill.write({"custom_clearance": all_orders_done and all_containers_covered})
+    def action_unconfirm_receivable(self):
+        for rec in self:
+            if rec.state == "cancelled":
+                raise ValidationError(_("Cancelled clearance cannot unconfirm receivable."))
+            if rec.state == "close":
+                raise ValidationError(_("Closed clearance cannot unconfirm receivable."))
+            if rec.receivable_state != "confirmed":
+                raise ValidationError(_("Receivable is not confirmed."))
+            if rec.statement_period_id:
+                raise ValidationError(_("Receivable included in a statement period cannot be unconfirmed."))
+            rec.write({"receivable_state": "draft", "receivable_confirm_user_id": False, "receivable_confirm_time": False})
+        return {"type": "ir.actions.client", "tag": "display_notification", "params": {"title": _("Receivable"), "message": _("Receivable unconfirmed successfully."), "type": "success", "sticky": False, "next": {"type": "ir.actions.client", "tag": "reload"}}}
 
     def action_clearanced(self):
-        finish_field_map = {
-            "general": "customs_release_datetime",
-            "bonded_in": "inbound_release_datetime",
-            "bonded_out": "outbound_release_datetime",
-            "t1_transit": "t1_closed_datetime",
-            "t1_bonded": "t1_inbound_release_datetime",
-        }
+        finish_field_map = {"general": "customs_release_datetime", "bonded_in": "inbound_release_datetime", "bonded_out": "outbound_release_datetime", "t1_transit": "t1_closed_datetime", "t1_bonded": "t1_inbound_release_datetime"}
         for rec in self:
-            if rec.state not in ("open", "paying", "paid"):
-                raise ValidationError(_("Only Open, Paying or Paid can be set to Clearanced."))
+            if rec.state != "open":
+                raise ValidationError(_("Only Open clearance can be set to Clearanced."))
             if rec.waybill_id and not rec.waybill_id.ata:
                 raise ValidationError(_("Actual arrival time is required before clearance completion."))
             if not rec.parent_id and not rec.waybill_id and not rec.clearance_container_ids:
-                raise ValidationError(
-                    _("At least one container is required before manual clearance completion.")
-                )
-            # if not rec.vat_tax_no and not rec.clearance_receipt_no and not rec.eu_eori_no:
-            #     raise ValidationError(_("VAT Tax No, Clearance Receipt No, EU EORI No is required before Released."))
-            # if not rec.clearance_finish_datetime:
-            #     raise ValidationError(_("Clearance Finish Date is required before Released."))
+                raise ValidationError(_("At least one container is required before manual clearance completion."))
             finish_field = finish_field_map[rec.clearance_type]
+            vals = {"state": "clearanced"}
             if not rec[finish_field]:
-                rec.write({finish_field: fields.Datetime.now()})
+                vals[finish_field] = fields.Datetime.now()
+            rec.write(vals)
+        self.sync_waybill_custom_clearance()
+        return True
 
-            rec.write({"state": "clearanced",})
-            rec.sync_waybill_custom_clearance()
-
-    def action_open_reclearance_wizard(self):
-        self.ensure_one()
-        if self.state != "clearancing":
-            raise ValidationError(_("Only clearancing order can return to paid for re-clearance."))
-        return {
-            "type": "ir.actions.act_window",
-            "name": _("Re-Clearance"),
-            "res_model": "clearance.reclearance.wizard",
-            "view_mode": "form",
-            "target": "new",
-            "context": {
-                "default_clearance_id": self.id,
-            },
-        }
+    def sync_waybill_custom_clearance(self):
+        env_clearance = self.env["operation.order.clearance"]
+        for waybill in self.mapped("waybill_id"):
+            clearances = env_clearance.sudo().search([("waybill_id", "=", waybill.id), ("parent_id", "=", False), ("state", "!=", "cancelled")])
+            clearance_container_ids = clearances.mapped("clearance_container_ids").ids
+            all_orders_done = bool(clearances) and all(line.state in ("clearanced", "close") for line in clearances)
+            all_containers_covered = bool(waybill.container_ids) and all(container.id in clearance_container_ids for container in waybill.container_ids)
+            waybill.write({"custom_clearance": all_orders_done and all_containers_covered})
 
     def action_close(self):
         for rec in self:
-            if rec.parent_id:
-                if not rec.charge_line_ids:
-                    raise ValidationError(_("Charges are required before Close."))
-                unpaid = rec.invoice_line_ids.filtered(
-                    lambda l: l.payment_state != "paid")
-                if unpaid:
-                    raise ValidationError(_("All advance invoices must be paid before Close."))
-            else:
-                if rec.state != "clearanced":
-                    raise ValidationError(_("Only Clearanced can be closed."))
-                if len(rec.charge_line_ids) == 0:
-                    raise ValidationError(_("Charges are required before Close."))
-                #关闭前必须有发票行
-                invoice_lines = rec.invoice_line_ids
-                if not invoice_lines:
-                    raise ValidationError(_("Vendor invoice lines are required before Close."))
-
-                unpaid_lines = invoice_lines.filtered(lambda line: line.payment_state != "paid")
-                if unpaid_lines:
-                    raise ValidationError(_("All vendor invoice lines must be paid before Close."))
+            if rec.state == "cancelled":
+                raise ValidationError(_("Cancelled clearance cannot be closed."))
+            if rec.state != "clearanced":
+                raise ValidationError(_("Only Clearanced clearance can be closed."))
+            if not rec.charge_line_ids:
+                raise ValidationError(_("Charge lines are required before Close."))
+            if rec.receivable_state != "confirmed":
+                raise ValidationError(_("Receivable must be confirmed before Close."))
+            if not rec.parent_id and not rec.invoice_line_ids:
+                raise ValidationError(_("Vendor invoice lines are required before Close."))
+            if rec.invoice_line_ids.filtered(lambda line: line.payment_state != "paid"):
+                raise ValidationError(_("All vendor invoice lines must be paid before Close."))
             rec.write({"state": "close"})
+        return True
 
     def get_required_doc_count(self, doc_type):
         self.ensure_one()
@@ -663,20 +623,8 @@ class OperationOrderClearance(models.Model):
     #             rec.charge_line_ids = [(5, 0, 0)]
     def action_recompute_state(self):
         for rec in self:
-            if rec.state in ("clearancing", "clearanced", "close", "cancelled"):
-                continue
-            lines = rec.invoice_line_ids
-            if not lines:
-                rec.write({"state": "open"})
-                continue
-
-            states = set(lines.mapped("payment_state"))
-            if states == {"draft"}:
-                rec.write({"state": "open"})
-            elif states == {"paid"}:
-                rec.write({"state": "paid"})
-            else:
-                rec.write({"state": "paying"})
+            rec.payable_state
+        return True
 
     @api.depends("invoice_line_ids", "invoice_line_ids.payment_state")
     def _compute_payment_summary(self):
@@ -687,6 +635,12 @@ class OperationOrderClearance(models.Model):
             rec.has_advance_invoice = bool(lines)
             rec.has_unpaid_advance_invoice = bool(lines.filtered(lambda l: l.payment_state != "paid"))
             rec.all_advance_paid = bool(lines) and states == {"paid"}
+            if not lines or states == {"draft"}:
+                rec.payable_state = "not_applied"
+            elif states == {"paid"}:
+                rec.payable_state = "paid"
+            else:
+                rec.payable_state = "paying"
 
 class OperationOrderClearanceInvoiceLine(models.Model):
     _name = "operation.order.clearance.invoice.line"
@@ -710,6 +664,20 @@ class OperationOrderClearanceInvoiceLine(models.Model):
             clearance = self.env["operation.order.clearance"].sudo().browse(clearance_id)
             return clearance.currency_id.id
         return self.env.company.currency_id.id
+
+    @api.model
+    def default_get(self, field_list):
+        values = super().default_get(field_list)
+        clearance_id = values.get("clearance_id") or self.env.context.get("default_clearance_id")
+        if not clearance_id or values.get("cost_line_ids"):
+            return values
+        clearance = self.env["operation.order.clearance"].sudo().browse(clearance_id).exists()
+        quotation = clearance.project_id.vendor_cost_quotation_id
+        quotation_lines = quotation.line_ids.filtered(lambda line: line.operation_type == "clearance") if quotation and quotation.state == "active" else self.env["vendor.cost.quotation.line"]
+        if quotation_lines:
+            values["currency_id"] = quotation.currency_id.id
+            values["cost_line_ids"] = [(0, 0, {"charge_type": "quotation", "charge_item_id": line.charge_item_id.id, "create_receivable": line.create_receivable, "qty": 1.0 if line.is_fixed_fee else line.qty, "unit_price": line.unit_price, "cost_nature": "at cost", "remark": line.remark}) for line in quotation_lines]
+        return values
 
     amount_total = fields.Monetary(string="Amount", currency_field="currency_id", compute="_compute_amount_total", store=True)
 
@@ -757,12 +725,28 @@ class OperationOrderClearanceInvoiceLine(models.Model):
             if rec.clearance_id and not rec.payment_company_id:
                 rec.payment_company_id = rec.clearance_id.project_id.payment_company_id
 
-    @api.constrains("vendor_invoice_num")
-    def check_vendor_invoice_num(self):
+    def action_apply_vendor_cost_quotation(self):
         for rec in self:
-            if rec.vendor_invoice_num and self.search_count(
-                    [("vendor_invoice_num", "=", rec.vendor_invoice_num), ("id", "!=", rec.id)]):
-                raise ValidationError(_("Vendor Invoice No must be unique."))
+            quotation = rec.clearance_id.project_id.vendor_cost_quotation_id
+            if rec.payment_state != "draft":
+                raise ValidationError(_("Vendor cost quotation can only be applied to a draft invoice line."))
+            if not quotation:
+                raise ValidationError(_("Vendor cost quotation is required on the project."))
+            if quotation.state != "active":
+                raise ValidationError(_("Vendor cost quotation must be active."))
+            if rec.cost_line_ids:
+                raise ValidationError(_("Clear existing cost lines before applying a vendor cost quotation."))
+            quotation_lines = quotation.line_ids.filtered(lambda line: line.operation_type == "clearance")
+            if not quotation_lines:
+                raise ValidationError(_("The project vendor cost quotation has no clearance cost lines."))
+            rec.write({"currency_id": quotation.currency_id.id, "cost_line_ids": [(0, 0, {"charge_type": "quotation", "charge_item_id": line.charge_item_id.id, "create_receivable": line.create_receivable, "qty": 1.0 if line.is_fixed_fee else line.qty, "unit_price": line.unit_price, "cost_nature": "at cost", "remark": line.remark}) for line in quotation_lines]})
+
+    @api.constrains("clearance_id", "vendor_invoice_num")
+    def check_vendor_invoice_num(self):
+        env_invoice_line = self.env["operation.order.clearance.invoice.line"]
+        for rec in self:
+            if rec.clearance_id and rec.vendor_invoice_num and env_invoice_line.sudo().search_count([("clearance_id", "=", rec.clearance_id.id), ("vendor_invoice_num", "=", rec.vendor_invoice_num), ("id", "!=", rec.id)]):
+                raise ValidationError(_("Vendor Invoice No must be unique within the same clearance."))
 
     @api.constrains("vendor_invoice_attachment_ids", "amount_total")
     def check_vendor_invoice_attachment(self):
@@ -780,6 +764,22 @@ class OperationOrderClearanceInvoiceLine(models.Model):
     def action_request_clearance_payment(self):
         move_model = self.env["account.move"]
         for rec in self:
+            quotation = rec.clearance_id.project_id.vendor_cost_quotation_id
+            if quotation and not rec.cost_line_ids:
+                rec.action_apply_vendor_cost_quotation()
+            if rec.cost_line_ids.filtered(lambda line: line.create_receivable):
+                if rec.clearance_id.receivable_state == "confirmed":
+                    raise ValidationError(_("Confirmed receivable cannot be changed by vendor cost quotation."))
+                existing_item_ids = set(rec.clearance_id.charge_line_ids.mapped("charge_item_id").ids)
+                quotation_lines = rec.clearance_id.quotation_id.quotation_customs_lines
+                charge_vals = []
+                for cost_line in rec.cost_line_ids.filtered(lambda line: line.create_receivable):
+                    if cost_line.charge_item_id.id in existing_item_ids:
+                        continue
+                    quotation_line = quotation_lines.filtered(lambda line: line.charge_item_id == cost_line.charge_item_id)[:1]
+                    charge_vals.append((0, 0, {"charge_origin_type": "quotation", "charge_item_id": cost_line.charge_item_id.id, "is_fixed_fee": quotation_line.is_fixed_fee if quotation_line else False, "qty": 1.0 if (quotation_line.is_fixed_fee if quotation_line else False) else cost_line.qty, "unit_price": quotation_line.unit_price if quotation_line else 0.0, "remark": cost_line.remark}))
+                if charge_vals:
+                    rec.clearance_id.write({"charge_line_ids": charge_vals})
             if rec.clearance_id.is_clearance_overdue:
                 if not rec.clearance_id.overdue_blocking_reason_id:
                     raise ValidationError(_("Overdue blocking reason is required for overdue handovers."))

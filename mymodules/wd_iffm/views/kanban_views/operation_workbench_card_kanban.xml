@@ -188,12 +188,12 @@
 
                             <!-- 换单-进度状态条 -->
                             <div t-if="record.lane_code.raw_value == 'handover'" class="o_kanban_statusbar mb-1">
-                                <field name="handover_state" statusbar_visible="open,paid,released,close" widget="statusbar" readonly="1" />
+                                <field name="handover_state" statusbar_visible="open,released,close,cancelled" widget="statusbar" readonly="1" />
                             </div>
 
                              <!-- 清关-进度状态条 -->
                              <div t-if="record.lane_code.raw_value == 'clearance'" class="o_kanban_statusbar mb-1">
-                                 <field name="clearance_state" statusbar_visible="open,paid,clearanced,close" widget="statusbar" readonly="1" />
+                                 <field name="clearance_state" statusbar_visible="open,clearanced,close,cancelled" widget="statusbar" readonly="1" />
                              </div>
 
                             <!-- 卡片底部 -->
