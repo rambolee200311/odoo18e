@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_operation_contact_dashboard_form" model="ir.ui.view">
+        <field name="name">operation.contact.dashboard.form</field>
+        <field name="model">operation.contact.dashboard</field>
+        <field name="arch" type="xml">
+            <form string="Contacts" create="false" edit="false" delete="false" duplicate="false">
+                <sheet>
+                    <div class="dashboard"
+                         style="padding: 16px; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px;">
+                        <div class="card o_kanban_record"
+                             style="padding: 16px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center; background: #f8f9fa;"><h3>
+                            Shipping Line Agent</h3><p>Total: <field name="shipping_agent_count" readonly="1"/></p><button name="action_open_contacts_by_role" type="object"
+                                                            string="Open" class="btn btn-primary"
+                                                            context="{'contact_role_code': 'shipping_agent', 'contact_role_name': 'Shipping Line Agent'}"/></div>
+                        <div class="card o_kanban_record"
+                             style="padding: 16px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center; background: #f8f9fa;"><h3>
+                            Exporter</h3><p>Total: <field name="exporter_count" readonly="1"/></p><button name="action_open_contacts_by_role" type="object" string="Open"
+                                                 class="btn btn-primary"
+                                                 context="{'contact_role_code': 'exporter', 'contact_role_name': 'Exporter'}"/></div>
+                        <div class="card o_kanban_record"
+                             style="padding: 16px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center; background: #f8f9fa;"><h3>
+                            Importer</h3><p>Total: <field name="importer_count" readonly="1"/></p><button name="action_open_contacts_by_role" type="object" string="Open"
+                                                 class="btn btn-primary"
+                                                 context="{'contact_role_code': 'importer', 'contact_role_name': 'Importer'}"/></div>
+                        <div class="card o_kanban_record"
+                             style="padding: 16px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center; background: #f8f9fa;"><h3>
+                            Customs Broker</h3><p>Total: <field name="customs_broker_count" readonly="1"/></p><button name="action_open_contacts_by_role" type="object" string="Open"
+                                                       class="btn btn-primary"
+                                                       context="{'contact_role_code': 'customs_broker', 'contact_role_name': 'Customs Broker'}"/></div>
+<!--                        <div class="card o_kanban_record"-->
+<!--                             style="padding: 16px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center; background: #f8f9fa;"><h3>-->
+<!--                            Notify Party</h3><p>Total: <field name="notify_party_count" readonly="1"/></p><button name="action_open_contacts_by_role" type="object" string="Open"-->
+<!--                                                     class="btn btn-primary"-->
+<!--                                                     context="{'contact_role_code': 'notify_party', 'contact_role_name': 'Notify Party'}"/></div>-->
+                        <div class="card o_kanban_record"
+                             style="padding: 16px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center; background: #f8f9fa;"><h3>
+                            Payment Company</h3><p>Total: <field name="payment_company_count" readonly="1"/></p><button name="action_open_contacts_by_role" type="object" string="Open"
+                                                        class="btn btn-primary"
+                                                        context="{'contact_role_code': 'payment_company', 'contact_role_name': 'Payment Company'}"/></div>
+                        <div class="card o_kanban_record"
+                             style="padding: 16px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center; background: #f8f9fa;"><h3>
+                            Receipt Company</h3><p>Total: <field name="receipt_company_count" readonly="1"/></p><button name="action_open_contacts_by_role" type="object" string="Open"
+                                                        class="btn btn-primary"
+                                                        context="{'contact_role_code': 'receipt_company', 'contact_role_name': 'Receipt Company'}"/></div>
+                        <div class="card o_kanban_record"
+                             style="padding: 16px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center; background: #f8f9fa;"><h3>
+                            Unassigned</h3><p>Total: <field name="unassigned_count" readonly="1"/></p><button name="action_open_contacts_by_role" type="object" string="Open"
+                                                   class="btn btn-primary"
+                                                   context="{'contact_role_code': 'unassigned', 'contact_role_name': 'Unassigned'}"/></div>
+                        <div class="card o_kanban_record"
+                             style="padding: 16px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center; background: #f8f9fa;"><h3>
+                            All Contacts</h3><p>Total: <field name="all_count" readonly="1"/></p><button name="action_open_contacts_by_role" type="object" string="Open"
+                                                     class="btn btn-primary"
+                                                     context="{'contact_role_code': 'all', 'contact_role_name': 'All Contacts'}"/></div>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_operation_contact_dashboard" model="ir.actions.act_window">
+        <field name="name">Contacts</field>
+        <field name="res_model">operation.contact.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_operation_contact_dashboard_form"/>
+        <field name="target">current</field>
+    </record>
+
+<!--    <menuitem id="menu_wd_iffm_contacts" name="Contacts" parent="menu_wd_base_config"-->
+<!--              action="action_operation_contact_dashboard" sequence="20"/>-->
+</odoo>

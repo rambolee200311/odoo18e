@@ -18,7 +18,7 @@ Long description of module's purpose
     'version': '0.2',
 
     # any module necessary for this one to work correctly
-    'depends': ['base','account','worlddepot'],
+    'depends': ['base','account','worlddepot','wd_account_extension'],
 
     # hooks
     'post_init_hook': '_init_workbench_lanes',
@@ -32,7 +32,6 @@ Long description of module's purpose
         'report/statement_period_templates.xml',
         'data/sequence_operation.xml',
         'data/ir_sequence_quotation.xml',
-        'data/account_account_data.xml',
         'data/workbench_test_data.xml',
         'data/operation_blocking_reason_data.xml',
         'data/portbase_api_data.xml',
@@ -51,8 +50,10 @@ Long description of module's purpose
         'views/charge_pricing_views/project_project_inherit_views.xml',
         'views/charge_pricing_views/waybill.xml',
         'wizard/protbase_import/portbase_waybill_import_wizard.xml',
-        'views/charge_pricing_views/res_partner_inherit_views.xml',
         'views/charge_pricing_views/port_node_views.xml',
+        'views/charge_pricing_views/res_partner_inherit_views.xml',
+        'views/charge_pricing_views/shipping_line_views.xml',
+        'views/workbench_views/operation_contact_dashboard_views.xml',
         'views/charge_pricing_views/portbase_webhook_log_views.xml',
 
         'views/handover_views/operation_order_handover_views.xml',
@@ -68,7 +69,6 @@ Long description of module's purpose
 
 
         'views/settlement_account_views/account_move_inherit_views.xml',
-        'views/settlement_account_views/account_account_inherit_views.xml',
 
         'views/charge_item_inherit_views.xml',
         'views/workbench_views/operation_workbench_dashboard_data_views.xml',

@@ -465,6 +465,8 @@ class OperationOrderClearance(models.Model):
                 raise ValidationError(_("Receivable is already confirmed."))
             if not rec.charge_line_ids:
                 raise ValidationError(_("Charge lines are required before confirming receivable."))
+            if rec.charge_line_ids.filtered(lambda line: (line.amount_total or 0.0) <= 0 and (line.manual_amount_total or 0.0) <= 0):
+                raise ValidationError(_("Each charge line must have a total amount or manual total amount greater than 0 before confirming receivable."))
             rec.write({"receivable_state": "confirmed", "receivable_confirm_user_id": self.env.user.id, "receivable_confirm_time": fields.Datetime.now()})
         return {"type": "ir.actions.client", "tag": "display_notification", "params": {"title": _("Receivable"), "message": _("Receivable confirmed successfully."), "type": "success", "sticky": False, "next": {"type": "ir.actions.client", "tag": "reload"}}}
 
@@ -725,6 +727,11 @@ class OperationOrderClearanceInvoiceLine(models.Model):
             if rec.clearance_id and not rec.payment_company_id:
                 rec.payment_company_id = rec.clearance_id.project_id.payment_company_id
 
+    @api.onchange("customs_broker_id")
+    def onchange_customs_broker_id(self):
+        for rec in self:
+            rec.receipt_company_id = rec.customs_broker_id
+
     def action_apply_vendor_cost_quotation(self):
         for rec in self:
             quotation = rec.clearance_id.project_id.vendor_cost_quotation_id
@@ -788,6 +795,8 @@ class OperationOrderClearanceInvoiceLine(models.Model):
             operator = self.env.ref("base.user_admin")
             if not rec.cost_line_ids:
                 raise ValidationError(_("Cost lines are required before requesting payment."))
+            if rec.cost_line_ids.filtered(lambda line: (line.amount_total or 0.0) <= 0 and (line.manual_amount_total or 0.0) <= 0):
+                raise ValidationError(_("Each cost line must have a total amount or manual total amount greater than 0 before requesting payment."))
             if rec.payment_mode != "advance":
                 raise ValidationError(_("Only advance invoices can request payment."))
             if rec.amount_total <= 0 and not rec.vendor_invoice_attachment_ids:

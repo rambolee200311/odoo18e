@@ -10,12 +10,6 @@
                        options="{'no_create': True, 'no_open': True}"/>
                 <field name="clearance_id" readonly="1" invisible="move_type != 'in_invoice' or not clearance_id"
                        options="{'no_create': True, 'no_open': True}"/>
-                <field name="bank_proof_attachment_ids"
-                       widget="many2many_binary"
-                       string="Bank Proof (Water Slip)"
-                       readonly="is_operation_payment_confirmed"
-                       invisible="move_type != 'in_invoice'"/>
-                <field name="is_operation_payment_confirmed" invisible="1"/>
             </xpath>
 
             <xpath expr="//header//button[@name='button_draft']" position="after">
@@ -26,8 +20,9 @@
                         invisible="move_type != 'in_invoice'
                                or payment_state != 'paid'
                                or not bank_proof_attachment_ids
-                               or is_operation_payment_confirmed"/>
-                <span class="badge text-bg-success ms-2" invisible="move_type != 'in_invoice' or not is_operation_payment_confirmed">
+                               or (not handover_id and not clearance_id)
+                               or payment_info_synced"/>
+                <span class="badge text-bg-success ms-2" invisible="move_type != 'in_invoice' or (not handover_id and not clearance_id) or not payment_info_synced">
                     <i class="fa fa-check-circle"/> Payment Sync Completed
                 </span>
                 <!--            <button name="action_push_customer_invoice_files_to_period"-->
@@ -53,19 +48,4 @@
             </xpath>
         </field>
     </record>
-    <record id="account_move_form_inherit_charge_item" model="ir.ui.view">
-        <field name="name">account.move.form.inherit.charge.item</field>
-        <field name="model">account.move</field>
-        <field name="inherit_id" ref="account.view_move_form"/>
-        <field name="arch" type="xml">
-            <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='product_id']" position="attributes">
-                <attribute name="optional">hide</attribute>
-            </xpath>
-            <xpath expr="//field[@name='invoice_line_ids']/list/field[@name='product_id']" position="after">
-                <field name="charge_item_id" optional="show" readonly="parent.state != 'draft'"
-                       options="{'no_create': True, 'no_open': True}"/>
-            </xpath>
-        </field>
-    </record>
-
 </odoo>
