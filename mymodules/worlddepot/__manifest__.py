@@ -36,7 +36,6 @@
         'views/my_picking_type.xml',
         'views/inbound_order.xml',
         'views/outbound_order.xml',
-        'views/outbound_order_payable.xml',
         #'views/portal_inventory_reporting.xml',
         'views/api_logs.xml',
 

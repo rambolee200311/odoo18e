@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_wd_outbound_payable,wd.outbound.payable,model_world_depot_outbound_order_payable,,1,1,1,1
+access_wd_outbound_payable_charge,wd.outbound.payable.charge,model_world_depot_outbound_order_payable_charge,,1,1,1,1
