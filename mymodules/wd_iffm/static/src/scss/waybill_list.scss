@@ -1,15 +1,9 @@
-.o_list_view.o_waybill_list .o_list_table tbody > tr.o_data_row.text-success > td {
-    background-color: #d1e7dd !important;
+.o_list_view.o_waybill_list .o_list_table .o_data_cell .text-success {
+    color: #198754 !important;
+    font-weight: 700;
 }
 
-.o_list_view.o_waybill_list .o_list_table tbody > tr.o_data_row.text-danger > td {
-    background-color: #f8d7da !important;
-}
-
-.o_list_view.o_waybill_list .o_list_table tbody > tr.o_data_row.text-success:hover > td {
-    background-color: #badbcc !important;
-}
-
-.o_list_view.o_waybill_list .o_list_table tbody > tr.o_data_row.text-danger:hover > td {
-    background-color: #f1bfc4 !important;
+.o_list_view.o_waybill_list .o_list_table .o_data_cell .text-danger {
+    color: #dc3545 !important;
+    font-weight: 700;
 }
