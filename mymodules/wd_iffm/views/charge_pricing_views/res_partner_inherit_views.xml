@@ -19,13 +19,14 @@
                 <page string="Role">
                     <group col="2">
                         <group>
-                            <field name="is_shipping_line"/>
+<!--                            <field name="is_shipping_line"/>-->
+                            <field name="is_shipping_agent"/>
                             <field name="is_exporter"/>
                             <field name="is_importer"/>
                         </group>
                         <group>
                             <field name="is_customs_broker"/>
-                            <field name="is_notify_party"/>
+<!--                            <field name="is_notify_party"/>-->
                             <field name="is_payment"/>
                             <field name="is_receipt"/>
                         </group>
@@ -34,6 +35,51 @@
             </xpath>
 
 
+        </field>
+    </record>
+
+    <record id="view_wd_iffm_partner_list" model="ir.ui.view">
+        <field name="name">wd.iffm.partner.list</field>
+        <field name="model">res.partner</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="is_shipping_agent"/>
+                <field name="is_exporter"/>
+                <field name="is_importer"/>
+                <field name="is_customs_broker"/>
+<!--                <field name="is_notify_party"/>-->
+                <field name="is_payment"/>
+                <field name="is_receipt"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_wd_iffm_partner_search" model="ir.ui.view">
+        <field name="name">wd.iffm.partner.search</field>
+        <field name="model">res.partner</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <separator/>
+                <filter name="shipping_agent" string="Shipping Line Agent" domain="[('is_shipping_agent', '=', True)]"/>
+                <filter name="exporter" string="Exporter" domain="[('is_exporter', '=', True)]"/>
+                <filter name="importer" string="Importer" domain="[('is_importer', '=', True)]"/>
+                <filter name="customs_broker" string="Customs Broker" domain="[('is_customs_broker', '=', True)]"/>
+<!--                <filter name="notify_party" string="Notify Party" domain="[('is_notify_party', '=', True)]"/>-->
+                <filter name="payment_company" string="Payment Company" domain="[('is_payment', '=', True)]"/>
+                <filter name="receipt_company" string="Receipt Company" domain="[('is_receipt', '=', True)]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_by_shipping_line" string="Shipping Line" context="{'group_by': 'is_shipping_line'}"/>
+                    <filter name="group_by_shipping_agent" string="Shipping Line Agent" context="{'group_by': 'is_shipping_agent'}"/>
+                    <filter name="group_by_exporter" string="Exporter" context="{'group_by': 'is_exporter'}"/>
+                    <filter name="group_by_importer" string="Importer" context="{'group_by': 'is_importer'}"/>
+                    <filter name="group_by_customs_broker" string="Customs Broker" context="{'group_by': 'is_customs_broker'}"/>
+<!--                    <filter name="group_by_notify_party" string="Notify Party" context="{'group_by': 'is_notify_party'}"/>-->
+                    <filter name="group_by_payment_company" string="Payment Company" context="{'group_by': 'is_payment'}"/>
+                    <filter name="group_by_receipt_company" string="Receipt Company" context="{'group_by': 'is_receipt'}"/>
+                </group>
+            </search>
         </field>
     </record>
 
