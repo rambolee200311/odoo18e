@@ -16,7 +16,6 @@ This module adds a check to prevent duplicate serial number scanning during the 
             "stock_barcode_patch/static/src/js/grouped_line_patch.js",
             "stock_barcode_patch/static/src/js/barcode_picking_model_patch.js",
             "stock_barcode_patch/static/src/scss/barcode_overdone.scss",
-            # "stock_barcode_patch/static/src/js/sn_check_patch.js",
         ],
     },
     "license": "LGPL-3",
