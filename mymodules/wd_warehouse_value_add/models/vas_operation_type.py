@@ -12,10 +12,10 @@ class VasOperationType(models.Model):
 
     name = fields.Char(string='Operation Type', required=True)
     code = fields.Char(string='Code', required=True)
-    unit_id = fields.Many2one(
-        'world.depot.charge.unit',
-        string='Charge Unit',
-        required=True,
+    unit = fields.Char(string='Charge Unit', required=True)
+    charge_item_id = fields.Many2one(
+        'world.depot.charge.item',
+        string='Charge Item',
         ondelete='restrict',
     )
     active = fields.Boolean(default=True)

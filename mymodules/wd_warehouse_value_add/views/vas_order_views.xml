@@ -66,13 +66,13 @@
                                     <field name="sequence" widget="handle"/>
                                     <field name="operation_type_id"/>
                                     <field name="quantity_time"/>
-                                    <field name="unit_id" readonly="1"/>
+                                    <field name="unit" readonly="1"/>
                                     <field name="note"/>
                                 </list>
                                 <kanban>
                                     <field name="operation_type_id"/>
                                     <field name="quantity_time"/>
-                                    <field name="unit_id"/>
+                                    <field name="unit"/>
                                     <templates>
                                         <t t-name="card">
                                             <div class="oe_kanban_global_click">
@@ -81,7 +81,7 @@
                                                 </strong>
                                                 <div>
                                                     <field name="quantity_time"/>
-                                                    <field name="unit_id"/>
+                                                    <field name="unit"/>
                                                 </div>
                                                 <field name="note"/>
                                             </div>
