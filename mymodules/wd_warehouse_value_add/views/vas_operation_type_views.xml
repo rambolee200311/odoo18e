@@ -10,6 +10,8 @@
                 <field name="code"/>
                 <field name="unit"/>
                 <field name="charge_item_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="currency_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="note"/>
                 <field name="active"/>
             </list>
         </field>
@@ -26,6 +28,8 @@
                         <field name="code"/>
                         <field name="unit"/>
                         <field name="charge_item_id" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="currency_id" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="note"/>
                         <field name="sequence"/>
                         <field name="active"/>
                     </group>
@@ -43,6 +47,8 @@
                 <field name="code"/>
                 <field name="unit"/>
                 <field name="charge_item_id"/>
+                <field name="currency_id"/>
+                <field name="note"/>
                 <filter name="active" string="Active" domain="[('active', '=', True)]"/>
                 <filter name="inactive" string="Archived" domain="[('active', '=', False)]"/>
             </search>
