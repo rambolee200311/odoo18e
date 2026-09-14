@@ -26,19 +26,17 @@ class VasOrderLine(models.Model):
         string='Quantity / Time',
         digits=(16, 4),
     )
-    unit_id = fields.Many2one(
-        'world.depot.charge.unit',
+    unit = fields.Char(
         string='Unit',
         required=True,
         readonly=True,
-        ondelete='restrict',
     )
     note = fields.Text(string='Note')
 
     @api.onchange('operation_type_id')
     def _onchange_operation_type_id(self):
         for record in self:
-            record.unit_id = record.operation_type_id.unit_id
+            record.unit = record.operation_type_id.unit
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -55,7 +53,7 @@ class VasOrderLine(models.Model):
                 vals.get('operation_type_id')
             )
             if operation_type:
-                vals['unit_id'] = operation_type.unit_id.id
+                vals['unit'] = operation_type.unit
         return super().create(vals_list)
 
     def write(self, vals):
@@ -69,7 +67,7 @@ class VasOrderLine(models.Model):
             operation_type = self.env['wd.vas.operation.type'].browse(
                 vals['operation_type_id']
             )
-            vals = dict(vals, unit_id=operation_type.unit_id.id)
+            vals = dict(vals, unit=operation_type.unit)
         return super().write(vals)
 
     def unlink(self):
@@ -81,12 +79,12 @@ class VasOrderLine(models.Model):
                 )
         return super().unlink()
 
-    @api.constrains('operation_type_id', 'unit_id')
+    @api.constrains('operation_type_id', 'unit')
     def _check_unit_matches_operation_type(self):
         for record in self:
             if (
                 record.operation_type_id
-                and record.unit_id != record.operation_type_id.unit_id
+                and record.unit != record.operation_type_id.unit
             ):
                 raise ValidationError(
                     'Line unit must match the operation type unit.'

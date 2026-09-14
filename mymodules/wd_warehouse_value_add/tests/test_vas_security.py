@@ -25,13 +25,10 @@ class TestVasSecurity(TransactionCase):
         cls.manager_group = cls.env.ref(
             'wd_warehouse_value_add.group_vas_manager'
         )
-        unit = cls.env['world.depot.charge.unit'].create({
-            'name': 'Security Test Unit',
-        })
         cls.operation_type = cls.env['wd.vas.operation.type'].create({
             'name': 'Security Test Operation',
             'code': 'SEC-%s' % uuid4().hex[:8],
-            'unit_id': unit.id,
+            'unit': 'Security Test Unit',
         })
         for user in users:
             user.write({

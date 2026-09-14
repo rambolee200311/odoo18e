@@ -46,7 +46,7 @@ export class VasPdaAction extends Component {
             this.state.operationTypes = await this.orm.searchRead(
                 "wd.vas.operation.type",
                 [["active", "=", true]],
-                ["id", "name", "unit_id"],
+                ["id", "name", "unit"],
                 { order: "sequence, name" }
             );
         });
@@ -119,7 +119,7 @@ export class VasPdaAction extends Component {
         this.state.lines = await this.orm.searchRead(
             "wd.vas.order.line",
             [["order_id", "=", order.id]],
-            ["id", "operation_type_id", "quantity_time", "unit_id", "note"],
+            ["id", "operation_type_id", "quantity_time", "unit", "note"],
             { order: "sequence, id" }
         );
         this.state.attachments = this.state.order.attachment_ids?.length

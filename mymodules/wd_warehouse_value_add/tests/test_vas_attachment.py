@@ -16,7 +16,6 @@ class TestVasAttachment(TransactionCase):
         cls.InboundOrder = cls.env['world.depot.inbound.order']
         cls.Project = cls.env['project.project']
         cls.Currency = cls.env['res.currency']
-        cls.ChargeUnit = cls.env['world.depot.charge.unit']
         cls.OperationType = cls.env['wd.vas.operation.type']
         cls.warehouse = cls.env['stock.warehouse'].search([], limit=1)
         cls.operator = cls.env['res.users'].search(
@@ -28,11 +27,11 @@ class TestVasAttachment(TransactionCase):
         cls.operator.write({'groups_id': [(4, cls.user_group.id)]})
         cls.project = cls.Project.search([], limit=1)
         cls.currency = cls.Currency.search([], limit=1)
-        cls.unit = cls.ChargeUnit.create({'name': 'Attachment Test Unit'})
+        cls.unit = 'Attachment Test Unit'
         cls.operation_type = cls.OperationType.create({
             'name': 'Attachment Test Operation',
             'code': 'ATT-%s' % uuid4().hex[:8],
-            'unit_id': cls.unit.id,
+            'unit': cls.unit,
         })
 
     def _order(self):

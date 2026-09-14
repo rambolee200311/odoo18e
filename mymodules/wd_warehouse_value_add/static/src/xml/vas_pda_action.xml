@@ -77,7 +77,7 @@
                         </div>
                         <div class="o_wd_vas_line-value">
                             数量/工时：<t t-esc="line.quantity_time"/>
-                            <span>单位：<t t-esc="line.unit_id?.[1] || '自动'"/></span>
+                            <span>单位：<t t-esc="line.unit || '自动'"/></span>
                         </div>
                         <div class="o_wd_vas_line-note">
                             备注：<t t-esc="line.note || '-'"/>
