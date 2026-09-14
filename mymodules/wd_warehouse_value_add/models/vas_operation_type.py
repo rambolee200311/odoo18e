@@ -18,6 +18,12 @@ class VasOperationType(models.Model):
         string='Charge Item',
         ondelete='restrict',
     )
+    currency_id = fields.Many2one(
+        'res.currency',
+        string='Currency',
+        ondelete='restrict',
+    )
+    note = fields.Text(string='Note')
     active = fields.Boolean(default=True)
     sequence = fields.Integer(default=10)
 
