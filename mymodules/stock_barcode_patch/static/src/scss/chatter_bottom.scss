@@ -1,0 +1,15 @@
+.o_form_view .o_form_renderer:has(> .o-mail-Form-chatter) {
+    flex-direction: column !important;
+    height: auto !important;
+}
+
+.o_form_view.o_xxl_form_view .o_form_renderer:has(> .o-mail-Form-chatter) > .o_form_sheet_bg {
+    overflow: visible !important;
+    flex: 0 0 auto !important;
+}
+
+.o_form_view .o_form_renderer > .o-mail-Form-chatter {
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+}

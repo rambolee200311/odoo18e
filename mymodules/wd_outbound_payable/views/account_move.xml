@@ -5,7 +5,10 @@
         <field name="inherit_id" ref="account.view_move_form"/>
         <field name="arch" type="xml">
             <xpath expr="//header" position="inside">
-                <button name="action_confirm_outbound_payable_paid" type="object" string="Confirm Outbound Payable Payment" class="btn-primary" invisible="move_type != 'in_invoice' or not outbound_payable_id or payment_state != 'paid' or not bank_proof_attachment_ids or payment_info_synced"/>
+                <button name="action_confirm_outbound_payable_paid" type="object" string="Confirm Paid" class="btn-success" invisible="move_type != 'in_invoice' or not outbound_payable_id or payment_state != 'paid' or not bank_proof_attachment_ids or payment_info_synced"/>
+                <span class="badge text-bg-success ms-2" invisible="move_type != 'in_invoice' or not outbound_payable_id or not payment_info_synced">
+                    <i class="fa fa-check-circle"/> Payment Sync Completed
+                </span>
             </xpath>
             <xpath expr="//field[@name='ref']" position="after">
                 <field name="outbound_payable_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
