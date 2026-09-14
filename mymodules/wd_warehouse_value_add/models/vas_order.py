@@ -234,7 +234,7 @@ class VasOrder(models.Model):
                 raise ValidationError(
                     'Each line must use an active Operation Type.'
                 )
-            if not line.unit_id or line.unit_id != line.operation_type_id.unit_id:
+            if not line.unit or line.unit != line.operation_type_id.unit:
                 raise ValidationError(
                     'Each line unit must match its Operation Type.'
                 )

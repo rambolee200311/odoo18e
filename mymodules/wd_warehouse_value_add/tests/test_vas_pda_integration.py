@@ -22,11 +22,10 @@ class TestVasPdaIntegration(TransactionCase):
             ).id)],
         })
         cls.warehouse = cls.env['stock.warehouse'].search([], limit=1)
-        cls.unit = cls.env['world.depot.charge.unit'].create({'name': 'PDA Piece'})
         cls.operation = cls.env['wd.vas.operation.type'].create({
             'name': 'PDA Label',
             'code': 'PDA-LABEL',
-            'unit_id': cls.unit.id,
+            'unit': 'PDA Piece',
         })
         cls.project = cls.env['project.project'].create({
             'name': 'PDA Project',

@@ -12,7 +12,6 @@ class TestVasOrder(TransactionCase):
         cls.VasOperationType = cls.env['wd.vas.operation.type']
         cls.VasOrder = cls.env['wd.vas.order']
         cls.VasOrderLine = cls.env['wd.vas.order.line']
-        cls.ChargeUnit = cls.env['world.depot.charge.unit']
         cls.Warehouse = cls.env['stock.warehouse']
         cls.InboundOrder = cls.env['world.depot.inbound.order']
         cls.Project = cls.env['project.project']
@@ -26,7 +25,7 @@ class TestVasOrder(TransactionCase):
         )
         cls.env.user.write({'groups_id': [(4, cls.vas_user_group.id)]})
         cls.Operator.write({'groups_id': [(4, cls.vas_user_group.id)]})
-        cls.unit = cls.ChargeUnit.create({'name': 'Hour'})
+        cls.unit = 'Hour'
         cls.warehouse = cls.Warehouse.search([], limit=1)
         if not cls.warehouse:
             cls.warehouse = cls.Warehouse.create({
@@ -40,7 +39,7 @@ class TestVasOrder(TransactionCase):
         cls.operation_type = cls.VasOperationType.create({
             'name': 'Labour',
             'code': 'LABOUR',
-            'unit_id': cls.unit.id,
+            'unit': cls.unit,
         })
 
     def _order_vals(self, **values):
@@ -95,7 +94,7 @@ class TestVasOrder(TransactionCase):
             'operation_type_id': self.operation_type.id,
             'quantity_time': 0,
         })
-        self.assertEqual(line.unit_id, self.unit)
+        self.assertEqual(line.unit, self.unit)
 
     def test_explicit_relation_structure(self):
         fields_by_type = self.env['wd.vas.order']._fields
@@ -125,7 +124,7 @@ class TestVasOrder(TransactionCase):
             self.VasOperationType.create({
                 'name': 'Labour Duplicate',
                 'code': 'LABOUR',
-                'unit_id': self.unit.id,
+                'unit': self.unit,
             })
         self.VasOrder.create(self._order_vals(name='VAS/DUPLICATE'))
         with self.assertRaises(ValidationError):

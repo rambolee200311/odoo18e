@@ -2,7 +2,8 @@
 <odoo>
     <menuitem id="menu_vas_root" name="Warehouse VAS"
               action="action_vas_dashboard"
-              groups="wd_warehouse_value_add.group_vas_user"/>
+              groups="wd_warehouse_value_add.group_vas_user"
+              web_icon="wd_warehouse_value_add,static/description/icon.png"/>
     <menuitem id="menu_vas_home" name="Home"
               parent="menu_vas_root"
               action="action_vas_dashboard"
