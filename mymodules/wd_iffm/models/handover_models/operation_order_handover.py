@@ -699,7 +699,7 @@ class OperationOrderHandoverInvoiceLine(models.Model):
                 "message": _("Payment request has been submitted successfully."),
                 "type": "success",
                 "sticky": False,
-                "next": {"type": "ir.actions.client", "tag": "reload"},
+                "next": {"type": "ir.actions.client", "tag": "soft_reload"},
             },
         }
 
