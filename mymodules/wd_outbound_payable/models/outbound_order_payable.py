@@ -9,22 +9,66 @@ class OutboundOrder(models.Model):
 
     payable_lines = fields.One2many("world.depot.outbound.order.payable", "outbound_order_id", string="Payables",
                                     copy=False)
+    payable_state = fields.Selection([("not_applied", "Not Applied"), ("paying", "Paying"), ("paid", "Paid")], string="Payable Status", compute="_compute_payable_state", store=True, index=True)
+    receivable_state = fields.Selection([("draft", "Charge Unconfirmed"), ("confirmed", "Charge Confirmed")], string="Receivable Status", default="draft", required=True, tracking=True, index=True, copy=False)
+    receivable_confirm_user_id = fields.Many2one("res.users", string="Receivable Confirmed By", readonly=True, index=True, copy=False)
+    receivable_confirm_time = fields.Datetime(string="Receivable Confirmed On", readonly=True, index=True, copy=False)
+
+    @api.depends("payable_lines", "payable_lines.payment_state")
+    def _compute_payable_state(self):
+        for rec in self:
+            states = set(rec.payable_lines.mapped("payment_state"))
+            if not rec.payable_lines or states == {"draft"}:
+                rec.payable_state = "not_applied"
+            elif states == {"paid"}:
+                rec.payable_state = "paid"
+            else:
+                rec.payable_state = "paying"
+
+    def action_confirm_receivable(self):
+        for rec in self:
+            if rec.state == "cancel":
+                raise ValidationError(_("Cancelled outbound orders cannot confirm receivable."))
+            if rec.receivable_state == "confirmed":
+                raise ValidationError(_("Receivable is already confirmed."))
+            if not rec.outbound_order_charge_ids:
+                raise ValidationError(_("Charge lines are required before confirming receivable."))
+            if rec.outbound_order_charge_ids.filtered(lambda line: (line.amount or 0.0) <= 0):
+                raise ValidationError(_("Each charge line amount must be greater than zero before confirming receivable."))
+            rec.write({"receivable_state": "confirmed", "receivable_confirm_user_id": self.env.user.id,
+                       "receivable_confirm_time": fields.Datetime.now()})
+        return {"type": "ir.actions.client", "tag": "display_notification", "params": {"title": _("Receivable"), "message": _("Receivable confirmed successfully."), "type": "success", "sticky": False, "next": {"type": "ir.actions.client", "tag": "soft_reload"}}}
+
+    def action_unconfirm_receivable(self):
+        for rec in self:
+            if rec.state == "cancel":
+                raise ValidationError(_("Cancelled outbound orders cannot unconfirm receivable."))
+            if rec.receivable_state != "confirmed":
+                raise ValidationError(_("Receivable is not confirmed."))
+            rec.write({"receivable_state": "draft", "receivable_confirm_user_id": False,
+                       "receivable_confirm_time": False})
+        return {"type": "ir.actions.client", "tag": "display_notification", "params": {"title": _("Receivable"), "message": _("Receivable unconfirmed successfully."), "type": "success", "sticky": False, "next": {"type": "ir.actions.client", "tag": "soft_reload"}}}
 
 
 class OutboundOrderPayable(models.Model):
     _name = "world.depot.outbound.order.payable"
     _description = "Outbound Order Payable"
+    _rec_name = "name"
     _order = "id desc"
 
+    name = fields.Char(string="Outbound Payable", compute="_compute_name", store=True, index=True, copy=False)
     outbound_order_id = fields.Many2one("world.depot.outbound.order", string="Outbound Order", required=True,
                                         ondelete="cascade", index=True, copy=False)
     company_id = fields.Many2one("res.company", string="Company", required=True, default=lambda self: self.env.company,
                                  index=True, copy=False)
-    vendor_partner_id = fields.Many2one("res.partner", string="Vendor", required=True, ondelete="restrict", index=True)
+    clearance_no = fields.Char(string="Clearance No.", index=True, copy=False)
+    vendor_partner_id = fields.Many2one("res.partner", string="Customs Broker",  ondelete="restrict", index=True)
     vendor_invoice_num = fields.Char(string="Vendor Invoice No", index=True, copy=False)
-    payable_date = fields.Date(string="Payable Date", required=True, default=fields.Date.context_today, index=True)
+    payable_date = fields.Date(string="Invoice Date", required=True, default=fields.Date.context_today, index=True)
     currency_id = fields.Many2one("res.currency", string="Currency", required=True, index=True,
                                   default=lambda self: self.default_currency_id())
+    payment_company_id = fields.Many2one("res.partner", string="Payment Company", default=lambda self: self.env.company.partner_id, index=True)
+    receipt_company_id = fields.Many2one("res.partner", string="Receipt Company", index=True)
 
     amount_total = fields.Monetary(string="Total Amount", currency_field="currency_id", compute="_compute_amount_total",
                                    store=True)
@@ -33,7 +77,7 @@ class OutboundOrderPayable(models.Model):
     vendor_invoice_attachment_ids = fields.Many2many("ir.attachment",
                                                      "wd_outbound_payable_vendor_invoice_attachment_rel", "payable_id",
                                                      "attachment_id", string="Vendor Invoice Attachments", copy=False)
-    vendor_invoice_id = fields.Many2one("account.move", string="Vendor Bill", ondelete="restrict", index=True,
+    vendor_invoice_id = fields.Many2one("account.move", string="Vendor Invoice (Optional)", ondelete="restrict", index=True,
                                         copy=False)
     payment_state = fields.Selection([("draft", "Draft"), ("paying", "Payment Requested"), ("paid", "Paid")],
                                      string="Payment Status", required=True, default="draft", index=True, copy=False)
@@ -54,6 +98,17 @@ class OutboundOrderPayable(models.Model):
         #     if outbound_order.currency_id:
         #         return outbound_order.currency_id.id
         return self.env.company.currency_id.id
+
+    @api.onchange("vendor_partner_id")
+    def onchange_vendor_partner_id(self):
+        for rec in self:
+            if rec.vendor_partner_id:
+                rec.receipt_company_id = rec.vendor_partner_id
+
+    @api.depends("outbound_order_id.billno", "vendor_invoice_num")
+    def _compute_name(self):
+        for rec in self:
+            rec.name = " - ".join(value for value in [rec.outbound_order_id.billno, rec.vendor_invoice_num] if value)
 
     @api.constrains("outbound_order_id", "vendor_invoice_num")
     def check_vendor_invoice_num(self):
@@ -84,6 +139,8 @@ class OutboundOrderPayable(models.Model):
                 line.manual_amount_total if line.manual_amount_total > 0 else line.amount for line in rec.charge_lines)
 
     def action_request_payment(self):
+        move_model = self.env["account.move"]
+        move_model.check_invoice_applicant_permission()
         for rec in self:
             if rec.payment_state != "draft":
                 raise ValidationError(_("Only draft outbound payables can request payment."))
@@ -95,10 +152,29 @@ class OutboundOrderPayable(models.Model):
                 raise ValidationError(_("At least one charge line is required before requesting payment."))
             if not rec.vendor_invoice_attachment_ids:
                 raise ValidationError(_("Vendor invoice attachments are required before requesting payment."))
+            if not rec.payment_company_id:
+                raise ValidationError(_("Payment Company is required before requesting payment."))
+            if not rec.receipt_company_id:
+                raise ValidationError(_("Receipt Company is required before requesting payment."))
             invalid_charge_lines = rec.charge_lines.filtered(
                 lambda line: (line.manual_amount_total if line.manual_amount_total > 0 else line.amount) <= 0)
             if invalid_charge_lines:
                 raise ValidationError(_("Each charge line amount must be greater than zero."))
+            if rec.charge_lines.filtered(lambda line: line.create_receivable) and rec.outbound_order_id.receivable_state == "confirmed":
+                raise ValidationError(_("Confirmed receivable charge lines cannot be changed."))
+            existing_item_ids = set(rec.outbound_order_id.outbound_order_charge_ids.mapped("charge_item_id").ids)
+            receivable_vals = []
+            for line in rec.charge_lines.filtered(lambda line: line.create_receivable):
+                if line.charge_item_id.id in existing_item_ids:
+                    continue
+                quantity = line.quantity
+                unit_price = 0.0
+                receivable_vals.append((0, 0, {"charge_item_id": line.charge_item_id.id, "quantity": quantity,
+                                                "charge_unit_id": line.charge_unit_id.id, "unit_price": unit_price,
+                                                "currency_id": rec.currency_id.id, "description": line.remark}))
+                existing_item_ids.add(line.charge_item_id.id)
+            if receivable_vals:
+                rec.outbound_order_id.write({"outbound_order_charge_ids": receivable_vals})
             journal = self.env["account.journal"].sudo().search(
                 [("type", "=", "purchase"), ("company_id", "=", rec.company_id.id)], limit=1)
             if not journal:
@@ -115,17 +191,18 @@ class OutboundOrderPayable(models.Model):
             for line in rec.charge_lines:
                 quantity = 1.0 if line.manual_amount_total > 0 else line.quantity
                 unit_price = line.manual_amount_total if line.manual_amount_total > 0 else line.unit_price
+                name = _("Outbound Order Bill - %s") % (line.charge_item_id.display_name,)
                 invoice_line_vals.append(
-                    {"name": line.charge_item_id.display_name, "charge_item_id": line.charge_item_id.id, "quantity": quantity, "price_unit": unit_price,
+                    {"name": name, "charge_item_id": line.charge_item_id.id, "quantity": quantity, "price_unit": unit_price,
                      "account_id": expense_account.id})
-            vendor_bill = self.env["account.move"].create(
-                {"move_type": "in_invoice", "partner_id": rec.vendor_partner_id.id, "invoice_date": rec.payable_date,
-                 "currency_id": rec.currency_id.id, "journal_id": journal.id, "ref": rec.vendor_invoice_num,
-                 "outbound_payable_id": rec.id,
+            vendor_bill = move_model.create(
+                {"move_type": "in_invoice", "partner_id": rec.receipt_company_id.id, "invoice_date": rec.payable_date,
+                 "currency_id": rec.currency_id.id, "journal_id": journal.id, "ref": rec.outbound_order_id.billno,
+                 "outbound_payable_id": rec.id, "invoice_request_user_id": self.env.user.id,
                  "invoice_line_ids": [(0, 0, line_vals) for line_vals in invoice_line_vals]})
             for attachment in rec.vendor_invoice_attachment_ids:
                 attachment.copy({"res_model": "account.move", "res_id": vendor_bill.id})
-            vendor_bill.action_post()
+            vendor_bill.action_post_invoice_request()
             rec.write(
                 {"vendor_invoice_id": vendor_bill.id, "payment_state": "paying", "apply_user_id": self.env.user.id,
                  "apply_datetime": fields.Datetime.now()})
@@ -134,16 +211,14 @@ class OutboundOrderPayable(models.Model):
                            "next": {"type": "ir.actions.client", "tag": "soft_reload"}}}
 
     def action_revoke_payment_request(self):
+        self.env["account.move"].check_invoice_applicant_permission()
         for rec in self:
             if rec.payment_state != "paying" or not rec.vendor_invoice_id:
                 raise ValidationError(_("Only payment requests with a vendor bill can be revoked."))
             vendor_bill = rec.vendor_invoice_id
             if vendor_bill.payment_state != "not_paid":
                 raise ValidationError(_("A vendor bill with payment activity cannot be revoked."))
-            if vendor_bill.state == "posted":
-                vendor_bill.button_draft()
-            if vendor_bill.state == "draft":
-                vendor_bill.button_cancel()
+            vendor_bill.action_cancel_invoice_request()
             rec.write(
                 {"vendor_invoice_id": False, "payment_state": "draft", "apply_user_id": False, "apply_datetime": False,
                  "bank_proof_attachment_ids": [(5, 0, 0)], "paid_user_id": False, "paid_datetime": False})
@@ -158,6 +233,34 @@ class OutboundOrderPayable(models.Model):
         return super().unlink()
 
 
+class OutboundOrderCharge(models.Model):
+    _inherit = "world.depot.outbound.order.charge"
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        order_ids = [vals.get("outbound_order_id") for vals in vals_list if vals.get("outbound_order_id")]
+        outbound_orders = self.env["world.depot.outbound.order"].browse(order_ids).exists()
+        if outbound_orders.filtered(lambda rec: rec.receivable_state == "confirmed"):
+            raise ValidationError(_("Confirmed receivable charge lines cannot be changed."))
+        return super().create(vals_list)
+
+    def write(self, vals):
+        for rec in self:
+            if rec.outbound_order_id.receivable_state == "confirmed":
+                raise ValidationError(_("Confirmed receivable charge lines cannot be changed."))
+        if vals.get("outbound_order_id"):
+            outbound_order = self.env["world.depot.outbound.order"].browse(vals["outbound_order_id"]).exists()
+            if outbound_order.receivable_state == "confirmed":
+                raise ValidationError(_("Confirmed receivable charge lines cannot be changed."))
+        return super().write(vals)
+
+    def unlink(self):
+        for rec in self:
+            if rec.outbound_order_id.receivable_state == "confirmed":
+                raise ValidationError(_("Confirmed receivable charge lines cannot be changed."))
+        return super().unlink()
+
+
 class OutboundOrderPayableCharge(models.Model):
     _name = "world.depot.outbound.order.payable.charge"
     _description = "Outbound Order Payable Charge"
@@ -168,7 +271,8 @@ class OutboundOrderPayableCharge(models.Model):
                                      ondelete="restrict")
     quantity = fields.Float(string="Quantity", required=True, default=1.0)
     charge_unit_id = fields.Many2one("world.depot.charge.unit", string="Unit")
-    unit_price = fields.Monetary(string="Unit Price", required=True, default=0.0)
+    create_receivable = fields.Boolean(string="Create Receivable", default=False)
+    unit_price = fields.Monetary(string="Unit Price", required=True, currency_field="currency_id" ,default=0.0)
     manual_amount_total = fields.Monetary(string="Manual Total Amount", currency_field="currency_id", default=0.0)
     amount = fields.Monetary(string="Amount", currency_field="currency_id", compute="_compute_amount", store=True)
     currency_id = fields.Many2one("res.currency", string="Currency", related="payable_id.currency_id", store=True,

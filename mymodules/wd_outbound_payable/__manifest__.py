@@ -2,7 +2,7 @@
 {
     "name": "Outbound Payable",
     "version": "1.0.0",
-    "category": "Operations",
+    "category": "Warehouse",
     "summary": "Outbound order payable records",
     "depends": ["account", "wd_account_extension", "worlddepot"],
     "data": [
@@ -11,6 +11,6 @@
         "views/account_move.xml",
     ],
     "installable": True,
-    "application": False,
+    'application': True,
     "license": "LGPL-3",
 }

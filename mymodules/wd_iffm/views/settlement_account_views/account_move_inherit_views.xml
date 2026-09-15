@@ -7,9 +7,9 @@
             <xpath expr="//field[@name='ref']" position="after">
                 <field name="waybill_bill_number" readonly="1" invisible="move_type != 'in_invoice'"/>
                 <field name="handover_id" readonly="1" invisible="move_type != 'in_invoice' or not handover_id"
-                       options="{'no_create': True, 'no_open': True}"/>
+                       options="{'no_create': True, 'no_open': False}"/>
                 <field name="clearance_id" readonly="1" invisible="move_type != 'in_invoice' or not clearance_id"
-                       options="{'no_create': True, 'no_open': True}"/>
+                       options="{'no_create': True, 'no_open': False}"/>
             </xpath>
 
             <xpath expr="//header//button[@name='button_draft']" position="after">

@@ -176,15 +176,33 @@
         params.set('date_to', filters.date_to);
         if (filters.cprojectid) { params.set('cprojectid', filters.cprojectid); }
         params.set('page', filters.page || '1');
+
         fetch(BASE_URL + '?' + params.toString(), {
-            credentials: 'same-origin', headers: { 'Accept': 'application/json' },
+            credentials: 'same-origin',
+            headers: { 'Accept': 'application/json' },
         }).then(function (response) {
-            return response.json().catch(function () { return { error: 'Invalid JSON response from the server.' }; });
+            return response.text().then(function (text) {
+                if (!response.ok) {
+                    // 后端返回非 200，尝试解析 JSON 取具体错误
+                    try {
+                        var err = JSON.parse(text);
+                        if (err && err.error) { return { error: err.error }; }
+                    } catch (e) { /* 不是 JSON，忽略 */ }
+                    return { error: 'Server error (HTTP ' + response.status + ').' };
+                }
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    return { error: 'Unexpected server response.' };
+                }
+            });
         }).then(function (data) {
-            renderData(data); setLoading(false);
+            renderData(data);
+            setLoading(false);
         }).catch(function (err) {
-//            console.error('Inbound pallet summary load failed:', err);
-            showError('Unable to load inbound pallet summary.'); clearData(); setLoading(false);
+            showError('Unable to load inbound pallet summary.');
+            clearData();
+            setLoading(false);
         });
     }
 

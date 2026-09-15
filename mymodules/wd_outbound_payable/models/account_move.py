@@ -8,6 +8,7 @@ class AccountMove(models.Model):
     _inherit = "account.move"
 
     outbound_payable_id = fields.Many2one("world.depot.outbound.order.payable", string="Outbound Payable", ondelete="set null", index=True, copy=False)
+    outbound_order_id = fields.Many2one("world.depot.outbound.order", string="Outbound Order", related="outbound_payable_id.outbound_order_id", store=True, readonly=True)
 
     def action_confirm_outbound_payable_paid(self):
         for rec in self:
@@ -28,4 +29,4 @@ class AccountMove(models.Model):
                 attachment_ids.append(copied_attachment.id)
             payable.write({"payment_state": "paid", "bank_proof_attachment_ids": [(6, 0, attachment_ids)], "paid_user_id": self.env.user.id, "paid_datetime": fields.Datetime.now()})
             rec.write({"payment_info_synced": True})
-        return {"type": "ir.actions.client", "tag": "display_notification", "params": {"type": "success", "message": _("Outbound payable payment confirmed."), "next": {"type": "ir.actions.client", "tag": "soft_reload"}}}
+        return {"type": "ir.actions.client", "tag": "display_notification", "params": {"title": _("Payment Paid"), "message": _("Payment sync completed."), "type": "success", "sticky": False, "next": {"type": "ir.actions.client", "tag": "soft_reload"}}}

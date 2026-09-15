@@ -47,5 +47,5 @@
         <field name="act_window_id" ref="action_wd_iffm_shipping_lines"/>
     </record>
 
-<!--    <menuitem id="menu_wd_iffm_shipping_lines" name="Shipping Lines" parent="menu_wd_base_config" action="action_wd_iffm_shipping_lines" sequence="30"/>-->
+    <menuitem id="menu_wd_iffm_shipping_lines" name="Shipping Lines" parent="menu_wd_base_config" action="action_wd_iffm_shipping_lines" sequence="30"/>
 </odoo>

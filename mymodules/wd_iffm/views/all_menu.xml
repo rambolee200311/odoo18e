@@ -1,7 +1,7 @@
 <odoo>
 
     <menuitem id="menu_wd_charge_root" name="Import Freight Forwarder Management" sequence="10"
-              web_icon="wd_iffm,static/src/img/img.png"/>
+              web_icon="wd_iffm,static/src/img/img.png" groups="wd_iffm.group_import_user,base.group_system"/>
 
     <record id="action_wd_iffm_vendor_bill" model="ir.actions.act_window">
         <field name="name">Vendor Bills</field>
@@ -33,6 +33,6 @@
               name="Chart of Accounts"
               parent="charge_account_menu"
               action="action_wd_iffm_expense_account"
-              sequence="20"/>
+              sequence="20" groups="base.group_system"/>
 
 </odoo>

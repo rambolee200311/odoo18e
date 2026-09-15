@@ -17,3 +17,19 @@
     color: #d92d20;
     font-weight: 800;
 }
+
+/* Keep required values visible in editable one2many/list fields. */
+.worlddepot_required_highlight td.o_data_cell .o_required_modifier .o_input,
+.worlddepot_required_highlight td.o_data_cell .o_required_modifier input,
+.worlddepot_required_highlight td.o_data_cell .o_required_modifier textarea,
+.worlddepot_required_highlight td.o_data_cell .o_required_modifier select {
+    border-left: 0 !important;
+    box-shadow: none !important;
+    background-color: transparent !important;
+    padding-left: 0 !important;
+    color: inherit !important;
+}
+
+.worlddepot_required_highlight td.o_data_cell:has(.o_required_modifier) {
+    background-color: #fff6f5 !important;
+}

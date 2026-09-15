@@ -278,8 +278,8 @@ class StockMoveLineHistorySummary(models.Model):
                 opening_active = any(quantity > 0.000001 for quantity in quantity_map.values())
             closing_active = any(quantity > 0.000001 for quantity in quantity_map.values())
             closing_location_quantity_map = defaultdict(float)
-            for (_, _, closing_location_id), quantity in location_quantity_map.items():
-                closing_location_quantity_map[closing_location_id] += quantity
+            for location_key, quantity in location_quantity_map.items():
+                closing_location_quantity_map[location_key[2]] += quantity
             closing_location_ids = [closing_location_id for closing_location_id, quantity in closing_location_quantity_map.items() if quantity > 0.000001]
             closing_location_id = max(closing_location_ids, key=lambda closing_location_id: (location_last_sequence_map.get(closing_location_id, -1), closing_location_id)) if closing_location_ids else False
             if not opening_active and not closing_active and not any(event["event_date"] >= date_from for event in events):

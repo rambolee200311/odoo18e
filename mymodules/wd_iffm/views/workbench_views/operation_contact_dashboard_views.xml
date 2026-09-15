@@ -67,6 +67,6 @@
         <field name="target">current</field>
     </record>
 
-<!--    <menuitem id="menu_wd_iffm_contacts" name="Contacts" parent="menu_wd_base_config"-->
-<!--              action="action_operation_contact_dashboard" sequence="20"/>-->
+    <menuitem id="menu_wd_iffm_contacts" name="Contacts" parent="menu_wd_base_config"
+              action="action_operation_contact_dashboard" sequence="20"/>
 </odoo>
