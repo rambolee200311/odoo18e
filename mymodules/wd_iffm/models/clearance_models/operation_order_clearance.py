@@ -770,6 +770,7 @@ class OperationOrderClearanceInvoiceLine(models.Model):
             )
     def action_request_clearance_payment(self):
         move_model = self.env["account.move"]
+        move_model.check_invoice_applicant_permission()
         for rec in self:
             quotation = rec.clearance_id.project_id.vendor_cost_quotation_id
             if quotation and not rec.cost_line_ids:
@@ -792,7 +793,6 @@ class OperationOrderClearanceInvoiceLine(models.Model):
                     raise ValidationError(_("Overdue blocking reason is required for overdue handovers."))
                 if not rec.clearance_id.overdue_handle_result:
                     raise ValidationError(_("Overdue handle result is required for overdue handovers."))
-            operator = self.env.ref("base.user_admin")
             if not rec.cost_line_ids:
                 raise ValidationError(_("Cost lines are required before requesting payment."))
             if rec.cost_line_ids.filtered(lambda line: (line.amount_total or 0.0) <= 0 and (line.manual_amount_total or 0.0) <= 0):
@@ -872,9 +872,10 @@ class OperationOrderClearanceInvoiceLine(models.Model):
                 "ref": f"{rec.clearance_id.name}/{rec.id}",
                 "waybill_bill_number": waybill_bill_number,
                 "clearance_id": rec.clearance_id.id,
+                "invoice_request_user_id": self.env.user.id,
                 "invoice_line_ids": invoice_lines,
             }
-            move = move_model.with_user(operator).create(move_vals)
+            move = move_model.create(move_vals)
 
             rec.write({
                 "apply_user_id": self.env.user.id,
@@ -882,13 +883,13 @@ class OperationOrderClearanceInvoiceLine(models.Model):
             })
 
             if rec.vendor_invoice_attachment_ids:
-                rec.vendor_invoice_attachment_ids.with_user(operator).copy({
+                rec.vendor_invoice_attachment_ids.copy({
                     "res_model": "account.move",
                     "res_id": move.id,
                 })
 
 
-            move.with_user(operator).action_post()
+            move.action_post_invoice_request()
             rec.write({
                 "vendor_invoice_id": move.id,
                 "payment_state": "paying",
@@ -907,8 +908,8 @@ class OperationOrderClearanceInvoiceLine(models.Model):
         }
 
     def action_revoke_payment_request(self):
+        self.env["account.move"].check_invoice_applicant_permission()
         for rec in self:
-            operator = self.env.ref("base.user_admin")
             if rec.payment_state != "paying":
                 raise ValidationError(_("Only paying invoice line can be revoked."))
             if not rec.vendor_invoice_id:
@@ -918,10 +919,7 @@ class OperationOrderClearanceInvoiceLine(models.Model):
             if move.payment_state != "not_paid":
                 raise ValidationError(_("Linked vendor invoice already has payment, revoke is not allowed."))
 
-            if move.state == "posted":
-                move.button_draft()
-            if move.state == "draft":
-                move.with_user( operator).button_cancel()
+            move.action_cancel_invoice_request()
 
             rec.write({
                 "payment_state": "draft",
