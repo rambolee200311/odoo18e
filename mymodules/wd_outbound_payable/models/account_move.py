@@ -8,6 +8,7 @@ class AccountMove(models.Model):
     _inherit = "account.move"
 
     outbound_payable_id = fields.Many2one("world.depot.outbound.order.payable", string="Outbound Payable", ondelete="set null", index=True, copy=False)
+    outbound_order_id = fields.Many2one("world.depot.outbound.order", string="Outbound Order", related="outbound_payable_id.outbound_order_id", store=True, readonly=True)
 
     def action_confirm_outbound_payable_paid(self):
         for rec in self:

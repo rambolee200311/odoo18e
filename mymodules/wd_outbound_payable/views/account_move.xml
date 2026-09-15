@@ -1,17 +1,34 @@
 <odoo>
+    <record id="view_in_invoice_bill_list_inherit_outbound_payable" model="ir.ui.view">
+        <field name="name">account.move.in.invoice.bill.list.inherit.outbound.payable</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_in_invoice_bill_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='invoice_origin']" position="after">
+                <field name="outbound_order_id" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+
     <record id="view_account_move_form_outbound_payable" model="ir.ui.view">
         <field name="name">account.move.form.outbound.payable</field>
         <field name="model">account.move</field>
         <field name="inherit_id" ref="account.view_move_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//field[@name='ref']" position="after">
+                <field name="outbound_order_id" readonly="1" invisible="move_type != 'in_invoice' or not outbound_order_id"
+                       options="{'no_create': True, 'no_open': False}"/>
+            </xpath>
+
             <xpath expr="//header" position="inside">
-                <button name="action_confirm_outbound_payable_paid" type="object" string="Confirm Paid" class="btn-success" invisible="move_type != 'in_invoice' or not outbound_payable_id or payment_state != 'paid' or not bank_proof_attachment_ids or payment_info_synced"/>
-                <span class="badge text-bg-success ms-2" invisible="move_type != 'in_invoice' or not outbound_payable_id or not payment_info_synced">
+                <button name="action_confirm_outbound_payable_paid" type="object" string="Confirm Paid"
+                        class="btn-success"
+                        invisible="move_type != 'in_invoice' or not outbound_payable_id or payment_state != 'paid' or not bank_proof_attachment_ids or payment_info_synced"/>
+                <span class="badge text-bg-success ms-2"
+                      invisible="move_type != 'in_invoice' or not outbound_payable_id or not payment_info_synced">
                     <i class="fa fa-check-circle"/> Payment Sync Completed
                 </span>
-            </xpath>
-            <xpath expr="//field[@name='ref']" position="after">
-                <field name="outbound_payable_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
             </xpath>
         </field>
     </record>
