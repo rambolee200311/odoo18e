@@ -23,7 +23,7 @@
             </xpath>
             <xpath expr="//header/button[@name='action_cancel']" position="after">
                 <button name="action_open_actual_inbound_confirmation_wizard" type="object" string="Confirm Actual Inbound"
-                        class="btn-primary position-absolute top-50 start-50 translate-middle" invisible="state != 'confirm' or project_stock_report_date_mode != 'business'"/>
+                        class="btn-primary o_actual_inbound_confirmation_button" invisible="state != 'confirm' or project_stock_report_date_mode != 'business'"/>
             </xpath>
             <xpath expr="//field[@name='confirm_time_server']" position="after">
                 <field name="actual_inbound_date" readonly="1" invisible="0"/>
