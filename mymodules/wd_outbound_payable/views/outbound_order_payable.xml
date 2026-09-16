@@ -52,8 +52,7 @@
                                         <field name="charge_lines" readonly="payment_state != 'draft'">
                                             <list editable="bottom">
                                                 <field name="payable_id" column_invisible="1" required="1"/>
-                                                <field name="charge_item_id" required="1" options="{'no_create': True, 'no_open': True}"
-                                                domain="[('is_leaf', '=', True)]"/>
+                                                <field name="charge_item_id" required="1" options="{'no_create': True, 'no_open': True}"/>
                                                 <field name="create_receivable" width="150px"/>
                                                 <field name="quantity" required="1"/>
                                                 <field name="charge_unit_id" options="{'no_create': True, 'no_open': True}"/>

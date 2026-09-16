@@ -36,6 +36,7 @@ Chenyang Chemical warehouse customizations.
         "views/sunrise_product_batch_specification_import_views.xml",
 
         "wizard/inbound_product_import_wizard_views.xml",
+        "wizard/inbound_actual_inbound_confirmation_wizard_views.xml",
         "wizard/outbound_product_import_wizard_views.xml",
 
 

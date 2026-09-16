@@ -11,12 +11,18 @@ class InboundOrder(models.Model):
     _order = "id desc"
 
     creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import")], string="Creation Source", default="manual", readonly=True, copy=False)
+    billno = fields.Char(index=True)
     cwarehouseid = fields.Char(string="U8C Warehouse ID", copy=False, index=True)
     source_sale_delivery_reference = fields.Char(string="Source Sale Delivery Reference", copy=False, index=True)
     vsourcebillcode = fields.Char(string="Source Bill Code", copy=False, index=True)
     project_package_generation_mode = fields.Selection(related="project.package_generation_mode", string="Package Generation Mode", readonly=True)
+    project_stock_report_date_mode = fields.Selection(related="project.stock_report_date_mode", string="Stock Report Date Mode", readonly=True)
     organic = fields.Boolean(string="Organic", copy=False, index=True)
     actual_inbound_date = fields.Date(string="Manual Inbound Date", copy=False, index=True, tracking=True)
+    actual_inbound_datetime = fields.Datetime(string="Actual Inbound Time", readonly=True, copy=False, index=True, tracking=True)
+    actual_inbound_confirmed_by_id = fields.Many2one("res.users", string="Actual Inbound Confirmed By", readonly=True, copy=False, index=True, tracking=True)
+    actual_inbound_confirmation_datetime = fields.Datetime(string="Actual Inbound Confirmation Time", readonly=True, copy=False, index=True, tracking=True)
+    actual_inbound_attachment_line_ids = fields.Many2many("ir.attachment", "stock_barcode_lite_inbound_actual_inbound_attachment_rel", "inbound_order_id", "attachment_id", string="Actual Inbound Attachments", readonly=True, copy=False, tracking=True)
 
     @api.onchange("project")
     def onchange_project_warehouse(self):
@@ -45,6 +51,44 @@ class InboundOrder(models.Model):
                 },
             }
         return False
+
+    def action_open_actual_inbound_confirmation_wizard(self):
+        for rec in self:
+            if rec.state != "confirm":
+                raise UserError(_("Only confirmed inbound orders can confirm actual inbound."))
+            if rec.project_stock_report_date_mode != "business":
+                raise UserError(_("Actual inbound confirmation is available only for projects using Order Business Date."))
+            context = {"default_inbound_order_id": rec.id}
+            if rec.actual_inbound_attachment_line_ids:
+                context["default_actual_inbound_attachment_line_ids"] = [(6, 0, rec.actual_inbound_attachment_line_ids.ids)]
+            return {
+                "type": "ir.actions.act_window",
+                "name": _("Confirm Actual Inbound"),
+                "res_model": "inbound.actual.inbound.confirmation.wizard",
+                "view_mode": "form",
+                "views": [(False, "form")],
+                "target": "new",
+                "context": context,
+            }
+        return False
+
+    @api.model
+    def action_open_actual_inbound_confirmation_wizard_by_barcode(self, barcode):
+        barcode = (barcode or "").strip()
+        if not barcode:
+            raise UserError(_("Please scan an inbound order QR code."))
+        inbound_orders = self.sudo().search([("billno", "=", barcode)], limit=2)
+        if not inbound_orders:
+            inbound_orders = self.sudo().search([("stock_picking_id.name", "=", barcode)], limit=2)
+        if not inbound_orders:
+            raise UserError(_("No inbound order matches QR code %(barcode)s.") % {"barcode": barcode})
+        if len(inbound_orders) > 1:
+            raise UserError(_("Multiple inbound orders match QR code %(barcode)s.") % {"barcode": barcode})
+        inbound_order = self.browse(inbound_orders.id)
+        inbound_order.check_access_rights("read")
+        inbound_order.check_access_rule("read")
+        return inbound_order.action_open_actual_inbound_confirmation_wizard()
+
     def action_confirm(self):
         for rec in self:
             if rec.project.name == "SUNRISE":

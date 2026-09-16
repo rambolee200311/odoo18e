@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_inbound_actual_inbound_confirmation_wizard_form" model="ir.ui.view">
+        <field name="name">inbound.actual.inbound.confirmation.wizard.form</field>
+        <field name="model">inbound.actual.inbound.confirmation.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Confirm Actual Inbound" duplicate="false">
+                <sheet>
+                    <group>
+                        <field name="inbound_order_id" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="actual_inbound_datetime" required="1"/>
+                        <field name="confirmed_by_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="actual_inbound_attachment_line_ids" widget="many2many_binary" options="{'accepted_file_extensions': 'image/*'}"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_confirm_actual_inbound" type="object" string="Confirm" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>
