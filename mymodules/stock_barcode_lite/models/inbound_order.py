@@ -11,6 +11,7 @@ class InboundOrder(models.Model):
     _order = "id desc"
 
     creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import")], string="Creation Source", default="manual", readonly=True, copy=False)
+    billno = fields.Char(index=True)
     cwarehouseid = fields.Char(string="U8C Warehouse ID", copy=False, index=True)
     source_sale_delivery_reference = fields.Char(string="Source Sale Delivery Reference", copy=False, index=True)
     vsourcebillcode = fields.Char(string="Source Bill Code", copy=False, index=True)
@@ -70,6 +71,23 @@ class InboundOrder(models.Model):
                 "context": context,
             }
         return False
+
+    @api.model
+    def action_open_actual_inbound_confirmation_wizard_by_barcode(self, barcode):
+        barcode = (barcode or "").strip()
+        if not barcode:
+            raise UserError(_("Please scan an inbound order QR code."))
+        inbound_orders = self.sudo().search([("billno", "=", barcode)], limit=2)
+        if not inbound_orders:
+            inbound_orders = self.sudo().search([("stock_picking_id.name", "=", barcode)], limit=2)
+        if not inbound_orders:
+            raise UserError(_("No inbound order matches QR code %(barcode)s.") % {"barcode": barcode})
+        if len(inbound_orders) > 1:
+            raise UserError(_("Multiple inbound orders match QR code %(barcode)s.") % {"barcode": barcode})
+        inbound_order = self.browse(inbound_orders.id)
+        inbound_order.check_access_rights("read")
+        inbound_order.check_access_rule("read")
+        return inbound_order.action_open_actual_inbound_confirmation_wizard()
 
     def action_confirm(self):
         for rec in self:
