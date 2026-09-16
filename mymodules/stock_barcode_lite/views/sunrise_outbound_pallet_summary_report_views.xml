@@ -95,6 +95,7 @@
                                     <field name="product_names"/>
                                     <field name="inbound_quantity_summary"/>
                                     <field name="outbound_quantity"/>
+                                    <field name="product_batch_gross_weight"/>
                                     <field name="inbound_datetime" options="{'show_time': False}"/>
                                     <field name="consumed_datetime" options="{'show_time': False}"/>
                                     <field name="location_summary"/>

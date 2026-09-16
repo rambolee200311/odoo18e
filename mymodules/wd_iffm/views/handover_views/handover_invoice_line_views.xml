@@ -8,9 +8,9 @@
                 <header>
                     <field name="payment_state" widget="statusbar" statusbar_visible="draft,paying,paid,customer_paid" readonly="1"/>
                     <button name="action_request_payment" type="object" string="Request Payment"
-                            class="btn-primary" invisible="payment_state != 'draft'"/>
+                            class="btn-primary" invisible="payment_state != 'draft'" groups="wd_account_extension.group_invoice_applicant"/>
                     <button name="action_revoke_payment_request" type="object" string="Revoke Request"
-                            class="btn-warning" invisible="payment_state != 'paying' or not vendor_invoice_id"/>
+                            class="btn-warning" invisible="payment_state != 'paying' or not vendor_invoice_id" groups="wd_account_extension.group_invoice_applicant"/>
 
                 </header>
 

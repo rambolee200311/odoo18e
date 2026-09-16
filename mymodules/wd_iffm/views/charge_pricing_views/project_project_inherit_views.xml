@@ -6,15 +6,15 @@
         <field name="arch" type="xml">
 
             <xpath expr="//notebook" position="inside">
-                <page string="Import Freight Settings">
+                <page string="Import Freight Settings" groups="wd_iffm.group_import_user,project.group_project_manager,base.group_system">
                     <group>
                         <field name="quotation_id" required="1" domain="[('state', '=', 'active')]"
-                               options="{'no_create': True, 'no_open': False}"/>
+                               options="{'no_create': True, 'no_open': True}"/>
                         <field name="vendor_cost_quotation_id" domain="[('state', '=', 'active')]"
-                               options="{'no_create': True, 'no_open': False}"/>
+                               options="{'no_create': True, 'no_open': True}"/>
                         <field name="payment_company_id" domain="[('is_payment', '=', True)]"
                                options="{'no_create': True, 'no_open': True}"/>
-                        <field name="allowed_user_ids" widget="many2many_tags"/>
+                        <field name="allowed_user_ids" widget="many2many_tags" groups="wd_iffm.group_import_manager,base.group_system"/>
                     </group>
                 </page>
             </xpath>

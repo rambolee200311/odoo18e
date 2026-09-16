@@ -331,12 +331,12 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
         partner_id = partner_model.sudo().search([("name", "=", partner_name)], limit=1).id
         partner = partner_model.browse(partner_id)
         if partner:
-            if partner.company_type == False:
-                partner.write({"company_type": "company"})
+            if partner.is_company == False:
+                partner.write({"is_company": True})
             return partner
         return partner_model.create({
             "name": partner_name,
-            "company_type": "company",
+            "is_company": True,
             "street": self.get_required_text(data, "street"),
             "zip": self.get_optional_text(data, "zip"),
             "city": self.get_optional_text(data, "city"),
@@ -351,12 +351,12 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
         partner_id = partner_model.sudo().search([("name", "=", consignee_name), ("parent_id", "=", company_partner.id)], limit=1).id
         partner = partner_model.browse(partner_id)
         if partner:
-            if partner.company_type == False:
-                partner.write({"company_type": "person"})
+            if partner.is_company == True:
+                partner.write({"is_company": False})
             return partner
         return partner_model.create({
             "name": consignee_name,
-            "company_type": "person",
+            "is_company": False,
             "parent_id": company_partner.id,
             "type": "delivery",
             "street": self.get_required_text(data, "street"),

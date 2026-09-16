@@ -25,8 +25,8 @@ Long description of module's purpose
 
     # always loaded
     'data': [
-        'security/ir.model.access.csv',
         'security/security.xml',
+        'security/ir.model.access.csv',
         'views/all_menu.xml',
         'report/statement_period_report.xml',
         'report/statement_period_templates.xml',
