@@ -103,7 +103,7 @@
 
                             <field name="project"
                                    readonly="state != 'new'"
-                                   options="{'no_create': True, 'no_open': True}"
+                                   options="{'no_create': True, 'no_open': False}"
                                    groups="wd_iffm.group_import_manager,base.group_system"/>
                             <field name="bl_number" required="1" readonly="state!='new'"/>
                             <field name="hbl_number" readonly="state!='new'" invisible="1"/>
