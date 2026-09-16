@@ -19,11 +19,16 @@
                        required="type == 'service' and project_name == 'SUNRISE'"
                        invisible="project_name !='SUNRISE' or type != 'service'"/>
                 <field name="project_package_generation_mode" invisible="1"/>
+                <field name="project_stock_report_date_mode" readonly="1" invisible="1"/>
+            </xpath>
+            <xpath expr="//header/button[@name='action_cancel']" position="after">
+                <button name="action_open_actual_inbound_confirmation_wizard" type="object" string="Confirm Actual Inbound"
+                        class="btn-primary position-absolute top-50 start-50 translate-middle" invisible="state != 'confirm' or project_stock_report_date_mode != 'business'"/>
             </xpath>
             <xpath expr="//field[@name='confirm_time_server']" position="after">
-                <field name="actual_inbound_date"
-                       invisible="project_name != 'SUNRISE'"
-                       readonly="0"/>
+                <field name="actual_inbound_date" readonly="1" invisible="0"/>
+                <field name="actual_inbound_datetime" readonly="1" invisible="project_stock_report_date_mode != 'business'"/>
+                <field name="actual_inbound_attachment_line_ids" widget="many2many_binary" readonly="1" invisible="project_stock_report_date_mode != 'business' or not actual_inbound_attachment_line_ids"/>
             </xpath>
             <xpath expr="//field[@name='inbound_order_product_ids']" position="before">
                 <div class="mb-2">

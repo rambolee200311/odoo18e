@@ -15,8 +15,13 @@ class InboundOrder(models.Model):
     source_sale_delivery_reference = fields.Char(string="Source Sale Delivery Reference", copy=False, index=True)
     vsourcebillcode = fields.Char(string="Source Bill Code", copy=False, index=True)
     project_package_generation_mode = fields.Selection(related="project.package_generation_mode", string="Package Generation Mode", readonly=True)
+    project_stock_report_date_mode = fields.Selection(related="project.stock_report_date_mode", string="Stock Report Date Mode", readonly=True)
     organic = fields.Boolean(string="Organic", copy=False, index=True)
     actual_inbound_date = fields.Date(string="Manual Inbound Date", copy=False, index=True, tracking=True)
+    actual_inbound_datetime = fields.Datetime(string="Actual Inbound Time", readonly=True, copy=False, index=True, tracking=True)
+    actual_inbound_confirmed_by_id = fields.Many2one("res.users", string="Actual Inbound Confirmed By", readonly=True, copy=False, index=True, tracking=True)
+    actual_inbound_confirmation_datetime = fields.Datetime(string="Actual Inbound Confirmation Time", readonly=True, copy=False, index=True, tracking=True)
+    actual_inbound_attachment_line_ids = fields.Many2many("ir.attachment", "stock_barcode_lite_inbound_actual_inbound_attachment_rel", "inbound_order_id", "attachment_id", string="Actual Inbound Attachments", readonly=True, copy=False, tracking=True)
 
     @api.onchange("project")
     def onchange_project_warehouse(self):
@@ -45,6 +50,27 @@ class InboundOrder(models.Model):
                 },
             }
         return False
+
+    def action_open_actual_inbound_confirmation_wizard(self):
+        for rec in self:
+            if rec.state != "confirm":
+                raise UserError(_("Only confirmed inbound orders can confirm actual inbound."))
+            if rec.project_stock_report_date_mode != "business":
+                raise UserError(_("Actual inbound confirmation is available only for projects using Order Business Date."))
+            context = {"default_inbound_order_id": rec.id}
+            if rec.actual_inbound_attachment_line_ids:
+                context["default_actual_inbound_attachment_line_ids"] = [(6, 0, rec.actual_inbound_attachment_line_ids.ids)]
+            return {
+                "type": "ir.actions.act_window",
+                "name": _("Confirm Actual Inbound"),
+                "res_model": "inbound.actual.inbound.confirmation.wizard",
+                "view_mode": "form",
+                "views": [(False, "form")],
+                "target": "new",
+                "context": context,
+            }
+        return False
+
     def action_confirm(self):
         for rec in self:
             if rec.project.name == "SUNRISE":
