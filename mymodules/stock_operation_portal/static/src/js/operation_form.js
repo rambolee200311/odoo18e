@@ -148,9 +148,9 @@ publicWidget.registry.InboundOrderForm = publicWidget.Widget.extend({
         ev.preventDefault();
         var self = this;
         var $form = this.$el;
+        var isEdit = $form.attr('data-is-edit') === '1';
 
         var payload = {
-            project_id: $form.find('[name="project_id"]').val() || '',
             reference: ($form.find('[name="reference"]').val() || '').trim(),
             date: $form.find('[name="date"]').val() || '',
             a_date: $form.find('[name="a_date"]').val() || '',
@@ -160,6 +160,10 @@ publicWidget.registry.InboundOrderForm = publicWidget.Widget.extend({
             remark: ($form.find('[name="remark"]').val() || '').trim(),
             lines: [],
         };
+
+        if (!isEdit) {
+            payload.project_id = $form.find('[name="project_id"]').val() || '';
+        }
 
         this.$('.pallet-line').each(function () {
             var $pallet = $(this);
@@ -191,7 +195,7 @@ publicWidget.registry.InboundOrderForm = publicWidget.Widget.extend({
 
         // ---- Frontend validation ----
         var errors = [];
-        if (!payload.project_id) {
+        if (!isEdit && !payload.project_id) {
             errors.push('Please select a project.');
         }
         if (!payload.reference) {

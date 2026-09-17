@@ -221,7 +221,7 @@
 
                     <t t-set="fv" t-value="order if is_edit else form_values"/>
 
-                    <form id="inbound_order_form">
+                    <form id="inbound_order_form" t-att-data-is-edit="'1' if is_edit else '0'">
 
                         <!-- ===== 第1部分：基础信息 ===== -->
                         <div class="operation-form-section mb-3">
@@ -234,9 +234,14 @@
                                     <div class="col-md-4">
                                         <label class="form-label fw-bold">Project <span class="text-danger">*</span></label>
                                         <select name="project_id" class="form-select" required="required" t-att-disabled="'disabled' if is_edit else None">
-                                            <option value="">-- Select Project --</option>
-                                            <t t-foreach="projects" t-as="proj">
-                                                <option t-att-value="proj['id']" t-att-selected="'selected' if (active_project and active_project['id'] == proj['id']) else None"><t t-esc="proj['name']"/></option>
+                                            <t t-if="is_edit">
+                                                <option t-if="active_project" t-att-value="active_project['id']" selected="selected"><t t-esc="active_project['name']"/></option>
+                                            </t>
+                                            <t t-else="">
+                                                <option value="">-- Select Project --</option>
+                                                <t t-foreach="projects" t-as="proj">
+                                                    <option t-att-value="proj['id']" t-att-selected="'selected' if (active_project and active_project['id'] == proj['id']) else None"><t t-esc="proj['name']"/></option>
+                                                </t>
                                             </t>
                                         </select>
                                     </div>
@@ -378,7 +383,7 @@
                             <button type="submit" class="btn btn-primary" id="btn_submit_inbound">
                                 <i class="fa fa-paper-plane me-1"/>
                                 <t t-if="is_edit">Save Changes</t>
-                                <t t-else="">Create Order</t>
+                                <t t-else="">Save</t>
                             </button>
                         </div>
                     </form>
@@ -387,4 +392,3 @@
         </t>
     </template>
 </odoo>
-
