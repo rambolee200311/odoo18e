@@ -58,6 +58,7 @@ class VasOrder(models.Model):
     warehouse_order_billno = fields.Char(
         string='Warehouse Order Bill No.',
     )
+    project_id = fields.Many2one('project.project', string='Project', ondelete='restrict', index=True, tracking=True, copy=False)
     warehouse_order_display = fields.Char(
         string='Warehouse Order',
         compute='_compute_warehouse_order_display',
@@ -131,6 +132,7 @@ class VasOrder(models.Model):
         'outbound_order_id',
         'transfer_order_id',
         'warehouse_order_billno',
+        'project_id',
         'warehouse_id',
         'operator_id',
         'submitter_id',
@@ -159,6 +161,19 @@ class VasOrder(models.Model):
                 vals['name'] = sequence.next_by_code('wd.vas.order') or 'New'
         return super().create(vals_list)
 
+    @api.onchange('order_type', 'warehouse_order_billno')
+    def onchange_warehouse_order_billno(self):
+        for record in self:
+            relation = record._RELATION_BY_ORDER_TYPE.get(record.order_type)
+            billno = (record.warehouse_order_billno or '').strip()
+            if not relation or not billno:
+                record.project_id = False
+                continue
+            warehouse_orders = record.env[relation[1]].sudo().search([
+                ('billno', '=', billno),
+            ], limit=2)
+            record.project_id = warehouse_orders.project if len(warehouse_orders) == 1 else False
+
     def _lock_for_update(self):
         records = self.sorted('id')
         if not records:
@@ -177,7 +192,7 @@ class VasOrder(models.Model):
             [warehouse_order.id],
         )
         warehouse_order.invalidate_recordset(
-            ['state', 'billno', 'warehouse'],
+            ['state', 'billno', 'warehouse', 'project'],
         )
         return warehouse_order
 
@@ -196,7 +211,7 @@ class VasOrder(models.Model):
         if billno != self.warehouse_order_billno:
             self._action_write({'warehouse_order_billno': billno})
 
-        warehouse_order_model = self.env[relation[1]]
+        warehouse_order_model = self.env[relation[1]].sudo()
         warehouse_orders = warehouse_order_model.search([
             ('billno', '=', billno),
         ])
@@ -256,6 +271,10 @@ class VasOrder(models.Model):
         if not warehouse_order.warehouse:
             raise ValidationError(
                 'The Warehouse Order must have a warehouse before submission.'
+            )
+        if self.project_id != warehouse_order.project:
+            raise ValidationError(
+                'VAS Order Project must match the Warehouse Order Project.'
             )
         relation_field = self._RELATION_BY_ORDER_TYPE[self.order_type][0]
         relation_values = {
