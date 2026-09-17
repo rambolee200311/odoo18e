@@ -167,6 +167,18 @@ class StockOperationPortal(CustomerPortal):
         user = request.env.user.sudo()
         return [('project', 'in', user.stock_operation_project_line_ids.ids)]
 
+    @http.route(['/my/operation/products'], type='http', auth='user', website=True, methods=['GET'])
+    def operation_product_search(self, **kw):
+        project_id = kw.get('project_id', '')
+        keyword = str(kw.get('keyword') or '').strip()
+        user = request.env.user.sudo()
+        project = user.stock_operation_project_line_ids.filtered(lambda item: str(item.id) == str(project_id))[:1]
+        if not project or not project.category or len(keyword) < 2:
+            return request.make_json_response({'products': []})
+        product_domain = [('categ_id', '=', project.category.id), '|', '|', ('name', 'ilike', keyword), ('default_code', 'ilike', keyword), ('barcode', 'ilike', keyword)]
+        products = request.env['product.product'].sudo().search(product_domain, order='id desc', limit=20)
+        return request.make_json_response({'products': [{'id': product.id, 'default_name': product.display_name or product.name or ''} for product in products]})
+
     # ============================================================
     # 主页
     # ============================================================
