@@ -73,7 +73,7 @@ export class VasPdaAction extends Component {
         const records = await this.orm.searchRead(
             WAREHOUSE_MODELS[this.state.orderType],
             [["billno", "=", billno]],
-            ["billno", "owner", "warehouse"],
+            ["billno", "owner", "warehouse", "project"],
             { limit: 1 }
         );
         this.state.warehouseOrder = records[0] || null;
@@ -96,8 +96,10 @@ export class VasPdaAction extends Component {
         };
         if (this.state.warehouseOrder) {
             const [warehouseId] = this.state.warehouseOrder.warehouse || [];
+            const [projectId] = this.state.warehouseOrder.project || [];
             values.warehouse_order_billno = billno;
             values.warehouse_id = warehouseId;
+            values.project_id = projectId || false;
         }
         const [orderId] = await this.orm.create("wd.vas.order", [values]);
         await this.reloadOrder(orderId);
@@ -201,8 +203,17 @@ export class VasPdaAction extends Component {
         }
         this.state.busy = true;
         try {
+            const billno = this.state.billno.trim();
+            if (billno) {
+                await this.resolveWarehouseOrder();
+                if (!this.state.warehouseOrder) {
+                    return;
+                }
+            }
+            const [projectId] = this.state.warehouseOrder?.project || [];
             await this.orm.write("wd.vas.order", [this.state.order.id], {
-                warehouse_order_billno: this.state.billno.trim(),
+                warehouse_order_billno: billno,
+                project_id: projectId || false,
             });
             await this.reloadOrder();
             this.notification.add("Draft saved.", { type: "success" });
@@ -217,6 +228,18 @@ export class VasPdaAction extends Component {
         }
         this.state.busy = true;
         try {
+            const billno = this.state.billno.trim();
+            if (billno) {
+                await this.resolveWarehouseOrder();
+                if (!this.state.warehouseOrder) {
+                    return;
+                }
+            }
+            const [projectId] = this.state.warehouseOrder?.project || [];
+            await this.orm.write("wd.vas.order", [this.state.order.id], {
+                warehouse_order_billno: billno,
+                project_id: projectId || false,
+            });
             await this.orm.call("wd.vas.order", "action_submit", [[this.state.order.id]]);
             await this.reloadOrder();
             this.notification.add("Submitted.", { type: "success" });
@@ -225,7 +248,7 @@ export class VasPdaAction extends Component {
             this.notification.add(
                 this.state.order?.state === "submitted"
                     ? "The order was submitted. State was refreshed from the server."
-                    : (error.message || "Submit failed."),
+                    : (error.data?.arguments?.[0] || error.message || "Submit failed."),
                 { type: this.state.order?.state === "submitted" ? "success" : "danger" }
             );
         } finally {

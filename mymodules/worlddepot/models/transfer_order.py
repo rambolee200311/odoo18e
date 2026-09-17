@@ -144,10 +144,8 @@ class TransferOrder(models.Model):
             record.confirm_time_server = False
         return True
     
-    # Constraints for location types
     @api.constrains('from_location_type', 'to_location_type')
-    def _check_location_types(self):
-        """Ensure from and to location types are not the same."""
+    def check_location_types(self):
         for record in self:
             if record.from_location_type == record.to_location_type:
                 raise ValidationError(_('From Location Type and To Location Type cannot be the same.'))

@@ -38,7 +38,6 @@
 
         <menuitem id="menu_product_duplicate" name="Product Duplicate" sequence="991" parent="menu_world_depot_configuration" action="action_product_duplicate"/>
         <menuitem id="menu_location_type" name="Location Types" parent="menu_world_depot_configuration" action="action_stock_location_type" sequence="915"/>
-
         <menuitem id="menu_world_depot_charge_unit"  name="Charge Units" parent="menu_world_depot_configuration" action="action_world_depot_charge_unit" sequence="913"/>
         <menuitem id="menu_world_depot_charge_item"  name="Charge Items" parent="menu_world_depot_configuration" action="action_world_depot_charge_item" sequence="914"/>
         <!--<menuitem id="menu_world_depot_excel_template"

@@ -25,6 +25,7 @@ function makeAction(state = {}) {
     };
     action.notification = { add: () => {} };
     action.orm = {
+        searchRead: async () => [],
         create: async () => [1],
         write: async () => {},
         unlink: async () => {},
@@ -124,4 +125,25 @@ test("PDA requires a reason before cancelling a draft", async () => {
 
     expect(notifications.length).toBe(1);
     expect(notifications[0].message).toBe("请输入作废原因。");
+});
+
+test("PDA saves the associated bill number and project before submitting", async () => {
+    const action = makeAction({
+        order: { id: 7, state: "draft" },
+        billno: "IN-001",
+    });
+    const calls = [];
+    action.orm.searchRead = async () => [{ project: [8, "PDA Project"] }];
+    action.orm.write = async (model, ids, values) => calls.push({ model, ids, values });
+    action.orm.call = async (model, method, args) => calls.push({ model, method, args });
+
+    await action.submit();
+
+    expect(calls.length).toBe(2);
+    expect(calls[0].model).toBe("wd.vas.order");
+    expect(calls[0].ids).toEqual([7]);
+    expect(calls[0].values.warehouse_order_billno).toBe("IN-001");
+    expect(calls[0].values.project_id).toBe(8);
+    expect(calls[1].model).toBe("wd.vas.order");
+    expect(calls[1].method).toBe("action_submit");
 });
