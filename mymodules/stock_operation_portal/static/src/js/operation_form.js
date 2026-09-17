@@ -240,6 +240,9 @@ publicWidget.registry.InboundOrderForm = publicWidget.Widget.extend({
             redirect: 'follow',
         }).then(function (resp) {
             if (resp.redirected) {
+                if (isEdit) {
+                    sessionStorage.setItem('inbound_order_updated', '1');
+                }
                 window.location.href = resp.url;
                 return;
             }
@@ -252,6 +255,28 @@ publicWidget.registry.InboundOrderForm = publicWidget.Widget.extend({
             $btn.prop('disabled', false).html(origHtml);
             alert('An error occurred. Please try again.');
         });
+    },
+});
+
+publicWidget.registry.InboundOrderUpdateNotice = publicWidget.Widget.extend({
+    selector: '#inbound_order_update_success',
+
+    start: function () {
+        this._super.apply(this, arguments);
+
+        if (sessionStorage.getItem('inbound_order_updated') !== '1') {
+            return;
+        }
+
+        sessionStorage.removeItem('inbound_order_updated');
+        var $notice = this.$el;
+        $notice.removeClass('d-none');
+
+        window.setTimeout(function () {
+            $notice.fadeOut(300, function () {
+                $notice.remove();
+            });
+        }, 3000);
     },
 });
 
