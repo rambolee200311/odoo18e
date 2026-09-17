@@ -64,79 +64,15 @@ class InboundOrder(models.Model):
         order = self.get_inbound_order(inbound_id)
         if not order:
             return []
-        move_line_env = self.env["stock.move.line"].sudo()
-        product_env = self.env["product.product"].sudo()
-
-        domain = [
-            ("picking_id.inbound_order_id", "=", order.id),
-            ("result_package_id", "!=", False),
-            ("product_id", "!=", False),
-        ]
-        groups = move_line_env.read_group(
-            domain,
-            ["quantity_sum:sum(quantity)"],
-            ["result_package_id", "product_id"],
-            lazy=False,
-        )
-        if not groups and order.stock_picking_id:
-            domain = [
-                ("picking_id", "=", order.stock_picking_id.id),
-                ("result_package_id", "!=", False),
-                ("product_id", "!=", False),
-            ]
-            groups = move_line_env.read_group(
-                domain,
-                ["quantity_sum:sum(quantity)"],
-                ["result_package_id", "product_id"],
-                lazy=False,
-            )
-
-        if groups:
-            product_ids = [group["product_id"][0] for group in groups if group.get("product_id")]
-            products_by_id = {product.id: product for product in product_env.browse(product_ids)}
-
-            grouped_rows = {}
-
-            for group in groups:
-                package_data = group.get("result_package_id")
-                product_data = group.get("product_id")
-
-                if not package_data or not product_data:
-                    continue
-
-                package_id = package_data[0]
-                package_name = package_data[1]
-                product_id = product_data[0]
-                product = products_by_id.get(product_id)
-
-                package_row = grouped_rows.setdefault(package_id, {
-                    "package_name": package_name or "",
-                    "container_no": order.cntr_no or "",
-                    "bl_no": order.bl_no or "",
-                    "total_quantity": 0.0,
-                    "products": [],
-                })
-
-                quantity = group.get("quantity_sum") or 0.0
-
-                package_row["products"].append({
-                    "product_code": portal_product_code(product) if product else "",
-                    "product_name": portal_product_name(product) if product else product_data[1],
-                    "quantity": quantity,
-                })
-                package_row["total_quantity"] += quantity
-
-            return list(grouped_rows.values())
-
-        grouped_rows = {}
+        grouped_rows = []
         for line in order.inbound_order_product_ids:
-            package_row = grouped_rows.setdefault(line.pallet_no or "", {
+            package_row = {
                 "package_name": line.pallet_no or "",
                 "container_no": order.cntr_no or "",
                 "bl_no": order.bl_no or "",
                 "total_quantity": 0.0,
                 "products": [],
-            })
+            }
             for product_line in line.inbound_order_product_pallet_ids:
                 product = product_line.product_id
                 quantity = (product_line.quantity or 0.0) * (line.pallets or 0.0)
@@ -146,7 +82,8 @@ class InboundOrder(models.Model):
                     "quantity": quantity,
                 })
                 package_row["total_quantity"] += quantity
-        return list(grouped_rows.values())
+            grouped_rows.append(package_row)
+        return grouped_rows
 
     @api.model
     def get_inbound_attachments(self, inbound_id):
