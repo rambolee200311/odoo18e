@@ -53,7 +53,7 @@
     display: flex;
     flex-direction: column;
     height: 100%;
-    min-height: 100vh;
+    min-height: 0;
     overflow: hidden;
     background: #f8f9fa;
 
@@ -392,9 +392,11 @@
         width: 100%;
         min-height: 58px;
         padding: 8px 12px !important;
+        padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px)) !important;
         background: #fff !important;
         border-top: 1px solid #dee2e6;
         box-sizing: border-box;
+        bottom: 0;
         z-index: 2;
 
         .btn {
