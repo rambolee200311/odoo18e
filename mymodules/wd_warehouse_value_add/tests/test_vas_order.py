@@ -46,6 +46,7 @@ class TestVasOrder(TransactionCase):
         vals = {
             'order_type': 'inbound',
             'warehouse_order_billno': 'IN-001',
+            'project_id': self.project.id,
             'warehouse_id': self.warehouse.id,
             'operator_id': self.Operator.id,
         }
@@ -137,6 +138,7 @@ class TestVasOrder(TransactionCase):
         self.assertEqual(order.state, 'submitted')
         self.assertEqual(order.inbound_order_id, warehouse_order)
         self.assertEqual(order.warehouse_order_billno, warehouse_order.billno)
+        self.assertEqual(order.project_id, warehouse_order.project)
         self.assertEqual(order.warehouse_id, warehouse_order.warehouse)
         self.assertEqual(order.submitter_id, self.env.user)
         self.assertTrue(order.submitted_at)
@@ -155,6 +157,25 @@ class TestVasOrder(TransactionCase):
             order.action_submit()
         self.assertEqual(order.state, 'draft')
         self.assertEqual(order.inbound_order_id, self.env['world.depot.inbound.order'])
+
+    def test_onchange_warehouse_order_billno_sets_project(self):
+        warehouse_order = self._create_inbound_order()
+        order = self.VasOrder.new(self._order_vals(
+            warehouse_order_billno=warehouse_order.billno,
+            project_id=False,
+        ))
+
+        order.onchange_warehouse_order_billno()
+
+        self.assertEqual(order.project_id, warehouse_order.project)
+
+    def test_submit_rejects_project_mismatch(self):
+        order, _warehouse_order = self._create_submittable_order()
+        project = self.Project.create({'name': 'VAS Other Project'})
+        order.write({'project_id': project.id})
+
+        with self.assertRaises(ValidationError):
+            order.action_submit()
 
     def test_lifecycle_actions_and_locked_writes(self):
         order, _warehouse_order = self._create_submittable_order()
