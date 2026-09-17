@@ -16,7 +16,7 @@ class InboundOrder(models.Model):
     source_sale_delivery_reference = fields.Char(string="Source Sale Delivery Reference", copy=False, index=True)
     vsourcebillcode = fields.Char(string="Source Bill Code", copy=False, index=True)
     project_package_generation_mode = fields.Selection(related="project.package_generation_mode", string="Package Generation Mode", readonly=True)
-    project_stock_report_date_mode = fields.Selection(related="project.stock_report_date_mode", string="Stock Report Date Mode", readonly=True)
+    project_stock_report_date_mode = fields.Selection(related="project.stock_report_date_mode", string="Inbound Date Management Mode", readonly=True)
     organic = fields.Boolean(string="Organic", copy=False, index=True)
     actual_inbound_date = fields.Date(string="Manual Inbound Date", copy=False, index=True, tracking=True)
     actual_inbound_datetime = fields.Datetime(string="Actual Inbound Time", readonly=True, copy=False, index=True, tracking=True)

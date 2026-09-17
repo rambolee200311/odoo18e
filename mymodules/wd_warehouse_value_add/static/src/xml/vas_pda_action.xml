@@ -73,7 +73,7 @@
                         <div class="o_wd_vas_line-top">
                             <strong>操作类型：<t t-esc="line.operation_type_id?.[1]"/></strong>
                             <button t-if="isDraft" class="btn btn-link o_wd_vas_delete" type="button"
-                                    t-on-click="() => removeLine(line.id)">删除</button>
+                                    t-on-click="removeLine.bind(this, line.id)">删除</button>
                         </div>
                         <div class="o_wd_vas_line-value">
                             数量/工时：<t t-esc="line.quantity_time"/>
@@ -103,7 +103,7 @@
                             class="o_wd_vas_attachment">
                             <span><t t-esc="attachment.name"/></span>
                             <button t-if="isDraft" class="btn btn-sm btn-outline-danger" type="button"
-                                    t-on-click="() => removeAttachment(attachment.id)">删除</button>
+                                    t-on-click="removeAttachment.bind(this, attachment.id)">删除</button>
                         </li>
                 </ul>
             </section>
