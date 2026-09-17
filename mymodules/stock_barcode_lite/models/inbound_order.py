@@ -4,13 +4,13 @@ import math
 from psycopg2 import sql
 
 from odoo import _, fields, models, api
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 
 class InboundOrder(models.Model):
     _inherit = "world.depot.inbound.order"
     _order = "id desc"
 
-    creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import")], string="Creation Source", default="manual", readonly=True, copy=False)
+    creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import"), ("portal", "Portal")], string="Creation Source", default="manual", readonly=True, copy=False)
     billno = fields.Char(index=True)
     cwarehouseid = fields.Char(string="U8C Warehouse ID", copy=False, index=True)
     source_sale_delivery_reference = fields.Char(string="Source Sale Delivery Reference", copy=False, index=True)
@@ -737,7 +737,8 @@ class InboundOrder(models.Model):
 class InboundOrderProduct(models.Model):
     _inherit = "world.depot.inbound.order.product"
 
-    creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import")], string="Creation Source", default="manual", readonly=True, copy=False)
+    creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import"), ("portal", "Portal")], string="Creation Source", default="manual", readonly=True, copy=False)
+    pallet_no = fields.Char(index=True)
     package_id = fields.Many2one("stock.quant.package", string="Package", copy=False, index=True)
     package_barcode = fields.Char(related="package_id.barcode", string="Package Barcode", readonly=True)
     is_reused_package = fields.Boolean(string="Reused Package", default=False, readonly=True, copy=False, index=True)
@@ -782,6 +783,27 @@ class InboundOrderProduct(models.Model):
         })
         self.write({"package_id": package.id, "is_reused_package": False})
         return package
+
+    @api.constrains("pallet_no")
+    def check_pallet_no_unique(self):
+        inbound_pallet_model = self.env["world.depot.inbound.order.product"]
+        for rec in self:
+            pallet_no = (rec.pallet_no or "").strip()
+            if not pallet_no:
+                continue
+            duplicate_pallet = inbound_pallet_model.sudo().search([
+                ("id", "!=", rec.id),
+                ("pallet_no", "=", pallet_no),
+            ], limit=1)
+            if duplicate_pallet:
+                duplicate_inbound_order = duplicate_pallet.inbound_order_id
+                raise ValidationError(
+                    _('Pallet No "%(pallet_no)s" already exists in inbound order "%(inbound_order)s".')
+                    % {
+                        "pallet_no": pallet_no,
+                        "inbound_order": duplicate_inbound_order.billno or duplicate_inbound_order.reference or duplicate_inbound_order.display_name,
+                    }
+                )
 
     def get_sunrise_physical_pallet_identity(self):
         self.ensure_one()
@@ -899,7 +921,7 @@ class InboundOrderProductsPallet(models.Model):
     inbound_order_id = fields.Many2one('world.depot.inbound.order',related='inbound_order_product_id.inbound_order_id')
     pallet_no = fields.Char(related="inbound_order_product_id.pallet_no", string="Pallet No", store=True, readonly=True,
                             index=True)
-    creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import")], string="Creation Source", default="manual", readonly=True, copy=False)
+    creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import"), ("portal", "Portal")], string="Creation Source", default="manual", readonly=True, copy=False)
     source_product_code = fields.Char(string="Source Product Code", copy=False, index=True)
     product_ean = fields.Char(string="Product EAN", copy=False, index=True)
     is_lot = fields.Selection([("N", "No"), ("Y", "Yes")], string="Is Lot", default="Y", copy=False, index=True)
