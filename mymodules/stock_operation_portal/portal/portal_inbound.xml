@@ -286,6 +286,13 @@
                             </div>
                             <div class="section-content" id="section_pallets">
                                 <div id="pallet_lines_container" class="mt-1">
+                                    <select id="inbound_product_options_source" class="d-none" tabindex="-1" aria-hidden="true">
+                                        <t t-foreach="products" t-as="prod">
+                                            <option t-att-value="prod['id']">
+                                                <t t-esc="prod['default_name']"/>
+                                            </option>
+                                        </t>
+                                    </select>
                                     <t t-set="lines_data" t-value="fv.get('lines', [])"/>
                                     <t t-if="lines_data">
                                         <t t-foreach="lines_data" t-as="line">

@@ -22,16 +22,14 @@ publicWidget.registry.InboundOrderForm = publicWidget.Widget.extend({
         'click .remove-line': '_onRemovePalletLine',
         'click .add-product': '_onAddProductLine',
         'click .remove-product': '_onRemoveProductLine',
+        'change [name="project_id"]': '_onProjectChange',
         'submit': '_onFormSubmit',
     },
 
     start: function () {
         this._super.apply(this, arguments);
-        this._productOptionsHtml = '';
-        var $firstSelect = this.$('.pallet-line:first .product-select');
-        if ($firstSelect.length) {
-            this._productOptionsHtml = $firstSelect.html();
-        }
+        this._productOptionsHtml =
+            this.$('#inbound_product_options_source').html() || '';
     },
 
     // --------------------------------------------------------
@@ -106,6 +104,19 @@ publicWidget.registry.InboundOrderForm = publicWidget.Widget.extend({
             + '</tr>';
         $tbody.append(html);
         this._clearValidation();
+    },
+
+    _onProjectChange: function (ev) {
+        var projectId = $(ev.currentTarget).val();
+        var url = new URL(window.location.href);
+
+        if (projectId) {
+            url.searchParams.set('project_id', projectId);
+        } else {
+            url.searchParams.delete('project_id');
+        }
+
+        window.location.href = url.toString();
     },
 
     _onRemoveProductLine: function (ev) {
