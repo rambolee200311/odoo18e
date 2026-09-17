@@ -54,8 +54,8 @@
                         </div>
                         <group col="2">
                             <group col="2">
-                                <field name="from_location_type"/>
-                                <field name="to_location_type"/>
+                                <field name="from_location_type" options="{'no_create': True, 'no_open': True}"/>
+                                <field name="to_location_type" options="{'no_create': True, 'no_open': True}"/>
                                 <field name="date"/>
                                 <field name="t_date"/>
                                 <field name="project"/>

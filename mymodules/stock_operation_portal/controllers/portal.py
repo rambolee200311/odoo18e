@@ -213,7 +213,7 @@ class StockOperationPortal(CustomerPortal):
         return request.render("stock_operation_portal.portal_operation_inbounds", values)
 
     @http.route(["/my/operation/inbounds/create"], type="http", auth="user", website=True,
-                methods=["GET", "POST"])
+                methods=["GET", "POST"], csrf=False)
     def operation_inbound_create(self, **kw):
         user = request.env.user.sudo()
         project_records = user.stock_operation_project_line_ids
@@ -221,7 +221,7 @@ class StockOperationPortal(CustomerPortal):
         project_id = payload.get('project_id', '')
         active_project_record = project_records.filtered(lambda project: str(project.id) == str(project_id))[:1]
         product_records = request.env['product.product'].sudo().search([('categ_id', '=', active_project_record.category.id)]) if active_project_record and active_project_record.category else request.env['product.product'].sudo()
-        form_values = {'reference': '', 'date': '', 'a_date': '', 'project_id': project_id or None, 'bl_no': '', 'cntr_no': '', 'is_adr': True, 'remark': '', 'lines': []}
+        form_values = {'reference': '', 'date': fields.Date.context_today(request.env.user), 'a_date': '', 'project_id': project_id or None, 'bl_no': '', 'cntr_no': '', 'is_adr': True, 'remark': '', 'lines': []}
         form_values.update(payload)
         values = self._prepare_page_values("operation_inbound_create", "Create Inbound Order")
         values.update({
@@ -267,7 +267,7 @@ class StockOperationPortal(CustomerPortal):
         return request.render("stock_operation_portal.portal_operation_inbound_form", values)
 
     @http.route(["/my/operation/inbounds/<int:order_id>/edit"], type="http", auth="user", website=True,
-                methods=["GET", "POST"])
+                methods=["GET", "POST"], csrf=False)
     def operation_inbound_edit(self, order_id, **kw):
         inbound_model = request.env['world.depot.inbound.order']
         order_sudo = inbound_model.sudo().search([('id', '=', order_id), ('state', '=', 'new'), (
@@ -387,7 +387,7 @@ class StockOperationPortal(CustomerPortal):
         return request.render("stock_operation_portal.portal_operation_inbound_detail", values)
 
     @http.route(["/my/operation/inbounds/<int:order_id>/cancel"], type="http", auth="user", website=True,
-                methods=["POST"])
+                methods=["POST"], csrf=False)
     def operation_inbound_cancel(self, order_id, **kw):
         inbound_model = request.env['world.depot.inbound.order']
         order_sudo = inbound_model.sudo().search([('id', '=', order_id), ('state', 'in', ['new', 'confirm']), (
@@ -427,7 +427,7 @@ class StockOperationPortal(CustomerPortal):
         return request.redirect('/my/operation/inbounds/%s' % order_sudo.id)
 
     @http.route(["/my/operation/inbounds/<int:order_id>/portal_unconfirm"], type="http", auth="user", website=True,
-                methods=["POST"])
+                methods=["POST"], csrf=False)
     def operation_inbound_portal_unconfirm(self, order_id, **kw):
         inbound_model = request.env['world.depot.inbound.order']
         order_sudo = inbound_model.sudo().search([('id', '=', order_id), ('state', 'in', ['new', 'confirm']), (
