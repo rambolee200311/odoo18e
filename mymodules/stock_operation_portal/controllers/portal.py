@@ -55,6 +55,7 @@ class StockOperationPortal(CustomerPortal):
         if not isinstance(line_values, list):
             return [], _('The lines field must be a list.')
         lines = []
+        pallet_no_keys = set()
         for line_value in line_values:
             if not isinstance(line_value, dict):
                 return [], _('Every inbound line must be a JSON object.')
@@ -68,6 +69,14 @@ class StockOperationPortal(CustomerPortal):
                 return [], _('Pallets must be a valid number.')
             if pallets <= 0:
                 return [], _('Every pallet line must have positive pallets.')
+            pallet_no = str((line_value.get('pallet_no') or '') if 'pallet_no' in line_value else (existing_line.pallet_no if existing_line else '') or '').strip()
+            if order is None:
+                if not pallet_no:
+                    return [], _('Every pallet line must have a pallet number.')
+                pallet_no_key = pallet_no.casefold()
+                if pallet_no_key in pallet_no_keys:
+                    return [], _('Pallet numbers cannot be duplicated.')
+                pallet_no_keys.add(pallet_no_key)
             products = line_value.get('products') if 'products' in line_value else None
             if products is None and not existing_line:
                 return [], _('Every new pallet line must contain products.')
@@ -102,15 +111,19 @@ class StockOperationPortal(CustomerPortal):
                         'stock_operation_net_weight': net_weight,
                         'remark': str((product_value.get('remark') or '') if 'remark' in product_value else (existing_product_line.remark if existing_product_line else '') or '').strip(),
                     }
+                    if not existing_product_line:
+                        product_values['creation_source'] = 'portal'
                     product_lines.append((1, existing_product_line.id, product_values) if existing_product_line else (0, 0, product_values))
             line_data = {
                 'pallets': pallets,
-                'pallet_no': str((line_value.get('pallet_no') or '') if 'pallet_no' in line_value else (existing_line.pallet_no if existing_line else '') or '').strip(),
+                'pallet_no': pallet_no,
                 'pallet_type': str((line_value.get('pallet_type') or '') if 'pallet_type' in line_value else (existing_line.pallet_type if existing_line else '') or '').strip(),
                 'remark': str((line_value.get('remark') or '') if 'remark' in line_value else (existing_line.remark if existing_line else '') or '').strip(),
             }
             if products is not None:
                 line_data['inbound_order_product_pallet_ids'] = product_lines
+            if not existing_line:
+                line_data['creation_source'] = 'portal'
             lines.append((1, existing_line.id, line_data) if existing_line else (0, 0, line_data))
         return lines, _('Add at least one product line.') if not lines else ''
 
@@ -145,6 +158,8 @@ class StockOperationPortal(CustomerPortal):
                 'pallet_prefix_code': str((line_value.get('pallet_prefix_code') or '') if 'pallet_prefix_code' in line_value else (existing_line.pallet_prefix_code if existing_line else '') or '').strip(),
                 'remark': str((line_value.get('remark') or '') if 'remark' in line_value else (existing_line.remark if existing_line else '') or '').strip(),
             }
+            if not existing_line:
+                line_data['creation_source'] = 'portal'
             lines.append((1, existing_line.id, line_data) if existing_line else (0, 0, line_data))
         return lines, _('Add at least one product line.') if not lines else ''
 
@@ -157,6 +172,18 @@ class StockOperationPortal(CustomerPortal):
     def get_stock_operation_project_domain(self):
         user = request.env.user.sudo()
         return [('project', 'in', user.stock_operation_project_line_ids.ids)]
+
+    @http.route(['/my/operation/products'], type='http', auth='user', website=True, methods=['GET'])
+    def operation_product_search(self, **kw):
+        project_id = kw.get('project_id', '')
+        keyword = str(kw.get('keyword') or '').strip()
+        user = request.env.user.sudo()
+        project = user.stock_operation_project_line_ids.filtered(lambda item: str(item.id) == str(project_id))[:1]
+        if not project or not project.category or len(keyword) < 2:
+            return request.make_json_response({'products': []})
+        product_domain = [('categ_id', '=', project.category.id), '|', '|', ('name', 'ilike', keyword), ('default_code', 'ilike', keyword), ('barcode', 'ilike', keyword)]
+        products = request.env['product.product'].sudo().search(product_domain, order='id desc', limit=20)
+        return request.make_json_response({'products': [{'id': product.id, 'default_name': product.display_name or product.name or ''} for product in products]})
 
     # ============================================================
     # 主页
@@ -244,8 +271,12 @@ class StockOperationPortal(CustomerPortal):
             if not active_project_record.category:
                 values['error'] = _('The selected project has no product category.')
                 return request.render("stock_operation_portal.portal_operation_inbound_form", values)
-            if not str(payload.get('reference') or '').strip() or not payload.get('date') or not payload.get('a_date'):
-                values['error'] = _('Reference, order date, and arrival date are required.')
+            missing_fields = [label for label, field_value in [
+                (_('Reference'), str(payload.get('reference') or '').strip()), (_('Order Date'), payload.get('date')),
+                (_('Arrival Date'), payload.get('a_date')), (_('Container Number'), str(payload.get('cntr_no') or '').strip()),
+            ] if not field_value]
+            if missing_fields:
+                values['error'] = _('The following fields are required: %s') % ', '.join(missing_fields)
                 return request.render("stock_operation_portal.portal_operation_inbound_form", values)
             if 'is_adr' in payload and not isinstance(payload['is_adr'], bool):
                 values['error'] = _('is_adr must be a boolean.')
@@ -258,7 +289,7 @@ class StockOperationPortal(CustomerPortal):
                 order = request.env['world.depot.inbound.order'].create({
                     'type': 'inbound', 'date': payload['date'], 'a_date': payload['a_date'], 'project': active_project_record.id,
                     'reference': str(payload['reference']).strip(), 'bl_no': str(payload.get('bl_no') or '').strip(), 'cntr_no': str(payload.get('cntr_no') or '').strip(),
-                    'is_adr': payload.get('is_adr', True), 'remark': str(payload.get('remark') or '').strip(), 'inbound_order_product_ids': lines,
+                    'is_adr': payload.get('is_adr', True), 'remark': str(payload.get('remark') or '').strip(), 'creation_source': 'portal', 'inbound_order_product_ids': lines,
                 })
             except ValidationError as error:
                 values['error'] = error.args[0]
@@ -328,8 +359,12 @@ class StockOperationPortal(CustomerPortal):
             reference = str((payload.get('reference') or '') if 'reference' in payload else order_sudo.reference or '').strip()
             order_date = payload.get('date', fields.Date.to_string(order_sudo.date) if order_sudo.date else '')
             arrival_date = payload.get('a_date', fields.Date.to_string(order_sudo.a_date) if order_sudo.a_date else '')
-            if not reference or not order_date or not arrival_date:
-                values['error'] = _('Reference, order date, and arrival date are required.')
+            container_no = str((payload.get('cntr_no') or '') if 'cntr_no' in payload else order_sudo.cntr_no or '').strip()
+            missing_fields = [label for label, field_value in [
+                (_('Reference'), reference), (_('Order Date'), order_date), (_('Arrival Date'), arrival_date), (_('Container Number'), container_no),
+            ] if not field_value]
+            if missing_fields:
+                values['error'] = _('The following fields are required: %s') % ', '.join(missing_fields)
                 return request.render("stock_operation_portal.portal_operation_inbound_form", values)
             if 'is_adr' in payload and not isinstance(payload['is_adr'], bool):
                 values['error'] = _('is_adr must be a boolean.')
@@ -548,7 +583,7 @@ class StockOperationPortal(CustomerPortal):
                 order = request.env['world.depot.outbound.order'].create({
                     'type': 'outbound', 'project': active_project_record.id, 'reference': str(payload['reference']).strip(), 'date': payload['date'],
                     'p_date': payload.get('p_date') or False, 'o_date': payload.get('o_date') or False,
-                    'remark': str(payload.get('remark') or '').strip(), 'outbound_order_product_ids': lines,
+                    'remark': str(payload.get('remark') or '').strip(), 'creation_source': 'portal', 'outbound_order_product_ids': lines,
                 })
             except (UserError, ValidationError) as error:
                 values['error'] = error.args[0]

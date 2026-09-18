@@ -14,7 +14,7 @@ Enable users to create and manage stock operations via PDA or PC:
     "author": "World Depot B.V.",
     "category": "Warehouse",
     "version": "18.0.1.0.0",
-    "depends": ["worlddepot", "portal", "website", "stock"],
+    "depends": ["worlddepot", "stock_barcode_lite", "portal", "website", "stock"],
     "data": [
         "security/ir.model.access.csv",
         "security/security.xml",

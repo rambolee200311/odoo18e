@@ -31,7 +31,9 @@
         <t t-set="data_report_header_spacing" t-value="0"/>
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="o">
-                <t t-foreach="sections_by_order.get(o.id, [])" t-as="section">
+                <div class="article" t-att-data-oe-model="o._name" t-att-data-oe-id="o.id"
+                     t-att-data-oe-lang="o.env.context.get('lang')">
+                    <t t-foreach="sections_by_order.get(o.id, [])" t-as="section">
                     <t t-set="picking" t-value="section['picking']"/>
 
                     <t t-set="pallet_groups" t-value="section['pallet_groups']"/>
@@ -55,7 +57,7 @@
                                 .outbound-picking-page {
                                     padding: 5mm 0 0 0;
                                     margin-top: 0;
-                                    font-family: Arial, sans-serif;
+                                    font-family: "Noto Sans CJK SC", "Microsoft YaHei", SimSun, "WenQuanYi Micro Hei", Arial, sans-serif;
                                     color: #111827;
                                     font-size: 12px;
                                     page-break-before: always;
@@ -233,7 +235,12 @@
 
                             <t t-foreach="pallet_groups" t-as="pallet_group">
                                 <div class="pallet-section">
-                                    <div class="pallet-title">Pallet No: <span t-esc="pallet_group['pallet_no']"/></div>
+                                    <div class="pallet-title">
+                                        Pallet No: <span t-esc="pallet_group['pallet_no']"/>
+                                        <t t-if="pallet_group['has_package_mismatch']">
+                                            <span> | Actual Package: </span><span t-esc="pallet_group['actual_package_name']"/>
+                                        </t>
+                                    </div>
                                     <table class="picking-products-table">
                                         <thead>
                                             <tr>
@@ -246,17 +253,17 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <t t-foreach="pallet_group['lines']" t-as="line">
+                                            <t t-foreach="pallet_group['rows']" t-as="row">
                                                 <tr>
-                                                    <td class="product"><span t-field="line.product_id.display_name"/></td>
-                                                    <td class="lot"><span t-esc="line.lot_name or ''"/></td>
-                                                    <td class="barcode"><span t-esc="line.product_id.barcode or ''"/></td>
+                                                    <td class="product"><span t-esc="row['product_name']"/></td>
+                                                    <td class="lot"><span t-esc="row['lot_name']"/></td>
+                                                    <td class="barcode"><span t-esc="row['barcode']"/></td>
                                                     <td class="spec">
-                                                        <span t-esc="line.box_in_qty or ''"/>
-                                                        <span t-esc="line.u8_aux_uom_name or ''"/>
+                                                        <span t-esc="row['box_in_qty']"/>
+                                                        <span t-esc="row['uom_name']"/>
                                                     </td>
-                                                    <td class="qty"><span t-field="line.quantity"/></td>
-                                                    <td class="uom"><span t-esc="line.castunitid or ''"/></td>
+                                                    <td class="qty"><span t-esc="row['quantity']"/></td>
+                                                    <td class="uom"><span t-esc="row['unit']"/></td>
                                                 </tr>
                                             </t>
                                         </tbody>
@@ -264,7 +271,8 @@
                                 </div>
                             </t>
                     </div>
-                </t>
+                    </t>
+                </div>
             </t>
         </t>
     </template>
