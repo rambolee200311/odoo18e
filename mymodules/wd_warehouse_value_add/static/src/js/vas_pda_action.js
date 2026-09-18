@@ -32,6 +32,7 @@ export class VasPdaAction extends Component {
             selectedOperationType: "",
             attachmentName: "",
             attachments: [],
+            editingLineId: null,
             lineModalOpen: false,
             cancelModalOpen: false,
             cancelReason: "",
@@ -118,12 +119,28 @@ export class VasPdaAction extends Component {
         );
         this.state.order = order;
         this.state.billno = order.warehouse_order_billno || this.state.billno;
-        this.state.lines = await this.orm.searchRead(
+        const lines = await this.orm.searchRead(
             "wd.vas.order.line",
             [["order_id", "=", order.id]],
             ["id", "operation_type_id", "quantity_time", "unit", "note"],
             { order: "sequence, id" }
         );
+        this.state.lines = lines.map((line) => {
+            const operationTypeId = line.operation_type_id?.[0];
+            const operationTypes = this.state.operationTypes.some(
+                (item) => item.id === operationTypeId
+            ) ? this.state.operationTypes : [{
+                id: operationTypeId,
+                name: line.operation_type_id?.[1],
+                unit: line.unit,
+            }, ...this.state.operationTypes];
+            return {
+                ...line,
+                operationTypeId: operationTypeId?.toString() || "",
+                operationTypes,
+                quantityTime: line.quantity_time,
+            };
+        });
         this.state.attachments = this.state.order.attachment_ids?.length
             ? await this.orm.read("ir.attachment", this.state.order.attachment_ids, ["id", "name"])
             : [];
@@ -177,23 +194,53 @@ export class VasPdaAction extends Component {
         }
         await this.orm.unlink("wd.vas.order.line", [lineId]);
         await this.reloadOrder();
+        this.state.editingLineId = null;
+    }
+
+    startLineEdit(lineId) {
+        if (this.isDraft && !this.state.busy) {
+            this.state.editingLineId = lineId;
+        }
+    }
+
+    async cancelLineEdit() {
+        if (!this.isDraft || this.state.busy) {
+            return;
+        }
+        this.state.editingLineId = null;
+        await this.reloadOrder();
+    }
+
+    onLineOperationTypeChange(line, event) {
+        const operationType = (line.operationTypes || this.state.operationTypes).find(
+            (item) => item.id === Number(event.target.value)
+        );
+        line.operationTypeId = event.target.value;
+        line.unit = operationType?.unit || "";
     }
 
     async updateLine(line) {
-        if (!this.isDraft) {
+        if (!this.isDraft || this.state.busy) {
             return;
         }
+        if (!line.operationTypeId) {
+            this.notification.add("请选择作业类型。", { type: "warning" });
+            return;
+        }
+        this.state.busy = true;
         try {
             await this.orm.write("wd.vas.order.line", [line.id], {
-                operation_type_id: Number(line.operation_type_id[0]),
-                quantity_time: Number(line.quantity_time),
+                operation_type_id: Number(line.operationTypeId),
+                quantity_time: Number(line.quantityTime),
                 note: line.note || "",
             });
             await this.reloadOrder();
+            this.state.editingLineId = null;
             this.notification.add("Line updated.", { type: "success" });
         } catch (error) {
             this.notification.add(error.message || "Line update failed.", { type: "danger" });
-            await this.reloadOrder();
+        } finally {
+            this.state.busy = false;
         }
     }
 
@@ -307,6 +354,7 @@ export class VasPdaAction extends Component {
         this.state.warehouseOrder = null;
         this.state.billno = "";
         this.state.lines = [];
+        this.state.editingLineId = null;
         this.state.attachments = [];
         this.state.attachmentName = "";
         this.state.cancelModalOpen = false;
