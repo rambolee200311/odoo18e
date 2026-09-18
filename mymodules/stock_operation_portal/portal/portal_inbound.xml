@@ -273,7 +273,7 @@
                                         <input type="text" name="bl_no" class="form-control" placeholder="e.g. BL20260824001" t-att-value="fv.get('bl_no', '')"/>
                                     </div>
                                     <div class="col-md-4">
-                                        <label class="form-label fw-bold">Container No</label>
+                                        <label class="form-label fw-bold">Container No <span class="text-danger">*</span></label>
                                         <input type="text" name="cntr_no" class="form-control" placeholder="e.g. MSCU1234567" t-att-value="fv.get('container_no', '') or fv.get('cntr_no', '')"/>
                                     </div>
                                     <div class="col-md-8">
@@ -311,7 +311,7 @@
                                                     <button type="button" class="btn btn-sm btn-outline-danger remove-line"><i class="fa fa-trash"/></button>
                                                 </div>
                                                 <div class="row g-2 mb-2">
-                                                    <div class="col-md-3"><label class="form-label">Pallet No</label><input type="text" class="form-control pallet_no" placeholder="e.g. PALLET-001" t-att-value="line.get('pallet_no', '')"/></div>
+                                                    <div class="col-md-3"><label class="form-label">Pallet No <span class="text-danger">*</span></label><input type="text" class="form-control pallet_no" placeholder="e.g. PALLET-001" required="required" t-att-value="line.get('pallet_no', '')" /></div>
                                                     <div class="col-md-2"><label class="form-label">Pallets <span class="text-danger">*</span></label><input type="number" class="form-control pallets" min="0.01" step="0.01" required="required" t-att-value="line.get('pallets', 1)"/></div>
                                                     <div class="col-md-2"><label class="form-label">Type</label><input type="text" class="form-control pallet_type" placeholder="e.g. WOOD" t-att-value="line.get('pallet_type', '')"/></div>
                                                     <div class="col-md-5"><label class="form-label">Remark</label><input type="text" class="form-control line_remark" t-att-value="line.get('remark', '')"/></div>

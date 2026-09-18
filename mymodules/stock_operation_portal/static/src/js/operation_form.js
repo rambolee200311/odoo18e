@@ -50,7 +50,7 @@ publicWidget.registry.InboundOrderForm = publicWidget.Widget.extend({
             + '<button type="button" class="btn btn-sm btn-outline-danger remove-line"><i class="fa fa-trash"/></button>'
             + '</div>'
             + '<div class="row g-2 mb-2">'
-            + '<div class="col-md-3"><label class="form-label">Pallet No</label><input type="text" class="form-control pallet_no" placeholder="e.g. PALLET-001"/></div>'
+            + '<div class="col-md-3"><label class="form-label">Pallet No<span class="text-danger">*</span></label><input type="text" class="form-control pallet_no" placeholder="e.g. PALLET-001"/></div>'
             + '<div class="col-md-2"><label class="form-label">Pallets <span class="text-danger">*</span></label><input type="number" class="form-control pallets" min="0.01" step="0.01" value="1"/></div>'
             + '<div class="col-md-2"><label class="form-label">Type</label><input type="text" class="form-control pallet_type" placeholder="e.g. WOOD"/></div>'
             + '<div class="col-md-5"><label class="form-label">Remark</label><input type="text" class="form-control line_remark"/></div>'
@@ -213,6 +213,9 @@ publicWidget.registry.InboundOrderForm = publicWidget.Widget.extend({
         payload.lines.forEach(function (line, i) {
             if (line.products.length === 0) {
                 errors.push('Pallet #' + (i + 1) + ': must have at least one product.');
+            }
+            if (!line.pallet_no) {
+                errors.push('Pallet #' + (i + 1) + ': Pallet No is required.');
             }
             line.products.forEach(function (p, j) {
                 if (!p.product_id) {
