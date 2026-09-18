@@ -10,7 +10,7 @@ class OutboundOrderInherit(models.Model):
     _inherit = "world.depot.outbound.order"
     _order = "id desc"
 
-    creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import")], string="Creation Source", default="manual", readonly=True, copy=False)
+    creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import"), ("portal", "Portal")], string="Creation Source", default="manual", readonly=True, copy=False)
     time_slot = fields.Char(string='Expected harvest time period')  # 预计收货时间段
     cwarehouseid = fields.Char(string="U8C Warehouse ID", copy=False, index=True)
     vsourcebillcode = fields.Char(string="Source Bill Code", copy=False, index=True, tracking=True)
@@ -882,7 +882,7 @@ class OutboundOrderInherit(models.Model):
 class OutboundOrderProduct(models.Model):
     _inherit = "world.depot.outbound.order.product"
 
-    creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import")],
+    creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import"), ("portal", "Portal")],
                                        string="Creation Source", default="manual", readonly=True, copy=False)
     package_id = fields.Many2one(
         "stock.quant.package",

@@ -15,6 +15,7 @@ Chenyang Chemical warehouse customizations.
         "data/pda_internal_transfer_cron.xml",
 
         "reports/inbound_pallet_label_report.xml",
+        "reports/inbound_arrival_note_report.xml",
         "reports/outbound_lot_code_label_report.xml",
         "reports/inbound_lot_code_label_report.xml",
 

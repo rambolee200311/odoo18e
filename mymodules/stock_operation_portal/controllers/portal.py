@@ -111,6 +111,8 @@ class StockOperationPortal(CustomerPortal):
                         'stock_operation_net_weight': net_weight,
                         'remark': str((product_value.get('remark') or '') if 'remark' in product_value else (existing_product_line.remark if existing_product_line else '') or '').strip(),
                     }
+                    if not existing_product_line:
+                        product_values['creation_source'] = 'portal'
                     product_lines.append((1, existing_product_line.id, product_values) if existing_product_line else (0, 0, product_values))
             line_data = {
                 'pallets': pallets,
@@ -120,6 +122,8 @@ class StockOperationPortal(CustomerPortal):
             }
             if products is not None:
                 line_data['inbound_order_product_pallet_ids'] = product_lines
+            if not existing_line:
+                line_data['creation_source'] = 'portal'
             lines.append((1, existing_line.id, line_data) if existing_line else (0, 0, line_data))
         return lines, _('Add at least one product line.') if not lines else ''
 
@@ -154,6 +158,8 @@ class StockOperationPortal(CustomerPortal):
                 'pallet_prefix_code': str((line_value.get('pallet_prefix_code') or '') if 'pallet_prefix_code' in line_value else (existing_line.pallet_prefix_code if existing_line else '') or '').strip(),
                 'remark': str((line_value.get('remark') or '') if 'remark' in line_value else (existing_line.remark if existing_line else '') or '').strip(),
             }
+            if not existing_line:
+                line_data['creation_source'] = 'portal'
             lines.append((1, existing_line.id, line_data) if existing_line else (0, 0, line_data))
         return lines, _('Add at least one product line.') if not lines else ''
 
@@ -279,7 +285,7 @@ class StockOperationPortal(CustomerPortal):
                 order = request.env['world.depot.inbound.order'].create({
                     'type': 'inbound', 'date': payload['date'], 'a_date': payload['a_date'], 'project': active_project_record.id,
                     'reference': str(payload['reference']).strip(), 'bl_no': str(payload.get('bl_no') or '').strip(), 'cntr_no': str(payload.get('cntr_no') or '').strip(),
-                    'is_adr': payload.get('is_adr', True), 'remark': str(payload.get('remark') or '').strip(), 'inbound_order_product_ids': lines,
+                    'is_adr': payload.get('is_adr', True), 'remark': str(payload.get('remark') or '').strip(), 'creation_source': 'portal', 'inbound_order_product_ids': lines,
                 })
             except ValidationError as error:
                 values['error'] = error.args[0]
@@ -569,7 +575,7 @@ class StockOperationPortal(CustomerPortal):
                 order = request.env['world.depot.outbound.order'].create({
                     'type': 'outbound', 'project': active_project_record.id, 'reference': str(payload['reference']).strip(), 'date': payload['date'],
                     'p_date': payload.get('p_date') or False, 'o_date': payload.get('o_date') or False,
-                    'remark': str(payload.get('remark') or '').strip(), 'outbound_order_product_ids': lines,
+                    'remark': str(payload.get('remark') or '').strip(), 'creation_source': 'portal', 'outbound_order_product_ids': lines,
                 })
             except (UserError, ValidationError) as error:
                 values['error'] = error.args[0]

@@ -37,4 +37,14 @@ class InboundActualInboundConfirmationWizard(models.TransientModel):
             })
             if removed_attachment_line_ids:
                 removed_attachment_line_ids.unlink()
-        return {"type": "ir.actions.act_window_close"}
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "title": _("Success"),
+                "message": _("Actual inbound confirmation completed."),
+                "type": "success",
+                "sticky": False,
+                "next": {"type": "ir.actions.act_window_close"},
+            },
+        }
