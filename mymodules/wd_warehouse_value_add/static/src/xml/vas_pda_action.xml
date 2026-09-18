@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <templates xml:space="preserve">
     <t t-name="wd_warehouse_value_add.VasPdaAction">
-        <main class="o_wd_vas_pda_action d-flex flex-column h-100">
+        <main class="o_wd_vas_pda_action o_action_delegate_scroll d-flex flex-column h-100">
             <header class="o_wd_vas_pda_header">
                 <button class="btn btn-link o_wd_vas_back" type="button" t-on-click="goBack">
                     <span aria-hidden="true">←</span>
@@ -71,16 +71,72 @@
                     <article t-foreach="state.lines" t-as="line" t-key="line.id"
                              class="o_wd_vas_line-card">
                         <div class="o_wd_vas_line-top">
-                            <strong>操作类型：<t t-esc="line.operation_type_id?.[1]"/></strong>
-                            <button t-if="isDraft" class="btn btn-link o_wd_vas_delete" type="button"
-                                    t-on-click="removeLine.bind(this, line.id)">删除</button>
+                            <strong>作业明细</strong>
+                            <div t-if="isDraft" class="o_wd_vas_line-actions">
+                                <button t-if="state.editingLineId === line.id"
+                                        class="btn btn-sm o_wd_vas_outline-btn" type="button"
+                                        t-att-disabled="state.busy"
+                                        t-on-click="updateLine.bind(this, line)">保存</button>
+                                <button t-if="state.editingLineId === line.id"
+                                        class="btn btn-sm o_wd_vas_outline-btn" type="button"
+                                        t-att-disabled="state.busy"
+                                        t-on-click="cancelLineEdit">取消</button>
+                                <button t-if="state.editingLineId !== line.id"
+                                        class="btn btn-link o_wd_vas_delete" type="button"
+                                        t-att-disabled="state.busy"
+                                        t-on-click="removeLine.bind(this, line.id)">删除</button>
+                            </div>
                         </div>
-                        <div class="o_wd_vas_line-value">
-                            数量/工时：<t t-esc="line.quantity_time"/>
-                            <span>单位：<t t-esc="line.unit || '自动'"/></span>
+                        <div t-if="isDraft &amp;&amp; state.editingLineId === line.id">
+                            <div class="o_wd_vas_form-row">
+                                <label>操作类型</label>
+                                <select class="form-select" t-att-disabled="state.busy"
+                                        t-on-change="onLineOperationTypeChange.bind(this, line)">
+                                    <option value="" t-att-selected="!line.operationTypeId">请选择作业类型</option>
+                                    <option t-foreach="line.operationTypes" t-as="operation"
+                                            t-key="operation.id" t-att-value="operation.id"
+                                            t-att-selected="operation.id.toString() === line.operationTypeId">
+                                        <t t-esc="operation.name"/>
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="o_wd_vas_form-row">
+                                <label>数量/工时</label>
+                                <input class="form-control" type="number" min="0"
+                                       t-att-disabled="state.busy"
+                                       t-model.number="line.quantityTime"/>
+                            </div>
+                            <div class="o_wd_vas_form-row">
+                                <label>单位</label>
+                                <span class="o_wd_vas_readonly-field"><t t-esc="line.unit || '自动'"/></span>
+                            </div>
+                            <div class="o_wd_vas_form-row">
+                                <label>备注</label>
+                                <textarea class="form-control" rows="2" t-att-disabled="state.busy"
+                                          t-model="line.note"/>
+                            </div>
                         </div>
-                        <div class="o_wd_vas_line-note">
-                            备注：<t t-esc="line.note || '-'"/>
+                        <div t-else="">
+                            <button t-if="isDraft" class="btn o_wd_vas_line-edit-field" type="button"
+                                    t-att-disabled="state.busy"
+                                    t-on-click="startLineEdit.bind(this, line.id)">
+                                操作类型：<t t-esc="line.operation_type_id?.[1]"/>
+                                <span>数量/工时：<t t-esc="line.quantity_time"/></span>
+                                <span>单位：<t t-esc="line.unit || '自动'"/></span>
+                            </button>
+                            <div t-if="!isDraft" class="o_wd_vas_line-value">
+                                操作类型：<t t-esc="line.operation_type_id?.[1]"/>
+                                <span>数量/工时：<t t-esc="line.quantity_time"/></span>
+                                <span>单位：<t t-esc="line.unit || '自动'"/></span>
+                            </div>
+                            <button t-if="isDraft" class="btn o_wd_vas_line-edit-field o_wd_vas_line-note"
+                                    type="button" t-att-disabled="state.busy"
+                                    t-on-click="startLineEdit.bind(this, line.id)">
+                                备注：<t t-esc="line.note || '-'"/>
+                            </button>
+                            <div t-if="!isDraft" class="o_wd_vas_line-note">
+                                备注：<t t-esc="line.note || '-'"/>
+                            </div>
                         </div>
                     </article>
                 </div>
@@ -107,7 +163,7 @@
                         </li>
                 </ul>
             </section>
-            <footer class="o_wd_vas_pda_bottom_bar position-sticky bg-white p-3">
+            <footer class="o_wd_vas_pda_bottom_bar bg-white p-3">
                 <button class="btn o_wd_vas_outline-btn" type="button"
                         t-att-disabled="state.busy" t-on-click="newOrder">新增</button>
                 <button t-if="isDraft" class="btn o_wd_vas_outline-btn" type="button"
