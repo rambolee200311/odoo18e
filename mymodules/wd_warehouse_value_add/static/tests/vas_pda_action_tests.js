@@ -12,6 +12,7 @@ function makeAction(state = {}) {
         warehouseOrder: null,
         lines: [],
         attachments: [],
+        editingLineId: null,
         lineModalOpen: true,
         cancelModalOpen: false,
         cancelReason: "",
@@ -69,6 +70,7 @@ test("PDA new order clears the current draft state", () => {
     expect(action.state.billno).toBe("");
     expect(action.state.warehouseOrder).toBe(null);
     expect(action.state.lines.length).toBe(0);
+    expect(action.state.editingLineId).toBe(null);
     expect(action.state.attachments.length).toBe(0);
     expect(action.state.attachmentName).toBe("");
     expect(action.state.cancelModalOpen).toBe(false);
@@ -125,6 +127,72 @@ test("PDA requires a reason before cancelling a draft", async () => {
 
     expect(notifications.length).toBe(1);
     expect(notifications[0].message).toBe("请输入作废原因。");
+});
+
+test("PDA saves inline-edited line values", async () => {
+    const action = makeAction({ order: { id: 7, state: "draft" }, editingLineId: 9 });
+    const calls = [];
+    const line = {
+        id: 9,
+        operationTypeId: "12",
+        quantityTime: 2.5,
+        note: "贴标完成",
+    };
+    action.orm.write = async (model, ids, values) => calls.push({ model, ids, values });
+
+    await action.updateLine(line);
+
+    expect(calls.length).toBe(1);
+    expect(calls[0].model).toBe("wd.vas.order.line");
+    expect(calls[0].ids).toEqual([9]);
+    expect(calls[0].values.operation_type_id).toBe(12);
+    expect(calls[0].values.quantity_time).toBe(2.5);
+    expect(calls[0].values.note).toBe("贴标完成");
+    expect(action.state.editingLineId).toBe(null);
+});
+
+test("PDA opens only the clicked line for inline editing", () => {
+    const action = makeAction({ order: { id: 7, state: "draft" } });
+
+    action.startLineEdit(9);
+
+    expect(action.state.editingLineId).toBe(9);
+});
+
+test("PDA retains an inactive operation type in its edited line", async () => {
+    const action = makeAction({
+        operationTypes: [{ id: 12, name: "贴标", unit: "件" }],
+    });
+    action.orm.read = async () => [{
+        id: 7,
+        warehouse_order_billno: "IN-001",
+        attachment_ids: [],
+    }];
+    action.orm.searchRead = async () => [{
+        id: 9,
+        operation_type_id: [10, "旧作业类型"],
+        quantity_time: 1,
+        unit: "箱",
+        note: "",
+    }];
+
+    await action.reloadOrder(7);
+
+    expect(action.state.lines[0].operationTypeId).toBe("10");
+    expect(action.state.lines[0].operationTypes[0].id).toBe(10);
+    expect(action.state.lines[0].operationTypes[0].name).toBe("旧作业类型");
+});
+
+test("PDA refreshes the inline unit when the operation type changes", () => {
+    const action = makeAction({
+        operationTypes: [{ id: 12, unit: "箱" }],
+    });
+    const line = { operationTypeId: "10", unit: "件" };
+
+    action.onLineOperationTypeChange(line, { target: { value: "12" } });
+
+    expect(line.operationTypeId).toBe("12");
+    expect(line.unit).toBe("箱");
 });
 
 test("PDA saves the associated bill number and project before submitting", async () => {

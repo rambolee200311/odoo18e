@@ -70,6 +70,9 @@ class InboundOrder(models.Model):
                 "package_name": line.pallet_no or "",
                 "container_no": order.cntr_no or "",
                 "bl_no": order.bl_no or "",
+                "pallets": line.pallets or 0.0,
+                "pallet_type": line.pallet_type or "",
+                "remark": line.remark or "",
                 "total_quantity": 0.0,
                 "products": [],
             }
@@ -80,6 +83,9 @@ class InboundOrder(models.Model):
                     "product_code": portal_product_code(product),
                     "product_name": portal_product_name(product),
                     "quantity": quantity,
+                    "gross_weight": product_line.stock_operation_gross_weight or 0.0,
+                    "net_weight": product_line.stock_operation_net_weight or 0.0,
+                    "remark": product_line.remark or "",
                 })
                 package_row["total_quantity"] += quantity
             grouped_rows.append(package_row)

@@ -255,9 +255,32 @@
             align-items: center;
         }
 
+        .o_wd_vas_line-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
         .o_wd_vas_line-value {
             margin-top: 6px;
             color: #444;
+
+            span {
+                margin-left: 18px;
+                color: #666;
+            }
+        }
+
+        .o_wd_vas_line-edit-field {
+            display: block;
+            width: 100%;
+            padding: 0;
+            margin-top: 6px;
+            color: #444;
+            border: 0;
+            background: transparent;
+            font-size: inherit;
+            text-align: left;
 
             span {
                 margin-left: 18px;
