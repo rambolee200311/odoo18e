@@ -240,9 +240,10 @@ publicWidget.registry.InboundOrderForm = publicWidget.Widget.extend({
             redirect: 'follow',
         }).then(function (resp) {
             if (resp.redirected) {
-                if (isEdit) {
-                    sessionStorage.setItem('inbound_order_updated', '1');
-                }
+                sessionStorage.setItem(
+                    'inbound_order_success',
+                    isEdit ? 'updated' : 'created'
+                );
                 window.location.href = resp.url;
                 return;
             }
@@ -258,17 +259,23 @@ publicWidget.registry.InboundOrderForm = publicWidget.Widget.extend({
     },
 });
 
-publicWidget.registry.InboundOrderUpdateNotice = publicWidget.Widget.extend({
-    selector: '#inbound_order_update_success',
+publicWidget.registry.InboundOrderSuccessNotice = publicWidget.Widget.extend({
+    selector: '#inbound_order_success',
 
     start: function () {
         this._super.apply(this, arguments);
 
-        if (sessionStorage.getItem('inbound_order_updated') !== '1') {
+        var noticeType = sessionStorage.getItem('inbound_order_success');
+        if (!noticeType) {
             return;
         }
 
-        sessionStorage.removeItem('inbound_order_updated');
+        sessionStorage.removeItem('inbound_order_success');
+        var message = noticeType === 'created'
+            ? 'Inbound order created successfully.'
+            : 'Inbound order updated successfully.';
+        this.$('#inbound_order_success_message').text(message);
+
         var $notice = this.$el;
         $notice.removeClass('d-none');
 

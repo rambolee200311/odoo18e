@@ -104,9 +104,9 @@
                             <a href="/my/operation/inbounds" class="btn btn-secondary btn-sm"><i class="fa fa-arrow-left"/> Back</a>
                         </div>
                     </div>
-                    <div id="inbound_order_update_success" class="alert alert-success d-none" role="alert">
+                    <div id="inbound_order_success" class="alert alert-success d-none" role="alert">
                         <i class="fa fa-check-circle me-1"/>
-                        Inbound order updated successfully.
+                        <span id="inbound_order_success_message"/>
                     </div>
                     <div t-if="error" class="alert alert-danger"><t t-esc="error"/></div>
                     <div class="card mb-4">
