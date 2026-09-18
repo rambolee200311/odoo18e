@@ -163,14 +163,20 @@
                                     <div class="ms-3">
                                         <small class="text-muted me-3" t-if="pkg.get('bl_no')">B/L: <t t-esc="pkg.get('bl_no')"/></small>
                                         <small class="text-muted" t-if="pkg.get('container_no')">Container: <t t-esc="pkg.get('container_no')"/></small>
+                                        <small class="text-muted me-3" t-if="pkg.get('pallets')">Number of Pallets: <t t-esc="pkg.get('pallets')"/></small>
+                                        <small class="text-muted me-3" t-if="pkg.get('pallet_type')">Pallet Type : <t t-esc="pkg.get('pallet_type')"/></small>
+                                        <small class="text-muted me-3" t-if="pkg.get('remark')">Remark: <t t-esc="pkg.get('remark')"/></small>
                                     </div>
                                     <table class="table table-sm mt-2 mb-0">
-                                        <thead class="table-light"><tr><th>Product Code</th><th>Product Name</th><th class="text-end">Quantity</th></tr></thead>
+                                        <thead class="table-light"><tr><th>Product Code</th><th>Product Name</th><th class="text-end">Quantity</th><th class="text-end">Gross Weight</th><th class="text-end">Net Weight</th><th class="text-end">Remark</th></tr></thead>
                                         <tbody>
                                             <tr t-foreach="pkg.get('products', [])" t-as="prod">
                                                 <td><t t-esc="prod.get('product_code', '-')"/></td>
                                                 <td><t t-esc="prod.get('product_name', '-')"/></td>
                                                 <td class="text-end"><t t-esc="prod.get('quantity', 0)"/></td>
+                                                <td class="text-end"><t t-esc="prod.get('gross_weight', 0)"/></td>
+                                                <td class="text-end"><t t-esc="prod.get('net_weight', 0)"/></td>
+                                                <td><t t-esc="prod.get('remark', '')"/></td>
                                             </tr>
                                         </tbody>
                                     </table>
