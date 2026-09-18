@@ -271,8 +271,12 @@ class StockOperationPortal(CustomerPortal):
             if not active_project_record.category:
                 values['error'] = _('The selected project has no product category.')
                 return request.render("stock_operation_portal.portal_operation_inbound_form", values)
-            if not str(payload.get('reference') or '').strip() or not payload.get('date') or not payload.get('a_date'):
-                values['error'] = _('Reference, order date, and arrival date are required.')
+            missing_fields = [label for label, field_value in [
+                (_('Reference'), str(payload.get('reference') or '').strip()), (_('Order Date'), payload.get('date')),
+                (_('Arrival Date'), payload.get('a_date')), (_('Container Number'), str(payload.get('cntr_no') or '').strip()),
+            ] if not field_value]
+            if missing_fields:
+                values['error'] = _('The following fields are required: %s') % ', '.join(missing_fields)
                 return request.render("stock_operation_portal.portal_operation_inbound_form", values)
             if 'is_adr' in payload and not isinstance(payload['is_adr'], bool):
                 values['error'] = _('is_adr must be a boolean.')
@@ -355,8 +359,12 @@ class StockOperationPortal(CustomerPortal):
             reference = str((payload.get('reference') or '') if 'reference' in payload else order_sudo.reference or '').strip()
             order_date = payload.get('date', fields.Date.to_string(order_sudo.date) if order_sudo.date else '')
             arrival_date = payload.get('a_date', fields.Date.to_string(order_sudo.a_date) if order_sudo.a_date else '')
-            if not reference or not order_date or not arrival_date:
-                values['error'] = _('Reference, order date, and arrival date are required.')
+            container_no = str((payload.get('cntr_no') or '') if 'cntr_no' in payload else order_sudo.cntr_no or '').strip()
+            missing_fields = [label for label, field_value in [
+                (_('Reference'), reference), (_('Order Date'), order_date), (_('Arrival Date'), arrival_date), (_('Container Number'), container_no),
+            ] if not field_value]
+            if missing_fields:
+                values['error'] = _('The following fields are required: %s') % ', '.join(missing_fields)
                 return request.render("stock_operation_portal.portal_operation_inbound_form", values)
             if 'is_adr' in payload and not isinstance(payload['is_adr'], bool):
                 values['error'] = _('is_adr must be a boolean.')
