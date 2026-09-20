@@ -342,12 +342,13 @@
                                                             <t t-foreach="line.get('products', [])" t-as="pline">
                                                                 <tr class="product-line" t-att-data-product-line-id="pline.get('id', '')">
                                                                     <td>
-                                                                        <select class="form-select form-select-sm product-select" required="required">
-                                                                            <option value="">-- Select --</option>
-                                                                            <t t-foreach="products" t-as="prod">
-                                                                                <option t-att-value="prod['id']" t-att-selected="'selected' if (str(pline.get('product_id', '')) == str(prod['id'])) else None"><t t-esc="prod['default_name']"/></option>
-                                                                            </t>
-                                                                        </select>
+                                                                        <div class="position-relative product-lookup-cell">
+                                                                            <input type="text" class="form-control form-control-sm product-search-input"
+                                                                                   placeholder="Type code / name (min 1 chars)" autocomplete="off"
+                                                                                   t-att-value="pline.get('product_name', '')"/>
+                                                                            <input type="hidden" class="product-id-input" t-att-value="pline.get('product_id', '')"/>
+                                                                            <div class="list-group product-results position-absolute w-100" style="z-index:1000; display:none;"></div>
+                                                                        </div>
                                                                     </td>
                                                                     <td><input type="number" class="form-control form-control-sm product-qty" min="0.01" step="0.01" required="required" t-att-value="pline.get('quantity', 1)"/></td>
                                                                     <td><input type="number" class="form-control form-control-sm product-gross" min="0" step="0.01" t-att-value="pline.get('gross_weight', 0)"/></td>

@@ -32,7 +32,6 @@ Enable users to create and manage stock operations via PDA or PC:
     "assets": {
         "web.assets_frontend": [
             "stock_operation_portal/static/src/js/operation_form.js",
-            "stock_operation_portal/static/src/js/product_lookup.js",
             "stock_operation_portal/static/src/css/operation_portal.css",
         ],
     },
