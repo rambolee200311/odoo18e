@@ -1,0 +1,845 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* wd_warehouse_value_add
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0+e-20250619\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-20 02:16+0000\n"
+"PO-Revision-Date: 2026-09-20 02:16+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+msgid "+ Add Operation Line"
+msgstr "+ 添加作业行"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order__message_needaction
+msgid "Action Needed"
+msgstr "待处理"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_operation_type__active
+#: model_terms:ir.ui.view,arch_db:wd_warehouse_value_add.view_vas_operation_type_search
+msgid "Active"
+msgstr "启用"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+msgid "Add Operation Line"
+msgstr "新增作业明细"
+
+#. module: wd_warehouse_value_add
+#: model_terms:ir.ui.view,arch_db:wd_warehouse_value_add.view_vas_operation_type_search
+msgid "Archived"
+msgstr "已归档"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order__message_attachment_count
+msgid "Attachment Count"
+msgstr "附件数量"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order__attachment_ids
+#: model_terms:ir.ui.view,arch_db:wd_warehouse_value_add.view_vas_order_form
+msgid "Attachments"
+msgstr "附件"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+msgid "Basic Information (Read-Only)"
+msgstr "基础信息（只读）"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+#: model_terms:ir.ui.view,arch_db:wd_warehouse_value_add.view_vas_order_form
+msgid "Cancel"
+msgstr "取消"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order__cancel_reason
+msgid "Cancel Reason"
+msgstr "作废原因"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+msgid "Cancel Work Order"
+msgstr "作废作业单"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+msgid "Cancellation Reason"
+msgstr "作废原因"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields.selection,name:wd_warehouse_value_add.selection__wd_vas_order__state__cancelled
+#: model_terms:ir.ui.view,arch_db:wd_warehouse_value_add.view_vas_order_search
+msgid "Cancelled"
+msgstr "已作废"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order__cancelled_at
+msgid "Cancelled At"
+msgstr "作废时间"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order__cancelled_by
+msgid "Cancelled By"
+msgstr "作废人"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_operation_type__charge_item_id
+msgid "Charge Item"
+msgstr "收费项目"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_operation_type__unit
+msgid "Charge Unit"
+msgstr "收费单位"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_operation_type__code
+msgid "Code"
+msgstr "编码"
+
+#. module: wd_warehouse_value_add
+#: model:ir.ui.menu,name:wd_warehouse_value_add.menu_vas_configuration
+msgid "Configuration"
+msgstr "配置"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+msgid "Confirm Add"
+msgstr "确认添加"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+msgid "Confirm Cancellation"
+msgstr "确认作废"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+msgid "Created On"
+msgstr "新增时间"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_operation_type__create_uid
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order__create_uid
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order_line__create_uid
+msgid "Created by"
+msgstr "创建人"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_operation_type__create_date
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order__create_date
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order_line__create_date
+msgid "Created on"
+msgstr "创建时间"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_operation_type__currency_id
+msgid "Currency"
+msgstr "币种"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+msgid "Customer (Auto-filled)"
+msgstr "客户（自动带出）"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+msgid "Delete"
+msgstr "删除"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_operation_type__display_name
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order__display_name
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order_line__display_name
+msgid "Display Name"
+msgstr "显示名称"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+msgid "Document Type"
+msgstr "关联对象"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields.selection,name:wd_warehouse_value_add.selection__wd_vas_order__state__draft
+#: model_terms:ir.ui.view,arch_db:wd_warehouse_value_add.view_vas_order_search
+msgid "Draft"
+msgstr "草稿"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+msgid "Enter a cancellation reason"
+msgstr "请输入作废原因"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+msgid "Enter or scan a document number"
+msgstr "请输入或扫描单据号"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+msgid ""
+"Enter quantity for physical work or time for manual work, based on the "
+"operation type."
+msgstr "实物作业填数量，人工作业填工时，由操作类型决定"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order__message_follower_ids
+msgid "Followers"
+msgstr "关注者"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order__message_partner_ids
+msgid "Followers (Partners)"
+msgstr "关注者（合作伙伴）"
+
+#. module: wd_warehouse_value_add
+#: model_terms:ir.ui.view,arch_db:wd_warehouse_value_add.view_vas_order_search
+msgid "Group By"
+msgstr "分组"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order__has_message
+msgid "Has Message"
+msgstr "有消息"
+
+#. module: wd_warehouse_value_add
+#: model:ir.ui.menu,name:wd_warehouse_value_add.menu_vas_home
+msgid "Home"
+msgstr "首页"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_operation_type__id
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order__id
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order_line__id
+msgid "ID"
+msgstr "ID"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,help:wd_warehouse_value_add.field_wd_vas_order__message_needaction
+msgid "If checked, new messages require your attention."
+msgstr "选中后，新的消息需要您处理。"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,help:wd_warehouse_value_add.field_wd_vas_order__message_has_error
+#: model:ir.model.fields,help:wd_warehouse_value_add.field_wd_vas_order__message_has_sms_error
+msgid "If checked, some messages have a delivery error."
+msgstr "选中后，部分消息发送失败。"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields.selection,name:wd_warehouse_value_add.selection__wd_vas_order__order_type__inbound
+msgid "Inbound"
+msgstr "入库"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order__inbound_order_id
+msgid "Inbound Order"
+msgstr "入库订单"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order__message_is_follower
+msgid "Is Follower"
+msgstr "是关注者"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_operation_type__write_uid
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order__write_uid
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order_line__write_uid
+msgid "Last Updated by"
+msgstr "最后更新人"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_operation_type__write_date
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order__write_date
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order_line__write_date
+msgid "Last Updated on"
+msgstr "最后更新时间"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order__line_ids
+msgid "Lines"
+msgstr "明细"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order__message_has_error
+msgid "Message Delivery error"
+msgstr "消息发送错误"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order__message_ids
+msgid "Messages"
+msgstr "消息"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+msgid "New"
+msgstr "新建"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+msgid "No operation lines. Add an operation line to continue."
+msgstr "暂无作业明细，请添加作业行"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_operation_type__note
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order_line__note
+msgid "Note"
+msgstr "备注"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order__notes
+#: model_terms:ir.ui.view,arch_db:wd_warehouse_value_add.view_vas_order_form
+msgid "Notes"
+msgstr "备注"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+msgid "Notes:"
+msgstr "备注："
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order__message_needaction_counter
+msgid "Number of Actions"
+msgstr "待处理数量"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order__message_has_error_counter
+msgid "Number of errors"
+msgstr "错误数量"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,help:wd_warehouse_value_add.field_wd_vas_order__message_needaction_counter
+msgid "Number of messages requiring action"
+msgstr "需要处理的消息数量"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,help:wd_warehouse_value_add.field_wd_vas_order__message_has_error_counter
+msgid "Number of messages with delivery error"
+msgstr "发送失败的消息数量"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_dashboard.xml:0
+msgid "On-site entry, scanning, photos, and work order submission"
+msgstr "现场录入、扫码、拍照、提交作业单"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+msgid "Operation Line"
+msgstr "作业明细"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+msgid "Operation Lines (At Least 1)"
+msgstr "作业明细（至少 1 条）"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_operation_type__name
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order_line__operation_type_id
+msgid "Operation Type"
+msgstr "操作类型"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+msgid "Operation Type:"
+msgstr "操作类型："
+
+#. module: wd_warehouse_value_add
+#: model:ir.actions.act_window,name:wd_warehouse_value_add.action_vas_operation_type
+#: model:ir.ui.menu,name:wd_warehouse_value_add.menu_vas_operation_types
+msgid "Operation Types"
+msgstr "作业类型"
+
+#. module: wd_warehouse_value_add
+#: model_terms:ir.ui.view,arch_db:wd_warehouse_value_add.view_vas_order_form
+msgid "Operations"
+msgstr "作业明细"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order__operator_id
+#: model_terms:ir.ui.view,arch_db:wd_warehouse_value_add.view_vas_order_search
+msgid "Operator"
+msgstr "操作员"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+msgid "Operator (Current User)"
+msgstr "操作员（当前登录）"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+msgid "Optional: record exceptions or special work instructions."
+msgstr "记录异常情况、特殊作业说明，可不填"
+
+#. module: wd_warehouse_value_add
+#: model_terms:ir.ui.view,arch_db:wd_warehouse_value_add.view_vas_order_search
+msgid "Order Type"
+msgstr "订单类型"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields.selection,name:wd_warehouse_value_add.selection__wd_vas_order__order_type__outbound
+msgid "Outbound"
+msgstr "出库"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order__outbound_order_id
+msgid "Outbound Order"
+msgstr "出库订单"
+
+#. module: wd_warehouse_value_add
+#: model:ir.ui.menu,name:wd_warehouse_value_add.menu_vas_pda
+msgid "PDA Work Entry"
+msgstr "PDA作业录入"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_dashboard.xml:0
+msgid "PDA Work Order Entry"
+msgstr "PDA 作业录入"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order__project_id
+#: model_terms:ir.ui.view,arch_db:wd_warehouse_value_add.view_vas_order_search
+msgid "Project"
+msgstr "项目"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order_line__quantity_time
+msgid "Quantity / Time"
+msgstr "数量/工时"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+msgid "Quantity / Time:"
+msgstr "数量/工时："
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order__rating_ids
+msgid "Ratings"
+msgstr "评分"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+msgid "Read-Only"
+msgstr "只读"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+msgid "Related Document"
+msgstr "单据信息"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+msgid "Related Document Number"
+msgstr "关联单据号"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+msgid "Resolved:"
+msgstr "已解析："
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order__message_has_sms_error
+msgid "SMS Delivery error"
+msgstr "短信发送错误"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+msgid "Save"
+msgstr "保存"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+msgid "Save Draft"
+msgstr "保存草稿"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+msgid "Scan"
+msgstr "扫码"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_dashboard.xml:0
+msgid "Search, filter, view, and manage existing work orders"
+msgstr "查询、筛选、查看和管理已有作业单"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_dashboard.xml:0
+msgid "Select an entry point"
+msgstr "请选择工作入口"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+msgid "Select an operation type"
+msgstr "请选择作业类型"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+msgid ""
+"Select from the list. Barcode scanning is not supported in this version."
+msgstr "第一版仅下拉选择，暂不支持扫码"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_operation_type__sequence
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order_line__sequence
+msgid "Sequence"
+msgstr "序号"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order__state
+#: model_terms:ir.ui.view,arch_db:wd_warehouse_value_add.view_vas_order_search
+msgid "Status"
+msgstr "状态"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+#: model_terms:ir.ui.view,arch_db:wd_warehouse_value_add.view_vas_order_form
+msgid "Submit"
+msgstr "提交"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields.selection,name:wd_warehouse_value_add.selection__wd_vas_order__state__submitted
+#: model_terms:ir.ui.view,arch_db:wd_warehouse_value_add.view_vas_order_search
+msgid "Submitted"
+msgstr "已提交"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order__submitted_at
+msgid "Submitted At"
+msgstr "提交时间"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order__submitter_id
+msgid "Submitter"
+msgstr "提交人"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields.selection,name:wd_warehouse_value_add.selection__wd_vas_order__order_type__transfer
+msgid "Transfer"
+msgstr "调拨"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order__transfer_order_id
+msgid "Transfer Order"
+msgstr "调拨订单"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order_line__unit
+msgid "Unit"
+msgstr "单位"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+msgid "Unit:"
+msgstr "单位："
+
+#. module: wd_warehouse_value_add
+#: model_terms:ir.ui.view,arch_db:wd_warehouse_value_add.view_vas_order_form
+msgid "Unsubmit"
+msgstr "撤销提交"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order__unsubmitted_at
+msgid "Unsubmitted At"
+msgstr "撤销提交时间"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order__unsubmitted_by
+msgid "Unsubmitted By"
+msgstr "撤销提交人"
+
+#. module: wd_warehouse_value_add
+#: model:res.groups,name:wd_warehouse_value_add.group_vas_manager
+msgid "VAS Manager"
+msgstr "库内增值作业管理员"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order__name
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order_line__order_id
+msgid "VAS Order"
+msgstr "库内增值作业单"
+
+#. module: wd_warehouse_value_add
+#: model:ir.actions.act_window,name:wd_warehouse_value_add.action_vas_order
+#: model:ir.ui.menu,name:wd_warehouse_value_add.menu_vas_orders
+msgid "VAS Orders"
+msgstr "库内增值作业单"
+
+#. module: wd_warehouse_value_add
+#: model:ir.actions.client,name:wd_warehouse_value_add.action_vas_pda
+msgid "VAS PDA Work Entry"
+msgstr "VAS PDA作业录入"
+
+#. module: wd_warehouse_value_add
+#: model:res.groups,name:wd_warehouse_value_add.group_vas_user
+msgid "VAS User"
+msgstr "库内增值作业用户"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order__warehouse_id
+msgid "Warehouse"
+msgstr "仓库"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order__warehouse_order_display
+msgid "Warehouse Order"
+msgstr "仓库订单"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order__warehouse_order_billno
+msgid "Warehouse Order Bill No."
+msgstr "仓库订单号"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order__order_type
+msgid "Warehouse Order Type"
+msgstr "仓库订单类型"
+
+#. module: wd_warehouse_value_add
+#: model:ir.ui.menu,name:wd_warehouse_value_add.menu_vas_root
+msgid "Warehouse VAS"
+msgstr "库内增值作业"
+
+#. module: wd_warehouse_value_add
+#: model:ir.actions.client,name:wd_warehouse_value_add.action_vas_dashboard
+msgid "Warehouse VAS Dashboard"
+msgstr "库内增值作业看板"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model,name:wd_warehouse_value_add.model_wd_vas_operation_type
+msgid "Warehouse VAS Operation Type"
+msgstr "库内增值作业类型"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model,name:wd_warehouse_value_add.model_wd_vas_order_line
+msgid "Warehouse VAS Order Line"
+msgstr "库内增值作业明细"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model,name:wd_warehouse_value_add.model_wd_vas_order
+msgid "Warehouse Value Add Order"
+msgstr "库内增值作业单"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_dashboard.xml:0
+msgid "Warehouse Value-Added Operations"
+msgstr "库内增值作业"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+msgid "Warehouse Value-Added Work Order"
+msgstr "库内增值作业单"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,field_description:wd_warehouse_value_add.field_wd_vas_order__website_message_ids
+msgid "Website Messages"
+msgstr "网站消息"
+
+#. module: wd_warehouse_value_add
+#: model:ir.model.fields,help:wd_warehouse_value_add.field_wd_vas_order__website_message_ids
+msgid "Website communication history"
+msgstr "网站沟通历史"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+msgid "Work Evidence Attachments"
+msgstr "作业凭证附件"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_dashboard.xml:0
+msgid "Work Order Management"
+msgstr "作业单管理"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+msgid "Work Order Number"
+msgstr "作业单号"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+msgid "① Operation Type"
+msgstr "① 操作类型"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+msgid "② Quantity / Time"
+msgstr "② 数量/工时"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+msgid "③ Notes (Optional)"
+msgstr "③ 备注（选填）"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+msgid "📷 Take Photo"
+msgstr "📷 拍照"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/xml/vas_pda_action.xml:0
+msgid "🗂 Select Multiple from Gallery"
+msgstr "🗂 从相册多选"
+
+
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/js/vas_pda_action.js:0
+msgid "Automatic"
+msgstr "自动"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/js/vas_pda_action.js:0
+msgid "Warehouse Order was not found."
+msgstr "未找到仓库订单。"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/js/vas_pda_action.js:0
+msgid "Please select an operation type."
+msgstr "请选择作业类型。"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/js/vas_pda_action.js:0
+msgid "Please enter and resolve the related document number first."
+msgstr "请先输入并解析关联单据号。"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/js/vas_pda_action.js:0
+msgid "Line updated."
+msgstr "作业明细已更新。"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/js/vas_pda_action.js:0
+msgid "Line update failed."
+msgstr "作业明细更新失败。"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/js/vas_pda_action.js:0
+msgid "Draft saved."
+msgstr "草稿已保存。"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/js/vas_pda_action.js:0
+msgid "Submitted."
+msgstr "已提交。"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/js/vas_pda_action.js:0
+msgid "The order was submitted. State was refreshed from the server."
+msgstr "作业单已提交，状态已从服务器刷新。"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/js/vas_pda_action.js:0
+msgid "Submit failed."
+msgstr "提交失败。"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/js/vas_pda_action.js:0
+msgid "Upload failed."
+msgstr "上传失败。"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/js/vas_pda_action.js:0
+msgid "Attachment deletion failed."
+msgstr "附件删除失败。"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/js/vas_pda_action.js:0
+msgid "Please enter a cancellation reason."
+msgstr "请输入作废原因。"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/js/vas_pda_action.js:0
+msgid "Work order cancelled."
+msgstr "作业单已作废。"
+
+#. module: wd_warehouse_value_add
+#. odoo-javascript
+#: code:addons/wd_warehouse_value_add/static/src/js/vas_pda_action.js:0
+msgid "Cancellation failed."
+msgstr "作废失败。"
