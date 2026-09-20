@@ -15,7 +15,7 @@
     # Check https://github.com/odoo/odoo/blob/15.0/odoo/addons/base/data/ir_module_category_data.xml
     # for the full list
     'category': 'Uncategorized',
-    'version': '0.1',
+    'version': '0.2',
 
     # any module necessary for this one to work correctly
     'depends': ['base','contacts','web','mail','stock','project','product', 'stock_barcode'],
@@ -67,7 +67,6 @@
         #'views/sequence.xml',
         'views/my_sequence.xml',
         'views/menus.xml',
-        'views/delivery_address_views.xml',
         'wizard/outbound_delivery_address_wizard.xml',
         #'views/report_wd_picking_templates.xml',
         #'views/report_wd_picking_action.xml',

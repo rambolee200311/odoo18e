@@ -47,10 +47,12 @@ class OutboundOrderAPI(http.Controller):
             # create unload company if not exists
             country_id = request.env['res.country'].sudo().search(
                 ['|', ('code', '=', data.get('country')), ('name', '=', data.get('country'))], limit=1).id
-            unload_company = request.env['res.partner'].sudo().search([('name', '=', data['unload_company'])], limit=1)
+            partner_model = request.env['res.partner']
+            unload_company_sudo = partner_model.sudo().search([('name', '=', data['unload_company'])], limit=1)
+            unload_company = partner_model.browse(unload_company_sudo.id)
             if not unload_company:
                 # create a new company
-                unload_company = request.env['res.partner'].sudo().create({
+                unload_company = partner_model.create({
                     'name': data['unload_company'],
                     'is_company': True,
                     'street': data.get('street', ''),
@@ -65,6 +67,18 @@ class OutboundOrderAPI(http.Controller):
             if not api_user:
                 return {'success': False, 'error': 'API user not found for token'}
             odoo_project = api_user.project
+            delivery_partner = partner_model
+            if all([data.get('street'), data.get('city'), data.get('zip'), country_id]):
+                delivery_partner = unload_company.get_delivery_partner_from_values({
+                    'name': data.get('recipient_name') or data['unload_company'],
+                    'street': data.get('street'),
+                    'city': data.get('city'),
+                    'zip': data.get('zip'),
+                    'country_id': country_id,
+                    'phone': data.get('phone'),
+                    'mobile': data.get('mobile'),
+                    'email': data.get('email'),
+                })
 
             # odoo_project = request.env['project.project'].sudo().search([('name', '=', 'HOYMILES')], limit=1)
             # Prepare order values
@@ -78,12 +92,14 @@ class OutboundOrderAPI(http.Controller):
                 'remark': data.get('remark', ''),
                 'remark1': data.get('remark1', ''),
                 'delivery_method': data.get('delivery_method', 'truck'),
+                'delivery_partner_id': delivery_partner.id,
                 'delivery_street': data.get('street', ''),
                 'delivery_city': data.get('city', ''),
                 'delivery_zip': data.get('zip', ''),
                 'delivery_country_id': country_id or False,
                 'delivery_phone': data.get('phone', ''),
                 'delivery_mobile': data.get('mobile', ''),
+                'delivery_email': data.get('email', ''),
             }
 
             # Add products to the order
@@ -101,7 +117,7 @@ class OutboundOrderAPI(http.Controller):
                 order_vals['outbound_order_product_ids'].append((0, 0, product_vals))
 
             # Create the order
-            order = request.env['world.depot.outbound.order'].sudo().create(order_vals)
+            order = request.env['world.depot.outbound.order'].create(order_vals)
 
             return {
                 'success': True,
