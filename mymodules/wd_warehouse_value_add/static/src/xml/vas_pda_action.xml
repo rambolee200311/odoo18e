@@ -142,7 +142,7 @@
                 </div>
 
                 <div class="o_wd_vas_section-title">Work Evidence Attachments</div>
-                <div class="o_wd_vas_attachment-actions">
+                <div t-if="isDraft" class="o_wd_vas_attachment-actions">
                     <label class="btn o_wd_vas_primary-btn">
                         📷 Take Photo
                         <input class="o_wd_vas_file-input" type="file" accept="image/*"

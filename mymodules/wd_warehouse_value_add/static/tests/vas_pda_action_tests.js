@@ -195,13 +195,13 @@ test("PDA refreshes the inline unit when the operation type changes", () => {
     expect(line.unit).toBe("箱");
 });
 
-test("PDA saves the associated bill number and project before submitting", async () => {
+test("PDA saves the associated bill number, project and warehouse before submitting", async () => {
     const action = makeAction({
         order: { id: 7, state: "draft" },
         billno: "IN-001",
     });
     const calls = [];
-    action.orm.searchRead = async () => [{ project: [8, "PDA Project"] }];
+    action.orm.searchRead = async () => [{ project: [8, "PDA Project"], warehouse: [9, "PDA Warehouse"] }];
     action.orm.write = async (model, ids, values) => calls.push({ model, ids, values });
     action.orm.call = async (model, method, args) => calls.push({ model, method, args });
 
@@ -212,6 +212,22 @@ test("PDA saves the associated bill number and project before submitting", async
     expect(calls[0].ids).toEqual([7]);
     expect(calls[0].values.warehouse_order_billno).toBe("IN-001");
     expect(calls[0].values.project_id).toBe(8);
+    expect(calls[0].values.warehouse_id).toBe(9);
     expect(calls[1].model).toBe("wd.vas.order");
     expect(calls[1].method).toBe("action_submit");
+});
+
+test("PDA saves the associated bill number, project and warehouse in draft", async () => {
+    const action = makeAction({ order: { id: 7, state: "draft" }, billno: "IN-001" });
+    const calls = [];
+    action.orm.searchRead = async () => [{ project: [8, "PDA Project"], warehouse: [9, "PDA Warehouse"] }];
+    action.orm.write = async (model, ids, values) => calls.push({ model, ids, values });
+
+    await action.saveDraft();
+
+    expect(calls).toEqual([{
+        model: "wd.vas.order",
+        ids: [7],
+        values: { warehouse_order_billno: "IN-001", project_id: 8, warehouse_id: 9 },
+    }]);
 });
