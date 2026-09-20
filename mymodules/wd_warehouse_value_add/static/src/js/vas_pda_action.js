@@ -2,6 +2,7 @@
 
 import { Component, onWillStart, useState } from "@odoo/owl";
 import { registry } from "@web/core/registry";
+import { _t } from "@web/core/l10n/translation";
 import { useService } from "@web/core/utils/hooks";
 import { user } from "@web/core/user";
 import { standardActionServiceProps } from "@web/webclient/actions/action_service";
@@ -59,10 +60,14 @@ export class VasPdaAction extends Component {
 
     get statusLabel() {
         return {
-            draft: "草稿",
-            submitted: "已提交",
-            cancelled: "已作废",
-        }[this.state.order?.state] || "新建";
+            draft: _t("Draft"),
+            submitted: _t("Submitted"),
+            cancelled: _t("Cancelled"),
+        }[this.state.order?.state] || _t("New");
+    }
+
+    get automaticLabel() {
+        return _t("Automatic");
     }
 
     async resolveWarehouseOrder() {
@@ -79,7 +84,7 @@ export class VasPdaAction extends Component {
         );
         this.state.warehouseOrder = records[0] || null;
         if (!this.state.warehouseOrder) {
-            this.notification.add("Warehouse Order was not found.", { type: "warning" });
+            this.notification.add(_t("Warehouse Order was not found."), { type: "warning" });
         }
     }
 
@@ -165,13 +170,13 @@ export class VasPdaAction extends Component {
     async confirmAddLine() {
         const { operationTypeId, quantityTime, note } = this.state.lineDraft;
         if (!operationTypeId) {
-            this.notification.add("请选择作业类型。", { type: "warning" });
+            this.notification.add(_t("Please select an operation type."), { type: "warning" });
             return;
         }
         if (!this.state.order) {
             const created = await this.createDraft();
             if (!created) {
-                this.notification.add("请先输入并解析关联单据号。", { type: "warning" });
+                this.notification.add(_t("Please enter and resolve the related document number first."), { type: "warning" });
                 return;
             }
         }
@@ -224,7 +229,7 @@ export class VasPdaAction extends Component {
             return;
         }
         if (!line.operationTypeId) {
-            this.notification.add("请选择作业类型。", { type: "warning" });
+            this.notification.add(_t("Please select an operation type."), { type: "warning" });
             return;
         }
         this.state.busy = true;
@@ -236,9 +241,9 @@ export class VasPdaAction extends Component {
             });
             await this.reloadOrder();
             this.state.editingLineId = null;
-            this.notification.add("Line updated.", { type: "success" });
+            this.notification.add(_t("Line updated."), { type: "success" });
         } catch (error) {
-            this.notification.add(error.message || "Line update failed.", { type: "danger" });
+            this.notification.add(error.message || _t("Line update failed."), { type: "danger" });
         } finally {
             this.state.busy = false;
         }
@@ -263,7 +268,7 @@ export class VasPdaAction extends Component {
                 project_id: projectId || false,
             });
             await this.reloadOrder();
-            this.notification.add("Draft saved.", { type: "success" });
+            this.notification.add(_t("Draft saved."), { type: "success" });
         } finally {
             this.state.busy = false;
         }
@@ -289,13 +294,13 @@ export class VasPdaAction extends Component {
             });
             await this.orm.call("wd.vas.order", "action_submit", [[this.state.order.id]]);
             await this.reloadOrder();
-            this.notification.add("Submitted.", { type: "success" });
+            this.notification.add(_t("Submitted."), { type: "success" });
         } catch (error) {
             await this.reloadOrder();
             this.notification.add(
                 this.state.order?.state === "submitted"
-                    ? "The order was submitted. State was refreshed from the server."
-                    : (error.data?.arguments?.[0] || error.message || "Submit failed."),
+                    ? _t("The order was submitted. State was refreshed from the server.")
+                    : (error.data?.arguments?.[0] || error.message || _t("Submit failed.")),
                 { type: this.state.order?.state === "submitted" ? "success" : "danger" }
             );
         } finally {
@@ -329,7 +334,7 @@ export class VasPdaAction extends Component {
                 this.state.attachmentName = file.name;
             } catch (error) {
                 this.notification.add(
-                    `${file.name}: ${error.message || "Upload failed."}`,
+                    `${file.name}: ${error.message || _t("Upload failed.")}`,
                     { type: "danger" }
                 );
             }
@@ -345,7 +350,7 @@ export class VasPdaAction extends Component {
             await this.orm.unlink("ir.attachment", [attachmentId]);
             await this.reloadOrder();
         } catch (error) {
-            this.notification.add(error.message || "Attachment deletion failed.", { type: "danger" });
+            this.notification.add(error.message || _t("Attachment deletion failed."), { type: "danger" });
         }
     }
 
@@ -376,7 +381,7 @@ export class VasPdaAction extends Component {
     async confirmCancel() {
         const reason = this.state.cancelReason.trim();
         if (!reason || !this.state.order || this.state.order.state !== "draft") {
-            this.notification.add("请输入作废原因。", { type: "warning" });
+            this.notification.add(_t("Please enter a cancellation reason."), { type: "warning" });
             return;
         }
         this.state.busy = true;
@@ -384,9 +389,9 @@ export class VasPdaAction extends Component {
             await this.orm.call("wd.vas.order", "action_cancel", [[this.state.order.id], reason]);
             this.state.cancelModalOpen = false;
             await this.reloadOrder();
-            this.notification.add("作业单已作废。", { type: "success" });
+            this.notification.add(_t("Work order cancelled."), { type: "success" });
         } catch (error) {
-            this.notification.add(error.message || "作废失败。", { type: "danger" });
+            this.notification.add(error.message || _t("Cancellation failed."), { type: "danger" });
             await this.reloadOrder();
         } finally {
             this.state.busy = false;

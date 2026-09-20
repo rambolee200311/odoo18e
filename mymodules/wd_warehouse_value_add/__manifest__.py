@@ -2,58 +2,40 @@
 {
     'name': 'Warehouse Value Add',
 
-    'summary': (
-        '仓库贴标、缠膜等库内增值作业登记，'
-        '支持 Web 电脑端和 PDA 手持端录单'
-    ),
+    'summary': 'Register warehouse value-added operations such as labeling and wrapping through Web and PDA.',
 
     'description': """
 Warehouse Value Add
 ===================
 
-仓库库内增值作业登记模块，用于记录贴标、缠膜、换箱、打托、
-盘点等现场实际发生的库内增值作业。
+This module records warehouse value-added operations such as labeling, wrapping, repacking, palletizing, and inventory counting.
 
-业务规则
---------
+Business Rules
+--------------
 
-1. 一张作业单只对应一个操作员。
-   不同操作员分别建立自己的作业单。
+1. Each work order has one operator. Different operators create their own work orders.
 
-2. 同一个入库订单、出库订单或其他业务订单，
-   可以关联多张库内增值作业单。
+2. Multiple value-added work orders can be linked to the same inbound, outbound, or other warehouse order.
 
-3. 一张作业单可以登记一条或多条作业明细，
-   支持一单多作业。
+3. A work order can have one or more operation lines.
 
-4. 作业明细使用统一的“数量/工时”字段。
-   系统根据所选操作类型自动带出对应计量单位，
-   单位无需仓管人工填写。
+4. Operation lines use a unified Quantity / Time field. The unit is automatically derived from the selected operation type.
 
-5. 关联单据号支持扫码录入或手工输入，
-   系统识别并绑定对应业务单据。
+5. Related document numbers can be entered manually or scanned. The system resolves and links the corresponding warehouse document.
 
-6. 图片、视频作为作业凭证，可根据现场情况选择上传，
-   为非必填项，并支持多个附件。
+6. Images and videos can be uploaded as optional work evidence, with multiple attachments supported.
 
-7. Web 电脑端用于办公录单和历史单据查询。
+7. Desktop Web is used for office entry and history lookup.
 
-8. PDA 手持端用于仓库现场快速录单。
-   PDA 操作员默认取当前登录人员并只读展示，
-   操作人员登记本人实际完成的作业。
+8. The PDA is used for fast on-site entry. The current user is the read-only default operator and records their completed work.
 
-9. 草稿状态允许保存和继续修改。
-   草稿允许暂时没有作业明细，
-   但提交时必须至少存在一条有效作业明细。
+9. Draft work orders can be saved and edited; operation lines can be added later, but submission requires at least one valid line.
 
-10. 单据提交后核心业务字段锁定，
-    不允许直接修改；错误数据后续通过更正流程处理。
+10. Core business fields are locked after submission and cannot be edited directly.
 
-11. 作业单号、新增时间、提交人、提交时间等系统字段
-    均由系统自动维护，人工不可修改。
+11. System fields including work order number, creation time, submitter, and submission time are maintained automatically.
 
-12. 本模块记录仓库增值作业事实。
-    当前版本不包含增值作业计费、结算等财务业务。
+12. This module records operational facts only; it does not include value-added service billing, settlement, or financial accounting.
     """,
 
     'author': 'WD Dev',

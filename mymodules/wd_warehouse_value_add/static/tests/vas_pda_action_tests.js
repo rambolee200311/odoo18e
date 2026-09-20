@@ -43,13 +43,13 @@ test("CC04 frontend test bundle loads", () => {
 test("PDA status labels follow the server state", () => {
     const action = makeAction();
 
-    expect(action.statusLabel).toBe("新建");
+    expect(action.statusLabel).toBe("New");
     action.state.order = { state: "draft" };
-    expect(action.statusLabel).toBe("草稿");
+    expect(action.statusLabel).toBe("Draft");
     action.state.order.state = "submitted";
-    expect(action.statusLabel).toBe("已提交");
+    expect(action.statusLabel).toBe("Submitted");
     action.state.order.state = "cancelled";
-    expect(action.statusLabel).toBe("已作废");
+    expect(action.statusLabel).toBe("Cancelled");
 });
 
 test("PDA new order clears the current draft state", () => {
@@ -85,7 +85,7 @@ test("PDA rejects a line without an operation type", async () => {
     await action.confirmAddLine();
 
     expect(notifications.length).toBe(1);
-    expect(notifications[0].message).toBe("请选择作业类型。");
+    expect(notifications[0].message).toBe("Please select an operation type.");
 });
 
 test("PDA creates an unassociated draft before adding the first line", async () => {
@@ -126,7 +126,7 @@ test("PDA requires a reason before cancelling a draft", async () => {
     await action.confirmCancel();
 
     expect(notifications.length).toBe(1);
-    expect(notifications[0].message).toBe("请输入作废原因。");
+    expect(notifications[0].message).toBe("Please enter a cancellation reason.");
 });
 
 test("PDA saves inline-edited line values", async () => {
