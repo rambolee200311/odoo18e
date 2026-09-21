@@ -3,14 +3,14 @@
 import { useService } from "@web/core/utils/hooks";
 import { Component, useState, useRef, onMounted, onWillUnmount } from "@odoo/owl";
 import { _t } from "@web/core/l10n/translation";
+import { standardActionServiceProps } from "@web/webclient/actions/action_service";
 
 export class InboundFlow extends Component {
     static template = "stock_barcode_lite.InboundPage";
-    static props = {};
+    static props = { ...standardActionServiceProps };
 
     setup() {
         this.orm = useService("orm");
-        this.notification = useService("notification");
         this.action = useService("action");
 
         this.barcodeInputRef = useRef("barcodeInput");
@@ -35,18 +35,23 @@ export class InboundFlow extends Component {
             updatedMoveLineIds: [],
         });
 
-        // 扫码输入缓冲
-        this._scanTimer = null;
         this._isProcessing = false;
         this._isPDA = this._detectPDA();
+        this._isDestroyed = false;
 
-        // 预先绑定扫码事件处理函数，确保 add/remove 用同一个引用
+        this._pendingTimers = [];
+        this._messageTimer = null;
+        this._confirmResetTimer = null;
+
+        this._isFocusing = false;
+
         this._boundOnBarcodeInput = this._onBarcodeInput.bind(this);
         this._boundOnBarcodeKeydown = this._onBarcodeKeydown.bind(this);
         this._boundOnBarcodeBlur = this._onBarcodeBlur.bind(this);
 
         onMounted(async () => {
             this._bindVisibilityChange();
+
             const barcodeInput = this.barcodeInputRef.el;
             if (barcodeInput) {
                 barcodeInput.addEventListener("input", this._boundOnBarcodeInput);
@@ -54,71 +59,89 @@ export class InboundFlow extends Component {
                 barcodeInput.addEventListener("blur", this._boundOnBarcodeBlur);
                 this._focusBarcodeInput();
             }
-            await this._initScanState();
 
+            await this._initScanState();
         });
 
         onWillUnmount(() => {
+            this._isDestroyed = true;
+
             this._unbindVisibilityChange();
+
             const barcodeInput = this.barcodeInputRef.el;
             if (barcodeInput) {
                 barcodeInput.removeEventListener("input", this._boundOnBarcodeInput);
                 barcodeInput.removeEventListener("keydown", this._boundOnBarcodeKeydown);
                 barcodeInput.removeEventListener("blur", this._boundOnBarcodeBlur);
             }
-            this._clearScanTimer();
+
+            for (const id of this._pendingTimers) {
+                clearTimeout(id);
+            }
+            this._pendingTimers = [];
+            this._messageTimer = null;
+            this._confirmResetTimer = null;
         });
     }
 
-    /**
-     * 检测是否为PDA设备
-     */
-//    _detectPDA() {
-//        const hasTouchScreen = (
-//            'ontouchstart' in window ||
-//            navigator.maxTouchPoints > 0 ||
-//            window.matchMedia('(pointer: coarse)').matches
-//        );
-//        const isDesktop = window.matchMedia('(min-width: 1024px)').matches && !hasTouchScreen;
-//        return !isDesktop;
-//    }
+    _safeSetTimeout(fn, delay) {
+        if (this._isDestroyed) {
+            return null;
+        }
 
+        const id = setTimeout(() => {
+            const index = this._pendingTimers.indexOf(id);
+            if (index !== -1) {
+                this._pendingTimers.splice(index, 1);
+            }
+
+            if (!this._isDestroyed) {
+                fn();
+            }
+        }, delay);
+
+        this._pendingTimers.push(id);
+        return id;
+    }
+
+    _clearSafeTimeout(id) {
+        if (id === null || id === undefined) {
+            return;
+        }
+
+        const index = this._pendingTimers.indexOf(id);
+        if (index !== -1) {
+            this._pendingTimers.splice(index, 1);
+        }
+
+        clearTimeout(id);
+    }
 
     _detectPDA() {
-        // 精确指向设备（鼠标、触控笔）→ 不可能是PDA扫码枪
-        const hasFinePointer = window.matchMedia('(pointer: fine)').matches;
-        // 支持hover（鼠标悬停）→ 不可能是PDA扫码枪
-        const hasHover = window.matchMedia('(hover: hover)').matches;
-        // 小屏幕（≤ 768px 宽）→ 可能是手持PDA
-        const isSmallScreen = window.matchMedia('(max-width: 768px)').matches;
-        // 触屏可用
-        const hasTouchScreen = (
-            'ontouchstart' in window ||
+        const hasFinePointer = window.matchMedia("(pointer: fine)").matches;
+        const hasHover = window.matchMedia("(hover: hover)").matches;
+        const isSmallScreen = window.matchMedia("(max-width: 768px)").matches;
+        const hasTouchScreen =
+            "ontouchstart" in window ||
             navigator.maxTouchPoints > 0 ||
-            window.matchMedia('(pointer: coarse)').matches
-        );
+            window.matchMedia("(pointer: coarse)").matches;
 
-        // PDA只有在小屏、触屏、无精确指针、无hover的设备上才判定为真
-        // 从而排除桌面、大屏平板、触屏笔记本
         return isSmallScreen && hasTouchScreen && !hasFinePointer && !hasHover;
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // 扫码监听（直接在 input 元素上绑定）
-    // ═══════════════════════════════════════════════════════════════
-
-    /**
-     * 处理扫码输入框的 input 事件
-     * 扫码枪会快速输入字符并以 Enter 结尾
-     */
     _onBarcodeInput(ev) {
         const input = ev.target;
-        if (!input) return;
+        if (!input) {
+            return;
+        }
 
         const value = input.value;
 
-        // 处理包含换行符的情况
-        if (ev.inputType === "insertLineFeed" || value.includes("\n") || value.includes("\r")) {
+        if (
+            ev.inputType === "insertLineFeed" ||
+            value.includes("\n") ||
+            value.includes("\r")
+        ) {
             const barcode = value.replace(/\n/g, "").replace(/\r/g, "").trim();
             if (barcode) {
                 input.value = "";
@@ -127,30 +150,43 @@ export class InboundFlow extends Component {
         }
     }
 
-    /**
-     * 处理扫码输入框的 keydown 事件
-     * 检测 Enter 键作为扫码确认
-     */
     _onBarcodeKeydown(ev) {
-        if (ev.key === "Enter") {
-            ev.preventDefault();
-            const input = ev.target;
-            const barcode = input.value.trim();
-            if (barcode) {
-                input.value = "";
-                this.onBarcodeScanned(barcode);
-            }
+        if (ev.key !== "Enter") {
+            return;
+        }
+
+        ev.preventDefault();
+
+        const input = ev.target;
+        const barcode = input.value.trim();
+
+        if (barcode) {
+            input.value = "";
+            this.onBarcodeScanned(barcode);
         }
     }
 
-    _onBarcodeBlur(ev) {
-        // PDA模式下也自动聚焦，确保扫码枪输入能被捕获
-        if (!this._isProcessing) {
-            setTimeout(() => this._focusBarcodeInput(), 0);
+    _onBarcodeBlur() {
+        if (this._isDestroyed || this._isProcessing || this._isFocusing) {
+            return;
         }
+
+        this._isFocusing = true;
+
+        this._safeSetTimeout(() => {
+            this._isFocusing = false;
+
+            if (!this._isDestroyed) {
+                this._focusBarcodeInput();
+            }
+        }, 0);
     }
 
     _focusBarcodeInput() {
+        if (this._isDestroyed) {
+            return;
+        }
+
         const input = this.barcodeInputRef.el;
         if (input) {
             input.focus();
@@ -158,59 +194,92 @@ export class InboundFlow extends Component {
         }
     }
 
-    // 浏览器标签页可见性监听
     _bindVisibilityChange() {
         this._onVisibilityChange = () => {
-            if (document.visibilityState === "visible") {
+            if (
+                !this._isDestroyed &&
+                document.visibilityState === "visible"
+            ) {
                 this._focusBarcodeInput();
             }
         };
+
         document.addEventListener("visibilitychange", this._onVisibilityChange);
     }
 
-    // 浏览器标签页可见性销毁监听
     _unbindVisibilityChange() {
         if (this._onVisibilityChange) {
-            document.removeEventListener("visibilitychange", this._onVisibilityChange);
+            document.removeEventListener(
+                "visibilitychange",
+                this._onVisibilityChange
+            );
             this._onVisibilityChange = null;
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // 初始化
-    // ═══════════════════════════════════════════════════════════════
-
     async _initScanState() {
         const context = this.props?.action?.context || {};
         const pickingId = context.pickingId || context.picking_id || false;
-        const currentLocationId = context.currentLocationId || context.current_location_id || false;
+        const currentLocationId =
+            context.currentLocationId || context.current_location_id || false;
 
         if (!pickingId) {
             this.state.nextStep = "scan_picking";
             return;
         }
 
+        this._isProcessing = true;
+
         try {
             this.state.loading = true;
+
             const result = await this.orm.call(
                 "stock.barcode.lite.scan.service",
                 "get_incoming_scan_state",
                 [pickingId, currentLocationId || false, {}]
             );
-            await this._applyScanResult(result, false);
+
+            if (this._isDestroyed) {
+                return;
+            }
+
+            const scanState = result?.scan_state || result || {};
+            const nextStep =
+                result?.next_step ||
+                (scanState.picking?.state === "done"
+                    ? "completed"
+                    : scanState.picking?.id
+                      ? scanState.current_location?.id
+                          ? "scan_package"
+                          : "scan_location"
+                      : "scan_picking");
+
+            await this._applyScanResult(
+                {
+                    scan_state: scanState,
+                    next_step: nextStep,
+                },
+                false
+            );
         } catch (error) {
-            this.showMessage(this.formatError(error), "danger");
+            if (!this._isDestroyed) {
+                this.showMessage(this.formatError(error), "danger");
+            }
         } finally {
-            this.state.loading = false;
+            if (!this._isDestroyed) {
+                this.state.loading = false;
+            }
+            this._isProcessing = false;
         }
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // 扫码核心
-    // ═══════════════════════════════════════════════════════════════
-
     async onBarcodeScanned(barcode) {
-        if (!barcode || this._isProcessing) {
+        if (
+            !barcode ||
+            this._isDestroyed ||
+            this.state.loading ||
+            this._isProcessing
+        ) {
             return;
         }
 
@@ -227,46 +296,80 @@ export class InboundFlow extends Component {
                 [barcode, pickingId, locationId]
             );
 
+            if (this._isDestroyed) {
+                return;
+            }
+
             await this._applyScanResult(result, true);
 
-            if (result.action?.updated_move_line_ids?.length) {
-                this.state.updatedMoveLineIds = result.action.updated_move_line_ids;
+            if (result?.action?.updated_move_line_ids?.length) {
+                this.state.updatedMoveLineIds =
+                    result.action.updated_move_line_ids;
             }
         } catch (error) {
-            console.error('[InboundFlow] scan error:', error);
-            this.showMessage(this.formatError(error), "danger");
-            this._flashScreen([200, 100, 100], true);
+            if (!this._isDestroyed) {
+                console.error("[InboundFlow] scan error:", error);
+                this.showMessage(this.formatError(error), "danger");
+                this._flashScreen([200, 100, 100], true);
+            }
         } finally {
-            this.state.loading = false;
+            if (!this._isDestroyed) {
+                this.state.loading = false;
+                this._focusBarcodeInput();
+            }
             this._isProcessing = false;
-            this._focusBarcodeInput();
         }
     }
 
     async _applyScanResult(result, notify = true) {
-        if (!result) return;
+        if (!result || this._isDestroyed) {
+            return;
+        }
 
-        const scanState = result.scan_state || {};
+        const scanState = result.scan_state || result || {};
+        const derivedNextStep =
+            scanState.picking?.state === "done"
+                ? "completed"
+                : scanState.picking?.id
+                  ? scanState.current_location?.id
+                      ? "scan_package"
+                      : "scan_location"
+                  : "scan_picking";
 
-        // 更新状态 - OWL 会自动响应
-        // 使用展开运算符创建新对象/数组引用，确保响应性检测
-        this.state.picking = scanState.picking ? { ...scanState.picking } : null;
-        this.state.currentLocation = scanState.current_location ? { ...scanState.current_location } : {};
-        this.state.summary = scanState.summary ? { ...scanState.summary } : this._getEmptySummary();
-        
-        // 深度复制 pallets 数组及其内部对象
-        if (scanState.pallets && scanState.pallets.length > 0) {
-            this.state.pallets = scanState.pallets.map(pallet => ({ ...pallet }));
+        this.state.picking = scanState.picking?.id
+            ? { ...scanState.picking }
+            : null;
+
+        this.state.currentLocation = scanState.current_location?.id
+            ? { ...scanState.current_location }
+            : {};
+
+        this.state.summary = scanState.summary
+            ? { ...scanState.summary }
+            : this._getEmptySummary();
+
+        if (Array.isArray(scanState.pallets) && scanState.pallets.length) {
+            this.state.pallets = scanState.pallets.map((pallet) => ({
+                ...pallet,
+                products: Array.isArray(pallet.products)
+                    ? pallet.products.map((product) => ({ ...product }))
+                    : [],
+            }));
         } else {
             this.state.pallets = [];
         }
 
-        this.state.lastScan = scanState.last_scan ? { ...scanState.last_scan } : {};
-        this.state.nextStep = result.next_step || "scan_picking";
+        this.state.lastScan = scanState.last_scan
+            ? { ...scanState.last_scan }
+            : {};
+
+        this.state.nextStep = result.next_step || derivedNextStep;
 
         if (notify && result.message) {
-            const msgType = result.success === false ? "danger" : "success";
-            this.showMessage(result.message, msgType);
+            const messageType =
+                result.success === false ? "danger" : "success";
+
+            this.showMessage(result.message, messageType);
 
             if (result.success !== false) {
                 this._flashScreen([100, 200, 100], false);
@@ -285,54 +388,88 @@ export class InboundFlow extends Component {
         };
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // 确认操作按钮
-    // ═══════════════════════════════════════════════════════════════
-
     async confirmInbound() {
-        if (!this.state.picking) {
-            // 没扫入库单
+        if (!this.state.picking?.id) {
             this.showMessage(_t("No picking loaded"), "danger");
             return;
         }
 
-        // 托盘：是否完成 | 是否漏扫
+        if (this.state.loading || this._isProcessing) {
+            return;
+        }
+
         if (this.state.summary.pending_pallets > 0) {
             this.showMessage(
-                _t("There are still ") + this.state.summary.pending_pallets + _t(" pallet(s) not updated"),
+                _t("There are still ") +
+                    this.state.summary.pending_pallets +
+                    _t(" pallet(s) not updated"),
                 "danger"
             );
             return;
         }
 
-        // 已完成的picking不能再次确认
-        if (this.state.nextStep == "completed") {
+        if (this.state.nextStep === "completed") {
             this.showMessage(
-                _t("Incoming picking is already completed. Cannot confirm again."),
+                _t(
+                    "Incoming picking is already completed. Cannot confirm again."
+                ),
                 "danger"
             );
             return;
         }
 
+        const pickingId = this.state.picking.id;
+        this._isProcessing = true;
         this.state.loading = true;
+
         try {
-            await this.orm.call(
+            const result = await this.orm.call(
                 "stock.picking",
                 "button_validate",
-                [[this.state.picking.id]]
+                [[pickingId]]
             );
-            // 上架成功
-            this.showMessage(_t("Inbound confirmed successfully!"), "success");
+
+            if (this._isDestroyed) {
+                return;
+            }
+
+            if (result?.type) {
+                await this.action.doAction(result);
+                return;
+            }
+
+            this.showMessage(
+                _t("Inbound confirmed successfully!"),
+                "success"
+            );
             this._flashScreen([100, 300, 100], true);
-            setTimeout(() => this.resetScan(), 2000);
+
+            this._confirmResetTimer = this._safeSetTimeout(() => {
+                this._confirmResetTimer = null;
+
+                if (
+                    !this._isDestroyed &&
+                    this.state.picking?.id === pickingId
+                ) {
+                    this.resetScan();
+                }
+            }, 2000);
         } catch (error) {
-            this.showMessage(this.formatError(error), "danger");
+            if (!this._isDestroyed) {
+                this.showMessage(this.formatError(error), "danger");
+            }
         } finally {
-            this.state.loading = false;
+            if (!this._isDestroyed) {
+                this.state.loading = false;
+            }
+            this._isProcessing = false;
         }
     }
 
     resetScan() {
+        this._clearSafeTimeout(this._confirmResetTimer);
+        this._confirmResetTimer = null;
+
         this.state.picking = null;
         this.state.currentLocation = {};
         this.state.summary = this._getEmptySummary();
@@ -340,7 +477,12 @@ export class InboundFlow extends Component {
         this.state.lastScan = {};
         this.state.updatedMoveLineIds = [];
         this.state.nextStep = "scan_picking";
-        this.showMessage(_t("Scan reset - ready for new picking"), "info");
+
+        this.showMessage(
+            _t("Scan reset - ready for new picking"),
+            "info"
+        );
+
         this._focusBarcodeInput();
     }
 
@@ -348,25 +490,25 @@ export class InboundFlow extends Component {
         this.action.doAction("stock_barcode_lite_homepage");
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // 辅助方法
-    // ═══════════════════════════════════════════════════════════════
-
-    _clearScanTimer() {
-        if (this._scanTimer) {
-            clearTimeout(this._scanTimer);
-            this._scanTimer = null;
-        }
-    }
-
     showMessage(text, type = "info") {
+        if (this._isDestroyed) {
+            return;
+        }
+
         this.state.message = text;
         this.state.messageType = type;
-        clearTimeout(this._messageTimer);
-        // 错误消息保持到下一次扫码，不自动消失
+
+        this._clearSafeTimeout(this._messageTimer);
+        this._messageTimer = null;
+
         if (type !== "danger") {
-            this._messageTimer = setTimeout(() => {
-                if (this.state.message === text) {
+            this._messageTimer = this._safeSetTimeout(() => {
+                this._messageTimer = null;
+
+                if (
+                    !this._isDestroyed &&
+                    this.state.message === text
+                ) {
                     this.state.message = "";
                 }
             }, 4000);
@@ -374,8 +516,14 @@ export class InboundFlow extends Component {
     }
 
     _flashScreen(pattern, repeat) {
-        if ("vibrate" in navigator) {
+        if (!("vibrate" in navigator)) {
+            return;
+        }
+
+        try {
             navigator.vibrate(repeat ? pattern : 100);
+        } catch (error) {
+            console.warn("[InboundFlow] vibrate failed:", error);
         }
     }
 
@@ -383,19 +531,18 @@ export class InboundFlow extends Component {
         return (
             err?.data?.arguments?.[0] ||
             (err?.data?.message
-                ? err.data.message.replace(/^odoo\.exceptions\.[^:]+:\s*/, "")
+                ? err.data.message.replace(
+                      /^odoo\.exceptions\.[^:]+:\s*/,
+                      ""
+                  )
                 : "") ||
             err?.message ||
             _t("Unknown error")
         );
     }
 
-    // ═══════════════════════════════════════════════════════════════
-    // 计算属性
-    // ═══════════════════════════════════════════════════════════════
-
     get hasPicking() {
-        return !!this.state.picking;
+        return !!this.state.picking?.id;
     }
 
     get hasLocation() {
@@ -423,9 +570,11 @@ export class InboundFlow extends Component {
     }
 
     get currentLocationName() {
-        return this.state.currentLocation?.display_name ||
-               this.state.currentLocation?.name ||
-               "";
+        return (
+            this.state.currentLocation?.display_name ||
+            this.state.currentLocation?.name ||
+            ""
+        );
     }
 
     get currentLocationBarcode() {
@@ -450,6 +599,7 @@ export class InboundFlow extends Component {
             scan_location: _t("Scan location"),
             scan_package: _t("Scan pallet"),
         };
+
         return map[this.state.nextStep] || _t("Scan barcode");
     }
 
@@ -457,34 +607,78 @@ export class InboundFlow extends Component {
         const hints = {
             scan_picking: _t("Scan the incoming picking barcode to start"),
             scan_location: _t("Scan a storage location barcode"),
-            scan_package: _t("Scan a pallet barcode to update its location"),
+            scan_package: _t(
+                "Scan a pallet barcode to update its location"
+            ),
         };
+
         return hints[this.state.nextStep] || "";
     }
 
     get summaryCards() {
-        const s = this.state.summary || {};
+        const summary = this.state.summary || {};
+
         return [
-            { key: "total_pallets", label: _t("Total Pallets"), value: s.total_pallets || 0, icon: "fa-cubes" },
-            { key: "updated_pallets", label: _t("Updated"), value: s.updated_pallets || 0, icon: "fa-check-circle", class: "text-success" },
-            { key: "pending_pallets", label: _t("Pending"), value: s.pending_pallets || 0, icon: "fa-clock", class: "text-warning" },
-            { key: "total_move_lines", label: _t("Move Lines"), value: s.total_move_lines || 0, icon: "fa-arrows-alt-v" },
-            { key: "updated_move_lines", label: _t("Processed"), value: s.updated_move_lines || 0, icon: "fa-check", class: "text-success" },
-            { key: "pending_move_lines", label: _t("Remaining"), value: s.pending_move_lines || 0, icon: "fa-hourglass-half", class: "text-warning" },
+            {
+                key: "total_pallets",
+                label: _t("Total Pallets"),
+                value: summary.total_pallets || 0,
+                icon: "fa-cubes",
+            },
+            {
+                key: "updated_pallets",
+                label: _t("Updated"),
+                value: summary.updated_pallets || 0,
+                icon: "fa-check-circle",
+                class: "text-success",
+            },
+            {
+                key: "pending_pallets",
+                label: _t("Pending"),
+                value: summary.pending_pallets || 0,
+                icon: "fa-clock",
+                class: "text-warning",
+            },
+            {
+                key: "total_move_lines",
+                label: _t("Move Lines"),
+                value: summary.total_move_lines || 0,
+                icon: "fa-arrows-alt-v",
+            },
+            {
+                key: "updated_move_lines",
+                label: _t("Processed"),
+                value: summary.updated_move_lines || 0,
+                icon: "fa-check",
+                class: "text-success",
+            },
+            {
+                key: "pending_move_lines",
+                label: _t("Remaining"),
+                value: summary.pending_move_lines || 0,
+                icon: "fa-hourglass-half",
+                class: "text-warning",
+            },
         ];
     }
 
     get progressPercent() {
-        const s = this.state.summary || {};
-        const total = s.total_move_lines || 0;
-        const done = s.updated_move_lines || 0;
-        if (!total) return 0;
+        const summary = this.state.summary || {};
+        const total = summary.total_move_lines || 0;
+        const done = summary.updated_move_lines || 0;
+
+        if (!total) {
+            return 0;
+        }
+
         return Math.round((done / total) * 100);
     }
 
     get isAllComplete() {
-        return (this.state.summary?.pending_pallets || 0) === 0 &&
-               (this.state.summary?.total_pallets || 0) > 0;
+        return (
+            (this.state.summary?.pending_pallets || 0) === 0 &&
+            (this.state.summary?.total_pallets || 0) > 0
+        );
     }
 
     get palletList() {
@@ -500,6 +694,7 @@ export class InboundFlow extends Component {
             done: "bg-success",
             cancel: "bg-danger",
         };
+
         return map[state] || "bg-secondary";
     }
 
@@ -512,6 +707,7 @@ export class InboundFlow extends Component {
             done: _t("Done"),
             cancel: _t("Cancelled"),
         };
+
         return map[state] || state;
     }
 }
