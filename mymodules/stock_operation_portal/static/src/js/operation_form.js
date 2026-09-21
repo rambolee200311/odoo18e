@@ -22,16 +22,14 @@ publicWidget.registry.InboundOrderForm = publicWidget.Widget.extend({
         'click .remove-line': '_onRemovePalletLine',
         'click .add-product': '_onAddProductLine',
         'click .remove-product': '_onRemoveProductLine',
+        'change [name="project_id"]': '_onProjectChange',
         'submit': '_onFormSubmit',
     },
 
     start: function () {
         this._super.apply(this, arguments);
-        this._productOptionsHtml = '';
-        var $firstSelect = this.$('.pallet-line:first .product-select');
-        if ($firstSelect.length) {
-            this._productOptionsHtml = $firstSelect.html();
-        }
+        this._productOptionsHtml =
+            this.$('#inbound_product_options_source').html() || '';
     },
 
     // --------------------------------------------------------
@@ -108,6 +106,19 @@ publicWidget.registry.InboundOrderForm = publicWidget.Widget.extend({
         this._clearValidation();
     },
 
+    _onProjectChange: function (ev) {
+        var projectId = $(ev.currentTarget).val();
+        var url = new URL(window.location.href);
+
+        if (projectId) {
+            url.searchParams.set('project_id', projectId);
+        } else {
+            url.searchParams.delete('project_id');
+        }
+
+        window.location.href = url.toString();
+    },
+
     _onRemoveProductLine: function (ev) {
         ev.preventDefault();
         $(ev.currentTarget).closest('.product-line').remove();
@@ -137,9 +148,9 @@ publicWidget.registry.InboundOrderForm = publicWidget.Widget.extend({
         ev.preventDefault();
         var self = this;
         var $form = this.$el;
+        var isEdit = $form.attr('data-is-edit') === '1';
 
         var payload = {
-            project_id: $form.find('[name="project_id"]').val() || '',
             reference: ($form.find('[name="reference"]').val() || '').trim(),
             date: $form.find('[name="date"]').val() || '',
             a_date: $form.find('[name="a_date"]').val() || '',
@@ -149,6 +160,10 @@ publicWidget.registry.InboundOrderForm = publicWidget.Widget.extend({
             remark: ($form.find('[name="remark"]').val() || '').trim(),
             lines: [],
         };
+
+        if (!isEdit) {
+            payload.project_id = $form.find('[name="project_id"]').val() || '';
+        }
 
         this.$('.pallet-line').each(function () {
             var $pallet = $(this);
@@ -180,7 +195,7 @@ publicWidget.registry.InboundOrderForm = publicWidget.Widget.extend({
 
         // ---- Frontend validation ----
         var errors = [];
-        if (!payload.project_id) {
+        if (!isEdit && !payload.project_id) {
             errors.push('Please select a project.');
         }
         if (!payload.reference) {
@@ -225,6 +240,9 @@ publicWidget.registry.InboundOrderForm = publicWidget.Widget.extend({
             redirect: 'follow',
         }).then(function (resp) {
             if (resp.redirected) {
+                if (isEdit) {
+                    sessionStorage.setItem('inbound_order_updated', '1');
+                }
                 window.location.href = resp.url;
                 return;
             }
@@ -237,6 +255,28 @@ publicWidget.registry.InboundOrderForm = publicWidget.Widget.extend({
             $btn.prop('disabled', false).html(origHtml);
             alert('An error occurred. Please try again.');
         });
+    },
+});
+
+publicWidget.registry.InboundOrderUpdateNotice = publicWidget.Widget.extend({
+    selector: '#inbound_order_update_success',
+
+    start: function () {
+        this._super.apply(this, arguments);
+
+        if (sessionStorage.getItem('inbound_order_updated') !== '1') {
+            return;
+        }
+
+        sessionStorage.removeItem('inbound_order_updated');
+        var $notice = this.$el;
+        $notice.removeClass('d-none');
+
+        window.setTimeout(function () {
+            $notice.fadeOut(300, function () {
+                $notice.remove();
+            });
+        }, 3000);
     },
 });
 

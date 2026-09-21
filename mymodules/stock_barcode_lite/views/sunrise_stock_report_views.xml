@@ -4,7 +4,7 @@
         <field name="name">sunrise.stock.report.list</field>
         <field name="model">sunrise.stock.report</field>
         <field name="arch" type="xml">
-            <list string="Sunrise Pallet Aging Reports">
+            <list string="Sunrise Pallet Detail Reports">
                 <field name="name" optional="show"/>
                 <field name="date_from" optional="show"/>
                 <field name="date_to" optional="show"/>
@@ -33,7 +33,7 @@
         <field name="name">sunrise.stock.report.form</field>
         <field name="model">sunrise.stock.report</field>
         <field name="arch" type="xml">
-            <form string="Sunrise Pallet Aging Report" duplicate="false">
+            <form string="Sunrise Pallet Detail Report" duplicate="false">
                 <header>
                     <button name="action_refresh_report" type="object" string="Refresh Report" class="oe_highlight"/>
                     <button name="action_view_report_lines" type="object" icon="fa-table" title="View Pallet Summary"/>
@@ -120,7 +120,7 @@
         <field name="name">sunrise.stock.report.line.form</field>
         <field name="model">sunrise.stock.report.line</field>
         <field name="arch" type="xml">
-            <form string="Sunrise Pallet Aging Line" duplicate="false" create="0" edit="0" delete="0">
+            <form string="Sunrise Pallet Detail Line" duplicate="false" create="0" edit="0" delete="0">
                 <sheet>
                     <group>
                         <group>
@@ -212,7 +212,7 @@
         <field name="name">sunrise.stock.report.line.list</field>
         <field name="model">sunrise.stock.report.line</field>
         <field name="arch" type="xml">
-            <list string="Sunrise Pallet Aging Lines" create="0" delete="0" edit="0">
+            <list string="Sunrise Pallet Detail Lines" create="0" delete="0" edit="0">
                 <field name="report_id" column_invisible="True" optional="show"/>
 <!--                <field name="warehouse_id"/>-->
 <!--                <field name="owner_id"/>-->
@@ -256,7 +256,7 @@
         <field name="name">sunrise.stock.report.line.search</field>
         <field name="model">sunrise.stock.report.line</field>
         <field name="arch" type="xml">
-            <search string="Sunrise Pallet Aging Lines">
+            <search string="Sunrise Pallet Detail Lines">
                 <field name="pallet_no" string="Pallet No"/>
                 <field name="cproject_ids" string="Inbound Sunrise Ref"/>
                 <field name="lot_id" string="Lot" filter_domain="[('stock_line_ids.lot_id', '=', self)]"/>
@@ -312,7 +312,7 @@
     </record>
 
     <record id="action_sunrise_stock_report" model="ir.actions.act_window">
-        <field name="name">Sunrise Pallet Aging Report</field>
+        <field name="name">Sunrise Pallet Detail Report</field>
         <field name="res_model">sunrise.stock.report</field>
         <field name="view_mode">list,form</field>
         <field name="view_id" ref="view_sunrise_stock_report_list"/>

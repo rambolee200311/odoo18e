@@ -7,3 +7,4 @@ from . import outbound_controller_ofo
 from . import hoymiles_token_utils
 from . import hoymiles_api_urls
 from . import hoymiles_api_logs
+from . import transfer_controller

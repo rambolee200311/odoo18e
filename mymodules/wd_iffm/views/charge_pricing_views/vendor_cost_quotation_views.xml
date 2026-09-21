@@ -1,0 +1,76 @@
+<odoo>
+    <record id="view_vendor_cost_quotation_list" model="ir.ui.view">
+        <field name="name">vendor.cost.quotation.list</field>
+        <field name="model">vendor.cost.quotation</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="state"/>
+                <field name="currency_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_vendor_cost_quotation_form" model="ir.ui.view">
+        <field name="name">vendor.cost.quotation.form</field>
+        <field name="model">vendor.cost.quotation</field>
+        <field name="arch" type="xml">
+            <form string="Vendor Cost Quotation" duplicate="false" class="wd_iffm_required_highlight">
+                <header>
+                    <button name="action_set_active" type="object" string="Activate" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_set_draft" type="object" string="Set Draft" invisible="state != 'active'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,active"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" required="1" readonly="state != 'draft'"/>
+                        </group>
+                        <group>
+                            <field name="currency_id" required="1" readonly="state != 'draft'" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="remark"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Handover">
+                            <field name="handover_line_ids" readonly="state != 'draft'" context="{'default_operation_type': 'handover'}">
+                                <list editable="bottom">
+                                    <field name="operation_type" column_invisible="1"/>
+                                    <field name="charge_item_id" required="1" options="{'no_create': True, 'no_open': True}" domain="['|', ('operation_type', '=', 'handover'), ('operation_type', '=', False), ('is_leaf', '=', True)]"/>
+                                    <field name="qty" required="1"/>
+                                    <field name="is_fixed_fee"/>
+                                    <field name="unit_price" required="1"/>
+                                    <field name="currency_id" readonly="1"/>
+                                    <field name="create_receivable"/>
+                                    <field name="remark"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Clearance">
+                            <field name="clearance_line_ids" readonly="state != 'draft'" context="{'default_operation_type': 'clearance'}">
+                                <list editable="bottom">
+                                    <field name="operation_type" column_invisible="1"/>
+                                    <field name="charge_item_id" required="1" options="{'no_create': True, 'no_open': True}" domain="['|', ('operation_type', '=', 'clearance'), ('operation_type', '=', False), ('is_leaf', '=', True)]"/>
+                                    <field name="qty" required="1"/>
+                                    <field name="is_fixed_fee"/>
+                                    <field name="unit_price" required="1"/>
+                                    <field name="currency_id" readonly="1"/>
+                                    <field name="create_receivable"/>
+                                    <field name="remark"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_vendor_cost_quotation" model="ir.actions.act_window">
+        <field name="name">Payable Quotations</field>
+        <field name="res_model">vendor.cost.quotation</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_vendor_cost_quotation" name="Payable Quotations" parent="menu_wd_charge_quotation" action="action_vendor_cost_quotation" sequence="20"/>
+</odoo>

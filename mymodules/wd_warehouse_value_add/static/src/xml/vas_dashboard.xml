@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="wd_warehouse_value_add.VasDashboard">
+        <main class="o_wd_vas_dashboard container py-4">
+            <h1>Warehouse Value-Added Operations</h1>
+            <p class="text-muted">Select an entry point</p>
+            <div class="row g-3 mt-2">
+                <div class="col-12 col-md-6">
+                    <button class="o_wd_vas_entry card w-100 text-start p-4"
+                            t-on-click="openPda">
+                        <strong class="fs-4 d-block">PDA Work Order Entry</strong>
+                        <span class="text-muted">On-site entry, scanning, photos, and work order submission</span>
+                    </button>
+                </div>
+                <div class="col-12 col-md-6">
+                    <button class="o_wd_vas_entry card w-100 text-start p-4"
+                            t-on-click="openOrders">
+                        <strong class="fs-4 d-block">Work Order Management</strong>
+                        <span class="text-muted">Search, filter, view, and manage existing work orders</span>
+                    </button>
+                </div>
+            </div>
+        </main>
+    </t>
+</templates>

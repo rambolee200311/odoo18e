@@ -4,19 +4,25 @@ import math
 from psycopg2 import sql
 
 from odoo import _, fields, models, api
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 
 class InboundOrder(models.Model):
     _inherit = "world.depot.inbound.order"
     _order = "id desc"
 
-    creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import")], string="Creation Source", default="manual", readonly=True, copy=False)
+    creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import"), ("portal", "Portal")], string="Creation Source", default="manual", readonly=True, copy=False)
+    billno = fields.Char(index=True)
     cwarehouseid = fields.Char(string="U8C Warehouse ID", copy=False, index=True)
     source_sale_delivery_reference = fields.Char(string="Source Sale Delivery Reference", copy=False, index=True)
     vsourcebillcode = fields.Char(string="Source Bill Code", copy=False, index=True)
     project_package_generation_mode = fields.Selection(related="project.package_generation_mode", string="Package Generation Mode", readonly=True)
+    project_stock_report_date_mode = fields.Selection(related="project.stock_report_date_mode", string="Inbound Date Management Mode", readonly=True)
     organic = fields.Boolean(string="Organic", copy=False, index=True)
     actual_inbound_date = fields.Date(string="Manual Inbound Date", copy=False, index=True, tracking=True)
+    actual_inbound_datetime = fields.Datetime(string="Actual Inbound Time", readonly=True, copy=False, index=True, tracking=True)
+    actual_inbound_confirmed_by_id = fields.Many2one("res.users", string="Actual Inbound Confirmed By", readonly=True, copy=False, index=True, tracking=True)
+    actual_inbound_confirmation_datetime = fields.Datetime(string="Actual Inbound Confirmation Time", readonly=True, copy=False, index=True, tracking=True)
+    actual_inbound_attachment_line_ids = fields.Many2many("ir.attachment", "stock_barcode_lite_inbound_actual_inbound_attachment_rel", "inbound_order_id", "attachment_id", string="Actual Inbound Attachments", readonly=True, copy=False, tracking=True)
 
     @api.onchange("project")
     def onchange_project_warehouse(self):
@@ -45,6 +51,44 @@ class InboundOrder(models.Model):
                 },
             }
         return False
+
+    def action_open_actual_inbound_confirmation_wizard(self):
+        for rec in self:
+            if rec.state != "confirm":
+                raise UserError(_("Only confirmed inbound orders can confirm actual inbound."))
+            if rec.project_stock_report_date_mode != "business":
+                raise UserError(_("Actual inbound confirmation is available only for projects using Order Business Date."))
+            context = {"default_inbound_order_id": rec.id}
+            if rec.actual_inbound_attachment_line_ids:
+                context["default_actual_inbound_attachment_line_ids"] = [(6, 0, rec.actual_inbound_attachment_line_ids.ids)]
+            return {
+                "type": "ir.actions.act_window",
+                "name": _("Confirm Actual Inbound"),
+                "res_model": "inbound.actual.inbound.confirmation.wizard",
+                "view_mode": "form",
+                "views": [(False, "form")],
+                "target": "new",
+                "context": context,
+            }
+        return False
+
+    @api.model
+    def action_open_actual_inbound_confirmation_wizard_by_barcode(self, barcode):
+        barcode = (barcode or "").strip()
+        if not barcode:
+            raise UserError(_("Please scan an inbound order QR code."))
+        inbound_orders = self.sudo().search([("billno", "=", barcode)], limit=2)
+        if not inbound_orders:
+            inbound_orders = self.sudo().search([("stock_picking_id.name", "=", barcode)], limit=2)
+        if not inbound_orders:
+            raise UserError(_("No inbound order matches QR code %(barcode)s.") % {"barcode": barcode})
+        if len(inbound_orders) > 1:
+            raise UserError(_("Multiple inbound orders match QR code %(barcode)s.") % {"barcode": barcode})
+        inbound_order = self.browse(inbound_orders.id)
+        inbound_order.check_access_rights("read")
+        inbound_order.check_access_rule("read")
+        return inbound_order.action_open_actual_inbound_confirmation_wizard()
+
     def action_confirm(self):
         for rec in self:
             if rec.project.name == "SUNRISE":
@@ -693,7 +737,8 @@ class InboundOrder(models.Model):
 class InboundOrderProduct(models.Model):
     _inherit = "world.depot.inbound.order.product"
 
-    creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import")], string="Creation Source", default="manual", readonly=True, copy=False)
+    creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import"), ("portal", "Portal")], string="Creation Source", default="manual", readonly=True, copy=False)
+    pallet_no = fields.Char(index=True)
     package_id = fields.Many2one("stock.quant.package", string="Package", copy=False, index=True)
     package_barcode = fields.Char(related="package_id.barcode", string="Package Barcode", readonly=True)
     is_reused_package = fields.Boolean(string="Reused Package", default=False, readonly=True, copy=False, index=True)
@@ -738,6 +783,27 @@ class InboundOrderProduct(models.Model):
         })
         self.write({"package_id": package.id, "is_reused_package": False})
         return package
+
+    @api.constrains("pallet_no")
+    def check_pallet_no_unique(self):
+        inbound_pallet_model = self.env["world.depot.inbound.order.product"]
+        for rec in self:
+            pallet_no = (rec.pallet_no or "").strip()
+            if not pallet_no:
+                continue
+            duplicate_pallet = inbound_pallet_model.sudo().search([
+                ("id", "!=", rec.id),
+                ("pallet_no", "=", pallet_no),
+            ], limit=1)
+            if duplicate_pallet:
+                duplicate_inbound_order = duplicate_pallet.inbound_order_id
+                raise ValidationError(
+                    _('Pallet No "%(pallet_no)s" already exists in inbound order "%(inbound_order)s".')
+                    % {
+                        "pallet_no": pallet_no,
+                        "inbound_order": duplicate_inbound_order.billno or duplicate_inbound_order.reference or duplicate_inbound_order.display_name,
+                    }
+                )
 
     def get_sunrise_physical_pallet_identity(self):
         self.ensure_one()
@@ -855,7 +921,7 @@ class InboundOrderProductsPallet(models.Model):
     inbound_order_id = fields.Many2one('world.depot.inbound.order',related='inbound_order_product_id.inbound_order_id')
     pallet_no = fields.Char(related="inbound_order_product_id.pallet_no", string="Pallet No", store=True, readonly=True,
                             index=True)
-    creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import")], string="Creation Source", default="manual", readonly=True, copy=False)
+    creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import"), ("portal", "Portal")], string="Creation Source", default="manual", readonly=True, copy=False)
     source_product_code = fields.Char(string="Source Product Code", copy=False, index=True)
     product_ean = fields.Char(string="Product EAN", copy=False, index=True)
     is_lot = fields.Selection([("N", "No"), ("Y", "Yes")], string="Is Lot", default="Y", copy=False, index=True)

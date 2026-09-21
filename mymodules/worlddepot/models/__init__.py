@@ -6,13 +6,13 @@ from . import inbound_order_create_piking
 from . import outbound_order
 from . import my_stock
 from . import outbound_order_create_picking
+from . import location_type
 from . import my_stock_reverse_validate
 from . import my_stock_force_validate
 from . import my_project
 from . import my_product
 #from . import my_report
 #from . import my_user
-from . import waybill
 #from . import my_partner
 from . import my_picking_type
 from . import my_package_barcode
@@ -31,8 +31,10 @@ from . import charge_item
 from . import inbound_order_charge
 from . import outbound_order_pack_info
 from . import outbound_order_charge
-from . import outbound_order_payable
 from . import my_dashboard
 from . import my_stock_report_linglong
 from . import outbound_recreate_picking_ready
+from . import transfer_order
+from . import transfer_order_status
+from . import transfer_order_create_picking
 from . import my_stock_report_hoymiles

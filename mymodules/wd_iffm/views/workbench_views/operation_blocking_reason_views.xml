@@ -1,0 +1,40 @@
+<odoo>
+    <record id="view_operation_blocking_reason_list" model="ir.ui.view">
+        <field name="name">operation.blocking.reason.list</field>
+        <field name="model">operation.blocking.reason</field>
+        <field name="arch" type="xml">
+            <list default_order="id desc">
+                <field name="name"/>
+                <field name="short_name"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_operation_blocking_reason_form" model="ir.ui.view">
+        <field name="name">operation.blocking.reason.form</field>
+        <field name="model">operation.blocking.reason</field>
+        <field name="arch" type="xml">
+            <form duplicate="0">
+                <sheet>
+                    <group>
+                        <field name="name" required="1"/>
+                        <field name="short_name" required="1"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_operation_blocking_reason" model="ir.actions.act_window">
+        <field name="name">Blocking Reason</field>
+        <field name="res_model">operation.blocking.reason</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_operation_blocking_reason"
+              name="Blocking Reason"
+              parent="menu_wd_base_config"
+              action="action_operation_blocking_reason"
+              sequence="993"/>
+</odoo>

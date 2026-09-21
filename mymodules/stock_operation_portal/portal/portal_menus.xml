@@ -27,7 +27,7 @@
     <!-- =========================================== -->
     <!-- 门户主页入口卡片 -->
     <!-- =========================================== -->
-    <template id="portal_my_home_operation" name="Stock Operation Portal" customize_show="True" inherit_id="portal.portal_my_home" priority="25">
+<!--    <template id="portal_my_home_operation" name="Stock Operation Portal" customize_show="True" inherit_id="portal.portal_my_home" priority="25">-->
 <!--        <xpath expr="//*[hasclass('o_portal_my_home')]" position="inside">-->
 <!--            <div class="mt-3">-->
 <!--                <a href="/my/operation" class="text-decoration-none">-->
@@ -40,7 +40,7 @@
 <!--                </a>-->
 <!--            </div>-->
 <!--        </xpath>-->
-    </template>
+<!--    </template>-->
 
     <!-- =========================================== -->
     <!-- 侧边栏导航菜单 -->

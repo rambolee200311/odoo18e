@@ -1,0 +1,150 @@
+<odoo>
+    <!-- Statement Period List View -->
+    <record id="view_statement_period_tree" model="ir.ui.view">
+        <field name="name">statement.period.tree</field>
+        <field name="model">statement.period</field>
+        <field name="arch" type="xml">
+            <list string="Statement Periods">
+                <field name="name"/>
+                <field name="date_start"/>
+                <field name="date_end"/>
+                <field name="project_id"/>
+                <field name="state"/>
+                <field name="handover_total_amount"/>
+                <field name="clearance_total_amount"/>
+                <field name="create_date"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Statement Period Form View -->
+    <record id="view_statement_period_form" model="ir.ui.view">
+        <field name="name">statement.period.form</field>
+        <field name="model">statement.period</field>
+        <field name="arch" type="xml">
+            <form string="Statement Period" class="wd_iffm_required_highlight">
+                <header>
+                    <button name="get_periodic_statement"
+                            type="object"
+                            string="GET Statement Periods"
+                            class="oe_stat_button" icon="fa-check-square"
+                            invisible="state in ('expense_confirmed','calculated','cancelled')"/>
+                    <button name="action_confirm_expense"
+                            string="Confirm Expense"
+                            type="object"
+                            class="oe_stat_button" icon="fa-check-square"
+                            invisible="state in ('expense_confirmed','calculated','cancelled')"/>
+                    <button name="action_draft"
+                            string="Draft"
+                            type="object"
+                            class="oe_stat_button" icon="fa-check-square"
+                            invisible="state in ('payment_in_progress','calculated','cancelled')"
+                            groups="base.group_system"/>
+                    <!--                    <button name="request_invoice_customer"-->
+                    <!--                            string="Request Invoice"-->
+                    <!--                            type="object"-->
+                    <!--                            class="" icon="fa-check-square"-->
+                    <!--                            invisible="state in ('draft','payment_in_progress','calculated','cancelled')"/>-->
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,expense_confirmed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="date_start" readonly="state != 'draft'"/>
+                            <field name="date_end" readonly="state != 'draft'"/>
+                            <field name="project_id" readonly="state != 'draft'"
+                                   options="{'no_create': True, 'no_open': True}"/>
+                            <field name="statement_time_type" readonly="state != 'draft'"/>
+                            <field name="operation_order_scope" readonly="state != 'draft'"/>
+                            <!--                            <field name="currency_id" options="{'no_create': True, 'no_open': True}"/>-->
+
+                            <field name="handover_total_amount" readonly="1"/>
+                            <field name="clearance_total_amount" readonly="1"/>
+                        </group>
+
+                        <!--                        <group>-->
+                        <!--                            <div class="alert alert-info">-->
+                        <!--                                <b>费用计算规则：</b><br/><br/>-->
+
+                        <!--                                <b>如果选择完成时间：</b><br/>-->
+                        <!--                                子单：<br/>-->
+                        <!--                                - 换单费用：actual_date<br/>-->
+                        <!--                                - 清关费用：actual_date<br/><br/>-->
+
+                        <!--                                父单：<br/>-->
+                        <!--                                - 换单费用：do_issue_date<br/>-->
+                        <!--                                - 清关费用：clearance_finish_date<br/><br/>-->
+
+                        <!--                                <b>如果选择 ETA：</b><br/>-->
+                        <!--                                - 所有费用按 eta_datetime-->
+                        <!--                            </div>-->
+                        <!--                        </group>-->
+                    </group>
+
+                    <notebook>
+                        <page string="Handover Orders">
+                            <field name="handover_order_lines"
+                                   context="{'form_view_ref': 'wd_iffm.view_handover_statement_period_form'}"
+                                   mode="list,form">
+                                <list delete="false" create="false">
+                                    <field name="waybill_bill_number"/>
+                                    <field name="name"/>
+                                    <field name="container_nums"/>
+                                    <field name="currency_id" readonly="1"
+                                           options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="amount_total_change"/>
+                                    <field name="manual_amount_total_change"/>
+                                    <button
+                                            name="action_handover_remove_from_statement_period"
+                                            type="object"
+                                            icon="fa-trash"
+                                            title="Remove"
+                                            class="btn-link" invisible="statement_period_id_state != 'draft'"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Clearance Orders">
+                            <field name="clearance_order_lines"
+                                   context="{'form_view_ref': 'wd_iffm.view_clearance_statement_period_form'}"
+                                   mode="list,form">
+                                <list delete="false" create="false">
+                                    <field name="waybill_bill_number"/>
+                                    <field name="name"/>
+                                    <field name="container_nums"/>
+                                    <field name="currency_id" readonly="1"
+                                           options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="amount_total_change"/>
+                                    <field name="manual_amount_total_change"/>
+                                    <button
+                                            name="action_clearance_remove_from_statement_period"
+                                            type="object"
+                                            icon="fa-trash"
+                                            class="btn-link"
+                                            title="Remove"
+                                            invisible="statement_period_id_state != 'draft'"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_statement_period" model="ir.actions.act_window">
+        <field name="name">Statement Periods</field>
+        <field name="res_model">statement.period</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_statement_period_tree"/>
+    </record>
+
+
+    <menuitem id="menu_statement_period" name="Manage Statement Periods" parent="menu_wd_charge_root"
+              action="action_statement_period" sequence="10"/>
+
+</odoo>

@@ -8,13 +8,14 @@ Chenyang Chemical warehouse customizations.
     "author": "World Depot B.V.",
     "category": "Warehouse",
     "version": "18.0.1.2.0",
-    "depends": ["worlddepot", "account", "stock_barcode", "product_expiry"],
+    "depends": ["worlddepot", "account", "stock_barcode", "product_expiry", "wd_outbound_payable"],
     "data": [
         "security/ir.model.access.csv",
         'security/security.xml',
         "data/pda_internal_transfer_cron.xml",
 
         "reports/inbound_pallet_label_report.xml",
+        "reports/inbound_arrival_note_report.xml",
         "reports/outbound_lot_code_label_report.xml",
         "reports/inbound_lot_code_label_report.xml",
 
@@ -36,6 +37,7 @@ Chenyang Chemical warehouse customizations.
         "views/sunrise_product_batch_specification_import_views.xml",
 
         "wizard/inbound_product_import_wizard_views.xml",
+        "wizard/inbound_actual_inbound_confirmation_wizard_views.xml",
         "wizard/outbound_product_import_wizard_views.xml",
 
 
@@ -48,11 +50,13 @@ Chenyang Chemical warehouse customizations.
             "stock_barcode_lite/static/src/js/whole_outbound.js",
             "stock_barcode_lite/static/src/js/disassembly_outbound.js",
             "stock_barcode_lite/static/src/js/internal_transfer.js",
+            "stock_barcode_lite/static/src/js/actual_inbound_confirmation.js",
             "stock_barcode_lite/static/src/xml/homepage.xml",
             "stock_barcode_lite/static/src/xml/internal_transfer.xml",
             "stock_barcode_lite/static/src/xml/inbound.xml",
             "stock_barcode_lite/static/src/xml/outbound_whole_pallet.xml",
             "stock_barcode_lite/static/src/xml/outbound_disassembly.xml",
+            "stock_barcode_lite/static/src/xml/actual_inbound_confirmation.xml",
             "stock_barcode_lite/static/src/scss/_common.scss",
             "stock_barcode_lite/static/src/scss/_pallet.scss",
             "stock_barcode_lite/static/src/scss/_homepage.scss",

@@ -1,0 +1,28 @@
+<odoo>
+    <record id="view_project_form_inherit_quotation" model="ir.ui.view">
+        <field name="name">project.form.inherit.quotation</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.edit_project"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//notebook" position="inside">
+                <page string="Import Freight Settings" groups="wd_iffm.group_import_user,project.group_project_manager,base.group_system">
+                    <group>
+                        <field name="quotation_id" required="1" domain="[('state', '=', 'active')]"
+                               options="{'no_create': True, 'no_open': True}"/>
+                        <field name="vendor_cost_quotation_id" domain="[('state', '=', 'active')]"
+                               options="{'no_create': True, 'no_open': True}"/>
+                        <field name="payment_company_id" domain="[('is_payment', '=', True)]"
+                               options="{'no_create': True, 'no_open': True}"/>
+                        <field name="allowed_user_ids" widget="many2many_tags" groups="wd_iffm.group_import_manager,base.group_system"/>
+                    </group>
+                </page>
+            </xpath>
+
+        </field>
+    </record>
+    <record id="product.product_template_action" model="ir.actions.act_window">
+        <field name="view_mode">list,form,kanban</field>
+        <field name="view_id" ref="product.product_template_tree_view"/>
+    </record>
+</odoo>

@@ -8,7 +8,7 @@ from odoo.http import request
 
 from ..models.utils import portal_location_is_allowed, portal_stock_operation_project_ids
 from .portal import MarstekStockPortal
-
+from odoo.exceptions import ValidationError
 
 
 class StockMovementHistoryPortal(MarstekStockPortal):
@@ -62,7 +62,15 @@ class StockMovementHistoryPortal(MarstekStockPortal):
                     error = "location_id is not available for this portal user."
         project_ids = portal_stock_operation_project_ids(request.env)
         history_filters = dict(filters, project_ids=project_ids)
-        history_result = request.env["stock.move.line"].sudo().get_package_movement_history(history_filters) if not error and project_ids else {"movement_rows": []}
+        try:
+            history_result = request.env["stock.move.line"].sudo().get_package_movement_history(history_filters)
+        except ValidationError as error:
+            return request.make_json_response({
+                "error": str(error),
+                "rows": [],
+                "summary": {},
+                "pager": {},
+            }, status=400)
         all_rows = history_result["movement_rows"]
         summary = {
             "opening_pallet_count": sum(row["opening_pallet_count"] for row in all_rows),

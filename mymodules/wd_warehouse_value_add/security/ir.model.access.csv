@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_wd_vas_order_user,wd.vas.order user,model_wd_vas_order,wd_warehouse_value_add.group_vas_user,1,1,1,0
+access_wd_vas_order_manager,wd.vas.order manager,model_wd_vas_order,wd_warehouse_value_add.group_vas_manager,1,1,1,0
+access_wd_vas_order_line_user,wd.vas.order.line user,model_wd_vas_order_line,wd_warehouse_value_add.group_vas_user,1,1,1,1
+access_wd_vas_order_line_manager,wd.vas.order.line manager,model_wd_vas_order_line,wd_warehouse_value_add.group_vas_manager,1,1,1,1
+access_wd_vas_operation_type_user,wd.vas.operation.type user,model_wd_vas_operation_type,wd_warehouse_value_add.group_vas_user,1,0,0,0
+access_wd_vas_operation_type_manager,wd.vas.operation.type manager,model_wd_vas_operation_type,wd_warehouse_value_add.group_vas_manager,1,1,1,0

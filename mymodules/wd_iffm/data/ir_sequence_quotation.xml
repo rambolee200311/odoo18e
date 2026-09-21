@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="seq_charge_quotation" model="ir.sequence">
+        <field name="name">报价单编号</field>
+        <field name="code">charge.quotation</field>
+        <field name="prefix">QO%(year)s%(month)s</field>
+        <field name="padding">5</field>
+        <field name="number_next">1</field>
+        <field name="implementation">no_gap</field>
+         <field name="use_date_range">True</field>
+    </record>
+    <record id="seq_import_pickup_requirement" model="ir.sequence">
+        <field name="name">提货需求单编号</field>
+        <field name="code">import.pickup.requirement</field>
+        <field name="prefix">TH%(y)s%(month)s%(day)s</field>
+        <field name="padding">5</field>
+        <field name="number_next">1</field>
+        <field name="implementation">no_gap</field>
+         <field name="use_date_range">True</field>
+    </record>
+   <data noupdate="1">
+        <record id="seq_waybill" model="ir.sequence">
+            <field name="name">Waboll No</field>
+            <field name="code">seq.waybill</field>
+            <field name="prefix">WB%(year)s%(month)s%(day)s</field>
+            <field name="padding">4</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="use_date_range" eval="True"/>
+        </record>
+    </data>
+</odoo>

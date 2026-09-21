@@ -1,0 +1,43 @@
+<odoo>
+    <record id="view_operation_workbench_dashboard_data_list" model="ir.ui.view">
+        <field name="name">operation.workbench.dashboard.data.list</field>
+        <field name="model">operation.workbench.dashboard.data</field>
+        <field name="arch" type="xml">
+            <list editable="bottom" default_order="id desc">
+                <field name="name"/>
+                <field name="lane_code"/>
+                <field name="near_due_count"/>
+                <field name="overdue_count"/>
+                <field name="record_ids_text"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_operation_workbench_dashboard_data_form" model="ir.ui.view">
+        <field name="name">operation.workbench.dashboard.data.form</field>
+        <field name="model">operation.workbench.dashboard.data</field>
+        <field name="arch" type="xml">
+            <form duplicate="0">
+                <sheet>
+                    <group>
+                        <field name="name" required="1"/>
+                        <field name="lane_code" required="1"/>
+                        <field name="near_due_count"/>
+                        <field name="overdue_count"/>
+                        <field name="record_ids_text"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_operation_workbench_dashboard_data" model="ir.actions.act_window">
+        <field name="name">Workbench Dashboard Data</field>
+        <field name="res_model">operation.workbench.dashboard.data</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_operation_workbench_dashboard_data" name="Workbench Dashboard data"
+              parent="menu_wd_base_config"
+              action="action_operation_workbench_dashboard_data" sequence="990"/>
+</odoo>

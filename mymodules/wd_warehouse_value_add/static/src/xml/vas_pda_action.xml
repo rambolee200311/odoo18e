@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="wd_warehouse_value_add.VasPdaAction">
+        <main class="o_wd_vas_pda_action o_action_delegate_scroll d-flex flex-column h-100">
+            <header class="o_wd_vas_pda_header">
+                <button class="btn btn-link o_wd_vas_back" type="button" t-on-click="goBack">
+                    <span aria-hidden="true">←</span>
+                    <span>Warehouse Value-Added Work Order</span>
+                </button>
+                <div class="o_wd_vas_header-context">
+                    <strong><t t-esc="state.order?.name || 'New Work Order'"/></strong>
+                    <span t-att-class="'o_wd_vas_status o_wd_vas_status-' + (state.order?.state || 'new')">
+                        <t t-esc="statusLabel"/>
+                    </span>
+                </div>
+            </header>
+            <section class="flex-grow-1 overflow-auto p-3">
+                <div class="o_wd_vas_section-title">Basic Information (Read-Only)</div>
+                <div class="o_wd_vas_readonly-grid">
+                    <div>
+                        <span>Work Order Number</span>
+                        <strong><t t-esc="state.order?.name || 'New Work Order'"/></strong>
+                    </div>
+                    <div>
+                        <span>Created On</span>
+                        <strong><t t-esc="state.order?.create_date || 'Generated after saving'"/></strong>
+                    </div>
+                </div>
+
+                <div class="o_wd_vas_section-title">Related Document</div>
+                <div class="o_wd_vas_form-row">
+                    <label>Document Type</label>
+                    <select class="form-select" t-model="state.orderType" t-att-disabled="!isDraft">
+                        <option value="inbound">Inbound Order</option>
+                        <option value="outbound">Outbound Order</option>
+                        <option value="transfer">Transfer Order</option>
+                    </select>
+                </div>
+                <div class="o_wd_vas_form-row">
+                    <label>Related Document Number</label>
+                    <div class="input-group">
+                        <input class="form-control" t-model="state.billno" t-att-disabled="!isDraft"
+                               placeholder="Enter or scan a document number"/>
+                        <button class="btn o_wd_vas_primary-btn" type="button"
+                                t-on-click="resolveWarehouseOrder" t-att-disabled="!isDraft">Scan</button>
+                    </div>
+                </div>
+                <div class="o_wd_vas_form-row">
+                    <label>Customer (Auto-filled)</label>
+                    <div class="o_wd_vas_readonly-field">
+                        <t t-esc="state.warehouseOrder?.owner?.[1] || 'Auto-filled after resolving the document'"/>
+                    </div>
+                </div>
+                <div class="o_wd_vas_form-row">
+                    <label>Operator (Current User)</label>
+                    <div class="o_wd_vas_readonly-field">
+                        <t t-esc="state.order?.operator_id?.[1] || user.name"/>
+                    </div>
+                </div>
+                <div t-if="state.warehouseOrder" class="o_wd_vas_resolved">
+                    <span>✓</span> Resolved: <t t-esc="state.warehouseOrder.billno"/>
+                </div>
+
+                <div class="o_wd_vas_section-heading">
+                    <span>Operation Lines (At Least 1)</span>
+                    <button class="btn btn-sm o_wd_vas_outline-btn" type="button"
+                            t-on-click="openLineModal" t-att-disabled="!isDraft">+ Add Operation Line</button>
+                </div>
+                <div class="o_wd_vas_lines">
+                    <div t-if="!state.lines.length" class="o_wd_vas_empty">No operation lines. Add an operation line to continue.</div>
+                    <article t-foreach="state.lines" t-as="line" t-key="line.id"
+                             class="o_wd_vas_line-card">
+                        <div class="o_wd_vas_line-top">
+                            <strong>Operation Line</strong>
+                            <div t-if="isDraft" class="o_wd_vas_line-actions">
+                                <button t-if="state.editingLineId === line.id"
+                                        class="btn btn-sm o_wd_vas_outline-btn" type="button"
+                                        t-att-disabled="state.busy"
+                                        t-on-click="updateLine.bind(this, line)">Save</button>
+                                <button t-if="state.editingLineId === line.id"
+                                        class="btn btn-sm o_wd_vas_outline-btn" type="button"
+                                        t-att-disabled="state.busy"
+                                        t-on-click="cancelLineEdit">Cancel</button>
+                                <button t-if="state.editingLineId !== line.id"
+                                        class="btn btn-link o_wd_vas_delete" type="button"
+                                        t-att-disabled="state.busy"
+                                        t-on-click="removeLine.bind(this, line.id)">Delete</button>
+                            </div>
+                        </div>
+                        <div t-if="isDraft &amp;&amp; state.editingLineId === line.id">
+                            <div class="o_wd_vas_form-row">
+                                <label>Operation Type</label>
+                                <select class="form-select" t-att-disabled="state.busy"
+                                        t-on-change="onLineOperationTypeChange.bind(this, line)">
+                                    <option value="" t-att-selected="!line.operationTypeId">Select an operation type</option>
+                                    <option t-foreach="line.operationTypes" t-as="operation"
+                                            t-key="operation.id" t-att-value="operation.id"
+                                            t-att-selected="operation.id.toString() === line.operationTypeId">
+                                        <t t-esc="operation.name"/>
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="o_wd_vas_form-row">
+                                <label>Quantity / Time</label>
+                                <input class="form-control" type="number" min="0"
+                                       t-att-disabled="state.busy"
+                                       t-model.number="line.quantityTime"/>
+                            </div>
+                            <div class="o_wd_vas_form-row">
+                                <label>Unit</label>
+                                <span class="o_wd_vas_readonly-field"><t t-esc="line.unit || automaticLabel"/></span>
+                            </div>
+                            <div class="o_wd_vas_form-row">
+                                <label>Notes</label>
+                                <textarea class="form-control" rows="2" t-att-disabled="state.busy"
+                                          t-model="line.note"/>
+                            </div>
+                        </div>
+                        <div t-else="">
+                            <button t-if="isDraft" class="btn o_wd_vas_line-edit-field" type="button"
+                                    t-att-disabled="state.busy"
+                                    t-on-click="startLineEdit.bind(this, line.id)">
+                                Operation Type: <t t-esc="line.operation_type_id?.[1]"/>
+                                <span>Quantity / Time: <t t-esc="line.quantity_time"/></span>
+                                <span>Unit: <t t-esc="line.unit || automaticLabel"/></span>
+                            </button>
+                            <div t-if="!isDraft" class="o_wd_vas_line-value">
+                                Operation Type: <t t-esc="line.operation_type_id?.[1]"/>
+                                <span>Quantity / Time: <t t-esc="line.quantity_time"/></span>
+                                <span>Unit: <t t-esc="line.unit || automaticLabel"/></span>
+                            </div>
+                            <button t-if="isDraft" class="btn o_wd_vas_line-edit-field o_wd_vas_line-note"
+                                    type="button" t-att-disabled="state.busy"
+                                    t-on-click="startLineEdit.bind(this, line.id)">
+                                Notes: <t t-esc="line.note || '-'"/>
+                            </button>
+                            <div t-if="!isDraft" class="o_wd_vas_line-note">
+                                Notes: <t t-esc="line.note || '-'"/>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+
+                <div class="o_wd_vas_section-title">Work Evidence Attachments</div>
+                <div t-if="isDraft" class="o_wd_vas_attachment-actions">
+                    <label class="btn o_wd_vas_primary-btn">
+                        📷 Take Photo
+                        <input class="o_wd_vas_file-input" type="file" accept="image/*"
+                               capture="environment" t-on-change="onFileChange"/>
+                    </label>
+                    <label class="btn o_wd_vas_outline-btn">
+                        🗂 Select Multiple from Gallery
+                        <input class="o_wd_vas_file-input" type="file" accept="image/*,video/*,.pdf"
+                               multiple="multiple" t-on-change="onFileChange"/>
+                    </label>
+                </div>
+                <ul t-if="state.attachments.length" class="o_wd_vas_attachments">
+                        <li t-foreach="state.attachments" t-as="attachment" t-key="attachment.id"
+                            class="o_wd_vas_attachment">
+                            <span><t t-esc="attachment.name"/></span>
+                            <button t-if="isDraft" class="btn btn-sm btn-outline-danger" type="button"
+                                    t-on-click="removeAttachment.bind(this, attachment.id)">Delete</button>
+                        </li>
+                </ul>
+            </section>
+            <footer class="o_wd_vas_pda_bottom_bar bg-white p-3">
+                <button class="btn o_wd_vas_outline-btn" type="button"
+                        t-att-disabled="state.busy" t-on-click="newOrder">New</button>
+                <button t-if="isDraft" class="btn o_wd_vas_outline-btn" type="button"
+                        t-att-disabled="state.busy || !state.order" t-on-click="saveDraft">Save Draft</button>
+                <button t-if="isDraft" class="btn o_wd_vas_primary-btn" type="button"
+                        t-att-disabled="state.busy || !state.order" t-on-click="submit">Submit</button>
+                <button t-if="state.order?.state === 'draft'" class="btn o_wd_vas_danger-btn"
+                        type="button" t-att-disabled="state.busy" t-on-click="openCancelModal">Cancel</button>
+                <span t-if="!isDraft" class="text-muted">Read-Only</span>
+            </footer>
+            <div t-if="state.lineModalOpen" class="o_wd_vas_modal-backdrop">
+                <div class="o_wd_vas_line-modal" role="dialog" aria-modal="true">
+                    <div class="o_wd_vas_modal-header">
+                        <strong>Add Operation Line</strong>
+                        <button class="btn btn-link" type="button" t-on-click="closeLineModal">×</button>
+                    </div>
+                    <div class="o_wd_vas_modal-body">
+                        <label>① Operation Type</label>
+                        <select class="form-select" t-model="state.lineDraft.operationTypeId">
+                            <option value="">Select an operation type</option>
+                            <option t-foreach="state.operationTypes" t-as="operation"
+                                    t-key="operation.id" t-att-value="operation.id">
+                                <t t-esc="operation.name"/>
+                            </option>
+                        </select>
+                        <small>Select from the list. Barcode scanning is not supported in this version.</small>
+                        <label>② Quantity / Time</label>
+                        <input class="form-control" type="number" min="0"
+                               t-model.number="state.lineDraft.quantityTime"/>
+                        <small>Enter quantity for physical work or time for manual work, based on the operation type.</small>
+                        <label>③ Notes (Optional)</label>
+                        <textarea class="form-control" rows="3"
+                                  t-model="state.lineDraft.note"/>
+                        <small>Optional: record exceptions or special work instructions.</small>
+                    </div>
+                    <div class="o_wd_vas_modal-actions">
+                        <button class="btn o_wd_vas_outline-btn" type="button"
+                                t-on-click="closeLineModal">Cancel</button>
+                        <button class="btn o_wd_vas_primary-btn" type="button"
+                                t-on-click="confirmAddLine">Confirm Add</button>
+                    </div>
+                </div>
+            </div>
+            <div t-if="state.cancelModalOpen" class="o_wd_vas_modal-backdrop">
+                <div class="o_wd_vas_line-modal" role="dialog" aria-modal="true">
+                    <div class="o_wd_vas_modal-header">
+                        <strong>Cancel Work Order</strong>
+                        <button class="btn btn-link" type="button"
+                                t-on-click="closeCancelModal">×</button>
+                    </div>
+                    <div class="o_wd_vas_modal-body">
+                        <label for="vas-cancel-reason">Cancellation Reason</label>
+                        <textarea id="vas-cancel-reason" class="form-control" rows="3"
+                                  t-model="state.cancelReason"
+                                  placeholder="Enter a cancellation reason"/>
+                    </div>
+                    <div class="o_wd_vas_modal-actions">
+                        <button class="btn o_wd_vas_outline-btn" type="button"
+                                t-on-click="closeCancelModal">Cancel</button>
+                        <button class="btn o_wd_vas_danger-btn" type="button"
+                                t-att-disabled="state.busy" t-on-click="confirmCancel">Confirm Cancellation</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </t>
+</templates>

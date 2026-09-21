@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--进口货代首页-->
+<templates id="template" xml:space="preserve">
+    <t t-name="wd_iffm.wd_iffm_workbench_template" owl="1">
+        <div class="o_web_client" style="height: 100%;">
+            <div class="content-wrapper" style="height: 100%; min-height: 80vh; padding: 20px; display: flex; flex-direction: column;">
+
+                <!-- 头部区域 -->
+<!--                <div class="dashboard-header mb-4">-->
+<!--                    <h3 class="fw-bold">-->
+<!--                        <i class="fa fa-ship me-2"/>进口货代管理系统-->
+<!--                    </h3>-->
+<!--                    <p class="text-muted">点击Tab切换下方的数据视图</p>-->
+<!--                </div>-->
+
+                <!-- 上边区域：菜单卡片区域 -->
+                <div class="dashboard-cards-container d-flex gap-4 mb-3" style="align-items: flex-start;">
+                    
+                    <!-- 临期卡片 -->
+                    <div class="cards-section flex-fill">
+                        <h4 class="text-warning mb-3 fw-bold">
+                            <i class="fa fa-clock-o me-1"></i>Near Expiry
+                        </h4>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <div t-att-class="'dashboard-card p-3 rounded text-center cursor-pointer border ' + (state.activeTab == 'waybill_near_due' ? 'border-warning bg-warning bg-opacity-15' : 'bg-white border-secondary')"
+                                 t-on-click="() => onCardClick('waybill', 'near_due')"
+                                 style="min-width: 110px; flex: 1;">
+                                <div class="card-count fw-bold fs-3 text-warning">
+                                    <t t-esc="state.dashboardData.waybill.near_due_count"/>
+                                </div>
+                                <div class="card-label small text-muted mt-1">
+                                    <i class="fa fa-file-text-o me-1"></i>Waybill
+                                </div>
+                                <div class="card-hint small text-muted mt-1 opacity-75">
+                                    <i class="fa fa-hand-pointer-o me-1"></i>Click
+                                </div>
+                            </div>
+                            
+                            <div t-att-class="'dashboard-card p-3 rounded text-center cursor-pointer border ' + (state.activeTab == 'handover_near_due' ? 'border-warning bg-warning bg-opacity-15' : 'bg-white border-secondary')"
+                                 t-on-click="() => onCardClick('handover', 'near_due')"
+                                 style="min-width: 110px; flex: 1;">
+                                <div class="card-count fw-bold fs-3 text-warning">
+                                    <t t-esc="state.dashboardData.handover.near_due_count"/>
+                                </div>
+                                <div class="card-label small text-muted mt-1">
+                                    <i class="fa fa-refresh me-1"></i>Handover
+                                </div>
+                                <div class="card-hint small text-muted mt-1 opacity-75">
+                                    <i class="fa fa-hand-pointer-o me-1"></i>Click
+                                </div>
+                            </div>
+                            
+                            <div t-att-class="'dashboard-card p-3 rounded text-center cursor-pointer border ' + (state.activeTab == 'clearance_near_due' ? 'border-warning bg-warning bg-opacity-15' : 'bg-white border-secondary')"
+                                 t-on-click="() => onCardClick('clearance', 'near_due')"
+                                 style="min-width: 110px; flex: 1;">
+                                <div class="card-count fw-bold fs-3 text-warning">
+                                    <t t-esc="state.dashboardData.clearance.near_due_count"/>
+                                </div>
+                                <div class="card-label small text-muted mt-1">
+                                    <i class="fa fa-calculator me-1"></i>Clearance
+                                </div>
+                                <div class="card-hint small text-muted mt-1 opacity-75">
+                                    <i class="fa fa-hand-pointer-o me-1"></i>Click
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 逾期卡片 -->
+                    <div class="cards-section flex-fill">
+                        <h4 class="text-danger mb-3 fw-bold">
+                            <i class="fa fa-exclamation-triangle me-1"></i>Overdue
+                        </h4>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <div t-att-class="'dashboard-card p-3 rounded text-center cursor-pointer border ' + (state.activeTab == 'waybill_overdue' ? 'border-danger bg-danger bg-opacity-15' : 'bg-white border-secondary')"
+                                 t-on-click="() => onCardClick('waybill', 'overdue')"
+                                 style="min-width: 110px; flex: 1;">
+                                <div t-att-class="'card-count fw-bold fs-3 ' + (state.activeTab == 'waybill_overdue' ? 'text-white' : 'text-danger')">
+                                    <t t-esc="state.dashboardData.waybill.overdue_count"/>
+                                </div>
+                                <div class="card-label small text-muted mt-1">
+                                    <i class="fa fa-file-text-o me-1"></i>Waybill
+                                </div>
+                                <div class="card-hint small text-muted mt-1 opacity-75">
+                                    <i class="fa fa-hand-pointer-o me-1"></i>Click
+                                </div>
+                            </div>
+                            
+                            <div t-att-class="'dashboard-card p-3 rounded text-center cursor-pointer border ' + (state.activeTab == 'handover_overdue' ? 'border-danger bg-danger bg-opacity-15' : 'bg-white border-secondary')"
+                                 t-on-click="() => onCardClick('handover', 'overdue')"
+                                 style="min-width: 110px; flex: 1;">
+                                <div t-att-class="'card-count fw-bold fs-3 ' + (state.activeTab == 'handover_overdue' ? 'text-white' : 'text-danger')">
+                                    <t t-esc="state.dashboardData.handover.overdue_count"/>
+                                </div>
+                                <div class="card-label small text-muted mt-1">
+                                    <i class="fa fa-refresh me-1"></i>Handover
+                                </div>
+                                <div class="card-hint small text-muted mt-1 opacity-75">
+                                    <i class="fa fa-hand-pointer-o me-1"></i>Click
+                                </div>
+                            </div>
+                            
+                            <div t-att-class="'dashboard-card p-3 rounded text-center cursor-pointer border ' + (state.activeTab == 'clearance_overdue' ? 'border-danger bg-danger bg-opacity-15' : 'bg-white border-secondary')"
+                                 t-on-click="() => onCardClick('clearance', 'overdue')"
+                                 style="min-width: 110px; flex: 1;">
+                                <div t-att-class="'card-count fw-bold fs-3 ' + (state.activeTab == 'clearance_overdue' ? 'text-white' : 'text-danger')">
+                                    <t t-esc="state.dashboardData.clearance.overdue_count"/>
+                                </div>
+                                <div class="card-label small text-muted mt-1">
+                                    <i class="fa fa-calculator me-1"></i>Clearance
+                                </div>
+                                <div class="card-hint small text-muted mt-1 opacity-75">
+                                    <i class="fa fa-hand-pointer-o me-1"></i>Click
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 全部提单 -->
+                    <div class="cards-section flex-fill">
+                        <h4 class="text-primary mb-3 fw-bold">
+                            <i class="fa fa-folder-open me-1"></i>All Waybills
+                        </h4>
+                        <div class="d-flex gap-2">
+                            <div t-att-class="'dashboard-card p-3 rounded text-center cursor-pointer border ' + (state.activeTab == 'waybill_all' ? 'border-primary bg-primary bg-opacity-15' : 'bg-white border-secondary')"
+                                 t-on-click="() => onCardClick('waybill', 'all')"
+                                 style="flex: 1;">
+                                <div t-att-class="'card-count fw-bold fs-3 ' + (state.activeTab == 'waybill_all' ? 'text-white' : 'text-primary')">
+                                    <t t-esc="state.dashboardData.total.waybill_all_count"/>
+                                </div>
+                                <div class="card-label small text-muted mt-1">
+                                    <i class="fa fa-file-text-o me-1"></i>Waybill
+                                </div>
+                                <div class="card-hint small text-muted mt-1 opacity-75">
+                                    <i class="fa fa-hand-pointer-o me-1"></i>Click
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 中间区域：视图切换区域 -->
+                <div class="view-switcher mb-3 d-flex gap-2 align-items-center">
+                    <!-- 左侧：筛选条件 -->
+                    <div class="d-flex gap-2 align-items-center flex-wrap">
+                        <!-- 1. 提单所属项目 -->
+                        <select class="form-select form-select-sm" style="width: 160px;"
+                                t-on-change="(e) => onFilterChange('project_id', e.target.value)">
+<!--                                t-model="state.filters.project_id"-->
+                            <option value="">All Projects</option>
+                            <t t-foreach="state.projectOptions" t-as="project" t-key="project.id">
+                                <option t-att-value="project.id" t-att-selected="state.filters.project_id == project.id">
+                                    <t t-esc="project.name"/>
+                                </option>
+                            </t>
+                        </select>
+
+                        <!-- 2. 船公司 -->
+                        <select class="form-select form-select-sm" style="width: 160px;"
+                                t-on-change="(e) => onFilterChange('shipping_company_id', e.target.value)">
+<!--                                t-model="state.filters.shipping_company_id"-->
+                            <option value="">All Shipping Companies</option>
+                            <t t-foreach="state.shippingCompanyOptions" t-as="company" t-key="company.id">
+                                <option t-att-value="company.id" t-att-selected="state.filters.shipping_company_id == company.id">
+                                    <t t-esc="company.name"/>
+                                </option>
+                            </t>
+                        </select>
+
+                        <!-- 3. ETA日期范围 -->
+                        <div class="d-flex align-items-center gap-1 ms-1">
+                            <strong class="me-1">ETA: </strong>
+                            <input type="date" class="form-control form-control-sm" style="width: 130px;"
+                                   t-on-change="(e) => onFilterChange('eta_date_from', e.target.value)"
+                                   placeholder="Start"/>
+<!--                                   t-model="state.filters.eta_date_from"-->
+                            <span class="text-muted">to</span>
+                            <input type="date" class="form-control form-control-sm" style="width: 130px;"
+                                   t-on-change="(e) => onFilterChange('eta_date_to', e.target.value)"
+                                   placeholder="End"/>
+<!--                                   t-model="state.filters.eta_date_to"-->
+                        </div>
+
+                        <!-- 清空按钮 -->
+                        <button class="btn btn-sm btn-outline-secondary" t-on-click="clearFilters">
+                            <i class="fa fa-times me-1"/>Clear
+                        </button>
+                    </div>
+
+                    <!-- 中间：视图切换按钮组 -->
+                    <div class="btn-group ms-auto" role="group">
+                        <button
+                            t-att-class="'btn ' + (state.activeView == 'kanban' ? 'btn-primary' : 'btn-outline-secondary')"
+                            t-on-click="() => onViewTypeClick('kanban')"
+                            type="button">
+                            <i class="fa fa-th-large me-1"/> Kanban
+                        </button>
+                        <button
+                            t-att-class="'btn ' + (state.activeView == 'list' ? 'btn-primary' : 'btn-outline-secondary')"
+                            t-on-click="() => onViewTypeClick('list')"
+                            type="button">
+                            <i class="fa fa-list me-1"/> List
+                        </button>
+                        <button
+                            t-att-class="'btn ' + (state.activeView == 'calendar' ? 'btn-primary' : 'btn-outline-secondary')"
+                            t-on-click="() => onViewTypeClick('calendar')"
+                            type="button">
+                            <i class="fa fa-calendar me-1"/> Calendar
+                        </button>
+                    </div>
+
+                    <!-- 右侧：当前选中卡片信息 -->
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="text-muted">Current:</span>
+                        <span t-att-class="'badge ' + (state.activeTab.includes('near_due') ? 'bg-warning text-dark' : 'bg-danger')">
+                            <t t-esc="getCurrentTab().label"/>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- 下边内容区域：强制占满剩余高度 -->
+                <div class="content-area border rounded" style="flex: 1; height: 0; overflow-y: auto;">
+                    <t t-if="state.viewProps">
+                        <div style="width:100%;height:100%;min-height:100%;">
+                            <View t-props="state.viewProps"/>
+                        </div>
+                    </t>
+                    <t t-else="">
+                        <div class="d-flex align-items-center justify-content-center h-100">
+                            <div class="text-center text-muted">
+                                <i class="fa fa-spinner fa-spin fa-3x mb-3"/>
+                                <p class="fs-5">Loading...</p>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

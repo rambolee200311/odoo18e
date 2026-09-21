@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_inbound_arrival_note" model="ir.actions.report">
+        <field name="name">Inbound Arrival Note</field>
+        <field name="model">world.depot.inbound.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">stock_barcode_lite.report_inbound_arrival_note</field>
+        <field name="report_file">stock_barcode_lite.report_inbound_arrival_note</field>
+        <field name="print_report_name">'Inbound Arrival Note - %s' % (object.billno or object.reference)</field>
+        <field name="paperformat_id" ref="stock_barcode_lite.paperformat_inbound_pallet_label"/>
+        <field name="binding_model_id" ref="worlddepot.model_world_depot_inbound_order"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_inbound_arrival_note_header">
+        <div class="inbound-arrival-header">
+            <t t-if="o.billno">
+                <div class="inbound-arrival-qr">
+                    <div t-field="o.billno"
+                         t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 180, 'height': 180, 'img_style': 'width:100px;height:100px;', 'img_class': 'keep-no-break'}"/>
+                    <div>Inbound Order</div>
+                    <div><span t-field="o.billno"/></div>
+                </div>
+            </t>
+            <p class="inbound-arrival-title">World Depot B.V.</p>
+            <p class="inbound-arrival-subtitle">Inbound Arrival Note</p>
+            <table class="inbound-arrival-info">
+                <tr>
+                    <td class="label">Reference:</td>
+                    <td><span t-field="o.reference"/></td>
+                    <td class="label">Owner:</td>
+                    <td><span t-esc="o.owner.name"/></td>
+                </tr>
+                <tr>
+                    <td class="label">Arrival Date:</td>
+                    <td><span t-if="o.a_date" t-esc="o.a_date.strftime('%Y-%m-%d')"/></td>
+                    <td class="label">Inbound No:</td>
+                    <td><span t-field="o.billno"/></td>
+                </tr>
+                <tr>
+                    <td class="label">BL No:</td>
+                    <td><span t-field="o.bl_no"/></td>
+                    <td class="label">Container No:</td>
+                    <td><span t-field="o.cntr_no"/></td>
+                </tr>
+            </table>
+        </div>
+    </template>
+
+    <template id="report_inbound_arrival_note">
+        <t t-set="data_report_margin_top" t-value="0"/>
+        <t t-set="data_report_header_spacing" t-value="0"/>
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <div class="article" t-att-data-oe-model="o._name" t-att-data-oe-id="o.id" t-att-data-oe-lang="o.env.context.get('lang')">
+                    <style>
+                        @page {
+                            margin-top: 8mm !important;
+                            margin-bottom: 8mm;
+                            margin-left: 7mm;
+                            margin-right: 7mm;
+                        }
+
+                        .inbound-arrival-page {
+                            font-family: Arial, sans-serif;
+                            color: #111827;
+                            font-size: 12px;
+                            padding-top: 6mm;
+                        }
+
+                        .inbound-arrival-header {
+                            position: relative;
+                            min-height: 124px;
+                            padding-left: 125px;
+                            border-bottom: 2px solid #111827;
+                            padding-bottom: 8px;
+                            margin-bottom: 20px;
+                            box-sizing: border-box;
+                        }
+
+                        .inbound-arrival-qr {
+                            position: absolute;
+                            top: 0;
+                            left: 0;
+                            width: 112px;
+                            text-align: center;
+                            font-size: 9px;
+                            font-weight: bold;
+                            line-height: 1.05;
+                        }
+
+                        .inbound-arrival-qr img {
+                            width: 100px !important;
+                            height: 100px !important;
+                        }
+
+                        .inbound-arrival-title {
+                            font-size: 24px;
+                            font-weight: bold;
+                            margin: 0 0 3px 0;
+                        }
+
+                        .inbound-arrival-subtitle {
+                            font-size: 18px;
+                            font-weight: bold;
+                            margin: 0 0 6px 0;
+                        }
+
+                        .inbound-arrival-info,
+                        .inbound-arrival-summary {
+                            width: 100%;
+                            border-collapse: collapse;
+                        }
+
+                        .inbound-arrival-info td,
+                        .inbound-arrival-summary td {
+                            border: 1px solid #111827;
+                            padding: 6px 8px;
+                            vertical-align: top;
+                        }
+
+                        .inbound-arrival-info .label,
+                        .inbound-arrival-summary .label {
+                            width: 105px;
+                            font-weight: bold;
+                            white-space: nowrap;
+                        }
+
+                        .inbound-arrival-summary .value {
+                            font-size: 20px;
+                            font-weight: bold;
+                            text-align: center;
+                        }
+
+                        img.keep-no-break {
+                            display: inline-block;
+                            page-break-inside: avoid;
+                            break-inside: avoid;
+                        }
+                    </style>
+                    <div class="page inbound-arrival-page">
+                        <t t-call="stock_barcode_lite.report_inbound_arrival_note_header"/>
+                        <t t-set="summary" t-value="summary_by_order.get(o.id, {})"/>
+                        <table class="inbound-arrival-summary">
+                            <tr>
+                                <td class="label">Total Pallets</td>
+                                <td class="value"><span t-esc="summary.get('pallet_total', 0)"/></td>
+                                <td class="label">Total Products</td>
+                                <td class="value"><span t-esc="summary.get('product_total', 0)"/></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

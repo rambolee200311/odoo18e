@@ -1,0 +1,87 @@
+<odoo>
+    <record id="view_outbound_order_form_payable" model="ir.ui.view">
+        <field name="name">world.depot.outbound.order.form.payable</field>
+        <field name="model">world.depot.outbound.order</field>
+        <field name="inherit_id" ref="worlddepot.view_outbound_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='outbound_order_charge_ids']" position="before">
+                <group>
+                    <field name="payable_state" widget="statusbar" statusbar_visible="not_applied,paying,paid" readonly="1"/>
+                    <field name="payable_lines" context="{'default_outbound_order_id': id}" readonly="state == 'cancel'">
+                        <list>
+                            <field name="vendor_partner_id" required="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="clearance_no"/>
+                            <field name="vendor_invoice_num" required="1"/>
+                            <field name="payable_date"/>
+                            <field name="amount_total" readonly="1"/>
+                            <field name="currency_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="payment_state" readonly="1"/>
+                            <field name="remark"/>
+                        </list>
+                        <form string="Outbound Payable" duplicate="false" class="worlddepot_required_highlight">
+                            <header>
+                                <button name="action_request_payment" type="object" string="Request Payment" class="btn-primary" invisible="payment_state != 'draft'" groups="wd_account_extension.group_invoice_applicant"/>
+                                <button name="action_revoke_payment_request" type="object" string="Revoke Payment Request" invisible="payment_state != 'paying'" groups="wd_account_extension.group_invoice_applicant"/>
+                                <field name="payment_state" widget="statusbar" statusbar_visible="draft,paying,paid" readonly="1"/>
+                            </header>
+                            <sheet>
+                                <group>
+                                    <field name="outbound_order_id" required="1" invisible="1" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="company_id" required="1" invisible="1" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                                    <group>
+                                        <field name="clearance_no" readonly="payment_state != 'draft'"/>
+                                        <field name="vendor_partner_id" readonly="payment_state != 'draft'" options="{'no_create': True, 'no_open': True}"/>
+                                        <field name="currency_id" required="1" readonly="payment_state != 'draft'" options="{'no_create': True, 'no_open': True}"/>
+                                        <field name="payment_company_id" required="1" readonly="payment_state != 'draft'" options="{'no_create': True, 'no_open': True}"/>
+                                        <field name="receipt_company_id" required="1" readonly="payment_state != 'draft'" options="{'no_create': True, 'no_open': True}"/>
+                                        <field name="vendor_invoice_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                                        <field name="bank_proof_attachment_ids" widget="many2many_binary" readonly="1"/>
+                                        <field name="apply_user_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                                        <field name="apply_datetime" readonly="1"/>
+                                    </group>
+                                    <group>
+                                        <field name="vendor_invoice_num" required="1" readonly="payment_state != 'draft'"/>
+                                        <field name="payable_date" required="1" readonly="payment_state != 'draft'"/>
+                                        <field name="amount_total" readonly="1"/>
+                                        <field name="vendor_invoice_attachment_ids" widget="many2many_binary" required="1" readonly="payment_state != 'draft'"/>
+                                        <field name="remark" readonly="payment_state != 'draft'"/>
+                                    </group>
+                                </group>
+                                <notebook>
+                                    <page string="Cost">
+                                        <field name="charge_lines" readonly="payment_state != 'draft'">
+                                            <list editable="bottom">
+                                                <field name="payable_id" column_invisible="1" required="1"/>
+                                                <field name="charge_item_id" required="1" options="{'no_create': True, 'no_open': True}"/>
+                                                <field name="create_receivable" width="150px"/>
+                                                <field name="quantity" required="1"/>
+                                                <field name="charge_unit_id" options="{'no_create': True, 'no_open': True}"/>
+                                                <field name="unit_price" required="1"/>
+                                                <field name="currency_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                                                <field name="amount" readonly="1"/>
+                                                <field name="manual_amount_total"/>
+                                                <field name="remark"/>
+                                            </list>
+                                        </field>
+                                    </page>
+                                </notebook>
+                            </sheet>
+                        </form>
+                    </field>
+                </group>
+            </xpath>
+            <xpath expr="//field[@name='outbound_order_charge_ids']" position="before">
+                <group>
+                    <field name="receivable_state" widget="statusbar" statusbar_visible="draft,confirmed" readonly="1"/>
+                    <button name="action_confirm_receivable" type="object" string="Confirm Receivable" class="btn-success" invisible="state == 'cancel' or receivable_state == 'confirmed'"/>
+                    <button name="action_unconfirm_receivable" type="object" string="Unconfirm Receivable" class="btn-secondary" confirm="Are you sure you want to unconfirm receivable?" invisible="state == 'cancel' or receivable_state != 'confirmed'"/>
+<!--                    <field name="receivable_confirm_user_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>-->
+<!--                    <field name="receivable_confirm_time" readonly="1"/>-->
+                </group>
+            </xpath>
+            <xpath expr="//field[@name='outbound_order_charge_ids']" position="attributes">
+                <attribute name="readonly">state == 'cancel' or receivable_state == 'confirmed'</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

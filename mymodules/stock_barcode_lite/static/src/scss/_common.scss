@@ -183,3 +183,12 @@
         font-size: 14px;
     }
 }
+
+@media (min-width: 768px) {
+    .o_form_statusbar .o_actual_inbound_confirmation_button {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+}

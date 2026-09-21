@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="seq_wd_vas_order" model="ir.sequence">
+        <field name="name">Warehouse VAS Order</field>
+        <field name="code">wd.vas.order</field>
+        <field name="prefix">VAS/</field>
+        <field name="padding">5</field>
+        <field name="number_increment">1</field>
+    </record>
+</odoo>

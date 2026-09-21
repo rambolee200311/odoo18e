@@ -159,11 +159,24 @@ class SunriseOutboundPalletSummaryReport(models.Model):
                     "product_name_set": set(),
                     "outbound_quantity": 0.0,
                     "source_location_name_set": set(),
+                    "outbound_detail_map": {},
+                })
+                lot_name = move_line.lot_id.name or outbound_product.lot_name or ""
+                gross_weight = move_line.lot_id.gross_weight or float(outbound_product.gross_weight or 0.0) or move_line.product_id.product_tmpl_id.gross_weight or 0.0
+                outbound_detail = pallet_data["outbound_detail_map"].setdefault((move_line.product_id.product_tmpl_id.id, move_line.lot_id.id), {
+                    "product_name": product_name,
+                    "lot_name": lot_name,
+                    "outbound_quantity": 0.0,
+                    "cprojectid_set": set(),
+                    "gross_weight_map": {},
                 })
                 if cprojectid:
                     pallet_data["cprojectid_set"].add(cprojectid)
+                    outbound_detail["cprojectid_set"].add(cprojectid)
                 pallet_data["product_name_set"].add(product_name)
                 pallet_data["outbound_quantity"] += move_line.quantity
+                outbound_detail["outbound_quantity"] += move_line.quantity
+                outbound_detail["gross_weight_map"][outbound_product.id or move_line.move_id.id] = gross_weight
                 source_location_name = move_line.location_id.complete_name or move_line.location_id.display_name
                 if source_location_name:
                     pallet_data["source_location_name_set"].add(source_location_name)
@@ -208,6 +221,7 @@ class SunriseOutboundPalletSummaryReport(models.Model):
                         inbound_data["inbound_quantity_total"] += move_line.quantity
 
             package_consumed_datetime_map = {}
+            package_order_fully_outbound_datetime_map = {}
             if package_ids:
                 package_move_lines = move_line_model.search([
                     ("state", "=", "done"),
@@ -251,6 +265,9 @@ class SunriseOutboundPalletSummaryReport(models.Model):
                             package_consumed_datetime_map[package_id] = False
                         elif before_active and not after_active:
                             package_consumed_datetime_map[package_id] = event_datetime
+                            outbound_order_id = move_line.picking_id.outbound_order_id.id
+                            if is_actual_outbound and source_package_id == package_id and outbound_order_id in order_data_map:
+                                package_order_fully_outbound_datetime_map[(outbound_order_id, package_id)] = event_datetime
 
             rec.line_ids.unlink()
             report_line_values = []
@@ -275,6 +292,17 @@ class SunriseOutboundPalletSummaryReport(models.Model):
                 report_line = report_line_map[outbound_order_id]
                 for package_id, pallet_data in order_data["pallet_data_map"].items():
                     inbound_data = package_inbound_data_map.get(package_id, {})
+                    fully_outbound_datetime = package_order_fully_outbound_datetime_map.get((outbound_order_id, package_id))
+                    outbound_detail_data = []
+                    for outbound_detail in pallet_data["outbound_detail_map"].values():
+                        outbound_detail_data.append({
+                            "product_name": outbound_detail["product_name"],
+                            "lot_name": outbound_detail["lot_name"],
+                            "outbound_quantity": outbound_detail["outbound_quantity"],
+                            "gross_weight": sum(outbound_detail["gross_weight_map"].values()),
+                            "sunrise_ref": ", ".join(sorted(outbound_detail["cprojectid_set"])),
+                        })
+                    outbound_detail_data.sort(key=lambda outbound_detail: (outbound_detail["product_name"], outbound_detail["lot_name"]))
                     pallet_line_values.append({
                         "report_line_id": report_line.id,
                         "package_id": package_id,
@@ -282,9 +310,11 @@ class SunriseOutboundPalletSummaryReport(models.Model):
                         "product_names": ", ".join(sorted(pallet_data["product_name_set"])),
                         "inbound_quantity_summary": inbound_data.get("inbound_quantity_total", 0.0),
                         "outbound_quantity": pallet_data["outbound_quantity"],
+                        "product_batch_gross_weight": sum(outbound_detail["gross_weight"] for outbound_detail in outbound_detail_data),
                         "inbound_datetime": inbound_data.get("inbound_datetime"),
                         "consumed_datetime": package_consumed_datetime_map.get(package_id),
                         "location_summary": ", ".join(sorted(pallet_data["source_location_name_set"])),
+                        "export_detail_data": {"is_fully_outbound": bool(fully_outbound_datetime), "fully_outbound_date": fields.Date.to_string(fully_outbound_datetime.date()) if fully_outbound_datetime else "", "outbound_detail_data": outbound_detail_data},
                     })
             if pallet_line_values:
                 pallet_line_model.create(pallet_line_values)
@@ -300,33 +330,82 @@ class SunriseOutboundPalletSummaryReport(models.Model):
             if rec.state != "done":
                 raise ValidationError(_("Please refresh the report before exporting."))
             report_lines = report_line_model.search([("report_id", "=", rec.id)], order="order_date asc, id asc")
-            headers = ["Outbound Order Date", "Outbound Sunrise Ref", "Outbound Date", "Outbound No", "Total Outbound Pallets", "Completed Outbound Pallets", "Outbound Products", "Pallet Outbound Product Quantity", "Pallet No", "Inbound Date", "Fully Outbound Date", "Pallet Inbound Product Quantity"]
+            headers = ["Outbound Order Date", "Outbound Sunrise Ref", "Outbound Date", "Outbound No", "Total Outbound Pallets", "Completed Outbound Pallets", "Outbound Products", "Lot/Batch", "Pallet Outbound Product Quantity", "Product Batch Gross Weight (kg)", "Pallet No", "Fully Outbound Date", "Pallet Inbound Product Quantity"]
             rows = []
             for line in report_lines:
                 outbound_order = line.outbound_order_id
                 outbound_datetime = fields.Date.to_string(line.outbound_datetime.date()) if line.outbound_datetime else ""
-                for pallet_line in line.pallet_line_ids.sorted(key=lambda item: (item.package_id.display_name or item.package_id.name or "", item.id)):
+                full_pallet_lines = line.pallet_line_ids.filtered(lambda item: (item.export_detail_data or {}).get("is_fully_outbound")).sorted(key=lambda item: (item.package_id.display_name or item.package_id.name or "", item.id))
+                if full_pallet_lines:
+                    sunrise_ref_set = set()
+                    product_name_set = set()
+                    lot_name_set = set()
+                    package_name_set = set()
+                    fully_outbound_date_set = set()
+                    outbound_quantity = 0.0
+                    inbound_quantity = 0.0
+                    for pallet_line in full_pallet_lines:
+                        export_detail_data = pallet_line.export_detail_data or {}
+                        outbound_detail_data = export_detail_data.get("outbound_detail_data") or [{"product_name": pallet_line.product_names or "", "lot_name": "", "sunrise_ref": pallet_line.sunrise_ref or line.sunrise_ref or ""}]
+                        if pallet_line.sunrise_ref:
+                            sunrise_ref_set.add(pallet_line.sunrise_ref)
+                        package_name = pallet_line.package_id.display_name or pallet_line.package_id.name or ""
+                        if package_name:
+                            package_name_set.add(package_name)
+                        fully_outbound_date = export_detail_data.get("fully_outbound_date") or (fields.Date.to_string(pallet_line.consumed_datetime.date()) if pallet_line.consumed_datetime else "")
+                        if fully_outbound_date:
+                            fully_outbound_date_set.add(fully_outbound_date)
+                        outbound_quantity += pallet_line.outbound_quantity
+                        inbound_quantity += pallet_line.inbound_quantity_summary
+                        for outbound_detail in outbound_detail_data:
+                            if outbound_detail.get("product_name"):
+                                product_name_set.add(outbound_detail["product_name"])
+                            if outbound_detail.get("lot_name"):
+                                lot_name_set.add(outbound_detail["lot_name"])
+                            if outbound_detail.get("sunrise_ref"):
+                                sunrise_ref_set.add(outbound_detail["sunrise_ref"])
                     rows.append([
                         fields.Date.to_string(outbound_order.date or line.order_date) if outbound_order.date or line.order_date else "",
-                        pallet_line.sunrise_ref or line.sunrise_ref or "",
+                        ", ".join(sorted(sunrise_ref_set)) or line.sunrise_ref or "",
                         outbound_datetime,
                         line.system_document_no or outbound_order.billno or "",
                         line.outbound_pallet_count or 0,
                         line.completed_outbound_pallet_count or 0,
-                        line.product_names or pallet_line.product_names or "",
-                        pallet_line.outbound_quantity or 0.0,
-                        pallet_line.package_id.display_name or pallet_line.package_id.name or "",
-                        fields.Date.to_string(pallet_line.inbound_datetime.date()) if pallet_line.inbound_datetime else "",
-                        fields.Date.to_string(pallet_line.consumed_datetime.date()) if pallet_line.consumed_datetime else "",
-                        pallet_line.inbound_quantity_summary or 0.0,
+                        ", ".join(sorted(product_name_set)),
+                        ", ".join(sorted(lot_name_set)),
+                        outbound_quantity,
+                        "",
+                        ", ".join(sorted(package_name_set)),
+                        ", ".join(sorted(fully_outbound_date_set)),
+                        inbound_quantity,
                     ])
+                partial_pallet_lines = line.pallet_line_ids.filtered(lambda item: not (item.export_detail_data or {}).get("is_fully_outbound")).sorted(key=lambda item: (item.package_id.display_name or item.package_id.name or "", item.id))
+                for pallet_line in partial_pallet_lines:
+                    export_detail_data = pallet_line.export_detail_data or {}
+                    outbound_detail_data = export_detail_data.get("outbound_detail_data") or [{"product_name": pallet_line.product_names or "", "lot_name": "", "outbound_quantity": pallet_line.outbound_quantity, "gross_weight": pallet_line.product_batch_gross_weight, "sunrise_ref": pallet_line.sunrise_ref or line.sunrise_ref or ""}]
+                    for outbound_detail in outbound_detail_data:
+                        rows.append([
+                            fields.Date.to_string(outbound_order.date or line.order_date) if outbound_order.date or line.order_date else "",
+                            outbound_detail.get("sunrise_ref") or pallet_line.sunrise_ref or line.sunrise_ref or "",
+                            outbound_datetime,
+                            line.system_document_no or outbound_order.billno or "",
+                            line.outbound_pallet_count or 0,
+                            line.completed_outbound_pallet_count or 0,
+                            outbound_detail.get("product_name") or pallet_line.product_names or "",
+                            outbound_detail.get("lot_name") or "",
+                            outbound_detail.get("outbound_quantity") or 0.0,
+                            outbound_detail.get("gross_weight") or "",
+                            pallet_line.package_id.display_name or pallet_line.package_id.name or "",
+                            fields.Date.to_string(pallet_line.consumed_datetime.date()) if pallet_line.consumed_datetime else "",
+                            pallet_line.inbound_quantity_summary or 0.0,
+                        ])
             output = io.BytesIO()
             workbook = xlsxwriter.Workbook(output, {"in_memory": True})
             worksheet = workbook.add_worksheet("Outbound Summary")
             title_format = workbook.add_format({"bold": True, "font_size": 14, "align": "center", "valign": "vcenter"})
             header_format = workbook.add_format({"bold": True, "align": "center", "valign": "vcenter", "text_wrap": True, "bg_color": "#D9EAF7", "border": 1})
             text_format = workbook.add_format({"border": 1, "valign": "vcenter", "text_wrap": True})
-            number_format = workbook.add_format({"border": 1, "valign": "vcenter", "align": "right", "num_format": "0.####"})
+            number_format = workbook.add_format({"border": 1, "valign": "vcenter", "align": "right", "num_format": "0.00"})
             worksheet.merge_range(0, 0, 0, len(headers) - 1, "%s - %s" % (_("Outbound Pallet Summary"), rec.name or rec.id), title_format)
             for column_index, header in enumerate(headers):
                 worksheet.write(2, column_index, header, header_format)
@@ -340,9 +419,12 @@ class SunriseOutboundPalletSummaryReport(models.Model):
             worksheet.set_column(3, 3, 18)
             worksheet.set_column(4, 5, 12)
             worksheet.set_column(6, 6, 32)
-            worksheet.set_column(7, 8, 18)
-            worksheet.set_column(9, 10, 20)
-            worksheet.set_column(11, 11, 18)
+            worksheet.set_column(7, 7, 20)
+            worksheet.set_column(8, 8, 18)
+            worksheet.set_column(9, 9, 24)
+            worksheet.set_column(10, 10, 18)
+            worksheet.set_column(11, 11, 20)
+            worksheet.set_column(12, 12, 18)
             workbook.close()
             output.seek(0)
             report_name = (rec.name or "Outbound_Pallet_Summary").replace("/", "_").replace("\\", "_").replace(":", "_")
@@ -387,6 +469,8 @@ class SunriseOutboundPalletSummaryReportPalletLine(models.Model):
     product_names = fields.Char(string="Products", readonly=True, copy=False)
     inbound_quantity_summary = fields.Float(string="Inbound Product Quantity", readonly=True, copy=False)
     outbound_quantity = fields.Float(string="Outbound Product Quantity", readonly=True, copy=False)
+    product_batch_gross_weight = fields.Float(string="Product Batch Gross Weight (kg)", readonly=True, copy=False)
     inbound_datetime = fields.Datetime(string="Inbound Datetime", readonly=True, index=True, copy=False)
     consumed_datetime = fields.Datetime(string="Fully Outbound Datetime", readonly=True, index=True, copy=False)
     location_summary = fields.Char(string="Outbound Location", readonly=True, copy=False)
+    export_detail_data = fields.Json(string="Export Detail Data", readonly=True, copy=False)

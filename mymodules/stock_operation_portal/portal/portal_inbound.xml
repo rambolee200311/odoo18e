@@ -80,17 +80,21 @@
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h2 class="mb-0">Inbound Order Detail</h2>
                         <div>
+                            <!-- 未确认订单-->
                             <t t-if="order.get('state') == 'new'">
                                 <a t-attf-href="/my/operation/inbounds/{{ order.get('id') }}/edit" class="btn btn-warning btn-sm"><i class="fa fa-pencil"/> Edit</a>
+                                <!-- 订单确认-->
                                 <form t-attf-action="/my/operation/inbounds/{{ order.get('id') }}/portal_confirm" method="post" class="d-inline">
                                     <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                                     <button type="submit" class="btn btn-success btn-sm"><i class="fa fa-check"/> Portal Confirm</button>
                                 </form>
+                                <!-- 订单取消-->
                                 <form t-attf-action="/my/operation/inbounds/{{ order.get('id') }}/cancel" method="post" class="d-inline">
                                     <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                                     <button type="submit" class="btn btn-danger btn-sm"><i class="fa fa-times"/> Cancel</button>
                                 </form>
                             </t>
+                            <!-- 取消确认/验证-->
                             <t t-if="order.get('state') == 'portal_confirmed'">
                                 <form t-attf-action="/my/operation/inbounds/{{ order.get('id') }}/portal_unconfirm" method="post" class="d-inline">
                                     <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
@@ -100,10 +104,19 @@
                             <a href="/my/operation/inbounds" class="btn btn-secondary btn-sm"><i class="fa fa-arrow-left"/> Back</a>
                         </div>
                     </div>
+                    <div id="inbound_order_update_success" class="alert alert-success d-none" role="alert">
+                        <i class="fa fa-check-circle me-1"/>
+                        Inbound order updated successfully.
+                    </div>
                     <div t-if="error" class="alert alert-danger"><t t-esc="error"/></div>
                     <div class="card mb-4">
-                        <div class="card-header"><h5 class="mb-0"><i class="fa fa-info-circle me-2"/>Order Information</h5></div>
-                        <div class="card-body">
+                        <div class="card-header" onclick="toggleSection('section_order_info')" style="cursor:pointer; user-select:none;">
+                            <h5 class="mb-0 d-flex justify-content-between align-items-center">
+                                <span><i class="fa fa-info-circle me-2"/>Order Information</span>
+                                <i class="fa fa-chevron-down transition-icon" id="icon_order_info"/>
+                            </h5>
+                        </div>
+                        <div class="card-body section-content" id="section_order_info">
                             <div class="row">
                                 <div class="col-md-6">
                                     <table class="table table-borderless mb-0">
@@ -134,8 +147,13 @@
                         </div>
                     </div>
                     <div class="card mb-4">
-                        <div class="card-header"><h5 class="mb-0"><i class="fa fa-cubes me-2"/>Pallet Details</h5></div>
-                        <div class="card-body p-0">
+                        <div class="card-header" onclick="toggleSection('section_pallet_details')" style="cursor:pointer; user-select:none;">
+                            <h5 class="mb-0 d-flex justify-content-between align-items-center">
+                                <span><i class="fa fa-cubes me-2"/>Pallet Details</span>
+                                <i class="fa fa-chevron-down transition-icon" id="icon_pallet_details"/>
+                            </h5>
+                        </div>
+                        <div class="card-body p-0 section-content" id="section_pallet_details">
                             <t t-foreach="detail_rows" t-as="pkg">
                                 <div class="border-bottom p-3">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
@@ -162,8 +180,13 @@
                         </div>
                     </div>
                     <div class="card mb-4">
-                        <div class="card-header"><h5 class="mb-0"><i class="fa fa-paperclip me-2"/>Attachments</h5></div>
-                        <div class="card-body p-0">
+                        <div class="card-header" onclick="toggleSection('section_attachments')" style="cursor:pointer; user-select:none;">
+                            <h5 class="mb-0 d-flex justify-content-between align-items-center">
+                                <span><i class="fa fa-paperclip me-2"/>Attachments</span>
+                                <i class="fa fa-chevron-down transition-icon" id="icon_attachments"/>
+                            </h5>
+                        </div>
+                        <div class="card-body p-0 section-content" id="section_attachments">
                             <t t-foreach="attachment_rows" t-as="att">
                                 <div class="d-flex align-items-center justify-content-between border-bottom px-3 py-2">
                                     <div><i class="fa fa-file-o me-2"/><t t-esc="att.get('file_name', '-')"/><small class="text-muted ms-2">(<t t-esc="att.get('file_type', '')"/>)</small></div>
@@ -202,7 +225,7 @@
 
                     <t t-set="fv" t-value="order if is_edit else form_values"/>
 
-                    <form id="inbound_order_form">
+                    <form id="inbound_order_form" t-att-data-is-edit="'1' if is_edit else '0'">
 
                         <!-- ===== 第1部分：基础信息 ===== -->
                         <div class="operation-form-section mb-3">
@@ -215,9 +238,14 @@
                                     <div class="col-md-4">
                                         <label class="form-label fw-bold">Project <span class="text-danger">*</span></label>
                                         <select name="project_id" class="form-select" required="required" t-att-disabled="'disabled' if is_edit else None">
-                                            <option value="">-- Select Project --</option>
-                                            <t t-foreach="projects" t-as="proj">
-                                                <option t-att-value="proj['id']" t-att-selected="'selected' if (active_project and active_project['id'] == proj['id']) else None"><t t-esc="proj['name']"/></option>
+                                            <t t-if="is_edit">
+                                                <option t-if="active_project" t-att-value="active_project['id']" selected="selected"><t t-esc="active_project['name']"/></option>
+                                            </t>
+                                            <t t-else="">
+                                                <option value="">-- Select Project --</option>
+                                                <t t-foreach="projects" t-as="proj">
+                                                    <option t-att-value="proj['id']" t-att-selected="'selected' if (active_project and active_project['id'] == proj['id']) else None"><t t-esc="proj['name']"/></option>
+                                                </t>
                                             </t>
                                         </select>
                                     </div>
@@ -267,6 +295,13 @@
                             </div>
                             <div class="section-content" id="section_pallets">
                                 <div id="pallet_lines_container" class="mt-1">
+                                    <select id="inbound_product_options_source" class="d-none" tabindex="-1" aria-hidden="true">
+                                        <t t-foreach="products" t-as="prod">
+                                            <option t-att-value="prod['id']">
+                                                <t t-esc="prod['default_name']"/>
+                                            </option>
+                                        </t>
+                                    </select>
                                     <t t-set="lines_data" t-value="fv.get('lines', [])"/>
                                     <t t-if="lines_data">
                                         <t t-foreach="lines_data" t-as="line">
@@ -352,7 +387,7 @@
                             <button type="submit" class="btn btn-primary" id="btn_submit_inbound">
                                 <i class="fa fa-paper-plane me-1"/>
                                 <t t-if="is_edit">Save Changes</t>
-                                <t t-else="">Create Order</t>
+                                <t t-else="">Save</t>
                             </button>
                         </div>
                     </form>
@@ -361,4 +396,3 @@
         </t>
     </template>
 </odoo>
-

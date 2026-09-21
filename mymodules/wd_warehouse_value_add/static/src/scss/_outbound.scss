@@ -1,0 +1,68 @@
+// Stock Barcode Lite - Outbound Flow Styles
+// ═══ 出库流程：整托出库 + 拆托出库 ═══
+
+// ── 出库单信息条 ──
+.o_sbl_picking_bar {
+    background: #e8f4fc;
+    border-bottom: 1px solid #b6d4e9;
+    padding: 8px 16px;
+    flex-shrink: 0;
+
+    .o_picking_info_row {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 6px;
+        font-size: 13px;
+    }
+
+    .o_picking_label {
+        color: #495057;
+        font-weight: 500;
+    }
+
+    .o_picking_name {
+        font-size: 14px;
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .o_picking_extra {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 4px;
+        font-size: 11px;
+        color: #6c757d;
+    }
+}
+
+// ── 拆托出库 - 托盘高亮样式 ──
+.o_pallet_highlighted {
+    border: 2px solid #0d6efd !important;
+    background: linear-gradient(135deg, #e7f1ff 0%, #ffffff 100%) !important;
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.25);
+}
+
+.o_pallet_icon_highlighted {
+    color: #0d6efd !important;
+    animation: pulse_icon 1.5s ease-in-out infinite;
+}
+
+.o_pallet_current_badge {
+    background-color: #0d6efd !important;
+    color: white !important;
+    animation: pulse_badge 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse_icon {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+}
+
+@keyframes pulse_badge {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}

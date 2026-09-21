@@ -39,7 +39,6 @@ export class Homepage extends Component {
                 []
             );
             if (result) {
-//                console.log('嘿嘿',result)
                 if (result.type === "ir.actions.client") {
                     this.action.doAction(result);
                 }
@@ -47,5 +46,9 @@ export class Homepage extends Component {
         } catch (error) {
             console.error("Failed to create internal transfer:", error);
         }
+    }
+
+    _onActualInboundConfirmationClick() {
+        this.action.doAction("stock_barcode_lite_actual_inbound_confirmation");
     }
 }
