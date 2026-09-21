@@ -31,7 +31,7 @@ class MarstekStockPortal(CustomerPortal):
 
     #Marstek库存模块主菜单页(点击卡片后进入的菜单页面)
 
-    @http.route(["/my/stock", "/my/marstek"], type="http", auth="user", website=True)
+    @http.route(["/my/stock"], type="http", auth="user", website=True)
     def manstek_home(self, **kw):
         values = self.marstek_prepare_page_values(
             page_name="stock_home",
@@ -40,7 +40,7 @@ class MarstekStockPortal(CustomerPortal):
         return request.render("marstek_stock_portal.portal_marstek_home", values)
 
 #库存总览页。
-    @http.route(["/my/stock/stock", "/my/stock/stock/page/<int:page>", "/my/marstek/stock", "/my/marstek/stock/page/<int:page>"], type="http", auth="user", website=True)
+    @http.route(["/my/stock/stock", "/my/stock/stock/page/<int:page>"], type="http", auth="user", website=True)
     def marstek_stock_page(self, page=1, **kw):
         filters = self.marstek_filter_values(kw, ["container_no", "bl_no", "product_code", "location_id", "date_from", "date_to", "stock_group_mode", "view_mode"])
         if not filters.get("stock_group_mode"):
@@ -75,7 +75,7 @@ class MarstekStockPortal(CustomerPortal):
         })
         return request.render("marstek_stock_portal.portal_marstek_stock", values)
 
-    @http.route(["/my/stock/stock/location_options", "/my/marstek/stock/location_options"], type="http", auth="user", methods=["GET"], website=False)
+    @http.route("/my/stock/stock/location_options", type="http", auth="user", methods=["GET"], website=False)
     def marstek_stock_location_options(self, **kw):
         keyword = (kw.get("q") or "").strip()
         options = portal_stock_location_options(request.env, keyword)
@@ -84,7 +84,7 @@ class MarstekStockPortal(CustomerPortal):
         return request.make_json_response(options)
 
    # 按柜号查询库存页。
-    @http.route(["/my/stock/container_stock", "/my/marstek/container_stock"], type="http", auth="user", website=True)
+    @http.route(["/my/stock/container_stock"], type="http", auth="user", website=True)
     def marstek_container_stock_page(self, **kw):
         filters = self.marstek_filter_values(kw, ["container_no"])
         container_no = filters.get("container_no")
@@ -100,7 +100,7 @@ class MarstekStockPortal(CustomerPortal):
         return request.render("marstek_stock_portal.portal_marstek_container_stock", values)
 
     #入库查询页。
-    @http.route(["/my/stock/inbounds", "/my/stock/inbounds/page/<int:page>", "/my/marstek/inbounds", "/my/marstek/inbounds/page/<int:page>"], type="http", auth="user", website=True)
+    @http.route(["/my/stock/inbounds", "/my/stock/inbounds/page/<int:page>"], type="http", auth="user", website=True)
     def marstek_inbounds_page(self,page=1, **kw):
         filters = self.marstek_filter_values(kw, ["inbound_no", "bl_no","reference", "container_no", "inbound_date_from", "inbound_date_to","portal_inbound_status", "view_mode"])
         page_size = 20
@@ -125,7 +125,7 @@ class MarstekStockPortal(CustomerPortal):
 
 
 #获取指定入库单下的托盘明细数据和获取指定入库单的可下载附件列表
-    @http.route(["/my/stock/inbounds/<int:inbound_id>", "/my/marstek/inbounds/<int:inbound_id>"], type="http", auth="user", website=True)
+    @http.route(["/my/stock/inbounds/<int:inbound_id>"], type="http", auth="user", website=True)
     def marstek_inbound_detail_page(self, inbound_id, **kw):
         inbound_env = request.env["world.depot.inbound.order"]
 
@@ -146,7 +146,7 @@ class MarstekStockPortal(CustomerPortal):
 
 
 #出库查询页
-    @http.route(["/my/stock/outbounds", "/my/stock/outbounds/page/<int:page>", "/my/marstek/outbounds", "/my/marstek/outbounds/page/<int:page>"], type="http", auth="user", website=True)
+    @http.route(["/my/stock/outbounds", "/my/stock/outbounds/page/<int:page>"], type="http", auth="user", website=True)
     def marstek_outbounds_page(self, page=1, **kw):
         filters = self.marstek_filter_values(kw,
                                              ["outbound_no", "reference", "vsourcebillcode", "cprojectid", "bl_no", "container_no", "portal_outbound_status", "outbound_date_from",
@@ -175,7 +175,7 @@ class MarstekStockPortal(CustomerPortal):
         return request.render("marstek_stock_portal.portal_marstek_outbounds", values)
 
     #获取指定出库单下的托盘明细数据
-    @http.route(["/my/stock/outbounds/<int:outbound_id>", "/my/stock/outbounds/<int:outbound_id>/page/<int:page>", "/my/marstek/outbounds/<int:outbound_id>", "/my/marstek/outbounds/<int:outbound_id>/page/<int:page>"], type="http", auth="user", website=True)
+    @http.route(["/my/stock/outbounds/<int:outbound_id>", "/my/stock/outbounds/<int:outbound_id>/page/<int:page>"], type="http", auth="user", website=True)
     def marstek_outbound_detail_page(self, outbound_id, page=1, **kw):
         filters = self.marstek_filter_values(kw, ["view_mode"])
         outbound_env = request.env["world.depot.outbound.order"]
@@ -212,7 +212,7 @@ class MarstekStockPortal(CustomerPortal):
         })
         return request.render("marstek_stock_portal.portal_marstek_outbound_detail", values)
 
-    @http.route(["/my/stock/sn_query", "/my/marstek/sn_query"], type="http", auth="user", website=True)
+    @http.route(["/my/stock/sn_query"], type="http", auth="user", website=True)
     def marstek_sn_query_page(self, **kw):
         filters = self.marstek_filter_values(kw, ["sn_code", "view_mode"])
         sn_code = filters.get("sn_code")
