@@ -47,7 +47,7 @@
                         <group>
                             <field name="order_type" readonly="state != 'draft'"/>
                             <field name="warehouse_order_billno"
-                                   invisible="1"
+                                   invisible="state != 'draft'"
                                    readonly="state != 'draft'"/>
                             <field name="project_id" readonly="state != 'draft'"
                                    options="{'no_create': True, 'no_open': True}"/>
