@@ -43,13 +43,13 @@ test("CC04 frontend test bundle loads", () => {
 test("PDA status labels follow the server state", () => {
     const action = makeAction();
 
-    expect(action.statusLabel).toBe("新建");
+    expect(action.statusLabel).toBe("New");
     action.state.order = { state: "draft" };
-    expect(action.statusLabel).toBe("草稿");
+    expect(action.statusLabel).toBe("Draft");
     action.state.order.state = "submitted";
-    expect(action.statusLabel).toBe("已提交");
+    expect(action.statusLabel).toBe("Submitted");
     action.state.order.state = "cancelled";
-    expect(action.statusLabel).toBe("已作废");
+    expect(action.statusLabel).toBe("Cancelled");
 });
 
 test("PDA new order clears the current draft state", () => {
@@ -85,7 +85,7 @@ test("PDA rejects a line without an operation type", async () => {
     await action.confirmAddLine();
 
     expect(notifications.length).toBe(1);
-    expect(notifications[0].message).toBe("请选择作业类型。");
+    expect(notifications[0].message).toBe("Please select an operation type.");
 });
 
 test("PDA creates an unassociated draft before adding the first line", async () => {
@@ -126,7 +126,7 @@ test("PDA requires a reason before cancelling a draft", async () => {
     await action.confirmCancel();
 
     expect(notifications.length).toBe(1);
-    expect(notifications[0].message).toBe("请输入作废原因。");
+    expect(notifications[0].message).toBe("Please enter a cancellation reason.");
 });
 
 test("PDA saves inline-edited line values", async () => {
@@ -195,13 +195,13 @@ test("PDA refreshes the inline unit when the operation type changes", () => {
     expect(line.unit).toBe("箱");
 });
 
-test("PDA saves the associated bill number and project before submitting", async () => {
+test("PDA saves the associated bill number, project and warehouse before submitting", async () => {
     const action = makeAction({
         order: { id: 7, state: "draft" },
         billno: "IN-001",
     });
     const calls = [];
-    action.orm.searchRead = async () => [{ project: [8, "PDA Project"] }];
+    action.orm.searchRead = async () => [{ project: [8, "PDA Project"], warehouse: [9, "PDA Warehouse"] }];
     action.orm.write = async (model, ids, values) => calls.push({ model, ids, values });
     action.orm.call = async (model, method, args) => calls.push({ model, method, args });
 
@@ -212,6 +212,22 @@ test("PDA saves the associated bill number and project before submitting", async
     expect(calls[0].ids).toEqual([7]);
     expect(calls[0].values.warehouse_order_billno).toBe("IN-001");
     expect(calls[0].values.project_id).toBe(8);
+    expect(calls[0].values.warehouse_id).toBe(9);
     expect(calls[1].model).toBe("wd.vas.order");
     expect(calls[1].method).toBe("action_submit");
+});
+
+test("PDA saves the associated bill number, project and warehouse in draft", async () => {
+    const action = makeAction({ order: { id: 7, state: "draft" }, billno: "IN-001" });
+    const calls = [];
+    action.orm.searchRead = async () => [{ project: [8, "PDA Project"], warehouse: [9, "PDA Warehouse"] }];
+    action.orm.write = async (model, ids, values) => calls.push({ model, ids, values });
+
+    await action.saveDraft();
+
+    expect(calls).toEqual([{
+        model: "wd.vas.order",
+        ids: [7],
+        values: { warehouse_order_billno: "IN-001", project_id: 8, warehouse_id: 9 },
+    }]);
 });

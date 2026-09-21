@@ -47,11 +47,23 @@
                         <group>
                             <field name="order_type" readonly="state != 'draft'"/>
                             <field name="warehouse_order_billno"
+                                   invisible="1"
                                    readonly="state != 'draft'"/>
                             <field name="project_id" readonly="state != 'draft'"
                                    options="{'no_create': True, 'no_open': True}"/>
-                            <field name="warehouse_order_display" readonly="1"/>
-                            <field name="warehouse_id" readonly="state != 'draft'" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="inbound_order_id" widget="advanced_record_picker"
+                                   invisible="order_type != 'inbound'" readonly="state != 'draft'"
+                                   domain="[('project', '=?', project_id)]"
+                                   options="{'no_create': True, 'no_open': True, 'picker_profile': 'wd_warehouse_value_add_inbound'}"/>
+                            <field name="outbound_order_id" widget="advanced_record_picker"
+                                   invisible="order_type != 'outbound'" readonly="state != 'draft'"
+                                   domain="[('project', '=?', project_id)]"
+                                   options="{'no_create': True, 'no_open': True, 'picker_profile': 'wd_warehouse_value_add_outbound'}"/>
+                            <field name="transfer_order_id" widget="advanced_record_picker"
+                                   invisible="order_type != 'transfer'" readonly="state != 'draft'"
+                                   domain="[('project', '=?', project_id)]"
+                                   options="{'no_create': True, 'no_open': True, 'picker_profile': 'wd_warehouse_value_add_transfer'}"/>
+                            <field name="warehouse_id" readonly="1" force_save="1" options="{'no_create': True, 'no_open': True}"/>
                         </group>
                         <group>
                             <field name="operator_id"

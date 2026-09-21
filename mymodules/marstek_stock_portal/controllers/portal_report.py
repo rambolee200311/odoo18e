@@ -255,7 +255,7 @@ class MarstekPortalReport(http.Controller):
             ],
         )
 
-    @http.route("/my/marstek/export/<string:page_type>/<string:export_format>", type="http", auth="user", website=True)
+    @http.route("/my/stock/export/<string:page_type>/<string:export_format>", type="http", auth="user", website=True)
     def marstek_export(self, page_type, export_format, **kw):
         if page_type not in self.allowed_page_types:
             raise NotFound()

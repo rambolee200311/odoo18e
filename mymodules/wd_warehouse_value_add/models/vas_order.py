@@ -44,16 +44,19 @@ class VasOrder(models.Model):
         'world.depot.inbound.order',
         string='Inbound Order',
         ondelete='restrict',
+        tracking=True,
     )
     outbound_order_id = fields.Many2one(
         'world.depot.outbound.order',
         string='Outbound Order',
         ondelete='restrict',
+        tracking=True,
     )
     transfer_order_id = fields.Many2one(
         'world.depot.transfer.order',
         string='Transfer Order',
         ondelete='restrict',
+        tracking=True,
     )
     warehouse_order_billno = fields.Char(
         string='Warehouse Order Bill No.',
@@ -168,11 +171,32 @@ class VasOrder(models.Model):
             billno = (record.warehouse_order_billno or '').strip()
             if not relation or not billno:
                 record.project_id = False
+                record.warehouse_id = False
                 continue
             warehouse_orders = record.env[relation[1]].sudo().search([
                 ('billno', '=', billno),
             ], limit=2)
             record.project_id = warehouse_orders.project if len(warehouse_orders) == 1 else False
+            record.warehouse_id = warehouse_orders.warehouse if len(warehouse_orders) == 1 else False
+
+    @api.onchange('order_type', 'inbound_order_id', 'outbound_order_id', 'transfer_order_id')
+    def onchange_warehouse_order_relation(self):
+        for record in self:
+            relation = record._RELATION_BY_ORDER_TYPE.get(record.order_type)
+            relation_fields = tuple(item[0] for item in record._RELATION_BY_ORDER_TYPE.values())
+            if not relation:
+                for field_name in relation_fields:
+                    record[field_name] = False
+                continue
+            relation_field = relation[0]
+            for field_name in relation_fields:
+                if field_name != relation_field:
+                    record[field_name] = False
+            warehouse_order = record[relation_field]
+            if warehouse_order:
+                record.warehouse_order_billno = warehouse_order.billno
+                record.project_id = warehouse_order.project
+                record.warehouse_id = warehouse_order.warehouse
 
     def _lock_for_update(self):
         records = self.sorted('id')
@@ -270,7 +294,7 @@ class VasOrder(models.Model):
             )
         if not warehouse_order.warehouse:
             raise ValidationError(
-                'The Warehouse Order must have a warehouse before submission.'
+                'The linked Warehouse Order has no warehouse configured and cannot be submitted.'
             )
         if self.project_id != warehouse_order.project:
             raise ValidationError(

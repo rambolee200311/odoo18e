@@ -158,16 +158,33 @@ class TestVasOrder(TransactionCase):
         self.assertEqual(order.state, 'draft')
         self.assertEqual(order.inbound_order_id, self.env['world.depot.inbound.order'])
 
-    def test_onchange_warehouse_order_billno_sets_project(self):
+    def test_onchange_warehouse_order_billno_sets_project_and_warehouse(self):
         warehouse_order = self._create_inbound_order()
         order = self.VasOrder.new(self._order_vals(
             warehouse_order_billno=warehouse_order.billno,
             project_id=False,
+            warehouse_id=False,
         ))
 
         order.onchange_warehouse_order_billno()
 
         self.assertEqual(order.project_id, warehouse_order.project)
+        self.assertEqual(order.warehouse_id, warehouse_order.warehouse)
+
+    def test_onchange_warehouse_order_relation_syncs_order_fields(self):
+        warehouse_order = self._create_inbound_order()
+        order = self.VasOrder.new(self._order_vals(
+            warehouse_order_billno=False,
+            project_id=False,
+            warehouse_id=False,
+            inbound_order_id=warehouse_order.id,
+        ))
+
+        order.onchange_warehouse_order_relation()
+
+        self.assertEqual(order.warehouse_order_billno, warehouse_order.billno)
+        self.assertEqual(order.project_id, warehouse_order.project)
+        self.assertEqual(order.warehouse_id, warehouse_order.warehouse)
 
     def test_submit_rejects_project_mismatch(self):
         order, _warehouse_order = self._create_submittable_order()

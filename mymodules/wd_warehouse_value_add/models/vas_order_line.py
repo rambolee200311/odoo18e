@@ -25,6 +25,7 @@ class VasOrderLine(models.Model):
     quantity_time = fields.Float(
         string='Quantity / Time',
         digits=(16, 4),
+        default=1
     )
     unit = fields.Char(
         string='Unit',
