@@ -17,7 +17,7 @@ class Waybill(models.Model):
 
     billno = fields.Char(string='BillNo', readonly=True)
     project = fields.Many2one('project.project', string='Project', required=True, ondelete='cascade', )
-
+    active = fields.Boolean(string='Active', default=True)
     # ========== 基础信息 ==========
     bl_number = fields.Char(string='Bill of Lading',index=True)  # NKGA84065
     hbl_number = fields.Char(string='House Bill of Lading',index=True)  # HBL123456789
