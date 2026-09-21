@@ -5,7 +5,7 @@
     <!-- =========================================== -->
     <template id="portal_marstek_stock" name="Stock Overview">
         <t t-call="portal.portal_layout">
-            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/marstek', 'name': 'WMS Stock'}, {'url': None, 'name': 'Stock Overview'}]"/>
+            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/stock', 'name': 'WMS Stock'}, {'url': None, 'name': 'Stock Overview'}]"/>
             <t t-call="marstek_stock_portal.portal_breadcrumbs_slash"/>
 
             <div class="o_portal_content">
@@ -22,7 +22,7 @@
                     </div>
                     <div id="stock_filter_collapse" class="collapse show">
                     <div class="card-body">
-                        <form action="/my/marstek/stock" method="get" class="row g-3">
+                        <form action="/my/stock/stock" method="get" class="row g-3">
                             <div class="col-12 col-md-6 col-lg-4">
                                 <label for="container_no" class="form-label">Container No.</label>
                                 <input type="search" class="form-control" id="container_no" name="container_no" t-attf-value="#{filters.get('container_no', '')}" placeholder="Enter container no." autocomplete="off"/>
@@ -65,7 +65,7 @@
                                     <i class="fa fa-search me-1"/>
                                     Search
                                 </button>
-                                <a href="/my/marstek/stock" class="btn btn-secondary">
+                                <a href="/my/stock/stock" class="btn btn-secondary">
                                     <i class="fa fa-refresh me-1"/>
                                     Reset
                                 </a>
@@ -108,13 +108,13 @@
                                 </label>
                             </div>
                             <!-- 导出按钮 -->
-                            <a t-attf-href="/my/marstek/export/stock/csv?container_no=#{filters.get('container_no', '')}&amp;bl_no=#{filters.get('bl_no', '')}&amp;product_code=#{filters.get('product_code', '')}&amp;location_id=#{filters.get('location_id', '')}&amp;date_from=#{filters.get('date_from', '')}&amp;date_to=#{filters.get('date_to', '')}"
+                            <a t-attf-href="/my/stock/export/stock/csv?container_no=#{filters.get('container_no', '')}&amp;bl_no=#{filters.get('bl_no', '')}&amp;product_code=#{filters.get('product_code', '')}&amp;location_id=#{filters.get('location_id', '')}&amp;date_from=#{filters.get('date_from', '')}&amp;date_to=#{filters.get('date_to', '')}"
                                t-attf-class="btn btn-primary export-btn #{'disabled' if not rows else ''}"
                                t-attf-title="#{'No data to export' if not rows else 'Export CSV'}">
                                 <i class="fa fa-file-text-o"/>
                                 <span class="d-none d-sm-inline ms-1">Export CSV</span>
                             </a>
-                            <a t-attf-href="/my/marstek/export/stock/pdf?container_no=#{filters.get('container_no', '')}&amp;bl_no=#{filters.get('bl_no', '')}&amp;product_code=#{filters.get('product_code', '')}&amp;location_id=#{filters.get('location_id', '')}&amp;date_from=#{filters.get('date_from', '')}&amp;date_to=#{filters.get('date_to', '')}"
+                            <a t-attf-href="/my/stock/export/stock/pdf?container_no=#{filters.get('container_no', '')}&amp;bl_no=#{filters.get('bl_no', '')}&amp;product_code=#{filters.get('product_code', '')}&amp;location_id=#{filters.get('location_id', '')}&amp;date_from=#{filters.get('date_from', '')}&amp;date_to=#{filters.get('date_to', '')}"
                                t-attf-class="btn btn-primary export-btn #{'disabled' if not rows else ''}"
                                t-attf-title="#{'No data to export' if not rows else 'Export PDF'}">
                                 <i class="fa fa-file-pdf-o"/>
@@ -153,13 +153,13 @@
                                             <tr>
                                                 <td><t t-esc="row.get('package_name', '')"/></td>
                                                 <td>
-                                                    <a t-if="row.get('container_no')" class="text-primary text-decoration-none fw-bold cursor-pointer" t-attf-href="/my/marstek/container_stock?container_no=#{row.get('container_no', '')}">
+                                                    <a t-if="row.get('container_no')" class="text-primary text-decoration-none fw-bold cursor-pointer" t-attf-href="/my/stock/container_stock?container_no=#{row.get('container_no', '')}">
                                                         <t t-esc="row.get('container_no', '')"/>
                                                     </a>
                                                     <t t-else=""><t t-esc="row.get('container_no', '')"/></t>
                                                 </td>
                                                 <td>
-                                                    <a t-if="row.get('bl_no')" class="text-primary text-decoration-none fw-bold cursor-pointer" t-attf-href="/my/marstek/inbounds?bl_no=#{row.get('bl_no', '')}">
+                                                    <a t-if="row.get('bl_no')" class="text-primary text-decoration-none fw-bold cursor-pointer" t-attf-href="/my/stock/inbounds?bl_no=#{row.get('bl_no', '')}">
                                                         <t t-esc="row.get('bl_no', '')"/>
                                                     </a>
                                                     <t t-else=""><t t-esc="row.get('bl_no', '')"/></t>
@@ -251,7 +251,7 @@
                                                 <div class="detail-item">
                                                     <label>Container No.</label>
                                                     <span>
-                                                        <a t-if="row.get('container_no')" class="text-primary text-decoration-none" t-attf-href="/my/marstek/container_stock?container_no=#{row.get('container_no', '')}">
+                                                        <a t-if="row.get('container_no')" class="text-primary text-decoration-none" t-attf-href="/my/stock/container_stock?container_no=#{row.get('container_no', '')}">
                                                             <t t-esc="row.get('container_no', '')"/>
                                                         </a>
                                                         <t t-else=""><t t-esc="row.get('container_no', '')"/></t>
@@ -260,7 +260,7 @@
                                                 <div class="detail-item">
                                                     <label>BL No.</label>
                                                     <span>
-                                                        <a t-if="row.get('bl_no')" class="text-primary text-decoration-none" t-attf-href="/my/marstek/inbounds?bl_no=#{row.get('bl_no', '')}">
+                                                        <a t-if="row.get('bl_no')" class="text-primary text-decoration-none" t-attf-href="/my/stock/inbounds?bl_no=#{row.get('bl_no', '')}">
                                                             <t t-esc="row.get('bl_no', '')"/>
                                                         </a>
                                                         <t t-else=""><t t-esc="row.get('bl_no', '')"/></t>

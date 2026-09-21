@@ -5,7 +5,7 @@
     <!-- =========================================== -->
     <template id="portal_marstek_outbounds" name="Outbound Orders">
             <t t-call="portal.portal_layout">
-            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/marstek', 'name': 'WMS Stock'}, {'url': None, 'name': 'Outbound Orders'}]"/>
+            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/stock', 'name': 'WMS Stock'}, {'url': None, 'name': 'Outbound Orders'}]"/>
             <t t-call="marstek_stock_portal.portal_breadcrumbs_slash"/>
 
             <div class="o_portal_content">
@@ -22,7 +22,7 @@
                     </div>
                     <div id="outbound_filter_collapse" class="collapse show">
                     <div class="card-body">
-                        <form action="/my/marstek/outbounds" method="get" class="row g-3">
+                        <form action="/my/stock/outbounds" method="get" class="row g-3">
                             <t t-if="show_sunrise_outbound_filters">
                                 <div class="col-12 col-md-6 col-lg-4">
                                     <label for="vsourcebillcode" class="form-label">Source Bill Code/Contract No</label>
@@ -65,7 +65,7 @@
                                     <i class="fa fa-search me-1"/>
                                     Search
                                 </button>
-                                <a href="/my/marstek/outbounds" class="btn btn-secondary">
+                                <a href="/my/stock/outbounds" class="btn btn-secondary">
                                     <i class="fa fa-refresh me-1"/>
                                     Reset
                                 </a>
@@ -95,13 +95,13 @@
                                 </label>
                             </div>
                             <!-- 导出按钮 -->
-                            <a t-attf-href="/my/marstek/export/outbounds/csv?outbound_no=#{filters.get('outbound_no', '')}&amp;vsourcebillcode=#{filters.get('vsourcebillcode', '')}&amp;cprojectid=#{filters.get('cprojectid', '')}&amp;bl_no=#{filters.get('bl_no', '')}&amp;container_no=#{filters.get('container_no', '')}&amp;portal_outbound_status=#{filters.get('portal_outbound_status', '')}&amp;outbound_date_from=#{filters.get('outbound_date_from', '')}&amp;outbound_date_to=#{filters.get('outbound_date_to', '')}"
+                            <a t-attf-href="/my/stock/export/outbounds/csv?outbound_no=#{filters.get('outbound_no', '')}&amp;vsourcebillcode=#{filters.get('vsourcebillcode', '')}&amp;cprojectid=#{filters.get('cprojectid', '')}&amp;bl_no=#{filters.get('bl_no', '')}&amp;container_no=#{filters.get('container_no', '')}&amp;portal_outbound_status=#{filters.get('portal_outbound_status', '')}&amp;outbound_date_from=#{filters.get('outbound_date_from', '')}&amp;outbound_date_to=#{filters.get('outbound_date_to', '')}"
                                t-attf-class="btn btn-primary btn-sm export-btn #{'disabled' if not rows else ''}"
                                t-attf-title="#{'No data to export' if not rows else 'Export CSV'}">
                                 <i class="fa fa-file-text-o"/>
                                 <span class="d-none d-sm-inline ms-1">Export CSV</span>
                             </a>
-                            <a t-attf-href="/my/marstek/export/outbounds/pdf?outbound_no=#{filters.get('outbound_no', '')}&amp;vsourcebillcode=#{filters.get('vsourcebillcode', '')}&amp;cprojectid=#{filters.get('cprojectid', '')}&amp;bl_no=#{filters.get('bl_no', '')}&amp;container_no=#{filters.get('container_no', '')}&amp;portal_outbound_status=#{filters.get('portal_outbound_status', '')}&amp;outbound_date_from=#{filters.get('outbound_date_from', '')}&amp;outbound_date_to=#{filters.get('outbound_date_to', '')}"
+                            <a t-attf-href="/my/stock/export/outbounds/pdf?outbound_no=#{filters.get('outbound_no', '')}&amp;vsourcebillcode=#{filters.get('vsourcebillcode', '')}&amp;cprojectid=#{filters.get('cprojectid', '')}&amp;bl_no=#{filters.get('bl_no', '')}&amp;container_no=#{filters.get('container_no', '')}&amp;portal_outbound_status=#{filters.get('portal_outbound_status', '')}&amp;outbound_date_from=#{filters.get('outbound_date_from', '')}&amp;outbound_date_to=#{filters.get('outbound_date_to', '')}"
                                t-attf-class="btn btn-primary btn-sm export-btn #{'disabled' if not rows else ''}"
                                t-attf-title="#{'No data to export' if not rows else 'Export PDF'}">
                                 <i class="fa fa-file-pdf-o"/>
@@ -133,7 +133,7 @@
                                         <t t-foreach="rows" t-as="row">
                                             <tr>
                                                 <td>
-                                                    <a t-if="row.get('outbound_id')" class="text-primary text-decoration-none fw-bold cursor-pointer" t-attf-href="/my/marstek/outbounds/#{row.get('outbound_id')}">
+                                                    <a t-if="row.get('outbound_id')" class="text-primary text-decoration-none fw-bold cursor-pointer" t-attf-href="/my/stock/outbounds/#{row.get('outbound_id')}">
                                                         <t t-esc="row.get('outbound_no', '')"/>
                                                     </a>
                                                     <t t-else=""><t t-esc="row.get('outbound_no', '')"/></t>
@@ -155,7 +155,7 @@
                                                 <td class="text-end"><t t-esc="row.get('total_quantity', 0)"/></td>
                                                 <td><t t-esc="row.get('picking_no', '')"/></td>
                                                 <td>
-                                                    <a t-attf-href="/my/marstek/outbounds/#{row.get('outbound_id')}" class="btn btn-sm btn-outline-primary">
+                                                    <a t-attf-href="/my/stock/outbounds/#{row.get('outbound_id')}" class="btn btn-sm btn-outline-primary">
                                                         View Details
                                                     </a>
                                                 </td>
@@ -235,7 +235,7 @@
     <!-- =========================================== -->
     <template id="portal_marstek_outbound_detail" name="Outbound Detail">
             <t t-call="portal.portal_layout">
-            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/marstek', 'name': 'WMS Stock'}, {'url': '/my/marstek/outbounds', 'name': 'Outbound Orders'}, {'url': None, 'name': 'Outbound Detail'}]"/>
+            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/stock', 'name': 'WMS Stock'}, {'url': '/my/stock/outbounds', 'name': 'Outbound Orders'}, {'url': None, 'name': 'Outbound Detail'}]"/>
             <t t-call="marstek_stock_portal.portal_breadcrumbs_slash"/>
 
             <div class="o_portal_content">
@@ -331,13 +331,13 @@
                                 <span class="badge bg-secondary">Total: <t t-esc="len(detail_rows)"/></span>
                             </t>
                             <!-- 导出SN按钮 -->
-                            <a t-attf-href="/my/marstek/export/outbound_sn/csv?outbound_id=#{order.id if order else ''}"
+                            <a t-attf-href="/my/stock/export/outbound_sn/csv?outbound_id=#{order.id if order else ''}"
                                class="btn btn-primary btn-sm">
                                 <i class="fa fa-download me-1"/>
                                 Export SN
                             </a>
                             <!-- 导出全部按钮 -->
-                            <a t-attf-href="/my/marstek/export/outbound_all/zip?outbound_id=#{order.id if order else ''}"
+                            <a t-attf-href="/my/stock/export/outbound_all/zip?outbound_id=#{order.id if order else ''}"
                                class="btn btn-success btn-sm">
                                 <i class="fa fa-file-archive-o me-1"/>
                                 Export All
@@ -368,7 +368,7 @@
                                         <t t-foreach="detail_rows" t-as="row">
                                             <tr>
                                                 <td>
-                                                    <a t-if="row.get('outbound_id')" class="text-primary text-decoration-none fw-bold cursor-pointer" t-attf-href="/my/marstek/outbounds/#{row.get('outbound_id')}">
+                                                    <a t-if="row.get('outbound_id')" class="text-primary text-decoration-none fw-bold cursor-pointer" t-attf-href="/my/stock/outbounds/#{row.get('outbound_id')}">
                                                         <t t-esc="row.get('outbound_no', '')"/>
                                                     </a>
                                                     <t t-else=""><t t-esc="row.get('outbound_no', '')"/></t>

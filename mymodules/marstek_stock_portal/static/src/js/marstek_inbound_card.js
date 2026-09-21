@@ -82,7 +82,7 @@
                 html += '</div>';
             });
             html += '<div class="text-center mt-3 pt-2 border-top">';
-            html += '<a href="/my/marstek/inbounds/' + inboundId + '" class="btn btn-sm btn-outline-primary">';
+            html += '<a href="/my/stock/inbounds/' + inboundId + '" class="btn btn-sm btn-outline-primary">';
             html += '<i class="fa fa-external-link me-1"></i>Details</a>';
             html += '</div>';
         }

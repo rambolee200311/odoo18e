@@ -5,7 +5,7 @@
     <!-- =========================================== -->
     <template id="portal_marstek_container_stock" name="Container Stock">
             <t t-call="portal.portal_layout">
-            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/marstek', 'name': 'WMS Stock'}, {'url': None, 'name': 'Container Query'}]"/>
+            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/stock', 'name': 'WMS Stock'}, {'url': None, 'name': 'Container Query'}]"/>
             <t t-call="marstek_stock_portal.portal_breadcrumbs_slash"/>
 
             <div class="o_portal_content">
@@ -22,7 +22,7 @@
                     </div>
                     <div id="container_filter_collapse" class="collapse show">
                     <div class="card-body">
-                        <form action="/my/marstek/container_stock" method="get" class="row g-3">
+                        <form action="/my/stock/container_stock" method="get" class="row g-3">
                             <div class="col-12 col-md-6">
                                 <label for="container_no" class="form-label">Container No. <span class="text-danger">*</span></label>
                                 <input type="search" class="form-control" id="container_no" name="container_no" t-attf-value="#{container_no or ''}" placeholder="Enter container no." required="1"/>
@@ -84,13 +84,13 @@
                                     </label>
                                 </div>
                                 <!-- 导出按钮 -->
-                                <a t-attf-href="/my/marstek/export/container_stock/csv?container_no=#{container_no or ''}"
+                                <a t-attf-href="/my/stock/export/container_stock/csv?container_no=#{container_no or ''}"
                                    t-attf-class="btn btn-primary export-btn #{'disabled' if not rows else ''}"
                                    t-attf-title="#{'No data to export' if not rows else 'Export CSV'}">
                                     <i class="fa fa-file-text-o"/>
                                     <span class="d-none d-sm-inline ms-1">Export CSV</span>
                                 </a>
-                                <a t-attf-href="/my/marstek/export/container_stock/pdf?container_no=#{container_no or ''}"
+                                <a t-attf-href="/my/stock/export/container_stock/pdf?container_no=#{container_no or ''}"
                                    t-attf-class="btn btn-primary export-btn #{'disabled' if not rows else ''}"
                                    t-attf-title="#{'No data to export' if not rows else 'Export PDF'}">
                                     <i class="fa fa-file-pdf-o"/>
@@ -123,7 +123,7 @@
                                                 <tr>
                                                     <td><t t-esc="row.get('package_name', '')"/></td>
                                                     <td>
-                                                        <a t-if="row.get('container_no')" class="text-primary text-decoration-none fw-bold cursor-pointer" t-attf-href="/my/marstek/stock?container_no=#{row.get('container_no', '')}">
+                                                        <a t-if="row.get('container_no')" class="text-primary text-decoration-none fw-bold cursor-pointer" t-attf-href="/my/stock/stock?container_no=#{row.get('container_no', '')}">
                                                             <t t-esc="row.get('container_no', '')"/>
                                                         </a>
                                                         <t t-else=""><t t-esc="row.get('container_no', '')"/></t>
@@ -174,7 +174,7 @@
                                                     <div class="detail-item">
                                                         <label>Container No.</label>
                                                         <span>
-                                                            <a t-if="row.get('container_no')" class="text-primary text-decoration-none" t-attf-href="/my/marstek/stock?container_no=#{row.get('container_no', '')}">
+                                                            <a t-if="row.get('container_no')" class="text-primary text-decoration-none" t-attf-href="/my/stock/stock?container_no=#{row.get('container_no', '')}">
                                                                 <t t-esc="row.get('container_no', '')"/>
                                                             </a>
                                                             <t t-else=""><t t-esc="row.get('container_no', '')"/></t>
