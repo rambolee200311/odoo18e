@@ -17,6 +17,7 @@ Chenyang Chemical warehouse customizations.
         "reports/inbound_pallet_label_report.xml",
         "reports/inbound_arrival_note_report.xml",
         "reports/outbound_lot_code_label_report.xml",
+        "reports/outbound_order_report.xml",
         "reports/inbound_lot_code_label_report.xml",
 
         "views/inbound_order_views.xml",
