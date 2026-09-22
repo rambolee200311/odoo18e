@@ -88,9 +88,23 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
                     pallet_de_palletize_map[package.id] = de_palletize
                     product_commands.append((0, 0, parsed_line["product_vals"]))
 
+                street = self.get_required_text(data, "street")
+                zip_code = self.get_optional_text(data, "zip")
+                city = self.get_optional_text(data, "city")
+                phone = self.get_required_text(data, "phone")
+                mobile = self.get_optional_text(data, "mobile")
                 country = self.get_country(data)
-                partner = self.get_partner(data, country)
-                consignee = self.get_consignee_partner(data, partner)
+                address_values = {
+                    "street": street,
+                    "city": city,
+                    "zip": zip_code,
+                    "country_id": country.id,
+                    "phone": phone,
+                    "mobile": mobile,
+                }
+                partner = self.get_partner(data, project, address_values)
+                consignee = self.get_consignee_partner(data, partner, country)
+                delivery_partner = partner.get_delivery_partner_from_values(address_values)
                 order_vals = {
                     "type": order_type,
                     "date": self.get_date_value(data, "date", required=True),
@@ -111,12 +125,13 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
                     "load_ref": self.get_optional_text(data, "load_ref"),
                     "unload_company": partner.id,
                     "consignee_id": consignee.id,
-                    "delivery_street": self.get_required_text(data, "street"),
-                    "delivery_zip": self.get_optional_text(data, "zip"),
-                    "delivery_city": self.get_optional_text(data, "city"),
+                    "delivery_partner_id": delivery_partner.id,
+                    "delivery_street": street,
+                    "delivery_zip": zip_code,
+                    "delivery_city": city,
                     "delivery_country_id": country.id if country else False,
-                    "delivery_phone": self.get_required_text(data, "phone"),
-                    "delivery_mobile": self.get_optional_text(data, "mobile"),
+                    "delivery_phone": phone,
+                    "delivery_mobile": mobile,
                     "time_slot": self.get_optional_text(data, "time_slot"),
                     "outbound_order_product_ids": product_commands,
                 }
@@ -325,45 +340,90 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
             raise SunriseApiError("4001", "delivery_method must be truck, pickup, or parcel.")
         return delivery_method
 
-    def get_partner(self, data, country=False):
+    def get_partner(self, data, project, address_values):
         partner_name = self.get_required_text(data, "unload_company")
         partner_model = request.env["res.partner"]
-        partner_id = partner_model.sudo().search([("name", "=", partner_name)], limit=1).id
-        partner = partner_model.browse(partner_id)
-        if partner:
-            if partner.is_company == False:
-                partner.write({"is_company": True})
+        partner_sudo = partner_model.with_context(active_test=False).sudo().search([
+            ("source_project_id", "=", project.id),
+            ("name", "=", partner_name),
+            ("is_company", "=", True),
+            ("parent_id", "=", False),
+        ], order="id asc")
+        if not partner_sudo:
+            partner_sudo = partner_model.with_context(active_test=False).sudo().search([
+                ("source_project_id", "=", False),
+                ("name", "=", partner_name),
+                ("is_company", "=", True),
+                ("parent_id", "=", False),
+            ], order="id asc")
+        for partner_sudo_record in partner_sudo:
+            partner = partner_model.browse(partner_sudo_record.id)
+            if not partner.get_delivery_partner_from_values(address_values, create_missing=False):
+                continue
+            partner_vals = {"source_project_id": project.id} if not partner.source_project_id else {}
+            if not partner.active:
+                partner_vals["active"] = True
+            if partner_vals:
+                partner.write(partner_vals)
+            return partner
+        if partner_sudo:
+            partner = partner_model.browse(partner_sudo[0].id)
+            partner_vals = {"source_project_id": project.id} if not partner.source_project_id else {}
+            if not partner.active:
+                partner_vals["active"] = True
+            if partner_vals:
+                partner.write(partner_vals)
             return partner
         return partner_model.create({
             "name": partner_name,
+            "source_project_id": project.id,
             "is_company": True,
-            "street": self.get_required_text(data, "street"),
-            "zip": self.get_optional_text(data, "zip"),
-            "city": self.get_optional_text(data, "city"),
-            "country_id": country.id if country else False,
-            "phone": self.get_required_text(data, "phone"),
-            "mobile": self.get_optional_text(data, "mobile"),
+            "street": address_values["street"],
+            "zip": address_values["zip"],
+            "city": address_values["city"],
+            "country_id": address_values["country_id"],
+            "phone": address_values["phone"],
+            "mobile": address_values["mobile"],
         })
 
-    def get_consignee_partner(self, data, company_partner):
+    def get_consignee_partner(self, data, company_partner, country):
         consignee_name = self.get_required_text(data, "consignee_name")
+        phone = self.get_required_text(data, "phone")
         partner_model = request.env["res.partner"]
-        partner_id = partner_model.sudo().search([("name", "=", consignee_name), ("parent_id", "=", company_partner.id)], limit=1).id
-        partner = partner_model.browse(partner_id)
-        if partner:
-            if partner.is_company == True:
-                partner.write({"is_company": False})
-            return partner
+        consignee_sudo = partner_model.with_context(active_test=False).sudo().search([
+            ("name", "=", consignee_name),
+            ("parent_id", "=", company_partner.id),
+            ("type", "=", "contact"),
+            ("is_company", "=", False),
+            ("phone", "=", phone),
+        ], order="id asc", limit=1)
+        if not consignee_sudo:
+            legacy_consignee_sudo = partner_model.with_context(active_test=False).sudo().search([
+                ("name", "=", consignee_name),
+                ("parent_id", "=", company_partner.id),
+                ("type", "=", "delivery"),
+                ("is_company", "=", False),
+                ("phone", "=", phone),
+            ], order="id asc", limit=1)
+            legacy_consignee = partner_model.browse(legacy_consignee_sudo.id)
+            if legacy_consignee:
+                legacy_consignee.write({"active": True, "type": "contact"})
+                return legacy_consignee
+        consignee = partner_model.browse(consignee_sudo.id)
+        if consignee:
+            if not consignee.active:
+                consignee.write({"active": True})
+            return consignee
         return partner_model.create({
             "name": consignee_name,
             "is_company": False,
             "parent_id": company_partner.id,
-            "type": "delivery",
+            "type": "contact",
             "street": self.get_required_text(data, "street"),
             "zip": self.get_optional_text(data, "zip"),
             "city": self.get_optional_text(data, "city"),
-            "country_id": company_partner.country_id.id,
-            "phone": self.get_required_text(data, "phone"),
+            "country_id": country.id if country else False,
+            "phone": phone,
             "mobile": self.get_optional_text(data, "mobile"),
         })
 
