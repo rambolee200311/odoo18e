@@ -101,7 +101,7 @@
 
         if (loading) loading.style.display = 'block';
 
-        var url = '/my/marstek/stock/location_options?q=' + encodeURIComponent(query);
+        var url = '/my/stock/stock/location_options?q=' + encodeURIComponent(query);
 
 //        currentXhr =
         fetch(url)

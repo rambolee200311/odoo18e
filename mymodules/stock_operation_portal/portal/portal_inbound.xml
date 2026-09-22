@@ -104,9 +104,9 @@
                             <a href="/my/operation/inbounds" class="btn btn-secondary btn-sm"><i class="fa fa-arrow-left"/> Back</a>
                         </div>
                     </div>
-                    <div id="inbound_order_update_success" class="alert alert-success d-none" role="alert">
+                    <div id="inbound_order_success" class="alert alert-success d-none" role="alert">
                         <i class="fa fa-check-circle me-1"/>
-                        Inbound order updated successfully.
+                        <span id="inbound_order_success_message"/>
                     </div>
                     <div t-if="error" class="alert alert-danger"><t t-esc="error"/></div>
                     <div class="card mb-4">
@@ -163,14 +163,20 @@
                                     <div class="ms-3">
                                         <small class="text-muted me-3" t-if="pkg.get('bl_no')">B/L: <t t-esc="pkg.get('bl_no')"/></small>
                                         <small class="text-muted" t-if="pkg.get('container_no')">Container: <t t-esc="pkg.get('container_no')"/></small>
+                                        <small class="text-muted me-3" t-if="pkg.get('pallets')">Number of Pallets: <t t-esc="pkg.get('pallets')"/></small>
+                                        <small class="text-muted me-3" t-if="pkg.get('pallet_type')">Pallet Type : <t t-esc="pkg.get('pallet_type')"/></small>
+                                        <small class="text-muted me-3" t-if="pkg.get('remark')">Remark: <t t-esc="pkg.get('remark')"/></small>
                                     </div>
                                     <table class="table table-sm mt-2 mb-0">
-                                        <thead class="table-light"><tr><th>Product Code</th><th>Product Name</th><th class="text-end">Quantity</th></tr></thead>
+                                        <thead class="table-light"><tr><th>Product Code</th><th>Product Name</th><th class="text-end">Quantity</th><th class="text-end">Gross Weight</th><th class="text-end">Net Weight</th><th class="text-end">Remark</th></tr></thead>
                                         <tbody>
                                             <tr t-foreach="pkg.get('products', [])" t-as="prod">
                                                 <td><t t-esc="prod.get('product_code', '-')"/></td>
                                                 <td><t t-esc="prod.get('product_name', '-')"/></td>
                                                 <td class="text-end"><t t-esc="prod.get('quantity', 0)"/></td>
+                                                <td class="text-end"><t t-esc="prod.get('gross_weight', 0)"/></td>
+                                                <td class="text-end"><t t-esc="prod.get('net_weight', 0)"/></td>
+                                                <td><t t-esc="prod.get('remark', '')"/></td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -273,7 +279,7 @@
                                         <input type="text" name="bl_no" class="form-control" placeholder="e.g. BL20260824001" t-att-value="fv.get('bl_no', '')"/>
                                     </div>
                                     <div class="col-md-4">
-                                        <label class="form-label fw-bold">Container No</label>
+                                        <label class="form-label fw-bold">Container No <span class="text-danger">*</span></label>
                                         <input type="text" name="cntr_no" class="form-control" placeholder="e.g. MSCU1234567" t-att-value="fv.get('container_no', '') or fv.get('cntr_no', '')"/>
                                     </div>
                                     <div class="col-md-8">
@@ -311,7 +317,7 @@
                                                     <button type="button" class="btn btn-sm btn-outline-danger remove-line"><i class="fa fa-trash"/></button>
                                                 </div>
                                                 <div class="row g-2 mb-2">
-                                                    <div class="col-md-3"><label class="form-label">Pallet No</label><input type="text" class="form-control pallet_no" placeholder="e.g. PALLET-001" t-att-value="line.get('pallet_no', '')"/></div>
+                                                    <div class="col-md-3"><label class="form-label">Pallet No <span class="text-danger">*</span></label><input type="text" class="form-control pallet_no" placeholder="e.g. PALLET-001" required="required" t-att-value="line.get('pallet_no', '')" /></div>
                                                     <div class="col-md-2"><label class="form-label">Pallets <span class="text-danger">*</span></label><input type="number" class="form-control pallets" min="0.01" step="0.01" required="required" t-att-value="line.get('pallets', 1)"/></div>
                                                     <div class="col-md-2"><label class="form-label">Type</label><input type="text" class="form-control pallet_type" placeholder="e.g. WOOD" t-att-value="line.get('pallet_type', '')"/></div>
                                                     <div class="col-md-5"><label class="form-label">Remark</label><input type="text" class="form-control line_remark" t-att-value="line.get('remark', '')"/></div>
@@ -336,12 +342,13 @@
                                                             <t t-foreach="line.get('products', [])" t-as="pline">
                                                                 <tr class="product-line" t-att-data-product-line-id="pline.get('id', '')">
                                                                     <td>
-                                                                        <select class="form-select form-select-sm product-select" required="required">
-                                                                            <option value="">-- Select --</option>
-                                                                            <t t-foreach="products" t-as="prod">
-                                                                                <option t-att-value="prod['id']" t-att-selected="'selected' if (str(pline.get('product_id', '')) == str(prod['id'])) else None"><t t-esc="prod['default_name']"/></option>
-                                                                            </t>
-                                                                        </select>
+                                                                        <div class="position-relative product-lookup-cell">
+                                                                            <input type="text" class="form-control form-control-sm product-search-input"
+                                                                                   placeholder="Type code / name (min 1 chars)" autocomplete="off"
+                                                                                   t-att-value="pline.get('product_name', '')"/>
+                                                                            <input type="hidden" class="product-id-input" t-att-value="pline.get('product_id', '')"/>
+                                                                            <div class="list-group product-results position-absolute w-100" style="z-index:1000; display:none;"></div>
+                                                                        </div>
                                                                     </td>
                                                                     <td><input type="number" class="form-control form-control-sm product-qty" min="0.01" step="0.01" required="required" t-att-value="pline.get('quantity', 1)"/></td>
                                                                     <td><input type="number" class="form-control form-control-sm product-gross" min="0" step="0.01" t-att-value="pline.get('gross_weight', 0)"/></td>
