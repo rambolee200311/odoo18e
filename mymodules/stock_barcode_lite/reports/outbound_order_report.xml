@@ -34,10 +34,10 @@
                 <div class="page o_report_outbound_order" style="font-family: Helvetica, Arial, sans-serif; position:relative; min-height:100vh;">
                         <div style="padding-bottom:40px;">
                             <table style="width:100%;border-collapse:collapse;table-layout:fixed;margin-bottom:12px;">
-                                <colgroup>
-                                    <col/>
-                                    <col t-att-style="'width:400px;' if o.project.barcode_scan_mode == 'custom' and o.whole_pallet_picking_id and o.partial_pallet_picking_id else 'width:220px;'"/>
-                                </colgroup>
+                    <colgroup>
+                        <col/>
+                        <col style="width:220px;"/>
+                    </colgroup>
                                 <tbody>
                                     <tr>
                                         <td style="padding:0;vertical-align:top;">
@@ -51,65 +51,62 @@
                                                 <div><strong>Planning Date:</strong> <span t-field="o.p_date"/></div>
                                             </div>
                                         </td>
-                                        <td style="padding:0;text-align:center;vertical-align:top;">
-                                            <t t-if="o.project.barcode_scan_mode == 'custom'">
-                                                <div>
-                                                    <div style="border:1px solid #e6e6e6;padding:8px;border-radius:6px;background:#fafafa;display:inline-block;">
-                                                        <div style="font-size:11px;color:#666;margin-bottom:6px;"><strong>Outbound Order QR</strong></div>
-                                                        <div t-field="o.billno" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 200, 'height': 200, 'img_style': 'width:160px;height:160px;'}"/>
-                                                        <div style="margin-top:6px;font-weight:600;"><span t-field="o.billno"/></div>
-                                                    </div>
-                                                </div>
-                                                <table t-if="o.whole_pallet_picking_id and o.partial_pallet_picking_id" style="width:100%;border-collapse:collapse;table-layout:fixed;border:0 !important;margin-top:8px;">
-                                                    <tbody>
-                                                        <tr>
-                                                            <td style="width:50%;padding:0 10px 0 0;text-align:center;vertical-align:top;border:0 !important;">
-                                                                <div style="border:1px solid #e6e6e6;padding:8px;border-radius:6px;background:#fafafa;display:inline-block;">
-                                                                    <div style="font-size:11px;color:#666;margin-bottom:6px;"><strong>Whole Pallet Picking QR</strong></div>
-                                                                    <div t-field="o.whole_pallet_picking_id.name" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 200, 'height': 200, 'img_style': 'width:160px;height:160px;'}"/>
-                                                                    <div style="margin-top:6px;font-weight:600;"><span t-field="o.whole_pallet_picking_id.name"/></div>
-                                                                </div>
-                                                            </td>
-                                                            <td style="width:50%;padding:0 0 0 10px;text-align:center;vertical-align:top;border:0 !important;">
-                                                                <div style="border:1px solid #e6e6e6;padding:8px;border-radius:6px;background:#fafafa;display:inline-block;">
-                                                                    <div style="font-size:11px;color:#666;margin-bottom:6px;"><strong>Partial Pallet Picking QR</strong></div>
-                                                                    <div t-field="o.partial_pallet_picking_id.name" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 200, 'height': 200, 'img_style': 'width:160px;height:160px;'}"/>
-                                                                    <div style="margin-top:6px;font-weight:600;"><span t-field="o.partial_pallet_picking_id.name"/></div>
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                                <div t-elif="o.whole_pallet_picking_id" style="border:1px solid #e6e6e6;padding:8px;border-radius:6px;background:#fafafa;display:inline-block;margin-top:8px;">
-                                                    <div style="font-size:11px;color:#666;margin-bottom:6px;"><strong>Whole Pallet Picking QR</strong></div>
-                                                    <div t-field="o.whole_pallet_picking_id.name" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 200, 'height': 200, 'img_style': 'width:160px;height:160px;'}"/>
-                                                    <div style="margin-top:6px;font-weight:600;"><span t-field="o.whole_pallet_picking_id.name"/></div>
-                                                </div>
-                                                <div t-elif="o.partial_pallet_picking_id" style="border:1px solid #e6e6e6;padding:8px;border-radius:6px;background:#fafafa;display:inline-block;margin-top:8px;">
-                                                    <div style="font-size:11px;color:#666;margin-bottom:6px;"><strong>Partial Pallet Picking QR</strong></div>
-                                                    <div t-field="o.partial_pallet_picking_id.name" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 200, 'height': 200, 'img_style': 'width:160px;height:160px;'}"/>
-                                                    <div style="margin-top:6px;font-weight:600;"><span t-field="o.partial_pallet_picking_id.name"/></div>
-                                                </div>
-                                            </t>
-                                            <t t-else="">
-                                                <div>
-                                                    <div style="border:1px solid #e6e6e6;padding:8px;border-radius:6px;background:#fafafa;display:inline-block;">
-                                                        <div style="font-size:11px;color:#666;margin-bottom:6px;"><strong>Outbound Order QR</strong></div>
-                                                        <div t-field="o.billno" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 200, 'height': 200, 'img_style': 'width:160px;height:160px;'}"/>
-                                                        <div style="margin-top:6px;font-weight:600;"><span t-field="o.billno"/></div>
-                                                    </div>
-                                                </div>
-                                                <div t-if="o.picking_PICK" style="border:1px solid #e6e6e6;padding:8px;border-radius:6px;background:#fafafa;display:inline-block;margin-top:8px;">
-                                                    <div style="font-size:11px;color:#666;margin-bottom:6px;"><strong>Picking QR</strong></div>
-                                                    <div t-field="o.picking_PICK.name" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 200, 'height': 200, 'img_style': 'width:160px;height:160px;'}"/>
-                                                    <div style="margin-top:6px;font-weight:600;"><span t-field="o.picking_PICK.name"/></div>
-                                                </div>
-                                            </t>
-                                        </td>
+                        <td style="padding:0;text-align:center;vertical-align:top;">
+                            <div style="border:1px solid #e6e6e6;padding:8px;border-radius:6px;background:#fafafa;display:inline-block;">
+                                <div style="font-size:11px;color:#666;margin-bottom:6px;"><strong>Outbound Order QR</strong></div>
+                                <div t-field="o.billno" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 200, 'height': 200, 'img_style': 'width:160px;height:160px;'}"/>
+                                <div style="margin-top:6px;font-weight:600;"><span t-field="o.billno"/></div>
+                            </div>
+                        </td>
                                     </tr>
                                 </tbody>
-                            </table>
-                            <div style="background:#eef0f2;padding:10px;border-radius:6px;margin-bottom:12px;">
+                </table>
+                <t t-if="o.project.barcode_scan_mode == 'custom'">
+                    <table t-if="o.whole_pallet_picking_id and o.partial_pallet_picking_id" style="width:100%;border-collapse:collapse;table-layout:fixed;border:0 !important;margin:0 0 12px 0;">
+                        <tbody>
+                            <tr>
+                                <td style="width:50%;padding:0 10px 0 0;text-align:left;vertical-align:top;border:0 !important;">
+                                    <div style="border:1px solid #e6e6e6;padding:8px;border-radius:6px;background:#fafafa;display:inline-block;">
+                                        <div style="font-size:11px;color:#666;margin-bottom:6px;"><strong>Whole Pallet Picking QR</strong></div>
+                                        <div t-field="o.whole_pallet_picking_id.name" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 200, 'height': 200, 'img_style': 'width:160px;height:160px;'}"/>
+                                        <div style="margin-top:6px;font-weight:600;"><span t-field="o.whole_pallet_picking_id.name"/></div>
+                                    </div>
+                                </td>
+                                <td style="width:50%;padding:0 220px 0 10px;text-align:right;vertical-align:top;border:0 !important;">
+                                    <div style="border:1px solid #e6e6e6;padding:8px;border-radius:6px;background:#fafafa;display:inline-block;">
+                                        <div style="font-size:11px;color:#666;margin-bottom:6px;"><strong>Partial Pallet Picking QR</strong></div>
+                                        <div t-field="o.partial_pallet_picking_id.name" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 200, 'height': 200, 'img_style': 'width:160px;height:160px;'}"/>
+                                        <div style="margin-top:6px;font-weight:600;"><span t-field="o.partial_pallet_picking_id.name"/></div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div t-elif="o.whole_pallet_picking_id" style="margin:0 0 12px 0;text-align:left;">
+                        <div style="border:1px solid #e6e6e6;padding:8px;border-radius:6px;background:#fafafa;display:inline-block;">
+                            <div style="font-size:11px;color:#666;margin-bottom:6px;"><strong>Whole Pallet Picking QR</strong></div>
+                            <div t-field="o.whole_pallet_picking_id.name" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 200, 'height': 200, 'img_style': 'width:160px;height:160px;'}"/>
+                            <div style="margin-top:6px;font-weight:600;"><span t-field="o.whole_pallet_picking_id.name"/></div>
+                        </div>
+                    </div>
+                    <div t-elif="o.partial_pallet_picking_id" style="margin:0 0 12px 0;text-align:left;">
+                        <div style="border:1px solid #e6e6e6;padding:8px;border-radius:6px;background:#fafafa;display:inline-block;">
+                            <div style="font-size:11px;color:#666;margin-bottom:6px;"><strong>Partial Pallet Picking QR</strong></div>
+                            <div t-field="o.partial_pallet_picking_id.name" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 200, 'height': 200, 'img_style': 'width:160px;height:160px;'}"/>
+                            <div style="margin-top:6px;font-weight:600;"><span t-field="o.partial_pallet_picking_id.name"/></div>
+                        </div>
+                    </div>
+                </t>
+                <t t-else="">
+                    <div t-if="o.picking_PICK" style="margin:0 0 12px 0;text-align:left;">
+                        <div style="border:1px solid #e6e6e6;padding:8px;border-radius:6px;background:#fafafa;display:inline-block;">
+                            <div style="font-size:11px;color:#666;margin-bottom:6px;"><strong>Picking QR</strong></div>
+                            <div t-field="o.picking_PICK.name" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 200, 'height': 200, 'img_style': 'width:160px;height:160px;'}"/>
+                            <div style="margin-top:6px;font-weight:600;"><span t-field="o.picking_PICK.name"/></div>
+                        </div>
+                    </div>
+                </t>
+                <div style="background:#eef0f2;padding:10px;border-radius:6px;margin-bottom:12px;">
                                 <table style="width:100%;border-collapse:collapse;table-layout:fixed;border:0 !important;outline:0 !important;box-shadow:none !important;">
                                     <tbody style="border:0 !important;outline:0 !important;box-shadow:none !important;">
                                         <tr style="border:0 !important;outline:0 !important;box-shadow:none !important;">
