@@ -4,10 +4,17 @@
         <div t-attf-class="o_attachment_preview {{props.className || ''}}">
             <div class="o_attachment_preview_images" t-if="images.length">
                 <div t-foreach="images" t-as="file" t-key="file.id" class="o_attachment_preview_image" t-att-class="{ 'o_attachment_preview_viewable': file.isViewable }" t-att-title="file.displayName" t-on-click="() => this.on_preview(file)">
-                    <img t-att-src="get_image_url(file)" t-att-alt="file.displayName"/>
-                    <button t-if="!props.readonly" type="button" class="btn btn-danger btn-sm o_attachment_preview_delete" title="Remove" t-on-click.stop="() => this.on_file_remove(file.id)">
-                        <i class="fa fa-times" role="img" aria-label="Remove"/>
-                    </button>
+                    <div class="o_attachment_preview_thumbnail">
+                        <img t-att-src="get_image_url(file)" t-att-alt="file.displayName"/>
+                        <div class="o_attachment_preview_image_actions">
+                            <button type="button" class="btn btn-light btn-sm text-info o_attachment_preview_preview" title="Preview" t-on-click.stop="() => this.on_preview(file)">
+                                <i class="fa fa-search" role="img" aria-label="Preview"/>
+                            </button>
+                            <button t-if="!props.readonly" type="button" class="btn btn-light btn-sm text-danger o_attachment_preview_delete" title="Remove" t-on-click.stop="() => this.on_file_remove(file.id)">
+                                <i class="fa fa-trash" role="img" aria-label="Remove"/>
+                            </button>
+                        </div>
+                    </div>
                     <span t-esc="file.displayName"/>
                 </div>
             </div>
