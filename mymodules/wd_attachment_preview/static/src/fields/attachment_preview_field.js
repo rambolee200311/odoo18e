@@ -22,6 +22,7 @@ export class AttachmentPreviewField extends Component {
 
     setup() {
         this.notification = useService("notification");
+        this.orm = useService("orm");
         this.file_viewer = useFileViewer();
         this.operations = useX2ManyCrud(() => this.props.record.data[this.props.name], true);
     }
@@ -67,8 +68,9 @@ export class AttachmentPreviewField extends Component {
         }
     }
 
-    on_file_remove(delete_id) {
+    async on_file_remove(delete_id) {
         const record = this.props.record.data[this.props.name].records.find((item) => item.resId === delete_id);
+        await this.orm.unlink("ir.attachment", [delete_id]);
         this.operations.removeRecord(record);
     }
 }

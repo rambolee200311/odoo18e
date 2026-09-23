@@ -106,7 +106,7 @@
                             </field>
                         </page>
                         <page string="Attachments">
-                            <field name="attachment_ids" widget="many2many_binary"
+                            <field name="attachment_ids" widget="attachment_preview"
                                    readonly="state != 'draft'"/>
                         </page>
                         <page string="Notes">
