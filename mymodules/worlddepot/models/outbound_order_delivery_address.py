@@ -12,6 +12,7 @@ def build_delivery_address_key(street, street2, city, zip_code, state_code, coun
 class ResPartner(models.Model):
     _inherit = "res.partner"
 
+    source_project_id = fields.Many2one("project.project", string="Source Project", copy=False, index=True)
     delivery_address_key = fields.Char(string="Delivery Address Key", compute="_compute_delivery_address_key", store=True, index=True, copy=False)
 
     @api.depends("parent_id", "type", "street", "street2", "city", "zip", "state_id", "country_id")
@@ -74,14 +75,16 @@ class ResPartner(models.Model):
                 record.state_id.code,
                 record.country_id.code,
             )
-            if record.active and address_key == recipient_key:
+            if address_key == recipient_key:
+                if not record.active:
+                    record.write({"active": True})
                 delivery_partners |= record
                 continue
             delivery_partner_sudo = partner_model.with_context(active_test=False).sudo().search([
                 ("parent_id", "=", record.id),
                 ("type", "=", "delivery"),
                 ("delivery_address_key", "=", address_key),
-            ], limit=1)
+            ], order="id asc", limit=1)
             if delivery_partner_sudo:
                 delivery_partner = partner_model.browse(delivery_partner_sudo.id)
                 if not delivery_partner.active:

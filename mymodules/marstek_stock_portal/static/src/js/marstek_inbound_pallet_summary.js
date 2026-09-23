@@ -98,7 +98,7 @@
     function searchLocations(query) {
         var loading = document.getElementById('ips_location_loading');
         if (loading) loading.style.display = 'block';
-        var url = '/my/marstek/stock/location_options' + (query ? '?q=' + encodeURIComponent(query) : '');
+        var url = '/my/stock/stock/location_options' + (query ? '?q=' + encodeURIComponent(query) : '');
         fetch(url, { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
             .then(function (response) { return response.json(); })
             .then(function (locations) {

@@ -44,16 +44,52 @@ class OutboundOrderAPI(http.Controller):
             if existing_order:
                 return {'success': False, 'error': f'Duplicate reference: {data["reference"]}'}
 
-            # create unload company if not exists
+            api_user = request.api_user
+            if not api_user:
+                return {'success': False, 'error': 'API user not found for token'}
+            odoo_project = api_user.project
+            if not odoo_project:
+                return {'success': False, 'error': 'API user is not bound to a project'}
+
             country_id = request.env['res.country'].sudo().search(
                 ['|', ('code', '=', data.get('country')), ('name', '=', data.get('country'))], limit=1).id
             partner_model = request.env['res.partner']
-            unload_company_sudo = partner_model.sudo().search([('name', '=', data['unload_company'])], limit=1)
-            unload_company = partner_model.browse(unload_company_sudo.id)
+            address_values = {
+                'name': data.get('recipient_name') or data['unload_company'],
+                'street': data.get('street'),
+                'city': data.get('city'),
+                'zip': data.get('zip'),
+                'country_id': country_id,
+                'phone': data.get('phone'),
+                'mobile': data.get('mobile'),
+                'email': data.get('email'),
+            }
+            unload_company_sudo = partner_model.with_context(active_test=False).sudo().search([
+                ('source_project_id', '=', odoo_project.id),
+                ('name', '=', data['unload_company']),
+                ('is_company', '=', True),
+                ('parent_id', '=', False),
+            ], order='id asc')
+            if not unload_company_sudo:
+                unload_company_sudo = partner_model.with_context(active_test=False).sudo().search([
+                    ('source_project_id', '=', False),
+                    ('name', '=', data['unload_company']),
+                    ('is_company', '=', True),
+                    ('parent_id', '=', False),
+                ], order='id asc')
+            unload_company = partner_model.browse()
+            if data.get('street'):
+                for unload_company_sudo_record in unload_company_sudo:
+                    candidate_company = partner_model.browse(unload_company_sudo_record.id)
+                    if candidate_company.get_delivery_partner_from_values(address_values, create_missing=False):
+                        unload_company = candidate_company
+                        break
+            if not unload_company and unload_company_sudo:
+                unload_company = partner_model.browse(unload_company_sudo[0].id)
             if not unload_company:
-                # create a new company
                 unload_company = partner_model.create({
                     'name': data['unload_company'],
+                    'source_project_id': odoo_project.id,
                     'is_company': True,
                     'street': data.get('street', ''),
                     'city': data.get('city', ''),
@@ -62,23 +98,15 @@ class OutboundOrderAPI(http.Controller):
                     'phone': data.get('phone', ''),
                     'mobile': data.get('mobile', ''),
                 })
-
-            api_user = request.api_user
-            if not api_user:
-                return {'success': False, 'error': 'API user not found for token'}
-            odoo_project = api_user.project
+            else:
+                company_vals = {'source_project_id': odoo_project.id} if not unload_company.source_project_id else {}
+                if not unload_company.active:
+                    company_vals['active'] = True
+                if company_vals:
+                    unload_company.write(company_vals)
             delivery_partner = partner_model
-            if all([data.get('street'), data.get('city'), data.get('zip'), country_id]):
-                delivery_partner = unload_company.get_delivery_partner_from_values({
-                    'name': data.get('recipient_name') or data['unload_company'],
-                    'street': data.get('street'),
-                    'city': data.get('city'),
-                    'zip': data.get('zip'),
-                    'country_id': country_id,
-                    'phone': data.get('phone'),
-                    'mobile': data.get('mobile'),
-                    'email': data.get('email'),
-                })
+            if data.get('street'):
+                delivery_partner = unload_company.get_delivery_partner_from_values(address_values)
 
             # odoo_project = request.env['project.project'].sudo().search([('name', '=', 'HOYMILES')], limit=1)
             # Prepare order values

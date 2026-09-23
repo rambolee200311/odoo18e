@@ -5,7 +5,7 @@
     <!-- =========================================== -->
     <template id="portal_marstek_inbounds" name="Inbound Orders">
             <t t-call="portal.portal_layout">
-            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/marstek', 'name': 'WMS Stock'}, {'url': None, 'name': 'Inbound Orders'}]"/>
+            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/stock', 'name': 'WMS Stock'}, {'url': None, 'name': 'Inbound Orders'}]"/>
             <t t-call="marstek_stock_portal.portal_breadcrumbs_slash"/>
 
             <div class="o_portal_content">
@@ -22,7 +22,7 @@
                     </div>
                     <div id="inbound_filter_collapse" class="collapse show">
                     <div class="card-body">
-                        <form action="/my/marstek/inbounds" method="get" class="row g-3">
+                        <form action="/my/stock/inbounds" method="get" class="row g-3">
                             <div class="col-12 col-md-6 col-lg-4">
                                 <label for="inbound_no" class="form-label">Inbound No. / Reference</label>
                                 <input type="search" class="form-control" id="inbound_no" name="inbound_no" t-attf-value="#{filters.get('inbound_no', '')}" placeholder="Enter inbound no. or reference"/>
@@ -57,7 +57,7 @@
                                     <i class="fa fa-search me-1"/>
                                     Search
                                 </button>
-                                <a href="/my/marstek/inbounds" class="btn btn-secondary">
+                                <a href="/my/stock/inbounds" class="btn btn-secondary">
                                     <i class="fa fa-refresh me-1"/>
                                     Reset
                                 </a>
@@ -87,13 +87,13 @@
                                 </label>
                             </div>
                             <!-- 导出按钮 -->
-                            <a t-attf-href="/my/marstek/export/inbounds/csv?inbound_no=#{filters.get('inbound_no', '')}&amp;reference=#{filters.get('reference', '')}&amp;bl_no=#{filters.get('bl_no', '')}&amp;container_no=#{filters.get('container_no', '')}&amp;portal_inbound_status=#{filters.get('portal_inbound_status', '')}&amp;inbound_date_from=#{filters.get('inbound_date_from', '')}&amp;inbound_date_to=#{filters.get('inbound_date_to', '')}"
+                            <a t-attf-href="/my/stock/export/inbounds/csv?inbound_no=#{filters.get('inbound_no', '')}&amp;reference=#{filters.get('reference', '')}&amp;bl_no=#{filters.get('bl_no', '')}&amp;container_no=#{filters.get('container_no', '')}&amp;portal_inbound_status=#{filters.get('portal_inbound_status', '')}&amp;inbound_date_from=#{filters.get('inbound_date_from', '')}&amp;inbound_date_to=#{filters.get('inbound_date_to', '')}"
                                t-attf-class="btn btn-primary export-btn #{'disabled' if not rows else ''}"
                                t-attf-title="#{'No data to export' if not rows else 'Export CSV'}">
                                 <i class="fa fa-file-text-o"/>
                                 <span class="d-none d-sm-inline ms-1">Export CSV</span>
                             </a>
-                            <a t-attf-href="/my/marstek/export/inbounds/pdf?inbound_no=#{filters.get('inbound_no', '')}&amp;reference=#{filters.get('reference', '')}&amp;bl_no=#{filters.get('bl_no', '')}&amp;container_no=#{filters.get('container_no', '')}&amp;portal_inbound_status=#{filters.get('portal_inbound_status', '')}&amp;inbound_date_from=#{filters.get('inbound_date_from', '')}&amp;inbound_date_to=#{filters.get('inbound_date_to', '')}"
+                            <a t-attf-href="/my/stock/export/inbounds/pdf?inbound_no=#{filters.get('inbound_no', '')}&amp;reference=#{filters.get('reference', '')}&amp;bl_no=#{filters.get('bl_no', '')}&amp;container_no=#{filters.get('container_no', '')}&amp;portal_inbound_status=#{filters.get('portal_inbound_status', '')}&amp;inbound_date_from=#{filters.get('inbound_date_from', '')}&amp;inbound_date_to=#{filters.get('inbound_date_to', '')}"
                                t-attf-class="btn btn-primary export-btn #{'disabled' if not rows else ''}"
                                t-attf-title="#{'No data to export' if not rows else 'Export PDF'}">
                                 <i class="fa fa-file-pdf-o"/>
@@ -126,20 +126,20 @@
                                         <t t-foreach="rows" t-as="row">
                                             <tr>
                                                 <td>
-                                                    <a t-if="row.get('inbound_id')" class="text-primary text-decoration-none fw-bold cursor-pointer" t-attf-href="/my/marstek/inbounds/#{row.get('inbound_id')}">
+                                                    <a t-if="row.get('inbound_id')" class="text-primary text-decoration-none fw-bold cursor-pointer" t-attf-href="/my/stock/inbounds/#{row.get('inbound_id')}">
                                                         <t t-esc="row.get('inbound_no', '')"/>
                                                     </a>
                                                     <t t-else=""><t t-esc="row.get('inbound_no', '')"/></t>
                                                 </td>
                                                 <td><t t-esc="row.get('reference', '')"/></td>
                                                 <td>
-                                                    <a t-if="row.get('bl_no')" class="text-primary text-decoration-none fw-bold cursor-pointer" t-attf-href="/my/marstek/inbounds?bl_no=#{row.get('bl_no', '')}">
+                                                    <a t-if="row.get('bl_no')" class="text-primary text-decoration-none fw-bold cursor-pointer" t-attf-href="/my/stock/inbounds?bl_no=#{row.get('bl_no', '')}">
                                                         <t t-esc="row.get('bl_no', '')"/>
                                                     </a>
                                                     <t t-else=""><t t-esc="row.get('bl_no', '')"/></t>
                                                 </td>
                                                 <td>
-                                                    <a t-if="row.get('container_no')" class="text-primary text-decoration-none fw-bold cursor-pointer" t-attf-href="/my/marstek/stock?container_no=#{row.get('container_no', '')}">
+                                                    <a t-if="row.get('container_no')" class="text-primary text-decoration-none fw-bold cursor-pointer" t-attf-href="/my/stock/stock?container_no=#{row.get('container_no', '')}">
                                                         <t t-esc="row.get('container_no', '')"/>
                                                     </a>
                                                     <t t-else=""><t t-esc="row.get('container_no', '')"/></t>
@@ -159,7 +159,7 @@
                                                 <td class="text-end"><t t-esc="row.get('total_quantity', 0)"/></td>
                                                 <td class="text-end"><t t-esc="row.get('total_pallets', 0)"/></td>
                                                 <td>
-                                                    <a t-attf-href="/my/marstek/inbounds/#{row.get('inbound_id')}" class="btn btn-sm btn-outline-primary">
+                                                    <a t-attf-href="/my/stock/inbounds/#{row.get('inbound_id')}" class="btn btn-sm btn-outline-primary">
                                                         View Details
                                                     </a>
                                                 </td>
@@ -240,7 +240,7 @@
     <!-- =========================================== -->
     <template id="portal_marstek_inbound_detail" name="Inbound Detail">
             <t t-call="portal.portal_layout">
-            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/marstek', 'name': 'WMS Stock'}, {'url': '/my/marstek/inbounds', 'name': 'Inbound Orders'}, {'url': None, 'name': 'Inbound Detail'}]"/>
+            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/stock', 'name': 'WMS Stock'}, {'url': '/my/stock/inbounds', 'name': 'Inbound Orders'}, {'url': None, 'name': 'Inbound Detail'}]"/>
             <t t-call="marstek_stock_portal.portal_breadcrumbs_slash"/>
 
             <div class="o_portal_content">
