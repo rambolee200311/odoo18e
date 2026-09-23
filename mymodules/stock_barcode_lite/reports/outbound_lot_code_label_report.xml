@@ -84,7 +84,7 @@
                                 }
 
                                 .outbound-picking-qr-cell {
-                                    width: 38mm;
+                                    width: 48mm;
                                     text-align: center;
                                     vertical-align: middle;
                                     padding: 0 0 2mm 3mm;
@@ -94,8 +94,8 @@
                                 }
 
                                 .outbound-picking-qr-cell img {
-                                    width: 30mm !important;
-                                    height: 30mm !important;
+                                    width: 40mm !important;
+                                    height: 40mm !important;
                                 }
 
                                 .outbound-label-title {
@@ -215,9 +215,11 @@
                                             <table class="outbound-label-info">
                                                 <tr>
                                                     <td class="label">Reference:</td>
-                                                    <td><span t-field="o.reference"/></td>
+                                                    <td colspan="3"><span t-field="o.reference"/></td>
+                                                </tr>
+                                                <tr>
                                                     <td class="label">Owner:</td>
-                                                    <td><span t-esc="o.owner.name"/></td>
+                                                    <td colspan="3"><span t-esc="o.owner.name"/></td>
                                                 </tr>
                                                 <tr>
                                                     <td class="label">Picking:</td>
