@@ -1,119 +1,11 @@
 /** @odoo-module **/
 
-import { useService } from "@web/core/utils/hooks";
-import { Component, useState, useRef, onMounted, onWillUnmount } from "@odoo/owl";
+import { BaseBarcodePage } from "./base_barcode_page";
 import { _t } from "@web/core/l10n/translation";
 
-class InternalTransfer extends Component {
+class InternalTransfer extends BaseBarcodePage {
     static template = "stock_barcode_lite.InternalTransferPage";
     static props = {};
-
-    setup() {
-        this.action = useService("action");
-        this.orm = useService("orm");
-        this.notification = useService("notification");
-
-        this.barcodeInputRef = useRef("barcodeInput");
-
-        this.state = useState({
-            loading: false,
-            message: "",
-            messageType: "info",
-            nextStep: "scan_location",
-            picking_id: null,
-            picking_name: "",
-            picking_origin: "",
-            picking_state: "",
-            destination_id: null,
-            destination_name: "",
-            scanned_packages: [],
-            is_validating: false,
-        });
-
-        this._isProcessing = false;
-
-        this._boundOnBarcodeInput = this._onBarcodeInput.bind(this);
-        this._boundOnBarcodeKeydown = this._onBarcodeKeydown.bind(this);
-        this._boundOnBarcodeBlur = this._onBarcodeBlur.bind(this);
-
-        onMounted(async () => {
-            this._bindVisibilityChange();
-            const barcodeInput = this.barcodeInputRef.el;
-            if (barcodeInput) {
-                barcodeInput.addEventListener("input", this._boundOnBarcodeInput);
-                barcodeInput.addEventListener("keydown", this._boundOnBarcodeKeydown);
-                barcodeInput.addEventListener("blur", this._boundOnBarcodeBlur);
-                this._focusBarcodeInput();
-            }
-        });
-
-        onWillUnmount(() => {
-            this._unbindVisibilityChange();
-            const barcodeInput = this.barcodeInputRef.el;
-            if (barcodeInput) {
-                barcodeInput.removeEventListener("input", this._boundOnBarcodeInput);
-                barcodeInput.removeEventListener("keydown", this._boundOnBarcodeKeydown);
-                barcodeInput.removeEventListener("blur", this._boundOnBarcodeBlur);
-            }
-        });
-
-        const action = this.env.config.action || {};
-        const params = this.props?.action?.params || action.params || action.context || {};
-
-        if (params.message) {
-            this.notification.add(params.message, { type: "success" });
-        }
-
-        if (params.picking_data) {
-            this._initFromData(params.picking_data);
-        } else if (params["picking.id"]) {
-            this._loadPicking(params["picking.id"]);
-        }
-    }
-
-    // ═══════════════════════════════════════════════════════════════
-    // 扫码监听
-    // ═══════════════════════════════════════════════════════════════
-
-    _onBarcodeInput(ev) {
-        const input = ev.target;
-        if (!input) return;
-
-        const value = input.value;
-        if (ev.inputType === "insertLineFeed" || value.includes("\n") || value.includes("\r")) {
-            const barcode = value.replace(/\n/g, "").replace(/\r/g, "").trim();
-            if (barcode) {
-                input.value = "";
-                this.onBarcodeScanned(barcode);
-            }
-        }
-    }
-
-    _onBarcodeKeydown(ev) {
-        if (ev.key === "Enter") {
-            ev.preventDefault();
-            const input = ev.target;
-            const barcode = input.value.trim();
-            if (barcode) {
-                input.value = "";
-                this.onBarcodeScanned(barcode);
-            }
-        }
-    }
-
-    _onBarcodeBlur(ev) {
-        if (!this._isProcessing) {
-            setTimeout(() => this._focusBarcodeInput(), 0);
-        }
-    }
-
-    _focusBarcodeInput() {
-        const input = this.barcodeInputRef.el;
-        if (input) {
-            input.focus();
-            input.value = "";
-        }
-    }
 
     _bindVisibilityChange() {
         this._onVisibilityChange = () => {
@@ -356,46 +248,8 @@ class InternalTransfer extends Component {
         }
     }
 
-    exit() {
-        this.action.doAction("stock_barcode_lite_homepage");
-    }
-
     _goHome() {
         this.action.doAction("stock_barcode_lite_homepage");
-    }
-
-    // ═══════════════════════════════════════════════════════════════
-    // 辅助方法
-    // ═══════════════════════════════════════════════════════════════
-
-    showMessage(text, type = "info") {
-        this.state.message = text;
-        this.state.messageType = type;
-        clearTimeout(this._messageTimer);
-        if (type !== "danger") {
-            this._messageTimer = setTimeout(() => {
-                if (this.state.message === text) {
-                    this.state.message = "";
-                }
-            }, 4000);
-        }
-    }
-
-    _flashScreen(pattern, repeat) {
-        if ("vibrate" in navigator) {
-            navigator.vibrate(repeat ? pattern : 100);
-        }
-    }
-
-    formatError(err) {
-        return (
-            err?.data?.arguments?.[0] ||
-            (err?.data?.message
-                ? err.data.message.replace(/^odoo\.exceptions\.[^:]+:\s*/, "")
-                : "") ||
-            err?.message ||
-            _t("Unknown error")
-        );
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -461,30 +315,6 @@ class InternalTransfer extends Component {
     get isAllComplete() {
         return this.state.scanned_packages.length > 0 &&
                this.state.scanned_packages.every(p => p.is_updated);
-    }
-
-    getStateBadgeClass(state) {
-        const map = {
-            draft: "bg-secondary",
-            waiting: "bg-warning text-dark",
-            confirmed: "bg-info",
-            assigned: "bg-primary",
-            done: "bg-success",
-            cancel: "bg-danger",
-        };
-        return map[state] || "bg-secondary";
-    }
-
-    getStateLabel(state) {
-        const map = {
-            draft: _t("Draft"),
-            waiting: _t("Waiting"),
-            confirmed: _t("Confirmed"),
-            assigned: _t("Ready"),
-            done: _t("Done"),
-            cancel: _t("Cancelled"),
-        };
-        return map[state] || state;
     }
 }
 

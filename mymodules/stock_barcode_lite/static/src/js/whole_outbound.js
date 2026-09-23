@@ -1,7 +1,6 @@
 /** @odoo-module **/
 
-import { useService } from "@web/core/utils/hooks";
-import { Component, useState, useRef, onMounted, onWillUnmount } from "@odoo/owl";
+import { BaseBarcodePage } from "./base_barcode_page";
 import { _t } from "@web/core/l10n/translation";
 
 /**
@@ -19,141 +18,13 @@ import { _t } from "@web/core/l10n/translation";
  * 本页面完全依赖后端接口 process_outgoing_scan_barcode 驱动流程，
  * 后端返回统一的 scan_state 结构，前端负责渲染和交互。
  */
-export class WholePalletOutboundPage extends Component {
+export class WholePalletOutboundPage extends BaseBarcodePage {
     static template = "stock_barcode_lite.WholePalletOutboundPage";
     static props = {};
-
-    setup() {
-        this.orm = useService("orm");
-        this.notification = useService("notification");
-        this.action = useService("action");
-
-        this.state = useState({
-            order: null,
-            pallets: [],
-            currentLocation: {},
-            currentPallet: {},
-            currentProduct: {},
-            currentLot: {},
-            nextStep: "scan_picking",
-            message: "",
-            messageType: "info",
-            loading: false,
-            summary: {
-                total_pallets: 0,
-                completed_pallets: 0,
-                pending_pallets: 0,
-                total_quantity: 0.0,
-                scanned_quantity: 0.0,
-                remaining_quantity: 0.0,
-                related_pending_picking_names: [],
-                related_pending_picking_count: 0,
-                related_picking_message: "",
-            },
-            lastScan: {},
-            updatedMoveLineIds: [],
-        });
-
-        // 扫码输入缓冲
-        this._scanTimer = null;
-        this._isProcessing = false;
-        this._isPDA = this._detectPDA();
-
-        this.barcodeInputRef = useRef("barcodeInput");
-        this.scrollContainerRef = useRef("palletsContainer");
-
-        onMounted(async () => {
-            this._bindKeyListener();
-            this._bindVisibilityChange();
-            this._bindGlobalInteractionListener();
-            this._bindCollapseEvents();
-            this._focusBarcodeInput();
-        });
-
-        onWillUnmount(() => {
-            this._unbindKeyListener();
-            this._unbindVisibilityChange();
-            this._unbindGlobalInteractionListener();
-            this._clearScanTimer();
-        });
-    }
-
-    // ═══════════════════════════════════════════════════════════════
-    // 设备检测
-    // ═══════════════════════════════════════════════════════════════
-
-//    _detectPDA() {
-//        const hasTouchScreen = (
-//            "ontouchstart" in window ||
-//            navigator.maxTouchPoints > 0 ||
-//            window.matchMedia("(pointer: coarse)").matches
-//        );
-//        const isDesktop = window.matchMedia("(min-width: 1024px)").matches && !hasTouchScreen;
-//        return !isDesktop;
-//    }
-
-    _detectPDA() {
-        // 精确指向设备（鼠标、触控笔）→ 不可能是PDA扫码枪
-        const hasFinePointer = window.matchMedia('(pointer: fine)').matches;
-        // 支持hover（鼠标悬停）→ 不可能是PDA扫码枪
-        const hasHover = window.matchMedia('(hover: hover)').matches;
-        // 小屏幕（≤ 768px 宽）→ 可能是手持PDA
-        const isSmallScreen = window.matchMedia('(max-width: 768px)').matches;
-        // 触屏可用
-        const hasTouchScreen = (
-            'ontouchstart' in window ||
-            navigator.maxTouchPoints > 0 ||
-            window.matchMedia('(pointer: coarse)').matches
-        );
-
-        // PDA只有在小屏、触屏、无精确指针、无hover的设备上才判定为真
-        // 从而排除桌面、大屏平板、触屏笔记本
-        return isSmallScreen && hasTouchScreen && !hasFinePointer && !hasHover;
-    }
 
     // ═══════════════════════════════════════════════════════════════
     // 扫码监听
     // ═══════════════════════════════════════════════════════════════
-
-    _onBarcodeInput(ev) {
-        const input = ev.target;
-        if (!input) return;
-
-        const value = input.value;
-        if (ev.inputType === "insertLineFeed" || value.includes("\n") || value.includes("\r")) {
-            const barcode = value.replace(/\n/g, "").replace(/\r/g, "").trim();
-            if (barcode) {
-                input.value = "";
-                this.onBarcodeScanned(barcode);
-            }
-        }
-    }
-
-    _onBarcodeKeydown(ev) {
-        if (ev.key === "Enter") {
-            ev.preventDefault();
-            const input = ev.target;
-            const barcode = input.value.trim();
-            if (barcode) {
-                input.value = "";
-                this.onBarcodeScanned(barcode);
-            }
-        }
-    }
-
-    _onBarcodeBlur(ev) {
-        if (!this._isProcessing && !this._isPDA) {
-            setTimeout(() => this._focusBarcodeInput(), 0);
-        }
-    }
-
-    _focusBarcodeInput() {
-        const input = this.barcodeInputRef.el;
-        if (input) {
-            input.focus();
-            input.value = "";
-        }
-    }
 
     _bindKeyListener() {
         const input = this.barcodeInputRef.el;
@@ -305,13 +176,6 @@ export class WholePalletOutboundPage extends Component {
                 }
             });
         });
-    }
-
-    _clearScanTimer() {
-        if (this._scanTimer) {
-            clearTimeout(this._scanTimer);
-            this._scanTimer = null;
-        }
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -504,45 +368,9 @@ export class WholePalletOutboundPage extends Component {
         this._focusBarcodeInput();
     }
 
-    exit() {
-        this.action.doAction("stock_barcode_lite_homepage");
-    }
-
     // ═══════════════════════════════════════════════════════════════
     // 辅助方法
     // ═══════════════════════════════════════════════════════════════
-
-    showMessage(text, type = "info") {
-        this.state.message = text;
-        this.state.messageType = type;
-        clearTimeout(this._messageTimer);
-
-        // 错误消息保持到下一次扫码，不自动消失
-        if (type !== "danger") {
-            this._messageTimer = setTimeout(() => {
-                if (this.state.message === text) {
-                    this.state.message = "";
-                }
-            }, 4000);
-        }
-    }
-
-    _flashScreen(pattern, repeat) {
-        if ("vibrate" in navigator) {
-            navigator.vibrate(repeat ? pattern : 100);
-        }
-    }
-
-    formatError(err) {
-        return (
-            err?.data?.arguments?.[0] ||
-            (err?.data?.message
-                ? err.data.message.replace(/^odoo\.exceptions\.[^:]+\:\s*/, "")
-                : "") ||
-            err?.message ||
-            _t("Unknown error")
-        );
-    }
 
     _getEmptySummary() {
         return {
