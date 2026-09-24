@@ -1,0 +1,117 @@
+<odoo>
+    <record id="view_qooling_inbound_form_list" model="ir.ui.view">
+        <field name="name">wd.qooling.inbound.form.list</field>
+        <field name="model">wd.qooling.inbound.form</field>
+        <field name="arch" type="xml">
+            <list string="Inbound Forms">
+                <field name="name"/>
+                <field name="date"/>
+                <field name="location_id"/>
+                <field name="supervisor_id"/>
+                <field name="state"/>
+                <field name="ref_no"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_qooling_inbound_form_search" model="ir.ui.view">
+        <field name="name">wd.qooling.inbound.form.search</field>
+        <field name="model">wd.qooling.inbound.form</field>
+        <field name="arch" type="xml">
+            <search string="Inbound Forms">
+                <field name="date"/>
+                <field name="filled_in_by_id"/>
+                <field name="ref_no"/>
+                <filter name="draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="submitted" string="Submitted" domain="[('state', '=', 'submitted')]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_qooling_inbound_form" model="ir.ui.view">
+        <field name="name">wd.qooling.inbound.form</field>
+        <field name="model">wd.qooling.inbound.form</field>
+        <field name="arch" type="xml">
+            <form string="Inbound Form">
+                <header>
+                    <button name="action_submit" type="object" string="Submit" class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_reset_to_draft" type="object" string="Reset to Draft"
+                            invisible="state != 'submitted'"
+                            groups="wd_qooling_app.group_qooling_inbound_reviewer"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="location_id"/>
+                            <field name="date"/>
+                            <field name="supervisor_id"/>
+                            <field name="filled_in_by_id"/>
+                            <field name="filing_date"/>
+                            <field name="ref_no"/>
+                        </group>
+                        <group>
+                            <field name="goods_status"/>
+                            <field name="unloading_permission"/>
+                            <field name="mrn_number"/>
+                            <field name="seal_number"/>
+                            <field name="skal_bio_product"/>
+                            <field name="bl_number"/>
+                            <field name="container_shipment_number"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Checks">
+                            <group>
+                                <field name="checked_visible_damage"/>
+                                <field name="checked_received_quantity"/>
+                                <field name="checked_product_quality"/>
+                                <field name="packaging_condition"/>
+                                <field name="gas_measurement"/>
+                                <field name="gas_measurement_status"/>
+                                <field name="ventilated"/>
+                                <field name="status_after_ventilation"/>
+                            </group>
+                        </page>
+                        <page string="ADR and Temperature">
+                            <group>
+                                <field name="adr"/>
+                                <field name="un_number" invisible="adr != 'yes'" required="adr == 'yes'"/>
+                                <field name="temperature_measured" invisible="adr != 'yes'" required="adr == 'yes'"/>
+                                <field name="pallet_temperature_registered" invisible="adr != 'yes'" required="adr == 'yes'"/>
+                                <field name="average_temperature_per_pallet" invisible="adr != 'yes'"/>
+                            </group>
+                        </page>
+                        <page string="Evidence">
+                            <group>
+                                <field name="photo_ids" widget="qooling_photo_gallery"/>
+                                <field name="comments"/>
+                                <field name="warehouse_signature" widget="qooling_signature"/>
+                                <field name="signer_id" readonly="1"/>
+                                <field name="signature_time" readonly="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_qooling_inbound_form" model="ir.actions.act_window">
+        <field name="name">Inbound Forms</field>
+        <field name="res_model">wd.qooling.inbound.form</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create an Inbound Form</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_qooling_root" name="Qooling"/>
+    <menuitem id="menu_qooling_inbound" name="Inbound Forms"
+              parent="menu_qooling_root" action="action_qooling_inbound_form"
+              groups="base.group_user,wd_qooling_app.group_qooling_inbound_user"/>
+</odoo>

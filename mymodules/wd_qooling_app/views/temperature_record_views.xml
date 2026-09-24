@@ -1,0 +1,121 @@
+<odoo>
+    <record id="view_qooling_temperature_record_list" model="ir.ui.view">
+        <field name="name">wd.qooling.temperature.record.list</field>
+        <field name="model">wd.qooling.temperature.record</field>
+        <field name="arch" type="xml">
+            <list string="Temperature Records">
+                <field name="name"/>
+                <field name="date"/>
+                <field name="customer"/>
+                <field name="container_number"/>
+                <field name="total_pallets"/>
+                <field name="filled_in_by_id"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_qooling_temperature_record_search" model="ir.ui.view">
+        <field name="name">wd.qooling.temperature.record.search</field>
+        <field name="model">wd.qooling.temperature.record</field>
+        <field name="arch" type="xml">
+            <search string="Temperature Records">
+                <field name="name"/>
+                <field name="date"/>
+                <field name="filled_in_by_id"/>
+                <field name="customer"/>
+                <field name="container_number"/>
+                <filter name="draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="submitted" string="Submitted" domain="[('state', '=', 'submitted')]"/>
+                <filter name="exception_pending" string="Exception Pending"
+                        domain="[('state', '=', 'exception_pending')]"/>
+                <filter name="closed" string="Closed" domain="[('state', '=', 'closed')]"/>
+            </search>
+        </field>
+    </record>
+    <record id="view_qooling_temperature_record_form" model="ir.ui.view">
+        <field name="name">wd.qooling.temperature.record.form</field>
+        <field name="model">wd.qooling.temperature.record</field>
+        <field name="arch" type="xml">
+            <form string="Temperature Record">
+                <header>
+                    <button name="action_submit" type="object" string="Submit"
+                            class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_mark_exception" type="object" string="Mark Exception"
+                            invisible="state != 'submitted'"
+                            groups="wd_qooling_app.group_temperature_supervisor"/>
+                    <button name="action_close" type="object" string="Close"
+                            invisible="state != 'exception_pending'"
+                            groups="wd_qooling_app.group_temperature_supervisor"/>
+                    <button name="action_reset_to_draft" type="object" string="Reset to Draft"
+                            invisible="state not in ('submitted', 'exception_pending', 'closed')"
+                            groups="wd_qooling_app.group_temperature_supervisor"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,submitted,exception_pending,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name" readonly="1"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="date"/>
+                            <field name="manager_id"/>
+                            <field name="customer"/>
+                            <field name="container_number"/>
+                            <field name="location_id"/>
+                        </group>
+                        <group>
+                            <field name="filled_in_by_id"/>
+                            <field name="filing_date"/>
+                            <field name="total_pallets" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Pallet Temperatures">
+                            <group string="Quick temperature entry">
+                                <field name="quick_temperature"
+                                       widget="qooling_temperature_quick_entry"
+                                       placeholder="Enter temperature and press Enter"/>
+                                <button name="action_add_quick_temperature" type="object"
+                                        string="Add temperature" class="btn-primary"/>
+                            </group>
+                            <button name="action_clear_lines" type="object"
+                                    string="Clear all pallets" class="btn-secondary"
+                                    confirm="Clear all pallet lines?"/>
+                            <field name="line_ids">
+                                <list editable="bottom" create="1" delete="0">
+                                    <field name="pallet_number" readonly="1"/>
+                                    <field name="temperature"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Checks and Evidence">
+                            <group>
+                                <field name="packaging_damage"/>
+                                <field name="unpacked_housing_damage"/>
+                                <field name="electrolyte_leakage"/>
+                                <field name="storage_stability"/>
+                            </group>
+                            <group>
+                                <field name="photo_ids" widget="qooling_photo_gallery"/>
+                                <field name="comments"/>
+                                <field name="signature" widget="qooling_signature"/>
+                                <field name="signer_id" readonly="1"/>
+                                <field name="signature_time" readonly="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_qooling_temperature_record" model="ir.actions.act_window">
+        <field name="name">Temperature Records</field>
+        <field name="res_model">wd.qooling.temperature.record</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create a Temperature Record</p>
+        </field>
+    </record>
+    <menuitem id="menu_qooling_temperature_record" name="Temperature Records"
+              parent="menu_qooling_root" action="action_qooling_temperature_record"
+              groups="wd_qooling_app.group_temperature_user"/>
+</odoo>

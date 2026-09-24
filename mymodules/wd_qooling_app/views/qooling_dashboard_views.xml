@@ -1,0 +1,38 @@
+<odoo>
+    <record id="action_qooling_dashboard" model="ir.actions.client">
+        <field name="name">Qooling Dashboard</field>
+        <field name="tag">qooling_dashboard</field>
+    </record>
+    <record id="action_qooling_inbound_pda" model="ir.actions.client">
+        <field name="name">Inbound Record (PDA)</field>
+        <field name="tag">wd_qooling_inbound_pda</field>
+    </record>
+
+    <record id="menu_qooling_root" model="ir.ui.menu">
+        <field name="name">Qooling</field>
+        <field name="action" ref="action_qooling_dashboard"/>
+    </record>
+
+    <menuitem id="menu_qooling_forms" name="FORMS" parent="menu_qooling_root"
+              sequence="10"/>
+    <menuitem id="menu_qooling_forms_web" name="WEB" parent="menu_qooling_forms"
+              sequence="10"/>
+    <menuitem id="menu_qooling_forms_pda" name="PDA"
+              parent="menu_qooling_forms" sequence="20"/>
+    <menuitem id="menu_qooling_inbound_pda" name="Inbound Record"
+              parent="menu_qooling_forms_pda" action="action_qooling_inbound_pda"
+              sequence="10"/>
+
+    <record id="menu_qooling_inbound" model="ir.ui.menu">
+        <field name="name">Inbound Record</field>
+        <field name="parent_id" ref="menu_qooling_forms_web"/>
+    </record>
+    <record id="menu_qooling_outbound" model="ir.ui.menu">
+        <field name="name">Outbound Record</field>
+        <field name="parent_id" ref="menu_qooling_forms_web"/>
+    </record>
+    <record id="menu_qooling_temperature_record" model="ir.ui.menu">
+        <field name="name">Temperature Record</field>
+        <field name="parent_id" ref="menu_qooling_forms_web"/>
+    </record>
+</odoo>

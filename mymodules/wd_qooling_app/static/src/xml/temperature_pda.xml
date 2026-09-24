@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="wd_qooling_app.TemperaturePda">
+        <main t-att-class="'o_qooling_pda ' + (isReadOnly ? 'is-readonly' : '')" data-testid="temperature-pda">
+            <header class="o_qooling_pda__header"><div><span class="text-muted">FORMS / PDA</span><h1>Temperature Record <span class="o_qooling_pda__record-name" data-testid="temperature-pda-record-name"><t t-esc="state.record.name || 'New'"/></span></h1></div><button class="btn btn-outline-secondary" type="button" t-on-click="openWebForm">Open web form</button></header>
+            <nav class="o_qooling_pda__steps" aria-label="Temperature steps"><t t-foreach="steps" t-as="item" t-key="item.key"><button type="button" t-att-class="state.step === steps.indexOf(item) ? 'active' : ''" t-on-click="() => state.step = steps.indexOf(item)" t-att-data-testid="'temperature-pda-step-' + item.key"><span><t t-esc="steps.indexOf(item) + 1"/></span><t t-esc="item.label"/></button></t></nav>
+            <div t-if="state.error" class="alert alert-danger" data-testid="temperature-pda-error"><t t-esc="state.error"/></div>
+            <div t-if="state.saved" class="alert alert-success" data-testid="temperature-pda-feedback"><t t-esc="state.saved"/></div>
+            <div t-if="isReadOnly" class="alert alert-info" role="status">This record is submitted and read-only.</div>
+            <section class="o_qooling_pda__body">
+                <div t-if="state.step === 0" data-testid="temperature-pda-details">
+                    <label>Date<input class="form-control" type="datetime-local" data-field="date" t-att-value="state.record.date" t-on-input="onFieldChange"/></label>
+                    <label>Manager<select class="form-select" data-field="manager_id" t-on-change="onFieldChange"><option value="">Select manager</option><t t-foreach="state.users" t-as="user" t-key="user.id"><option t-att-value="user.id"><t t-esc="user.name"/></option></t></select></label>
+                    <label>Customer<input class="form-control" data-field="customer" t-att-value="state.record.customer || ''" t-on-input="onFieldChange"/></label>
+                    <label>Container number<input class="form-control" data-field="container_number" t-att-value="state.record.container_number || ''" t-on-input="onFieldChange"/></label>
+                    <label>Location<select class="form-select" data-field="location_id" t-on-change="onFieldChange"><option value="">Select location</option><t t-foreach="state.warehouses" t-as="warehouse" t-key="warehouse.id"><option t-att-value="warehouse.id"><t t-esc="warehouse.name"/></option></t></select></label>
+                </div>
+                <div t-elif="state.step === 1" data-testid="temperature-pda-temperatures">
+                    <form t-on-submit="addTemperature"><label>Quick temperature (°C)<input class="form-control" type="number" step="0.1" t-model="state.quickTemperature" data-testid="temperature-pda-quick-temperature"/></label></form>
+                    <div class="list-group"><div t-foreach="state.lines" t-as="line" t-key="line.id" class="list-group-item d-flex gap-2"><strong><t t-esc="line.pallet_number"/></strong><input class="form-control" type="number" step="0.1" t-att-value="line.temperature" t-on-change="(event) => updateLine(line, event)"/></div></div>
+                    <button type="button" class="btn btn-outline-danger mt-3" t-on-click="clearAll">Clear all temperatures</button>
+                </div>
+                <div t-elif="state.step === 2" data-testid="temperature-pda-checks">
+                    <t t-foreach="checks" t-as="check" t-key="check[0]"><label><t t-esc="check[1]"/><select class="form-select" t-att-data-field="check[0]" t-on-change="onFieldChange"><option value="">Not recorded</option><option value="yes">Yes</option><option value="no">No</option></select></label></t>
+                </div>
+                <div t-elif="state.step === 3" data-testid="temperature-pda-evidence">
+                    <div class="o_qooling_pda__upload"><label class="btn btn-secondary me-2"><i class="fa fa-camera me-1"/> Take photo<input class="d-none" type="file" accept="image/*" capture="environment" t-on-change="onPhoto"/></label><label class="btn btn-secondary"><i class="fa fa-video-camera me-1"/> Record video<input class="d-none" type="file" accept="video/*" capture="environment" t-on-change="onPhoto"/></label><label class="btn btn-outline-secondary ms-2"><i class="fa fa-paperclip me-1"/> Attach media<input class="d-none" type="file" accept="image/*,video/*" multiple="multiple" t-on-change="onPhoto"/></label></div>
+                    <div class="o_qooling_pda__photos"><div t-foreach="state.photos" t-as="photo" t-key="photo.id" class="o_qooling_pda__photo"><video t-if="isVideo(photo)" t-att-src="'/web/content/' + photo.id" class="o_qooling_pda__thumbnail" muted="muted" preload="metadata"/><img t-else="" t-att-src="'/web/content/' + photo.id" t-att-alt="photo.name" class="o_qooling_pda__thumbnail"/><div class="o_qooling_pda__photo-actions"><button type="button" class="btn btn-sm btn-light" t-on-click="() => state.preview = photo.id" aria-label="Preview media"><i class="fa fa-search-plus"/></button><button type="button" class="btn btn-sm btn-danger" t-on-click="() => deletePhoto(photo.id)" aria-label="Delete media"><i class="fa fa-trash"/></button></div></div></div>
+                    <label>Comments<textarea class="form-control" data-field="comments" t-on-input="onFieldChange"><t t-esc="state.record.comments || ''"/></textarea></label>
+                </div>
+                <div t-elif="state.step === 4" data-testid="temperature-pda-signature"><label>Signature</label><canvas t-ref="signatureCanvas" class="o_qooling_pda__signature" data-testid="temperature-pda-signature-canvas" t-on-pointerdown="startSignature" t-on-pointermove="moveSignature" t-on-pointerup="endSignature" t-on-pointercancel="endSignature" t-on-touchstart="startSignature" t-on-touchmove="moveSignature" t-on-touchend="endSignature"/><button type="button" class="btn btn-outline-secondary mt-2" t-on-click="clearSignature">Clear signature</button></div>
+            </section>
+            <footer class="o_qooling_pda__footer"><button class="btn btn-outline-secondary" type="button" t-on-click="previous" t-att-disabled="state.step === 0">Back</button><button t-if="state.step &lt; steps.length - 1" class="btn btn-primary" type="button" t-on-click="next">Next</button><button t-if="!isReadOnly" class="btn btn-outline-primary" type="button" t-on-click="save" t-att-disabled="state.busy">Save draft</button><button t-if="state.step === steps.length - 1 &amp;&amp; !isReadOnly" class="btn btn-success" type="button" t-on-click="submit" t-att-disabled="state.busy">Submit</button></footer>
+            <div t-if="state.preview" class="o_qooling_pda__preview" role="dialog" t-on-click="() => state.preview = false"><video t-if="isVideo(getPreviewPhoto())" t-att-src="'/web/content/' + state.preview" controls="controls" autoplay="autoplay" t-on-click.stop="() => {}"/><img t-else="" t-att-src="'/web/content/' + state.preview" alt="Enlarged temperature evidence" t-on-click.stop="() => {}"/></div>
+        </main>
+    </t>
+</templates>
