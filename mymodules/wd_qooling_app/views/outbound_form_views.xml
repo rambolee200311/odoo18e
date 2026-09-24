@@ -1,0 +1,129 @@
+<odoo>
+    <record id="view_qooling_outbound_form_list" model="ir.ui.view">
+        <field name="name">wd.qooling.outbound.form.list</field>
+        <field name="model">wd.qooling.outbound.form</field>
+        <field name="arch" type="xml">
+            <list string="Outbound Forms">
+                <field name="name"/>
+                <field name="date_arrival"/>
+                <field name="location_id"/>
+                <field name="filled_in_by_id"/>
+                <field name="state"/>
+                <field name="ref_no"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_qooling_outbound_form_search" model="ir.ui.view">
+        <field name="name">wd.qooling.outbound.form.search</field>
+        <field name="model">wd.qooling.outbound.form</field>
+        <field name="arch" type="xml">
+            <search string="Outbound Forms">
+                <field name="date_arrival"/>
+                <field name="filled_in_by_id"/>
+                <field name="ref_no"/>
+                <filter name="draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="submitted" string="Submitted" domain="[('state', '=', 'submitted')]"/>
+            </search>
+        </field>
+    </record>
+    <record id="view_qooling_outbound_form" model="ir.ui.view">
+        <field name="name">wd.qooling.outbound.form</field>
+        <field name="model">wd.qooling.outbound.form</field>
+        <field name="arch" type="xml">
+            <form string="Outbound Form">
+                <header>
+                    <button name="action_submit" type="object" string="Submit" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_mark_exception" type="object" string="Mark Exception" invisible="state != 'submitted'" groups="wd_qooling_app.group_qooling_outbound_reviewer"/>
+                    <button name="action_close" type="object" string="Close" invisible="state != 'exception_pending'" groups="wd_qooling_app.group_qooling_outbound_reviewer"/>
+                    <button name="action_reset_to_draft" type="object" string="Reset to Draft" invisible="state not in ('submitted', 'exception_pending', 'closed')" groups="wd_qooling_app.group_qooling_outbound_reviewer"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,exception_pending,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name" readonly="1"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="location_id"/>
+                            <field name="date_arrival"/>
+                            <field name="start_loading_at"/>
+                            <field name="end_loading_at"/>
+                            <field name="supervisor_id"/>
+                            <field name="filled_in_by_id"/>
+                            <field name="filing_date"/>
+                            <field name="ref_no"/>
+                        </group>
+                        <group>
+                            <field name="goods_type"/>
+                            <field name="mrn_number"/>
+                            <field name="seal_number"/>
+                            <field name="mrn_checked_before_release"/>
+                            <field name="adr"/>
+                            <field name="un_number"/>
+                            <field name="proper_shipping_name"/>
+                            <field name="measured_temperature"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Loading and Cargo">
+                            <group>
+                                <field name="loading_plan_discussed"/>
+                                <field name="adr_separation_compatibility"/>
+                                <field name="weight_distribution"/>
+                                <field name="check_loading_visible_damage"/>
+                                <field name="check_loading_quantity"/>
+                                <field name="cargo_packaging"/>
+                                <field name="cargo_identification"/>
+                                <field name="cargo_secured"/>
+                            </group>
+                        </page>
+                        <page string="Vehicle and Driver">
+                            <group>
+                                <field name="vehicle_adr_certificate"/>
+                                <field name="vehicle_fire_extinguisher"/>
+                                <field name="vehicle_adr_sign"/>
+                                <field name="vehicle_fixing_material"/>
+                                <field name="vehicle_trem_card"/>
+                                <field name="driver_adr_certificate"/>
+                                <field name="driver_safety_vest"/>
+                                <field name="driver_eye_protection"/>
+                                <field name="driver_protective_gloves"/>
+                                <field name="driver_wheel_chock"/>
+                                <field name="driver_tarpaulin"/>
+                                <field name="driver_flashlight"/>
+                                <field name="driver_shovel"/>
+                                <field name="driver_drip_tray"/>
+                                <field name="driver_eyewash"/>
+                                <field name="driver_warning_triangles"/>
+                            </group>
+                        </page>
+                        <page string="Evidence and Signatures">
+                            <group>
+                                <field name="photo_ids" widget="attachment_preview" readonly="not id or state != 'draft'"
+                                       options="{'accepted_file_extensions': 'image/*,video/*', 'number_of_files': 20}"/>
+                                <div class="alert alert-info mt-2 mb-0" invisible="id or state != 'draft'">
+                                    Save the draft before uploading media.
+                                </div>
+                                <field name="driver_comments"/>
+                                <field name="driver_signature" widget="qooling_signature"/>
+                                <field name="driver_signer_id" readonly="1"/>
+                                <field name="driver_signature_time" readonly="1"/>
+                                <field name="warehouse_operator_comments"/>
+                                <field name="warehouse_signature" widget="qooling_signature"/>
+                                <field name="warehouse_signer_id" readonly="1"/>
+                                <field name="warehouse_signature_time" readonly="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="action_qooling_outbound_form" model="ir.actions.act_window">
+        <field name="name">Outbound Forms</field>
+        <field name="res_model">wd.qooling.outbound.form</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">Create an Outbound Form</p></field>
+    </record>
+    <menuitem id="menu_qooling_outbound" name="Outbound Forms" parent="menu_qooling_root"
+              action="action_qooling_outbound_form"
+              groups="base.group_user,wd_qooling_app.group_qooling_outbound_user"/>
+</odoo>

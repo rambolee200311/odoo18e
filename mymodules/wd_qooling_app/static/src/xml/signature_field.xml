@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="wd_qooling_app.QoolingSignatureField">
+        <div class="o_qooling_signature_field">
+            <canvas t-ref="canvas" class="border rounded w-100" style="height: 180px; touch-action: none;"/>
+            <button type="button" class="btn btn-secondary mt-2" t-on-click="clear">Clear</button>
+        </div>
+    </t>
+</templates>

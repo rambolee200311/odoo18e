@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="wd_qooling_app.QoolingTemperatureQuickEntry">
+        <input t-ref="input" type="number" step="any" class="o_input"
+               t-att-value="props.value || ''"
+               placeholder="Enter temperature and press Enter"
+               t-on-keydown="onKeydown"/>
+    </t>
+</templates>

@@ -1,0 +1,1833 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"PO-Revision-Date: 2026-09-24 09:30+0800\n"
+"Last-Translator: Qooling Team\n"
+"Language-Team: Dutch\n"
+"Language: nl_NL\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. module: wd_qooling_app
+#. odoo-python
+#: code:addons/wd_qooling_app/models/outbound_form.py:0
+msgid "%s signature audit fields are required."
+msgstr "%s signature audit fields are required."
+
+#. module: wd_qooling_app
+#. odoo-python
+#: code:addons/wd_qooling_app/models/temperature_record.py:0
+msgid "A handwritten signature is required before submission."
+msgstr "Een handgeschreven handtekening is vereist voordat u indient."
+
+#. module: wd_qooling_app
+#. odoo-python
+#: code:addons/wd_qooling_app/models/inbound_form.py:0
+msgid "A handwritten warehouse signature is required before submission."
+msgstr "Een handgeschreven magazijnhandtekening is vereist voordat u indient."
+
+#. module: wd_qooling_app
+#. odoo-python
+#: code:addons/wd_qooling_app/models/media_evidence.py:0
+msgid "A record can contain at most %(count)s media files."
+msgstr "A record can contain at most %(count)s media files."
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__adr
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__adr
+msgid "ADR"
+msgstr "ADR"
+
+#. module: wd_qooling_app
+#: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_inbound_form
+msgid "ADR and Temperature"
+msgstr "ADR en temperatuur"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__adr_separation_compatibility
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "ADR separation / compatibility"
+msgstr "ADR-scheiding / compatibiliteit"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/pda_record_dashboard.xml:0
+msgid "Action"
+msgstr "Actie"
+
+#. module: wd_qooling_app
+#: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_temperature_record_form
+msgid "Add temperature"
+msgstr "Temperatuur toevoegen"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/pda_record_dashboard.xml:0
+msgid "All statuses"
+msgstr "Alle statussen"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+msgid "Arrival"
+msgstr "Aankomst"
+
+#. module: wd_qooling_app
+#. odoo-python
+#: code:addons/wd_qooling_app/models/outbound_form.py:0
+msgid ""
+"Arrival, start loading, and end loading times must be in chronological "
+"order."
+msgstr ""
+"Arrival, start loading, and end loading times must be in chronological "
+"order."
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
+msgid "Attach media"
+msgstr "Media bijvoegen"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/photo_gallery_field.xml:0
+msgid "Attach photos or videos"
+msgstr "Foto's of video's bijvoegen"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+msgid "Average temperature"
+msgstr "Gemiddelde temperatuur"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__average_temperature_per_pallet
+msgid "Average temperature per pallet (°C)"
+msgstr "Average temperature per pallet (°C)"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__bl_number
+msgid "B/L"
+msgstr "B/L"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
+msgid "Back"
+msgstr "Terug"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_outbound_form__goods_type__bonded
+msgid "Bonded"
+msgstr "Douane-entrepot"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__ref_no
+msgid "Business Reference"
+msgstr "Zakelijke referentie"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+msgid "Business reference"
+msgstr "Bedrijfsreferentie"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__cargo_identification
+msgid "Cargo: correct identification"
+msgstr "Cargo: correct identification"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__cargo_packaging
+msgid "Cargo: packaging checked"
+msgstr "Cargo: packaging checked"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__cargo_secured
+msgid "Cargo: secured on truck"
+msgstr "Cargo: secured on truck"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+msgid "Checked for visible damage"
+msgstr "Gecontroleerd op zichtbare schade"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__checked_visible_damage
+msgid "Checked for visible damage or packaging issues"
+msgstr "Checked for visible damage or packaging issues"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_inbound_form
+#: code:addons/wd_qooling_app/static/src/js/inbound_pda.js:0
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Checks"
+msgstr "Controles"
+
+#. module: wd_qooling_app
+#: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_temperature_record_form
+msgid "Checks and Evidence"
+msgstr "Controles en bewijsmateriaal"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/pda_record_dashboard.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/signature_field.xml:0
+msgid "Clear"
+msgstr "Wissen"
+
+#. module: wd_qooling_app
+#: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_temperature_record_form
+msgid "Clear all pallet lines?"
+msgstr "Alle palletregels wissen?"
+
+#. module: wd_qooling_app
+#: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_temperature_record_form
+msgid "Clear all pallets"
+msgstr "Alle pallets wissen"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
+msgid "Clear all temperatures"
+msgstr "Alle temperaturen wissen"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
+msgid "Clear signature"
+msgstr "Handtekening wissen"
+
+#. module: wd_qooling_app
+#: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_outbound_form
+#: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_temperature_record_form
+msgid "Close"
+msgstr "Sluiten"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_outbound_form__state__closed
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_temperature_record__state__closed
+#: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_temperature_record_search
+#: code:addons/wd_qooling_app/static/src/js/pda_record_dashboard.js:0
+#: code:addons/wd_qooling_app/static/src/js/pda_record_dashboard.js:0
+msgid "Closed"
+msgstr "Gesloten"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__comments
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__comments
+msgid "Comments"
+msgstr "Opmerkingen"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__container_number
+msgid "Container Number"
+msgstr "Containernummer"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__container_shipment_number
+msgid "Container Number / Shipment Number"
+msgstr "Containernummer / zendingsnummer"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
+msgid "Container number"
+msgstr "Containernummer"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+msgid "Container number / shipment number"
+msgstr "Containernummer / zendingnummer"
+
+#. module: wd_qooling_app
+#: model_terms:ir.actions.act_window,help:wd_qooling_app.action_qooling_temperature_record
+msgid "Create a Temperature Record"
+msgstr "Temperatuurregistratie maken"
+
+#. module: wd_qooling_app
+#: model_terms:ir.actions.act_window,help:wd_qooling_app.action_qooling_inbound_form
+msgid "Create an Inbound Form"
+msgstr "Inbound-formulier maken"
+
+#. module: wd_qooling_app
+#: model_terms:ir.actions.act_window,help:wd_qooling_app.action_qooling_outbound_form
+msgid "Create an Outbound Form"
+msgstr "Outbound-formulier maken"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__create_uid
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__create_uid
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__create_uid
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record_line__create_uid
+msgid "Created by"
+msgstr "Aangemaakt door"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__create_date
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__create_date
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__create_date
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record_line__create_date
+msgid "Created on"
+msgstr "Aangemaakt op"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__customer
+msgid "Customer"
+msgstr "Klant"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__gas_measurement_status__dangerous
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__status_after_ventilation__dangerous
+msgid "Dangerous"
+msgstr "Dangerous"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/pda_record_dashboard.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__date
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__date
+msgid "Date"
+msgstr "Datum"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__date_arrival
+msgid "Date and time arrival"
+msgstr "Datum en tijd van aankomst"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+msgid "Delete image"
+msgstr "Afbeelding verwijderen"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/photo_gallery_field.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
+msgid "Delete media"
+msgstr "Media verwijderen"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__display_name
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__display_name
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__display_name
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record_line__display_name
+msgid "Display Name"
+msgstr "Display Name"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/pda_record_dashboard.xml:0
+msgid "Document"
+msgstr "Document"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/pda_record_dashboard.xml:0
+msgid "Document number"
+msgstr "Documentnummer"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__state__draft
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_outbound_form__state__draft
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_temperature_record__state__draft
+#: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_inbound_form_search
+#: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_outbound_form_search
+#: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_temperature_record_search
+#: code:addons/wd_qooling_app/static/src/js/pda_record_dashboard.js:0
+#: code:addons/wd_qooling_app/static/src/js/pda_record_dashboard.js:0
+#: code:addons/wd_qooling_app/static/src/js/pda_record_dashboard.js:0
+msgid "Draft"
+msgstr "Concept"
+
+#. module: wd_qooling_app
+#. odoo-python
+#: code:addons/wd_qooling_app/models/outbound_form.py:0
+msgid "Driver"
+msgstr "Chauffeur"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__driver_comments
+msgid "Driver comments"
+msgstr "Opmerkingen chauffeur"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__driver_signature
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Driver signature"
+msgstr "Handtekening chauffeur"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__driver_signature_time
+msgid "Driver signature time"
+msgstr "Driver signature time"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__driver_signer_id
+msgid "Driver signer"
+msgstr "Driver signer"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__driver_adr_certificate
+msgid "Driver: ADR certificate"
+msgstr "Driver: ADR certificate"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__driver_drip_tray
+msgid "Driver: drip tray"
+msgstr "Driver: drip tray"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__driver_eye_protection
+msgid "Driver: eye protection"
+msgstr "Driver: eye protection"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__driver_eyewash
+msgid "Driver: eyewash bottle"
+msgstr "Driver: eyewash bottle"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__driver_flashlight
+msgid "Driver: flashlight"
+msgstr "Driver: flashlight"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__driver_protective_gloves
+msgid "Driver: protective gloves"
+msgstr "Driver: protective gloves"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__driver_safety_vest
+msgid "Driver: reflective safety vest"
+msgstr "Driver: reflective safety vest"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__driver_shovel
+msgid "Driver: shovel"
+msgstr "Driver: shovel"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__driver_tarpaulin
+msgid "Driver: tarpaulin"
+msgstr "Driver: tarpaulin"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__driver_warning_triangles
+msgid "Driver: two independent warning triangles"
+msgstr "Driver: two independent warning triangles"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__driver_wheel_chock
+msgid "Driver: wheel chock"
+msgstr "Driver: wheel chock"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__electrolyte_leakage
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+msgid "Electrolyte leakage"
+msgstr "Lekkage van elektrolyt"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+msgid "End loading"
+msgstr "Einde laden"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__end_loading_at
+msgid "End time of loading"
+msgstr "End time of loading"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+msgid "Enlarge image"
+msgstr "Enlarge image"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+msgid "Enlarged inbound evidence"
+msgstr "Enlarged inbound evidence"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+msgid "Enlarged outbound evidence"
+msgstr "Enlarged outbound evidence"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/photo_gallery_field.xml:0
+msgid "Enlarged photo"
+msgstr "Enlarged photo"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
+msgid "Enlarged temperature evidence"
+msgstr "Enlarged temperature evidence"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/temperature_quick_entry.xml:0
+#: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_temperature_record_form
+msgid "Enter temperature and press Enter"
+msgstr "Enter temperature and press Enter"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_inbound_form
+#: code:addons/wd_qooling_app/static/src/js/inbound_pda.js:0
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Evidence"
+msgstr "Bewijs"
+
+#. module: wd_qooling_app
+#: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_outbound_form
+msgid "Evidence and Signatures"
+msgstr "Bewijsmateriaal en handtekeningen"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_outbound_form__state__exception_pending
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_temperature_record__state__exception_pending
+#: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_temperature_record_search
+msgid "Exception Pending"
+msgstr "Uitzondering in behandeling"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/qooling_dashboard.xml:0
+#: model:ir.ui.menu,name:wd_qooling_app.menu_qooling_forms
+msgid "FORMS"
+msgstr "FORMULIEREN"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/pda_record_dashboard.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
+msgid "FORMS / PDA"
+msgstr "FORMULIEREN / PDA"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__filing_date
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__filing_date
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__filing_date
+msgid "Filing date"
+msgstr "Dossierdatum"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__filled_in_by_id
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__filled_in_by_id
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__filled_in_by_id
+msgid "Filled in by"
+msgstr "Ingevuld door"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/pda_record_dashboard.xml:0
+msgid "Filter"
+msgstr "Filter"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/pda_record_dashboard.xml:0
+msgid "Filters applied"
+msgstr "Filters toegepast"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__goods_status__free_union_goods
+msgid "Free union goods"
+msgstr "Vrije-uniegoederen"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/pda_record_dashboard.xml:0
+msgid "From"
+msgstr "Vanaf"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__gas_measurement
+msgid "Gas measurement"
+msgstr "Gasmeting"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__gas_measurement_status
+msgid "Gas measurement Status"
+msgstr "Gas measurement Status"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__packaging_condition__good
+msgid "Good"
+msgstr "Goed"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__goods_status
+msgid "Goods Status"
+msgstr "Goederenstatus"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+msgid "Goods status"
+msgstr "Goederenstatus"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__goods_type
+msgid "Goods type"
+msgstr "Goederentype"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__id
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__id
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__id
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record_line__id
+msgid "ID"
+msgstr "ID"
+
+#. module: wd_qooling_app
+#: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_inbound_form
+msgid "Inbound Form"
+msgstr "Inbound-formulier"
+
+#. module: wd_qooling_app
+#: model:ir.actions.act_window,name:wd_qooling_app.action_qooling_inbound_form
+#: model:ir.ui.menu,name:wd_qooling_app.menu_qooling_inbound
+#: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_inbound_form_list
+#: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_inbound_form_search
+msgid "Inbound Forms"
+msgstr "Inbound-formulieren"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/qooling_dashboard.xml:0
+#: model:ir.ui.menu,name:wd_qooling_app.menu_qooling_inbound_pda
+#: code:addons/wd_qooling_app/static/src/js/pda_record_dashboard.js:0
+msgid "Inbound Record"
+msgstr "Inbound-registratie"
+
+#. module: wd_qooling_app
+#: model:ir.actions.client,name:wd_qooling_app.action_qooling_inbound_pda_form
+msgid "Inbound Record (PDA Form)"
+msgstr "Inbound-registratie (PDA-formulier)"
+
+#. module: wd_qooling_app
+#: model:ir.actions.client,name:wd_qooling_app.action_qooling_inbound_pda
+msgid "Inbound Record (PDA)"
+msgstr "Inbound-registratie (PDA)"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+msgid "Inbound steps"
+msgstr "Inslagstappen"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_temperature_record__electrolyte_leakage__yes
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_temperature_record__packaging_damage__yes
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_temperature_record__storage_stability__yes
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_temperature_record__unpacked_housing_damage__yes
+msgid "Ja"
+msgstr "Ja"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__write_uid
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__write_uid
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__write_uid
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record_line__write_uid
+msgid "Last Updated by"
+msgstr "Laatst bijgewerkt door"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__write_date
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__write_date
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__write_date
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record_line__write_date
+msgid "Last Updated on"
+msgstr "Laatst bijgewerkt op"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,help:wd_qooling_app.field_wd_qooling_temperature_record__photo
+msgid "Legacy compatibility field. New evidence must use photo_ids."
+msgstr "Legacy compatibility field. New evidence must use photo_ids."
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__photo
+msgid "Legacy photo"
+msgstr "Legacy photo"
+
+#. module: wd_qooling_app
+#: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_outbound_form
+msgid "Loading and Cargo"
+msgstr "Laden en vracht"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__loading_plan_discussed
+msgid "Loading plan discussed with driver"
+msgstr "Loading plan discussed with driver"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/pda_record_dashboard.xml:0
+msgid "Loading records..."
+msgstr "Registraties laden..."
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__check_loading_quantity
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Loading: quantity checked"
+msgstr "Laden: hoeveelheid gecontroleerd"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__check_loading_visible_damage
+msgid "Loading: visible damage or packaging issues"
+msgstr "Loading: visible damage or packaging issues"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__location_id
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__location_id
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__location_id
+msgid "Location"
+msgstr "Locatie"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__mrn_number
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__mrn_number
+msgid "MRN Number"
+msgstr "MRN Number"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__mrn_checked_before_release
+msgid "MRN checked before release"
+msgstr "MRN checked before release"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+msgid "MRN number"
+msgstr "MRN-nummer"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__manager_id
+msgid "Manager"
+msgstr "Manager"
+
+#. module: wd_qooling_app
+#: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_outbound_form
+#: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_temperature_record_form
+msgid "Mark Exception"
+msgstr "Uitzondering markeren"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+msgid "Measured temperature"
+msgstr "Gemeten temperatuur"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__measured_temperature
+msgid "Measured temperature (°C)"
+msgstr "Measured temperature (°C)"
+
+#. module: wd_qooling_app
+#. odoo-python
+#: code:addons/wd_qooling_app/models/media_evidence.py:0
+msgid "Media evidence can only be changed while the record is a draft."
+msgstr "Media evidence can only be changed while the record is a draft."
+
+#. module: wd_qooling_app
+#. odoo-python
+#: code:addons/wd_qooling_app/models/media_evidence.py:0
+msgid "Media files of this type cannot exceed %(limit)s MB."
+msgstr "Media files of this type cannot exceed %(limit)s MB."
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__name
+msgid "Name"
+msgstr "Naam"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_temperature_record__electrolyte_leakage__no
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_temperature_record__packaging_damage__no
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_temperature_record__storage_stability__no
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_temperature_record__unpacked_housing_damage__no
+msgid "Nee"
+msgstr "Nee"
+
+#. module: wd_qooling_app
+#. odoo-python
+#: code:addons/wd_qooling_app/models/inbound_form.py:0
+#: code:addons/wd_qooling_app/models/outbound_form.py:0
+#: code:addons/wd_qooling_app/models/temperature_record.py:0
+msgid "New"
+msgstr "Nieuw"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/pda_record_dashboard.xml:0
+msgid "New record"
+msgstr "Nieuwe registratie"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
+msgid "Next"
+msgstr "Volgende"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__adr__no
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__gas_measurement__no
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__pallet_temperature_registered__no
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__skal_bio_product__no
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__temperature_measured__no
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_outbound_form__adr__no
+msgid "No"
+msgstr "Nee"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/pda_record_dashboard.xml:0
+msgid "No records found."
+msgstr "Geen registraties gevonden."
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/pda_record_dashboard.xml:0
+msgid "No records match the selected filters."
+msgstr "Geen registraties komen overeen met de geselecteerde filters."
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+msgid "No, stop unloading"
+msgstr "Nee, lossen stoppen"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__unloading_permission__no_stop_unloading
+msgid "No, stop unloading and ask project manager"
+msgstr "No, stop unloading and ask project manager"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_outbound_form__goods_type__non_bonded
+msgid "Non-Bonded"
+msgstr "Niet-douane-entrepot"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__gas_measurement__not_applicable
+msgid "Not Applicable"
+msgstr "Not Applicable"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__ventilated__not_applicable
+msgid "Not applicable"
+msgstr "Niet van toepassing"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__packaging_condition__not_good
+msgid "Not good"
+msgstr "Niet goed"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
+msgid "Not recorded"
+msgstr "Niet geregistreerd"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__name
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__name
+msgid "Number"
+msgstr "Nummer"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__checked_received_quantity
+msgid "Number received has been checked"
+msgstr "Number received has been checked"
+
+#. module: wd_qooling_app
+#. odoo-python
+#: code:addons/wd_qooling_app/models/temperature_record.py:0
+msgid "Only a Temperature Supervisor can perform this action."
+msgstr "Only a Temperature Supervisor can perform this action."
+
+#. module: wd_qooling_app
+#. odoo-python
+#: code:addons/wd_qooling_app/models/outbound_form.py:0
+msgid "Only an Outbound reviewer can perform this action."
+msgstr "Only an Outbound reviewer can perform this action."
+
+#. module: wd_qooling_app
+#. odoo-python
+#: code:addons/wd_qooling_app/models/temperature_record.py:0
+msgid "Only draft temperature records can be cleared."
+msgstr "Only draft temperature records can be cleared."
+
+#. module: wd_qooling_app
+#. odoo-python
+#: code:addons/wd_qooling_app/models/temperature_record.py:0
+msgid "Only draft temperature records can receive new readings."
+msgstr "Only draft temperature records can receive new readings."
+
+#. module: wd_qooling_app
+#. odoo-python
+#: code:addons/wd_qooling_app/models/media_evidence.py:0
+msgid "Only image and video files can be used as evidence."
+msgstr "Only image and video files can be used as evidence."
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
+msgid "Open web form"
+msgstr "Webformulier openen"
+
+#. module: wd_qooling_app
+#: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_outbound_form
+msgid "Outbound Form"
+msgstr "Outbound-formulier"
+
+#. module: wd_qooling_app
+#: model:ir.actions.act_window,name:wd_qooling_app.action_qooling_outbound_form
+#: model:ir.ui.menu,name:wd_qooling_app.menu_qooling_outbound
+#: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_outbound_form_list
+#: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_outbound_form_search
+msgid "Outbound Forms"
+msgstr "Outbound-formulieren"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/qooling_dashboard.xml:0
+#: model:ir.ui.menu,name:wd_qooling_app.menu_qooling_outbound_pda
+#: code:addons/wd_qooling_app/static/src/js/pda_record_dashboard.js:0
+msgid "Outbound Record"
+msgstr "Outbound-registratie"
+
+#. module: wd_qooling_app
+#: model:ir.actions.client,name:wd_qooling_app.action_qooling_outbound_pda_form
+msgid "Outbound Record (PDA Form)"
+msgstr "Outbound-registratie (PDA-formulier)"
+
+#. module: wd_qooling_app
+#: model:ir.actions.client,name:wd_qooling_app.action_qooling_outbound_pda
+msgid "Outbound Record (PDA)"
+msgstr "Outbound-registratie (PDA)"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+msgid "Outbound steps"
+msgstr "Uitslagstappen"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/qooling_dashboard.xml:0
+#: model:ir.ui.menu,name:wd_qooling_app.menu_qooling_pda
+msgid "PDA"
+msgstr "PDA"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__packaging_condition
+msgid "Packaging condition"
+msgstr "Verpakkingsconditie"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__packaging_damage
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+msgid "Packaging visible damage"
+msgstr "Zichtbare schade aan verpakking"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record_line__pallet_number
+msgid "Pallet"
+msgstr "Pallet"
+
+#. module: wd_qooling_app
+#: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_temperature_record_form
+msgid "Pallet Temperatures"
+msgstr "Pallettemperaturen"
+
+#. module: wd_qooling_app
+#. odoo-python
+#: code:addons/wd_qooling_app/models/temperature_record.py:0
+msgid "Pallet lines cannot be deleted individually. Use Clear all pallets."
+msgstr "Pallet lines cannot be deleted individually. Use Clear all pallets."
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+msgid "Pallet temperature registered"
+msgstr "Pallettemperatuur geregistreerd"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__line_ids
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+msgid "Pallet temperatures"
+msgstr "Pallettemperaturen"
+
+#. module: wd_qooling_app
+#. odoo-python
+#: code:addons/wd_qooling_app/models/temperature_record.py:0
+msgid "Pallet temperatures can only be added in draft."
+msgstr "Pallet temperatures can only be added in draft."
+
+#. module: wd_qooling_app
+#. odoo-python
+#: code:addons/wd_qooling_app/models/temperature_record.py:0
+msgid "Pallet temperatures can only be modified in draft."
+msgstr "Pallet temperatures can only be modified in draft."
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__photo
+msgid "Photo"
+msgstr "Foto"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__cargo_photo
+msgid "Photo of cargo"
+msgstr "Photo of cargo"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__photo_ids
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__photo_ids
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__photo_ids
+msgid "Photos and videos"
+msgstr "Foto's en video's"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/photo_gallery_field.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
+msgid "Preview media"
+msgstr "Media bekijken"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__checked_product_quality
+msgid "Product quality and condition have been checked"
+msgstr "Product quality and condition have been checked"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+msgid "Product quality checked"
+msgstr "Productkwaliteit gecontroleerd"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__proper_shipping_name
+msgid "Proper Shipping Name"
+msgstr "Proper Shipping Name"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+msgid "Proper shipping name"
+msgstr "Juiste vervoersnaam"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/qooling_dashboard.xml:0
+#: model:ir.ui.menu,name:wd_qooling_app.menu_qooling_root
+msgid "Qooling"
+msgstr "Qooling"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/pda_record_dashboard.xml:0
+#: model:ir.actions.client,name:wd_qooling_app.action_qooling_dashboard
+msgid "Qooling Dashboard"
+msgstr "Qooling-dashboard"
+
+#. module: wd_qooling_app
+#: model:ir.model,name:wd_qooling_app.model_wd_qooling_inbound_form
+msgid "Qooling Inbound Form"
+msgstr "Qooling Inbound Form"
+
+#. module: wd_qooling_app
+#: model:res.groups,name:wd_qooling_app.group_qooling_inbound_reviewer
+msgid "Qooling Inbound Reviewer"
+msgstr "Qooling Inbound Reviewer"
+
+#. module: wd_qooling_app
+#: model:res.groups,name:wd_qooling_app.group_qooling_inbound_user
+msgid "Qooling Inbound User"
+msgstr "Qooling Inbound User"
+
+#. module: wd_qooling_app
+#: model:ir.model,name:wd_qooling_app.model_wd_qooling_media_evidence_mixin
+msgid "Qooling Media Evidence Rules"
+msgstr "Qooling Media Evidence Rules"
+
+#. module: wd_qooling_app
+#: model:ir.model,name:wd_qooling_app.model_wd_qooling_outbound_form
+msgid "Qooling Outbound Form"
+msgstr "Qooling Outbound Form"
+
+#. module: wd_qooling_app
+#: model:res.groups,name:wd_qooling_app.group_qooling_outbound_reviewer
+msgid "Qooling Outbound Reviewer"
+msgstr "Qooling Outbound Reviewer"
+
+#. module: wd_qooling_app
+#: model:res.groups,name:wd_qooling_app.group_qooling_outbound_user
+msgid "Qooling Outbound User"
+msgstr "Qooling Outbound User"
+
+#. module: wd_qooling_app
+#: model:ir.model,name:wd_qooling_app.model_wd_qooling_temperature_record
+msgid "Qooling Temperature Record"
+msgstr "Qooling Temperature Record"
+
+#. module: wd_qooling_app
+#: model:ir.model,name:wd_qooling_app.model_wd_qooling_temperature_record_line
+msgid "Qooling Temperature Record Pallet"
+msgstr "Qooling Temperature Record Pallet"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__quick_temperature
+msgid "Quick temperature (°C)"
+msgstr "Snelle temperatuur (°C)"
+
+#. module: wd_qooling_app
+#: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_temperature_record_form
+msgid "Quick temperature entry"
+msgstr "Quick temperature entry"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+msgid "Received quantity checked"
+msgstr "Ontvangen hoeveelheid gecontroleerd"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record_line__record_id
+msgid "Record"
+msgstr "Record"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
+msgid "Record video"
+msgstr "Video opnemen"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/pda_record_dashboard.xml:0
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__ref_no
+msgid "Reference"
+msgstr "Referentie"
+
+#. module: wd_qooling_app
+#: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_inbound_form
+#: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_outbound_form
+#: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_temperature_record_form
+msgid "Reset to Draft"
+msgstr "Terugzetten naar concept"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__skal_bio_product
+msgid "SKAL / BIO Product"
+msgstr "SKAL / BIO Product"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__gas_measurement_status__safe
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__status_after_ventilation__safe
+msgid "Safe"
+msgstr "Safe"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
+msgid "Save draft"
+msgstr "Concept opslaan"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/photo_gallery_field.xml:0
+msgid "Save the draft before uploading media."
+msgstr "Save the draft before uploading media."
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__seal_number
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__seal_number
+msgid "Seal Number"
+msgstr "Seal Number"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+msgid "Seal number"
+msgstr "Zegelnummer"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/pda_record_dashboard.xml:0
+msgid "Search number"
+msgstr "Nummer zoeken"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+msgid "Select"
+msgstr "Selecteren"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
+msgid "Select location"
+msgstr "Locatie selecteren"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
+msgid "Select manager"
+msgstr "Manager selecteren"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+msgid "Select supervisor"
+msgstr "Supervisor selecteren"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+msgid "Select warehouse"
+msgstr "Magazijn selecteren"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record_line__sequence
+msgid "Sequence"
+msgstr "Sequence"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__signature
+#: code:addons/wd_qooling_app/static/src/js/inbound_pda.js:0
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+msgid "Signature"
+msgstr "Handtekening"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__signature_time
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__signature_time
+msgid "Signature time"
+msgstr "Signature time"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__signer_id
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__signer_id
+msgid "Signer"
+msgstr "Signer"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+msgid "Start loading"
+msgstr "Begin laden"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__start_loading_at
+msgid "Start time loading"
+msgstr "Start time loading"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__state
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__state
+msgid "State"
+msgstr "Status"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/pda_record_dashboard.xml:0
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__state
+msgid "Status"
+msgstr "Status"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__status_after_ventilation
+msgid "Status after ventilation"
+msgstr "Status after ventilation"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__storage_stability
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+msgid "Storage stability"
+msgstr "Opslagstabiliteit"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
+#: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_inbound_form
+#: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_outbound_form
+#: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_temperature_record_form
+msgid "Submit"
+msgstr "Indienen"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__state__submitted
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_outbound_form__state__submitted
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_temperature_record__state__submitted
+#: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_inbound_form_search
+#: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_outbound_form_search
+#: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_temperature_record_search
+#: code:addons/wd_qooling_app/static/src/js/pda_record_dashboard.js:0
+#: code:addons/wd_qooling_app/static/src/js/pda_record_dashboard.js:0
+#: code:addons/wd_qooling_app/static/src/js/pda_record_dashboard.js:0
+msgid "Submitted"
+msgstr "Ingediend"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__submitted_at
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__submitted_at
+msgid "Submitted At"
+msgstr "Submitted At"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__submitted_by_id
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__submitted_by_id
+msgid "Submitted By"
+msgstr "Submitted By"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__submitted_at
+msgid "Submitted at"
+msgstr "Submitted at"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__submitted_by_id
+msgid "Submitted by"
+msgstr "Submitted by"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__supervisor_id
+msgid "Supervisor"
+msgstr "Supervisor"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__supervisor_id
+msgid "Supervisor / Manager"
+msgstr "Supervisor / manager"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__goods_status__t1
+msgid "T1"
+msgstr "T1"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
+msgid "Take photo"
+msgstr "Foto maken"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record_line__temperature
+msgid "Temperature (°C)"
+msgstr "Temperature (°C)"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/qooling_dashboard.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
+#: model:ir.ui.menu,name:wd_qooling_app.menu_qooling_temperature_pda
+#: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_temperature_record_form
+#: code:addons/wd_qooling_app/static/src/js/pda_record_dashboard.js:0
+msgid "Temperature Record"
+msgstr "Temperatuurregistratie"
+
+#. module: wd_qooling_app
+#: model:ir.actions.client,name:wd_qooling_app.action_qooling_temperature_pda_form
+msgid "Temperature Record (PDA Form)"
+msgstr "Temperatuurregistratie (PDA-formulier)"
+
+#. module: wd_qooling_app
+#: model:ir.actions.client,name:wd_qooling_app.action_qooling_temperature_pda
+msgid "Temperature Record (PDA)"
+msgstr "Temperatuurregistratie (PDA)"
+
+#. module: wd_qooling_app
+#: model:ir.actions.act_window,name:wd_qooling_app.action_qooling_temperature_record
+#: model:ir.ui.menu,name:wd_qooling_app.menu_qooling_temperature_record
+#: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_temperature_record_list
+#: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_temperature_record_search
+msgid "Temperature Records"
+msgstr "Temperatuurregistraties"
+
+#. module: wd_qooling_app
+#: model:res.groups,name:wd_qooling_app.group_temperature_supervisor
+msgid "Temperature Supervisor"
+msgstr "Temperature Supervisor"
+
+#. module: wd_qooling_app
+#: model:res.groups,name:wd_qooling_app.group_temperature_user
+msgid "Temperature User"
+msgstr "Temperature User"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__temperature_measured
+msgid "Temperature measured"
+msgstr "Temperatuur gemeten"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__pallet_temperature_registered
+msgid "Temperature of each pallet is registered"
+msgstr "Temperature of each pallet is registered"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
+msgid "Temperature steps"
+msgstr "Temperatuurstappen"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+msgid "The same warehouse signature field is used by the web form."
+msgstr "The same warehouse signature field is used by the web form."
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
+msgid "This record is submitted and read-only."
+msgstr "Dit record is ingediend en alleen-lezen."
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/pda_record_dashboard.xml:0
+msgid "To"
+msgstr "Tot en met"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__total_pallets
+msgid "Total Pallets"
+msgstr "Totaal aantal pallets"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__un_number
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__un_number
+msgid "UN Number"
+msgstr "VN-nummer"
+
+#. module: wd_qooling_app
+#. odoo-python
+#: code:addons/wd_qooling_app/models/inbound_form.py:0
+msgid "UN Number and temperature fields are required when ADR is Yes."
+msgstr "UN Number and temperature fields are required when ADR is Yes."
+
+#. module: wd_qooling_app
+#. odoo-python
+#: code:addons/wd_qooling_app/models/inbound_form.py:0
+#: code:addons/wd_qooling_app/models/outbound_form.py:0
+msgid "UN Number is not allowed."
+msgstr "UN Number is not allowed."
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+msgid "UN number"
+msgstr "UN number"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+msgid "Unloading permission"
+msgstr "Toestemming voor lossen"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__unloading_permission
+msgid "Unloading permission received?"
+msgstr "Unloading permission received?"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__unpacked_housing_damage
+msgid "Unpackaged product housing visible damage"
+msgstr "Unpackaged product housing visible damage"
+
+#. module: wd_qooling_app
+#: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_outbound_form
+msgid "Vehicle and Driver"
+msgstr "Voertuig en chauffeur"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__vehicle_adr_certificate
+msgid "Vehicle: ADR certificate"
+msgstr "Vehicle: ADR certificate"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__vehicle_adr_sign
+msgid "Vehicle: ADR sign"
+msgstr "Vehicle: ADR sign"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__vehicle_trem_card
+msgid "Vehicle: TREM card / written instructions"
+msgstr "Vehicle: TREM card / written instructions"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__vehicle_fire_extinguisher
+msgid "Vehicle: fire extinguisher"
+msgstr "Vehicle: fire extinguisher"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__vehicle_fixing_material
+msgid "Vehicle: fixing material"
+msgstr "Vehicle: fixing material"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__ventilated
+msgid "Ventilated"
+msgstr "Ventilated"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__gas_measurement_status__ventilation_required
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__status_after_ventilation__ventilation_required
+msgid "Ventilation required"
+msgstr "Ventilation required"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/qooling_dashboard.xml:0
+msgid "WEB"
+msgstr "WEB"
+
+#. module: wd_qooling_app
+#. odoo-python
+#: code:addons/wd_qooling_app/models/outbound_form.py:0
+msgid "Warehouse operator"
+msgstr "Magazijnmedewerker"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__warehouse_operator_comments
+msgid "Warehouse operator comments"
+msgstr "Opmerkingen magazijnmedewerker"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__warehouse_signature
+msgid "Warehouse operator signature"
+msgstr "Warehouse operator signature"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__warehouse_signer_id
+msgid "Warehouse operator signer"
+msgstr "Warehouse operator signer"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__warehouse_signature
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Warehouse signature"
+msgstr "Magazijnhandtekening"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__warehouse_signature_time
+msgid "Warehouse signature time"
+msgstr "Warehouse signature time"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__weight_distribution
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Weight distribution checked"
+msgstr "Gewichtsverdeling gecontroleerd"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__adr__yes
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__gas_measurement__yes
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__pallet_temperature_registered__yes
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__skal_bio_product__yes
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__temperature_measured__yes
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__unloading_permission__yes
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__ventilated__yes
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_outbound_form__adr__yes
+msgid "Yes"
+msgstr "Ja"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/pda_record_dashboard.js:0
+msgid "Could not load PDA records."
+msgstr "PDA-registraties konden niet worden geladen."
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/pda_record_dashboard.js:0
+msgid "From date cannot be later than To date."
+msgstr "De begindatum mag niet na de einddatum liggen."
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/pda_record_dashboard.js:0
+#: code:addons/wd_qooling_app/static/src/js/pda_record_dashboard.js:0
+msgid "Exception pending"
+msgstr "Uitzondering in behandeling"
+
+#. module: wd_qooling_app
+msgid "Show filters"
+msgstr "Filters tonen"
+
+#. module: wd_qooling_app
+msgid "Hide filters"
+msgstr "Filters verbergen"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/inbound_pda.js:0
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Details"
+msgstr "Details"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/inbound_pda.js:0
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "ADR & temperature"
+msgstr "ADR en temperatuur"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/inbound_pda.js:0
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Only image and video files can be uploaded."
+msgstr "Alleen afbeeldings- en videobestanden kunnen worden geüpload."
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Loading plan discussed"
+msgstr "Laadplan besproken"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Loading: visible damage"
+msgstr "Laden: zichtbare schade"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Cargo packaging"
+msgstr "Verpakking van lading"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Cargo identification"
+msgstr "Identificatie van lading"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Cargo secured"
+msgstr "Lading vastgezet"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Vehicle ADR certificate"
+msgstr "ADR-certificaat voertuig"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Vehicle fire extinguisher"
+msgstr "Brandblusser voertuig"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Vehicle ADR sign"
+msgstr "ADR-bord voertuig"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Vehicle fixing material"
+msgstr "Bevestigingsmateriaal voertuig"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Vehicle TREM card"
+msgstr "TREM-kaart voertuig"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Driver ADR certificate"
+msgstr "ADR-certificaat chauffeur"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Driver safety vest"
+msgstr "Veiligheidsvest chauffeur"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Driver eye protection"
+msgstr "Oogbescherming chauffeur"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Driver protective gloves"
+msgstr "Beschermende handschoenen chauffeur"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Driver wheel chock"
+msgstr "Wielkeg chauffeur"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Driver tarpaulin"
+msgstr "Dekzeil chauffeur"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Driver flashlight"
+msgstr "Zaklamp chauffeur"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Driver shovel"
+msgstr "Schep chauffeur"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Driver drip tray"
+msgstr "Lekbak chauffeur"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Driver eyewash"
+msgstr "Oogspoeling chauffeur"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Driver warning triangles"
+msgstr "Gevarendriehoeken chauffeur"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+msgid "Unpackaged housing damage"
+msgstr "Schade aan onverpakte behuizing"

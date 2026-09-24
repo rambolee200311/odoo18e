@@ -1,0 +1,121 @@
+<templates xml:space="preserve">
+    <t t-name="wd_qooling_app.PdaRecordDashboard">
+        <main class="o_qooling_pda_dashboard container-fluid py-4">
+            <header class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+                <div>
+                    <div class="text-muted">FORMS / PDA</div>
+                    <h1 class="h3 mb-0"><t t-esc="dashboardConfig.title"/></h1>
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-secondary"
+                            t-on-click="backToDashboard">Qooling Dashboard</button>
+                    <button type="button" class="btn btn-primary"
+                            t-on-click="createRecord">New record</button>
+                </div>
+            </header>
+            <div t-if="state.error" class="alert alert-danger" role="alert"><t t-esc="state.error"/></div>
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+                <button type="button" class="btn btn-outline-secondary"
+                        t-att-aria-label="state.filtersExpanded ? 'Hide filters' : 'Show filters'"
+                        t-att-aria-expanded="state.filtersExpanded ? 'true' : 'false'"
+                        t-on-click="toggleFilters">
+                    <i t-att-class="state.filtersExpanded ? 'fa fa-chevron-up' : 'fa fa-chevron-down'"
+                       aria-hidden="true"/>
+                </button>
+                <span t-if="!state.filtersExpanded &amp;&amp; hasActiveFilters"
+                      class="text-muted small">Filters applied</span>
+            </div>
+            <form t-if="state.filtersExpanded" class="o_qooling_pda_dashboard__filters row g-2 mb-4"
+                  t-on-submit.prevent="applyFilters">
+                <div class="col-12 col-md-3">
+                    <label class="form-label" for="pda-filter-date-from">From</label>
+                    <input id="pda-filter-date-from" type="date" class="form-control"
+                           t-model="state.filters.dateFrom"/>
+                </div>
+                <div class="col-12 col-md-3">
+                    <label class="form-label" for="pda-filter-date-to">To</label>
+                    <input id="pda-filter-date-to" type="date" class="form-control"
+                           t-model="state.filters.dateTo"/>
+                </div>
+                <div class="col-12 col-md-3">
+                    <label class="form-label" for="pda-filter-number">Document number</label>
+                    <input id="pda-filter-number" type="search" class="form-control"
+                           placeholder="Search number" t-model="state.filters.number"/>
+                </div>
+                <div class="col-12 col-md-3">
+                    <label class="form-label" for="pda-filter-status">Status</label>
+                    <select id="pda-filter-status" class="form-select" t-model="state.filters.status">
+                        <option value="">All statuses</option>
+                        <option t-foreach="statusOptions" t-as="option" t-key="option.value"
+                                t-att-value="option.value">
+                            <t t-esc="option.label"/>
+                        </option>
+                    </select>
+                </div>
+                <div class="col-12 d-flex flex-wrap gap-2">
+                    <button type="submit" class="btn btn-primary">Filter</button>
+                    <button type="button" class="btn btn-outline-secondary"
+                            t-on-click="clearFilters">Clear</button>
+                </div>
+            </form>
+            <div t-if="state.filterError" class="alert alert-warning" role="alert">
+                <t t-esc="state.filterError"/>
+            </div>
+            <div t-if="state.loading" class="text-muted">Loading records...</div>
+            <div t-elif="!state.records.length" class="alert alert-info">
+                <t t-if="hasActiveFilters">No records match the selected filters.</t>
+                <t t-else="">No records found.</t>
+            </div>
+            <div t-else="" class="table-responsive d-none d-md-block">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Document</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Reference</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr t-foreach="state.records" t-as="record" t-key="record.id">
+                            <td class="fw-semibold"><t t-esc="record.name"/></td>
+                            <td><span class="badge text-bg-secondary"><t t-esc="getStateLabel(record.state)"/></span></td>
+                            <td><t t-esc="record.dateValue"/></td>
+                            <td><t t-esc="record.referenceValue"/></td>
+                            <td class="text-end">
+                                <button type="button" class="btn btn-sm btn-outline-primary"
+                                        t-on-click="() => openRecord(record)">
+                                    <t t-esc="record.state === 'draft' ? 'Edit draft' : 'Open'"/>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div t-if="state.records.length" class="d-md-none">
+                <div t-foreach="state.records" t-as="record" t-key="record.id"
+                     class="card mb-3 o_qooling_pda_dashboard__card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                            <h2 class="h5 mb-0 text-break"><t t-esc="record.name"/></h2>
+                            <span class="badge text-bg-secondary flex-shrink-0">
+                                <t t-esc="getStateLabel(record.state)"/>
+                            </span>
+                        </div>
+                        <dl class="row small mb-3">
+                            <dt class="col-4">Date</dt>
+                            <dd class="col-8 text-break"><t t-esc="record.dateValue"/></dd>
+                            <dt class="col-4">Reference</dt>
+                            <dd class="col-8 text-break"><t t-esc="record.referenceValue || '-'"/></dd>
+                        </dl>
+                        <button type="button" class="btn btn-outline-primary w-100"
+                                t-on-click="() => openRecord(record)">
+                            <t t-esc="record.state === 'draft' ? 'Edit draft' : 'Open'"/>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </t>
+</templates>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="wd_qooling_app.QoolingDashboard">
+        <div class="o_qooling_dashboard container-fluid py-4">
+            <h1 class="mb-4">Qooling</h1>
+            <section class="card mb-4">
+                <div class="card-header">
+                    <h2 class="h4 mb-0">FORMS</h2>
+                </div>
+                <div class="card-body">
+                    <h3 class="h5">WEB</h3>
+                    <div class="row g-3 mb-4">
+                        <div class="col-12 col-md-4">
+                            <button class="btn btn-primary w-100"
+                                    t-on-click="() => this.openWebForm('wd_qooling_app.action_qooling_inbound_form')">
+                                Inbound Record
+                            </button>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <button class="btn btn-primary w-100"
+                                    t-on-click="() => this.openWebForm('wd_qooling_app.action_qooling_outbound_form')">
+                                Outbound Record
+                            </button>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <button class="btn btn-primary w-100"
+                                    t-on-click="() => this.openWebForm('wd_qooling_app.action_qooling_temperature_record')">
+                                Temperature Record
+                            </button>
+                        </div>
+                    </div>
+                    <h3 class="h5">PDA</h3>
+                    <div class="row g-3 mb-0">
+                        <div class="col-12 col-md-4">
+                            <button class="btn btn-primary w-100" data-testid="dashboard-inbound-pda"
+                                    t-on-click="() => this.openWebForm('wd_qooling_app.action_qooling_inbound_pda')">
+                                Inbound Record
+                            </button>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <button class="btn btn-primary w-100" data-testid="dashboard-outbound-pda"
+                                    t-on-click="() => this.openWebForm('wd_qooling_app.action_qooling_outbound_pda')">
+                                Outbound Record
+                            </button>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <button class="btn btn-primary w-100" data-testid="dashboard-temperature-pda"
+                                    t-on-click="() => this.openWebForm('wd_qooling_app.action_qooling_temperature_pda')">
+                                Temperature Record
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </t>
+</templates>

@@ -87,7 +87,7 @@
             </xpath>
             <xpath expr="//field[@name='inbound_order_product_ids']/list/field[@name='pallet_no']" position="after">
                 <field name="inbound_sunrise_ref" readonly="1" optional="show" column_invisible="parent.project_name != 'SUNRISE'"/>
-                <field name="inbound_location" readonly="1" optional="show" column_invisible="parent.project_name != 'SUNRISE'"/>
+                <field name="inbound_location" readonly="1" optional="show"/>
                 <field name="package_id" optional="show" column_invisible="parent.project_name != 'SUNRISE'"
                        options="{'no_create': True, 'no_open': True}"/>
                 <!--                <field name="package_barcode" optional="show" column_invisible="parent.project_name != 'SUNRISE'"/>-->
@@ -166,7 +166,7 @@
             <!--            </xpath>-->
             <xpath expr="//field[@name='pallet_no']" position="after">
                 <field name="inbound_sunrise_ref" readonly="1" invisible="project_name != 'SUNRISE'"/>
-                <field name="inbound_location" readonly="1" invisible="project_name != 'SUNRISE'"/>
+                <field name="inbound_location" readonly="1"/>
                 <field name="package_id" readonly="1" invisible="1" options="{'no_create': True, 'no_open': True}"/>
                 <!--                <field name="package_barcode" readonly="1" invisible="project_name != 'SUNRISE'"/>-->
                 <!--                <field name="is_reused_package" readonly="1" invisible="project_name != 'SUNRISE'"/>-->

@@ -1,0 +1,20 @@
+<odoo>
+    <record id="seq_qooling_inbound_form" model="ir.sequence">
+        <field name="name">Qooling Inbound Form</field>
+        <field name="code">wd.qooling.inbound.form</field>
+        <field name="prefix">INB/</field>
+        <field name="padding">5</field>
+    </record>
+    <record id="seq_qooling_outbound_form" model="ir.sequence">
+        <field name="name">Qooling Outbound Form</field>
+        <field name="code">wd.qooling.outbound.form</field>
+        <field name="prefix">OUT/</field>
+        <field name="padding">5</field>
+    </record>
+    <record id="seq_qooling_temperature_record" model="ir.sequence">
+        <field name="name">Qooling Temperature Record</field>
+        <field name="code">wd.qooling.temperature.record</field>
+        <field name="prefix">TMP/</field>
+        <field name="padding">5</field>
+    </record>
+</odoo>

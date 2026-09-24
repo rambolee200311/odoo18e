@@ -1,0 +1,47 @@
+<odoo>
+    <record id="group_qooling_inbound_user" model="res.groups">
+        <field name="name">Qooling Inbound User</field>
+        <field name="category_id" ref="base.module_category_operations"/>
+    </record>
+    <record id="group_qooling_inbound_reviewer" model="res.groups">
+        <field name="name">Qooling Inbound Reviewer</field>
+        <field name="category_id" ref="base.module_category_operations"/>
+        <field name="implied_ids" eval="[(4, ref('wd_qooling_app.group_qooling_inbound_user'))]"/>
+    </record>
+    <record id="group_qooling_outbound_user" model="res.groups">
+        <field name="name">Qooling Outbound User</field>
+        <field name="category_id" ref="base.module_category_operations"/>
+    </record>
+    <record id="group_qooling_outbound_reviewer" model="res.groups">
+        <field name="name">Qooling Outbound Reviewer</field>
+        <field name="category_id" ref="base.module_category_operations"/>
+        <field name="implied_ids" eval="[(4, ref('wd_qooling_app.group_qooling_outbound_user'))]"/>
+    </record>
+    <record id="rule_qooling_outbound_user" model="ir.rule">
+        <field name="name">Outbound forms: authorized users</field>
+        <field name="model_id" ref="model_wd_qooling_outbound_form"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('wd_qooling_app.group_qooling_outbound_user'))]"/>
+    </record>
+    <record id="group_temperature_user" model="res.groups">
+        <field name="name">Temperature User</field>
+        <field name="category_id" ref="base.module_category_operations"/>
+    </record>
+    <record id="group_temperature_supervisor" model="res.groups">
+        <field name="name">Temperature Supervisor</field>
+        <field name="category_id" ref="base.module_category_operations"/>
+        <field name="implied_ids" eval="[(4, ref('wd_qooling_app.group_temperature_user'))]"/>
+    </record>
+    <record id="rule_temperature_user" model="ir.rule">
+        <field name="name">Temperature records: authorized users</field>
+        <field name="model_id" ref="model_wd_qooling_temperature_record"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('wd_qooling_app.group_temperature_user'))]"/>
+    </record>
+    <record id="rule_temperature_line_user" model="ir.rule">
+        <field name="name">Temperature pallet lines: authorized users</field>
+        <field name="model_id" ref="model_wd_qooling_temperature_record_line"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+        <field name="groups" eval="[(4, ref('wd_qooling_app.group_temperature_user'))]"/>
+    </record>
+</odoo>
