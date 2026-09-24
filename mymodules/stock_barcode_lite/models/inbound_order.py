@@ -808,6 +808,7 @@ class InboundOrderProduct(models.Model):
                 continue
             duplicate_pallet = inbound_pallet_model.sudo().search([
                 ("id", "!=", rec.id),
+                ("inbound_order_id", "=", rec.inbound_order_id.id),
                 ("pallet_no", "=", pallet_no),
             ], limit=1)
             if duplicate_pallet:
