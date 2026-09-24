@@ -6,6 +6,7 @@
     <record id="menu_qooling_root" model="ir.ui.menu">
         <field name="name">Qooling</field>
         <field name="action" ref="action_qooling_dashboard"/>
+        <field name="web_icon">wd_qooling_app,static/description/icon.png</field>
     </record>
     <record id="action_qooling_inbound_pda" model="ir.actions.client">
         <field name="name">Inbound Record (PDA)</field>
