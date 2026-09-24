@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <function model="stock.picking" name="ensure_pda_internal_transfer_picking_type"/>
+    </data>
+</odoo>

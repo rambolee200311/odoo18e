@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="wd_qooling_app.InboundPda">
+        <main t-att-class="'o_qooling_pda ' + (isReadOnly ? 'is-readonly' : '')" data-testid="inbound-pda">
+            <header class="o_qooling_pda__header">
+                <div>
+                    <span class="text-muted">FORMS / PDA</span>
+                    <h1>Inbound Record <span class="o_qooling_pda__record-name" data-testid="inbound-pda-record-name"><t t-esc="state.record.name || 'New'"/></span></h1>
+                </div>
+                <button class="btn btn-outline-secondary" type="button" t-on-click="openWebForm"
+                        data-testid="inbound-pda-web">Open web form</button>
+            </header>
+            <nav class="o_qooling_pda__steps" aria-label="Inbound steps">
+                <t t-foreach="steps" t-as="item" t-key="item.key">
+                    <button type="button" t-att-class="state.step === steps.indexOf(item) ? 'active' : ''"
+                            t-on-click="() => state.step = steps.indexOf(item)"
+                            t-att-data-testid="'inbound-pda-step-' + item.key">
+                        <span><t t-esc="steps.indexOf(item) + 1"/></span><t t-esc="item.label"/>
+                    </button>
+                </t>
+            </nav>
+            <div t-if="state.error" class="alert alert-danger" role="alert" data-testid="inbound-pda-error"><t t-esc="state.error"/></div>
+            <div t-if="state.saved" class="alert alert-success" data-testid="inbound-pda-feedback"><t t-esc="state.saved"/></div>
+            <div t-if="isReadOnly" class="alert alert-info" role="status">This record is submitted and read-only.</div>
+            <section class="o_qooling_pda__body">
+                <div t-if="state.step === 0" data-testid="inbound-pda-details">
+                    <label>Location<select class="form-select" required="required" data-field="location_id" t-on-change="onFieldChange">
+                        <option value="">Select warehouse</option><t t-foreach="state.warehouses" t-as="warehouse" t-key="warehouse.id"><option t-att-value="warehouse.id"><t t-esc="warehouse.name"/></option></t>
+                    </select></label>
+                    <label>Date<input class="form-control" type="date" t-att-value="state.record.date" data-field="date" t-on-input="onFieldChange"/></label>
+                    <label>Supervisor<select class="form-select" data-field="supervisor_id" t-on-change="onFieldChange">
+                        <option value="">Select supervisor</option><t t-foreach="state.users" t-as="user" t-key="user.id"><option t-att-value="user.id"><t t-esc="user.name"/></option></t>
+                    </select></label>
+                    <label>Business reference<input class="form-control" t-att-value="state.record.ref_no || ''" data-field="ref_no" t-on-input="onFieldChange"/></label>
+                    <label>Container number / shipment number<input class="form-control" t-att-value="state.record.container_shipment_number || ''" data-field="container_shipment_number" t-on-input="onFieldChange"/></label>
+                    <label>Goods status<select class="form-select" data-field="goods_status" t-on-change="onFieldChange"><option value="">Select</option><option value="free_union_goods">Free union goods</option><option value="t1">T1</option></select></label>
+                    <label>Unloading permission<select class="form-select" data-field="unloading_permission" t-on-change="onFieldChange"><option value="">Select</option><option value="yes">Yes</option><option value="no_stop_unloading">No, stop unloading</option></select></label>
+                </div>
+                <div t-elif="state.step === 1" data-testid="inbound-pda-checks">
+                    <label class="form-check"><input type="checkbox" data-field="checked_visible_damage" t-on-change="onFieldChange"/> Checked for visible damage</label>
+                    <label class="form-check"><input type="checkbox" data-field="checked_received_quantity" t-on-change="onFieldChange"/> Received quantity checked</label>
+                    <label class="form-check"><input type="checkbox" data-field="checked_product_quality" t-on-change="onFieldChange"/> Product quality checked</label>
+                    <label>Packaging condition<select class="form-select" data-field="packaging_condition" t-on-change="onFieldChange"><option value="">Select</option><option value="good">Good</option><option value="not_good">Not good</option></select></label>
+                    <label>Gas measurement<select class="form-select" data-field="gas_measurement" t-on-change="onFieldChange"><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option><option value="not_applicable">Not applicable</option></select></label>
+                </div>
+                <div t-elif="state.step === 2" data-testid="inbound-pda-adr">
+                    <label>ADR<select class="form-select" data-field="adr" t-on-change="onFieldChange"><option value="no">No</option><option value="yes">Yes</option></select></label>
+                    <t t-if="state.record.adr === 'yes'">
+                        <label>UN Number<select class="form-select" data-field="un_number" t-on-change="onFieldChange"><option value="">Select</option><option value="3171">3171</option><option value="3480">3480</option><option value="3481">3481</option></select></label>
+                        <label>Temperature measured<select class="form-select" data-field="temperature_measured" t-on-change="onFieldChange"><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option></select></label>
+                        <label>Pallet temperature registered<select class="form-select" data-field="pallet_temperature_registered" t-on-change="onFieldChange"><option value="">Select</option><option value="yes">Yes</option><option value="no">No</option></select></label>
+                        <label>Average temperature<input class="form-control" type="number" step="0.1" data-field="average_temperature_per_pallet" t-on-input="onFieldChange"/></label>
+                    </t>
+                </div>
+                <div t-elif="state.step === 3" data-testid="inbound-pda-evidence">
+                    <div class="o_qooling_pda__upload">
+                        <label class="btn btn-secondary me-2">
+                            <i class="fa fa-camera me-1" aria-hidden="true"/> Take photo
+                            <input class="d-none" type="file" accept="image/*" capture="environment"
+                                   t-on-change="onPhoto"/>
+                        </label>
+                        <label class="btn btn-secondary">
+                            <i class="fa fa-video-camera me-1" aria-hidden="true"/> Record video
+                            <input class="d-none" type="file" accept="video/*" capture="environment"
+                                   t-on-change="onPhoto"/>
+                        </label>
+                        <label class="btn btn-outline-secondary ms-2">
+                            <i class="fa fa-paperclip me-1" aria-hidden="true"/> Attach media
+                            <input class="d-none" type="file" accept="image/*,video/*" multiple="multiple"
+                                   t-on-change="onPhoto"/>
+                        </label>
+                    </div>
+                    <div class="o_qooling_pda__photos">
+                        <div t-foreach="state.photos" t-as="photo" t-key="photo.id"
+                             class="o_qooling_pda__photo" data-testid="inbound-pda-photo">
+                            <video t-if="isVideo(photo)" t-att-src="'/web/content/' + photo.id"
+                                   class="o_qooling_pda__thumbnail" muted="muted" preload="metadata"/>
+                            <img t-else="" t-att-src="'/web/content/' + photo.id" t-att-alt="photo.name"
+                                 class="o_qooling_pda__thumbnail"/>
+                            <div class="o_qooling_pda__photo-actions">
+                                <button type="button" class="btn btn-sm btn-light o_qooling_pda__photo-enlarge"
+                                        t-on-click="() => state.preview = photo.id"
+                                        aria-label="Enlarge image" title="Enlarge image">
+                                    <i class="fa fa-search-plus" aria-hidden="true"/>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-danger o_qooling_pda__photo-delete"
+                                        t-on-click="() => deletePhoto(photo.id)"
+                                        aria-label="Delete image" title="Delete image">
+                                    <i class="fa fa-trash" aria-hidden="true"/>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <label>Comments<textarea class="form-control" data-field="comments" t-on-input="onFieldChange"><t t-esc="state.record.comments || ''"/></textarea></label>
+                </div>
+                <div t-elif="state.step === 4" data-testid="inbound-pda-signature-step">
+                    <label>Warehouse signature</label>
+                    <canvas t-ref="signatureCanvas" class="o_qooling_pda__signature" data-testid="inbound-pda-signature"/>
+                    <button type="button" class="btn btn-outline-secondary mt-2" t-on-click="clearSignature">Clear signature</button>
+                    <p class="small text-muted">The same warehouse signature field is used by the web form.</p>
+                </div>
+            </section>
+            <footer class="o_qooling_pda__footer">
+                <button class="btn btn-outline-secondary" type="button" t-on-click="previous" t-att-disabled="state.step === 0">Back</button>
+                <button t-if="state.step &lt; steps.length - 1" class="btn btn-primary" type="button" t-on-click="next" data-testid="inbound-pda-next">Next</button>
+                <button t-if="!isReadOnly" class="btn btn-outline-primary" type="button" t-on-click="save" t-att-disabled="state.busy" data-testid="inbound-pda-save">Save draft</button>
+                <button t-if="state.step === steps.length - 1 &amp;&amp; !isReadOnly" class="btn btn-success" type="button" t-on-click="submit" t-att-disabled="state.busy" data-testid="inbound-pda-submit">Submit</button>
+            </footer>
+            <div t-if="state.preview" class="o_qooling_pda__preview" role="dialog"
+                 t-on-click="() => state.preview = false" data-testid="inbound-pda-photo-preview">
+                <video t-if="isVideo(getPreviewPhoto())" t-att-src="'/web/content/' + state.preview"
+                       controls="controls" autoplay="autoplay" t-on-click.stop="() => {}"/>
+                <img t-else="" t-att-src="'/web/content/' + state.preview" alt="Enlarged inbound evidence"
+                     t-on-click.stop="() => {}"/>
+            </div>
+        </main>
+    </t>
+</templates>

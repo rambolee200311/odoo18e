@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="wd_qooling_app.OutboundPda">
+        <main t-att-class="'o_qooling_pda ' + (isReadOnly ? 'is-readonly' : '')" data-testid="outbound-pda">
+            <header class="o_qooling_pda__header"><div><span class="text-muted">FORMS / PDA</span><h1>Outbound Record <span class="o_qooling_pda__record-name" data-testid="outbound-pda-record-name"><t t-esc="state.record.name || 'New'"/></span></h1></div>
+                <button class="btn btn-outline-secondary" type="button" t-on-click="openWebForm" data-testid="outbound-pda-web">Open web form</button>
+            </header>
+            <nav class="o_qooling_pda__steps" aria-label="Outbound steps">
+                <t t-foreach="steps" t-as="item" t-key="item.key"><button type="button" t-att-class="state.step === steps.indexOf(item) ? 'active' : ''" t-on-click="() => state.step = steps.indexOf(item)" t-att-data-testid="'outbound-pda-step-' + item.key"><span><t t-esc="steps.indexOf(item) + 1"/></span><t t-esc="item.label"/></button></t>
+            </nav>
+            <div t-if="state.error" class="alert alert-danger" role="alert" data-testid="outbound-pda-error"><t t-esc="state.error"/></div>
+            <div t-if="state.saved" class="alert alert-success" data-testid="outbound-pda-feedback"><t t-esc="state.saved"/></div>
+            <div t-if="isReadOnly" class="alert alert-info" role="status">This record is submitted and read-only.</div>
+            <section class="o_qooling_pda__body">
+                <div t-if="state.step === 0" data-testid="outbound-pda-details">
+                    <label>Location<select class="form-select" data-field="location_id" t-on-change="onFieldChange"><option value="">Select warehouse</option><t t-foreach="state.warehouses" t-as="warehouse" t-key="warehouse.id"><option t-att-value="warehouse.id"><t t-esc="warehouse.name"/></option></t></select></label>
+                    <label>Arrival<input class="form-control" type="datetime-local" t-att-value="state.record.date_arrival" data-field="date_arrival" t-on-input="onFieldChange"/></label>
+                    <label>Supervisor<select class="form-select" data-field="supervisor_id" t-on-change="onFieldChange"><option value="">Select supervisor</option><t t-foreach="state.users" t-as="user" t-key="user.id"><option t-att-value="user.id"><t t-esc="user.name"/></option></t></select></label>
+                    <label>Reference<input class="form-control" data-field="ref_no" t-att-value="state.record.ref_no || ''" t-on-input="onFieldChange"/></label>
+                    <label>Goods type<select class="form-select" data-field="goods_type" t-on-change="onFieldChange"><option value="bonded">Bonded</option><option value="non_bonded">Non-Bonded</option></select></label>
+                    <label>MRN number<input class="form-control" data-field="mrn_number" t-att-value="state.record.mrn_number || ''" t-on-input="onFieldChange"/></label>
+                    <label>Seal number<input class="form-control" data-field="seal_number" t-att-value="state.record.seal_number || ''" t-on-input="onFieldChange"/></label>
+                    <label>Start loading<input class="form-control" type="datetime-local" data-field="start_loading_at" t-att-value="state.record.start_loading_at" t-on-input="onFieldChange"/></label>
+                    <label>End loading<input class="form-control" type="datetime-local" data-field="end_loading_at" t-att-value="state.record.end_loading_at" t-on-input="onFieldChange"/></label>
+                </div>
+                <div t-elif="state.step === 1" data-testid="outbound-pda-checks">
+                    <t t-foreach="checks" t-as="check" t-key="check[0]"><label class="form-check"><input type="checkbox" class="form-check-input" t-att-data-field="check[0]" t-att-checked="state.record[check[0]]" t-on-change="onFieldChange"/><t t-esc="check[1]"/></label></t>
+                </div>
+                <div t-elif="state.step === 2" data-testid="outbound-pda-adr">
+                    <label>ADR<select class="form-select" data-field="adr" t-on-change="onFieldChange"><option value="no">No</option><option value="yes">Yes</option></select></label>
+                    <label>UN number<select class="form-select" data-field="un_number" t-on-change="onFieldChange"><option value="">Select</option><option value="3171">3171</option><option value="3480">3480</option><option value="3481">3481</option></select></label>
+                    <label>Proper shipping name<input class="form-control" data-field="proper_shipping_name" t-att-value="state.record.proper_shipping_name || ''" t-on-input="onFieldChange"/></label>
+                    <label>Measured temperature<input class="form-control" type="number" step="0.1" data-field="measured_temperature" t-att-value="state.record.measured_temperature || ''" t-on-input="onFieldChange"/></label>
+                </div>
+                <div t-elif="state.step === 3" data-testid="outbound-pda-evidence">
+                    <div class="o_qooling_pda__upload">
+                        <label class="btn btn-secondary me-2"><i class="fa fa-camera me-1" aria-hidden="true"/> Take photo<input class="d-none" type="file" accept="image/*" capture="environment" t-on-change="onPhoto"/></label>
+                        <label class="btn btn-secondary"><i class="fa fa-video-camera me-1" aria-hidden="true"/> Record video<input class="d-none" type="file" accept="video/*" capture="environment" t-on-change="onPhoto"/></label>
+                        <label class="btn btn-outline-secondary ms-2"><i class="fa fa-paperclip me-1" aria-hidden="true"/> Attach media<input class="d-none" type="file" accept="image/*,video/*" multiple="multiple" t-on-change="onPhoto"/></label>
+                    </div>
+                    <div class="o_qooling_pda__photos"><div t-foreach="state.photos" t-as="photo" t-key="photo.id" class="o_qooling_pda__photo" data-testid="outbound-pda-photo"><video t-if="isVideo(photo)" t-att-src="'/web/content/' + photo.id" class="o_qooling_pda__thumbnail" muted="muted" preload="metadata"/><img t-else="" t-att-src="'/web/content/' + photo.id" t-att-alt="photo.name" class="o_qooling_pda__thumbnail"/><div class="o_qooling_pda__photo-actions"><button type="button" class="btn btn-sm btn-light" t-on-click="() => state.preview = photo.id" aria-label="Preview media"><i class="fa fa-search-plus"/></button><button type="button" class="btn btn-sm btn-danger" t-on-click="() => deletePhoto(photo.id)" aria-label="Delete media"><i class="fa fa-trash"/></button></div></div></div>
+                    <label>Driver comments<textarea class="form-control" data-field="driver_comments" t-on-input="onFieldChange"><t t-esc="state.record.driver_comments || ''"/></textarea></label>
+                    <label>Warehouse operator comments<textarea class="form-control" data-field="warehouse_operator_comments" t-on-input="onFieldChange"><t t-esc="state.record.warehouse_operator_comments || ''"/></textarea></label>
+                </div>
+                <div t-elif="state.step === 4" data-testid="outbound-pda-driver-signature"><label>Driver signature</label><canvas t-ref="driverSignatureCanvas" class="o_qooling_pda__signature" data-testid="outbound-pda-driver-signature-canvas" t-on-pointerdown="(event) => startSignature(event, 'driver')" t-on-pointermove="moveSignature" t-on-pointerup="endSignature" t-on-pointercancel="endSignature" t-on-touchstart="(event) => startSignature(event, 'driver')" t-on-touchmove="moveSignature" t-on-touchend="endSignature"/><button type="button" class="btn btn-outline-secondary mt-2" t-on-click="clearSignature">Clear signature</button></div>
+                <div t-elif="state.step === 5" data-testid="outbound-pda-warehouse-signature"><label>Warehouse operator signature</label><canvas t-ref="warehouseSignatureCanvas" class="o_qooling_pda__signature" data-testid="outbound-pda-warehouse-signature-canvas" t-on-pointerdown="(event) => startSignature(event, 'warehouse')" t-on-pointermove="moveSignature" t-on-pointerup="endSignature" t-on-pointercancel="endSignature" t-on-touchstart="(event) => startSignature(event, 'warehouse')" t-on-touchmove="moveSignature" t-on-touchend="endSignature"/><button type="button" class="btn btn-outline-secondary mt-2" t-on-click="clearSignature">Clear signature</button></div>
+            </section>
+            <footer class="o_qooling_pda__footer"><button class="btn btn-outline-secondary" type="button" t-on-click="previous" t-att-disabled="state.step === 0">Back</button><button t-if="state.step &lt; steps.length - 1" class="btn btn-primary" type="button" t-on-click="next" data-testid="outbound-pda-next">Next</button><button t-if="!isReadOnly" class="btn btn-outline-primary" type="button" t-on-click="save" t-att-disabled="state.busy" data-testid="outbound-pda-save">Save draft</button><button t-if="state.step === steps.length - 1 &amp;&amp; !isReadOnly" class="btn btn-success" type="button" t-on-click="submit" t-att-disabled="state.busy" data-testid="outbound-pda-submit">Submit</button></footer>
+            <div t-if="state.preview" class="o_qooling_pda__preview" role="dialog" t-on-click="() => state.preview = false" data-testid="outbound-pda-photo-preview"><video t-if="isVideo(getPreviewPhoto())" t-att-src="'/web/content/' + state.preview" controls="controls" autoplay="autoplay" t-on-click.stop="() => {}"/><img t-else="" t-att-src="'/web/content/' + state.preview" alt="Enlarged outbound evidence" t-on-click.stop="() => {}"/></div>
+        </main>
+    </t>
+</templates>

@@ -48,7 +48,7 @@ Business Rules
         'mail',
         'web',
         'worlddepot',
-        'wd_web_advanced_record_picker',
+        'wd_web_advanced_record_picker','wd_attachment_preview'
     ],
 
     'data': [

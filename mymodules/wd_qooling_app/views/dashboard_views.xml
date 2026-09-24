@@ -1,0 +1,46 @@
+<odoo>
+    <record id="action_qooling_dashboard" model="ir.actions.client">
+        <field name="name">Qooling Dashboard</field>
+        <field name="tag">qooling_dashboard</field>
+    </record>
+    <record id="menu_qooling_root" model="ir.ui.menu">
+        <field name="name">Qooling</field>
+        <field name="action" ref="action_qooling_dashboard"/>
+        <field name="web_icon">wd_qooling_app,static/description/icon.png</field>
+    </record>
+    <record id="action_qooling_inbound_pda" model="ir.actions.client">
+        <field name="name">Inbound Record (PDA)</field>
+        <field name="tag">wd_qooling_inbound_pda_dashboard</field>
+    </record>
+    <record id="action_qooling_inbound_pda_form" model="ir.actions.client">
+        <field name="name">Inbound Record (PDA Form)</field>
+        <field name="tag">wd_qooling_inbound_pda</field>
+    </record>
+    <record id="action_qooling_temperature_pda" model="ir.actions.client">
+        <field name="name">Temperature Record (PDA)</field>
+        <field name="tag">wd_qooling_temperature_pda_dashboard</field>
+    </record>
+    <record id="action_qooling_temperature_pda_form" model="ir.actions.client">
+        <field name="name">Temperature Record (PDA Form)</field>
+        <field name="tag">wd_qooling_temperature_pda</field>
+    </record>
+    <record id="action_qooling_outbound_pda" model="ir.actions.client">
+        <field name="name">Outbound Record (PDA)</field>
+        <field name="tag">wd_qooling_outbound_pda_dashboard</field>
+    </record>
+    <record id="action_qooling_outbound_pda_form" model="ir.actions.client">
+        <field name="name">Outbound Record (PDA Form)</field>
+        <field name="tag">wd_qooling_outbound_pda</field>
+    </record>
+    <menuitem id="menu_qooling_forms" name="FORMS" parent="menu_qooling_root" sequence="10"/>
+    <menuitem id="menu_qooling_pda" name="PDA" parent="menu_qooling_forms" sequence="10"/>
+    <menuitem id="menu_qooling_inbound_pda" name="Inbound Record" parent="menu_qooling_pda"
+              action="action_qooling_inbound_pda" sequence="10"
+              groups="base.group_user,wd_qooling_app.group_qooling_inbound_user"/>
+    <menuitem id="menu_qooling_temperature_pda" name="Temperature Record" parent="menu_qooling_pda"
+              action="action_qooling_temperature_pda" sequence="30"
+              groups="base.group_user,wd_qooling_app.group_temperature_user"/>
+    <menuitem id="menu_qooling_outbound_pda" name="Outbound Record" parent="menu_qooling_pda"
+              action="action_qooling_outbound_pda" sequence="20"
+              groups="base.group_user,wd_qooling_app.group_qooling_outbound_user"/>
+</odoo>

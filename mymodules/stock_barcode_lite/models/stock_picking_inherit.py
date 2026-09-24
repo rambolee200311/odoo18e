@@ -71,6 +71,7 @@ class StockPicking(models.Model):
             ):
                 raise UserError(_("New pallet count must be greater than or equal to zero."))
         result = super().button_validate()
+        self.update_sunrise_inbound_pallet_locations()
         quant_model = self.env["stock.quant"].sudo()
         for rec in self:
             if rec.picking_type_id.code not in ("incoming", "outgoing") or rec.state != "done":
@@ -98,6 +99,35 @@ class StockPicking(models.Model):
                 if values:
                     package.write(values)
         return result
+
+    def update_sunrise_inbound_pallet_locations(self):
+        move_line_model = self.env["stock.move.line"].sudo()
+        pallet_model = self.env["world.depot.inbound.order.product"]
+
+        for rec in self:
+            inbound_order = rec.inbound_order_id
+            if rec.project_name != "SUNRISE" or rec.picking_type_id.code != "incoming" or rec.state != "done" or not inbound_order:
+                continue
+            pallet_lines = pallet_model.browse(inbound_order.inbound_order_product_ids.ids)
+            if not pallet_lines:
+                continue
+            move_lines = move_line_model.search([
+                ("picking_id.inbound_order_id", "=", inbound_order.id),
+                ("picking_id.picking_type_id.code", "=", "incoming"),
+                ("inbound_order_product_pallet_id", "!=", False),
+                ("state", "=", "done"),
+                ("quantity", ">", 0),
+            ])
+            location_name_map = {}
+            for move_line in move_lines:
+                pallet_id = move_line.inbound_order_product_pallet_id.inbound_order_product_id.id
+                location_name = move_line.location_dest_id.complete_name or move_line.location_dest_id.display_name
+                if pallet_id and location_name:
+                    location_name_map.setdefault(pallet_id, set()).add(location_name)
+            for pallet_line in pallet_lines:
+                inbound_location = ", ".join(sorted(location_name_map.get(pallet_line.id, set())))
+                if inbound_location and pallet_line.inbound_location != inbound_location:
+                    pallet_line.write({"inbound_location": inbound_location})
 
     def check_incoming_pallet_location_updated(self):
         for rec in self:

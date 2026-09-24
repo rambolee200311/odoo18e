@@ -25,6 +25,10 @@
                 <button name="action_open_actual_inbound_confirmation_wizard" type="object" string="Confirm Actual Inbound"
                         class="btn-primary o_actual_inbound_confirmation_button" invisible="state != 'confirm' or project_stock_report_date_mode != 'business'"/>
             </xpath>
+            <xpath expr="//header/button[@name='action_open_actual_inbound_confirmation_wizard']" position="after">
+                <button name="%(stock_barcode_lite.action_report_inbound_arrival_note)d" type="action" string="Print Inbound Arrival Note"
+                        class="btn-secondary" invisible="state != 'confirm' or project_stock_report_date_mode != 'business'"/>
+            </xpath>
             <xpath expr="//field[@name='confirm_time_server']" position="after">
                 <field name="actual_inbound_date" readonly="1" invisible="0"/>
                 <field name="actual_inbound_datetime" readonly="1" invisible="project_stock_report_date_mode != 'business'"/>
@@ -82,6 +86,8 @@
                         groups="stock_barcode_lite.group_sunrise_stock_manager"/>
             </xpath>
             <xpath expr="//field[@name='inbound_order_product_ids']/list/field[@name='pallet_no']" position="after">
+                <field name="inbound_sunrise_ref" readonly="1" optional="show" column_invisible="parent.project_name != 'SUNRISE'"/>
+                <field name="inbound_location" readonly="1" optional="show"/>
                 <field name="package_id" optional="show" column_invisible="parent.project_name != 'SUNRISE'"
                        options="{'no_create': True, 'no_open': True}"/>
                 <!--                <field name="package_barcode" optional="show" column_invisible="parent.project_name != 'SUNRISE'"/>-->
@@ -159,6 +165,8 @@
             <!--                <field name="creation_source" readonly="1"/>-->
             <!--            </xpath>-->
             <xpath expr="//field[@name='pallet_no']" position="after">
+                <field name="inbound_sunrise_ref" readonly="1" invisible="project_name != 'SUNRISE'"/>
+                <field name="inbound_location" readonly="1"/>
                 <field name="package_id" readonly="1" invisible="1" options="{'no_create': True, 'no_open': True}"/>
                 <!--                <field name="package_barcode" readonly="1" invisible="project_name != 'SUNRISE'"/>-->
                 <!--                <field name="is_reused_package" readonly="1" invisible="project_name != 'SUNRISE'"/>-->
@@ -229,6 +237,7 @@
         <field name="arch" type="xml">
             <search string="Sunrise Inbound Orders">
                 <field name="vsourcebillcode"/>
+                <field name="inbound_sunrise_ref"/>
                 <field name="billno"/>
                 <field name="reference"/>
                 <field name="bl_no"/>

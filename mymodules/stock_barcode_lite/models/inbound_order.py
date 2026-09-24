@@ -15,6 +15,7 @@ class InboundOrder(models.Model):
     cwarehouseid = fields.Char(string="U8C Warehouse ID", copy=False, index=True)
     source_sale_delivery_reference = fields.Char(string="Source Sale Delivery Reference", copy=False, index=True)
     vsourcebillcode = fields.Char(string="Source Bill Code", copy=False, index=True)
+    inbound_sunrise_ref = fields.Char(string="Inbound Sunrise Ref", compute="_compute_inbound_sunrise_ref", store=True, readonly=True, index=True)
     project_package_generation_mode = fields.Selection(related="project.package_generation_mode", string="Package Generation Mode", readonly=True)
     project_stock_report_date_mode = fields.Selection(related="project.stock_report_date_mode", string="Inbound Date Management Mode", readonly=True)
     organic = fields.Boolean(string="Organic", copy=False, index=True)
@@ -23,6 +24,12 @@ class InboundOrder(models.Model):
     actual_inbound_confirmed_by_id = fields.Many2one("res.users", string="Actual Inbound Confirmed By", readonly=True, copy=False, index=True, tracking=True)
     actual_inbound_confirmation_datetime = fields.Datetime(string="Actual Inbound Confirmation Time", readonly=True, copy=False, index=True, tracking=True)
     actual_inbound_attachment_line_ids = fields.Many2many("ir.attachment", "stock_barcode_lite_inbound_actual_inbound_attachment_rel", "inbound_order_id", "attachment_id", string="Actual Inbound Attachments", readonly=True, copy=False, tracking=True)
+
+    @api.depends("inbound_order_product_ids.inbound_order_product_pallet_ids.cprojectid")
+    def _compute_inbound_sunrise_ref(self):
+        for rec in self:
+            sunrise_refs = sorted({detail_line.cprojectid.strip() for pallet_line in rec.inbound_order_product_ids for detail_line in pallet_line.inbound_order_product_pallet_ids if detail_line.cprojectid and detail_line.cprojectid.strip()})
+            rec.inbound_sunrise_ref = ", ".join(sunrise_refs)
 
     @api.onchange("project")
     def onchange_project_warehouse(self):
@@ -742,6 +749,14 @@ class InboundOrderProduct(models.Model):
     package_id = fields.Many2one("stock.quant.package", string="Package", copy=False, index=True)
     package_barcode = fields.Char(related="package_id.barcode", string="Package Barcode", readonly=True)
     is_reused_package = fields.Boolean(string="Reused Package", default=False, readonly=True, copy=False, index=True)
+    inbound_sunrise_ref = fields.Char(string="Inbound Sunrise Ref", compute="_compute_inbound_sunrise_ref", store=True, readonly=True, index=True)
+    inbound_location = fields.Char(string="Inbound Location", readonly=True, copy=False, index=True)
+
+    @api.depends("inbound_order_product_pallet_ids.cprojectid")
+    def _compute_inbound_sunrise_ref(self):
+        for rec in self:
+            sunrise_refs = sorted({detail_line.cprojectid.strip() for detail_line in rec.inbound_order_product_pallet_ids if detail_line.cprojectid and detail_line.cprojectid.strip()})
+            rec.inbound_sunrise_ref = ", ".join(sunrise_refs)
 
     def action_print_selected_sunrise_pallet_labels(self):
         if not self:
