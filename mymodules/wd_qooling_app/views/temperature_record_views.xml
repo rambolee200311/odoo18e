@@ -95,7 +95,11 @@
                                 <field name="storage_stability"/>
                             </group>
                             <group>
-                                <field name="photo_ids" widget="qooling_photo_gallery"/>
+                                <field name="photo_ids" widget="attachment_preview" readonly="not id or state != 'draft'"
+                                       options="{'accepted_file_extensions': 'image/*,video/*', 'number_of_files': 20}"/>
+                                <div class="alert alert-info mt-2 mb-0" invisible="id or state != 'draft'">
+                                    Save the draft before uploading media.
+                                </div>
                                 <field name="comments"/>
                                 <field name="signature" widget="qooling_signature"/>
                                 <field name="signer_id" readonly="1"/>
