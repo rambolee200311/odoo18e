@@ -8,7 +8,7 @@
             <xpath expr="//notebook" position="inside">
                 <page string="Import Freight Settings" groups="wd_iffm.group_import_user,project.group_project_manager,base.group_system">
                     <group>
-                        <field name="quotation_id" required="1" domain="[('state', '=', 'active')]"
+                        <field name="quotation_id" required="0" domain="[('state', '=', 'active')]"
                                options="{'no_create': True, 'no_open': True}"/>
                         <field name="vendor_cost_quotation_id" domain="[('state', '=', 'active')]"
                                options="{'no_create': True, 'no_open': True}"/>
