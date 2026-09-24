@@ -2,10 +2,11 @@
 <templates xml:space="preserve">
     <t t-name="wd_attachment_preview.AttachmentPreviewField">
         <div t-attf-class="o_attachment_preview {{props.className || ''}}">
-            <div class="o_attachment_preview_images" t-if="images.length">
-                <div t-foreach="images" t-as="file" t-key="file.id" class="o_attachment_preview_image" t-att-class="{ 'o_attachment_preview_viewable': file.isViewable }" t-att-title="file.displayName" t-on-click="() => this.on_preview(file)">
+            <div class="o_attachment_preview_images" t-if="media.length">
+                <div t-foreach="media" t-as="file" t-key="file.id" class="o_attachment_preview_image" t-att-class="{ 'o_attachment_preview_viewable': file.isViewable }" t-att-title="file.displayName" t-on-click="() => this.on_preview(file)">
                     <div class="o_attachment_preview_thumbnail">
-                        <img t-att-src="get_image_url(file)" t-att-alt="file.displayName"/>
+                        <video t-if="file.isVideo" t-att-src="get_media_url(file)" muted="muted" preload="metadata"/>
+                        <img t-else="" t-att-src="get_image_url(file)" t-att-alt="file.displayName"/>
                         <div class="o_attachment_preview_image_actions">
                             <button type="button" class="btn btn-light btn-sm text-info o_attachment_preview_preview" title="Preview" t-on-click.stop="() => this.on_preview(file)">
                                 <i class="fa fa-search" role="img" aria-label="Preview"/>

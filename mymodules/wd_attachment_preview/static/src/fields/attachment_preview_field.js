@@ -31,12 +31,12 @@ export class AttachmentPreviewField extends Component {
         return this.props.record.data[this.props.name].records.map((record) => Object.assign(new FileModel(), { ...record.data, id: record.resId }));
     }
 
-    get images() {
-        return this.files.filter((file) => file.isImage);
+    get media() {
+        return this.files.filter((file) => file.isImage || file.isVideo);
     }
 
     get other_files() {
-        return this.files.filter((file) => !file.isImage);
+        return this.files.filter((file) => !file.isImage && !file.isVideo);
     }
 
     get upload_text() {
@@ -45,6 +45,10 @@ export class AttachmentPreviewField extends Component {
 
     get_image_url(file) {
         return `/web/image/${file.id}/96x72`;
+    }
+
+    get_media_url(file) {
+        return file.isVideo ? `/web/content/${file.id}` : this.get_image_url(file);
     }
 
     get_file_extension(file) {
