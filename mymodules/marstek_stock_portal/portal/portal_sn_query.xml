@@ -5,7 +5,7 @@
     <!-- =========================================== -->
     <template id="portal_marstek_sn_query" name="SN Query">
         <t t-call="portal.portal_layout">
-            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/marstek', 'name': 'WMS Stock'}, {'url': None, 'name': 'SN Query'}]"/>
+            <t t-set="breadcrumbs" t-value="[{'url': '/my/home', 'name': 'Home'}, {'url': '/my/stock', 'name': 'WMS Stock'}, {'url': None, 'name': 'SN Query'}]"/>
             <t t-call="marstek_stock_portal.portal_breadcrumbs_slash"/>
 
             <div class="o_portal_content">
@@ -31,7 +31,7 @@
                     </div>
                     <div id="sn_filter_collapse" class="collapse show">
                     <div class="card-body">
-                        <form action="/my/marstek/sn_query" method="get" class="row g-3">
+                        <form action="/my/stock/sn_query" method="get" class="row g-3">
                             <div class="col-12 col-md-8">
                                 <label for="sn_code" class="form-label">SN Serial Number</label>
                                 <input type="search"
@@ -48,7 +48,7 @@
                                         <i class="fa fa-search me-1"/>
                                         Search
                                     </button>
-                                    <a href="/my/marstek/sn_query" class="btn btn-secondary">
+                                    <a href="/my/stock/sn_query" class="btn btn-secondary">
                                         <i class="fa fa-refresh me-1"/>
                                         Reset
                                     </a>
@@ -164,25 +164,25 @@
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-md-3 mb-2">
-                                    <a href="/my/marstek/stock" class="btn btn-outline-primary w-100">
+                                    <a href="/my/stock/stock" class="btn btn-outline-primary w-100">
                                         <i class="fa fa-cubes me-2"/>
                                         Stock Overview
                                     </a>
                                 </div>
                                 <div class="col-md-3 mb-2">
-                                    <a href="/my/marstek/inbounds" class="btn btn-outline-warning w-100">
+                                    <a href="/my/stock/inbounds" class="btn btn-outline-warning w-100">
                                         <i class="fa fa-arrow-down me-2"/>
                                         Inbound Orders
                                     </a>
                                 </div>
                                 <div class="col-md-3 mb-2">
-                                    <a href="/my/marstek/outbounds" class="btn btn-outline-info w-100">
+                                    <a href="/my/stock/outbounds" class="btn btn-outline-info w-100">
                                         <i class="fa fa-arrow-up me-2"/>
                                         Outbound Orders
                                     </a>
                                 </div>
                                 <div class="col-md-3 mb-2">
-                                    <a href="/my/marstek/container_stock" class="btn btn-outline-success w-100">
+                                    <a href="/my/stock/container_stock" class="btn btn-outline-success w-100">
                                         <i class="fa fa-truck me-2"/>
                                         Container Query
                                     </a>

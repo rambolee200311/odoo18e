@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="paperformat_outbound_order" model="report.paperformat">
+        <field name="name">Outbound Order A4</field>
+        <field name="format">A4</field>
+        <field name="page_height">0</field>
+        <field name="page_width">0</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">10</field>
+        <field name="margin_bottom">32</field>
+        <field name="margin_left">0</field>
+        <field name="margin_right">0</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">0</field>
+        <field name="dpi">90</field>
+        <field name="css_margins" eval="True"/>
+    </record>
+
+    <record id="action_report_outbound_order_code_check" model="ir.actions.report">
+        <field name="name">Outbound Order Report Print</field>
+        <field name="model">world.depot.outbound.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">stock_barcode_lite.report_outbound_order_code_check</field>
+        <field name="report_file">stock_barcode_lite.report_outbound_order_code_check</field>
+        <field name="paperformat_id" ref="paperformat_outbound_order"/>
+        <field name="print_report_name">'Outbound Order Report-%s' % (object.billno or '')</field>
+        <field name="binding_model_id" ref="worlddepot.model_world_depot_outbound_order"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_outbound_order_code_check">
+        <t t-call="web.basic_layout">
+            <t t-foreach="docs" t-as="o">
+                <div class="page o_report_outbound_order" style="font-family: Helvetica, Arial, sans-serif; position:relative; min-height:100vh;">
+                        <div style="padding-bottom:40px;">
+                            <table style="width:100%;border-collapse:collapse;table-layout:fixed;margin-bottom:12px;">
+                    <colgroup>
+                        <col/>
+                        <col style="width:220px;"/>
+                    </colgroup>
+                                <tbody>
+                                    <tr>
+                                        <td style="padding:0;vertical-align:top;">
+                                            <div style="font-size:30px;color:#333;font-weight:700;margin-bottom:6px;"><t t-esc="o.env.company.name"/></div>
+                                            <h2 style="margin:0 0 6px 0;font-size:24px;">Outbound Order</h2>
+                                            <div style="font-size:18px;color:#555;">
+                                                <div><strong>Bill No:</strong> <span t-field="o.billno"/></div>
+                                                <div><strong>Load Ref:</strong> <span t-field="o.load_ref"/></div>
+                                                <div><strong>Reference:</strong> <span t-field="o.reference"/></div>
+                                                <div><strong>Order Date:</strong> <span t-field="o.date"/></div>
+                                                <div><strong>Planning Date:</strong> <span t-field="o.p_date"/></div>
+                                            </div>
+                                        </td>
+                        <td style="padding:0;text-align:center;vertical-align:top;">
+                            <div style="border:1px solid #e6e6e6;padding:8px;border-radius:6px;background:#fafafa;display:inline-block;">
+                                <div style="font-size:11px;color:#666;margin-bottom:6px;"><strong>Outbound Order QR</strong></div>
+                                <div t-field="o.billno" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 200, 'height': 200, 'img_style': 'width:160px;height:160px;'}"/>
+                                <div style="margin-top:6px;font-weight:600;"><span t-field="o.billno"/></div>
+                            </div>
+                        </td>
+                                    </tr>
+                                </tbody>
+                </table>
+                <t t-if="o.project.barcode_scan_mode == 'custom'">
+                    <table t-if="o.whole_pallet_picking_id and o.partial_pallet_picking_id" style="width:100%;border-collapse:collapse;table-layout:fixed;border:0 !important;margin:0 0 12px 0;">
+                        <tbody>
+                            <tr>
+                                <td style="width:50%;padding:0 10px 0 0;text-align:left;vertical-align:top;border:0 !important;">
+                                    <div style="border:1px solid #e6e6e6;padding:8px;border-radius:6px;background:#fafafa;display:inline-block;">
+                                        <div style="font-size:11px;color:#666;margin-bottom:6px;"><strong>Whole Pallet Picking QR</strong></div>
+                                        <div t-field="o.whole_pallet_picking_id.name" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 200, 'height': 200, 'img_style': 'width:160px;height:160px;'}"/>
+                                        <div style="margin-top:6px;font-weight:600;"><span t-field="o.whole_pallet_picking_id.name"/></div>
+                                    </div>
+                                </td>
+                                <td style="width:50%;padding:0 220px 0 10px;text-align:right;vertical-align:top;border:0 !important;">
+                                    <div style="border:1px solid #e6e6e6;padding:8px;border-radius:6px;background:#fafafa;display:inline-block;">
+                                        <div style="font-size:11px;color:#666;margin-bottom:6px;"><strong>Partial Pallet Picking QR</strong></div>
+                                        <div t-field="o.partial_pallet_picking_id.name" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 200, 'height': 200, 'img_style': 'width:160px;height:160px;'}"/>
+                                        <div style="margin-top:6px;font-weight:600;"><span t-field="o.partial_pallet_picking_id.name"/></div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div t-elif="o.whole_pallet_picking_id" style="margin:0 0 12px 0;text-align:left;">
+                        <div style="border:1px solid #e6e6e6;padding:8px;border-radius:6px;background:#fafafa;display:inline-block;">
+                            <div style="font-size:11px;color:#666;margin-bottom:6px;"><strong>Whole Pallet Picking QR</strong></div>
+                            <div t-field="o.whole_pallet_picking_id.name" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 200, 'height': 200, 'img_style': 'width:160px;height:160px;'}"/>
+                            <div style="margin-top:6px;font-weight:600;"><span t-field="o.whole_pallet_picking_id.name"/></div>
+                        </div>
+                    </div>
+                    <div t-elif="o.partial_pallet_picking_id" style="margin:0 0 12px 0;text-align:left;">
+                        <div style="border:1px solid #e6e6e6;padding:8px;border-radius:6px;background:#fafafa;display:inline-block;">
+                            <div style="font-size:11px;color:#666;margin-bottom:6px;"><strong>Partial Pallet Picking QR</strong></div>
+                            <div t-field="o.partial_pallet_picking_id.name" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 200, 'height': 200, 'img_style': 'width:160px;height:160px;'}"/>
+                            <div style="margin-top:6px;font-weight:600;"><span t-field="o.partial_pallet_picking_id.name"/></div>
+                        </div>
+                    </div>
+                </t>
+                <t t-else="">
+                    <div t-if="o.picking_PICK" style="margin:0 0 12px 0;text-align:left;">
+                        <div style="border:1px solid #e6e6e6;padding:8px;border-radius:6px;background:#fafafa;display:inline-block;">
+                            <div style="font-size:11px;color:#666;margin-bottom:6px;"><strong>Picking QR</strong></div>
+                            <div t-field="o.picking_PICK.name" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 200, 'height': 200, 'img_style': 'width:160px;height:160px;'}"/>
+                            <div style="margin-top:6px;font-weight:600;"><span t-field="o.picking_PICK.name"/></div>
+                        </div>
+                    </div>
+                </t>
+                <div style="background:#eef0f2;padding:10px;border-radius:6px;margin-bottom:12px;">
+                                <table style="width:100%;border-collapse:collapse;table-layout:fixed;border:0 !important;outline:0 !important;box-shadow:none !important;">
+                                    <tbody style="border:0 !important;outline:0 !important;box-shadow:none !important;">
+                                        <tr style="border:0 !important;outline:0 !important;box-shadow:none !important;">
+                                            <td style="width:50%;padding:0 6px 0 0;vertical-align:top;border:0 !important;outline:0 !important;box-shadow:none !important;">
+                                                <strong>Delivery Information</strong>
+                                                <div style="font-size:18px;color:#444;margin-top:6px;">
+                                                    <div><strong>Method:</strong> <span t-field="o.delivery_method"/></div>
+                                                    <div t-if="o.unload_company"><strong>Unload Company:</strong> <span t-field="o.unload_company.name"/></div>
+                                                </div>
+                                            </td>
+                                            <td style="width:50%;padding:0 0 0 6px;vertical-align:top;border:0 !important;outline:0 !important;box-shadow:none !important;">
+                                                <strong>Delivery Address</strong>
+                                                <div style="font-size:18px;color:#444;margin-top:6px;">
+                                                    <div t-if="o.delivery_street"><strong>Street:</strong> <span t-field="o.delivery_street"/></div>
+                                                    <div t-elif="o.unload_company and o.unload_company.street"><strong>Street:</strong> <span t-field="o.unload_company.street"/></div>
+                                                    <div>
+                                                        <t t-if="o.delivery_city or o.delivery_zip">
+                                                            <strong>City/Zip:</strong>
+                                                            <span t-field="o.delivery_city"/>
+                                                            <span t-if="o.delivery_city and o.delivery_zip">, </span>
+                                                            <span t-field="o.delivery_zip"/>
+                                                        </t>
+                                                    </div>
+                                                    <div t-if="o.delivery_country_id"><strong>Country:</strong> <span t-field="o.delivery_country_id.name"/></div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <t t-foreach="o.outbound_order_product_ids" t-as="product">
+                                <table style="width:100%;border-collapse:collapse;font-size:18px;table-layout:fixed;margin-bottom:25px;border:2px solid #343a40;page-break-inside:avoid;">
+                                    <colgroup>
+                                        <col style="width:25%;"/>
+                                        <col style="width:15%;"/>
+                                        <col style="width:12%;"/>
+                                        <col style="width:15%;"/>
+                                        <col style="width:15%;"/>
+                                        <col style="width:18%;"/>
+                                    </colgroup>
+                                    <thead style="background:#343a40;color:#fff;display:table-header-group;">
+                                        <tr>
+                                            <th style="padding:12px;border:1px solid #ddd;text-align:left;">Product</th>
+                                            <th style="padding:12px;border:1px solid #ddd;text-align:center;">QR Code</th>
+                                            <th style="padding:12px;border:1px solid #ddd;text-align:right;">Quantity</th>
+                                            <th style="padding:12px;border:1px solid #ddd;text-align:center;">Serial Tracked</th>
+                                            <th style="padding:12px;border:1px solid #ddd;text-align:left;">Pallet Prefix</th>
+                                            <th style="padding:12px;border:1px solid #ddd;text-align:left;">Location</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td style="padding:12px;border:1px solid #eee;vertical-align:top;">
+                                                <div style="font-size:16px;font-weight:bold;color:#2c3e50;margin-bottom:5px;">[ <span t-field="product.product_id.display_name"/> ]</div>
+                                                <div style="font-size:16px;color:#34495e;"><span t-field="product.product_id.display_name"/></div>
+                                                <div style="color:#666;font-size:14px;margin-top:5px;">Code: <span t-field="product.product_id.default_code"/></div>
+                                            </td>
+                                            <td style="padding:12px;border:1px solid #eee;text-align:center;vertical-align:middle;">
+                                                <t t-if="product.product_id.barcode">
+                                                    <div t-field="product.product_id.barcode" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 120, 'height': 120, 'img_style': 'width:100px;height:100px;'}"/>
+                                                </t>
+                                                <t t-else="">
+                                                    <div t-field="product.product_id.id" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 120, 'height': 120, 'img_style': 'width:100px;height:100px;'}"/>
+                                                </t>
+                                            </td>
+                                            <td style="padding:12px;border:1px solid #eee;text-align:right;vertical-align:middle;font-size:20px;font-weight:bold;"><span t-field="product.quantity"/> <span t-field="product.product_id.uom_id.name"/></td>
+                                            <td style="padding:12px;border:1px solid #eee;text-align:center;vertical-align:middle;">
+                                                <t t-if="product.is_serial_tracked"><span style="background:#17a2b8;color:#fff;padding:6px 12px;border-radius:4px;font-size:14px;">Yes</span></t>
+                                                <t t-else=""><span style="background:#6c757d;color:#fff;padding:6px 12px;border-radius:4px;font-size:14px;">No</span></t>
+                                            </td>
+                                            <td style="padding:12px;border:1px solid #eee;vertical-align:middle;font-size:16px;"><span t-field="product.pallet_prefix_code"/></td>
+                                            <td style="padding:10px;border:1px solid #eee;vertical-align:middle;font-size:13px;width:25%;word-break:break-word;white-space:normal;line-height:1.4;font-family:monospace;"><span t-field="product.locations"/></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </t>
+                            <table style="width:100%;border-collapse:collapse;font-size:20px;table-layout:fixed;margin-top:20px;border:2px solid #28a745;">
+                                <colgroup>
+                                    <col style="width:25%;"/>
+                                    <col style="width:15%;"/>
+                                    <col style="width:12%;"/>
+                                    <col style="width:15%;"/>
+                                    <col style="width:15%;"/>
+                                    <col style="width:18%;"/>
+                                </colgroup>
+                                <tbody>
+                                    <tr style="background:#d4edda;">
+                                        <td style="padding:15px;border:1px solid #28a745;font-weight:bold;text-align:left;">Total</td>
+                                        <td style="padding:15px;border:1px solid #28a745;"/>
+                                        <td style="padding:15px;border:1px solid #28a745;text-align:right;font-weight:bold;"><span t-esc="sum(o.outbound_order_product_ids.mapped('quantity'))"/> <t t-esc="(o.outbound_order_product_ids and o.outbound_order_product_ids[0].product_id.uom_id.name) or ''"/></td>
+                                        <td style="padding:15px;border:1px solid #28a745;"/>
+                                        <td style="padding:15px;border:1px solid #28a745;"/>
+                                        <td style="padding:15px;border:1px solid #28a745;"/>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div t-if="o.remark" style="margin-top:20px;padding:12px;background:#fff3cd;border:1px solid #ffeaa7;border-radius:6px;">
+                            <strong style="font-size:16px;">Remarks:</strong>
+                            <div style="font-size:16px;margin-top:4px;" t-field="o.remark"/>
+                        </div>
+                        <div style="border-top:1px solid #dee2e6;padding:10px 0;text-align:center;font-size:14px;color:#6c757d;margin-top:10px;">
+                            <div style="max-width:1200px;margin:0 auto;padding:0 20px;">
+                                <div style="display:inline-block;width:48%;text-align:left;"><t t-esc="o.env.company.name"/> - Outbound Order</div>
+                                <div style="display:inline-block;width:48%;text-align:right;">Bill No: <t t-esc="o.billno"/></div>
+                            </div>
+                        </div>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

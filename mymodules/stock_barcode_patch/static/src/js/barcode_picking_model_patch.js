@@ -190,12 +190,26 @@ patch(BarcodePickingModel.prototype, {
     },
 
     _scheduleOverdoneDomSync() {
-        if (!this._overdoneDomSyncDelays) {
-            this._overdoneDomSyncDelays = [0, 50, 150, 350, 600, 1000];
+        // 清理之前的定时器
+        if (this._rafId) {
+            cancelAnimationFrame(this._rafId);
+            this._rafId = null;
         }
-        for (const ms of this._overdoneDomSyncDelays) {
-            setTimeout(() => this._syncOverdoneDomHighlights(), ms);
+        if (this._domSyncTimer) {
+            clearTimeout(this._domSyncTimer);
+            this._domSyncTimer = null;
         }
+
+        // 用 requestAnimationFrame 替代多个 setTimeout
+        this._rafId = requestAnimationFrame(() => {
+            this._syncOverdoneDomHighlights();
+        });
+
+        // 只保留一个延迟定时器兜底（应对动画帧间隙）
+        this._domSyncTimer = setTimeout(() => {
+            this._syncOverdoneDomHighlights();
+            this._domSyncTimer = null;
+        }, 350);
     },
 
     _lineDemandQty(line) {
@@ -203,14 +217,19 @@ patch(BarcodePickingModel.prototype, {
     },
 
     _syncOverdoneDomHighlights() {
-        document.querySelectorAll(".o_barcode_line").forEach(el => {
+        // 限制作用域，避免影响其他组件
+        const container = document.querySelector('.o_barcode_lines_container')
+                       || document.querySelector('.o_barcode_view')
+                       || document;
+
+        container.querySelectorAll(".o_barcode_line").forEach(el => {
             el.classList.remove("o_overdone_line", "text-danger", "fw-bold");
             el.style.removeProperty("background-color");
             el.style.removeProperty("color");
             el.style.removeProperty("font-weight");
         });
 
-        document.querySelectorAll(".o_barcode_line.o_excess_group").forEach(root => {
+        container.querySelectorAll(".o_barcode_line.o_excess_group").forEach(root => {
             root.classList.add("o_overdone_line");
             root.style.setProperty("background-color", "rgba(220, 53, 69, 0.12)", "important");
 
