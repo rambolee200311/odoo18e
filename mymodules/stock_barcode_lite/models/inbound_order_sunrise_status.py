@@ -192,7 +192,7 @@ class InboundOrderSunrise(models.Model):
                     "ninspacenum": detail_line.ninnum,
                 })
                 if detail_line.box_type == "bulk":
-                    locator.pop("ninspaceassistnum", None)
+                    locator["ninspaceassistnum"] = None
                 else:
                     locator["ninspaceassistnum"] = detail_line.u8_aux_qty
                 child = dict(child_parameters)
@@ -212,7 +212,7 @@ class InboundOrderSunrise(models.Model):
                     "locator": [locator],
                 })
                 if detail_line.box_type == "bulk":
-                    child.pop("castunitid", None)
+                    child["castunitid"] = None
                 else:
                     child["castunitid"] = detail_line.castunitid
                 childrenvo.append(child)
