@@ -162,6 +162,10 @@ class SunriseControllerMixin:
             )
         if box_type == "bulk" and not math.isclose(box_in_qty, 1.0, rel_tol=1e-9, abs_tol=1e-6):
             raise SunriseApiError("4001", self.format_field_error("box_in_qty", "must equal 1 when box_type is bulk", row_number))
+        if box_type == "bulk" and not math.isclose(u8_aux_qty, ninnum, rel_tol=1e-9, abs_tol=1e-6):
+            raise SunriseApiError("4001", self.format_field_error("u8_aux_qty", "must equal ninnum when box_type is bulk", row_number))
+        if box_type == "bulk" and not math.isclose(u8_conversion_rate, 1.0, rel_tol=1e-9, abs_tol=1e-6):
+            raise SunriseApiError("4001", self.format_field_error("u8_conversion_rate", "must equal 1 when box_type is bulk", row_number))
         return box_type, box_qty, box_in_qty, ninnum, u8_aux_qty, u8_conversion_rate
 
     def validate_lot_values(self, line_data, row_number=None):
@@ -198,7 +202,7 @@ class SunriseControllerMixin:
         return "%s-PARTIAL-%s" % (product_code, box_in_qty)
 
     def get_sunrise_product_variant(self, product_code, box_type, box_in_qty, project,
-                                    auto_create_variant=False, validate_inbound_box_mode=False):
+                                    auto_create_variant=False, validate_inbound_box_mode=False, validate_outbound_bulk=False):
         product_model = request.env["product.product"]
         standard_products = product_model.sudo().search([
             ("barcode", "=", product_code),
@@ -225,6 +229,11 @@ class SunriseControllerMixin:
 
         template = standard_product.product_tmpl_id
         incoming_box_mode = "bulk" if box_type == "bulk" else "package"
+        if validate_outbound_bulk and template.sunrise_inbound_box_mode == "bulk" and box_type != "bulk":
+            raise SunriseApiError(
+                "4001",
+                'Product barcode "%s" must use bulk because its Sunrise inbound box mode is bulk.' % product_code,
+            )
         if validate_inbound_box_mode and template.sunrise_inbound_box_mode and template.sunrise_inbound_box_mode != incoming_box_mode:
             raise SunriseApiError(
                 "4001",

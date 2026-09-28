@@ -196,7 +196,7 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
         u8_aux_uom_name = self.get_required_text(line_data, "u8_aux_uom_name", row_number)
         box_type, box_qty, box_in_qty, ninnum, u8_aux_qty, u8_conversion_rate = self.validate_box_values(line_data, row_number)
         is_lot, lot_name = self.validate_lot_values(line_data, row_number)
-        product = self.get_sunrise_product_variant(product_code, box_type, box_in_qty, project)
+        product = self.get_sunrise_product_variant(product_code, box_type, box_in_qty, project, validate_outbound_bulk=True)
         if product.tracking == "lot" and is_lot != "Y":
             raise SunriseApiError(
                 "4001",
