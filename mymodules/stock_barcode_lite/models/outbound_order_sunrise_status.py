@@ -203,10 +203,13 @@ class OutboundOrderSunrise(models.Model):
                     "vbatchcode": move_line.lot_id.name or detail_line.lot_name or "",
                     "dbizdate": biz_date,
                     "vnotebody": detail_line.remark or rec.remark or rec.reference or "",
-                    "castunitid": detail_line.castunitid,
                     "vuserdef10": pallet_code,
                     "locator": [locator],
                 })
+                if detail_line.box_type == "bulk":
+                    child.pop("castunitid", None)
+                else:
+                    child["castunitid"] = detail_line.castunitid
                 childrenvo.append(child)
 
             result.append({
