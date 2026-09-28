@@ -1,23 +1,28 @@
 .o_qooling_pda {
     max-width: 760px;
+    height: 100%;
+    min-height: 0;
     margin: 0 auto;
-    padding: 1rem;
-    min-height: 100%;
+    padding: 1rem 1rem 2rem;
+    box-sizing: border-box;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
     background: var(--bs-body-bg);
     &__header, &__footer { display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
     &__header { margin-bottom: 1rem; h1 { margin: .25rem 0 0; font-size: 1.5rem; } }
-    &__record-name { color: var(--bs-primary); font-weight: 600; }
+    &__record-name { color: $o-brand-primary; font-weight: 600; }
     &.is-readonly &__body input,
     &.is-readonly &__body select,
     &.is-readonly &__body textarea,
     &.is-readonly &__body canvas { pointer-events: none; opacity: .75; }
-    &__steps { display: flex; gap: .4rem; overflow-x: auto; margin-bottom: 1rem;
-        button { min-height: 3rem; white-space: nowrap; border: 1px solid var(--bs-border-color); background: transparent; border-radius: .5rem; padding: .5rem .75rem;
+    &__steps { display: flex; gap: .4rem; overflow-x: auto; margin-bottom: 1rem; scroll-snap-type: x proximity;
+        button { min-height: 3rem; white-space: nowrap; border: 1px solid var(--bs-border-color); background: var(--bs-tertiary-bg); border-radius: .5rem; padding: .5rem .75rem; scroll-snap-align: center; transition: background-color .2s, border-color .2s, box-shadow .2s, transform .2s;
             span { display: inline-grid; place-items: center; width: 1.5rem; height: 1.5rem; margin-right: .35rem; border-radius: 50%; background: var(--bs-secondary-bg); }
-            &.active { color: var(--bs-primary); border-color: var(--bs-primary); span { background: var(--bs-primary); color: white; } }
+            &.active { color: white !important; font-weight: 700; background: $o-brand-primary !important; border-color: $o-brand-primary !important; box-shadow: 0 .25rem .6rem rgba(0, 0, 0, .18); transform: translateY(-1px); span { background: white !important; color: $o-brand-primary !important; } }
         }
     }
-    &__body { padding: 1rem; border: 1px solid var(--bs-border-color); border-radius: .5rem; label { display: block; margin-bottom: 1rem; font-weight: 500; } .form-check { min-height: 3rem; padding: .75rem 0 .75rem 2rem; font-weight: 400; } }
+    &__body { touch-action: pan-y; padding: 1rem; border: 1px solid var(--bs-border-color); border-radius: .5rem; label { display: block; margin-bottom: 1rem; font-weight: 500; } .form-check { min-height: 3rem; padding: .75rem 0 .75rem 2rem; font-weight: 400; } }
     &__footer { margin-top: 1rem; flex-wrap: wrap; .btn { min-height: 2.75rem; } }
     &__photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr)); gap: .75rem; }
     &__upload { cursor: pointer; font-weight: 400; }

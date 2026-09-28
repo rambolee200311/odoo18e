@@ -8,6 +8,7 @@ import { _t } from "@web/core/l10n/translation";
 const MAX_MEDIA_COUNT = 20;
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
 const MAX_VIDEO_SIZE = 100 * 1024 * 1024;
+const SWIPE_MIN_DISTANCE = 40;
 
 function getMediaError(file, currentCount) {
     if (currentCount >= MAX_MEDIA_COUNT) {
@@ -48,6 +49,7 @@ export class QoolingInboundPda extends Component {
         this.notification = useService("notification");
         this.action = useService("action");
         this.signatureCanvas = useRef("signatureCanvas");
+        this.stepsNav = useRef("stepsNav");
         this.state = useState({
             record: { date: new Date().toISOString().slice(0, 10), filing_date: new Date().toISOString().slice(0, 10), adr: "no" },
             warehouses: [],
@@ -69,6 +71,10 @@ export class QoolingInboundPda extends Component {
             await this.loadDraft();
         });
         onPatched(() => {
+            if (this.lastScrolledStep !== this.state.step) {
+                this.lastScrolledStep = this.state.step;
+                this.stepsNav.el?.querySelector("button.active")?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+            }
             if (this.state.step === 4 && this.signatureCanvas.el !== this.signatureElement) {
                 this.teardownSignature();
                 this.setupSignature();
@@ -210,6 +216,31 @@ export class QoolingInboundPda extends Component {
 
     next() {
         this.state.step = Math.min(STEPS.length - 1, this.state.step + 1);
+    }
+
+    onSwipeStart(event) {
+        if (event.pointerType !== "touch" || event.target.closest("input, textarea, select, button, a, canvas, video")) {
+            return;
+        }
+        this.swipeStart = { x: event.clientX, y: event.clientY };
+    }
+
+    onSwipeEnd(event) {
+        const swipeStart = this.swipeStart;
+        this.swipeStart = null;
+        if (!swipeStart || event.type === "pointercancel") {
+            return;
+        }
+        const offsetX = event.clientX - swipeStart.x;
+        const offsetY = event.clientY - swipeStart.y;
+        if (Math.abs(offsetX) < SWIPE_MIN_DISTANCE || Math.abs(offsetX) <= Math.abs(offsetY)) {
+            return;
+        }
+        if (offsetX < 0) {
+            this.next();
+        } else {
+            this.previous();
+        }
     }
 
     openWebForm() {
