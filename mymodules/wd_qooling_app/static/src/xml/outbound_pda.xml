@@ -5,13 +5,14 @@
             <header class="o_qooling_pda__header"><div><span class="text-muted">FORMS / PDA</span><h1>Outbound Record <span class="o_qooling_pda__record-name" data-testid="outbound-pda-record-name"><t t-esc="state.record.name || 'New'"/></span></h1></div>
                 <button class="btn btn-outline-secondary" type="button" t-on-click="openWebForm" data-testid="outbound-pda-web">Open web form</button>
             </header>
-            <nav class="o_qooling_pda__steps" aria-label="Outbound steps">
+            <nav t-ref="stepsNav" class="o_qooling_pda__steps" aria-label="Outbound steps">
                 <t t-foreach="steps" t-as="item" t-key="item.key"><button type="button" t-att-class="state.step === steps.indexOf(item) ? 'active' : ''" t-on-click="() => state.step = steps.indexOf(item)" t-att-data-testid="'outbound-pda-step-' + item.key"><span><t t-esc="steps.indexOf(item) + 1"/></span><t t-esc="item.label"/></button></t>
             </nav>
             <div t-if="state.error" class="alert alert-danger" role="alert" data-testid="outbound-pda-error"><t t-esc="state.error"/></div>
             <div t-if="state.saved" class="alert alert-success" data-testid="outbound-pda-feedback"><t t-esc="state.saved"/></div>
             <div t-if="isReadOnly" class="alert alert-info" role="status">This record is submitted and read-only.</div>
-            <section class="o_qooling_pda__body">
+            <section class="o_qooling_pda__body" t-on-pointerdown="onSwipeStart" t-on-pointerup="onSwipeEnd"
+                     t-on-pointercancel="onSwipeEnd">
                 <div t-if="state.step === 0" data-testid="outbound-pda-details">
                     <label>Location<select class="form-select" data-field="location_id" t-on-change="onFieldChange"><option value="">Select warehouse</option><t t-foreach="state.warehouses" t-as="warehouse" t-key="warehouse.id"><option t-att-value="warehouse.id"><t t-esc="warehouse.name"/></option></t></select></label>
                     <label>Arrival<input class="form-control" type="datetime-local" t-att-value="state.record.date_arrival" data-field="date_arrival" t-on-input="onFieldChange"/></label>

@@ -10,7 +10,7 @@
                 <button class="btn btn-outline-secondary" type="button" t-on-click="openWebForm"
                         data-testid="inbound-pda-web">Open web form</button>
             </header>
-            <nav class="o_qooling_pda__steps" aria-label="Inbound steps">
+            <nav t-ref="stepsNav" class="o_qooling_pda__steps" aria-label="Inbound steps">
                 <t t-foreach="steps" t-as="item" t-key="item.key">
                     <button type="button" t-att-class="state.step === steps.indexOf(item) ? 'active' : ''"
                             t-on-click="() => state.step = steps.indexOf(item)"
@@ -22,7 +22,8 @@
             <div t-if="state.error" class="alert alert-danger" role="alert" data-testid="inbound-pda-error"><t t-esc="state.error"/></div>
             <div t-if="state.saved" class="alert alert-success" data-testid="inbound-pda-feedback"><t t-esc="state.saved"/></div>
             <div t-if="isReadOnly" class="alert alert-info" role="status">This record is submitted and read-only.</div>
-            <section class="o_qooling_pda__body">
+            <section class="o_qooling_pda__body" t-on-pointerdown="onSwipeStart" t-on-pointerup="onSwipeEnd"
+                     t-on-pointercancel="onSwipeEnd">
                 <div t-if="state.step === 0" data-testid="inbound-pda-details">
                     <label>Location<select class="form-select" required="required" data-field="location_id" t-on-change="onFieldChange">
                         <option value="">Select warehouse</option><t t-foreach="state.warehouses" t-as="warehouse" t-key="warehouse.id"><option t-att-value="warehouse.id"><t t-esc="warehouse.name"/></option></t>

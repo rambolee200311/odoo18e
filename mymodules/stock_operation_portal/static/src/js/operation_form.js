@@ -72,8 +72,16 @@ publicWidget.registry.InboundOrderForm = publicWidget.Widget.extend({
 
     _onRemovePalletLine: function (ev) {
         ev.preventDefault();
-        $(ev.currentTarget).closest('.pallet-line').remove();
+        var $pallet = $(ev.currentTarget).closest('.pallet-line');
+        var lineId = $pallet.attr('data-line-id');
+        if (lineId) {
+            var deleted = (this.$el.data('deleted-line-ids') || []);
+            deleted.push(parseInt(lineId));
+            this.$el.data('deleted-line-ids', deleted);
+        }
+        $pallet.remove();
         this._renumberPallets();
+
         if (!this.$('.pallet-line').length) {
             this.$('#empty_lines_hint').show();
         }
@@ -129,7 +137,16 @@ publicWidget.registry.InboundOrderForm = publicWidget.Widget.extend({
 
     _onRemoveProductLine: function (ev) {
         ev.preventDefault();
-        $(ev.currentTarget).closest('.product-line').remove();
+        var $prod = $(ev.currentTarget).closest('.product-line');
+        var prodId = $prod.attr('data-product-line-id');
+        var $pallet = $prod.closest('.pallet-line');
+        var lineId = $pallet.attr('data-line-id');
+        if (prodId && lineId) {
+            var deleted = ($pallet.data('deleted-product-ids') || []);
+            deleted.push(parseInt(prodId));
+            $pallet.data('deleted-product-ids', deleted);
+        }
+        $prod.remove();
         this._clearValidation();
     },
 
@@ -172,6 +189,12 @@ publicWidget.registry.InboundOrderForm = publicWidget.Widget.extend({
         if (!isEdit) {
             payload.project_id = $form.find('[name="project_id"]').val() || '';
         }
+        if (isEdit) {
+            var deletedLineIds = this.$el.data('deleted-line-ids') || [];
+            if (deletedLineIds.length) {
+                payload.deleted_line_ids = deletedLineIds;
+            }
+        }
 
         this.$('.pallet-line').each(function () {
             var $pallet = $(this);
@@ -183,7 +206,15 @@ publicWidget.registry.InboundOrderForm = publicWidget.Widget.extend({
                 remark: ($pallet.find('.line_remark').val() || '').trim(),
                 products: [],
             };
-            if (lineId) palletData.id = parseInt(lineId);
+//            if (lineId) palletData.id = parseInt(lineId);
+            if (lineId) {
+                palletData.id = parseInt(lineId);
+                var deletedProdIds = $pallet.data('deleted-product-ids') || [];
+                if (deletedProdIds.length) {
+                    palletData.deleted_product_ids = deletedProdIds;
+                }
+            }
+
 
             $pallet.find('.product-line').each(function () {
                 var $prod = $(this);
