@@ -66,6 +66,8 @@ class InboundOrder(models.Model):
             if rec.project_stock_report_date_mode != "business":
                 raise UserError(_("Actual inbound confirmation is available only for projects using Order Business Date."))
             context = {"default_inbound_order_id": rec.id}
+            if rec.actual_inbound_datetime:
+                context["default_actual_inbound_datetime"] = rec.actual_inbound_datetime
             if rec.actual_inbound_attachment_line_ids:
                 context["default_actual_inbound_attachment_line_ids"] = [(6, 0, rec.actual_inbound_attachment_line_ids.ids)]
             return {
