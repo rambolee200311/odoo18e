@@ -71,27 +71,11 @@
                                    t-on-change="onPhoto"/>
                         </label>
                     </div>
-                    <div class="o_qooling_pda__photos">
-                        <div t-foreach="state.photos" t-as="photo" t-key="photo.id"
-                             class="o_qooling_pda__photo" data-testid="inbound-pda-photo">
-                            <video t-if="isVideo(photo)" t-att-src="'/web/content/' + photo.id"
-                                   class="o_qooling_pda__thumbnail" muted="muted" preload="metadata"/>
-                            <img t-else="" t-att-src="'/web/content/' + photo.id" t-att-alt="photo.name"
-                                 class="o_qooling_pda__thumbnail"/>
-                            <div class="o_qooling_pda__photo-actions">
-                                <button type="button" class="btn btn-sm btn-light o_qooling_pda__photo-enlarge"
-                                        t-on-click="() => state.preview = photo.id"
-                                        aria-label="Enlarge image" title="Enlarge image">
-                                    <i class="fa fa-search-plus" aria-hidden="true"/>
-                                </button>
-                                <button type="button" class="btn btn-sm btn-danger o_qooling_pda__photo-delete"
-                                        t-on-click="() => deletePhoto(photo.id)"
-                                        aria-label="Delete image" title="Delete image">
-                                    <i class="fa fa-trash" aria-hidden="true"/>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                    <ImagePreviewComponent 
+                        attachments="state.photos"
+                        editable="!isReadOnly"
+                        onRemove.bind="deletePhoto"
+                    />
                     <label>Comments<textarea class="form-control" data-field="comments" t-on-input="onFieldChange"><t t-esc="state.record.comments || ''"/></textarea></label>
                 </div>
                 <div t-elif="state.step === 4" data-testid="inbound-pda-signature-step">
@@ -107,13 +91,6 @@
                 <button t-if="!isReadOnly" class="btn btn-outline-primary" type="button" t-on-click="save" t-att-disabled="state.busy" data-testid="inbound-pda-save">Save draft</button>
                 <button t-if="state.step === steps.length - 1 &amp;&amp; !isReadOnly" class="btn btn-success" type="button" t-on-click="submit" t-att-disabled="state.busy" data-testid="inbound-pda-submit">Submit</button>
             </footer>
-            <div t-if="state.preview" class="o_qooling_pda__preview" role="dialog"
-                 t-on-click="() => state.preview = false" data-testid="inbound-pda-photo-preview">
-                <video t-if="isVideo(getPreviewPhoto())" t-att-src="'/web/content/' + state.preview"
-                       controls="controls" autoplay="autoplay" t-on-click.stop="() => {}"/>
-                <img t-else="" t-att-src="'/web/content/' + state.preview" alt="Enlarged inbound evidence"
-                     t-on-click.stop="() => {}"/>
-            </div>
-        </main>
+                    </main>
     </t>
 </templates>

@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="wd_attachment_preview.ImagePreviewComponent">
+        <div class="o_attachment_preview_comp">
+            <!-- 缩略图网格 -->
+            <div t-if="props.attachments.length" class="o_attachment_preview_comp_grid">
+                <t t-foreach="props.attachments" t-as="attachment" t-key="attachment.id">
+                    <div class="o_attachment_preview_comp_item">
+                        <!-- 图片缩略图 -->
+                        <t t-if="isImage(attachment)">
+                            <div class="o_attachment_preview_comp_thumb" t-on-click="() => openPreview(attachment.id)">
+                                <img t-att-src="getThumbnailUrl(attachment.id)"
+                                     t-att-alt="attachment.name"
+                                     loading="lazy"/>
+                                <div class="o_attachment_preview_comp_actions">
+                                    <button type="button" class="btn btn-sm btn-light"
+                                            t-on-click.stop="() => openPreview(attachment.id)"
+                                            title="Preview">
+                                        <i class="fa fa-search-plus"/>
+                                    </button>
+                                    <button t-if="props.editable" type="button" class="btn btn-sm btn-danger"
+                                            t-on-click.stop="(event) => onRemoveClick(attachment.id, event)"
+                                            title="Remove">
+                                        <i class="fa fa-trash"/>
+                                    </button>
+                                </div>
+                            </div>
+                        </t>
+                        <!-- 视频缩略图 -->
+                        <t t-elif="isVideo(attachment)">
+                            <div class="o_attachment_preview_comp_thumb o_attachment_preview_comp_video"
+                                 t-on-click="() => openPreview(attachment.id)">
+                                <video t-att-src="getContentUrl(attachment.id)"
+                                       muted="muted"
+                                       preload="metadata"/>
+                                <div class="o_attachment_preview_comp_play">
+                                    <i class="fa fa-play-circle"/>
+                                </div>
+                                <div class="o_attachment_preview_comp_actions">
+                                    <button type="button" class="btn btn-sm btn-light"
+                                            t-on-click.stop="() => openPreview(attachment.id)"
+                                            title="Preview">
+                                        <i class="fa fa-search-plus"/>
+                                    </button>
+                                    <button t-if="props.editable" type="button" class="btn btn-sm btn-danger"
+                                            t-on-click.stop="(event) => onRemoveClick(attachment.id, event)"
+                                            title="Remove">
+                                        <i class="fa fa-trash"/>
+                                    </button>
+                                </div>
+                            </div>
+                        </t>
+                        <!-- 其他文件类型 -->
+                        <t t-else="">
+                            <div class="o_attachment_preview_comp_file">
+                                <div class="o_attachment_preview_comp_file_icon">
+                                    <i class="fa fa-file-o"/>
+                                    <span t-esc="getFileExtension(attachment)"/>
+                                </div>
+                                <div class="o_attachment_preview_comp_file_name" t-att-title="attachment.name">
+                                    <t t-esc="attachment.name"/>
+                                </div>
+                                <div class="o_attachment_preview_comp_file_actions">
+                                    <a t-att-href="getContentUrl(attachment.id)"
+                                       class="btn btn-sm btn-light"
+                                       download=""
+                                       title="Download"
+                                       t-on-click.stop="">
+                                        <i class="fa fa-download"/>
+                                    </a>
+                                    <button t-if="props.editable" type="button" class="btn btn-sm btn-danger"
+                                            t-on-click.stop="(event) => onRemoveClick(attachment.id, event)"
+                                            title="Remove">
+                                        <i class="fa fa-trash"/>
+                                    </button>
+                                </div>
+                            </div>
+                        </t>
+                        <!-- 文件名（仅图片和视频显示） -->
+                        <t t-if="isImage(attachment) || isVideo(attachment)">
+                            <div class="o_attachment_preview_comp_name" t-att-title="attachment.name">
+                                <t t-esc="attachment.name"/>
+                            </div>
+                        </t>
+                    </div>
+                </t>
+            </div>
+            <!-- 空状态 -->
+            <div t-else="" class="o_attachment_preview_comp_empty">
+                <i class="fa fa-image"/>
+                <span>No attachments</span>
+            </div>
+            <!-- 全屏预览模态框 -->
+            <div t-if="state.previewId" class="o_attachment_preview_comp_overlay" t-on-click="closePreview">
+                <div class="o_attachment_preview_comp_modal" t-on-click.stop="() => {}">
+                    <!-- 关闭按钮 -->
+                    <button type="button" class="o_attachment_preview_comp_close" t-on-click="closePreview">
+                        <i class="fa fa-times"/>
+                    </button>
+                    <!-- 下载按钮 -->
+                    <button type="button" class="o_attachment_preview_comp_download"
+                            t-on-click="() => downloadFile(state.previewId)">
+                        <i class="fa fa-download"/>
+                    </button>
+                    <!-- 预览内容 -->
+                    <t t-set="preview" t-value="getPreviewAttachment()"/>
+                    <t t-if="preview">
+                        <img t-if="isImage(preview)"
+                             t-att-src="getContentUrl(state.previewId)"
+                             class="o_attachment_preview_comp_full_image"
+                             t-att-alt="preview.name"/>
+                        <video t-elif="isVideo(preview)"
+                               t-att-src="getContentUrl(state.previewId)"
+                               class="o_attachment_preview_comp_full_video"
+                               controls="controls"
+                               autoplay="autoplay"/>
+                        <!-- 文件名 -->
+                        <div class="o_attachment_preview_comp_caption">
+                            <t t-esc="preview.name"/>
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>
