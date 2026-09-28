@@ -9,6 +9,7 @@ class StatementPeriod(models.Model):
     _name = "statement.period"
     _inherit = ["mail.thread", "mail.activity.mixin"]
     _description = "Statement Period"
+    _order = "id desc"
 
     name = fields.Char(string="Statement No", required=True, copy=False, default=lambda self: _("New"), index=True)
     date_start = fields.Date(string="Start Date", required=True)

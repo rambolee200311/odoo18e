@@ -3,6 +3,7 @@ from odoo import fields, models, _
 class ResPartnerInherit(models.Model):
     _inherit = "res.partner"
 
+    short_name = fields.Char(string="Short Name")
     eu_eori_no = fields.Char(string="EORI No")
     #vat_tax_no = fields.Char(string="VAT No")
 

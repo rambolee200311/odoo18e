@@ -8,6 +8,7 @@ import { _t } from "@web/core/l10n/translation";
 const MAX_MEDIA_COUNT = 20;
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
 const MAX_VIDEO_SIZE = 100 * 1024 * 1024;
+const SWIPE_MIN_DISTANCE = 40;
 
 function getMediaError(file, currentCount) {
     if (currentCount >= MAX_MEDIA_COUNT) {
@@ -86,6 +87,7 @@ export class QoolingOutboundPda extends Component {
             driver: useRef("driverSignatureCanvas"),
             warehouse: useRef("warehouseSignatureCanvas"),
         };
+        this.stepsNav = useRef("stepsNav");
         this.state = useState({
             record: {
                 date_arrival: new Date().toISOString().slice(0, 16),
@@ -106,6 +108,10 @@ export class QoolingOutboundPda extends Component {
             await this.loadDraft();
         });
         onPatched(() => {
+            if (this.lastScrolledStep !== this.state.step) {
+                this.lastScrolledStep = this.state.step;
+                this.stepsNav.el?.querySelector("button.active")?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+            }
             const key = this.state.step === 4 ? "driver" : this.state.step === 5 ? "warehouse" : null;
             if (key && this.canvasRefs[key].el !== this.signatureElement) {
                 this.teardownSignature();
@@ -227,6 +233,24 @@ export class QoolingOutboundPda extends Component {
 
     previous() { this.state.step = Math.max(0, this.state.step - 1); }
     next() { this.state.step = Math.min(STEPS.length - 1, this.state.step + 1); }
+
+    onSwipeStart(event) {
+        if (event.pointerType !== "touch" || event.target.closest("input, textarea, select, button, a, canvas, video")) {
+            return;
+        }
+        this.swipeStart = { x: event.clientX, y: event.clientY };
+    }
+
+    onSwipeEnd(event) {
+        const swipeStart = this.swipeStart;
+        this.swipeStart = null;
+        if (!swipeStart || event.type === "pointercancel") return;
+        const offsetX = event.clientX - swipeStart.x;
+        const offsetY = event.clientY - swipeStart.y;
+        if (Math.abs(offsetX) < SWIPE_MIN_DISTANCE || Math.abs(offsetX) <= Math.abs(offsetY)) return;
+        if (offsetX < 0) this.next(); else this.previous();
+    }
+
     openWebForm() {
         return this.action.doAction("wd_qooling_app.action_qooling_outbound_form", {
             additionalContext: this.state.recordId ? { active_id: this.state.recordId } : {},

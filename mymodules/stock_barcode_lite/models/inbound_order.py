@@ -66,6 +66,8 @@ class InboundOrder(models.Model):
             if rec.project_stock_report_date_mode != "business":
                 raise UserError(_("Actual inbound confirmation is available only for projects using Order Business Date."))
             context = {"default_inbound_order_id": rec.id}
+            if rec.actual_inbound_datetime:
+                context["default_actual_inbound_datetime"] = rec.actual_inbound_datetime
             if rec.actual_inbound_attachment_line_ids:
                 context["default_actual_inbound_attachment_line_ids"] = [(6, 0, rec.actual_inbound_attachment_line_ids.ids)]
             return {
@@ -808,6 +810,7 @@ class InboundOrderProduct(models.Model):
                 continue
             duplicate_pallet = inbound_pallet_model.sudo().search([
                 ("id", "!=", rec.id),
+                ("inbound_order_id", "=", rec.inbound_order_id.id),
                 ("pallet_no", "=", pallet_no),
             ], limit=1)
             if duplicate_pallet:
