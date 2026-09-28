@@ -70,7 +70,7 @@ export class VasPdaAction extends Component {
         return _t("Automatic");
     }
 
-    async resolveWarehouseOrder() {
+    async resolveWarehouseOrder(showWarning = true) {
         const billno = this.state.billno.trim();
         if (!billno) {
             this.state.warehouseOrder = null;
@@ -83,18 +83,20 @@ export class VasPdaAction extends Component {
             { limit: 1 }
         );
         this.state.warehouseOrder = records[0] || null;
-        if (!this.state.warehouseOrder) {
+        if (!this.state.warehouseOrder && showWarning) {
             this.notification.add(_t("Warehouse Order was not found."), { type: "warning" });
         }
     }
 
-    async createDraft() {
+    async createDraft(allowUnresolvedDocument = false) {
         const billno = this.state.billno.trim();
         if (billno) {
-            await this.resolveWarehouseOrder();
-            if (!this.state.warehouseOrder) {
+            await this.resolveWarehouseOrder(!allowUnresolvedDocument);
+            if (!this.state.warehouseOrder && !allowUnresolvedDocument) {
                 return false;
             }
+        } else {
+            this.state.warehouseOrder = null;
         }
         const values = {
             order_type: this.state.orderType,
@@ -106,6 +108,8 @@ export class VasPdaAction extends Component {
             values.warehouse_order_billno = billno;
             values.warehouse_id = warehouseId;
             values.project_id = projectId || false;
+        } else if (billno) {
+            values.warehouse_order_billno = billno;
         }
         const [orderId] = await this.orm.create("wd.vas.order", [values]);
         await this.reloadOrder(orderId);
@@ -314,7 +318,10 @@ export class VasPdaAction extends Component {
 
     async onFileChange(event) {
         const files = [...event.target.files];
-        if (!files.length || !this.state.order || !this.isDraft) {
+        if (!files.length || !this.isDraft) {
+            return;
+        }
+        if (!this.state.order && !(await this.createDraft(true))) {
             return;
         }
         for (const file of files) {
