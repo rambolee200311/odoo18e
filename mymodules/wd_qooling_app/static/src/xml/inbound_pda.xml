@@ -88,8 +88,8 @@
             <footer class="o_qooling_pda__footer">
                 <button class="btn btn-outline-secondary" type="button" t-on-click="previous" t-att-disabled="state.step === 0">Back</button>
                 <button t-if="state.step &lt; steps.length - 1" class="btn btn-primary" type="button" t-on-click="next" data-testid="inbound-pda-next">Next</button>
-                <button t-if="!isReadOnly" class="btn btn-outline-primary" type="button" t-on-click="save" t-att-disabled="state.busy" data-testid="inbound-pda-save">Save draft</button>
-                <button t-if="state.step === steps.length - 1 &amp;&amp; !isReadOnly" class="btn btn-success" type="button" t-on-click="submit" t-att-disabled="state.busy" data-testid="inbound-pda-submit">Submit</button>
+                <button t-if="!isReadOnly" class="btn btn-outline-primary" type="button" t-on-click="save" t-att-disabled="state.busy || state.uploading" data-testid="inbound-pda-save">Save draft</button>
+                <button t-if="state.step === steps.length - 1 &amp;&amp; !isReadOnly" class="btn btn-success" type="button" t-on-click="submit" t-att-disabled="state.busy || state.uploading" data-testid="inbound-pda-submit">Submit</button>
             </footer>
                     </main>
     </t>

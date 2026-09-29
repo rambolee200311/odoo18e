@@ -191,16 +191,20 @@
     &_modal {
         position: relative;
         max-width: 95vw;
-        max-height: 95vh;
+        max-height: calc(100vh - 40px);
+        max-height: calc(100dvh - 40px);
         display: flex;
         flex-direction: column;
         align-items: center;
+        box-sizing: border-box;
+        padding: 44px 4px 4px;
+        overflow: auto;
     }
     
     &_close {
         position: absolute;
-        top: -40px;
-        right: 0;
+        top: 4px;
+        right: 4px;
         width: 36px;
         height: 36px;
         border: none;
@@ -221,8 +225,8 @@
     
     &_download {
         position: absolute;
-        top: -40px;
-        right: 44px;
+        top: 4px;
+        right: 48px;
         width: 36px;
         height: 36px;
         border: none;
@@ -250,8 +254,12 @@
     }
     
     &_full_video {
+        display: block;
+        width: auto;
         max-width: 90vw;
         max-height: 85vh;
+        max-height: calc(100dvh - 140px);
+        object-fit: contain;
         border-radius: 4px;
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     }
@@ -286,13 +294,13 @@
         }
         
         &_close {
-            top: -44px;
-            right: 0;
+            top: 4px;
+            right: 4px;
         }
         
         &_download {
-            top: -44px;
-            right: 44px;
+            top: 4px;
+            right: 48px;
         }
     }
 }

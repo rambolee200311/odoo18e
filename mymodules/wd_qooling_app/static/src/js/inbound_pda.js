@@ -47,6 +47,7 @@ export class QoolingInboundPda extends Component {
     setup() {
         this.setValue = this.setValue.bind(this);
         this.deletePhoto = this.deletePhoto.bind(this);
+        this.pendingUploads = 0;
         this.orm = useService("orm");
         this.notification = useService("notification");
         this.action = useService("action");
@@ -61,6 +62,7 @@ export class QoolingInboundPda extends Component {
             photos: [],
             step: 0,
             busy: false,
+            uploading: false,
             error: "",
             saved: "",
             preview: false,
@@ -160,6 +162,10 @@ export class QoolingInboundPda extends Component {
 
     async save() {
         if (this.isReadOnly) return;
+        if (this.state.uploading) {
+            this.state.error = "Please wait until media upload finishes.";
+            return;
+        }
         if (!this.validateRequiredFields()) {
             return;
         }
@@ -187,6 +193,10 @@ export class QoolingInboundPda extends Component {
 
     async submit() {
         if (this.isReadOnly) return;
+        if (this.state.uploading) {
+            this.state.error = "Please wait until media upload finishes.";
+            return;
+        }
         if (!this.validateRequiredFields()) {
             return;
         }
@@ -270,6 +280,15 @@ export class QoolingInboundPda extends Component {
                 continue;
             }
             currentCount += 1;
+            this.pendingUploads += 1;
+            this.state.uploading = true;
+            const finishUpload = () => {
+                this.pendingUploads -= 1;
+                if (this.pendingUploads <= 0) {
+                    this.pendingUploads = 0;
+                    this.state.uploading = false;
+                }
+            };
             const reader = new FileReader();
             reader.onload = async () => {
                 try {
@@ -286,7 +305,13 @@ export class QoolingInboundPda extends Component {
                     await this.loadPhotos();
                 } catch (error) {
                     this.state.error = error.data?.message || error.message || "Could not upload the media.";
+                } finally {
+                    finishUpload();
                 }
+            };
+            reader.onerror = () => {
+                this.state.error = "Could not read the media file.";
+                finishUpload();
             };
             reader.readAsDataURL(file);
         }

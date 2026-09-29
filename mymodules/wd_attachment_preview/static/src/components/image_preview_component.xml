@@ -32,6 +32,8 @@
                                  t-on-click="() => openPreview(attachment.id)">
                                 <video t-att-src="getContentUrl(attachment.id)"
                                        muted="muted"
+                                       playsinline="playsinline"
+                                       webkit-playsinline="webkit-playsinline"
                                        preload="metadata"/>
                                 <div class="o_attachment_preview_comp_play">
                                     <i class="fa fa-play-circle"/>
@@ -113,6 +115,8 @@
                                t-att-src="getContentUrl(state.previewId)"
                                class="o_attachment_preview_comp_full_video"
                                controls="controls"
+                               playsinline="playsinline"
+                               webkit-playsinline="webkit-playsinline"
                                autoplay="autoplay"/>
                         <!-- 文件名 -->
                         <div class="o_attachment_preview_comp_caption">

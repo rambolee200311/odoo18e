@@ -82,6 +82,7 @@ export class QoolingOutboundPda extends Component {
         this.startSignature = this.startSignature.bind(this);
         this.moveSignature = this.moveSignature.bind(this);
         this.endSignature = this.endSignature.bind(this);
+        this.pendingUploads = 0;
         this.orm = useService("orm");
         this.notification = useService("notification");
         this.action = useService("action");
@@ -100,7 +101,7 @@ export class QoolingOutboundPda extends Component {
                 adr: "no",
             },
             warehouses: [], users: [], recordId: null, readOnly: false, photos: [], step: 0,
-            busy: false, error: "", saved: "", preview: false,
+            busy: false, uploading: false, error: "", saved: "", preview: false,
         });
         onWillStart(async () => {
             [this.state.warehouses, this.state.users] = await Promise.all([
@@ -206,6 +207,10 @@ export class QoolingOutboundPda extends Component {
 
     async save() {
         if (this.isReadOnly) return;
+        if (this.state.uploading) {
+            this.state.error = "Please wait until media upload finishes.";
+            return;
+        }
         if (!this.validateRequiredFields()) return;
         this.state.busy = true; this.state.error = "";
         try {
@@ -219,6 +224,10 @@ export class QoolingOutboundPda extends Component {
 
     async submit() {
         if (this.isReadOnly) return;
+        if (this.state.uploading) {
+            this.state.error = "Please wait until media upload finishes.";
+            return;
+        }
         if (!this.validateRequiredFields()) return;
         this.state.busy = true; this.state.error = "";
         try {
@@ -276,6 +285,15 @@ export class QoolingOutboundPda extends Component {
                 continue;
             }
             currentCount += 1;
+            this.pendingUploads += 1;
+            this.state.uploading = true;
+            const finishUpload = () => {
+                this.pendingUploads -= 1;
+                if (this.pendingUploads <= 0) {
+                    this.pendingUploads = 0;
+                    this.state.uploading = false;
+                }
+            };
             const reader = new FileReader();
             reader.onload = async () => {
                 try {
@@ -289,7 +307,13 @@ export class QoolingOutboundPda extends Component {
                     await this.loadPhotos();
                 } catch (error) {
                     this.state.error = error.data?.message || error.message || "Could not upload the media.";
+                } finally {
+                    finishUpload();
                 }
+            };
+            reader.onerror = () => {
+                this.state.error = "Could not read the media file.";
+                finishUpload();
             };
             reader.readAsDataURL(file);
         }
