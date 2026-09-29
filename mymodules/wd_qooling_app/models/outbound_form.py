@@ -152,6 +152,10 @@ class QoolingOutboundForm(models.Model):
                 raise UserError(_("Arrival, start loading, and end loading times must be in chronological order."))
             record.write({
                 "state": "submitted",
+                "driver_signer_id": record.driver_signer_id.id or self.env.uid if record.driver_signature else False,
+                "driver_signature_time": record.driver_signature_time or fields.Datetime.now() if record.driver_signature else False,
+                "warehouse_signer_id": record.warehouse_signer_id.id or self.env.uid if record.warehouse_signature else False,
+                "warehouse_signature_time": record.warehouse_signature_time or fields.Datetime.now() if record.warehouse_signature else False,
                 "submitted_by_id": self.env.uid,
                 "submitted_at": fields.Datetime.now(),
             })
