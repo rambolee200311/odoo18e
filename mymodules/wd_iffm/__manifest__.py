@@ -18,7 +18,7 @@ Long description of module's purpose
     'version': '0.2',
 
     # any module necessary for this one to work correctly
-    'depends': ['base','account','worlddepot','wd_account_extension'],
+    'depends': ['base','account','worlddepot','wd_account_extension',"wd_attachment_preview"],
 
     # hooks
     'post_init_hook': '_init_workbench_lanes',

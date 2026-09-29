@@ -4,7 +4,7 @@
     "version": "1.0.0",
     "category": "Accounting",
     "summary": "Common accounting enhancements",
-    "depends": ["account", "worlddepot"],
+    "depends": ["account", "worlddepot","wd_attachment_preview"],
     "pre_init_hook": "migrate_account_extension_xml_ids",
     "data": [
         "security/security.xml",

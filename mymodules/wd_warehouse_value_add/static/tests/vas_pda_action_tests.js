@@ -116,6 +116,28 @@ test("PDA creates an unassociated draft before adding the first line", async () 
     expect(action.state.lineModalOpen).toBe(false);
 });
 
+test("PDA creates an attachment draft without resolving the related document", async () => {
+    const action = makeAction({ billno: "UNRESOLVED-001" });
+    const calls = [];
+    const notifications = [];
+    action.notification.add = (message) => notifications.push(message);
+    action.orm.create = async (model, values) => {
+        calls.push({ model, values });
+        return [7];
+    };
+    action.reloadOrder = async (orderId) => {
+        action.state.order = { id: orderId, state: "draft" };
+    };
+
+    const created = await action.createDraft(true);
+
+    expect(created).toBe(true);
+    expect(notifications).toEqual([]);
+    expect(calls.length).toBe(1);
+    expect(calls[0].model).toBe("wd.vas.order");
+    expect(calls[0].values[0].warehouse_order_billno).toBe("UNRESOLVED-001");
+});
+
 test("PDA requires a reason before cancelling a draft", async () => {
     const action = makeAction({
         order: { id: 7, state: "draft" },

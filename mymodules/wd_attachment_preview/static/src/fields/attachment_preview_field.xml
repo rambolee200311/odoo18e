@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="wd_attachment_preview.AttachmentPreviewField">
+        <div t-attf-class="o_attachment_preview {{props.className || ''}}">
+            <div class="o_attachment_preview_images" t-if="media.length">
+                <div t-foreach="media" t-as="file" t-key="file.id" class="o_attachment_preview_image" t-att-class="{ 'o_attachment_preview_viewable': file.isViewable }" t-att-title="file.displayName" t-on-click="() => this.on_preview(file)">
+                    <div class="o_attachment_preview_thumbnail">
+                        <video t-if="file.isVideo" t-att-src="get_media_url(file)" muted="muted" preload="metadata"/>
+                        <img t-else="" t-att-src="get_image_url(file)" t-att-alt="file.displayName"/>
+                        <div class="o_attachment_preview_image_actions">
+                            <button type="button" class="btn btn-light btn-sm text-info o_attachment_preview_preview" title="Preview" t-on-click.stop="() => this.on_preview(file)">
+                                <i class="fa fa-search" role="img" aria-label="Preview"/>
+                            </button>
+                            <button t-if="!props.readonly" type="button" class="btn btn-light btn-sm text-danger o_attachment_preview_delete" title="Remove" t-on-click.stop="() => this.on_file_remove(file.id)">
+                                <i class="fa fa-trash" role="img" aria-label="Remove"/>
+                            </button>
+                        </div>
+                    </div>
+                    <span t-esc="file.displayName"/>
+                </div>
+            </div>
+            <div class="o_attachment_preview_files" t-if="other_files.length">
+                <div t-foreach="other_files" t-as="file" t-key="file.id" class="o_attachment_preview_file" t-att-class="{ 'o_attachment_preview_viewable': file.isViewable }" t-att-title="file.displayName" t-on-click="() => this.on_preview(file)">
+                    <div class="o_attachment_preview_file_icon o_image" t-att-data-mimetype="file.mimetype" t-att-data-ext="get_file_extension(file)" role="img"/>
+                    <div class="o_attachment_preview_file_name">
+                        <span t-esc="file.displayName"/>
+                        <small t-esc="get_file_extension(file).toUpperCase()"/>
+                    </div>
+                    <a class="btn btn-link o_attachment_preview_download" t-att-href="file.downloadUrl" download="" title="Download" t-on-click.stop="">
+                        <i class="fa fa-download" role="img" aria-label="Download"/>
+                    </a>
+                    <button t-if="!props.readonly" type="button" class="btn btn-link text-danger o_attachment_preview_remove_file" title="Remove" t-on-click.stop="() => this.on_file_remove(file.id)">
+                        <i class="fa fa-times" role="img" aria-label="Remove"/>
+                    </button>
+                </div>
+            </div>
+            <div t-if="!props.readonly &amp;&amp; (!props.numberOfFiles or files.length &lt; props.numberOfFiles)" class="o_attachment_preview_upload">
+                <FileInput acceptedFileExtensions="props.acceptedFileExtensions" multiUpload="true" onUpload.bind="on_file_uploaded" resModel="props.record.resModel" resId="props.record.resId or 0">
+                    <button class="btn btn-secondary" type="button">
+                        <span class="fa fa-paperclip" aria-label="Attach"/> <t t-esc="upload_text"/>
+                    </button>
+                </FileInput>
+            </div>
+        </div>
+    </t>
+</templates>

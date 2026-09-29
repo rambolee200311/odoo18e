@@ -190,14 +190,16 @@ class InboundOrderSunrise(models.Model):
                 locator.update({
                     "cspaceid": cspaceid,
                     "ninspacenum": detail_line.ninnum,
-                    "ninspaceassistnum": detail_line.u8_aux_qty,
                 })
+                if detail_line.box_type == "bulk":
+                    locator.pop("ninspaceassistnum", None)
+                else:
+                    locator["ninspaceassistnum"] = detail_line.u8_aux_qty
                 child = dict(child_parameters)
                 child.update({
                     "cprojectid": detail_line.cprojectid,
                     "ndiscounttaxtype": detail_line.ndiscounttaxtype,
                     "cinventoryid": product_barcode,
-                    "castunitid": detail_line.castunitid,
                     "ninnum": detail_line.ninnum,
                     "csourcetype": "23",
                     "vsourcebillcode": detail_line.vsourcebillcode,
@@ -209,6 +211,10 @@ class InboundOrderSunrise(models.Model):
                     "vdef7": detail_line.gross_weight or "",
                     "locator": [locator],
                 })
+                if detail_line.box_type == "bulk":
+                    child.pop("castunitid", None)
+                else:
+                    child["castunitid"] = detail_line.castunitid
                 childrenvo.append(child)
 
             # result.append({

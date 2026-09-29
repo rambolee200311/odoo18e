@@ -34,7 +34,7 @@
 
                             <field name="vendor_invoice_id" readonly="1"
                                    options="{'no_create': True, 'no_open': True}"/>
-                            <field name="bank_proof_attachment_ids" widget="many2many_binary" readonly="1"/>
+                            <field name="bank_proof_attachment_ids" widget="attachment_preview" readonly="1"/>
                             <field name="apply_user_id" options="{'no_create': True, 'no_open': True}"/>
                             <field name="apply_datetime"/>
 
@@ -43,7 +43,7 @@
                             <field name="vendor_invoice_num" required="1" readonly="payment_state != 'draft' or clearance_id.state == 'close'"/>
                             <field name="invoice_date" required="1" readonly="payment_state != 'draft' or clearance_id.state == 'close'"/>
                             <field name="amount_total" readonly="1" required="1"/>
-                            <field name="vendor_invoice_attachment_ids" widget="many2many_binary" required="1"
+                            <field name="vendor_invoice_attachment_ids" widget="attachment_preview" required="1"
                                    readonly="payment_state != 'draft' or clearance_id.state == 'close'"/>
 
 
