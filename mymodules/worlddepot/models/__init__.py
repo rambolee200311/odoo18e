@@ -38,3 +38,4 @@ from . import transfer_order
 from . import transfer_order_status
 from . import transfer_order_create_picking
 from . import my_stock_report_hoymiles
+from . import outbound_order_delivery_address
