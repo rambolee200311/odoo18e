@@ -21,6 +21,7 @@
         <field name="arch" type="xml">
             <xpath expr="//list/field[1]" position="before">
                 <header>
+                    <button name="action_open_blind_stock_count_print_pallet_labels" string="Print Label Range" type="object" display="always"/>
                     <button name="%(blind_stock_count.action_report_blind_stock_count_pallet_label)d" string="Print Blind Stock Count Labels" type="action"/>
                 </header>
             </xpath>

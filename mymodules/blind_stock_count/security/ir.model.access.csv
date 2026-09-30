@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_blind_stock_count_user,blind.stock.count user,model_blind_stock_count,blind_stock_count.group_blind_stock_count_user,1,1,1,1
+access_blind_stock_count_work_package_user,blind.stock.count.work.package user,model_blind_stock_count_work_package,blind_stock_count.group_blind_stock_count_user,1,0,0,0
+access_blind_stock_count_work_package_administrator,blind.stock.count.work.package administrator,model_blind_stock_count_work_package,blind_stock_count.group_blind_stock_count_administrator,1,1,1,1
+access_blind_stock_count_pallet_user,blind.stock.count.pallet user,model_blind_stock_count_pallet,blind_stock_count.group_blind_stock_count_user,1,1,1,1
+access_blind_stock_count_line_user,blind.stock.count.line user,model_blind_stock_count_line,blind_stock_count.group_blind_stock_count_user,1,1,1,1
+access_blind_stock_count_print_pallet_labels_user,blind.stock.count.print.pallet.labels user,model_blind_stock_count_print_pallet_labels,blind_stock_count.group_blind_stock_count_user,1,1,1,1
