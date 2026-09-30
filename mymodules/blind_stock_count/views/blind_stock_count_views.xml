@@ -6,8 +6,11 @@
         <field name="arch" type="xml">
             <list string="Blind Stock Count Work Packages">
                 <field name="name"/>
+                <field name="date"/>
                 <field name="category_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="owner_id" options="{'no_create': True, 'no_open': True}"/>
                 <field name="location_line_ids" widget="many2many_tags" optional="hide" options="{'no_create': True, 'no_open': True}"/>
+                <field name="state" widget="badge"/>
             </list>
         </field>
     </record>
@@ -17,15 +20,25 @@
         <field name="model">blind.stock.count.work.package</field>
         <field name="arch" type="xml">
             <form string="Blind Stock Count Work Package" duplicate="false">
+                <header>
+                    <button name="action_start" type="object" string="Start" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_done" type="object" string="Complete" class="btn-primary" invisible="state != 'in_progress'"/>
+                    <button name="action_cancel" type="object" string="Cancel" invisible="state not in ('draft', 'in_progress')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,in_progress,done,cancel"/>
+                </header>
                 <sheet>
                     <group>
                         <group>
-                            <field name="name" required="1"/>
-                            <field name="category_id" required="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="name" required="1" readonly="1"/>
+                            <field name="date" required="1" readonly="state in ('done', 'cancel')"/>
+                            <field name="category_id" required="1" readonly="state != 'draft'" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="owner_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                         </group>
                         <group>
-                            <field name="location_line_ids" widget="many2many_tags" options="{'no_create': True, 'no_open': True}" domain="[('usage', '=', 'internal')]"/>
-                            <field name="note"/>
+                            <field name="location_line_ids" widget="many2many_tags" readonly="state != 'draft'" options="{'no_create': True, 'no_open': True}" domain="[('usage', '=', 'internal')]"/>
+                            <field name="create_uid" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="create_date" readonly="1"/>
+                            <field name="note" readonly="state in ('done', 'cancel')"/>
                         </group>
                     </group>
                     <notebook>
@@ -68,7 +81,6 @@
                 <header>
                     <button name="action_start_counting" type="object" string="Start Counting" class="btn-primary" invisible="state != 'draft'"/>
                     <button name="action_done" type="object" string="Complete" class="btn-primary" invisible="state != 'counting'"/>
-                    <button name="action_reopen_counting" type="object" string="Reopen Counting" invisible="state != 'done'"/>
                     <button name="action_cancel" type="object" string="Cancel" invisible="state not in ('draft', 'counting')"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,counting,done,cancel"/>
                 </header>

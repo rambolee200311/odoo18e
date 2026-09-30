@@ -29,6 +29,17 @@ class BlindStockCount(models.Model):
             if rec.work_package_id.location_line_ids and rec.location_id not in rec.work_package_id.location_line_ids:
                 raise ValidationError(_("The count location is outside the selected work package location scope."))
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        work_package_model = self.env["blind.stock.count.work.package"]
+        for vals in vals_list:
+            work_package = work_package_model.sudo().search([("id", "=", vals.get("work_package_id"))], limit=1)
+            if not work_package:
+                raise UserError(_("A work package is required to create a blind stock count."))
+            if work_package.state != "in_progress":
+                raise UserError(_("Blind stock counts can only be created in an in-progress work package."))
+        return super().create(vals_list)
+
     def check_product_for_count(self, product):
         product_model = self.env["product.product"]
         for rec in self:
@@ -59,13 +70,6 @@ class BlindStockCount(models.Model):
             rec.write({"state": "done"})
         return True
 
-    def action_reopen_counting(self):
-        for rec in self:
-            if rec.state != "done":
-                raise UserError(_("Only completed blind stock counts can be reopened."))
-            rec.write({"state": "counting"})
-        return True
-
     def action_cancel(self):
         for rec in self:
             if rec.state not in ("draft","counting"):
@@ -84,8 +88,6 @@ class BlindStockCount(models.Model):
         pallet_model = self.env["blind.stock.count.pallet"]
         line_model = self.env["blind.stock.count.line"]
         for rec in self:
-            if rec.state == "done" and vals == {"state": "counting"}:
-                continue
             if rec.state in ("done", "cancel"):
                 raise UserError(_("Completed or cancelled blind stock counts cannot be changed."))
             protected_values = protected_fields.intersection(vals)
@@ -105,8 +107,8 @@ class BlindStockCount(models.Model):
 
     @api.model
     def get_scannable_work_packages(self):
-        work_packages = self.env["blind.stock.count.work.package"].sudo().search([], order="id desc")
-        return [{"id": rec.id, "name": rec.display_name, "category_name": rec.category_id.display_name, "location_names": ", ".join(rec.location_line_ids.mapped("display_name"))} for rec in work_packages]
+        work_packages = self.env["blind.stock.count.work.package"].sudo().search([("state", "=", "in_progress")], order="id desc")
+        return [{"id": rec.id, "name": rec.display_name, "category_name": rec.category_id.display_name, "owner_name": rec.owner_id.display_name, "location_names": ", ".join(rec.location_line_ids.mapped("display_name"))} for rec in work_packages]
 
     @api.model
     def get_continue_scan_data(self, count_id):
@@ -115,6 +117,8 @@ class BlindStockCount(models.Model):
             raise UserError(_("The unfinished blind stock count was not found."))
         if not count.work_package_id:
             raise UserError(_("Select a work package on the blind stock count before continuing PDA scanning."))
+        if count.work_package_id.state != "in_progress":
+            raise UserError(_("The work package is not active."))
         if count.state == "draft":
             self.browse(count.id).action_start_counting()
             count = self.sudo().browse(count.id)
@@ -127,6 +131,8 @@ class BlindStockCount(models.Model):
         work_package = self.env["blind.stock.count.work.package"].sudo().search([("id", "=", work_package_id)], limit=1)
         if not work_package:
             raise UserError(_("The blind stock count work package was not found."))
+        if work_package.state != "in_progress":
+            raise UserError(_("The work package is not active."))
         counts = self.sudo().search([("work_package_id", "=", work_package.id)], order="id desc")
         return [{"id": rec.id, "name": rec.name, "date": rec.date, "work_package_name": rec.work_package_id.display_name, "location_name": rec.location_id.display_name, "state": rec.state} for rec in counts]
 
@@ -135,6 +141,8 @@ class BlindStockCount(models.Model):
         work_package = self.env["blind.stock.count.work.package"].sudo().search([("id", "=", work_package_id)], limit=1)
         if not work_package or not work_package.category_id:
             raise UserError(_("Please select a work package with a product category."))
+        if work_package.state != "in_progress":
+            raise UserError(_("The work package is not active."))
         barcode = (barcode or "").strip()
         if not barcode:
             raise UserError(_("Please scan an internal location."))
@@ -190,8 +198,8 @@ class BlindStockCount(models.Model):
         product = self.env["product.product"].sudo().search([("id", "=", product_id)], limit=1)
         if not pallet or not product:
             raise UserError(_("The active pallet or product was not found."))
-        if product.tracking == "none":
-            raise UserError(_("This product does not use serial numbers. Enter its quantity instead."))
+        if product.tracking != "serial":
+            raise UserError(_("This product does not use serial numbers."))
         pallet.blind_stock_count_id.check_product_for_count(product)
         serial_numbers = [serial_number.strip() for serial_number in (barcode or "").replace("，", ",").split(",")]
         if not serial_numbers or any(not serial_number for serial_number in serial_numbers):
@@ -204,6 +212,33 @@ class BlindStockCount(models.Model):
         product_lines = self.env["blind.stock.count.line"].create([{"blind_stock_count_pallet_id": pallet.id, "product_id": product.id, "lot_name": serial_number, "counted_qty": 1.0} for serial_number in serial_numbers])
         scanned_serial_count = self.env["blind.stock.count.line"].sudo().search_count([("blind_stock_count_pallet_id", "=", pallet.id), ("product_id", "=", product.id), ("lot_name", "!=", False)])
         return {"created_count": len(serial_numbers), "line_ids": product_lines.ids, "pallet": pallet.get_scan_data(), "scanned_serial_count": scanned_serial_count, "message": _("%s serial number(s) recorded.") % len(serial_numbers)}
+
+    @api.model
+    def action_add_lot_quantity(self, pallet_id, product_id, lot_name, quantity):
+        pallet = self.env["blind.stock.count.pallet"].sudo().search([("id", "=", pallet_id), ("state", "=", "counting")], limit=1)
+        product = self.env["product.product"].sudo().search([("id", "=", product_id)], limit=1)
+        if not pallet or not product:
+            raise UserError(_("The active pallet or product was not found."))
+        if product.tracking != "lot":
+            raise UserError(_("This product does not use batch tracking."))
+        pallet.blind_stock_count_id.check_product_for_count(product)
+        lot_name = (lot_name or "").strip()
+        if not lot_name:
+            raise UserError(_("Enter a batch number."))
+        try:
+            quantity = float(quantity)
+        except (TypeError, ValueError):
+            raise UserError(_("Enter a valid counted quantity."))
+        if quantity <= 0:
+            raise UserError(_("The counted quantity must be greater than zero."))
+        line_model = self.env["blind.stock.count.line"]
+        product_line = line_model.sudo().search([("blind_stock_count_pallet_id", "=", pallet.id), ("product_id", "=", product.id), ("lot_name", "=", lot_name), ("state", "!=", "cancel")], limit=1)
+        if product_line:
+            product_line = line_model.browse(product_line.id)
+            product_line.write({"counted_qty": product_line.counted_qty + quantity})
+        else:
+            product_line = line_model.create({"blind_stock_count_pallet_id": pallet.id, "product_id": product.id, "lot_name": lot_name, "counted_qty": quantity})
+        return {"line_ids": product_line.ids, "pallet": pallet.get_scan_data(), "message": _("Batch quantity recorded.")}
 
     @api.model
     def action_add_manual_quantity(self, pallet_id, product_id, quantity):

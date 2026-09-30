@@ -17,7 +17,7 @@ export class BlindStockCountScan extends Component {
         const action = this.env.config.action || {};
         this.continueCountId = this.props?.action?.params?.blind_stock_count_id || action.params?.blind_stock_count_id || action.context?.blind_stock_count_id || false;
         this.onPageInteraction = () => {
-            if (!this.processing && !["select_work_package", "input_quantity"].includes(this.state.nextStep)) {
+            if (!this.processing && !["select_work_package", "input_quantity", "input_lot_quantity"].includes(this.state.nextStep)) {
                 this.focusBarcodeInput();
             }
         };
@@ -35,6 +35,7 @@ export class BlindStockCountScan extends Component {
             product: null,
             editingLineId: false,
             lastScannedLineIds: [],
+            lotName: "",
             quantity: "",
             nextStep: "select_work_package",
         });
@@ -105,7 +106,7 @@ export class BlindStockCountScan extends Component {
     }
 
     selectPallet(pallet) {
-        if (this.state.nextStep === "input_quantity") {
+        if (["input_quantity", "input_lot_quantity"].includes(this.state.nextStep)) {
             this.showMessage(_t("Record or cancel the quantity before changing pallets."), "warning");
             return;
         }
@@ -115,6 +116,7 @@ export class BlindStockCountScan extends Component {
             this.state.product = null;
             this.state.editingLineId = false;
             this.state.lastScannedLineIds = [];
+            this.state.lotName = "";
             this.state.quantity = "";
             this.state.nextStep = "scan_pallet";
             this.showMessage(_t("Pallet collapsed. Tap a pallet to continue or scan a new pallet."));
@@ -126,6 +128,7 @@ export class BlindStockCountScan extends Component {
         this.state.product = null;
         this.state.editingLineId = false;
         this.state.lastScannedLineIds = [];
+        this.state.lotName = "";
         this.state.quantity = "";
         this.state.nextStep = "scan_product";
         this.showMessage(_t("Pallet selected. Now scan a product."));
@@ -178,7 +181,7 @@ export class BlindStockCountScan extends Component {
         if (this.processing || this.state.nextStep === "select_work_package") {
             return;
         }
-        if (this.state.nextStep === "input_quantity") {
+        if (["input_quantity", "input_lot_quantity"].includes(this.state.nextStep)) {
             this.showMessage(_t("Record or cancel the quantity before scanning the next product."), "warning");
             return;
         }
@@ -200,6 +203,7 @@ export class BlindStockCountScan extends Component {
                 this.state.product = null;
                 this.state.editingLineId = false;
                 this.state.lastScannedLineIds = [];
+                this.state.lotName = "";
                 this.state.nextStep = "scan_product";
                 this.showMessage(result.message, "success");
                 this.focusBarcodeInput();
@@ -216,12 +220,20 @@ export class BlindStockCountScan extends Component {
                     this.setPallet({ ...this.state.pallet, product_lines: [...productLines.filter((line) => line.id === result.product.manual_line_id), ...productLines.filter((line) => line.id !== result.product.manual_line_id)] });
                 }
                 this.state.editingLineId = hasManualLine || false;
+                this.state.lotName = "";
                 this.state.quantity = result.product.tracking === "none" ? result.product.counted_qty || "" : "";
                 this.state.lastScannedLineIds = [];
-                this.state.nextStep = result.product.tracking === "none" ? "input_quantity" : "scan_serial_numbers";
-                this.showMessage(hasManualLine ? _t("Edit the counted quantity.") : result.product.tracking === "none" ? _t("Enter the counted quantity.") : _t("Now scan serial number(s)."), "success");
+                this.state.nextStep = result.product.tracking === "none" ? "input_quantity" : result.product.tracking === "lot" ? "scan_lot_name" : "scan_serial_numbers";
+                this.showMessage(hasManualLine ? _t("Edit the counted quantity.") : result.product.tracking === "none" ? _t("Enter the counted quantity.") : result.product.tracking === "lot" ? _t("Now scan a batch number.") : _t("Now scan serial number(s)."), "success");
                 this.focusBarcodeInput();
             }
+            return;
+        }
+        if (this.state.nextStep === "scan_lot_name") {
+            this.state.lotName = barcode;
+            this.state.quantity = "";
+            this.state.nextStep = "input_lot_quantity";
+            this.showMessage(_t("Batch number scanned. Enter the counted quantity."), "success");
             return;
         }
         if (this.state.nextStep === "scan_serial_numbers") {
@@ -296,10 +308,35 @@ export class BlindStockCountScan extends Component {
         }
     }
 
+    async addLotQuantity() {
+        if (!this.state.lotName) {
+            this.showMessage(_t("Scan a batch number."), "danger");
+            return;
+        }
+        if (!this.state.quantity) {
+            this.showMessage(_t("Enter the counted quantity."), "danger");
+            return;
+        }
+        const result = await this.call("action_add_lot_quantity", [this.state.pallet.id, this.state.product.id, this.state.lotName, this.state.quantity]);
+        if (result) {
+            this.setPallet(result.pallet);
+            this.state.expandedPalletId = result.pallet.id;
+            this.state.lastScannedLineIds = result.line_ids || [];
+            this.state.lotName = "";
+            this.state.quantity = "";
+            this.state.product = null;
+            this.state.editingLineId = false;
+            this.state.nextStep = "scan_product";
+            this.showMessage(result.message, "success");
+            this.focusBarcodeInput();
+        }
+    }
+
     switchProduct() {
         this.state.product = null;
         this.state.editingLineId = false;
         this.state.lastScannedLineIds = [];
+        this.state.lotName = "";
         this.state.quantity = "";
         this.state.nextStep = "scan_product";
         this.showMessage(_t("Now scan a product."));
@@ -312,6 +349,7 @@ export class BlindStockCountScan extends Component {
         this.state.product = null;
         this.state.editingLineId = false;
         this.state.lastScannedLineIds = [];
+        this.state.lotName = "";
         this.state.quantity = "";
         this.state.nextStep = "scan_pallet";
         this.showMessage(_t("Now scan a pallet."));
@@ -331,6 +369,7 @@ export class BlindStockCountScan extends Component {
             this.state.product = null;
             this.state.editingLineId = false;
             this.state.lastScannedLineIds = [];
+            this.state.lotName = "";
             this.state.quantity = "";
             this.state.nextStep = "scan_location";
             this.showMessage(_t("Blind stock count completed. Scan the next internal location."), "success");
