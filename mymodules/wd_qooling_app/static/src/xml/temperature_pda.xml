@@ -26,13 +26,16 @@
                 </div>
                 <div t-elif="state.step === 3" data-testid="temperature-pda-evidence">
                     <div class="o_qooling_pda__upload"><label class="btn btn-secondary me-2"><i class="fa fa-camera me-1"/> Take photo<input class="d-none" type="file" accept="image/*" capture="environment" t-on-change="onPhoto"/></label><label class="btn btn-secondary"><i class="fa fa-video-camera me-1"/> Record video<input class="d-none" type="file" accept="video/*" capture="environment" t-on-change="onPhoto"/></label><label class="btn btn-outline-secondary ms-2"><i class="fa fa-paperclip me-1"/> Attach media<input class="d-none" type="file" accept="image/*,video/*" multiple="multiple" t-on-change="onPhoto"/></label></div>
-                    <div class="o_qooling_pda__photos"><div t-foreach="state.photos" t-as="photo" t-key="photo.id" class="o_qooling_pda__photo"><video t-if="isVideo(photo)" t-att-src="'/web/content/' + photo.id" class="o_qooling_pda__thumbnail" muted="muted" preload="metadata"/><img t-else="" t-att-src="'/web/content/' + photo.id" t-att-alt="photo.name" class="o_qooling_pda__thumbnail"/><div class="o_qooling_pda__photo-actions"><button type="button" class="btn btn-sm btn-light" t-on-click="() => state.preview = photo.id" aria-label="Preview media"><i class="fa fa-search-plus"/></button><button type="button" class="btn btn-sm btn-danger" t-on-click="() => deletePhoto(photo.id)" aria-label="Delete media"><i class="fa fa-trash"/></button></div></div></div>
+                    <ImagePreviewComponent t-if="state.photos.length"
+                        attachments="state.photos"
+                        editable="!isReadOnly"
+                        onRemove.bind="deletePhoto"
+                    />
                     <label>Comments<textarea class="form-control" data-field="comments" t-on-input="onFieldChange"><t t-esc="state.record.comments || ''"/></textarea></label>
                 </div>
                 <div t-elif="state.step === 4" data-testid="temperature-pda-signature"><label>Signature</label><canvas t-ref="signatureCanvas" class="o_qooling_pda__signature" data-testid="temperature-pda-signature-canvas" t-on-pointerdown="startSignature" t-on-pointermove="moveSignature" t-on-pointerup="endSignature" t-on-pointercancel="endSignature" t-on-touchstart="startSignature" t-on-touchmove="moveSignature" t-on-touchend="endSignature"/><button type="button" class="btn btn-outline-secondary mt-2" t-on-click="clearSignature">Clear signature</button></div>
             </section>
             <footer class="o_qooling_pda__footer"><button class="btn btn-outline-secondary" type="button" t-on-click="previous" t-att-disabled="state.step === 0">Back</button><button t-if="state.step &lt; steps.length - 1" class="btn btn-primary" type="button" t-on-click="next">Next</button><button t-if="!isReadOnly" class="btn btn-outline-primary" type="button" t-on-click="save" t-att-disabled="state.busy">Save draft</button><button t-if="state.step === steps.length - 1 &amp;&amp; !isReadOnly" class="btn btn-success" type="button" t-on-click="submit" t-att-disabled="state.busy">Submit</button></footer>
-            <div t-if="state.preview" class="o_qooling_pda__preview" role="dialog" t-on-click="() => state.preview = false"><video t-if="isVideo(getPreviewPhoto())" t-att-src="'/web/content/' + state.preview" controls="controls" autoplay="autoplay" t-on-click.stop="() => {}"/><img t-else="" t-att-src="'/web/content/' + state.preview" alt="Enlarged temperature evidence" t-on-click.stop="() => {}"/></div>
         </main>
     </t>
 </templates>

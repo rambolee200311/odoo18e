@@ -4,6 +4,7 @@ import { Component, onPatched, onWillStart, onWillUnmount, useRef, useState } fr
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { _t } from "@web/core/l10n/translation";
+import { ImagePreviewComponent } from "@wd_attachment_preview/components/image_preview_component";
 
 const MAX_MEDIA_COUNT = 20;
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
@@ -43,6 +44,7 @@ const RECORD_FIELDS = [
 
 export class QoolingTemperaturePda extends Component {
     static template = "wd_qooling_app.TemperaturePda";
+    static components = { ImagePreviewComponent };
     static props = { "*": true };
 
     setup() {
