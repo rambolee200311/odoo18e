@@ -7,7 +7,7 @@
     "author": "World Depot B.V.",
     "depends": ["stock_barcode_lite"],
     "data": [
-        "security/ir.model.access.csv",
+        #"security/ir.model.access.csv",
         #"data/ir_sequence_data.xml",
         "data/ir_cron_data.xml",
         #"views/blind_stock_count_views.xml",
