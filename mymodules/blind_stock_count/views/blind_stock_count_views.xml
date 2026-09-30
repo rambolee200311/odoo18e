@@ -1,5 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <record id="view_blind_stock_count_work_package_list" model="ir.ui.view">
+        <field name="name">blind.stock.count.work.package.list</field>
+        <field name="model">blind.stock.count.work.package</field>
+        <field name="arch" type="xml">
+            <list string="Blind Stock Count Work Packages">
+                <field name="name"/>
+                <field name="category_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="location_line_ids" widget="many2many_tags" optional="hide" options="{'no_create': True, 'no_open': True}"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_blind_stock_count_work_package_form" model="ir.ui.view">
+        <field name="name">blind.stock.count.work.package.form</field>
+        <field name="model">blind.stock.count.work.package</field>
+        <field name="arch" type="xml">
+            <form string="Blind Stock Count Work Package" duplicate="false">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" required="1"/>
+                            <field name="category_id" required="1" options="{'no_create': True, 'no_open': True}"/>
+                        </group>
+                        <group>
+                            <field name="location_line_ids" widget="many2many_tags" options="{'no_create': True, 'no_open': True}" domain="[('usage', '=', 'internal')]"/>
+                            <field name="note"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Blind Stock Counts">
+                            <field name="count_lines" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="date"/>
+                                    <field name="location_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
     <record id="view_blind_stock_count_list" model="ir.ui.view">
         <field name="name">blind.stock.count.list</field>
         <field name="model">blind.stock.count</field>
@@ -7,9 +53,8 @@
             <list string="Blind Stock Counts">
                 <field name="name"/>
                 <field name="date"/>
-                <field name="project_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="work_package_id" options="{'no_create': True, 'no_open': True}"/>
                 <field name="location_id" options="{'no_create': True, 'no_open': True}"/>
-                <field name="count_scope"/>
                 <field name="state" widget="badge"/>
             </list>
         </field>
@@ -32,14 +77,11 @@
                         <group>
                             <field name="name" readonly="1" required="1"/>
                             <field name="date" required="1" readonly="state in ('done', 'cancel')"/>
-                            <field name="project_id" required="1" readonly="state != 'draft'" options="{'no_create': True, 'no_open': True}" domain="[('category', '!=', False)]"/>
-                            <field name="project_category_id" invisible="1" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="work_package_id" required="1" readonly="state in ('done', 'cancel') or (state == 'counting' and work_package_id)" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="product_category_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                             <field name="location_id" required="1" readonly="state != 'draft'" options="{'no_create': True, 'no_open': True}" domain="[('usage', '=', 'internal')]"/>
                         </group>
                         <group>
-                            <field name="count_scope" required="1" readonly="state != 'draft'"/>
-                            <field name="product_line_ids" widget="many2many_tags" invisible="count_scope != 'product'" readonly="state != 'draft'" options="{'no_create': True, 'no_open': True}" domain="[('categ_id', '=', project_category_id)]"/>
-                            <field name="category_line_ids" widget="many2many_tags" invisible="count_scope != 'category'" readonly="state != 'draft'" options="{'no_create': True, 'no_open': True}"/>
                             <field name="note" readonly="state in ('done', 'cancel')"/>
                         </group>
                     </group>
@@ -60,9 +102,9 @@
                                         <field name="product_lines" readonly="state != 'counting'">
                                             <list editable="bottom">
                                                 <field name="blind_stock_count_pallet_id" column_invisible="True" required="1" readonly="1" options="{'no_create': True, 'no_open': True}"/>
-                                                <field name="project_id" column_invisible="True" readonly="1" options="{'no_create': True, 'no_open': True}"/>
-                                                <field name="project_category_id" column_invisible="True" readonly="1" options="{'no_create': True, 'no_open': True}"/>
-                                                <field name="product_id" required="1" options="{'no_create': True, 'no_open': True}" domain="[('categ_id', '=', project_category_id)]"/>
+                                                <field name="work_package_id" column_invisible="True" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                                                <field name="product_category_id" column_invisible="True" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                                                <field name="product_id" required="1" options="{'no_create': True, 'no_open': True}" domain="[('categ_id', 'child_of', product_category_id)]"/>
                                                 <field name="product_barcode" readonly="1"/>
                                                 <field name="product_tracking" column_invisible="True" readonly="1"/>
                                                 <field name="lot_name" required="product_tracking != 'none'"/>
@@ -79,6 +121,7 @@
                         </page>
                     </notebook>
                 </sheet>
+                <chatter/>
             </form>
         </field>
     </record>
@@ -102,20 +145,28 @@
     </record>
 
     <record id="action_blind_stock_count" model="ir.actions.act_window">
-        <field name="name">Blind Stock Count Records</field>
-        <field name="res_model">blind.stock.count</field>
+        <field name="name">Web List</field>
+        <field name="res_model">blind.stock.count.work.package</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="action_blind_stock_count_work_package" model="ir.actions.act_window">
+        <field name="name">Blind Stock Count Work Packages</field>
+        <field name="res_model">blind.stock.count.work.package</field>
         <field name="view_mode">list,form</field>
     </record>
 
     <menuitem id="menu_blind_stock_count_root" name="Blind Stock Count" sequence="55" web_icon="blind_stock_count,static/description/img.png"/>
     <menuitem id="menu_blind_stock_count_homepage" name="Homepage" parent="menu_blind_stock_count_root" action="action_blind_stock_count_homepage" sequence="5"/>
     <menuitem id="menu_blind_stock_count_pda_list" name="PDA List" parent="menu_blind_stock_count_root" action="action_blind_stock_count_pda_list" sequence="6"/>
-    <menuitem id="menu_blind_stock_count_records" name="Blind Stock Count Records" parent="menu_blind_stock_count_root" action="action_blind_stock_count" sequence="10"/>
+    <menuitem id="menu_blind_stock_count_work_package" name="Work Packages" parent="menu_blind_stock_count_root" action="action_blind_stock_count_work_package" sequence="10"/>
+    <menuitem id="menu_blind_stock_count_records" name="Web List" parent="menu_blind_stock_count_root" action="action_blind_stock_count" sequence="15"/>
     <record id="menu_blind_stock_count_root" model="ir.ui.menu">
         <field name="action" eval="False"/>
-        <field name="groups_id" eval="[(5, 0, 0)]"/>
+        <field name="groups_id" eval="[(5, 0, 0), (4, ref('blind_stock_count.group_blind_stock_count_user'))]"/>
     </record>
     <record id="menu_blind_stock_count_homepage" model="ir.ui.menu"><field name="groups_id" eval="[(5, 0, 0)]"/></record>
     <record id="menu_blind_stock_count_pda_list" model="ir.ui.menu"><field name="groups_id" eval="[(5, 0, 0)]"/></record>
+    <record id="menu_blind_stock_count_work_package" model="ir.ui.menu"><field name="groups_id" eval="[(5, 0, 0)]"/></record>
     <record id="menu_blind_stock_count_records" model="ir.ui.menu"><field name="groups_id" eval="[(5, 0, 0)]"/></record>
 </odoo>

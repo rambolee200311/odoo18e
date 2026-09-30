@@ -6,7 +6,7 @@
             <div class="o_sbl_header">
                 <div class="o_sbl_header_title"><i class="fa fa-clipboard text-primary me-1"/>Blind Stock Count</div>
                 <div t-attf-class="o_sbl_header_mode {{ state.nextStep === 'scan_location' ? 'o_mode_step' : state.nextStep === 'scan_pallet' ? 'o_mode_pallet' : state.nextStep === 'scan_product' ? 'o_mode_product' : state.nextStep === 'input_quantity' ? 'o_mode_qty' : state.nextStep === 'scan_serial_numbers' ? 'o_mode_sn' : 'o_mode_order' }}">
-                    <t t-if="state.nextStep === 'select_project'">Project</t>
+                    <t t-if="state.nextStep === 'select_work_package'">Work Package</t>
                     <t t-elif="state.nextStep === 'scan_location'">Location</t>
                     <t t-elif="state.nextStep === 'scan_pallet'">Pallet</t>
                     <t t-elif="state.nextStep === 'scan_product'">Product</t>
@@ -19,13 +19,16 @@
 
             <div t-if="state.count" class="o_sbl_location_bar">
                 <i class="fa fa-map-marker text-danger me-1"/><span class="me-1">Location:</span><strong class="text-primary"><t t-esc="state.count.location_name"/></strong>
-                <span class="ms-3"><i class="fa fa-briefcase text-muted me-1"/>Project: <strong><t t-esc="state.projectName"/></strong></span>
+                <span class="ms-3"><i class="fa fa-briefcase text-muted me-1"/>Work Package: <strong><t t-esc="state.workPackageName"/></strong></span>
                 <span class="text-muted float-end"><t t-esc="state.count.name"/></span>
+            </div>
+            <div t-if="state.nextStep === 'scan_location' &amp;&amp; !state.count &amp;&amp; state.workPackageName" class="o_sbl_location_bar">
+                <i class="fa fa-briefcase text-muted me-1"/><span class="me-1">Work Package:</span><strong class="text-primary"><t t-esc="state.workPackageName"/></strong>
             </div>
 
             <div class="o_sbl_step_indicator">
-                <div t-attf-class="o_step_item {{ state.nextStep === 'select_project' ? 'active' : '' }} {{ state.nextStep !== 'select_project' &amp;&amp; state.projectId ? 'done' : '' }}">
-                    <div class="o_step_circle"><t t-if="state.nextStep !== 'select_project' &amp;&amp; state.projectId"><i class="fa fa-check"/></t><t t-else="">1</t></div><div class="o_step_label">Project</div>
+                <div t-attf-class="o_step_item {{ state.nextStep === 'select_work_package' ? 'active' : '' }} {{ state.nextStep !== 'select_work_package' &amp;&amp; state.workPackageId ? 'done' : '' }}">
+                    <div class="o_step_circle"><t t-if="state.nextStep !== 'select_work_package' &amp;&amp; state.workPackageId"><i class="fa fa-check"/></t><t t-else="">1</t></div><div class="o_step_label">Work Package</div>
                 </div>
                 <div t-attf-class="o_step_line {{ state.count ? 'active' : '' }}"/>
                 <div t-attf-class="o_step_item {{ state.nextStep === 'scan_location' ? 'active' : '' }} {{ state.count ? 'done' : '' }}">
@@ -48,23 +51,23 @@
             <div class="o_sbl_step_hint">
                 <i t-if="state.nextStep !== 'input_quantity'" class="fa fa-qrcode me-2"/>
                 <i t-if="state.nextStep === 'input_quantity'" class="fa fa-pencil-square-o me-2"/>
-                <t t-if="state.nextStep === 'select_project'">Select the project before starting the blind stock count.</t>
+                <t t-if="state.nextStep === 'select_work_package'">Select the work package before starting the blind stock count.</t>
                 <t t-elif="state.nextStep === 'scan_location'">Scan the internal location barcode.</t>
                 <t t-elif="state.nextStep === 'scan_pallet'">Scan a pallet barcode.</t>
-                <t t-elif="state.nextStep === 'scan_product'">Scan a product barcode in the selected project.</t>
+                <t t-elif="state.nextStep === 'scan_product'">Scan a product barcode in the selected work package category.</t>
                 <t t-elif="state.nextStep === 'input_quantity'">Enter the actual quantity and tap Record. Tap Product to cancel.</t>
                 <t t-else="">Scan serial number(s). Separate multiple serial numbers with commas if needed.</t>
             </div>
 
             <div class="o_sbl_pallets">
-                <t t-if="state.nextStep === 'select_project'">
+                <t t-if="state.nextStep === 'select_work_package'">
                     <div class="card border-primary shadow-sm mx-auto" style="max-width: 560px;">
                         <div class="card-body p-4">
-                            <div class="d-flex align-items-center mb-3"><i class="fa fa-briefcase fa-2x text-primary me-3"/><div><h5 class="mb-1">Select Project</h5><p class="text-muted small mb-0">Only products in this project's category can be scanned.</p></div></div>
-                            <label class="form-label" for="blind_stock_count_project">Project</label>
+                            <div class="d-flex align-items-center mb-3"><i class="fa fa-briefcase fa-2x text-primary me-3"/><div><h5 class="mb-1">Select Work Package</h5><p class="text-muted small mb-0">Only products in this work package category can be scanned.</p></div></div>
+                            <label class="form-label" for="blind_stock_count_work_package">Work Package</label>
                             <div class="input-group">
-                                <select id="blind_stock_count_project" class="form-select" t-on-change="onProjectChange" t-att-disabled="state.loading"><option value="">Select project</option><t t-foreach="state.projects" t-as="project" t-key="project.id"><option t-att-value="project.id"><t t-esc="project.name"/></option></t></select>
-                                <button class="btn btn-primary" t-on-click="confirmProject" t-att-disabled="state.loading"><i class="fa fa-check me-1"/>Confirm</button>
+                                <select id="blind_stock_count_work_package" class="form-select" t-on-change="onWorkPackageChange" t-att-disabled="state.loading"><option value="">Select work package</option><t t-foreach="state.workPackages" t-as="workPackage" t-key="workPackage.id"><option t-att-value="workPackage.id" t-att-data-name="workPackage.name"><t t-esc="workPackage.name"/> — <t t-esc="workPackage.category_name"/></option></t></select>
+                                <button class="btn btn-primary" t-on-click="confirmWorkPackage" t-att-disabled="state.loading"><i class="fa fa-check me-1"/>Confirm</button>
                             </div>
                         </div>
                     </div>
@@ -83,6 +86,7 @@
                         <div class="o_pallet_header" t-on-click="selectPallet.bind(this, pallet)">
                             <div class="o_pallet_row1"><div class="o_pallet_info"><i class="fa fa-cube o_pallet_icon_highlighted me-2"/><strong class="o_pallet_name"><t t-esc="pallet.name"/></strong></div><div class="o_pallet_right"><span t-if="state.pallet &amp;&amp; state.pallet.id === pallet.id" class="badge o_pallet_current_badge"><i class="fa fa-bullseye me-1"/>Current</span><i class="fa fa-chevron-down collapse-arrow ms-2"/></div></div>
                             <div class="o_pallet_row2"><span class="o_pallet_product_count"><t t-esc="pallet.line_count || 0"/> recorded lines</span><span t-if="pallet.barcode" class="o_pallet_location"><i class="fa fa-barcode text-muted me-1"/><t t-esc="pallet.barcode"/></span><span t-if="!pallet.barcode" class="o_pallet_location">No pallet barcode</span></div>
+                            <div t-if="pallet.product_summaries.length" class="o_pallet_row2"><span class="o_pallet_product_count"><i class="fa fa-list-ul text-muted me-1"/>Products: <t t-foreach="pallet.product_summaries" t-as="productSummary" t-key="productSummary.id"><span><t t-esc="productSummary.name"/> × <t t-esc="productSummary.counted_qty"/></span><t t-if="!productSummary_last">, </t></t></span></div>
                         </div>
                         <div t-attf-id="blind_stock_count_pallet_lines_{{ pallet.id }}" t-attf-class="o_pallet_products collapse {{ state.expandedPalletId === pallet.id ? 'show' : '' }}">
                             <div t-if="state.pallet &amp;&amp; state.pallet.id === pallet.id &amp;&amp; state.product &amp;&amp; !(state.product.tracking === 'none' &amp;&amp; state.product.manual_line_id)" class="o_product_subcard border border-primary border-2 shadow-sm" style="background-color: #eef5ff;"><div class="o_product_row_top"><div class="o_product_icon"><i class="fa fa-box-open"/></div><div class="o_product_name"><t t-esc="state.product.name"/></div><span class="badge bg-primary"><t t-if="state.product.tracking === 'none'">Enter Qty</t><t t-else="">Scan SN</t></span><span t-if="state.product.tracking !== 'none'" class="badge bg-info ms-2">Scanned SN: <t t-esc="state.product.scanned_serial_count || 0"/></span></div><div class="o_product_row_bottom"><span t-if="state.product.barcode" class="o_meta_barcode"><i class="fa fa-barcode me-1"/><t t-esc="state.product.barcode"/></span><span t-if="state.product.tracking === 'none'" class="o_meta_uom">Enter actual quantity</span><span t-if="state.product.tracking !== 'none'" class="o_meta_lot">Scan serial number</span></div></div>
@@ -133,15 +137,27 @@
     <t t-name="blind_stock_count.PdaList">
         <div class="o_stock_barcode_lite_homepage o_blind_stock_count_pda_list">
             <div class="container-fluid py-2">
-                <div class="row"><div class="col-10 offset-1 col-md-6 offset-md-3 col-lg-3 offset-lg-0"><div class="section-header"><h5 class="section-title">PDA List</h5></div></div></div>
+                <div class="row"><div class="col-10 offset-1 col-md-6 offset-md-3 col-lg-4 offset-lg-0"><div class="section-header"><h5 class="section-title">PDA List</h5></div></div></div>
                 <div t-if="state.message" class="alert alert-danger"><t t-esc="state.message"/></div>
-                <div t-if="state.loading" class="text-center text-muted py-5"><i class="fa fa-spinner fa-spin fa-2x mb-3 d-block"/><span>Loading blind stock counts...</span></div>
-                <div t-if="!state.loading &amp;&amp; !state.counts.length" class="text-center text-muted py-5"><i class="fa fa-clipboard fa-4x mb-3 d-block"/><p class="mb-0">No blind stock count records found.</p></div>
-                <t t-foreach="state.counts" t-as="count" t-key="count.id">
-                    <div t-attf-class="card shadow-sm mb-3 {{ count.state === 'draft' || count.state === 'counting' ? 'o_homepage_card' : 'opacity-50' }}" t-on-click="openPdaCount.bind(this, count)">
-                        <div t-attf-class="card-header {{ count.state === 'counting' ? 'bg-primary text-white' : count.state === 'draft' ? 'bg-warning text-dark' : 'bg-secondary text-white' }}"><h5 class="mb-0"><i class="fa fa-clipboard me-2"/><t t-esc="count.name"/><span class="badge bg-light text-dark float-end"><t t-esc="count.state"/></span></h5></div>
-                        <div class="card-body"><div class="mb-1"><strong>Project:</strong> <t t-esc="count.project_name"/></div><div class="mb-1"><strong>Location:</strong> <t t-esc="count.location_name"/></div><div class="text-muted small"><t t-esc="count.date"/></div><button t-if="count.state === 'draft' || count.state === 'counting'" class="btn btn-primary mt-3"><i class="fa fa-qrcode me-1"/>Continue Scan</button><span t-else="" class="text-muted d-inline-block mt-3">Completed record</span></div>
-                    </div>
+                <div t-if="state.loading" class="text-center text-muted py-5"><i class="fa fa-spinner fa-spin fa-2x mb-3 d-block"/><span>Loading...</span></div>
+                <t t-if="!state.loading &amp;&amp; !state.workPackage">
+                    <div t-if="!state.workPackages.length" class="text-center text-muted py-5"><i class="fa fa-briefcase fa-4x mb-3 d-block"/><p class="mb-0">No work packages found.</p></div>
+                    <t t-foreach="state.workPackages" t-as="workPackage" t-key="workPackage.id">
+                        <div class="card shadow-sm mb-3 o_homepage_card" t-on-click="selectWorkPackage.bind(this, workPackage)">
+                            <div class="card-header bg-primary text-white"><h5 class="mb-0"><i class="fa fa-briefcase me-2"/><t t-esc="workPackage.name"/></h5></div>
+                            <div class="card-body"><div class="mb-1"><strong>Product Category:</strong> <t t-esc="workPackage.category_name"/></div><div class="text-muted small"><t t-if="workPackage.location_names">Location Scope: <t t-esc="workPackage.location_names"/></t><t t-else="">Location Scope: Any internal location</t></div><button class="btn btn-primary mt-3"><i class="fa fa-list me-1"/>Open Blind Stock Counts</button></div>
+                        </div>
+                    </t>
+                </t>
+                <t t-if="!state.loading &amp;&amp; state.workPackage">
+                    <div class="d-flex align-items-center justify-content-between mb-3"><div><h5 class="mb-1"><i class="fa fa-briefcase me-2"/><t t-esc="state.workPackage.name"/></h5><span class="text-muted">Blind Stock Counts</span></div><button class="btn btn-outline-secondary" t-on-click="backToWorkPackages"><i class="fa fa-arrow-left me-1"/>Work Packages</button></div>
+                    <div t-if="!state.counts.length" class="text-center text-muted py-5"><i class="fa fa-clipboard fa-4x mb-3 d-block"/><p class="mb-0">No blind stock count records found.</p></div>
+                    <t t-foreach="state.counts" t-as="count" t-key="count.id">
+                        <div t-attf-class="card shadow-sm mb-3 {{ count.state === 'draft' || count.state === 'counting' ? 'o_homepage_card' : 'opacity-50' }}" t-on-click="openPdaCount.bind(this, count)">
+                            <div t-attf-class="card-header {{ count.state === 'counting' ? 'bg-primary text-white' : count.state === 'draft' ? 'bg-warning text-dark' : 'bg-secondary text-white' }}"><h5 class="mb-0"><i class="fa fa-clipboard me-2"/><t t-esc="count.name"/><span class="badge bg-light text-dark float-end"><t t-esc="count.state"/></span></h5></div>
+                            <div class="card-body"><div class="mb-1"><strong>Location:</strong> <t t-esc="count.location_name"/></div><div class="text-muted small"><t t-esc="count.date"/></div><button t-if="count.state === 'draft' || count.state === 'counting'" class="btn btn-primary mt-3"><i class="fa fa-qrcode me-1"/>Continue Scan</button><span t-else="" class="text-muted d-inline-block mt-3">Completed record</span></div>
+                        </div>
+                    </t>
                 </t>
             </div>
         </div>

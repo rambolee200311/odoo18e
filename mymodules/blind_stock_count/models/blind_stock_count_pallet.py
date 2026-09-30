@@ -21,7 +21,11 @@ class BlindStockCountPallet(models.Model):
         result = []
         for rec in self:
             product_lines = line_model.sudo().search([("blind_stock_count_pallet_id", "=", rec.id)], order="id desc")
-            result.append({"id": rec.id, "name": rec.package_id.name, "barcode": rec.package_id.barcode or "", "line_count": len(product_lines), "product_lines": [{"id": line.id, "product_id": line.product_id.id, "name": line.product_id.display_name, "barcode": line.product_barcode or "", "tracking": line.product_tracking, "lot_name": line.lot_name or "", "counted_qty": line.counted_qty} for line in product_lines]})
+            product_summaries = {}
+            for line in product_lines:
+                product_summary = product_summaries.setdefault(line.product_id.id, {"id": line.product_id.id, "name": line.product_id.display_name, "counted_qty": 0.0})
+                product_summary["counted_qty"] += line.counted_qty
+            result.append({"id": rec.id, "name": rec.package_id.name, "barcode": rec.package_id.barcode or "", "line_count": len(product_lines), "product_summaries": list(product_summaries.values()), "product_lines": [{"id": line.id, "product_id": line.product_id.id, "name": line.product_id.display_name, "barcode": line.product_barcode or "", "tracking": line.product_tracking, "lot_name": line.lot_name or "", "counted_qty": line.counted_qty} for line in product_lines]})
         return result[0] if len(result) == 1 else result
 
     @api.model_create_multi

@@ -6,48 +6,49 @@ from odoo.exceptions import UserError, ValidationError
 
 class BlindStockCount(models.Model):
     _name = "blind.stock.count"
+    _inherit = ["mail.thread"]
     _description = "Blind Stock Count"
     _order = "id desc"
 
     name = fields.Char(string="Blind Stock Count", required=True, readonly=True, copy=False, default=lambda self: self.env["ir.sequence"].next_by_code("blind.stock.count") or _("New"))
-    date = fields.Datetime(string="Count Date", required=True, default=fields.Datetime.now, copy=False)
-    project_id = fields.Many2one("project.project", string="Project", required=True, copy=False, index=True)
-    project_category_id = fields.Many2one(related="project_id.category", string="Project Product Category", readonly=True)
-    location_id = fields.Many2one("stock.location", string="Count Location", required=True, copy=False, index=True, domain=[("usage", "=", "internal")])
-    state = fields.Selection([("draft", "Draft"), ("counting", "Counting"), ("done", "Done"), ("cancel", "Cancelled")], string="Status", required=True, default="draft", copy=False, index=True)
-    count_scope = fields.Selection([("manual", "Manual"), ("product", "By Product"), ("category", "By Category")], string="Count Scope", required=True, default="manual", copy=False)
-    product_line_ids = fields.Many2many("product.product", "blind_stock_count_product_rel", "blind_stock_count_id", "product_id", string="Product Scope", copy=False)
-    category_line_ids = fields.Many2many("product.category", "blind_stock_count_category_rel", "blind_stock_count_id", "category_id", string="Product Category Scope", copy=False)
+    date = fields.Datetime(string="Count Date", required=True, default=fields.Datetime.now, copy=False, tracking=True)
+    work_package_id = fields.Many2one("blind.stock.count.work.package", string="Work Package", copy=False, index=True, tracking=True)
+    product_category_id = fields.Many2one(related="work_package_id.category_id", string="Product Category", readonly=True)
+    location_id = fields.Many2one("stock.location", string="Count Location", required=True, copy=False, index=True, domain=[("usage", "=", "internal")], tracking=True)
+    state = fields.Selection([("draft", "Draft"), ("counting", "Counting"), ("done", "Done"), ("cancel", "Cancelled")], string="Status", required=True, default="draft", copy=False, index=True, tracking=True)
     pallet_lines = fields.One2many("blind.stock.count.pallet", "blind_stock_count_id", string="Pallets", copy=False)
-    note = fields.Text(string="Notes", copy=False)
+    note = fields.Text(string="Notes", copy=False, tracking=True)
 
-    @api.constrains("project_id", "location_id")
-    def check_project_and_location(self):
+    @api.constrains("work_package_id", "location_id")
+    def check_work_package_and_location(self):
         for rec in self:
-            if not rec.project_id.category:
-                raise ValidationError(_("The selected project must have a product category."))
+            if not rec.work_package_id:
+                continue
             if rec.location_id.usage != "internal":
                 raise ValidationError(_("The count location must be an internal location."))
+            if rec.work_package_id.location_line_ids and rec.location_id not in rec.work_package_id.location_line_ids:
+                raise ValidationError(_("The count location is outside the selected work package location scope."))
 
     def check_product_for_count(self, product):
+        product_model = self.env["product.product"]
         for rec in self:
+            if not rec.work_package_id or not rec.product_category_id:
+                raise UserError(_("Select a work package with a product category."))
             for product_rec in product:
-                if product_rec.categ_id != rec.project_id.category:
-                    raise UserError(_("The product does not belong to the selected project."))
-                if rec.count_scope == "product" and product_rec not in rec.product_line_ids:
-                    raise UserError(_("The product is outside the selected product scope."))
-                if rec.count_scope == "category" and product_rec.categ_id not in rec.category_line_ids:
-                    raise UserError(_("The product is outside the selected category scope."))
+                if not product_model.sudo().search([("id", "=", product_rec.id), ("categ_id", "child_of", rec.product_category_id.id)], limit=1):
+                    raise UserError(_("The product does not belong to the selected work package category."))
         return True
 
     def action_start_counting(self):
         for rec in self:
             if rec.state != "draft":
                 raise UserError(_("Only draft blind stock counts can be started."))
-            if not rec.project_id.category:
-                raise UserError(_("The selected project must have a product category."))
+            if not rec.work_package_id or not rec.product_category_id:
+                raise UserError(_("Select a work package with a product category."))
             if rec.location_id.usage != "internal":
                 raise UserError(_("The count location must be an internal location."))
+            if rec.work_package_id.location_line_ids and rec.location_id not in rec.work_package_id.location_line_ids:
+                raise UserError(_("The count location is outside the selected work package location scope."))
             rec.write({"state": "counting"})
         return True
 
@@ -79,7 +80,7 @@ class BlindStockCount(models.Model):
             return {"type": "ir.actions.client", "tag": "blind_stock_count.scan", "target": "main", "params": {"blind_stock_count_id": rec.id}}
 
     def write(self, vals):
-        protected_fields = {"project_id", "location_id", "count_scope", "product_line_ids", "category_line_ids"}
+        protected_fields = {"work_package_id", "location_id"}
         pallet_model = self.env["blind.stock.count.pallet"]
         line_model = self.env["blind.stock.count.line"]
         for rec in self:
@@ -87,47 +88,53 @@ class BlindStockCount(models.Model):
                 continue
             if rec.state in ("done", "cancel"):
                 raise UserError(_("Completed or cancelled blind stock counts cannot be changed."))
-            if rec.state == "counting" and protected_fields.intersection(vals):
-                raise UserError(_("Project, location and count scope cannot be changed after counting starts."))
+            protected_values = protected_fields.intersection(vals)
+            if rec.state == "counting" and protected_values and not (protected_values == {"work_package_id"} and not rec.work_package_id and vals.get("work_package_id")):
+                raise UserError(_("Work package and location cannot be changed after counting starts."))
             if vals.get("state") == "done" and not pallet_model.sudo().search_count([("blind_stock_count_id", "=", rec.id)]):
                 raise UserError(_("Record at least one pallet before completing the blind stock count."))
             if vals.get("state") == "done" and not line_model.sudo().search_count([("blind_stock_count_id", "=", rec.id)]):
                 raise UserError(_("Record at least one product line before completing the blind stock count."))
         return super().write(vals)
 
-    def unlink(self):
-        for rec in self:
-            if rec.state != "draft":
-                raise UserError(_("Only draft blind stock counts can be deleted."))
-        return super().unlink()
+    # def unlink(self):
+    #     for rec in self:
+    #         if rec.state != "draft":
+    #             raise UserError(_("Only draft blind stock counts can be deleted."))
+    #     return super().unlink()
 
     @api.model
-    def get_scannable_projects(self):
-        projects = self.env["project.project"].sudo().search([("active", "=", True), ("category", "!=", False)], order="name")
-        return [{"id": rec.id, "name": rec.display_name} for rec in projects]
+    def get_scannable_work_packages(self):
+        work_packages = self.env["blind.stock.count.work.package"].sudo().search([], order="id desc")
+        return [{"id": rec.id, "name": rec.display_name, "category_name": rec.category_id.display_name, "location_names": ", ".join(rec.location_line_ids.mapped("display_name"))} for rec in work_packages]
 
     @api.model
     def get_continue_scan_data(self, count_id):
         count = self.sudo().search([("id", "=", count_id), ("state", "in", ["draft", "counting"])], limit=1)
         if not count:
             raise UserError(_("The unfinished blind stock count was not found."))
+        if not count.work_package_id:
+            raise UserError(_("Select a work package on the blind stock count before continuing PDA scanning."))
         if count.state == "draft":
             self.browse(count.id).action_start_counting()
             count = self.sudo().browse(count.id)
         pallets = self.env["blind.stock.count.pallet"].sudo().search([("blind_stock_count_id", "=", count.id)], order="id desc")
         pallet_data = pallets.get_scan_data()
-        return {"project": {"id": count.project_id.id, "name": count.project_id.display_name}, "count": {"id": count.id, "name": count.name, "location_name": count.location_id.display_name}, "pallets": pallet_data if isinstance(pallet_data, list) else [pallet_data] if pallet_data else []}
+        return {"work_package": {"id": count.work_package_id.id, "name": count.work_package_id.display_name}, "count": {"id": count.id, "name": count.name, "location_name": count.location_id.display_name}, "pallets": pallet_data if isinstance(pallet_data, list) else [pallet_data] if pallet_data else []}
 
     @api.model
-    def get_pda_count_list(self):
-        counts = self.sudo().search([], order="id desc")
-        return [{"id": rec.id, "name": rec.name, "date": rec.date, "project_name": rec.project_id.display_name, "location_name": rec.location_id.display_name, "state": rec.state} for rec in counts]
+    def get_pda_count_list(self, work_package_id):
+        work_package = self.env["blind.stock.count.work.package"].sudo().search([("id", "=", work_package_id)], limit=1)
+        if not work_package:
+            raise UserError(_("The blind stock count work package was not found."))
+        counts = self.sudo().search([("work_package_id", "=", work_package.id)], order="id desc")
+        return [{"id": rec.id, "name": rec.name, "date": rec.date, "work_package_name": rec.work_package_id.display_name, "location_name": rec.location_id.display_name, "state": rec.state} for rec in counts]
 
     @api.model
-    def action_scan_location(self, project_id, barcode):
-        project = self.env["project.project"].sudo().search([("id", "=", project_id), ("active", "=", True)], limit=1)
-        if not project or not project.category:
-            raise UserError(_("Please select an active project with a product category."))
+    def action_scan_location(self, work_package_id, barcode):
+        work_package = self.env["blind.stock.count.work.package"].sudo().search([("id", "=", work_package_id)], limit=1)
+        if not work_package or not work_package.category_id:
+            raise UserError(_("Please select a work package with a product category."))
         barcode = (barcode or "").strip()
         if not barcode:
             raise UserError(_("Please scan an internal location."))
@@ -136,7 +143,9 @@ class BlindStockCount(models.Model):
             raise UserError(_("No internal location matches this barcode."))
         if len(locations) > 1:
             raise UserError(_("More than one internal location matches this barcode."))
-        count = self.create({"project_id": project.id, "location_id": locations.id, "state": "counting"})
+        if work_package.location_line_ids and locations not in work_package.location_line_ids:
+            raise UserError(_("The scanned location is outside the selected work package location scope."))
+        count = self.create({"work_package_id": work_package.id, "location_id": locations.id, "state": "counting"})
         return {"count": {"id": count.id, "name": count.name, "location_name": count.location_id.display_name}, "message": _("Location scanned. Now scan a pallet.")}
 
     @api.model
@@ -165,11 +174,11 @@ class BlindStockCount(models.Model):
         barcode = (barcode or "").strip()
         if not barcode:
             raise UserError(_("Please scan a product barcode."))
-        products = self.env["product.product"].sudo().search([("barcode", "=", barcode), ("categ_id", "=", pallet.blind_stock_count_id.project_id.category.id)], limit=2)
+        products = self.env["product.product"].sudo().search([("barcode", "=", barcode), ("categ_id", "child_of", pallet.blind_stock_count_id.product_category_id.id)], limit=2)
         if not products:
-            raise UserError(_("No project product matches this barcode."))
+            raise UserError(_("No work package product matches this barcode."))
         if len(products) > 1:
-            raise UserError(_("More than one project product matches this barcode."))
+            raise UserError(_("More than one work package product matches this barcode."))
         pallet.blind_stock_count_id.check_product_for_count(products)
         manual_line = self.env["blind.stock.count.line"].sudo().search([("blind_stock_count_pallet_id", "=", pallet.id), ("product_id", "=", products.id), ("lot_name", "=", False)], order="id desc", limit=1)
         scanned_serial_count = self.env["blind.stock.count.line"].sudo().search_count([("blind_stock_count_pallet_id", "=", pallet.id), ("product_id", "=", products.id), ("lot_name", "!=", False)])
@@ -189,7 +198,7 @@ class BlindStockCount(models.Model):
             raise UserError(_("Enter one or more serial numbers separated by commas."))
         if len(serial_numbers) != len(set(serial_numbers)):
             raise UserError(_("The same serial number cannot be entered twice."))
-        duplicate_line = self.env["blind.stock.count.line"].sudo().search([("project_id", "=", pallet.blind_stock_count_id.project_id.id), ("product_id", "=", product.id), ("lot_name", "in", serial_numbers), ("state", "!=", "cancel")], limit=1)
+        duplicate_line = self.env["blind.stock.count.line"].sudo().search([("work_package_id", "=", pallet.blind_stock_count_id.work_package_id.id), ("product_id", "=", product.id), ("lot_name", "in", serial_numbers), ("state", "!=", "cancel")], limit=1)
         if duplicate_line:
             raise UserError(_("Serial number %s is already recorded in blind stock count %s, pallet %s, product %s.") % (duplicate_line.lot_name, duplicate_line.blind_stock_count_id.name, duplicate_line.blind_stock_count_pallet_id.package_id.name, duplicate_line.product_id.display_name))
         product_lines = self.env["blind.stock.count.line"].create([{"blind_stock_count_pallet_id": pallet.id, "product_id": product.id, "lot_name": serial_number, "counted_qty": 1.0} for serial_number in serial_numbers])

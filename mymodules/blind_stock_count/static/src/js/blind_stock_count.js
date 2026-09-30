@@ -17,7 +17,7 @@ export class BlindStockCountScan extends Component {
         const action = this.env.config.action || {};
         this.continueCountId = this.props?.action?.params?.blind_stock_count_id || action.params?.blind_stock_count_id || action.context?.blind_stock_count_id || false;
         this.onPageInteraction = () => {
-            if (!this.processing && !["select_project", "input_quantity"].includes(this.state.nextStep)) {
+            if (!this.processing && !["select_work_package", "input_quantity"].includes(this.state.nextStep)) {
                 this.focusBarcodeInput();
             }
         };
@@ -25,9 +25,9 @@ export class BlindStockCountScan extends Component {
             loading: false,
             message: "",
             messageType: "info",
-            projects: [],
-            projectId: false,
-            projectName: "",
+            workPackages: [],
+            workPackageId: false,
+            workPackageName: "",
             count: null,
             pallet: null,
             pallets: [],
@@ -36,7 +36,7 @@ export class BlindStockCountScan extends Component {
             editingLineId: false,
             lastScannedLineIds: [],
             quantity: "",
-            nextStep: "select_project",
+            nextStep: "select_work_package",
         });
         onMounted(async () => {
             document.addEventListener("click", this.onPageInteraction);
@@ -44,8 +44,8 @@ export class BlindStockCountScan extends Component {
             if (this.continueCountId) {
                 const result = await this.call("get_continue_scan_data", [this.continueCountId]);
                 if (result) {
-                    this.state.projectId = result.project.id;
-                    this.state.projectName = result.project.name;
+                    this.state.workPackageId = result.work_package.id;
+                    this.state.workPackageName = result.work_package.name;
                     this.state.count = result.count;
                     const pallets = result.pallets || [];
                     this.state.pallets = pallets;
@@ -55,7 +55,7 @@ export class BlindStockCountScan extends Component {
                     this.showMessage(pallets.length ? _t("Blind stock count loaded. Tap a pallet to continue or scan a new pallet.") : _t("Blind stock count loaded. Now scan a pallet."));
                 }
             } else {
-                await this.loadProjects();
+                await this.loadWorkPackages();
             }
             this.focusBarcodeInput();
         });
@@ -66,10 +66,10 @@ export class BlindStockCountScan extends Component {
         });
     }
 
-    async loadProjects() {
-        const projects = await this.call("get_scannable_projects", []);
-        if (projects) {
-            this.state.projects = projects;
+    async loadWorkPackages() {
+        const workPackages = await this.call("get_scannable_work_packages", []);
+        if (workPackages) {
+            this.state.workPackages = workPackages;
         }
     }
 
@@ -132,14 +132,14 @@ export class BlindStockCountScan extends Component {
         this.focusBarcodeInput();
     }
 
-    onProjectChange(event) {
-        this.state.projectId = Number(event.target.value) || false;
-        this.state.projectName = event.target.selectedOptions[0]?.text || "";
+    onWorkPackageChange(event) {
+        this.state.workPackageId = Number(event.target.value) || false;
+        this.state.workPackageName = event.target.selectedOptions[0]?.dataset.name || "";
     }
 
-    confirmProject() {
-        if (!this.state.projectId) {
-            this.showMessage(_t("Please select a project."), "danger");
+    confirmWorkPackage() {
+        if (!this.state.workPackageId) {
+            this.showMessage(_t("Please select a work package."), "danger");
             return;
         }
         this.state.nextStep = "scan_location";
@@ -175,7 +175,7 @@ export class BlindStockCountScan extends Component {
     }
 
     async onBarcodeScanned(barcode) {
-        if (this.processing || this.state.nextStep === "select_project") {
+        if (this.processing || this.state.nextStep === "select_work_package") {
             return;
         }
         if (this.state.nextStep === "input_quantity") {
@@ -183,7 +183,7 @@ export class BlindStockCountScan extends Component {
             return;
         }
         if (this.state.nextStep === "scan_location") {
-            const result = await this.call("action_scan_location", [this.state.projectId, barcode], barcode);
+            const result = await this.call("action_scan_location", [this.state.workPackageId, barcode], barcode);
             if (result) {
                 this.state.count = result.count;
                 this.state.nextStep = "scan_pallet";
@@ -333,7 +333,7 @@ export class BlindStockCountScan extends Component {
             this.state.lastScannedLineIds = [];
             this.state.quantity = "";
             this.state.nextStep = "scan_location";
-            this.showMessage(_t("Blind stock count completed. Scan the next internal location or change the project."), "success");
+            this.showMessage(_t("Blind stock count completed. Scan the next internal location."), "success");
             this.focusBarcodeInput();
         }
     }
@@ -367,19 +367,37 @@ export class BlindStockCountPdaList extends Component {
     setup() {
         this.orm = useService("orm");
         this.action = useService("action");
-        this.state = useState({ loading: true, counts: [], message: "" });
-        onMounted(() => this.loadCounts());
+        this.state = useState({ loading: true, workPackages: [], workPackage: null, counts: [], message: "" });
+        onMounted(() => this.loadWorkPackages());
     }
 
-    async loadCounts() {
+    async loadWorkPackages() {
         this.state.loading = true;
         try {
-            this.state.counts = await this.orm.call("blind.stock.count", "get_pda_count_list", []);
+            this.state.workPackages = await this.orm.call("blind.stock.count", "get_scannable_work_packages", []);
+        } catch (error) {
+            this.state.message = error?.data?.message || error?.message || _t("Unable to load blind stock count work packages.");
+        } finally {
+            this.state.loading = false;
+        }
+    }
+
+    async selectWorkPackage(workPackage) {
+        this.state.workPackage = workPackage;
+        this.state.loading = true;
+        try {
+            this.state.counts = await this.orm.call("blind.stock.count", "get_pda_count_list", [workPackage.id]);
         } catch (error) {
             this.state.message = error?.data?.message || error?.message || _t("Unable to load blind stock counts.");
         } finally {
             this.state.loading = false;
         }
+    }
+
+    backToWorkPackages() {
+        this.state.workPackage = null;
+        this.state.counts = [];
+        this.state.message = "";
     }
 
     openPdaCount(count) {

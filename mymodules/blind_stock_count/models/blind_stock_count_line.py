@@ -11,8 +11,8 @@ class BlindStockCountLine(models.Model):
 
     blind_stock_count_pallet_id = fields.Many2one("blind.stock.count.pallet", string="Blind Stock Count Pallet", required=True, ondelete="cascade", copy=False, index=True)
     blind_stock_count_id = fields.Many2one(related="blind_stock_count_pallet_id.blind_stock_count_id", string="Blind Stock Count", readonly=True, store=True, index=True)
-    project_id = fields.Many2one(related="blind_stock_count_id.project_id", string="Project", readonly=True, store=True, index=True)
-    project_category_id = fields.Many2one(related="blind_stock_count_id.project_category_id", string="Project Product Category", readonly=True)
+    work_package_id = fields.Many2one(related="blind_stock_count_id.work_package_id", string="Work Package", readonly=True, store=True, index=True)
+    product_category_id = fields.Many2one(related="blind_stock_count_id.product_category_id", string="Product Category", readonly=True)
     state = fields.Selection(related="blind_stock_count_id.state", string="Status", readonly=True, store=True, index=True)
     product_id = fields.Many2one("product.product", string="Product", required=True, copy=False, index=True)
     product_barcode = fields.Char(related="product_id.barcode", string="Product Barcode", readonly=True)
@@ -26,10 +26,11 @@ class BlindStockCountLine(models.Model):
 
     def init(self):
         self.env.cr.execute("ALTER TABLE blind_stock_count_line DROP CONSTRAINT IF EXISTS blind_stock_count_project_product_serial_unique")
+        self.env.cr.execute("DROP INDEX IF EXISTS blind_stock_count_line_serial_active_unique")
         self.env.cr.execute("""
-            CREATE UNIQUE INDEX IF NOT EXISTS blind_stock_count_line_serial_active_unique
-            ON blind_stock_count_line (project_id, product_id, lot_name)
-            WHERE lot_name IS NOT NULL AND (state IS NULL OR state != 'cancel')
+            CREATE UNIQUE INDEX IF NOT EXISTS blind_stock_count_line_work_package_product_serial_active_unique
+            ON blind_stock_count_line (work_package_id, product_id, lot_name)
+            WHERE work_package_id IS NOT NULL AND lot_name IS NOT NULL AND (state IS NULL OR state != 'cancel')
         """)
         self.env.cr.execute("""
             CREATE UNIQUE INDEX IF NOT EXISTS blind_stock_count_line_manual_product_active_unique
