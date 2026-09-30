@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="paperformat_blind_stock_count_pallet_label" model="report.paperformat">
+        <field name="name">Blind Stock Count Pallet Label A4</field>
+        <field name="default" eval="False"/>
+        <field name="format">A4</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">10</field>
+        <field name="margin_bottom">6</field>
+        <field name="margin_left">6</field>
+        <field name="margin_right">6</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">0</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <record id="action_report_blind_stock_count_pallet_label" model="ir.actions.report">
+        <field name="name">Print Blind Stock Count Label</field>
+        <field name="model">stock.quant.package</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">blind_stock_count.report_blind_stock_count_pallet_label</field>
+        <field name="report_file">blind_stock_count.report_blind_stock_count_pallet_label</field>
+        <field name="print_report_name">'Blind Stock Count Label - %s' % (object.name)</field>
+        <field name="paperformat_id" ref="paperformat_blind_stock_count_pallet_label"/>
+        <field name="binding_model_id" ref="stock.model_stock_quant_package"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_blind_stock_count_pallet_label">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <div class="page blind-stock-count-pallet-label" t-att-data-oe-model="o._name" t-att-data-oe-id="o.id">
+                    <style>
+                        @page { margin: 8mm 6mm 6mm 6mm !important; }
+                        .blind-stock-count-pallet-label { color: #111827; font-family: Arial, sans-serif; font-size: 14px; }
+                        .blind-stock-count-title { margin: 0 0 12px; font-size: 32px; font-weight: bold; }
+                        .blind-stock-count-layout, .blind-stock-count-info { width: 100%; border-collapse: collapse; table-layout: fixed; }
+                        .blind-stock-count-layout, .blind-stock-count-layout td, .blind-stock-count-info td { border: 1px solid #111827; }
+                        .blind-stock-count-main { padding: 0; vertical-align: top; }
+                        .blind-stock-count-qr { width: 270px; padding: 0; text-align: center; vertical-align: middle; }
+                        .blind-stock-count-pallet-no { margin: 0; padding: 12px 6px 18px; font-size: 30px; font-weight: bold; }
+                        .blind-stock-count-value { text-decoration: underline; }
+                        .blind-stock-count-info td { height: 58px; padding: 3px 6px; font-size: 18px; font-weight: bold; vertical-align: middle; }
+                        .blind-stock-count-info .blind-stock-count-label { white-space: nowrap; }
+                        .blind-stock-count-qr-caption { margin-top: 3px; color: #4b5563; font-size: 11px; }
+                    </style>
+                    <p class="blind-stock-count-title">World Depot B.V.</p>
+                    <table class="blind-stock-count-layout">
+                        <tr>
+                            <td class="blind-stock-count-main">
+                                <p class="blind-stock-count-pallet-no">Pallet No: <span class="blind-stock-count-value" t-esc="o.name"/></p>
+                                <table class="blind-stock-count-info">
+                                    <colgroup>
+                                        <col style="width:18%;"/>
+                                        <col style="width:27%;"/>
+                                        <col style="width:25%;"/>
+                                        <col style="width:30%;"/>
+                                    </colgroup>
+                                    <tr>
+                                        <td class="blind-stock-count-label">Reference:</td>
+                                        <td class="blind-stock-count-blank"></td>
+                                        <td class="blind-stock-count-label">Owner:</td>
+                                        <td class="blind-stock-count-blank"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="blind-stock-count-label">Arrival Date:</td>
+                                        <td colspan="3"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="blind-stock-count-label">BL No:</td>
+                                        <td class="blind-stock-count-blank"></td>
+                                        <td class="blind-stock-count-label">Container No:</td>
+                                        <td class="blind-stock-count-blank"></td>
+                                    </tr>
+                                </table>
+                            </td>
+                            <td class="blind-stock-count-qr">
+                                <div t-field="o.barcode" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 380, 'height': 380, 'img_style': 'width:260px;height:260px;'}"/>
+                                <div class="blind-stock-count-qr-caption">Pallet QR Code</div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>
