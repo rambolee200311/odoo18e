@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ir_cron_generate_hoymiles_pallets" model="ir.cron">
+        <field name="name">Generate Hoymiles Packages</field>
+        <field name="model_id" ref="model_blind_stock_count_generate_hoymiles_pallet"/>
+        <field name="state">code</field>
+        <field name="code">
+wizard = model.create({"quantity": 5000})
+wizard.action_generate_hoymiles_pallets()
+env["ir.cron"]._notify_progress(done=5000, remaining=0, deactivate=True)
+        </field>
+        <field name="user_id" ref="base.user_root"/>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active">False</field>
+    </record>
+</odoo>
