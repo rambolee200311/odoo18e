@@ -8,7 +8,7 @@
     "depends": ["stock_barcode_lite"],
     "data": [
         #"security/ir.model.access.csv",
-        #"data/ir_sequence_data.xml",
+        "data/ir_sequence_data.xml",
         "data/ir_cron_data.xml",
         #"views/blind_stock_count_views.xml",
         "report/blind_stock_count_pallet_label.xml",
