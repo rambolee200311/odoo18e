@@ -29,10 +29,11 @@
     <template id="report_blind_stock_count_pallet_label">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="o">
-                <div class="page blind-stock-count-pallet-label" t-att-data-oe-model="o._name" t-att-data-oe-id="o.id">
+                <div t-att-class="'page blind-stock-count-pallet-label blind-stock-count-page-break' if not o_last else 'page blind-stock-count-pallet-label'" t-att-data-oe-model="o._name" t-att-data-oe-id="o.id">
                     <style>
                         @page { margin: 8mm 6mm 6mm 6mm !important; }
-                        .blind-stock-count-pallet-label { color: #111827; font-family: Arial, sans-serif; font-size: 14px; }
+                        .blind-stock-count-pallet-label { color: #111827; font-family: Arial, sans-serif; font-size: 14px; page-break-inside: avoid; break-inside: avoid; }
+                        .blind-stock-count-page-break { page-break-after: always; break-after: page; }
                         .blind-stock-count-title { margin: 0 0 12px; font-size: 32px; font-weight: bold; }
                         .blind-stock-count-layout, .blind-stock-count-info { width: 100%; border-collapse: collapse; table-layout: fixed; }
                         .blind-stock-count-layout, .blind-stock-count-layout td, .blind-stock-count-info td { border: 1px solid #111827; }
@@ -51,10 +52,10 @@
                                 <p class="blind-stock-count-pallet-no">Pallet No: <span class="blind-stock-count-value" t-esc="o.name"/></p>
                                 <table class="blind-stock-count-info">
                                     <colgroup>
-                                        <col style="width:18%;"/>
-                                        <col style="width:27%;"/>
-                                        <col style="width:25%;"/>
-                                        <col style="width:30%;"/>
+                                        <col style="width:28%;"/>
+                                        <col style="width:22%;"/>
+                                        <col style="width:28%;"/>
+                                        <col style="width:22%;"/>
                                     </colgroup>
                                     <tr>
                                         <td class="blind-stock-count-label">Reference:</td>
