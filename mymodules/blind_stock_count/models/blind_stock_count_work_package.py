@@ -31,7 +31,7 @@ class BlindStockCountWorkPackage(models.Model):
         project_model = self.env["project.project"]
         for rec in self:
             project = project_model.sudo().search([("category", "=", rec.category_id.id)], order="id desc", limit=1) if rec.category_id else False
-            rec.owner_id = project.owner
+            rec.owner_id = project.owner if project else False
 
     def action_start(self):
         for rec in self:

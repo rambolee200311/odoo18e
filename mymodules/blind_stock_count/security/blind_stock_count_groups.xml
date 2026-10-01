@@ -1,14 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <record id="group_blind_stock_count_user" model="res.groups">
-        <field name="name">Blind Stock Count User</field>
+        <field name="name">Blind Stock Count Counter</field>
+        <field name="category_id" ref="base.module_category_inventory_inventory"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="group_blind_stock_count_checker" model="res.groups">
+        <field name="name">Blind Stock Count Checker</field>
         <field name="category_id" ref="base.module_category_inventory_inventory"/>
         <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
     </record>
 
     <record id="group_blind_stock_count_administrator" model="res.groups">
-        <field name="name">Blind Stock Count Administrator</field>
+        <field name="name">Blind Stock Count Warehouse Manager</field>
         <field name="category_id" ref="base.module_category_inventory_inventory"/>
-        <field name="implied_ids" eval="[(4, ref('group_blind_stock_count_user'))]"/>
+        <field name="implied_ids" eval="[(6, 0, [ref('group_blind_stock_count_user'), ref('group_blind_stock_count_checker')])]"/>
     </record>
 </odoo>
