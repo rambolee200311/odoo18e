@@ -6,8 +6,11 @@
         <field name="arch" type="xml">
             <list string="Blind Stock Count Work Packages">
                 <field name="name"/>
+                <field name="date"/>
                 <field name="category_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="owner_id" options="{'no_create': True, 'no_open': True}"/>
                 <field name="location_line_ids" widget="many2many_tags" optional="hide" options="{'no_create': True, 'no_open': True}"/>
+                <field name="state" widget="badge"/>
             </list>
         </field>
     </record>
@@ -17,24 +20,37 @@
         <field name="model">blind.stock.count.work.package</field>
         <field name="arch" type="xml">
             <form string="Blind Stock Count Work Package" duplicate="false">
+                <header>
+                    <button name="action_start" type="object" string="Start" class="btn-primary" invisible="state != 'draft'" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
+                    <button name="action_done" type="object" string="Complete" class="btn-primary" invisible="state != 'in_progress'" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
+                    <button name="action_cancel" type="object" string="Cancel" invisible="state not in ('draft', 'in_progress')" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,in_progress,done,cancel"/>
+                </header>
                 <sheet>
                     <group>
                         <group>
-                            <field name="name" required="1"/>
-                            <field name="category_id" required="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="name" required="1" readonly="1"/>
+                            <field name="date" required="1" readonly="state in ('done', 'cancel')"/>
+                            <field name="category_id" required="1" readonly="state != 'draft'" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="owner_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                         </group>
                         <group>
-                            <field name="location_line_ids" widget="many2many_tags" options="{'no_create': True, 'no_open': True}" domain="[('usage', '=', 'internal')]"/>
-                            <field name="note"/>
+                            <field name="location_line_ids" widget="many2many_tags" readonly="state != 'draft'" options="{'no_create': True, 'no_open': True}" domain="[('usage', '=', 'internal')]"/>
+                            <field name="create_uid" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="create_date" readonly="1"/>
+                            <field name="note" readonly="state in ('done', 'cancel')"/>
                         </group>
                     </group>
                     <notebook>
                         <page string="Blind Stock Counts">
                             <field name="count_lines" readonly="1">
-                                <list>
+                                <list default_group_by="location_id" default_order="location_id,recount_round desc">
                                     <field name="name"/>
                                     <field name="date"/>
                                     <field name="location_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="recount_round"/>
+                                    <field name="recounted_from_id" optional="hide" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="is_replaced"/>
                                     <field name="state" widget="badge"/>
                                 </list>
                             </field>
@@ -46,17 +62,139 @@
         </field>
     </record>
 
+    <record id="view_blind_stock_count_web_list_work_package_list" model="ir.ui.view">
+        <field name="name">blind.stock.count.web.list.work.package.list</field>
+        <field name="model">blind.stock.count.work.package</field>
+        <field name="arch" type="xml">
+            <list string="Blind Stock Count Web List">
+                <field name="name"/>
+                <field name="date"/>
+                <field name="category_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="owner_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="location_line_ids" widget="many2many_tags" optional="hide" options="{'no_create': True, 'no_open': True}"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_blind_stock_count_web_list_work_package_form" model="ir.ui.view">
+        <field name="name">blind.stock.count.web.list.work.package.form</field>
+        <field name="model">blind.stock.count.work.package</field>
+        <field name="arch" type="xml">
+            <form string="Blind Stock Count Records"  duplicate="false">
+                <header><field name="state" widget="statusbar" statusbar_visible="draft,in_progress,done,cancel" readonly="1"/></header>
+                <sheet>
+                    <group>
+                        <field name="name" required="1" readonly="1"/>
+                        <field name="date" required="1" readonly="1"/>
+                        <field name="location_line_ids" widget="many2many_tags" readonly="1" options="{'no_create': True, 'no_open': True}" domain="[('usage', '=', 'internal')]"/>
+                        <field name="category_id" required="1" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="owner_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                    </group>
+                    <field name="count_lines" readonly="1">
+                        <list string="Blind Stock Counts" default_group_by="location_id" default_order="location_id,recount_round desc" create="false" edit="false" delete="false">
+                            <field name="name"/>
+                            <field name="date"/>
+                            <field name="location_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="recount_round"/>
+                            <field name="recounted_from_id" optional="hide" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="is_replaced"/>
+                            <field name="state" widget="badge"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
     <record id="view_blind_stock_count_list" model="ir.ui.view">
         <field name="name">blind.stock.count.list</field>
         <field name="model">blind.stock.count</field>
         <field name="arch" type="xml">
-            <list string="Blind Stock Counts">
+            <list string="Blind Stock Counts" default_group_by="location_id" default_order="location_id,recount_round desc">
                 <field name="name"/>
                 <field name="date"/>
                 <field name="work_package_id" options="{'no_create': True, 'no_open': True}"/>
                 <field name="location_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="recount_round"/>
+                <field name="recounted_from_id" optional="hide" options="{'no_create': True, 'no_open': True}"/>
+                <field name="is_replaced"/>
                 <field name="state" widget="badge"/>
             </list>
+        </field>
+    </record>
+
+    <record id="view_blind_stock_count_check_list" model="ir.ui.view">
+        <field name="name">blind.stock.count.check.list</field>
+        <field name="model">blind.stock.count.check</field>
+        <field name="arch" type="xml">
+            <list string="Blind Stock Count Checks">
+                <field name="name"/>
+                <field name="blind_stock_count_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="work_package_id" optional="hide" options="{'no_create': True, 'no_open': True}"/>
+                <field name="location_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="checked_by_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="checked_at"/>
+                <field name="conclusion" widget="badge"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_blind_stock_count_check_form" model="ir.ui.view">
+        <field name="name">blind.stock.count.check.form</field>
+        <field name="model">blind.stock.count.check</field>
+        <field name="arch" type="xml">
+            <form string="Blind Stock Count Check" duplicate="false">
+                <header>
+                    <button name="action_start_checking" type="object" string="Start Check" class="btn-primary" invisible="state != 'draft'" groups="blind_stock_count.group_blind_stock_count_checker,base.group_system"/>
+                    <button name="action_open_scan" type="object" string="Open Check PDA" class="btn-primary" invisible="state != 'checking'" groups="blind_stock_count.group_blind_stock_count_checker,base.group_system"/>
+                    <button name="action_done" type="object" string="Complete" class="btn-primary" invisible="state != 'checking'" groups="blind_stock_count.group_blind_stock_count_checker,base.group_system"/>
+                    <button name="action_cancel" type="object" string="Cancel" invisible="state not in ('draft', 'checking')" groups="blind_stock_count.group_blind_stock_count_checker,base.group_system"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,checking,done,cancel"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" required="1" readonly="1"/>
+                            <field name="blind_stock_count_id" required="1" readonly="state != 'draft'" domain="[('state', '=', 'done')]" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="work_package_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="location_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                        </group>
+                        <group>
+                            <field name="checked_by_id" required="1" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="checked_at" readonly="1"/>
+                            <field name="conclusion" required="1" readonly="state in ('done', 'cancel')"/>
+                            <field name="conclusion_note" readonly="state in ('done', 'cancel')"/>
+                            <field name="note" readonly="state in ('done', 'cancel')"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Sampled Lines">
+                            <field name="check_lines" readonly="1">
+                                <list>
+                                    <field name="source_line_id" column_invisible="True" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="package_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="scanned_pallet_code" optional="hide" readonly="1"/>
+                                    <field name="product_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="scanned_product_id" optional="hide" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="scanned_product_barcode" optional="hide" readonly="1"/>
+                                    <field name="product_tracking" column_invisible="True" readonly="1"/>
+                                    <field name="lot_name"/>
+                                    <field name="scanned_lot_name" optional="hide" readonly="1"/>
+                                    <field name="source_counted_qty"/>
+                                    <field name="checked_qty"/>
+                                    <field name="match_status" widget="badge"/>
+                                    <field name="is_matched" widget="boolean_toggle"/>
+                                    <field name="checked_by_id" optional="hide" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="checked_at" optional="hide"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
         </field>
     </record>
 
@@ -66,10 +204,12 @@
         <field name="arch" type="xml">
             <form string="Blind Stock Count" duplicate="false">
                 <header>
-                    <button name="action_start_counting" type="object" string="Start Counting" class="btn-primary" invisible="state != 'draft'"/>
-                    <button name="action_done" type="object" string="Complete" class="btn-primary" invisible="state != 'counting'"/>
-                    <button name="action_reopen_counting" type="object" string="Reopen Counting" invisible="state != 'done'"/>
-                    <button name="action_cancel" type="object" string="Cancel" invisible="state not in ('draft', 'counting')"/>
+                    <button name="action_start_counting" type="object" string="Start Counting" class="btn-primary" invisible="state != 'draft'" groups="blind_stock_count.group_blind_stock_count_user,base.group_system"/>
+                    <button name="action_done" type="object" string="Complete" class="btn-primary" invisible="state != 'counting'" groups="blind_stock_count.group_blind_stock_count_user,base.group_system"/>
+                    <button name="action_create_check" type="object" string="Create Check" invisible="state != 'done'" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
+                    <button name="action_create_recount" type="object" string="Create Recount" invisible="state != 'done' or is_replaced" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
+                    <button name="action_cancel" type="object" string="Cancel" invisible="state not in ('draft', 'counting')" groups="blind_stock_count.group_blind_stock_count_user,base.group_system"/>
+                    <field name="is_replaced" invisible="1" readonly="1"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,counting,done,cancel"/>
                 </header>
                 <sheet>
@@ -80,6 +220,9 @@
                             <field name="work_package_id" required="1" readonly="state in ('done', 'cancel') or (state == 'counting' and work_package_id)" options="{'no_create': True, 'no_open': True}"/>
                             <field name="product_category_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                             <field name="location_id" required="1" readonly="state != 'draft'" options="{'no_create': True, 'no_open': True}" domain="[('usage', '=', 'internal')]"/>
+                            <field name="recount_round" required="1" readonly="1"/>
+                            <field name="recounted_from_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="is_replaced" readonly="1"/>
                         </group>
                         <group>
                             <field name="note" readonly="state in ('done', 'cancel')"/>
@@ -119,6 +262,26 @@
                                 </form>
                             </field>
                         </page>
+                        <page string="Checks">
+                            <field name="check_lines" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="checked_by_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="checked_at"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Recounts">
+                            <field name="recount_lines" readonly="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="date"/>
+                                    <field name="recount_round"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
                     </notebook>
                 </sheet>
                 <chatter/>
@@ -144,29 +307,88 @@
         <field name="target">main</field>
     </record>
 
+    <record id="action_blind_stock_count_check_scan" model="ir.actions.client">
+        <field name="name">Blind Stock Count Check</field>
+        <field name="tag">blind_stock_count.check_scan</field>
+        <field name="target">main</field>
+    </record>
+
+    <record id="action_blind_stock_count_check_pda_list" model="ir.actions.client">
+        <field name="name">Check PDA</field>
+        <field name="tag">blind_stock_count.check_pda_list</field>
+        <field name="target">main</field>
+    </record>
+
     <record id="action_blind_stock_count" model="ir.actions.act_window">
         <field name="name">Web List</field>
         <field name="res_model">blind.stock.count.work.package</field>
         <field name="view_mode">list,form</field>
+        <field name="groups_id" eval="[(6, 0, [ref('blind_stock_count.group_blind_stock_count_administrator'), ref('base.group_system')])]"/>
     </record>
 
     <record id="action_blind_stock_count_work_package" model="ir.actions.act_window">
         <field name="name">Blind Stock Count Work Packages</field>
         <field name="res_model">blind.stock.count.work.package</field>
         <field name="view_mode">list,form</field>
+        <field name="groups_id" eval="[(6, 0, [ref('blind_stock_count.group_blind_stock_count_user'), ref('blind_stock_count.group_blind_stock_count_checker'), ref('base.group_system')])]"/>
+    </record>
+
+    <record id="action_blind_stock_count_new_work_package" model="ir.actions.act_window">
+        <field name="name">New Work Package</field>
+        <field name="res_model">blind.stock.count.work.package</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_blind_stock_count_work_package_form"/>
+        <field name="target">current</field>
+    </record>
+
+    <record id="action_blind_stock_count_work_package_list_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_blind_stock_count_work_package_list"/>
+        <field name="act_window_id" ref="action_blind_stock_count_work_package"/>
+    </record>
+
+    <record id="action_blind_stock_count_work_package_form_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_blind_stock_count_work_package_form"/>
+        <field name="act_window_id" ref="action_blind_stock_count_work_package"/>
+    </record>
+
+    <record id="action_blind_stock_count_web_list_list_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_blind_stock_count_web_list_work_package_list"/>
+        <field name="act_window_id" ref="action_blind_stock_count"/>
+    </record>
+
+    <record id="action_blind_stock_count_web_list_form_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_blind_stock_count_web_list_work_package_form"/>
+        <field name="act_window_id" ref="action_blind_stock_count"/>
+    </record>
+
+    <record id="action_blind_stock_count_check" model="ir.actions.act_window">
+        <field name="name">Blind Stock Count Checks</field>
+        <field name="res_model">blind.stock.count.check</field>
+        <field name="view_mode">list,form</field>
+        <field name="groups_id" eval="[(6, 0, [ref('blind_stock_count.group_blind_stock_count_checker'), ref('base.group_system')])]"/>
     </record>
 
     <menuitem id="menu_blind_stock_count_root" name="Blind Stock Count" sequence="55" web_icon="blind_stock_count,static/description/img.png"/>
     <menuitem id="menu_blind_stock_count_homepage" name="Homepage" parent="menu_blind_stock_count_root" action="action_blind_stock_count_homepage" sequence="5"/>
     <menuitem id="menu_blind_stock_count_pda_list" name="PDA List" parent="menu_blind_stock_count_root" action="action_blind_stock_count_pda_list" sequence="6"/>
     <menuitem id="menu_blind_stock_count_work_package" name="Work Packages" parent="menu_blind_stock_count_root" action="action_blind_stock_count_work_package" sequence="10"/>
+    <menuitem id="menu_blind_stock_count_check" name="Blind Stock Count Checks" parent="menu_blind_stock_count_root" action="action_blind_stock_count_check" sequence="12"/>
     <menuitem id="menu_blind_stock_count_records" name="Web List" parent="menu_blind_stock_count_root" action="action_blind_stock_count" sequence="15"/>
     <record id="menu_blind_stock_count_root" model="ir.ui.menu">
         <field name="action" eval="False"/>
-        <field name="groups_id" eval="[(5, 0, 0), (4, ref('blind_stock_count.group_blind_stock_count_user'))]"/>
+        <field name="groups_id" eval="[(6, 0, [ref('blind_stock_count.group_blind_stock_count_user'), ref('blind_stock_count.group_blind_stock_count_checker'), ref('base.group_system')])]"/>
     </record>
-    <record id="menu_blind_stock_count_homepage" model="ir.ui.menu"><field name="groups_id" eval="[(5, 0, 0)]"/></record>
-    <record id="menu_blind_stock_count_pda_list" model="ir.ui.menu"><field name="groups_id" eval="[(5, 0, 0)]"/></record>
-    <record id="menu_blind_stock_count_work_package" model="ir.ui.menu"><field name="groups_id" eval="[(5, 0, 0)]"/></record>
-    <record id="menu_blind_stock_count_records" model="ir.ui.menu"><field name="groups_id" eval="[(5, 0, 0)]"/></record>
+    <record id="menu_blind_stock_count_homepage" model="ir.ui.menu"><field name="groups_id" eval="[(6, 0, [ref('blind_stock_count.group_blind_stock_count_user'), ref('blind_stock_count.group_blind_stock_count_checker'), ref('base.group_system')])]"/></record>
+    <record id="menu_blind_stock_count_pda_list" model="ir.ui.menu"><field name="groups_id" eval="[(6, 0, [ref('blind_stock_count.group_blind_stock_count_user'), ref('base.group_system')])]"/></record>
+    <record id="menu_blind_stock_count_work_package" model="ir.ui.menu"><field name="groups_id" eval="[(6, 0, [ref('blind_stock_count.group_blind_stock_count_user'), ref('blind_stock_count.group_blind_stock_count_checker'), ref('base.group_system')])]"/></record>
+    <record id="menu_blind_stock_count_check" model="ir.ui.menu"><field name="groups_id" eval="[(6, 0, [ref('blind_stock_count.group_blind_stock_count_checker'), ref('base.group_system')])]"/></record>
+    <record id="menu_blind_stock_count_records" model="ir.ui.menu"><field name="groups_id" eval="[(6, 0, [ref('blind_stock_count.group_blind_stock_count_administrator'), ref('base.group_system')])]"/></record>
 </odoo>
