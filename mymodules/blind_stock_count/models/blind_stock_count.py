@@ -20,6 +20,7 @@ class BlindStockCount(models.Model):
     recounted_from_id = fields.Many2one("blind.stock.count", string="Recounted From", ondelete="restrict", copy=False, index=True, readonly=True)
     recount_lines = fields.One2many("blind.stock.count", "recounted_from_id", string="Recounts", copy=False)
     is_replaced = fields.Boolean(string="Replaced", default=False, readonly=True, copy=False, index=True, tracking=True)
+    can_return_to_counting = fields.Boolean(compute="compute_can_return_to_counting")
     pallet_lines = fields.One2many("blind.stock.count.pallet", "blind_stock_count_id", string="Pallets", copy=False)
     check_lines = fields.One2many("blind.stock.count.check", "blind_stock_count_id", string="Checks", copy=False)
     note = fields.Text(string="Notes", copy=False, tracking=True)
@@ -33,6 +34,13 @@ class BlindStockCount(models.Model):
                 raise ValidationError(_("The count location must be an internal location."))
             if rec.work_package_id.location_line_ids and rec.location_id not in rec.work_package_id.location_line_ids:
                 raise ValidationError(_("The count location is outside the selected work package location scope."))
+
+    @api.depends("state", "is_replaced", "work_package_id.state", "recount_lines.state")
+    def compute_can_return_to_counting(self):
+        active_recounted_ids = set(self.env["blind.stock.count"].sudo().search([("recounted_from_id", "in", self.ids), ("state", "!=", "cancel")]).mapped("recounted_from_id").ids) if self else set()
+        can_manage = self.env.user.has_group("blind_stock_count.group_blind_stock_count_administrator") or self.env.user.has_group("base.group_system")
+        for rec in self:
+            rec.can_return_to_counting = can_manage and rec.state == "done" and rec.work_package_id.state == "in_progress" and not rec.is_replaced and rec.id not in active_recounted_ids
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -109,14 +117,22 @@ class BlindStockCount(models.Model):
                 raise UserError(_("Only active blind stock counts can be completed."))
             effective_count = count_model.get_effective_count(rec.work_package_id.id, rec.location_id.id, rec.id)
             if rec.recounted_from_id:
-                if rec.recounted_from_id.state != "done" or rec.recounted_from_id.is_replaced:
+                if rec.recounted_from_id.state != "done":
                     raise UserError(_("The source blind stock count is no longer available for recounting."))
                 if effective_count and effective_count.id != rec.recounted_from_id.id:
                     raise UserError(_("Another completed blind stock count is already effective for this work package and location."))
-                rec.recounted_from_id.with_context(blind_stock_count_recount_action=True).write({"is_replaced": True})
+                if not rec.recounted_from_id.is_replaced:
+                    rec.recounted_from_id.with_context(blind_stock_count_recount_action=True).write({"is_replaced": True})
             elif effective_count:
                 raise UserError(_("A completed blind stock count is already effective for this work package and location. Create a recount from that record instead."))
             rec.write({"state": "done"})
+        return True
+
+    def action_return_to_counting(self):
+        for rec in self:
+            if rec.state != "done":
+                raise UserError(_("Only completed blind stock counts can be returned to counting."))
+            rec.write({"state": "counting"})
         return True
 
     def action_create_check(self):
@@ -154,7 +170,15 @@ class BlindStockCount(models.Model):
         line_model = self.env["blind.stock.count.line"]
         for rec in self:
             is_replacement_update = set(vals) == {"is_replaced"} and self.env.context.get("blind_stock_count_recount_action")
-            if rec.state in ("done", "cancel") and not is_replacement_update:
+            is_return_to_counting = set(vals) == {"state"} and vals.get("state") == "counting" and rec.state == "done"
+            if is_return_to_counting:
+                if not (self.env.user.has_group("blind_stock_count.group_blind_stock_count_administrator") or self.env.user.has_group("base.group_system")):
+                    raise UserError(_("Only a warehouse manager or system administrator can return a completed blind stock count to counting."))
+                if rec.work_package_id.state != "in_progress":
+                    raise UserError(_("The work package must be in progress before returning a blind stock count to counting."))
+                if rec.is_replaced or self.sudo().search_count([("recounted_from_id", "=", rec.id), ("state", "!=", "cancel")]):
+                    raise UserError(_("A blind stock count with an active recount cannot be returned to counting."))
+            if rec.state in ("done", "cancel") and not (is_replacement_update or is_return_to_counting):
                 raise UserError(_("Completed or cancelled blind stock counts cannot be changed."))
             if "is_replaced" in vals and not is_replacement_update:
                 raise UserError(_("The replacement status is managed by the recount completion action."))
@@ -189,16 +213,17 @@ class BlindStockCount(models.Model):
 
     @api.model
     def get_continue_scan_data(self, count_id):
-        count = self.sudo().search([("id", "=", count_id), ("state", "in", ["draft", "counting"])], limit=1)
+        count = self.sudo().search([("id", "=", count_id), ("state", "in", ["draft", "counting", "done"])], limit=1)
         if not count:
-            raise UserError(_("The unfinished blind stock count was not found."))
+            raise UserError(_("The blind stock count was not found."))
         if not count.work_package_id:
             raise UserError(_("Select a work package on the blind stock count before continuing PDA scanning."))
-        if count.work_package_id.state != "in_progress":
+        if count.state != "done" and count.work_package_id.state != "in_progress":
             raise UserError(_("The work package is not active."))
         pallets = self.env["blind.stock.count.pallet"].sudo().search([("blind_stock_count_id", "=", count.id)], order="id desc")
         pallet_data = pallets.get_scan_data()
-        return {"work_package": {"id": count.work_package_id.id, "name": count.work_package_id.display_name}, "count": {"id": count.id, "name": count.name, "location_name": count.location_id.display_name, "recount_round": count.recount_round}, "pallets": pallet_data if isinstance(pallet_data, list) else [pallet_data] if pallet_data else []}
+        can_return_to_counting = count.state == "done" and count.work_package_id.state == "in_progress" and not count.is_replaced and not self.env["blind.stock.count"].sudo().search_count([("recounted_from_id", "=", count.id), ("state", "!=", "cancel")]) and (self.env.user.has_group("blind_stock_count.group_blind_stock_count_administrator") or self.env.user.has_group("base.group_system"))
+        return {"work_package": {"id": count.work_package_id.id, "name": count.work_package_id.display_name}, "count": {"id": count.id, "name": count.name, "state": count.state, "location_name": count.location_id.display_name, "recount_round": count.recount_round, "can_return_to_counting": can_return_to_counting}, "pallets": pallet_data if isinstance(pallet_data, list) else [pallet_data] if pallet_data else []}
 
     @api.model
     def action_verify_count_location(self, count_id, barcode):
@@ -276,6 +301,14 @@ class BlindStockCount(models.Model):
         barcode = (barcode or "").strip()
         if not barcode:
             raise UserError(_("Please scan a product barcode."))
+        packages = self.env["stock.quant.package"].sudo().search(["|", ("barcode", "=", barcode), ("name", "=", barcode)], limit=2)
+        if len(packages) > 1:
+            raise UserError(_("More than one pallet matches this barcode."))
+        if packages:
+            scanned_pallet = self.env["blind.stock.count.pallet"].sudo().search([("blind_stock_count_id", "=", pallet.blind_stock_count_id.id), ("package_id", "=", packages.id)], limit=1)
+            if not scanned_pallet:
+                scanned_pallet = self.env["blind.stock.count.pallet"].create({"blind_stock_count_id": pallet.blind_stock_count_id.id, "package_id": packages.id})
+            return {"scan_type": "pallet", "pallet": scanned_pallet.get_scan_data()}
         product_model = self.env["product.product"]
         products = product_model.sudo().search([("barcode", "=", barcode)], limit=2)
         if not products:
@@ -292,6 +325,8 @@ class BlindStockCount(models.Model):
     @api.model
     def action_scan_product(self, pallet_id, barcode):
         scan_result = self.classify_scan_value(pallet_id, barcode)
+        if scan_result["scan_type"] == "pallet":
+            raise UserError(_("A pallet barcode was scanned. Now scan a product."))
         if scan_result["scan_type"] == "not_product":
             raise UserError(_("No product matches this barcode."))
         if scan_result["scan_type"] == "out_of_scope":
@@ -312,7 +347,13 @@ class BlindStockCount(models.Model):
             raise UserError(_("Enter one or more serial numbers separated by commas."))
         if len(serial_numbers) != len(set(serial_numbers)):
             raise UserError(_("The same serial number cannot be entered twice."))
-        duplicate_line = self.env["blind.stock.count.line"].sudo().search([("work_package_id", "=", pallet.blind_stock_count_id.work_package_id.id), ("product_id", "=", product.id), ("lot_name", "in", serial_numbers), ("state", "!=", "cancel")], limit=1)
+        recount_source_ids = []
+        recount_source = pallet.blind_stock_count_id.recounted_from_id
+        while recount_source:
+            recount_source_ids.append(recount_source.id)
+            recount_source = recount_source.recounted_from_id
+        duplicate_domain = [("work_package_id", "=", pallet.blind_stock_count_id.work_package_id.id), ("product_id", "=", product.id), ("lot_name", "in", serial_numbers), ("product_tracking", "=", "serial"), ("state", "!=", "cancel"), ("blind_stock_count_id", "not in", recount_source_ids)]
+        duplicate_line = self.env["blind.stock.count.line"].sudo().search(duplicate_domain, limit=1)
         if duplicate_line:
             raise UserError(_("Serial number %s is already recorded in blind stock count %s, pallet %s, product %s.") % (duplicate_line.lot_name, duplicate_line.blind_stock_count_id.name, duplicate_line.blind_stock_count_pallet_id.package_id.name, duplicate_line.product_id.display_name))
         product_lines = self.env["blind.stock.count.line"].create([{"blind_stock_count_pallet_id": pallet.id, "product_id": product.id, "lot_name": serial_number, "counted_qty": 1.0} for serial_number in serial_numbers])
