@@ -18,7 +18,7 @@ export class BlindStockCountScan extends Component {
         this.continueCountId = this.props?.action?.params?.blind_stock_count_id || action.params?.blind_stock_count_id || action.context?.blind_stock_count_id || false;
         this.newWorkPackageId = this.props?.action?.params?.work_package_id || action.params?.work_package_id || action.context?.work_package_id || false;
         this.onPageInteraction = () => {
-            if (!this.processing && !["select_work_package", "input_quantity", "input_lot_quantity"].includes(this.state.nextStep)) {
+            if (!this.processing && this.state.count?.state !== "done" && !["select_work_package", "input_quantity", "input_lot_quantity"].includes(this.state.nextStep)) {
                 this.focusBarcodeInput();
             }
         };
@@ -54,9 +54,9 @@ export class BlindStockCountScan extends Component {
                     this.state.pallets = pallets;
                     this.state.pallet = null;
                     this.state.expandedPalletId = false;
-                    this.state.locationVerified = false;
-                    this.state.nextStep = "scan_location";
-                    this.showMessage(_t("Blind stock count loaded. Scan the count location to verify it before continuing."));
+                    this.state.locationVerified = result.count.state === "done";
+                    this.state.nextStep = result.count.state === "done" ? "done" : "scan_location";
+                    this.showMessage(result.count.state === "done" ? _t("Completed blind stock count loaded. View only.") : _t("Blind stock count loaded. Scan the count location to verify it before continuing."));
                 }
             } else {
                 await this.loadWorkPackages();
@@ -101,6 +101,9 @@ export class BlindStockCountScan extends Component {
     }
 
     focusBarcodeInput() {
+        if (this.state.count?.state === "done") {
+            return;
+        }
         setTimeout(() => this.barcodeInputRef.el?.focus(), 0);
     }
 
@@ -131,6 +134,10 @@ export class BlindStockCountScan extends Component {
     }
 
     selectPallet(pallet) {
+        if (this.state.count?.state === "done") {
+            this.state.expandedPalletId = this.state.expandedPalletId === pallet.id ? false : pallet.id;
+            return;
+        }
         if (!this.state.locationVerified) {
             this.showMessage(_t("Scan and verify the count location before selecting a pallet."), "warning");
             return;
@@ -207,7 +214,7 @@ export class BlindStockCountScan extends Component {
     }
 
     async onBarcodeScanned(barcode) {
-        if (this.processing || this.state.nextStep === "select_work_package") {
+        if (this.processing || this.state.count?.state === "done" || this.state.nextStep === "select_work_package") {
             return;
         }
         if (["input_quantity", "input_lot_quantity"].includes(this.state.nextStep)) {
@@ -240,17 +247,20 @@ export class BlindStockCountScan extends Component {
             }
             return;
         }
-        if (this.state.nextStep === "scan_product") {
-            const result = await this.call("action_scan_product", [this.state.pallet.id, barcode], barcode);
-            if (result) {
-                this.showMessage(this.selectScannedProduct(result.product), "success");
-                this.focusBarcodeInput();
-            }
-            return;
-        }
-        if (["scan_lot_name", "scan_serial_numbers"].includes(this.state.nextStep)) {
+        if (["scan_product", "scan_lot_name", "scan_serial_numbers"].includes(this.state.nextStep)) {
             const scanResult = await this.call("classify_scan_value", [this.state.pallet.id, barcode], barcode);
             if (!scanResult) {
+                return;
+            }
+            if (scanResult.scan_type === "pallet") {
+                this.setPallet(scanResult.pallet, !this.state.pallets.some((item) => item.id === scanResult.pallet.id));
+                this.state.expandedPalletId = scanResult.pallet.id;
+                this.state.product = null;
+                this.state.editingLineId = false;
+                this.state.lastScannedLineIds = [];
+                this.state.lotName = "";
+                this.state.nextStep = "scan_product";
+                this.showMessage(_t("Pallet scanned. Now scan a product."), "success");
                 return;
             }
             if (scanResult.scan_type === "product") {
@@ -259,6 +269,10 @@ export class BlindStockCountScan extends Component {
             }
             if (scanResult.scan_type === "out_of_scope") {
                 this.showMessage(_t("Product %s does not belong to the current work package product category.", scanResult.product_name), "danger");
+                return;
+            }
+            if (this.state.nextStep === "scan_product") {
+                this.showMessage(_t("No product matches this barcode."), "danger");
                 return;
             }
         }
@@ -283,7 +297,7 @@ export class BlindStockCountScan extends Component {
     }
 
     editManualQuantity(pallet, line, event) {
-        if (line.tracking !== "none") {
+        if (this.state.count?.state === "done" || line.tracking !== "none") {
             return;
         }
         event.stopPropagation();
@@ -300,6 +314,9 @@ export class BlindStockCountScan extends Component {
 
     async deleteLine(pallet, line, event) {
         event.stopPropagation();
+        if (this.state.count?.state === "done") {
+            return;
+        }
         const result = await this.call("action_delete_line", [line.id]);
         if (result) {
             const isCurrentPallet = this.state.pallet && this.state.pallet.id === pallet.id;
@@ -390,7 +407,7 @@ export class BlindStockCountScan extends Component {
     }
 
     async completeCount() {
-        if (!this.state.count) {
+        if (!this.state.count || this.state.count.state === "done") {
             return;
         }
         const result = await this.call("action_done", [[this.state.count.id]]);
@@ -407,6 +424,29 @@ export class BlindStockCountScan extends Component {
             this.state.quantity = "";
             this.state.nextStep = "scan_location";
             this.showMessage(_t("Blind stock count completed. Scan the next internal location."), "success");
+            this.focusBarcodeInput();
+        }
+    }
+
+    async returnToCounting() {
+        if (!this.state.count?.can_return_to_counting) {
+            return;
+        }
+        const result = await this.call("action_return_to_counting", [[this.state.count.id]]);
+        const scanData = result && await this.call("get_continue_scan_data", [this.state.count.id]);
+        if (scanData) {
+            this.state.count = scanData.count;
+            this.state.pallets = scanData.pallets || [];
+            this.state.locationVerified = false;
+            this.state.pallet = null;
+            this.state.expandedPalletId = false;
+            this.state.product = null;
+            this.state.editingLineId = false;
+            this.state.lastScannedLineIds = [];
+            this.state.lotName = "";
+            this.state.quantity = "";
+            this.state.nextStep = "scan_location";
+            this.showMessage(_t("Blind stock count returned to counting. Scan the count location to continue."), "success");
             this.focusBarcodeInput();
         }
     }
@@ -429,7 +469,7 @@ export class BlindStockCountCheckScan extends Component {
             const target = event?.target;
             const activeElement = document.activeElement;
             const isEditingField = target?.closest("input:not(.o_hidden_barcode_input), textarea, select") || activeElement?.matches("input:not(.o_hidden_barcode_input), textarea, select");
-            if (!this.processing && !isEditingField && !["input_quantity", "input_lot_quantity"].includes(this.state.nextStep)) {
+            if (!this.processing && this.state.check?.state !== "done" && !isEditingField && !["input_quantity", "input_lot_quantity"].includes(this.state.nextStep)) {
                 this.focusBarcodeInput();
             }
         };
@@ -443,7 +483,7 @@ export class BlindStockCountCheckScan extends Component {
                 this.state.pallets = result.pallets || [];
                 this.state.conclusion = result.check.conclusion || "pending";
                 this.state.conclusionNote = result.check.conclusion_note || "";
-                this.showMessage(_t("Check loaded. Scan the count location to verify it before continuing."));
+                this.showMessage(result.check.state === "done" ? _t("Completed check loaded. View only.") : _t("Check loaded. Scan the count location to verify it before continuing."));
             }
             this.focusBarcodeInput();
         });
@@ -471,7 +511,14 @@ export class BlindStockCountCheckScan extends Component {
     }
 
     focusBarcodeInput() {
-        setTimeout(() => this.barcodeInputRef.el?.focus(), 0);
+        if (this.state.check?.state === "done") {
+            return;
+        }
+        setTimeout(() => {
+            if (!document.activeElement?.matches("input:not(.o_hidden_barcode_input), textarea, select")) {
+                this.barcodeInputRef.el?.focus();
+            }
+        }, 0);
     }
 
     showMessage(message, messageType = "info") {
@@ -486,6 +533,10 @@ export class BlindStockCountCheckScan extends Component {
     }
 
     selectPallet(pallet) {
+        if (this.state.check?.state === "done") {
+            this.state.expandedPalletId = this.state.expandedPalletId === pallet.id ? false : pallet.id;
+            return;
+        }
         if (!this.state.locationVerified) {
             this.showMessage(_t("Scan and verify the count location before selecting a pallet."), "warning");
             return;
@@ -543,7 +594,7 @@ export class BlindStockCountCheckScan extends Component {
     }
 
     async onBarcodeScanned(barcode) {
-        if (this.processing || !this.state.check) {
+        if (this.processing || !this.state.check || this.state.check.state === "done") {
             return;
         }
         if (["input_quantity", "input_lot_quantity"].includes(this.state.nextStep)) {
@@ -572,6 +623,20 @@ export class BlindStockCountCheckScan extends Component {
                 this.showMessage(result.message, result.message_type || "success");
             }
             return;
+        }
+        if (["scan_product", "scan_lot_name", "scan_serial_numbers"].includes(this.state.nextStep)) {
+            const result = await this.call("get_scanned_pallet", [this.state.check.id, barcode], barcode);
+            if (result) {
+                this.setPallet(result.pallet);
+                this.state.expandedPalletId = result.pallet.id;
+                this.state.product = null;
+                this.state.lotName = "";
+                this.state.quantity = "";
+                this.state.lastScannedLineIds = [];
+                this.state.nextStep = "scan_product";
+                this.showMessage(result.message, "success");
+                return;
+            }
         }
         if (this.state.nextStep === "scan_product") {
             const result = await this.call("action_scan_product", [this.state.check.id, this.state.pallet.source_pallet_id || false, this.state.pallet.barcode || this.state.pallet.name, barcode], barcode);
@@ -656,7 +721,7 @@ export class BlindStockCountCheckScan extends Component {
     }
 
     async completeCheck() {
-        if (!this.state.check) {
+        if (!this.state.check || this.state.check.state === "done") {
             return;
         }
         if (this.state.conclusion === "pending") {
@@ -665,7 +730,7 @@ export class BlindStockCountCheckScan extends Component {
         }
         const result = await this.call("action_done", [[this.state.check.id], this.state.conclusion, this.state.conclusionNote]);
         if (result) {
-            this.action.doAction("blind_stock_count.action_blind_stock_count_check");
+            this.action.doAction("blind_stock_count.action_blind_stock_count_check_pda_list");
         }
     }
 }
@@ -797,7 +862,7 @@ export class BlindStockCountPdaList extends Component {
     }
 
     openPdaCount(count) {
-        if (!["draft", "counting"].includes(count.state)) {
+        if (!["draft", "counting", "done"].includes(count.state)) {
             return;
         }
         this.action.doAction({ type: "ir.actions.client", tag: "blind_stock_count.scan", target: "main", params: { blind_stock_count_id: count.id } });

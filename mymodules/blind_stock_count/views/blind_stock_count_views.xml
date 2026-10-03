@@ -6,6 +6,7 @@
         <field name="arch" type="xml">
             <list string="Blind Stock Count Work Packages">
                 <field name="name"/>
+                <field name="task_name"/>
                 <field name="date"/>
                 <field name="category_id" options="{'no_create': True, 'no_open': True}"/>
                 <field name="owner_id" options="{'no_create': True, 'no_open': True}"/>
@@ -30,6 +31,7 @@
                     <group>
                         <group>
                             <field name="name" required="1" readonly="1"/>
+                            <field name="task_name" required="1" readonly="state in ('done', 'cancel')"/>
                             <field name="date" required="1" readonly="state in ('done', 'cancel')"/>
                             <field name="category_id" required="1" readonly="state != 'draft'" options="{'no_create': True, 'no_open': True}"/>
                             <field name="owner_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
@@ -68,6 +70,7 @@
         <field name="arch" type="xml">
             <list string="Blind Stock Count Web List">
                 <field name="name"/>
+                <field name="task_name"/>
                 <field name="date"/>
                 <field name="category_id" options="{'no_create': True, 'no_open': True}"/>
                 <field name="owner_id" options="{'no_create': True, 'no_open': True}"/>
@@ -86,6 +89,7 @@
                 <sheet>
                     <group>
                         <field name="name" required="1" readonly="1"/>
+                        <field name="task_name" required="1" readonly="1"/>
                         <field name="date" required="1" readonly="1"/>
                         <field name="location_line_ids" widget="many2many_tags" readonly="1" options="{'no_create': True, 'no_open': True}" domain="[('usage', '=', 'internal')]"/>
                         <field name="category_id" required="1" readonly="1" options="{'no_create': True, 'no_open': True}"/>
@@ -204,8 +208,10 @@
         <field name="arch" type="xml">
             <form string="Blind Stock Count" duplicate="false">
                 <header>
+                    <field name="can_return_to_counting" invisible="1" readonly="1"/>
                     <button name="action_start_counting" type="object" string="Start Counting" class="btn-primary" invisible="state != 'draft'" groups="blind_stock_count.group_blind_stock_count_user,base.group_system"/>
                     <button name="action_done" type="object" string="Complete" class="btn-primary" invisible="state != 'counting'" groups="blind_stock_count.group_blind_stock_count_user,base.group_system"/>
+                    <button name="action_return_to_counting" type="object" string="Return to Counting" class="btn-secondary" invisible="not can_return_to_counting" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
                     <button name="action_create_check" type="object" string="Create Check" invisible="state != 'done'" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
                     <button name="action_create_recount" type="object" string="Create Recount" invisible="state != 'done' or is_replaced" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
                     <button name="action_cancel" type="object" string="Cancel" invisible="state not in ('draft', 'counting')" groups="blind_stock_count.group_blind_stock_count_user,base.group_system"/>

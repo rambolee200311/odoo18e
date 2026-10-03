@@ -83,8 +83,8 @@ class BlindStockCountCheck(models.Model):
 
     @api.model
     def get_pda_check_list(self):
-        checks = self.sudo().search([("state", "in", ["draft", "checking"])], order="id desc")
-        return [{"id": rec.id, "name": rec.name, "state": rec.state, "count_name": rec.blind_stock_count_id.name, "work_package_name": rec.work_package_id.display_name, "location_name": rec.location_id.display_name} for rec in checks]
+        checks = self.sudo().search([("state", "in", ["draft", "checking", "done"])], order="id desc")
+        return [{"id": rec.id, "name": rec.name, "state": rec.state, "conclusion": rec.conclusion, "count_name": rec.blind_stock_count_id.name, "work_package_name": rec.work_package_id.display_name, "location_name": rec.location_id.display_name} for rec in checks]
 
     def get_check_line_data(self, check_lines):
         result = []
@@ -125,7 +125,9 @@ class BlindStockCountCheck(models.Model):
 
     @api.model
     def get_check_scan_data(self, check_id):
-        check = self.get_active_check(check_id)
+        check = self.sudo().search([("id", "=", check_id), ("state", "in", ["checking", "done"])], limit=1)
+        if not check:
+            raise UserError(_("The blind stock count check was not found."))
         pallet_model = self.env["blind.stock.count.pallet"]
         check_line_model = self.env["blind.stock.count.check.line"]
         check_lines = check_line_model.sudo().search([("blind_stock_count_check_id", "=", check.id)])
@@ -134,7 +136,7 @@ class BlindStockCountCheck(models.Model):
         source_pallet_codes = set(source_pallets.mapped("package_id.barcode") + source_pallets.mapped("package_id.name"))
         anomaly_pallet_codes = {line.scanned_pallet_code for line in check_lines.filtered(lambda line: not line.source_line_id and line.scanned_pallet_code) if line.scanned_pallet_code not in source_pallet_codes}
         pallets = [check.get_pallet_scan_data(source_pallet) for source_pallet in source_pallets] + [check.get_anomaly_pallet_scan_data(pallet_code) for pallet_code in sorted(anomaly_pallet_codes)]
-        return {"check": {"id": check.id, "name": check.name, "count_name": check.blind_stock_count_id.name, "location_name": check.location_id.display_name, "conclusion": check.conclusion, "conclusion_note": check.conclusion_note or ""}, "pallets": pallets}
+        return {"check": {"id": check.id, "name": check.name, "state": check.state, "count_name": check.blind_stock_count_id.name, "location_name": check.location_id.display_name, "conclusion": check.conclusion, "conclusion_note": check.conclusion_note or ""}, "pallets": pallets}
 
     @api.model
     def action_scan_location(self, check_id, barcode):
@@ -168,6 +170,17 @@ class BlindStockCountCheck(models.Model):
         if not pallet_anomaly:
             check_line_model.create({"blind_stock_count_check_id": check.id, "anomaly_status": "not_in_blind", "scanned_pallet_code": barcode, "checked_qty": 0.0})
         return {"pallet": check.get_anomaly_pallet_scan_data(barcode), "message": _("Pallet is not recorded on this blind stock count. The anomaly was recorded; now scan a product."), "message_type": "warning"}
+
+    @api.model
+    def get_scanned_pallet(self, check_id, barcode):
+        check = self.get_active_check(check_id)
+        barcode = (barcode or "").strip()
+        if not barcode:
+            return False
+        source_pallets = self.env["blind.stock.count.pallet"].sudo().search([("blind_stock_count_id", "=", check.blind_stock_count_id.id), "|", ("package_id.barcode", "=", barcode), ("package_id.name", "=", barcode)], limit=2)
+        if len(source_pallets) > 1:
+            raise UserError(_("More than one pallet matches this barcode."))
+        return {"pallet": check.get_pallet_scan_data(source_pallets), "message": _("Pallet checked. Now scan a product.")} if source_pallets else False
 
     @api.model
     def action_scan_product(self, check_id, source_pallet_id, pallet_code, barcode):

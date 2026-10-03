@@ -11,7 +11,8 @@ class BlindStockCountWorkPackage(models.Model):
 
     _order = "id desc"
 
-    name = fields.Char(string="Work Package", required=True, readonly=True, copy=False, index=True, default=lambda self: self.env["ir.sequence"].next_by_code("blind.stock.count.work.package") or _("New"), tracking=True)
+    name = fields.Char(string="Work Package Number", required=True, readonly=True, copy=False, index=True, default=lambda self: self.env["ir.sequence"].next_by_code("blind.stock.count.work.package") or _("New"), tracking=True)
+    task_name = fields.Char(string="Work Package Name", required=True, default=lambda self: _("Unnamed Work Package"), copy=False, index=True, tracking=True)
     date = fields.Datetime(string="Work Package Date", required=True, default=fields.Datetime.now, copy=False, tracking=True)
     category_id = fields.Many2one("product.category", string="Product Category", required=True, copy=False, index=True,tracking=True)
     owner_id = fields.Many2one("res.partner", string="Owner", compute="compute_owner_id", readonly=True)
@@ -19,6 +20,11 @@ class BlindStockCountWorkPackage(models.Model):
     location_line_ids = fields.Many2many("stock.location", "blind_stock_count_work_package_location_rel", "work_package_id", "location_id",tracking=True, string="Location Scope", copy=False)
     count_lines = fields.One2many("blind.stock.count", "work_package_id", string="Blind Stock Counts", copy=False)
     note = fields.Text(string="Notes", copy=False)
+
+    @api.depends("name", "task_name")
+    def _compute_display_name(self):
+        for rec in self:
+            rec.display_name = "%s — %s" % (rec.name, rec.task_name) if rec.task_name else rec.name
 
     @api.constrains("location_line_ids")
     def check_location_scope(self):
