@@ -12,6 +12,7 @@
         "data/ir_sequence_data.xml",
         "data/ir_cron_data.xml",
         "views/blind_stock_count_views.xml",
+        "views/blind_stock_count_process_views.xml",
         "report/blind_stock_count_pallet_label.xml",
         "wizard/print_pallet_labels_views.xml",
         "views/stock_quant_package_views.xml",

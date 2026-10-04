@@ -24,6 +24,7 @@
                 <header>
                     <button name="action_start" type="object" string="Start" class="btn-primary" invisible="state != 'draft'" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
                     <button name="action_done" type="object" string="Complete" class="btn-primary" invisible="state != 'in_progress'" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
+                    <button name="action_create_clearance" type="object" string="Generate Clearance" invisible="state != 'done'" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
                     <button name="action_cancel" type="object" string="Cancel" invisible="state not in ('draft', 'in_progress')" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,in_progress,done,cancel"/>
                 </header>
@@ -31,7 +32,7 @@
                     <group>
                         <group>
                             <field name="name" required="1" readonly="1"/>
-                            <field name="task_name" required="1" readonly="state in ('done', 'cancel')"/>
+                            <field name="task_name" required="1" readonly="state != 'draft'"/>
                             <field name="date" required="1" readonly="state in ('done', 'cancel')"/>
                             <field name="category_id" required="1" readonly="state != 'draft'" options="{'no_create': True, 'no_open': True}"/>
                             <field name="owner_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
@@ -53,6 +54,17 @@
                                     <field name="recount_round"/>
                                     <field name="recounted_from_id" optional="hide" options="{'no_create': True, 'no_open': True}"/>
                                     <field name="is_replaced"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Clearance Orders" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system">
+                            <field name="clearance_lines" readonly="1">
+                                <list create="false" edit="false" delete="false">
+                                    <field name="name"/>
+                                    <field name="picking_type_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="destination_location_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="picking_id" optional="hide" options="{'no_create': True, 'no_open': True}"/>
                                     <field name="state" widget="badge"/>
                                 </list>
                             </field>
@@ -213,6 +225,7 @@
                     <button name="action_done" type="object" string="Complete" class="btn-primary" invisible="state != 'counting'" groups="blind_stock_count.group_blind_stock_count_user,base.group_system"/>
                     <button name="action_return_to_counting" type="object" string="Return to Counting" class="btn-secondary" invisible="not can_return_to_counting" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
                     <button name="action_create_check" type="object" string="Create Check" invisible="state != 'done'" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
+                    <button name="action_create_receipt" type="object" string="Generate Receipt" invisible="state != 'done' or is_replaced" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
                     <button name="action_create_recount" type="object" string="Create Recount" invisible="state != 'done' or is_replaced" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
                     <button name="action_cancel" type="object" string="Cancel" invisible="state not in ('draft', 'counting')" groups="blind_stock_count.group_blind_stock_count_user,base.group_system"/>
                     <field name="is_replaced" invisible="1" readonly="1"/>
@@ -274,6 +287,17 @@
                                     <field name="name"/>
                                     <field name="checked_by_id" options="{'no_create': True, 'no_open': True}"/>
                                     <field name="checked_at"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Receipt Orders" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system">
+                            <field name="receipt_lines" readonly="1">
+                                <list create="false" edit="false" delete="false">
+                                    <field name="name"/>
+                                    <field name="clearance_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="picking_type_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="picking_id" optional="hide" options="{'no_create': True, 'no_open': True}"/>
                                     <field name="state" widget="badge"/>
                                 </list>
                             </field>
