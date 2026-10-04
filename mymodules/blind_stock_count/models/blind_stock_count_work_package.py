@@ -12,7 +12,7 @@ class BlindStockCountWorkPackage(models.Model):
     _order = "id desc"
 
     name = fields.Char(string="Work Package Number", required=True, readonly=True, copy=False, index=True, default=lambda self: self.env["ir.sequence"].next_by_code("blind.stock.count.work.package") or _("New"), tracking=True)
-    task_name = fields.Char(string="Work Package Name", required=True, default=lambda self: _("Unnamed Work Package"), copy=False, index=True, tracking=True)
+    task_name = fields.Char(string="Work Package Name", required=True, copy=False, index=True, tracking=True)
     date = fields.Datetime(string="Work Package Date", required=True, default=fields.Datetime.now, copy=False, tracking=True)
     category_id = fields.Many2one("product.category", string="Product Category", required=True, copy=False, index=True,tracking=True)
     owner_id = fields.Many2one("res.partner", string="Owner", compute="compute_owner_id", readonly=True)
@@ -72,6 +72,8 @@ class BlindStockCountWorkPackage(models.Model):
                 raise UserError(_("Completed or cancelled work packages cannot be changed."))
             if "state" in vals and vals["state"] != rec.state and not self.env.context.get("blind_stock_count_work_package_action"):
                 raise UserError(_("The work package status cannot be changed directly."))
+            if rec.state != "draft" and "task_name" in vals:
+                raise UserError(_("The work package name cannot be changed after the work package starts."))
             if rec.state != "draft" and {"category_id", "location_line_ids"}.intersection(vals):
                 raise UserError(_("Product category and location scope cannot be changed after the work package starts."))
         return super().write(vals)
