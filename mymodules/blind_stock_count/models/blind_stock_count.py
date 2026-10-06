@@ -35,6 +35,12 @@ class BlindStockCount(models.Model):
             if rec.work_package_id.location_line_ids and rec.location_id not in rec.work_package_id.location_line_ids:
                 raise ValidationError(_("The count location is outside the selected work package location scope."))
 
+    @api.constrains("location_id", "recounted_from_id")
+    def check_recount_location(self):
+        for rec in self:
+            if rec.recounted_from_id and rec.location_id != rec.recounted_from_id.location_id:
+                raise ValidationError(_("A recount must use the same location as its source blind stock count."))
+
     @api.depends("state", "is_replaced", "work_package_id.state", "recount_lines.state")
     def compute_can_return_to_counting(self):
         active_recounted_ids = set(self.env["blind.stock.count"].sudo().search([("recounted_from_id", "in", self.ids), ("state", "!=", "cancel")]).mapped("recounted_from_id").ids) if self else set()
@@ -164,10 +170,14 @@ class BlindStockCount(models.Model):
                 raise UserError(_("Only active blind stock counts can continue scanning."))
             return {"type": "ir.actions.client", "tag": "blind_stock_count.scan", "target": "main", "params": {"blind_stock_count_id": rec.id}}
 
+    def action_open_from_work_package(self):
+        for rec in self:
+            return {"type": "ir.actions.act_window", "name": _("Blind Stock Count"), "res_model": "blind.stock.count", "view_mode": "form", "res_id": rec.id, "target": "current"}
+
     def write(self, vals):
-        protected_fields = {"work_package_id", "location_id"}
         pallet_model = self.env["blind.stock.count.pallet"]
         line_model = self.env["blind.stock.count.line"]
+        changed_location_keys = set()
         for rec in self:
             is_replacement_update = set(vals) == {"is_replaced"} and self.env.context.get("blind_stock_count_recount_action")
             is_return_to_counting = set(vals) == {"state"} and vals.get("state") == "counting" and rec.state == "done"
@@ -184,9 +194,17 @@ class BlindStockCount(models.Model):
                 raise UserError(_("The replacement status is managed by the recount completion action."))
             if "recounted_from_id" in vals:
                 raise UserError(_("The recount source cannot be changed."))
-            protected_values = protected_fields.intersection(vals)
-            if rec.state == "counting" and protected_values and not (protected_values == {"work_package_id"} and not rec.work_package_id and vals.get("work_package_id")):
-                raise UserError(_("Work package and location cannot be changed after counting starts."))
+            if rec.state == "counting" and "work_package_id" in vals and not (set(vals) == {"work_package_id"} and not rec.work_package_id and vals.get("work_package_id")):
+                raise UserError(_("The work package cannot be changed after counting starts."))
+            if "location_id" in vals and vals["location_id"] and rec.location_id.id != vals["location_id"] and rec.work_package_id:
+                self.env.cr.execute("SELECT pg_advisory_xact_lock(%s, %s)", [rec.work_package_id.id, vals["location_id"]])
+                location_key = (rec.work_package_id.id, vals["location_id"])
+                if location_key in changed_location_keys:
+                    raise UserError(_("Only one draft or counting blind stock count can use the same work package and location."))
+                active_count = self.sudo().search([("work_package_id", "=", rec.work_package_id.id), ("location_id", "=", vals["location_id"]), ("state", "in", ["draft", "counting"]), ("id", "not in", self.ids)], limit=1)
+                if active_count:
+                    raise UserError(_("Blind stock count %s is already draft or counting for this work package and location. Continue that record instead.") % active_count.name)
+                changed_location_keys.add(location_key)
             if vals.get("state") == "done" and not pallet_model.sudo().search_count([("blind_stock_count_id", "=", rec.id)]):
                 raise UserError(_("Record at least one pallet before completing the blind stock count."))
             if vals.get("state") == "done" and not line_model.sudo().search_count([("blind_stock_count_id", "=", rec.id)]):
@@ -195,11 +213,11 @@ class BlindStockCount(models.Model):
                 raise UserError(_("A completed blind stock count is already effective for this work package and location."))
         return super().write(vals)
 
-    # def unlink(self):
-    #     for rec in self:
-    #         if rec.state != "draft":
-    #             raise UserError(_("Only draft blind stock counts can be deleted."))
-    #     return super().unlink()
+    def unlink(self):
+        for rec in self:
+            if rec.state != "draft":
+                raise UserError(_("Only draft blind stock counts can be deleted."))
+        return super().unlink()
 
     @api.model
     def get_scannable_work_packages(self):

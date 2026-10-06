@@ -45,19 +45,6 @@
                         </group>
                     </group>
                     <notebook>
-                        <page string="Blind Stock Counts">
-                            <field name="count_lines" readonly="1">
-                                <list default_group_by="location_id" default_order="location_id,recount_round desc">
-                                    <field name="name"/>
-                                    <field name="date"/>
-                                    <field name="location_id" options="{'no_create': True, 'no_open': True}"/>
-                                    <field name="recount_round"/>
-                                    <field name="recounted_from_id" optional="hide" options="{'no_create': True, 'no_open': True}"/>
-                                    <field name="is_replaced"/>
-                                    <field name="state" widget="badge"/>
-                                </list>
-                            </field>
-                        </page>
                         <page string="Clearance Orders" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system">
                             <field name="clearance_lines" readonly="1">
                                 <list create="false" edit="false" delete="false">
@@ -116,6 +103,7 @@
                             <field name="recounted_from_id" optional="hide" options="{'no_create': True, 'no_open': True}"/>
                             <field name="is_replaced"/>
                             <field name="state" widget="badge"/>
+                            <button name="action_open_from_work_package" type="object" string="Open" icon="fa-external-link"/>
                         </list>
                     </field>
                 </sheet>
@@ -214,6 +202,47 @@
         </field>
     </record>
 
+    <record id="view_blind_stock_count_pallet_form" model="ir.ui.view">
+        <field name="name">blind.stock.count.pallet.form</field>
+        <field name="model">blind.stock.count.pallet</field>
+        <field name="arch" type="xml">
+            <form string="Blind Stock Count Pallet" duplicate="false">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="blind_stock_count_id" required="1" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="location_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                        </group>
+                        <group>
+                            <field name="state" readonly="1" widget="badge"/>
+                            <field name="package_id" required="1" readonly="state != 'counting'" options="{'no_create': True, 'no_open': True}"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Product Lines">
+                            <field name="product_lines" readonly="state != 'counting'">
+                                <list editable="bottom">
+                                    <field name="blind_stock_count_pallet_id" column_invisible="True" required="1" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="work_package_id" column_invisible="True" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="product_category_id" column_invisible="True" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="product_id" required="1" options="{'no_create': True, 'no_open': True}" domain="[('categ_id', 'child_of', product_category_id)]"/>
+                                    <field name="product_barcode" readonly="1"/>
+                                    <field name="product_tracking" column_invisible="True" readonly="1"/>
+                                    <field name="lot_name" required="product_tracking != 'none'"/>
+                                    <field name="counted_qty" required="1"/>
+                                    <field name="counted_by_id" optional="hide" required="1" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="counted_at" optional="hide" required="1" readonly="1"/>
+                                    <field name="note"/>
+                                    <field name="matched_lot_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
     <record id="view_blind_stock_count_form" model="ir.ui.view">
         <field name="name">blind.stock.count.form</field>
         <field name="model">blind.stock.count</field>
@@ -238,7 +267,8 @@
                             <field name="date" required="1" readonly="state in ('done', 'cancel')"/>
                             <field name="work_package_id" required="1" readonly="state in ('done', 'cancel') or (state == 'counting' and work_package_id)" options="{'no_create': True, 'no_open': True}"/>
                             <field name="product_category_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
-                            <field name="location_id" required="1" readonly="state != 'draft'" options="{'no_create': True, 'no_open': True}" domain="[('usage', '=', 'internal')]"/>
+                            <field name="location_id" required="1" readonly="state != 'draft'" options="{'no_create': True, 'no_open': True}" domain="[('usage', '=', 'internal')]" groups="blind_stock_count.group_blind_stock_count_user,!blind_stock_count.group_blind_stock_count_administrator,!base.group_system"/>
+                            <field name="location_id" required="1" readonly="state not in ('draft', 'counting')" options="{'no_create': True, 'no_open': True}" domain="[('usage', '=', 'internal')]" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
                             <field name="recount_round" required="1" readonly="1"/>
                             <field name="recounted_from_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                             <field name="is_replaced" readonly="1"/>
@@ -249,36 +279,11 @@
                     </group>
                     <notebook>
                         <page string="Pallets">
-                            <field name="pallet_lines" mode="list,form" readonly="state != 'counting'">
+                            <field name="pallet_lines" context="{'form_view_ref': 'blind_stock_count.view_blind_stock_count_pallet_form'}" mode="list,form" readonly="state != 'counting'">
                                 <list>
-                                    <field name="blind_stock_count_id" column_invisible="True" required="1" readonly="1"/>
+                                    <field name="blind_stock_count_id" column_invisible="True" required="1" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                                     <field name="package_id" required="1" options="{'no_create': True, 'no_open': True}"/>
                                 </list>
-                                <form string="Blind Stock Count Pallet" duplicate="false">
-                                    <sheet>
-                                        <group>
-                                            <field name="blind_stock_count_id" required="1" readonly="1" options="{'no_create': True, 'no_open': True}"/>
-                                            <field name="state" invisible="1" readonly="1"/>
-                                            <field name="package_id" required="1" readonly="state != 'counting'" options="{'no_create': True, 'no_open': True}"/>
-                                        </group>
-                                        <field name="product_lines" readonly="state != 'counting'">
-                                            <list editable="bottom">
-                                                <field name="blind_stock_count_pallet_id" column_invisible="True" required="1" readonly="1" options="{'no_create': True, 'no_open': True}"/>
-                                                <field name="work_package_id" column_invisible="True" readonly="1" options="{'no_create': True, 'no_open': True}"/>
-                                                <field name="product_category_id" column_invisible="True" readonly="1" options="{'no_create': True, 'no_open': True}"/>
-                                                <field name="product_id" required="1" options="{'no_create': True, 'no_open': True}" domain="[('categ_id', 'child_of', product_category_id)]"/>
-                                                <field name="product_barcode" readonly="1"/>
-                                                <field name="product_tracking" column_invisible="True" readonly="1"/>
-                                                <field name="lot_name" required="product_tracking != 'none'"/>
-                                                <field name="counted_qty" required="1"/>
-                                                <field name="counted_by_id" optional="hide" required="1" readonly="1" options="{'no_create': True, 'no_open': True}"/>
-                                                <field name="counted_at" optional="hide" required="1" readonly="1"/>
-                                                <field name="note"/>
-                                                <field name="matched_lot_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
-                                            </list>
-                                        </field>
-                                    </sheet>
-                                </form>
                             </field>
                         </page>
                         <page string="Checks">
