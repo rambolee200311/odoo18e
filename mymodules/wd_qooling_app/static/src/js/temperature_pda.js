@@ -253,8 +253,12 @@ export class QoolingTemperaturePda extends Component {
         }
     }
 
-    onPhoto(event) {
-        if (!this.state.recordId) { this.state.error = "Save the draft before uploading media."; event.target.value = ""; return; }
+    async onPhoto(event) {
+        if (!event.target.files.length) { event.target.value = ""; return; }
+        if (!this.state.recordId) {
+            await this.save();
+            if (!this.state.recordId) { event.target.value = ""; return; }
+        }
         if (this.state.record.state !== "draft") {
             this.state.error = "Media evidence can only be changed while the record is a draft.";
             event.target.value = ""; return;

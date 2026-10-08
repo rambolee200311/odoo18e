@@ -10,6 +10,42 @@
             <field name="number_increment">1</field>
             <field name="implementation">standard</field>
         </record>
+        <record id="sequence_blind_stock_count_work_package" model="ir.sequence">
+            <field name="name">Blind Stock Count Work Package</field>
+            <field name="code">blind.stock.count.work.package</field>
+            <field name="prefix">WP-%(year)s%(month)s%(day)s-</field>
+            <field name="padding">6</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="implementation">standard</field>
+        </record>
+        <record id="sequence_blind_stock_count_check" model="ir.sequence">
+            <field name="name">Blind Stock Count Check</field>
+            <field name="code">blind.stock.count.check</field>
+            <field name="prefix">BSCC-%(year)s%(month)s%(day)s-</field>
+            <field name="padding">6</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="implementation">standard</field>
+        </record>
+        <record id="sequence_blind_stock_count_clearance" model="ir.sequence">
+            <field name="name">Blind Stock Count Clearance</field>
+            <field name="code">blind.stock.count.clearance</field>
+            <field name="prefix">BSCCL-%(year)s%(month)s%(day)s-</field>
+            <field name="padding">6</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="implementation">standard</field>
+        </record>
+        <record id="sequence_blind_stock_count_receipt" model="ir.sequence">
+            <field name="name">Blind Stock Count Receipt</field>
+            <field name="code">blind.stock.count.receipt</field>
+            <field name="prefix">BSCR-%(year)s%(month)s%(day)s-</field>
+            <field name="padding">6</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="implementation">standard</field>
+        </record>
         <record id="sequence_blind_stock_count_pallet" model="ir.sequence">
             <field name="name">盲盘托盘号</field>
             <field name="code">blind.stock.count.pallet</field>
