@@ -18,6 +18,7 @@ OPERATION_TYPE = [
 ]
 class ChargeItemInherit(models.Model):
     _inherit = "world.depot.charge.item"
+    _order = "id desc"
 
     account_account_id = fields.Many2one("account.account", string="Account", ondelete="restrict", index=True)
     tab_category = fields.Selection(
@@ -36,6 +37,7 @@ class ChargeItemInherit(models.Model):
     is_leaf = fields.Boolean(string='Is Leaf', compute='_compute_is_leaf_data', store=True)
 
     charge_based_on_max = fields.Boolean(string='Charge Based on Max Quantity container or hscode')
+    active = fields.Boolean(string="Active", default=True, index=True)
     @api.depends('child_ids', 'parent_id', 'tab_category')
     def _compute_is_leaf_data(self):
         for record in self:
