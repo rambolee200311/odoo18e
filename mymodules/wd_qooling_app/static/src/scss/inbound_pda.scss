@@ -22,15 +22,9 @@
     &__section + &__section { margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--bs-border-color); }
     &__section-title { margin: 0 0 1rem; font-size: 1.1rem; font-weight: 600; }
     &__footer { margin-top: 1rem; flex-wrap: wrap; .btn { min-height: 2.75rem; } }
-    &__photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(8rem, 1fr)); gap: .75rem; }
     &__upload { cursor: pointer; font-weight: 400; }
     &__upload input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
-    &__photo { position: relative; min-width: 0; }
-    &__thumbnail { display: block; width: 100%; height: 7rem; object-fit: cover; border: 1px solid var(--bs-border-color); border-radius: .4rem; }
-    &__photo-actions { position: absolute; inset: auto .35rem .35rem; display: flex; justify-content: space-between; pointer-events: none; }
-    &__photo-actions button { width: 2rem; height: 2rem; padding: 0; opacity: .9; pointer-events: auto; }
     &__signature { display: block; width: 100%; height: 160px; border: 1px solid var(--bs-border-color); border-radius: .4rem; touch-action: none; background: white; }
-    &__preview { position: fixed; inset: 0; z-index: 1050; display: grid; place-items: center; padding: 1rem; background: rgba(0, 0, 0, .75); img { max-width: 95vw; max-height: 90vh; object-fit: contain; } }
 }
 @media (max-width: 576px) {
     .o_qooling_pda { padding: .75rem; &__footer { .btn { flex: 1 1 40%; } } }

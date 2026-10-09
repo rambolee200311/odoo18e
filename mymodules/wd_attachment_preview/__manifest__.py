@@ -4,7 +4,7 @@
     "summary": "Reusable attachment preview field and image preview component",
     "description": "Provides a field widget for backend forms and a standalone component for PDA frontend with thumbnail preview and click-to-enlarge functionality.",
     "author": "WD Dev",
-    "category": "Technical",
+    "category": "Warehouse",
     "version": "18.0.1.0.0",
     "depends": ["web"],
     "assets": {

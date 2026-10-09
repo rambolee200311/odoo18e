@@ -5,6 +5,7 @@ import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { useFileUploader } from "@web/core/utils/files";
 import { _t } from "@web/core/l10n/translation";
+import { ImagePreviewComponent } from "@wd_attachment_preview/components/image_preview_component";
 
 const MAX_MEDIA_COUNT = 20;
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
@@ -33,6 +34,7 @@ const DRAFT_FIELDS = [
 
 export class QoolingInboundPda extends Component {
     static template = "wd_qooling_app.InboundPda";
+    static components = { ImagePreviewComponent };
     static props = { "*": true };
 
     setup() {
@@ -54,7 +56,6 @@ export class QoolingInboundPda extends Component {
             busy: false,
             error: "",
             saved: "",
-            preview: false,
         });
         onWillStart(async () => {
             [this.state.warehouses, this.state.users] = await Promise.all([
@@ -250,14 +251,6 @@ export class QoolingInboundPda extends Component {
         } finally {
             this.state.busy = false;
         }
-    }
-
-    isVideo(photo) {
-        return photo?.mimetype?.startsWith("video/");
-    }
-
-    getPreviewPhoto() {
-        return this.state.photos.find((photo) => photo.id === this.state.preview);
     }
 
     async loadPhotos() {

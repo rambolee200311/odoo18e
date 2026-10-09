@@ -53,7 +53,7 @@ export class QoolingTemperaturePda extends Component {
         this.state = useState({
             record: { date: localNow.slice(0, 16), filing_date: localNow.slice(0, 10) },
             warehouses: [], users: [], recordId: null, readOnly: false, lines: [], photos: [],
-            busy: false, error: "", saved: "", preview: false, quickTemperature: "",
+            busy: false, error: "", saved: "", quickTemperature: "",
         });
         onWillStart(async () => {
             [this.state.warehouses, this.state.users] = await Promise.all([
@@ -261,14 +261,6 @@ export class QoolingTemperaturePda extends Component {
         } finally {
             this.state.busy = false;
         }
-    }
-
-    isVideo(photo) {
-        return photo?.mimetype?.startsWith("video/");
-    }
-
-    getPreviewPhoto() {
-        return this.state.photos.find((photo) => photo.id === this.state.preview);
     }
 
     async loadPhotos() {

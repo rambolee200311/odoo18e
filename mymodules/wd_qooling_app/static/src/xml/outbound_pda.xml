@@ -39,7 +39,7 @@
                         <label class="btn btn-secondary"><i class="fa fa-video-camera me-1" aria-hidden="true"/> Record video<input class="d-none" type="file" accept="video/*" capture="environment" t-att-disabled="state.busy" t-on-change="onPhoto"/></label>
                         <label class="btn btn-outline-secondary ms-2"><i class="fa fa-paperclip me-1" aria-hidden="true"/> Attach media<input class="d-none" type="file" accept="image/*,video/*" multiple="multiple" t-att-disabled="state.busy" t-on-change="onPhoto"/></label>
                     </div>
-                    <div class="o_qooling_pda__photos"><div t-foreach="state.photos" t-as="photo" t-key="photo.id" class="o_qooling_pda__photo" data-testid="outbound-pda-photo"><video t-if="isVideo(photo)" t-att-src="'/web/content/' + photo.id" class="o_qooling_pda__thumbnail" muted="muted" preload="metadata"/><img t-else="" t-att-src="'/web/content/' + photo.id" t-att-alt="photo.name" class="o_qooling_pda__thumbnail"/><div class="o_qooling_pda__photo-actions"><button type="button" class="btn btn-sm btn-light" t-on-click="() => state.preview = photo.id" aria-label="Preview media"><i class="fa fa-search-plus"/></button><button t-if="!isReadOnly" type="button" class="btn btn-sm btn-danger" t-on-click="() => deletePhoto(photo.id)" aria-label="Delete media"><i class="fa fa-trash"/></button></div></div></div>
+                    <ImagePreviewComponent t-if="state.photos.length" attachments="state.photos" editable="!isReadOnly" onRemove.bind="deletePhoto"/>
                     <label>Driver comments<textarea class="form-control" data-field="driver_comments" t-on-input="onFieldChange"><t t-esc="state.record.driver_comments || ''"/></textarea></label>
                     <label>Warehouse operator comments<textarea class="form-control" data-field="warehouse_operator_comments" t-on-input="onFieldChange"><t t-esc="state.record.warehouse_operator_comments || ''"/></textarea></label>
                 </section>
@@ -55,7 +55,6 @@
                 </section>
             </section>
             <footer class="o_qooling_pda__footer"><button t-if="!isReadOnly" class="btn btn-outline-primary" type="button" t-on-click="save" t-att-disabled="state.busy" data-testid="outbound-pda-save">Save draft</button><button t-if="!isReadOnly" class="btn btn-success" type="button" t-on-click="submit" t-att-disabled="state.busy" data-testid="outbound-pda-submit">Submit</button></footer>
-            <div t-if="state.preview" class="o_qooling_pda__preview" role="dialog" t-on-click="() => state.preview = false" data-testid="outbound-pda-photo-preview"><video t-if="isVideo(getPreviewPhoto())" t-att-src="'/web/content/' + state.preview" controls="controls" autoplay="autoplay" t-on-click.stop="() => {}"/><img t-else="" t-att-src="'/web/content/' + state.preview" alt="Enlarged outbound evidence" t-on-click.stop="() => {}"/></div>
         </main>
     </t>
 </templates>
