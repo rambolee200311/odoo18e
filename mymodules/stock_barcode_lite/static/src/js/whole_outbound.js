@@ -2,6 +2,7 @@
 
 import { BaseBarcodePage } from "./base_barcode_page";
 import { _t } from "@web/core/l10n/translation";
+import { standardActionServiceProps } from "@web/webclient/actions/action_service";
 
 /**
  * Whole Pallet Outbound Flow (Backend-driven)
@@ -20,7 +21,7 @@ import { _t } from "@web/core/l10n/translation";
  */
 export class WholePalletOutboundPage extends BaseBarcodePage {
     static template = "stock_barcode_lite.WholePalletOutboundPage";
-    static props = {};
+    static props = {...standardActionServiceProps};
 
     // ═══════════════════════════════════════════════════════════════
     // 扫码核心 - 调用后端统一接口
@@ -47,6 +48,7 @@ export class WholePalletOutboundPage extends BaseBarcodePage {
                 "process_outgoing_scan_barcode",
                 [barcode, pickingId, locationId, packageId, productId, lotId, false, false]
             );
+            if (this._isDestroyed) return;
 
             // 先校验当前 picking 的扫描模式，不匹配就直接提示并重置
             const nextStep = result.next_step || "scan_picking";
@@ -69,24 +71,21 @@ export class WholePalletOutboundPage extends BaseBarcodePage {
                 this.state.nextStep = "scan_picking";
                 this.state.summary = this._getEmptySummary();
                 this.state.lastScan = {};
-                this.state.updatedMoveLineIds = [];
                 this._focusBarcodeInput();
                 return;
             }
 
-            await this._applyScanResult(result, true);
-
-            if (result.action?.updated_move_line_ids?.length) {
-                this.state.updatedMoveLineIds = result.action.updated_move_line_ids;
-            }
+            this._applyScanResult(result);
         } catch (error) {
             console.error("[WholePalletOutbound] scan error:", error);
             this.showMessage(this.formatError(error), "danger");
             this._flashScreen([200, 100, 100], true);
         } finally {
-            this.state.loading = false;
             this._isProcessing = false;
-            this._focusBarcodeInput();
+            if (!this._isDestroyed) {
+                this.state.loading = false;
+                this._focusBarcodeInput();
+            }
         }
     }
 
@@ -106,7 +105,7 @@ export class WholePalletOutboundPage extends BaseBarcodePage {
      *   }
      * }
      */
-    async _applyScanResult(result, notify = true) {
+    _applyScanResult(result) {
         if (!result) return;
 
         const scanState = result.scan_state || {};
@@ -140,7 +139,7 @@ export class WholePalletOutboundPage extends BaseBarcodePage {
         this.state.nextStep = result.next_step || "scan_picking";
 
         // 提示用户
-        if (notify && result.message) {
+        if (result.message) {
             const msgType = result.success === false ? "danger" : "success";
             this.showMessage(result.message, msgType);
 
@@ -180,14 +179,21 @@ export class WholePalletOutboundPage extends BaseBarcodePage {
 
         this.state.loading = true;
         try {
-            await this.orm.call("stock.picking", "button_validate", [this.state.order.id]);
+            const result = await this.orm.call("stock.picking", "button_validate", [[this.state.order.id]]);
+            if (this._isDestroyed) return;
+            if (result?.type) {
+                await this.action.doAction(result);
+                return;
+            }
             this.showMessage(_t("Outbound confirmed successfully!"), "success");
             this._flashScreen([100, 300, 100], true);
             this._safeSetTimeout(() => this.resetScan(), 2000);
         } catch (error) {
             this.showMessage(this.formatError(error), "danger");
         } finally {
-            this.state.loading = false;
+            if (!this._isDestroyed) {
+                this.state.loading = false;
+            }
         }
     }
 
@@ -208,7 +214,6 @@ export class WholePalletOutboundPage extends BaseBarcodePage {
         this.state.loading = false;
         this.state.summary = this._getEmptySummary();
         this.state.lastScan = {};
-        this.state.updatedMoveLineIds = [];
         this._focusBarcodeInput();
     }
 
