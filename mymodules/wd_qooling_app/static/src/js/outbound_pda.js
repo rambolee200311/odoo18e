@@ -1,34 +1,26 @@
 /** @odoo-module **/
 
-import { Component, onPatched, onWillStart, onWillUnmount, useRef, useState } from "@odoo/owl";
+import { Component, onMounted, onWillStart, useRef, useState } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
+import { useFileUploader } from "@web/core/utils/files";
 import { _t } from "@web/core/l10n/translation";
 
 const MAX_MEDIA_COUNT = 20;
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
 const MAX_VIDEO_SIZE = 100 * 1024 * 1024;
-const SWIPE_MIN_DISTANCE = 40;
 
 function getMediaError(file, currentCount) {
     if (currentCount >= MAX_MEDIA_COUNT) {
-        return `A record can contain at most ${MAX_MEDIA_COUNT} media files.`;
+        return _t("A record can contain at most 20 media files.");
     }
     if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
         return _t("Only image and video files can be uploaded.");
     }
     const limit = file.type.startsWith("video/") ? MAX_VIDEO_SIZE : MAX_IMAGE_SIZE;
-    return file.size > limit ? `This file exceeds the ${limit / (1024 * 1024)} MB limit.` : "";
+    return file.size > limit ? _t("This file exceeds the allowed size limit.") : "";
 }
 
-const STEPS = [
-    { key: "details", label: _t("Details") },
-    { key: "checks", label: _t("Checks") },
-    { key: "adr", label: _t("ADR & temperature") },
-    { key: "evidence", label: _t("Evidence") },
-    { key: "driver_signature", label: _t("Driver signature") },
-    { key: "warehouse_signature", label: _t("Warehouse signature") },
-];
 const CHECKS = [
     ["loading_plan_discussed", _t("Loading plan discussed")],
     ["adr_separation_compatibility", _t("ADR separation / compatibility")],
@@ -83,21 +75,20 @@ export class QoolingOutboundPda extends Component {
         this.orm = useService("orm");
         this.notification = useService("notification");
         this.action = useService("action");
+        this.uploadFiles = useFileUploader();
         this.canvasRefs = {
             driver: useRef("driverSignatureCanvas"),
             warehouse: useRef("warehouseSignatureCanvas"),
         };
-        this.stepsNav = useRef("stepsNav");
+        const localNow = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString();
         this.state = useState({
             record: {
-                date_arrival: new Date().toISOString().slice(0, 16),
-                start_loading_at: new Date().toISOString().slice(0, 16),
-                end_loading_at: new Date().toISOString().slice(0, 16),
-                filing_date: new Date().toISOString().slice(0, 10),
+                date_arrival: localNow.slice(0, 16), start_loading_at: localNow.slice(0, 16),
+                end_loading_at: localNow.slice(0, 16), filing_date: localNow.slice(0, 10),
                 goods_type: "bonded",
                 adr: "no",
             },
-            warehouses: [], users: [], recordId: null, readOnly: false, photos: [], step: 0,
+            warehouses: [], users: [], recordId: null, readOnly: false, photos: [],
             busy: false, error: "", saved: "", preview: false,
         });
         onWillStart(async () => {
@@ -107,23 +98,11 @@ export class QoolingOutboundPda extends Component {
             ]);
             await this.loadDraft();
         });
-        onPatched(() => {
-            if (this.lastScrolledStep !== this.state.step) {
-                this.lastScrolledStep = this.state.step;
-                this.stepsNav.el?.querySelector("button.active")?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
-            }
-            const key = this.state.step === 4 ? "driver" : this.state.step === 5 ? "warehouse" : null;
-            if (key && this.canvasRefs[key].el !== this.signatureElement) {
-                this.teardownSignature();
-                this.setupSignature(key);
-            } else if (!key && this.signatureElement) {
-                this.teardownSignature();
-            }
+        onMounted(() => {
+            this.setupSignature("driver");
+            this.setupSignature("warehouse");
         });
-        onWillUnmount(() => this.teardownSignature());
     }
-
-    get steps() { return STEPS; }
 
     get checks() { return CHECKS; }
 
@@ -139,13 +118,15 @@ export class QoolingOutboundPda extends Component {
         const draftId = Number(contextDraftId || storedDraftId);
         if (!draftId) return;
         const [record] = await this.orm.read("wd.qooling.outbound.form", [draftId], DRAFT_FIELDS);
-        if (!record || !["draft", "submitted"].includes(record.state)) {
+        if (!record || !["draft", "submitted", "exception_pending", "closed"].includes(record.state)) {
             sessionStorage.removeItem(DRAFT_STORAGE_KEY);
             return;
         }
         for (const field of ["location_id", "supervisor_id"]) record[field] = record[field]?.[0] || false;
         for (const field of ["date_arrival", "start_loading_at", "end_loading_at"]) {
-            record[field] = record[field]?.replace(" ", "T").slice(0, 16);
+            if (!record[field]) continue;
+            const datetime = new Date(`${record[field].replace(" ", "T")}Z`);
+            record[field] = new Date(datetime.getTime() - datetime.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
         }
         this.state.recordId = record.id;
         this.state.readOnly = record.state !== "draft";
@@ -169,7 +150,6 @@ export class QoolingOutboundPda extends Component {
         const field = event.target.dataset.field;
         let value = event.target.type === "checkbox" ? event.target.checked : event.target.value;
         if (["location_id", "supervisor_id"].includes(field)) value = Number(value);
-        if (event.target.type === "datetime-local" && value) value = value.replace("T", " ");
         this.setValue(field, value);
     }
 
@@ -180,15 +160,16 @@ export class QoolingOutboundPda extends Component {
             ["supervisor_id", "Supervisor"], ["goods_type", "Goods type"], ["adr", "ADR"],
         ];
         const missing = required.find(([field]) => !this.state.record[field]);
-        if (missing) { this.state.error = `${missing[1]} is required before saving.`; return false; }
+        if (missing) { this.state.error = _t("Complete all required fields before saving."); return false; }
         return true;
     }
 
     async persist() {
         if (this.isReadOnly) return;
         const values = { ...this.state.record };
+        delete values.state;
         for (const field of ["date_arrival", "start_loading_at", "end_loading_at"]) {
-            if (values[field]) values[field] = values[field].replace("T", " ");
+            if (values[field]) values[field] = new Date(values[field]).toISOString().slice(0, 19).replace("T", " ");
         }
         if (this.state.recordId) {
             await this.orm.write("wd.qooling.outbound.form", [this.state.recordId], values);
@@ -204,19 +185,21 @@ export class QoolingOutboundPda extends Component {
 
     async save() {
         if (this.isReadOnly) return;
+        this.state.saved = "";
         if (!this.validateRequiredFields()) return;
         this.state.busy = true; this.state.error = "";
         try {
             await this.persist();
-            this.state.saved = "Draft saved";
-            this.notification.add("Outbound draft saved.", { type: "success" });
+            this.state.saved = _t("Draft saved");
+            this.notification.add(_t("Outbound draft saved."), { type: "success" });
         } catch (error) {
-            this.state.error = error.data?.message || error.message || "Could not save the draft.";
+            this.state.error = error.data?.message || error.message || _t("Could not save the draft.");
         } finally { this.state.busy = false; }
     }
 
     async submit() {
         if (this.isReadOnly) return;
+        this.state.saved = "";
         if (!this.validateRequiredFields()) return;
         this.state.busy = true; this.state.error = "";
         try {
@@ -224,31 +207,11 @@ export class QoolingOutboundPda extends Component {
             await this.orm.call("wd.qooling.outbound.form", "action_submit", [[this.state.recordId]]);
             this.state.record.state = "submitted";
             sessionStorage.removeItem(DRAFT_STORAGE_KEY);
-            this.state.saved = "Submitted";
-            this.notification.add("Outbound record submitted.", { type: "success" });
+            this.state.saved = _t("Submitted");
+            this.notification.add(_t("Outbound record submitted."), { type: "success" });
         } catch (error) {
-            this.state.error = error.data?.message || error.message || "Could not submit the record.";
+            this.state.error = error.data?.message || error.message || _t("Could not submit the record.");
         } finally { this.state.busy = false; }
-    }
-
-    previous() { this.state.step = Math.max(0, this.state.step - 1); }
-    next() { this.state.step = Math.min(STEPS.length - 1, this.state.step + 1); }
-
-    onSwipeStart(event) {
-        if (event.pointerType !== "touch" || event.target.closest("input, textarea, select, button, a, canvas, video")) {
-            return;
-        }
-        this.swipeStart = { x: event.clientX, y: event.clientY };
-    }
-
-    onSwipeEnd(event) {
-        const swipeStart = this.swipeStart;
-        this.swipeStart = null;
-        if (!swipeStart || event.type === "pointercancel") return;
-        const offsetX = event.clientX - swipeStart.x;
-        const offsetY = event.clientY - swipeStart.y;
-        if (Math.abs(offsetX) < SWIPE_MIN_DISTANCE || Math.abs(offsetX) <= Math.abs(offsetY)) return;
-        if (offsetX < 0) this.next(); else this.previous();
     }
 
     openWebForm() {
@@ -258,16 +221,20 @@ export class QoolingOutboundPda extends Component {
     }
 
     async onPhoto(event) {
+        if (this.state.busy) return;
         if (!event.target.files.length) { event.target.value = ""; return; }
+        this.state.saved = "";
         if (!this.state.recordId) {
             await this.save();
             if (!this.state.recordId) { event.target.value = ""; return; }
+            this.state.saved = "";
         }
         if (this.state.record.state !== "draft") {
-            this.state.error = "Media evidence can only be changed while the record is a draft.";
+            this.state.error = _t("Media evidence can only be changed while the record is a draft.");
             event.target.value = ""; return;
         }
         let currentCount = this.state.photos.length;
+        const files = [];
         for (const file of event.target.files) {
             const mediaError = getMediaError(file, currentCount);
             if (mediaError) {
@@ -275,24 +242,26 @@ export class QoolingOutboundPda extends Component {
                 continue;
             }
             currentCount += 1;
-            const reader = new FileReader();
-            reader.onload = async () => {
-                try {
-                    const [attachmentId] = await this.orm.create("ir.attachment", [{
-                        name: file.name, datas: reader.result.split(",")[1], mimetype: file.type,
-                        res_model: "wd.qooling.outbound.form", res_id: this.state.recordId,
-                    }]);
-                    await this.orm.write("wd.qooling.outbound.form", [this.state.recordId], {
-                        photo_ids: [[4, attachmentId]],
-                    });
-                    await this.loadPhotos();
-                } catch (error) {
-                    this.state.error = error.data?.message || error.message || "Could not upload the media.";
-                }
-            };
-            reader.readAsDataURL(file);
+            files.push(file);
         }
         event.target.value = "";
+        if (!files.length) return;
+        this.state.busy = true;
+        try {
+            const uploadedFiles = await this.uploadFiles("/web/binary/upload_attachment", {
+                csrf_token: odoo.csrf_token, ufile: files, model: "wd.qooling.outbound.form", id: this.state.recordId,
+            });
+            const uploadError = uploadedFiles?.find((file) => file.error)?.error;
+            if (uploadError) throw new Error(uploadError);
+            const photoIds = uploadedFiles?.map((file) => file.id).filter(Boolean) || [];
+            if (!photoIds.length) throw new Error(_t("Could not upload the media."));
+            await this.orm.write("wd.qooling.outbound.form", [this.state.recordId], { photo_ids: photoIds.map((id) => [4, id]) });
+            await this.loadPhotos();
+        } catch (error) {
+            this.state.error = error.data?.message || error.message || _t("Could not upload the media.");
+        } finally {
+            this.state.busy = false;
+        }
     }
 
     isVideo(photo) {
@@ -305,10 +274,10 @@ export class QoolingOutboundPda extends Component {
 
     async loadPhotos() {
         if (!this.state.recordId) { this.state.photos = []; return; }
-        this.state.photos = await this.orm.searchRead("ir.attachment", [
-            ["res_model", "=", "wd.qooling.outbound.form"], ["res_id", "=", this.state.recordId],
-            ["res_field", "=", false],
-        ], ["name", "mimetype"]);
+        const [record] = await this.orm.read("wd.qooling.outbound.form", [this.state.recordId], ["photo_ids"]);
+        this.state.photos = record?.photo_ids.length
+            ? await this.orm.read("ir.attachment", record.photo_ids, ["name", "mimetype"])
+            : [];
     }
 
     async deletePhoto(photoId) {
@@ -318,57 +287,17 @@ export class QoolingOutboundPda extends Component {
             await this.orm.unlink("ir.attachment", [photoId]);
             await this.loadPhotos();
         } catch (error) {
-            this.state.error = error.data?.message || error.message || "Could not delete the photo.";
+            this.state.error = error.data?.message || error.message || _t("Could not delete the photo.");
         }
     }
 
     setupSignature(key) {
         const canvas = this.canvasRefs[key].el;
         if (!canvas) return;
-        this.signatureKey = key; this.signatureElement = canvas;
         canvas.width = canvas.clientWidth || 500; canvas.height = 160;
-        this.signatureContext = canvas.getContext("2d");
-        this.signatureContext.lineWidth = 2; this.signatureContext.lineCap = "round";
-        this.drawing = false; this.restoreSignature(canvas, key);
-        this.signatureStart = (event) => {
-            this.drawing = true; canvas.setPointerCapture?.(event.pointerId);
-            const rect = canvas.getBoundingClientRect();
-            this.signatureContext.beginPath();
-            this.signatureContext.moveTo(event.clientX - rect.left, event.clientY - rect.top);
-        };
-        this.signatureMove = (event) => {
-            if (!this.drawing) return;
-            const rect = canvas.getBoundingClientRect();
-            this.signatureContext.lineTo(event.clientX - rect.left, event.clientY - rect.top);
-            this.signatureContext.stroke(); this.signatureContext.beginPath();
-            this.signatureContext.moveTo(event.clientX - rect.left, event.clientY - rect.top);
-        };
-        this.signatureEnd = () => {
-            if (!this.drawing) return;
-            this.drawing = false;
-            this.setValue(`${key}_signature`, canvas.toDataURL("image/png").split(",")[1]);
-        };
-        this.touchStart = (event) => {
-            event.preventDefault();
-            const touch = event.changedTouches[0];
-            this.signatureStart({ clientX: touch.clientX, clientY: touch.clientY, pointerId: 0 });
-        };
-        this.touchMove = (event) => {
-            event.preventDefault();
-            const touch = event.changedTouches[0];
-            this.signatureMove({ clientX: touch.clientX, clientY: touch.clientY });
-        };
-        this.touchEnd = (event) => {
-            event.preventDefault();
-            this.signatureEnd();
-        };
-        canvas.addEventListener("pointerdown", this.signatureStart);
-        canvas.addEventListener("pointermove", this.signatureMove);
-        canvas.addEventListener("pointerup", this.signatureEnd);
-        canvas.addEventListener("pointercancel", this.signatureEnd);
-        canvas.addEventListener("touchstart", this.touchStart, { passive: false });
-        canvas.addEventListener("touchmove", this.touchMove, { passive: false });
-        canvas.addEventListener("touchend", this.touchEnd, { passive: false });
+        const context = canvas.getContext("2d");
+        context.lineWidth = 2; context.lineCap = "round";
+        this.restoreSignature(canvas, key);
     }
 
     startSignature(event, key) {
@@ -412,29 +341,14 @@ export class QoolingOutboundPda extends Component {
         const signature = this.state.record[`${key}_signature`];
         if (!signature) return;
         const image = new Image();
-        image.onload = () => {
-            if (this.signatureElement === canvas) this.signatureContext.drawImage(image, 0, 0, canvas.width, canvas.height);
-        };
+        image.onload = () => canvas.getContext("2d").drawImage(image, 0, 0, canvas.width, canvas.height);
         image.src = `data:image/png;base64,${signature}`;
     }
 
-    clearSignature() {
-        if (this.signatureContext && this.signatureElement) {
-            this.signatureContext.clearRect(0, 0, this.signatureElement.width, this.signatureElement.height);
-        }
-        if (this.signatureKey) this.setValue(`${this.signatureKey}_signature`, false);
-    }
-
-    teardownSignature() {
-        const canvas = this.signatureElement;
-        if (!canvas || !this.signatureStart) return;
-        for (const event of ["pointerdown", "pointermove", "pointerup", "pointercancel"]) {
-            canvas.removeEventListener(event, this[`signature${event === "pointerdown" ? "Start" : event === "pointermove" ? "Move" : "End"}`]);
-        }
-        canvas.removeEventListener("touchstart", this.touchStart);
-        canvas.removeEventListener("touchmove", this.touchMove);
-        canvas.removeEventListener("touchend", this.touchEnd);
-        this.signatureElement = null; this.signatureContext = null; this.signatureKey = null;
+    clearSignature(key) {
+        const canvas = this.canvasRefs[key].el;
+        if (canvas) canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+        this.setValue(`${key}_signature`, false);
     }
 }
 

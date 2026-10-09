@@ -111,12 +111,12 @@ msgstr "Gemiddelde temperatuur"
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__average_temperature_per_pallet
 msgid "Average temperature per pallet (°C)"
-msgstr "Average temperature per pallet (°C)"
+msgstr "Gemiddelde temperatuur per pallet"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__bl_number
-msgid "B/L"
-msgstr "B/L"
+msgid "B/L (Bill of Loading)"
+msgstr "B/L (Bill of Loading)"
 
 #. module: wd_qooling_app
 #. odoo-javascript
@@ -168,7 +168,7 @@ msgstr "Gecontroleerd op zichtbare schade"
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__checked_visible_damage
 msgid "Checked for visible damage or packaging issues"
-msgstr "Checked for visible damage or packaging issues"
+msgstr "Gecontroleerd op zichtbare schade of verpakkingsproblemen"
 
 #. module: wd_qooling_app
 #. odoo-javascript
@@ -746,7 +746,7 @@ msgstr "Locatie"
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__mrn_number
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__mrn_number
 msgid "MRN Number"
-msgstr "MRN Number"
+msgstr "MRN-nummer"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__mrn_checked_before_release
@@ -865,7 +865,7 @@ msgstr "Nee, lossen stoppen"
 #. module: wd_qooling_app
 #: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__unloading_permission__no_stop_unloading
 msgid "No, stop unloading and ask project manager"
-msgstr "No, stop unloading and ask project manager"
+msgstr "Nee, lossen stoppen en projectmanager vragen"
 
 #. module: wd_qooling_app
 #. odoo-javascript
@@ -877,7 +877,7 @@ msgstr "Niet-douane-entrepot"
 #. module: wd_qooling_app
 #: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__gas_measurement__not_applicable
 msgid "Not Applicable"
-msgstr "Not Applicable"
+msgstr "Niet van toepassing"
 
 #. module: wd_qooling_app
 #. odoo-javascript
@@ -908,7 +908,7 @@ msgstr "Nummer"
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__checked_received_quantity
 msgid "Number received has been checked"
-msgstr "Number received has been checked"
+msgstr "Aantal ontvangen is gecontroleerd"
 
 #. module: wd_qooling_app
 #. odoo-python
@@ -1076,7 +1076,7 @@ msgstr "Media bekijken"
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__checked_product_quality
 msgid "Product quality and condition have been checked"
-msgstr "Product quality and condition have been checked"
+msgstr "Productkwaliteit en conditie zijn gecontroleerd"
 
 #. module: wd_qooling_app
 #. odoo-javascript
@@ -1202,8 +1202,8 @@ msgstr "Terugzetten naar concept"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__skal_bio_product
-msgid "SKAL / BIO Product"
-msgstr "SKAL / BIO Product"
+msgid "SKAL (Bio Product)"
+msgstr "SKAL (bioproduct)"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__gas_measurement_status__safe
@@ -1229,7 +1229,7 @@ msgstr "Save the draft before uploading media."
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__seal_number
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__seal_number
 msgid "Seal Number"
-msgstr "Seal Number"
+msgstr "Zegelnummer"
 
 #. module: wd_qooling_app
 #. odoo-javascript
@@ -1466,7 +1466,7 @@ msgstr "Temperatuur gemeten"
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__pallet_temperature_registered
 msgid "Temperature of each pallet is registered"
-msgstr "Temperature of each pallet is registered"
+msgstr "Temperatuur van elke pallet is geregistreerd"
 
 #. module: wd_qooling_app
 #. odoo-javascript
@@ -1478,7 +1478,7 @@ msgstr "Temperatuurstappen"
 #. odoo-javascript
 #: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
 msgid "The same warehouse signature field is used by the web form."
-msgstr "The same warehouse signature field is used by the web form."
+msgstr "Hetzelfde magazijnhandtekeningveld wordt gebruikt door het webformulier."
 
 #. module: wd_qooling_app
 #. odoo-javascript
@@ -1535,7 +1535,7 @@ msgstr "Toestemming voor lossen"
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__unloading_permission
 msgid "Unloading permission received?"
-msgstr "Unloading permission received?"
+msgstr "Toestemming voor lossen ontvangen?"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__unpacked_housing_damage
@@ -1831,3 +1831,219 @@ msgstr "Gevarendriehoeken chauffeur"
 #: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
 msgid "Unpackaged housing damage"
 msgstr "Schade aan onverpakte behuizing"
+
+#. module: wd_qooling_app
+#. odoo-python
+#: code:addons/wd_qooling_app/models/inbound_form.py:0
+msgid "Amount of pallets"
+msgstr "Aantal pallets"
+
+#. module: wd_qooling_app
+#. odoo-python
+#: code:addons/wd_qooling_app/models/inbound_form.py:0
+msgid "Amount of cartons"
+msgstr "Aantal dozen"
+
+#. module: wd_qooling_app
+#. odoo-python
+#: code:addons/wd_qooling_app/models/inbound_form.py:0
+msgid "Required"
+msgstr "Nodig"
+
+#. module: wd_qooling_app
+#. odoo-python
+#: code:addons/wd_qooling_app/models/inbound_form.py:0
+msgid "Not required"
+msgstr "Niet nodig"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+msgid "Select warehouse operator"
+msgstr "Selecteer magazijnmedewerker"
+
+#. module: wd_qooling_app
+#. odoo-python
+#: code:addons/wd_qooling_app/models/inbound_form.py:0
+msgid "B/L required?"
+msgstr "B/L nodig?"
+
+#. module: wd_qooling_app
+#. odoo-python
+#: code:addons/wd_qooling_app/models/inbound_form.py:0
+msgid "B/L number is required when B/L is required."
+msgstr "B/L-nummer is vereist wanneer B/L nodig is."
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/inbound_pda.js:0
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+msgid "A record can contain at most 20 media files."
+msgstr "Een record kan maximaal 20 mediabestanden bevatten."
+
+#. module: wd_qooling_app
+#. odoo-python
+#: code:addons/wd_qooling_app/models/outbound_form.py:0
+msgid "Both driver and warehouse operator signatures are required before submission."
+msgstr "De handtekeningen van zowel de chauffeur als de magazijnmedewerker zijn vereist vóór indiening."
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/inbound_pda.js:0
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+msgid "Complete all required fields before saving."
+msgstr "Vul alle verplichte velden in voordat u opslaat."
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/inbound_pda.js:0
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+msgid "Could not delete the photo."
+msgstr "Het mediabestand kan niet worden verwijderd."
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/inbound_pda.js:0
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+msgid "Could not save the draft."
+msgstr "Het concept kan niet worden opgeslagen."
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/inbound_pda.js:0
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+msgid "Could not submit the record."
+msgstr "Het record kan niet worden ingediend."
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+msgid "Clear all pallet temperatures?"
+msgstr "Alle pallet-temperaturen wissen?"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/inbound_pda.js:0
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+msgid "Could not upload the media."
+msgstr "Het mediabestand kan niet worden geüpload."
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/inbound_pda.js:0
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+msgid "Draft saved"
+msgstr "Concept opgeslagen"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+msgid "Enter a valid temperature."
+msgstr "Voer een geldige temperatuur in."
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/inbound_pda.js:0
+msgid "Inbound draft saved."
+msgstr "Inkomend concept opgeslagen."
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/inbound_pda.js:0
+msgid "Inbound record submitted."
+msgstr "Inkomend record ingediend."
+
+#. module: wd_qooling_app
+#. odoo-python
+#: code:addons/wd_qooling_app/models/inbound_form.py:0
+msgid "Only an Inbound reviewer can perform this action."
+msgstr "Alleen een inkomende beoordelaar kan deze actie uitvoeren."
+
+#. module: wd_qooling_app
+#. odoo-python
+#: code:addons/wd_qooling_app/models/media_evidence.py:0
+msgid "Only draft records can be changed."
+msgstr "Alleen conceptrecords kunnen worden gewijzigd."
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Outbound draft saved."
+msgstr "Uitgaand concept opgeslagen."
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Outbound record submitted."
+msgstr "Uitgaand record ingediend."
+
+#. module: wd_qooling_app
+#. odoo-python
+#: code:addons/wd_qooling_app/models/media_evidence.py:0
+msgid "Qooling records can only be created as drafts."
+msgstr "Qooling-records kunnen alleen als concept worden aangemaakt."
+
+#. module: wd_qooling_app
+#. odoo-python
+#: code:addons/wd_qooling_app/models/media_evidence.py:0
+msgid "Status can only be changed through a Qooling action."
+msgstr "De status kan alleen via een Qooling-actie worden gewijzigd."
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+msgid "Temperature draft saved."
+msgstr "Temperatuurconcept opgeslagen."
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+msgid "Temperature record submitted."
+msgstr "Temperatuurrecord ingediend."
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/inbound_pda.js:0
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+msgid "This file exceeds the allowed size limit."
+msgstr "Dit bestand overschrijdt de toegestane groottelimiet."
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
+msgid "This record is read-only."
+msgstr "Dit record is alleen-lezen."
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+msgid "Could not add the temperature."
+msgstr "De temperatuur kan niet worden toegevoegd."
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+msgid "Could not clear pallet temperatures."
+msgstr "De pallet-temperaturen kunnen niet worden gewist."
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+msgid "Could not update the temperature."
+msgstr "De temperatuur kan niet worden bijgewerkt."
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+msgid "Signature is required before submission."
+msgstr "Een handtekening is vereist vóór indiening."
