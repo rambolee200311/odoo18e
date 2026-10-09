@@ -465,7 +465,7 @@ class OperationOrderClearance(models.Model):
                 raise ValidationError(_("Receivable is already confirmed."))
             if not rec.charge_line_ids:
                 raise ValidationError(_("Charge lines are required before confirming receivable."))
-            if rec.charge_line_ids.filtered(lambda line: (line.amount_total or 0.0) <= 0 and (line.manual_amount_total or 0.0) <= 0):
+            if rec.charge_line_ids.filtered(lambda line: not (line.charge_based_on_max and not line.qty) and (line.amount_total or 0.0) <= 0 and (line.manual_amount_total or 0.0) <= 0):
                 raise ValidationError(_("Each charge line must have a total amount or manual total amount greater than 0 before confirming receivable."))
             rec.write({"receivable_state": "confirmed", "receivable_confirm_user_id": self.env.user.id, "receivable_confirm_time": fields.Datetime.now()})
         return {"type": "ir.actions.client", "tag": "display_notification", "params": {"title": _("Receivable"), "message": _("Receivable confirmed successfully."), "type": "success", "sticky": False, "next": {"type": "ir.actions.client", "tag": "reload"}}}
@@ -534,6 +534,7 @@ class OperationOrderClearance(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         env_clearance = self.env["operation.order.clearance"].sudo()
+        env_charge_item = self.env["world.depot.charge.item"]
         env_project = self.env["project.project"].sudo()
         env_waybill = self.env["world.depot.waybill"].sudo()
         pricing_date = fields.Date.context_today(self)
@@ -548,6 +549,7 @@ class OperationOrderClearance(models.Model):
             elif waybill:
                 quotation = waybill.quotation_id
                 vals["project_id"] = waybill.project.id
+                vals.setdefault("hs_code_qty", waybill.hs_code_qty)
             else:
                 project = env_project.browse(vals.get("project_id")).exists() if vals.get("project_id") else False
                 if not project:
@@ -564,9 +566,45 @@ class OperationOrderClearance(models.Model):
                 raise ValidationError(_("A quotation is required before creating clearance."))
 
             vals["quotation_id"] = quotation.id
+            charge_line_commands = vals.get("charge_line_ids", [])
+            charge_item_ids = [command[2].get("charge_item_id") for command in charge_line_commands if command[0] == 0 and command[2].get("charge_item_id")]
+            charge_item_map = {item.id: item for item in env_charge_item.sudo().browse(charge_item_ids)}
+            max_charge_qty = max(vals.get("container_qty") or 0, vals.get("hs_code_qty") or 0, 1)
+            for command in charge_line_commands:
+                if command[0] != 0:
+                    continue
+                charge_vals = command[2]
+                charge_item = charge_item_map.get(charge_vals.get("charge_item_id"))
+                if charge_item and charge_item.charge_based_on_max and not charge_vals.get("is_fixed_fee"):
+                    charge_vals["qty"] = max(max_charge_qty - 1, 0)
             if vals.get("name", _("New")) == _("New"):
                 vals["name"] = self.env["ir.sequence"].next_by_code("operation.order.clearance") or _("New")
         return super().create(vals_list)
+
+    def write(self, vals):
+        max_charge_fields = {"hs_code_qty", "container_qty", "clearance_container_ids"}
+        if max_charge_fields & vals.keys():
+            for rec in self:
+                max_charge_lines = rec.charge_line_ids.filtered(lambda line: line.charge_based_on_max and not line.is_fixed_fee)
+                if rec.receivable_state == "confirmed" and max_charge_lines:
+                    raise ValidationError(_("Cannot change container quantity or HS code quantity after receivable confirmation."))
+
+        result = super().write(vals)
+        if max_charge_fields & vals.keys():
+            self.update_max_charge_qty()
+        return result
+
+    def update_max_charge_qty(self):
+        for rec in self:
+            max_charge_qty = max(rec.container_qty or 0, rec.hs_code_qty or 0, 1)
+            max_charge_lines = rec.charge_line_ids.filtered(lambda line: line.charge_based_on_max and not line.is_fixed_fee)
+            for line in max_charge_lines:
+                line.qty = max(max_charge_qty - 1, 0)
+            max_charge_lines.compute_amount_total()
+
+    @api.onchange("hs_code_qty", "container_qty", "clearance_container_ids")
+    def onchange_max_charge_qty(self):
+        self.update_max_charge_qty()
 
     def unlink(self):
         env_clearance = self.env["operation.order.clearance"]
