@@ -358,13 +358,25 @@ publicWidget.registry.InboundOrderForm = publicWidget.Widget.extend({
                     $results.hide().empty();
                     return;
                 }
-                var html = "";
+                var fragment = document.createDocumentFragment();
                 products.forEach(function (p) {
-                    html += '<button type="button" class="list-group-item list-group-item-action product-item" '
-                          + 'data-id="' + p.id + '" data-name="' + (p.default_name || "").replace(/"/g, "&quot;") + '">'
-                          + (p.default_name || "") + "</button>";
+                    var productId = Number(p.id);
+                    if (!Number.isInteger(productId) || productId <= 0) {
+                        return;
+                    }
+
+                    var productName = typeof p.default_name === "string"
+                        ? p.default_name
+                        : String(p.default_name || "");
+                    var button = document.createElement("button");
+                    button.type = "button";
+                    button.className = "list-group-item list-group-item-action product-item";
+                    button.dataset.id = String(productId);
+                    button.dataset.name = productName;
+                    button.textContent = productName;
+                    fragment.appendChild(button);
                 });
-                $results.html(html).show();
+                $results.empty().append(fragment).show();
             })
             .catch(function () { $results.hide().empty(); });
 

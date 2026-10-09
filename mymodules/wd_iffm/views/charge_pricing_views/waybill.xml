@@ -110,6 +110,8 @@
                             <field name="obl_number" readonly="state!='new'" invisible="1"/>
                             <field name="document_number" readonly="state!='new'" invisible="1"/>
                             <field name="reference_number" readonly="state!='new'"/>
+                            <field name="hs_code_qty" readonly="state != 'new'"/>
+                            <field name="container_qty" readonly="1"/>
                             <field name="shipping" readonly="state!='new'" required="1"
                                    domain="[('is_shipping_line','=',True)]" options="{'no_create': True}"/>
                             <field name="shipper" readonly="state!='new'" domain="[('is_exporter','=',True)]"
@@ -301,15 +303,16 @@
                                         <field name="clearance_receivable_state" widget="statusbar" statusbar_visible="draft,confirmed" readonly="1"/>
                                         <button name="action_confirm_clearance_receivable_from_waybill_tab" type="object" string="Confirm Receivable" class="btn-success" invisible="not clearance_id or clearance_receivable_state == 'confirmed'"/>
                                         <button name="action_unconfirm_clearance_receivable_from_waybill_tab" type="object" string="Unconfirm Receivable" class="btn-secondary" confirm="Are you sure you want to unconfirm receivable?" invisible="not clearance_id or clearance_receivable_state != 'confirmed' or clearance_status in ('close', 'cancelled')"/>
-                                        <field name="clearance_charge_lines" readonly="clearance_receivable_state == 'confirmed'">
+                                        <field name="clearance_charge_lines" readonly="clearance_receivable_state == 'confirmed'" context="{'default_clearance_id': clearance_id}">
                                             <list editable="bottom">
                                                 <field name="charge_qty" column_invisible="True"/>
+                                                <field name="charge_based_on_max" column_invisible="True"/>
                                                 <field name="charge_item_id" options="{'no_create': True, 'no_open': True}" domain="['|', ('operation_type', '=', 'clearance'), ('operation_type', '=', False), ('is_leaf', '=', True)]" required="1"/>
                                                 <field name="is_fixed_fee" readonly="1"/>
-                                                <field name="qty" readonly="is_fixed_fee"/>
+                                                <field name="qty" readonly="is_fixed_fee or charge_based_on_max" force_save="1"/>
                                                 <field name="currency_id" readonly="1"/>
                                                 <field name="unit_price" readonly="is_fixed_fee"/>
-                                                <field name="amount_total" sum="Total Amount"/>
+                                                <field name="amount_total" sum="Total Amount" force_save="1"/>
                                                 <field name="manual_amount_total" sum="Manual Total"/>
                                                 <field name="remark"/>
                                             </list>
@@ -467,12 +470,13 @@
                                         <field name="selected_child_clearance_charge_lines" readonly="selected_child_clearance_receivable_state == 'confirmed'">
                                             <list editable="bottom">
                                                 <field name="charge_qty" column_invisible="True"/>
+                                                <field name="charge_based_on_max" column_invisible="True"/>
                                                 <field name="charge_item_id" options="{'no_create': True, 'no_open': True}" domain="['|', ('operation_type', '=', 'clearance'), ('operation_type', '=', False), ('is_leaf', '=', True)]" required="1"/>
                                                 <field name="is_fixed_fee" readonly="1"/>
-                                                <field name="qty" readonly="is_fixed_fee"/>
+                                                <field name="qty" readonly="is_fixed_fee or charge_based_on_max" force_save="1"/>
                                                 <field name="currency_id" readonly="1"/>
                                                 <field name="unit_price" readonly="is_fixed_fee"/>
-                                                <field name="amount_total" sum="Total Amount"/>
+                                                <field name="amount_total" sum="Total Amount" force_save="1"/>
                                                 <field name="manual_amount_total" sum="Manual Total"/>
                                                 <field name="remark"/>
                                             </list>

@@ -154,14 +154,11 @@
                                multiple="multiple" t-on-change="onFileChange"/>
                     </label>
                 </div>
-                <ul t-if="state.attachments.length" class="o_wd_vas_attachments">
-                        <li t-foreach="state.attachments" t-as="attachment" t-key="attachment.id"
-                            class="o_wd_vas_attachment">
-                            <span><t t-esc="attachment.name"/></span>
-                            <button t-if="isDraft" class="btn btn-sm btn-outline-danger" type="button"
-                                    t-on-click="removeAttachment.bind(this, attachment.id)">Delete</button>
-                        </li>
-                </ul>
+                <ImagePreviewComponent t-if="state.attachments.length"
+                    attachments="state.attachments"
+                    editable="isDraft"
+                    onRemove.bind="removeAttachment"
+                />
             </section>
             <footer class="o_wd_vas_pda_bottom_bar bg-white p-3">
                 <button class="btn o_wd_vas_outline-btn" type="button"

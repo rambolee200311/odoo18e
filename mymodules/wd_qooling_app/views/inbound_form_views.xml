@@ -39,7 +39,7 @@
                     <button name="action_reset_to_draft" type="object" string="Reset to Draft"
                             invisible="state != 'submitted'"
                             groups="wd_qooling_app.group_qooling_inbound_reviewer"/>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted" readonly="1"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
@@ -47,51 +47,55 @@
                     </div>
                     <group>
                         <group>
-                            <field name="location_id"/>
-                            <field name="date"/>
-                            <field name="supervisor_id"/>
-                            <field name="filled_in_by_id"/>
-                            <field name="filing_date"/>
-                            <field name="ref_no"/>
+                            <field name="location_id" readonly="state != 'draft'"/>
+                            <field name="date" readonly="state != 'draft'"/>
+                            <field name="warehouse_operator_id" readonly="state != 'draft'"/>
+                            <field name="supervisor_id" readonly="state != 'draft'"/>
+                            <field name="filled_in_by_id" readonly="1"/>
+                            <field name="filing_date" readonly="state != 'draft'"/>
+                            <field name="ref_no" readonly="state != 'draft'"/>
+                            <field name="mrn_number" readonly="state != 'draft'"/>
+                            <field name="seal_number" readonly="state != 'draft'"/>
+                            <field name="skal_bio_product" readonly="state != 'draft'"/>
+                            <field name="bl_required" readonly="state != 'draft'"/>
+                            <field name="bl_number" invisible="bl_required != 'required'" required="bl_required == 'required'" readonly="state != 'draft'"/>
                         </group>
                         <group>
-                            <field name="goods_status"/>
-                            <field name="unloading_permission"/>
-                            <field name="mrn_number"/>
-                            <field name="seal_number"/>
-                            <field name="skal_bio_product"/>
-                            <field name="bl_number"/>
-                            <field name="container_shipment_number"/>
+                            <field name="goods_status" readonly="state != 'draft'"/>
+                            <field name="unloading_permission" readonly="state != 'draft'"/>
+                            <field name="container_shipment_number" readonly="state != 'draft'"/>
                         </group>
                     </group>
                     <notebook>
                         <page string="Checks">
                             <group>
-                                <field name="checked_visible_damage"/>
-                                <field name="checked_received_quantity"/>
-                                <field name="checked_product_quality"/>
-                                <field name="packaging_condition"/>
-                                <field name="gas_measurement"/>
-                                <field name="gas_measurement_status"/>
-                                <field name="ventilated"/>
-                                <field name="status_after_ventilation"/>
+                                <field name="checked_visible_damage" readonly="state != 'draft'"/>
+                                <field name="checked_received_quantity" readonly="state != 'draft'"/>
+                                <field name="checked_product_quality" readonly="state != 'draft'"/>
+                                <field name="packaging_condition" readonly="state != 'draft'"/>
+                                <field name="gas_measurement" readonly="state != 'draft'"/>
+                                <field name="gas_measurement_status" readonly="state != 'draft'"/>
+                                <field name="ventilated" readonly="state != 'draft'"/>
+                                <field name="status_after_ventilation" readonly="state != 'draft'"/>
                             </group>
                         </page>
                         <page string="ADR and Temperature">
                             <group>
-                                <field name="adr"/>
-                                <field name="un_number" invisible="adr != 'yes'" required="adr == 'yes'"/>
-                                <field name="temperature_measured" invisible="adr != 'yes'" required="adr == 'yes'"/>
-                                <field name="pallet_temperature_registered" invisible="adr != 'yes'" required="adr == 'yes'"/>
-                                <field name="average_temperature_per_pallet" invisible="adr != 'yes'"/>
+                                <field name="adr" readonly="state != 'draft'"/>
+                                <field name="un_number" invisible="adr != 'yes'" required="adr == 'yes'" readonly="state != 'draft'"/>
+                                <field name="temperature_measured" invisible="adr != 'yes'" required="adr == 'yes'" readonly="state != 'draft'"/>
+                                <field name="pallet_temperature_registered" invisible="adr != 'yes'" required="adr == 'yes'" readonly="state != 'draft'"/>
+                                <field name="average_temperature_per_pallet" readonly="state != 'draft'"/>
+                                <field name="amount_of_pallets" readonly="state != 'draft'"/>
+                                <field name="amount_of_cartons" readonly="state != 'draft'"/>
                             </group>
                         </page>
                         <page string="Evidence">
                             <group>
                                 <field name="photo_ids" widget="attachment_preview" readonly="state != 'draft'"
                                        options="{'accepted_file_extensions': 'image/*,video/*', 'number_of_files': 20, 'auto_create': True}"/>
-                                <field name="comments"/>
-                                <field name="warehouse_signature" widget="qooling_signature"/>
+                                <field name="comments" readonly="state != 'draft'"/>
+                                <field name="warehouse_signature" widget="qooling_signature" readonly="state != 'draft'"/>
                                 <field name="signer_id" readonly="1"/>
                                 <field name="signature_time" readonly="1"/>
                             </group>

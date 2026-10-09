@@ -129,14 +129,15 @@
                                 <field name="charge_line_ids" readonly="receivable_state == 'confirmed' or state == 'close'">
                                     <list editable="bottom">
                                         <field name="charge_qty" column_invisible="True"/>
+                                        <field name="charge_based_on_max" column_invisible="True"/>
                                         <field name="charge_item_id" options="{'no_create': True, 'no_open': True}"
                                                domain="['|', ('operation_type', '=', 'clearance'), ('operation_type', '=', False), ('is_leaf', '=', True)]"
                                                required="1"/>
                                         <field name="is_fixed_fee" readonly="1"/>
-                                        <field name="qty" readonly="is_fixed_fee"/>
+                                        <field name="qty" readonly="is_fixed_fee or charge_based_on_max" force_save="1"/>
                                         <field name="currency_id" readonly="1"/>
                                         <field name="unit_price" readonly="is_fixed_fee"/>
-                                        <field name="amount_total" sum="Total Amount"/>
+                                        <field name="amount_total" sum="Total Amount" force_save="1"/>
                                         <field name="manual_amount_total" sum="Manual Total"/>
                                         <field name="remark"/>
                                     </list>
@@ -274,13 +275,14 @@
                                 <field name="charge_line_ids" readonly="receivable_state == 'confirmed' or state == 'close'">
                                     <list editable="bottom">
                                         <field name="charge_qty"/>
+                                        <field name="charge_based_on_max" column_invisible="True"/>
                                         <field name="charge_item_id" options="{'no_create': True, 'no_open': True}"
-                                               domain="[('operation_type', '=','clearance'),('is_leaf','=',True)]"
+                                               domain="['|', ('operation_type', '=', 'clearance'), ('operation_type', '=', False), ('is_leaf', '=', True)]"
                                                required="1"/>
-                                        <field name="qty"/>
+                                        <field name="qty" readonly="is_fixed_fee" force_save="1"/>
                                         <field name="currency_id" readonly="1"/>
                                         <field name="unit_price"/>
-                                        <field name="amount_total" sum="Total Amount"/>
+                                        <field name="amount_total" sum="Total Amount" force_save="1"/>
                                         <field name="manual_amount_total" sum="Manual Total"/>
                                         <field name="remark"/>
                                     </list>

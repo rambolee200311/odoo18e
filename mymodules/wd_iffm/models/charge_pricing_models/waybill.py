@@ -160,6 +160,17 @@ class Waybill(models.Model):
             rec.selected_child_handover_overdue_blocking_reason_short_name = rec.selected_child_handover_overdue_blocking_reason_id.short_name if rec.selected_child_handover_overdue_blocking_reason_id else False
             rec.selected_child_clearance_overdue_blocking_reason_short_name = rec.selected_child_clearance_overdue_blocking_reason_id.short_name if rec.selected_child_clearance_overdue_blocking_reason_id else False
 
+    @api.onchange("clearance_hs_code_qty")
+    def onchange_clearance_hs_code_qty(self):
+        for rec in self:
+            if not rec.clearance_id:
+                continue
+            max_charge_qty = max(rec.clearance_id.container_qty or 0, rec.clearance_hs_code_qty or 0, 1)
+            max_charge_lines = rec.clearance_charge_lines.filtered(lambda line: line.charge_item_id.charge_based_on_max and not line.is_fixed_fee)
+            for line in max_charge_lines:
+                line.qty = max(max_charge_qty - 1, 0)
+            max_charge_lines.compute_amount_total()
+
     @api.depends("handover_lines.parent_id", "handover_lines.state", "handover_lines.payable_state", "handover_lines.receivable_state", "clearance_lines.parent_id", "clearance_lines.state", "clearance_lines.payable_state", "clearance_lines.receivable_state")
     def _compute_operation_fee_states(self):
         for rec in self:

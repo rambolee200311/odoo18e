@@ -1,20 +1,43 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* wd_qooling_app
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 18.0\n"
-"PO-Revision-Date: 2026-09-24 09:30+0800\n"
-"Last-Translator: Qooling Team\n"
-"Language-Team: Chinese (Simplified)\n"
-"Language: zh_CN\n"
+"Project-Id-Version: Odoo Server 18.0+e-20250619\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-08 06:47+0000\n"
+"PO-Revision-Date: 2026-10-08 06:47+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
 
 #. module: wd_qooling_app
 #. odoo-python
 #: code:addons/wd_qooling_app/models/outbound_form.py:0
 msgid "%s signature audit fields are required."
-msgstr "%s signature audit fields are required."
+msgstr "%s签名审核字段为必填项。"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__un_number__3171
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_outbound_form__un_number__3171
+msgid "3171"
+msgstr "3171"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__un_number__3480
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_outbound_form__un_number__3480
+msgid "3480"
+msgstr "3480"
+
+#. module: wd_qooling_app
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__un_number__3481
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_outbound_form__un_number__3481
+msgid "3481"
+msgstr "3481"
 
 #. module: wd_qooling_app
 #. odoo-python
@@ -32,7 +55,7 @@ msgstr "提交前必须提供仓库手写签名。"
 #. odoo-python
 #: code:addons/wd_qooling_app/models/media_evidence.py:0
 msgid "A record can contain at most %(count)s media files."
-msgstr "A record can contain at most %(count)s media files."
+msgstr "一条记录最多包含 %(count)s 个媒体文件。"
 
 #. module: wd_qooling_app
 #. odoo-javascript
@@ -44,14 +67,21 @@ msgid "ADR"
 msgstr "ADR"
 
 #. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+msgid "ADR & temperature"
+msgstr "ADR 与温度"
+
+#. module: wd_qooling_app
 #: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_inbound_form
 msgid "ADR and Temperature"
 msgstr "ADR 与温度"
 
 #. module: wd_qooling_app
 #. odoo-javascript
-#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__adr_separation_compatibility
 #: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__adr_separation_compatibility
 msgid "ADR separation / compatibility"
 msgstr "ADR 分隔 / 兼容性"
 
@@ -74,6 +104,20 @@ msgstr "全部状态"
 
 #. module: wd_qooling_app
 #. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__amount_of_cartons
+msgid "Amount of cartons"
+msgstr "纸箱数量"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__amount_of_pallets
+msgid "Amount of pallets"
+msgstr "托盘数量"
+
+#. module: wd_qooling_app
+#. odoo-javascript
 #: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
 msgid "Arrival"
 msgstr "到达时间"
@@ -84,9 +128,7 @@ msgstr "到达时间"
 msgid ""
 "Arrival, start loading, and end loading times must be in chronological "
 "order."
-msgstr ""
-"Arrival, start loading, and end loading times must be in chronological "
-"order."
+msgstr "到达、开始装货和结束装货时间必须按时间顺序排列。"
 
 #. module: wd_qooling_app
 #. odoo-javascript
@@ -98,33 +140,30 @@ msgstr "附加媒体"
 
 #. module: wd_qooling_app
 #. odoo-javascript
-#: code:addons/wd_qooling_app/static/src/xml/photo_gallery_field.xml:0
-msgid "Attach photos or videos"
-msgstr "附加照片或视频"
-
-#. module: wd_qooling_app
-#. odoo-javascript
 #: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
-msgid "Average temperature"
-msgstr "平均温度"
-
-#. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__average_temperature_per_pallet
 msgid "Average temperature per pallet (°C)"
-msgstr "Average temperature per pallet (°C)"
-
-#. module: wd_qooling_app
-#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__bl_number
-msgid "B/L"
-msgstr "B/L"
+msgstr "每个托盘的平均温度"
 
 #. module: wd_qooling_app
 #. odoo-javascript
 #: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
-#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
-#: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
-msgid "Back"
-msgstr "返回"
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__bl_number
+msgid "B/L (Bill of Loading)"
+msgstr "提货单"
+
+#. module: wd_qooling_app
+#. odoo-python
+#: code:addons/wd_qooling_app/models/inbound_form.py:0
+msgid "B/L number is required when B/L is required."
+msgstr "需要提货单时必须填写提货单编号。"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__bl_required
+msgid "B/L required?"
+msgstr "是否需要提货单"
 
 #. module: wd_qooling_app
 #. odoo-javascript
@@ -134,48 +173,58 @@ msgid "Bonded"
 msgstr "保税"
 
 #. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__ref_no
 msgid "Business Reference"
 msgstr "业务参考号"
 
 #. module: wd_qooling_app
 #. odoo-javascript
-#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
-msgid "Business reference"
-msgstr "业务参考号"
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Cargo identification"
+msgstr "货物识别"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Cargo packaging"
+msgstr "货物包装"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Cargo secured"
+msgstr "货物已固定"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__cargo_identification
 msgid "Cargo: correct identification"
-msgstr "Cargo: correct identification"
+msgstr "货物：已正确识别"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__cargo_packaging
 msgid "Cargo: packaging checked"
-msgstr "Cargo: packaging checked"
+msgstr "货物：已检查包装"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__cargo_secured
 msgid "Cargo: secured on truck"
-msgstr "Cargo: secured on truck"
+msgstr "货物：已固定在卡车上"
 
 #. module: wd_qooling_app
 #. odoo-javascript
 #: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
-msgid "Checked for visible damage"
-msgstr "已检查可见损坏"
-
-#. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__checked_visible_damage
 msgid "Checked for visible damage or packaging issues"
-msgstr "Checked for visible damage or packaging issues"
+msgstr "已检查可见损坏或包装问题"
 
 #. module: wd_qooling_app
 #. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
 #: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_inbound_form
-#: code:addons/wd_qooling_app/static/src/js/inbound_pda.js:0
-#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
-#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
 msgid "Checks"
 msgstr "检查"
 
@@ -223,11 +272,10 @@ msgstr "关闭"
 
 #. module: wd_qooling_app
 #. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/pda_record_dashboard.js:0
 #: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_outbound_form__state__closed
 #: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_temperature_record__state__closed
 #: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_temperature_record_search
-#: code:addons/wd_qooling_app/static/src/js/pda_record_dashboard.js:0
-#: code:addons/wd_qooling_app/static/src/js/pda_record_dashboard.js:0
 msgid "Closed"
 msgstr "已关闭"
 
@@ -246,6 +294,8 @@ msgid "Container Number"
 msgstr "集装箱编号"
 
 #. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__container_shipment_number
 msgid "Container Number / Shipment Number"
 msgstr "集装箱编号 / 装运编号"
@@ -258,9 +308,9 @@ msgstr "集装箱编号"
 
 #. module: wd_qooling_app
 #. odoo-javascript
-#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
-msgid "Container number / shipment number"
-msgstr "集装箱编号 / 货运编号"
+#: code:addons/wd_qooling_app/static/src/js/pda_record_dashboard.js:0
+msgid "Could not load PDA records."
+msgstr "无法加载PDA记录。"
 
 #. module: wd_qooling_app
 #: model_terms:ir.actions.act_window,help:wd_qooling_app.action_qooling_temperature_record
@@ -304,7 +354,7 @@ msgstr "客户"
 #: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__gas_measurement_status__dangerous
 #: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__status_after_ventilation__dangerous
 msgid "Dangerous"
-msgstr "Dangerous"
+msgstr "危险"
 
 #. module: wd_qooling_app
 #. odoo-javascript
@@ -330,10 +380,17 @@ msgstr "删除图片"
 #. module: wd_qooling_app
 #. odoo-javascript
 #: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
-#: code:addons/wd_qooling_app/static/src/xml/photo_gallery_field.xml:0
 #: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
 msgid "Delete media"
 msgstr "删除媒体"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
+msgid "Details"
+msgstr "详细信息"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__display_name
@@ -341,7 +398,7 @@ msgstr "删除媒体"
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__display_name
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record_line__display_name
 msgid "Display Name"
-msgstr "Display Name"
+msgstr "显示名称"
 
 #. module: wd_qooling_app
 #. odoo-javascript
@@ -357,15 +414,13 @@ msgstr "单据编号"
 
 #. module: wd_qooling_app
 #. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/pda_record_dashboard.js:0
 #: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__state__draft
 #: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_outbound_form__state__draft
 #: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_temperature_record__state__draft
 #: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_inbound_form_search
 #: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_outbound_form_search
 #: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_temperature_record_search
-#: code:addons/wd_qooling_app/static/src/js/pda_record_dashboard.js:0
-#: code:addons/wd_qooling_app/static/src/js/pda_record_dashboard.js:0
-#: code:addons/wd_qooling_app/static/src/js/pda_record_dashboard.js:0
 msgid "Draft"
 msgstr "草稿"
 
@@ -377,6 +432,12 @@ msgstr "司机"
 
 #. module: wd_qooling_app
 #. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Driver ADR certificate"
+msgstr "司机 ADR 证书"
+
+#. module: wd_qooling_app
+#. odoo-javascript
 #: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__driver_comments
 msgid "Driver comments"
@@ -384,81 +445,140 @@ msgstr "司机备注"
 
 #. module: wd_qooling_app
 #. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Driver drip tray"
+msgstr "司机接液盘"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Driver eye protection"
+msgstr "司机护目镜"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Driver eyewash"
+msgstr "司机洗眼器"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Driver flashlight"
+msgstr "司机手电筒"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Driver protective gloves"
+msgstr "司机防护手套"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Driver safety vest"
+msgstr "司机安全背心"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Driver shovel"
+msgstr "司机铲子"
+
+#. module: wd_qooling_app
+#. odoo-javascript
 #: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__driver_signature
-#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
 msgid "Driver signature"
 msgstr "司机签名"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__driver_signature_time
 msgid "Driver signature time"
-msgstr "Driver signature time"
+msgstr "司机签名时间"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__driver_signer_id
 msgid "Driver signer"
-msgstr "Driver signer"
+msgstr "司机签名人"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Driver tarpaulin"
+msgstr "司机防水篷布"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Driver warning triangles"
+msgstr "司机警示三角牌"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Driver wheel chock"
+msgstr "司机车轮止动块"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__driver_adr_certificate
 msgid "Driver: ADR certificate"
-msgstr "Driver: ADR certificate"
+msgstr "司机：ADR证书"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__driver_drip_tray
 msgid "Driver: drip tray"
-msgstr "Driver: drip tray"
+msgstr "司机：接液盘"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__driver_eye_protection
 msgid "Driver: eye protection"
-msgstr "Driver: eye protection"
+msgstr "司机：护目镜"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__driver_eyewash
 msgid "Driver: eyewash bottle"
-msgstr "Driver: eyewash bottle"
+msgstr "司机：洗眼瓶"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__driver_flashlight
 msgid "Driver: flashlight"
-msgstr "Driver: flashlight"
+msgstr "司机：手电筒"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__driver_protective_gloves
 msgid "Driver: protective gloves"
-msgstr "Driver: protective gloves"
+msgstr "司机：防护手套"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__driver_safety_vest
 msgid "Driver: reflective safety vest"
-msgstr "Driver: reflective safety vest"
+msgstr "司机：反光安全背心"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__driver_shovel
 msgid "Driver: shovel"
-msgstr "Driver: shovel"
+msgstr "司机：铲子"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__driver_tarpaulin
 msgid "Driver: tarpaulin"
-msgstr "Driver: tarpaulin"
+msgstr "司机：防水篷布"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__driver_warning_triangles
 msgid "Driver: two independent warning triangles"
-msgstr "Driver: two independent warning triangles"
+msgstr "司机：两个独立警示三角牌"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__driver_wheel_chock
 msgid "Driver: wheel chock"
-msgstr "Driver: wheel chock"
+msgstr "司机：车轮止动块"
 
 #. module: wd_qooling_app
 #. odoo-javascript
-#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__electrolyte_leakage
 #: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__electrolyte_leakage
 msgid "Electrolyte leakage"
 msgstr "电解液泄漏"
 
@@ -471,51 +591,45 @@ msgstr "结束装货"
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__end_loading_at
 msgid "End time of loading"
-msgstr "End time of loading"
+msgstr "装货结束时间"
 
 #. module: wd_qooling_app
 #. odoo-javascript
 #: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
 msgid "Enlarge image"
-msgstr "Enlarge image"
+msgstr "放大图片"
 
 #. module: wd_qooling_app
 #. odoo-javascript
 #: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
 msgid "Enlarged inbound evidence"
-msgstr "Enlarged inbound evidence"
+msgstr "放大的入库证据"
 
 #. module: wd_qooling_app
 #. odoo-javascript
 #: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
 msgid "Enlarged outbound evidence"
-msgstr "Enlarged outbound evidence"
-
-#. module: wd_qooling_app
-#. odoo-javascript
-#: code:addons/wd_qooling_app/static/src/xml/photo_gallery_field.xml:0
-msgid "Enlarged photo"
-msgstr "Enlarged photo"
+msgstr "放大的出库证据"
 
 #. module: wd_qooling_app
 #. odoo-javascript
 #: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
 msgid "Enlarged temperature evidence"
-msgstr "Enlarged temperature evidence"
+msgstr "放大的温度证据"
 
 #. module: wd_qooling_app
 #. odoo-javascript
 #: code:addons/wd_qooling_app/static/src/xml/temperature_quick_entry.xml:0
 #: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_temperature_record_form
 msgid "Enter temperature and press Enter"
-msgstr "Enter temperature and press Enter"
+msgstr "输入温度并按回车键"
 
 #. module: wd_qooling_app
 #. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
 #: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_inbound_form
-#: code:addons/wd_qooling_app/static/src/js/inbound_pda.js:0
-#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
-#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
 msgid "Evidence"
 msgstr "证据"
 
@@ -529,6 +643,12 @@ msgstr "证据和签名"
 #: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_temperature_record__state__exception_pending
 #: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_temperature_record_search
 msgid "Exception Pending"
+msgstr "异常待处理"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/pda_record_dashboard.js:0
+msgid "Exception pending"
 msgstr "异常待处理"
 
 #. module: wd_qooling_app
@@ -588,6 +708,12 @@ msgstr "开始日期"
 
 #. module: wd_qooling_app
 #. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/pda_record_dashboard.js:0
+msgid "From date cannot be later than To date."
+msgstr "开始日期不能晚于结束日期。"
+
+#. module: wd_qooling_app
+#. odoo-javascript
 #: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__gas_measurement
 msgid "Gas measurement"
@@ -596,7 +722,7 @@ msgstr "气体测量"
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__gas_measurement_status
 msgid "Gas measurement Status"
-msgstr "Gas measurement Status"
+msgstr "气体测量状态"
 
 #. module: wd_qooling_app
 #. odoo-javascript
@@ -606,14 +732,10 @@ msgid "Good"
 msgstr "良好"
 
 #. module: wd_qooling_app
-#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__goods_status
-msgid "Goods Status"
-msgstr "货物状态"
-
-#. module: wd_qooling_app
 #. odoo-javascript
 #: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
-msgid "Goods status"
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__goods_status
+msgid "Goods Status"
 msgstr "货物状态"
 
 #. module: wd_qooling_app
@@ -646,10 +768,10 @@ msgstr "入库单列表"
 
 #. module: wd_qooling_app
 #. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/pda_record_dashboard.js:0
 #: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
 #: code:addons/wd_qooling_app/static/src/xml/qooling_dashboard.xml:0
 #: model:ir.ui.menu,name:wd_qooling_app.menu_qooling_inbound_pda
-#: code:addons/wd_qooling_app/static/src/js/pda_record_dashboard.js:0
 msgid "Inbound Record"
 msgstr "入库记录"
 
@@ -664,18 +786,12 @@ msgid "Inbound Record (PDA)"
 msgstr "入库记录（PDA）"
 
 #. module: wd_qooling_app
-#. odoo-javascript
-#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
-msgid "Inbound steps"
-msgstr "入库步骤"
-
-#. module: wd_qooling_app
 #: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_temperature_record__electrolyte_leakage__yes
 #: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_temperature_record__packaging_damage__yes
 #: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_temperature_record__storage_stability__yes
 #: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_temperature_record__unpacked_housing_damage__yes
 msgid "Ja"
-msgstr "Ja"
+msgstr "是"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__write_uid
@@ -696,12 +812,12 @@ msgstr "最后更新时间"
 #. module: wd_qooling_app
 #: model:ir.model.fields,help:wd_qooling_app.field_wd_qooling_temperature_record__photo
 msgid "Legacy compatibility field. New evidence must use photo_ids."
-msgstr "Legacy compatibility field. New evidence must use photo_ids."
+msgstr "兼容旧字段。新的证据必须使用 photo_ids。"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__photo
 msgid "Legacy photo"
-msgstr "Legacy photo"
+msgstr "旧照片"
 
 #. module: wd_qooling_app
 #: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_outbound_form
@@ -709,9 +825,15 @@ msgid "Loading and Cargo"
 msgstr "装货和货物"
 
 #. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Loading plan discussed"
+msgstr "已与司机讨论装货计划"
+
+#. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__loading_plan_discussed
 msgid "Loading plan discussed with driver"
-msgstr "Loading plan discussed with driver"
+msgstr "已与司机讨论装货计划"
 
 #. module: wd_qooling_app
 #. odoo-javascript
@@ -721,15 +843,21 @@ msgstr "正在加载记录..."
 
 #. module: wd_qooling_app
 #. odoo-javascript
-#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__check_loading_quantity
 #: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__check_loading_quantity
 msgid "Loading: quantity checked"
 msgstr "装货：数量已检查"
 
 #. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Loading: visible damage"
+msgstr "装货：可见损坏"
+
+#. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__check_loading_visible_damage
 msgid "Loading: visible damage or packaging issues"
-msgstr "Loading: visible damage or packaging issues"
+msgstr "装货：已检查可见损坏或包装问题"
 
 #. module: wd_qooling_app
 #. odoo-javascript
@@ -743,15 +871,17 @@ msgid "Location"
 msgstr "位置"
 
 #. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__mrn_number
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__mrn_number
 msgid "MRN Number"
-msgstr "MRN Number"
+msgstr "MRN编号"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__mrn_checked_before_release
 msgid "MRN checked before release"
-msgstr "MRN checked before release"
+msgstr "放行前已检查 MRN"
 
 #. module: wd_qooling_app
 #. odoo-javascript
@@ -781,19 +911,19 @@ msgstr "测量温度"
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__measured_temperature
 msgid "Measured temperature (°C)"
-msgstr "Measured temperature (°C)"
+msgstr "测量温度（°C）"
 
 #. module: wd_qooling_app
 #. odoo-python
 #: code:addons/wd_qooling_app/models/media_evidence.py:0
 msgid "Media evidence can only be changed while the record is a draft."
-msgstr "Media evidence can only be changed while the record is a draft."
+msgstr "媒体证据只能在单据为草稿时修改。"
 
 #. module: wd_qooling_app
 #. odoo-python
 #: code:addons/wd_qooling_app/models/media_evidence.py:0
 msgid "Media files of this type cannot exceed %(limit)s MB."
-msgstr "Media files of this type cannot exceed %(limit)s MB."
+msgstr "此类型的媒体文件不能超过 %(limit)s MB。"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__name
@@ -806,7 +936,7 @@ msgstr "名称"
 #: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_temperature_record__storage_stability__no
 #: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_temperature_record__unpacked_housing_damage__no
 msgid "Nee"
-msgstr "Nee"
+msgstr "否"
 
 #. module: wd_qooling_app
 #. odoo-python
@@ -821,14 +951,6 @@ msgstr "新建"
 #: code:addons/wd_qooling_app/static/src/xml/pda_record_dashboard.xml:0
 msgid "New record"
 msgstr "新建记录"
-
-#. module: wd_qooling_app
-#. odoo-javascript
-#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
-#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
-#: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
-msgid "Next"
-msgstr "下一步"
 
 #. module: wd_qooling_app
 #. odoo-javascript
@@ -859,13 +981,9 @@ msgstr "没有记录符合所选筛选条件。"
 #. module: wd_qooling_app
 #. odoo-javascript
 #: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
-msgid "No, stop unloading"
-msgstr "否，停止卸货"
-
-#. module: wd_qooling_app
 #: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__unloading_permission__no_stop_unloading
 msgid "No, stop unloading and ask project manager"
-msgstr "No, stop unloading and ask project manager"
+msgstr "否，停止卸货并询问项目经理"
 
 #. module: wd_qooling_app
 #. odoo-javascript
@@ -875,13 +993,13 @@ msgid "Non-Bonded"
 msgstr "非保税"
 
 #. module: wd_qooling_app
-#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__gas_measurement__not_applicable
-msgid "Not Applicable"
-msgstr "Not Applicable"
-
-#. module: wd_qooling_app
 #. odoo-javascript
 #: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__gas_measurement__not_applicable
+msgid "Not Applicable"
+msgstr "不适用"
+
+#. module: wd_qooling_app
 #: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__ventilated__not_applicable
 msgid "Not applicable"
 msgstr "不适用"
@@ -900,45 +1018,62 @@ msgid "Not recorded"
 msgstr "未记录"
 
 #. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__bl_required__not_required
+msgid "Not required"
+msgstr "不需要"
+
+#. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__name
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__name
 msgid "Number"
 msgstr "编号"
 
 #. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__checked_received_quantity
 msgid "Number received has been checked"
-msgstr "Number received has been checked"
+msgstr "已检查收到的数量"
 
 #. module: wd_qooling_app
 #. odoo-python
 #: code:addons/wd_qooling_app/models/temperature_record.py:0
 msgid "Only a Temperature Supervisor can perform this action."
-msgstr "Only a Temperature Supervisor can perform this action."
+msgstr "只有温度主管可以执行此操作。"
 
 #. module: wd_qooling_app
 #. odoo-python
 #: code:addons/wd_qooling_app/models/outbound_form.py:0
 msgid "Only an Outbound reviewer can perform this action."
-msgstr "Only an Outbound reviewer can perform this action."
+msgstr "只有出库审核员可以执行此操作。"
 
 #. module: wd_qooling_app
 #. odoo-python
 #: code:addons/wd_qooling_app/models/temperature_record.py:0
 msgid "Only draft temperature records can be cleared."
-msgstr "Only draft temperature records can be cleared."
+msgstr "只有草稿状态的温度记录才能清除。"
 
 #. module: wd_qooling_app
 #. odoo-python
 #: code:addons/wd_qooling_app/models/temperature_record.py:0
 msgid "Only draft temperature records can receive new readings."
-msgstr "Only draft temperature records can receive new readings."
+msgstr "只有草稿状态的温度记录才能新增读数。"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/inbound_pda.js:0
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+msgid "Only image and video files can be uploaded."
+msgstr "只能使用图片和视频文件作为证据。"
 
 #. module: wd_qooling_app
 #. odoo-python
 #: code:addons/wd_qooling_app/models/media_evidence.py:0
 msgid "Only image and video files can be used as evidence."
-msgstr "Only image and video files can be used as evidence."
+msgstr "只能使用图片和视频文件作为证据。"
 
 #. module: wd_qooling_app
 #. odoo-javascript
@@ -963,10 +1098,10 @@ msgstr "出库单列表"
 
 #. module: wd_qooling_app
 #. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/pda_record_dashboard.js:0
 #: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
 #: code:addons/wd_qooling_app/static/src/xml/qooling_dashboard.xml:0
 #: model:ir.ui.menu,name:wd_qooling_app.menu_qooling_outbound_pda
-#: code:addons/wd_qooling_app/static/src/js/pda_record_dashboard.js:0
 msgid "Outbound Record"
 msgstr "出库记录"
 
@@ -979,12 +1114,6 @@ msgstr "出库记录（PDA表单）"
 #: model:ir.actions.client,name:wd_qooling_app.action_qooling_outbound_pda
 msgid "Outbound Record (PDA)"
 msgstr "出库记录（PDA）"
-
-#. module: wd_qooling_app
-#. odoo-javascript
-#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
-msgid "Outbound steps"
-msgstr "出库步骤"
 
 #. module: wd_qooling_app
 #. odoo-javascript
@@ -1002,8 +1131,8 @@ msgstr "包装状况"
 
 #. module: wd_qooling_app
 #. odoo-javascript
-#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__packaging_damage
 #: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__packaging_damage
 msgid "Packaging visible damage"
 msgstr "包装可见损坏"
 
@@ -1021,18 +1150,12 @@ msgstr "托盘温度"
 #. odoo-python
 #: code:addons/wd_qooling_app/models/temperature_record.py:0
 msgid "Pallet lines cannot be deleted individually. Use Clear all pallets."
-msgstr "Pallet lines cannot be deleted individually. Use Clear all pallets."
+msgstr "不能单独删除托盘行。请使用“清除所有托盘”。"
 
 #. module: wd_qooling_app
 #. odoo-javascript
-#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
-msgid "Pallet temperature registered"
-msgstr "已登记托盘温度"
-
-#. module: wd_qooling_app
-#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__line_ids
-#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
 msgid "Pallet temperatures"
 msgstr "托盘温度"
 
@@ -1040,13 +1163,13 @@ msgstr "托盘温度"
 #. odoo-python
 #: code:addons/wd_qooling_app/models/temperature_record.py:0
 msgid "Pallet temperatures can only be added in draft."
-msgstr "Pallet temperatures can only be added in draft."
+msgstr "只能在草稿状态下添加托盘温度。"
 
 #. module: wd_qooling_app
 #. odoo-python
 #: code:addons/wd_qooling_app/models/temperature_record.py:0
 msgid "Pallet temperatures can only be modified in draft."
-msgstr "Pallet temperatures can only be modified in draft."
+msgstr "只能在草稿状态下修改托盘温度。"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__photo
@@ -1056,7 +1179,7 @@ msgstr "照片"
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__cargo_photo
 msgid "Photo of cargo"
-msgstr "Photo of cargo"
+msgstr "货物照片"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__photo_ids
@@ -1068,26 +1191,21 @@ msgstr "照片和视频"
 #. module: wd_qooling_app
 #. odoo-javascript
 #: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
-#: code:addons/wd_qooling_app/static/src/xml/photo_gallery_field.xml:0
 #: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
 msgid "Preview media"
 msgstr "预览媒体"
 
 #. module: wd_qooling_app
-#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__checked_product_quality
-msgid "Product quality and condition have been checked"
-msgstr "Product quality and condition have been checked"
-
-#. module: wd_qooling_app
 #. odoo-javascript
 #: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
-msgid "Product quality checked"
-msgstr "已检查产品质量"
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__checked_product_quality
+msgid "Product quality and condition have been checked"
+msgstr "已检查产品质量和状况"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__proper_shipping_name
 msgid "Proper Shipping Name"
-msgstr "Proper Shipping Name"
+msgstr "正式运输名称"
 
 #. module: wd_qooling_app
 #. odoo-javascript
@@ -1112,47 +1230,57 @@ msgstr "Qooling看板"
 #. module: wd_qooling_app
 #: model:ir.model,name:wd_qooling_app.model_wd_qooling_inbound_form
 msgid "Qooling Inbound Form"
-msgstr "Qooling Inbound Form"
+msgstr "Qooling入库表单"
 
 #. module: wd_qooling_app
 #: model:res.groups,name:wd_qooling_app.group_qooling_inbound_reviewer
 msgid "Qooling Inbound Reviewer"
-msgstr "Qooling Inbound Reviewer"
+msgstr "Qooling入库审核员"
 
 #. module: wd_qooling_app
 #: model:res.groups,name:wd_qooling_app.group_qooling_inbound_user
 msgid "Qooling Inbound User"
-msgstr "Qooling Inbound User"
+msgstr "Qooling入库用户"
+
+#. module: wd_qooling_app
+#: model:res.groups,name:wd_qooling_app.group_qooling_administrator
+msgid "Qooling Manager"
+msgstr "Qooling管理员"
 
 #. module: wd_qooling_app
 #: model:ir.model,name:wd_qooling_app.model_wd_qooling_media_evidence_mixin
 msgid "Qooling Media Evidence Rules"
-msgstr "Qooling Media Evidence Rules"
+msgstr "Qooling媒体证据规则"
 
 #. module: wd_qooling_app
 #: model:ir.model,name:wd_qooling_app.model_wd_qooling_outbound_form
 msgid "Qooling Outbound Form"
-msgstr "Qooling Outbound Form"
+msgstr "Qooling出库表单"
 
 #. module: wd_qooling_app
 #: model:res.groups,name:wd_qooling_app.group_qooling_outbound_reviewer
 msgid "Qooling Outbound Reviewer"
-msgstr "Qooling Outbound Reviewer"
+msgstr "Qooling出库审核员"
 
 #. module: wd_qooling_app
 #: model:res.groups,name:wd_qooling_app.group_qooling_outbound_user
 msgid "Qooling Outbound User"
-msgstr "Qooling Outbound User"
+msgstr "Qooling出库用户"
 
 #. module: wd_qooling_app
 #: model:ir.model,name:wd_qooling_app.model_wd_qooling_temperature_record
 msgid "Qooling Temperature Record"
-msgstr "Qooling Temperature Record"
+msgstr "Qooling温度记录"
 
 #. module: wd_qooling_app
 #: model:ir.model,name:wd_qooling_app.model_wd_qooling_temperature_record_line
 msgid "Qooling Temperature Record Pallet"
-msgstr "Qooling Temperature Record Pallet"
+msgstr "Qooling温度记录托盘"
+
+#. module: wd_qooling_app
+#: model:res.groups,name:wd_qooling_app.group_qooling_user
+msgid "Qooling User"
+msgstr "Qooling用户"
 
 #. module: wd_qooling_app
 #. odoo-javascript
@@ -1164,18 +1292,12 @@ msgstr "快速录入温度（°C）"
 #. module: wd_qooling_app
 #: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_temperature_record_form
 msgid "Quick temperature entry"
-msgstr "Quick temperature entry"
-
-#. module: wd_qooling_app
-#. odoo-javascript
-#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
-msgid "Received quantity checked"
-msgstr "已检查收货数量"
+msgstr "快速录入温度"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record_line__record_id
 msgid "Record"
-msgstr "Record"
+msgstr "记录"
 
 #. module: wd_qooling_app
 #. odoo-javascript
@@ -1194,6 +1316,13 @@ msgid "Reference"
 msgstr "参考号"
 
 #. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__bl_required__required
+msgid "Required"
+msgstr "需要"
+
+#. module: wd_qooling_app
 #: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_inbound_form
 #: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_outbound_form
 #: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_temperature_record_form
@@ -1201,15 +1330,17 @@ msgid "Reset to Draft"
 msgstr "重置为草稿"
 
 #. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__skal_bio_product
-msgid "SKAL / BIO Product"
-msgstr "SKAL / BIO Product"
+msgid "SKAL (Bio Product)"
+msgstr "SKAL（生物制品）"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__gas_measurement_status__safe
 #: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__status_after_ventilation__safe
 msgid "Safe"
-msgstr "Safe"
+msgstr "安全"
 
 #. module: wd_qooling_app
 #. odoo-javascript
@@ -1221,15 +1352,11 @@ msgstr "保存草稿"
 
 #. module: wd_qooling_app
 #. odoo-javascript
-#: code:addons/wd_qooling_app/static/src/xml/photo_gallery_field.xml:0
-msgid "Save the draft before uploading media."
-msgstr "Save the draft before uploading media."
-
-#. module: wd_qooling_app
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__seal_number
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__seal_number
 msgid "Seal Number"
-msgstr "Seal Number"
+msgstr "密封编号"
 
 #. module: wd_qooling_app
 #. odoo-javascript
@@ -1277,16 +1404,21 @@ msgid "Select warehouse"
 msgstr "选择仓库"
 
 #. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+msgid "Select warehouse operator"
+msgstr "选择仓库操作员"
+
+#. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record_line__sequence
 msgid "Sequence"
-msgstr "Sequence"
+msgstr "序号"
 
 #. module: wd_qooling_app
 #. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
 #: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__signature
-#: code:addons/wd_qooling_app/static/src/js/inbound_pda.js:0
-#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
 msgid "Signature"
 msgstr "签名"
 
@@ -1294,13 +1426,13 @@ msgstr "签名"
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__signature_time
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__signature_time
 msgid "Signature time"
-msgstr "Signature time"
+msgstr "签名时间"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__signer_id
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__signer_id
 msgid "Signer"
-msgstr "Signer"
+msgstr "签名人"
 
 #. module: wd_qooling_app
 #. odoo-javascript
@@ -1311,7 +1443,7 @@ msgstr "开始装货"
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__start_loading_at
 msgid "Start time loading"
-msgstr "Start time loading"
+msgstr "装货开始时间"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__state
@@ -1329,12 +1461,12 @@ msgstr "状态"
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__status_after_ventilation
 msgid "Status after ventilation"
-msgstr "Status after ventilation"
+msgstr "通风后状态"
 
 #. module: wd_qooling_app
 #. odoo-javascript
-#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__storage_stability
 #: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__storage_stability
 msgid "Storage stability"
 msgstr "储存稳定性"
 
@@ -1351,15 +1483,13 @@ msgstr "提交"
 
 #. module: wd_qooling_app
 #. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/pda_record_dashboard.js:0
 #: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__state__submitted
 #: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_outbound_form__state__submitted
 #: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_temperature_record__state__submitted
 #: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_inbound_form_search
 #: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_outbound_form_search
 #: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_temperature_record_search
-#: code:addons/wd_qooling_app/static/src/js/pda_record_dashboard.js:0
-#: code:addons/wd_qooling_app/static/src/js/pda_record_dashboard.js:0
-#: code:addons/wd_qooling_app/static/src/js/pda_record_dashboard.js:0
 msgid "Submitted"
 msgstr "已提交"
 
@@ -1367,23 +1497,23 @@ msgstr "已提交"
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__submitted_at
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__submitted_at
 msgid "Submitted At"
-msgstr "Submitted At"
+msgstr "提交时间"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__submitted_by_id
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__submitted_by_id
 msgid "Submitted By"
-msgstr "Submitted By"
+msgstr "提交人"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__submitted_at
 msgid "Submitted at"
-msgstr "Submitted at"
+msgstr "提交时间"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__submitted_by_id
 msgid "Submitted by"
-msgstr "Submitted by"
+msgstr "提交人"
 
 #. module: wd_qooling_app
 #. odoo-javascript
@@ -1416,15 +1546,15 @@ msgstr "拍照"
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record_line__temperature
 msgid "Temperature (°C)"
-msgstr "Temperature (°C)"
+msgstr "温度（°C）"
 
 #. module: wd_qooling_app
 #. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/pda_record_dashboard.js:0
 #: code:addons/wd_qooling_app/static/src/xml/qooling_dashboard.xml:0
 #: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
 #: model:ir.ui.menu,name:wd_qooling_app.menu_qooling_temperature_pda
 #: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_temperature_record_form
-#: code:addons/wd_qooling_app/static/src/js/pda_record_dashboard.js:0
 msgid "Temperature Record"
 msgstr "温度记录"
 
@@ -1449,12 +1579,12 @@ msgstr "温度记录列表"
 #. module: wd_qooling_app
 #: model:res.groups,name:wd_qooling_app.group_temperature_supervisor
 msgid "Temperature Supervisor"
-msgstr "Temperature Supervisor"
+msgstr "温度主管"
 
 #. module: wd_qooling_app
 #: model:res.groups,name:wd_qooling_app.group_temperature_user
 msgid "Temperature User"
-msgstr "Temperature User"
+msgstr "温度用户"
 
 #. module: wd_qooling_app
 #. odoo-javascript
@@ -1464,21 +1594,17 @@ msgid "Temperature measured"
 msgstr "已测量温度"
 
 #. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__pallet_temperature_registered
 msgid "Temperature of each pallet is registered"
-msgstr "Temperature of each pallet is registered"
-
-#. module: wd_qooling_app
-#. odoo-javascript
-#: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
-msgid "Temperature steps"
-msgstr "温度步骤"
+msgstr "已登记每个托盘的温度"
 
 #. module: wd_qooling_app
 #. odoo-javascript
 #: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
 msgid "The same warehouse signature field is used by the web form."
-msgstr "The same warehouse signature field is used by the web form."
+msgstr "Web 表单使用相同的仓库签名字段。"
 
 #. module: wd_qooling_app
 #. odoo-javascript
@@ -1511,36 +1637,56 @@ msgstr "联合国编号"
 #. odoo-python
 #: code:addons/wd_qooling_app/models/inbound_form.py:0
 msgid "UN Number and temperature fields are required when ADR is Yes."
-msgstr "UN Number and temperature fields are required when ADR is Yes."
+msgstr "ADR为“是”时，必须填写UN编号和温度字段。"
 
 #. module: wd_qooling_app
 #. odoo-python
 #: code:addons/wd_qooling_app/models/inbound_form.py:0
 #: code:addons/wd_qooling_app/models/outbound_form.py:0
 msgid "UN Number is not allowed."
-msgstr "UN Number is not allowed."
+msgstr "不允许使用该UN编号。"
 
 #. module: wd_qooling_app
 #. odoo-javascript
 #: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
 msgid "UN number"
-msgstr "UN number"
+msgstr "UN编号"
 
 #. module: wd_qooling_app
 #. odoo-javascript
 #: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
-msgid "Unloading permission"
-msgstr "卸货许可"
-
-#. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__unloading_permission
 msgid "Unloading permission received?"
-msgstr "Unloading permission received?"
+msgstr "是否已获得卸货许可？"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+msgid "Unpackaged housing damage"
+msgstr "未包装外壳损坏"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_temperature_record__unpacked_housing_damage
 msgid "Unpackaged product housing visible damage"
-msgstr "Unpackaged product housing visible damage"
+msgstr "未包装产品外壳可见损坏"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Vehicle ADR certificate"
+msgstr "车辆 ADR 证书"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Vehicle ADR sign"
+msgstr "车辆 ADR 标志"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Vehicle TREM card"
+msgstr "车辆 TREM 卡"
 
 #. module: wd_qooling_app
 #: model_terms:ir.ui.view,arch_db:wd_qooling_app.view_qooling_outbound_form
@@ -1548,40 +1694,52 @@ msgid "Vehicle and Driver"
 msgstr "车辆和司机"
 
 #. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Vehicle fire extinguisher"
+msgstr "车辆灭火器"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Vehicle fixing material"
+msgstr "车辆固定材料"
+
+#. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__vehicle_adr_certificate
 msgid "Vehicle: ADR certificate"
-msgstr "Vehicle: ADR certificate"
+msgstr "车辆：ADR证书"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__vehicle_adr_sign
 msgid "Vehicle: ADR sign"
-msgstr "Vehicle: ADR sign"
+msgstr "车辆：ADR标志"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__vehicle_trem_card
 msgid "Vehicle: TREM card / written instructions"
-msgstr "Vehicle: TREM card / written instructions"
+msgstr "车辆：TREM卡/书面说明"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__vehicle_fire_extinguisher
 msgid "Vehicle: fire extinguisher"
-msgstr "Vehicle: fire extinguisher"
+msgstr "车辆：灭火器"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__vehicle_fixing_material
 msgid "Vehicle: fixing material"
-msgstr "Vehicle: fixing material"
+msgstr "车辆：固定材料"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__ventilated
 msgid "Ventilated"
-msgstr "Ventilated"
+msgstr "已通风"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__gas_measurement_status__ventilation_required
 #: model:ir.model.fields.selection,name:wd_qooling_app.selection__wd_qooling_inbound_form__status_after_ventilation__ventilation_required
 msgid "Ventilation required"
-msgstr "Ventilation required"
+msgstr "需要通风"
 
 #. module: wd_qooling_app
 #. odoo-javascript
@@ -1590,8 +1748,11 @@ msgid "WEB"
 msgstr "WEB"
 
 #. module: wd_qooling_app
+#. odoo-javascript
 #. odoo-python
 #: code:addons/wd_qooling_app/models/outbound_form.py:0
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__warehouse_operator_id
 msgid "Warehouse operator"
 msgstr "仓库操作员"
 
@@ -1607,30 +1768,29 @@ msgstr "仓库操作员备注"
 #: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__warehouse_signature
 msgid "Warehouse operator signature"
-msgstr "Warehouse operator signature"
+msgstr "仓库操作员签名"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__warehouse_signer_id
 msgid "Warehouse operator signer"
-msgstr "Warehouse operator signer"
+msgstr "仓库操作员签名人"
 
 #. module: wd_qooling_app
 #. odoo-javascript
 #: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_inbound_form__warehouse_signature
-#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
 msgid "Warehouse signature"
 msgstr "仓库签名"
 
 #. module: wd_qooling_app
 #: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__warehouse_signature_time
 msgid "Warehouse signature time"
-msgstr "Warehouse signature time"
+msgstr "仓库签名时间"
 
 #. module: wd_qooling_app
 #. odoo-javascript
-#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__weight_distribution
 #: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+#: model:ir.model.fields,field_description:wd_qooling_app.field_wd_qooling_outbound_form__weight_distribution
 msgid "Weight distribution checked"
 msgstr "已检查重量分布"
 
@@ -1652,182 +1812,174 @@ msgstr "是"
 
 #. module: wd_qooling_app
 #. odoo-javascript
-#: code:addons/wd_qooling_app/static/src/js/pda_record_dashboard.js:0
-msgid "Could not load PDA records."
-msgstr "无法加载PDA记录。"
-
-#. module: wd_qooling_app
-#. odoo-javascript
-#: code:addons/wd_qooling_app/static/src/js/pda_record_dashboard.js:0
-msgid "From date cannot be later than To date."
-msgstr "开始日期不能晚于结束日期。"
-
-#. module: wd_qooling_app
-#. odoo-javascript
-#: code:addons/wd_qooling_app/static/src/js/pda_record_dashboard.js:0
-#: code:addons/wd_qooling_app/static/src/js/pda_record_dashboard.js:0
-msgid "Exception pending"
-msgstr "异常待处理"
-
-#. module: wd_qooling_app
-msgid "Show filters"
-msgstr "显示筛选"
-
-#. module: wd_qooling_app
-msgid "Hide filters"
-msgstr "隐藏筛选"
-
-#. module: wd_qooling_app
-#. odoo-javascript
 #: code:addons/wd_qooling_app/static/src/js/inbound_pda.js:0
-#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
 #: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
-msgid "Details"
-msgstr "详细信息"
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+msgid "A record can contain at most 20 media files."
+msgstr "一张单据最多只能包含 20 个媒体文件。"
+
+#. module: wd_qooling_app
+#. odoo-python
+#: code:addons/wd_qooling_app/models/outbound_form.py:0
+msgid "Both driver and warehouse operator signatures are required before submission."
+msgstr "提交前必须同时提供司机和仓库操作员签名。"
 
 #. module: wd_qooling_app
 #. odoo-javascript
 #: code:addons/wd_qooling_app/static/src/js/inbound_pda.js:0
 #: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
-msgid "ADR & temperature"
-msgstr "ADR 与温度"
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+msgid "Complete all required fields before saving."
+msgstr "保存前请填写所有必填字段。"
 
 #. module: wd_qooling_app
 #. odoo-javascript
 #: code:addons/wd_qooling_app/static/src/js/inbound_pda.js:0
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
 #: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
-#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
-msgid "Only image and video files can be uploaded."
-msgstr "只能使用图片和视频文件作为证据。"
+msgid "Could not delete the photo."
+msgstr "无法删除媒体文件。"
 
 #. module: wd_qooling_app
 #. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/inbound_pda.js:0
 #: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
-msgid "Loading plan discussed"
-msgstr "已与司机讨论装货计划"
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+msgid "Could not save the draft."
+msgstr "无法保存草稿。"
 
 #. module: wd_qooling_app
 #. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/inbound_pda.js:0
 #: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
-msgid "Loading: visible damage"
-msgstr "装货：可见损坏"
-
-#. module: wd_qooling_app
-#. odoo-javascript
-#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
-msgid "Cargo packaging"
-msgstr "货物包装"
-
-#. module: wd_qooling_app
-#. odoo-javascript
-#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
-msgid "Cargo identification"
-msgstr "货物识别"
-
-#. module: wd_qooling_app
-#. odoo-javascript
-#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
-msgid "Cargo secured"
-msgstr "货物已固定"
-
-#. module: wd_qooling_app
-#. odoo-javascript
-#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
-msgid "Vehicle ADR certificate"
-msgstr "车辆 ADR 证书"
-
-#. module: wd_qooling_app
-#. odoo-javascript
-#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
-msgid "Vehicle fire extinguisher"
-msgstr "车辆灭火器"
-
-#. module: wd_qooling_app
-#. odoo-javascript
-#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
-msgid "Vehicle ADR sign"
-msgstr "车辆 ADR 标志"
-
-#. module: wd_qooling_app
-#. odoo-javascript
-#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
-msgid "Vehicle fixing material"
-msgstr "车辆固定材料"
-
-#. module: wd_qooling_app
-#. odoo-javascript
-#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
-msgid "Vehicle TREM card"
-msgstr "车辆 TREM 卡"
-
-#. module: wd_qooling_app
-#. odoo-javascript
-#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
-msgid "Driver ADR certificate"
-msgstr "司机 ADR 证书"
-
-#. module: wd_qooling_app
-#. odoo-javascript
-#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
-msgid "Driver safety vest"
-msgstr "司机安全背心"
-
-#. module: wd_qooling_app
-#. odoo-javascript
-#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
-msgid "Driver eye protection"
-msgstr "司机护目镜"
-
-#. module: wd_qooling_app
-#. odoo-javascript
-#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
-msgid "Driver protective gloves"
-msgstr "司机防护手套"
-
-#. module: wd_qooling_app
-#. odoo-javascript
-#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
-msgid "Driver wheel chock"
-msgstr "司机车轮止动块"
-
-#. module: wd_qooling_app
-#. odoo-javascript
-#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
-msgid "Driver tarpaulin"
-msgstr "司机防水篷布"
-
-#. module: wd_qooling_app
-#. odoo-javascript
-#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
-msgid "Driver flashlight"
-msgstr "司机手电筒"
-
-#. module: wd_qooling_app
-#. odoo-javascript
-#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
-msgid "Driver shovel"
-msgstr "司机铲子"
-
-#. module: wd_qooling_app
-#. odoo-javascript
-#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
-msgid "Driver drip tray"
-msgstr "司机接液盘"
-
-#. module: wd_qooling_app
-#. odoo-javascript
-#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
-msgid "Driver eyewash"
-msgstr "司机洗眼器"
-
-#. module: wd_qooling_app
-#. odoo-javascript
-#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
-msgid "Driver warning triangles"
-msgstr "司机警示三角牌"
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+msgid "Could not submit the record."
+msgstr "无法提交单据。"
 
 #. module: wd_qooling_app
 #. odoo-javascript
 #: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
-msgid "Unpackaged housing damage"
-msgstr "未包装外壳损坏"
+msgid "Clear all pallet temperatures?"
+msgstr "确认清空所有托盘温度吗？"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/inbound_pda.js:0
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+msgid "Could not upload the media."
+msgstr "无法上传媒体文件。"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/inbound_pda.js:0
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+msgid "Draft saved"
+msgstr "草稿已保存"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+msgid "Enter a valid temperature."
+msgstr "请输入有效的温度。"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/inbound_pda.js:0
+msgid "Inbound draft saved."
+msgstr "入库草稿已保存。"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/inbound_pda.js:0
+msgid "Inbound record submitted."
+msgstr "入库单据已提交。"
+
+#. module: wd_qooling_app
+#. odoo-python
+#: code:addons/wd_qooling_app/models/inbound_form.py:0
+msgid "Only an Inbound reviewer can perform this action."
+msgstr "只有入库审核员可以执行此操作。"
+
+#. module: wd_qooling_app
+#. odoo-python
+#: code:addons/wd_qooling_app/models/media_evidence.py:0
+msgid "Only draft records can be changed."
+msgstr "只有草稿单据可以修改。"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Outbound draft saved."
+msgstr "出库草稿已保存。"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+msgid "Outbound record submitted."
+msgstr "出库单据已提交。"
+
+#. module: wd_qooling_app
+#. odoo-python
+#: code:addons/wd_qooling_app/models/media_evidence.py:0
+msgid "Qooling records can only be created as drafts."
+msgstr "Qooling 单据只能以草稿状态创建。"
+
+#. module: wd_qooling_app
+#. odoo-python
+#: code:addons/wd_qooling_app/models/media_evidence.py:0
+msgid "Status can only be changed through a Qooling action."
+msgstr "状态只能通过 Qooling 操作变更。"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+msgid "Temperature draft saved."
+msgstr "温度记录草稿已保存。"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+msgid "Temperature record submitted."
+msgstr "温度记录已提交。"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/inbound_pda.js:0
+#: code:addons/wd_qooling_app/static/src/js/outbound_pda.js:0
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+msgid "This file exceeds the allowed size limit."
+msgstr "该文件超过允许的大小限制。"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/xml/inbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/outbound_pda.xml:0
+#: code:addons/wd_qooling_app/static/src/xml/temperature_pda.xml:0
+msgid "This record is read-only."
+msgstr "此单据为只读状态。"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+msgid "Could not add the temperature."
+msgstr "无法添加温度记录。"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+msgid "Could not clear pallet temperatures."
+msgstr "无法清空托盘温度。"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+msgid "Could not update the temperature."
+msgstr "无法更新温度。"
+
+#. module: wd_qooling_app
+#. odoo-javascript
+#: code:addons/wd_qooling_app/static/src/js/temperature_pda.js:0
+msgid "Signature is required before submission."
+msgstr "提交前必须签名。"
