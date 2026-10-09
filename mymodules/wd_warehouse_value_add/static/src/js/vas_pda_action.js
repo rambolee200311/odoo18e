@@ -6,6 +6,7 @@ import { _t } from "@web/core/l10n/translation";
 import { useService } from "@web/core/utils/hooks";
 import { user } from "@web/core/user";
 import { standardActionServiceProps } from "@web/webclient/actions/action_service";
+import { ImagePreviewComponent } from "@wd_attachment_preview/components/image_preview_component";
 
 const WAREHOUSE_MODELS = {
     inbound: "world.depot.inbound.order",
@@ -16,6 +17,7 @@ const WAREHOUSE_MODELS = {
 export class VasPdaAction extends Component {
     static props = { ...standardActionServiceProps };
     static template = "wd_warehouse_value_add.VasPdaAction";
+    static components = { ImagePreviewComponent };
 
     setup() {
         this.orm = useService("orm");
@@ -151,7 +153,7 @@ export class VasPdaAction extends Component {
             };
         });
         this.state.attachments = this.state.order.attachment_ids?.length
-            ? await this.orm.read("ir.attachment", this.state.order.attachment_ids, ["id", "name"])
+            ? await this.orm.read("ir.attachment", this.state.order.attachment_ids, ["id", "name", "mimetype"])
             : [];
     }
 
@@ -336,6 +338,7 @@ export class VasPdaAction extends Component {
                     name: file.name,
                     type: "binary",
                     datas: data,
+                    mimetype: file.type || false,
                     res_model: "wd.vas.order",
                     res_id: this.state.order.id,
                 }]);
