@@ -13,6 +13,11 @@ class OutboundOrder(models.Model):
     receivable_state = fields.Selection([("draft", "Charge Unconfirmed"), ("confirmed", "Charge Confirmed")], string="Receivable Status", default="draft", required=True, tracking=True, index=True, copy=False)
     receivable_confirm_user_id = fields.Many2one("res.users", string="Receivable Confirmed By", readonly=True, index=True, copy=False)
     receivable_confirm_time = fields.Datetime(string="Receivable Confirmed On", readonly=True, index=True, copy=False)
+    manual_amount_total = fields.Monetary(string="Manual Total Amount", currency_field="currency_id", default=0.0)
+    project_stock_report_date_mode = fields.Selection([("validation", "Picking Validation Time"), ("business", "Order Business Date")], string="Stock Report Date Mode", compute="_compute_project_stock_report_date_mode", store=True, readonly=True)
+    statement_outbound_date = fields.Date(string="Statement Outbound Date", compute="_compute_statement_outbound_date", store=True, readonly=True)
+    statement_period_id = fields.Many2one("statement.period", string="Statement Period", ondelete="set null", readonly=True, index=True, copy=False)
+    statement_period_id_state = fields.Selection(related="statement_period_id.state", string="Statement Period State", store=True, readonly=True, index=True)
 
     @api.depends("payable_lines", "payable_lines.payment_state")
     def _compute_payable_state(self):
@@ -24,6 +29,19 @@ class OutboundOrder(models.Model):
                 rec.payable_state = "paid"
             else:
                 rec.payable_state = "paying"
+
+    @api.depends("project")
+    def _compute_project_stock_report_date_mode(self):
+        for rec in self:
+            rec.project_stock_report_date_mode = getattr(rec.project, "stock_report_date_mode", "validation")
+
+    @api.depends("project", "o_date", "picking_Out_date")
+    def _compute_statement_outbound_date(self):
+        for rec in self:
+            if getattr(rec.project, "stock_report_date_mode", "validation") == "business":
+                rec.statement_outbound_date = rec.o_date
+            else:
+                rec.statement_outbound_date = fields.Datetime.to_datetime(rec.picking_Out_date).date() if rec.picking_Out_date else False
 
     def action_confirm_receivable(self):
         for rec in self:
@@ -45,9 +63,20 @@ class OutboundOrder(models.Model):
                 raise ValidationError(_("Cancelled outbound orders cannot unconfirm receivable."))
             if rec.receivable_state != "confirmed":
                 raise ValidationError(_("Receivable is not confirmed."))
+            if rec.statement_period_id and rec.statement_period_id.state != "draft":
+                raise ValidationError(_("Receivable cannot be unconfirmed after the statement period is confirmed."))
             rec.write({"receivable_state": "draft", "receivable_confirm_user_id": False,
                        "receivable_confirm_time": False})
         return {"type": "ir.actions.client", "tag": "display_notification", "params": {"title": _("Receivable"), "message": _("Receivable unconfirmed successfully."), "type": "success", "sticky": False, "next": {"type": "ir.actions.client", "tag": "soft_reload"}}}
+
+    def action_outbound_remove_from_statement_period(self):
+        for rec in self:
+            if not rec.statement_period_id:
+                continue
+            if rec.statement_period_id.state != "draft":
+                raise ValidationError(_("Outbound orders cannot be removed after the statement period is confirmed."))
+            rec.write({"statement_period_id": False})
+        return True
 
 
 class OutboundOrderPayable(models.Model):
@@ -242,22 +271,30 @@ class OutboundOrderCharge(models.Model):
         outbound_orders = self.env["world.depot.outbound.order"].browse(order_ids).exists()
         if outbound_orders.filtered(lambda rec: rec.receivable_state == "confirmed"):
             raise ValidationError(_("Confirmed receivable charge lines cannot be changed."))
+        if outbound_orders.filtered(lambda rec: rec.statement_period_id and rec.statement_period_id.state != "draft"):
+            raise ValidationError(_("Charge lines cannot be changed after the statement period is confirmed."))
         return super().create(vals_list)
 
     def write(self, vals):
         for rec in self:
             if rec.outbound_order_id.receivable_state == "confirmed":
                 raise ValidationError(_("Confirmed receivable charge lines cannot be changed."))
+            if rec.outbound_order_id.statement_period_id and rec.outbound_order_id.statement_period_id.state != "draft":
+                raise ValidationError(_("Charge lines cannot be changed after the statement period is confirmed."))
         if vals.get("outbound_order_id"):
             outbound_order = self.env["world.depot.outbound.order"].browse(vals["outbound_order_id"]).exists()
             if outbound_order.receivable_state == "confirmed":
                 raise ValidationError(_("Confirmed receivable charge lines cannot be changed."))
+            if outbound_order.statement_period_id and outbound_order.statement_period_id.state != "draft":
+                raise ValidationError(_("Charge lines cannot be changed after the statement period is confirmed."))
         return super().write(vals)
 
     def unlink(self):
         for rec in self:
             if rec.outbound_order_id.receivable_state == "confirmed":
                 raise ValidationError(_("Confirmed receivable charge lines cannot be changed."))
+            if rec.outbound_order_id.statement_period_id and rec.outbound_order_id.statement_period_id.state != "draft":
+                raise ValidationError(_("Charge lines cannot be changed after the statement period is confirmed."))
         return super().unlink()
 
 

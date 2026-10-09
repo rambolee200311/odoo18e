@@ -1,0 +1,66 @@
+<odoo>
+    <record id="view_statement_period_form_outbound" model="ir.ui.view">
+        <field name="name">statement.period.form.outbound</field>
+        <field name="model">statement.period</field>
+        <field name="inherit_id" ref="wd_iffm.view_statement_period_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form" position="attributes">
+                <attribute name="duplicate">false</attribute>
+            </xpath>
+            <xpath expr="//field[@name='clearance_total_amount']" position="after">
+                <field name="outbound_total_amount" readonly="1"/>
+            </xpath>
+            <xpath expr="//field[@name='clearance_order_lines']/.." position="after">
+                <page string="Outbound Orders">
+                    <field name="outbound_order_lines" context="{'form_view_ref': 'wd_outbound_payable.view_outbound_order_statement_period_form'}" mode="list,form">
+                        <list delete="false" create="false">
+                            <field name="billno"/>
+                            <field name="statement_outbound_date" string="Outbound Time" readonly="1"/>
+                            <field name="currency_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="total_amount" readonly="1"/>
+                            <field name="manual_amount_total"/>
+                            <field name="statement_period_id_state" column_invisible="True"/>
+                            <button name="action_outbound_remove_from_statement_period" type="object" icon="fa-trash" class="btn-link" title="Remove" invisible="statement_period_id_state != 'draft'"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_outbound_order_statement_period_form" model="ir.ui.view">
+        <field name="name">world.depot.outbound.order.statement.period.form</field>
+        <field name="model">world.depot.outbound.order</field>
+        <field name="arch" type="xml">
+            <form string="Outbound Charge Details" duplicate="false">
+                <sheet>
+                    <group>
+                        <field name="billno" readonly="1"/>
+                        <field name="project" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="project_stock_report_date_mode" invisible="1" readonly="1"/>
+                        <field name="o_date" string="Outbound Time" readonly="1" invisible="project_stock_report_date_mode != 'business'"/>
+                        <field name="picking_Out_date" string="Outbound Time" readonly="1" invisible="project_stock_report_date_mode != 'validation'"/>
+                        <field name="currency_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="total_amount" readonly="1"/>
+                        <field name="statement_period_id_state" invisible="1" readonly="1"/>
+                        <field name="manual_amount_total" readonly="statement_period_id_state != 'draft'"/>
+                    </group>
+                    <group string="Charges">
+                        <field name="outbound_order_charge_ids" readonly="1">
+                            <list delete="false" create="false">
+                                <field name="charge_item_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                                <field name="quantity" readonly="1"/>
+                                <field name="charge_unit_name" readonly="1"/>
+                                <field name="charge_unit_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                                <field name="unit_price" readonly="1"/>
+                                <field name="amount" readonly="1"/>
+                                <field name="currency_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                                <field name="description" readonly="1"/>
+                            </list>
+                        </field>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>
