@@ -14,11 +14,13 @@ TAB_CATEGORY_LIST = [
 OPERATION_TYPE = [
     ('handover', 'Handover'),
     ('clearance', 'Clearance'),
-
+    ('transport', 'Transportation'),
+    ('inbound', 'Inbound'),
+    ('outbound', 'Outbound'),
 ]
 class ChargeItemInherit(models.Model):
     _inherit = "world.depot.charge.item"
-    _order = "id desc"
+    _order = "id asc"
 
     account_account_id = fields.Many2one("account.account", string="Account", ondelete="restrict", index=True)
     tab_category = fields.Selection(
