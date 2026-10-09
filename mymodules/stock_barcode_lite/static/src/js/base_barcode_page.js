@@ -22,11 +22,9 @@ export class BaseBarcodePage extends Component {
 
         this._isProcessing = false;
         this._messageTimer = null;
-        this._isPDA = this._detectPDA();
 
         this._isDestroyed = false;
         this._pendingTimers = [];
-        this._scanTimer = null;
 
         this._boundOnBarcodeInput = this._onBarcodeInput.bind(this);
         this._boundOnBarcodeKeydown = this._onBarcodeKeydown.bind(this);
@@ -43,7 +41,7 @@ export class BaseBarcodePage extends Component {
         });
 
         onWillUnmount(() => {
-            this._isDestroyed = true;  // 添加这行
+            this._isDestroyed = true;
 
             const barcodeInput = this.barcodeInputRef.el;
             if (barcodeInput) {
@@ -60,22 +58,6 @@ export class BaseBarcodePage extends Component {
             this._messageTimer = null;
         });
 
-    }
-
-    // ═══════════════════════════════════════════════════════════════
-    // 设备检测
-    // ═══════════════════════════════════════════════════════════════
-
-    _detectPDA() {
-        const hasFinePointer = window.matchMedia("(pointer: fine)").matches;
-        const hasHover = window.matchMedia("(hover: hover)").matches;
-        const isSmallScreen = window.matchMedia("(max-width: 768px)").matches;
-        const hasTouchScreen =
-            "ontouchstart" in window ||
-            navigator.maxTouchPoints > 0 ||
-            window.matchMedia("(pointer: coarse)").matches;
-
-        return isSmallScreen && hasTouchScreen && !hasFinePointer && !hasHover;
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -109,7 +91,7 @@ export class BaseBarcodePage extends Component {
     }
 
     _onBarcodeBlur() {
-        setTimeout(() => this._focusBarcodeInput(), 0);
+        this._safeSetTimeout(() => this._focusBarcodeInput(), 0);
     }
 
     _focusBarcodeInput() {
@@ -124,12 +106,6 @@ export class BaseBarcodePage extends Component {
         } else {
            console.warn("[BarcodeMonitor] _focusBarcodeInput input missing");
        }
-    }
-
-    _clearScanTimer() {
-        if (this._scanTimer) {
-            clearTimeout(this._scanTimer);
-        }
     }
 
     // ═══════════════════════════════════════════════════════════════
