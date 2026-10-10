@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_blind_stock_count_clearance_list" model="ir.ui.view">
+        <field name="name">blind.stock.count.clearance.list</field>
+        <field name="model">blind.stock.count.clearance</field>
+        <field name="arch" type="xml">
+            <list string="Blind Stock Count Clearance Orders" create="false">
+                <field name="name"/>
+                <field name="work_package_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="category_id" optional="hide" options="{'no_create': True, 'no_open': True}"/>
+                <field name="picking_type_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="destination_location_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="picking_id" optional="hide" options="{'no_create': True, 'no_open': True}"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_blind_stock_count_clearance_form" model="ir.ui.view">
+        <field name="name">blind.stock.count.clearance.form</field>
+        <field name="model">blind.stock.count.clearance</field>
+        <field name="arch" type="xml">
+            <form string="Blind Stock Count Clearance Order" duplicate="false">
+                <header>
+                    <button name="action_confirm" type="object" string="Confirm" class="btn-primary" invisible="state != 'draft'" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
+                    <button name="action_create_picking" type="object" string="Create Outbound Picking" class="btn-primary" invisible="state != 'confirmed'" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
+                    <button name="action_open_picking" type="object" string="Open Outbound Picking" invisible="not picking_id" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
+                    <button name="action_done" type="object" string="Complete" class="btn-primary" invisible="state != 'picking'" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
+                    <button name="action_create_return_picking" type="object" string="Create Return Picking" invisible="state not in ('picking', 'done')" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
+                    <button name="action_return_to_draft" type="object" string="Return to Draft" invisible="state not in ('confirmed', 'picking', 'done')" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
+                    <button name="action_cancel" type="object" string="Cancel" invisible="state not in ('draft', 'confirmed', 'picking')" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,picking,done,cancel"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" required="1" readonly="1"/>
+                            <field name="work_package_id" required="1" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="category_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="location_line_ids" widget="many2many_tags" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                        </group>
+                        <group>
+                            <field name="picking_type_id" readonly="state not in ('draft', 'confirmed')" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="destination_location_id" readonly="state not in ('draft', 'confirmed')" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="picking_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="return_picking_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Clearance Lines">
+                            <field name="clearance_lines" readonly="1">
+                                <list create="false" edit="false" delete="false">
+                                    <field name="location_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="package_id" optional="hide" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="product_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="lot_id" optional="hide" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="owner_id" optional="hide" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="quantity"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes">
+                            <field name="note" readonly="state in ('done', 'cancel')"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_blind_stock_count_receipt_list" model="ir.ui.view">
+        <field name="name">blind.stock.count.receipt.list</field>
+        <field name="model">blind.stock.count.receipt</field>
+        <field name="arch" type="xml">
+            <list string="Blind Stock Count Receipt Orders" create="false">
+                <field name="name"/>
+                <field name="blind_stock_count_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="work_package_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="location_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="picking_type_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="picking_id" optional="hide" options="{'no_create': True, 'no_open': True}"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_blind_stock_count_receipt_form" model="ir.ui.view">
+        <field name="name">blind.stock.count.receipt.form</field>
+        <field name="model">blind.stock.count.receipt</field>
+        <field name="arch" type="xml">
+            <form string="Blind Stock Count Receipt Order" duplicate="false">
+                <header>
+                    <button name="action_confirm" type="object" string="Confirm" class="btn-primary" invisible="state != 'draft'" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
+                    <button name="action_create_picking" type="object" string="Create Inbound Picking" class="btn-primary" invisible="state != 'confirmed'" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
+                    <button name="action_open_picking" type="object" string="Open Inbound Picking" invisible="not picking_id" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
+                    <button name="action_done" type="object" string="Complete" class="btn-primary" invisible="state != 'picking'" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
+                    <button name="action_create_return_picking" type="object" string="Create Return Picking" invisible="state not in ('picking', 'done')" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
+                    <button name="action_return_to_draft" type="object" string="Return to Draft" invisible="state not in ('confirmed', 'picking', 'done')" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
+                    <button name="action_cancel" type="object" string="Cancel" invisible="state not in ('draft', 'confirmed', 'picking')" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,picking,done,cancel"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" required="1" readonly="1"/>
+                            <field name="blind_stock_count_id" required="1" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="work_package_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="clearance_id" required="1" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                        </group>
+                        <group>
+                            <field name="source_location_id" readonly="state not in ('draft', 'confirmed')" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="location_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="picking_type_id" readonly="state not in ('draft', 'confirmed')" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="picking_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="return_picking_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Receipt Lines">
+                            <field name="receipt_lines" readonly="1">
+                                <list create="false" edit="false" delete="false">
+                                    <field name="package_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="product_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="product_tracking" optional="hide"/>
+                                    <field name="lot_name"/>
+                                    <field name="matched_lot_id" optional="hide" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="lot_id" optional="hide" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="quantity"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes">
+                            <field name="note" readonly="state in ('done', 'cancel')"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_blind_stock_count_clearance" model="ir.actions.act_window">
+        <field name="name">Clearance Orders</field>
+        <field name="res_model">blind.stock.count.clearance</field>
+        <field name="view_mode">list,form</field>
+        <field name="groups_id" eval="[(6, 0, [ref('blind_stock_count.group_blind_stock_count_administrator'), ref('base.group_system')])]"/>
+    </record>
+
+    <record id="action_blind_stock_count_receipt" model="ir.actions.act_window">
+        <field name="name">Receipt Orders</field>
+        <field name="res_model">blind.stock.count.receipt</field>
+        <field name="view_mode">list,form</field>
+        <field name="groups_id" eval="[(6, 0, [ref('blind_stock_count.group_blind_stock_count_administrator'), ref('base.group_system')])]"/>
+    </record>
+
+    <record id="action_blind_stock_count_clearance_list_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_blind_stock_count_clearance_list"/>
+        <field name="act_window_id" ref="action_blind_stock_count_clearance"/>
+    </record>
+
+    <record id="action_blind_stock_count_clearance_form_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_blind_stock_count_clearance_form"/>
+        <field name="act_window_id" ref="action_blind_stock_count_clearance"/>
+    </record>
+
+    <record id="action_blind_stock_count_receipt_list_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_blind_stock_count_receipt_list"/>
+        <field name="act_window_id" ref="action_blind_stock_count_receipt"/>
+    </record>
+
+    <record id="action_blind_stock_count_receipt_form_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_blind_stock_count_receipt_form"/>
+        <field name="act_window_id" ref="action_blind_stock_count_receipt"/>
+    </record>
+
+    <menuitem id="menu_blind_stock_count_processing" name="Processing" parent="menu_blind_stock_count_root" sequence="14" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
+    <menuitem id="menu_blind_stock_count_clearance" name="Clearance Orders" parent="menu_blind_stock_count_processing" action="action_blind_stock_count_clearance" sequence="10"/>
+    <menuitem id="menu_blind_stock_count_receipt" name="Receipt Orders" parent="menu_blind_stock_count_processing" action="action_blind_stock_count_receipt" sequence="20"/>
+</odoo>

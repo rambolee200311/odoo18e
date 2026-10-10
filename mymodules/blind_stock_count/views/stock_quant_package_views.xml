@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_stock_quant_package_form_inherit_blind_stock_count" model="ir.ui.view">
+        <field name="name">stock.quant.package.form.inherit.blind.stock.count</field>
+        <field name="model">stock.quant.package</field>
+        <field name="inherit_id" ref="stock.view_quant_package_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form/header/button[@name='unpack']" position="after">
+                <button name="%(blind_stock_count.action_report_blind_stock_count_pallet_label)d" string="Print Blind Stock Count Label" type="action" class="btn-secondary"/>
+            </xpath>
+            <xpath expr="//field[@name='package_type_id']" position="after">
+                <field name="blind_stock_count_generation_type" readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_stock_quant_package_list_inherit_blind_stock_count" model="ir.ui.view">
+        <field name="name">stock.quant.package.list.inherit.blind.stock.count</field>
+        <field name="model">stock.quant.package</field>
+        <field name="inherit_id" ref="stock.view_quant_package_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list/field[1]" position="before">
+                <header>
+                    <button name="action_open_blind_stock_count_print_pallet_labels" string="Print Label Range" type="object" display="always"/>
+                    <button name="%(blind_stock_count.action_report_blind_stock_count_pallet_label)d" string="Print Blind Stock Count Labels" type="action"/>
+                </header>
+            </xpath>
+            <xpath expr="//list/field[@name='package_type_id']" position="after">
+                <field name="blind_stock_count_generation_type" readonly="1" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
