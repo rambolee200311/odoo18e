@@ -296,7 +296,7 @@ class Waybill(models.Model):
             if rec.ata:
                 rec.is_waybill_overdue = rec.ata > rec.eta
             else:
-                rec.is_waybill_overdue = rec.eta < today
+                rec.is_waybill_overdue = rec.eta + timedelta(days=3) < today
 
 
 
