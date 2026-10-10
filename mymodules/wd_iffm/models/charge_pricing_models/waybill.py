@@ -166,9 +166,12 @@ class Waybill(models.Model):
             if not rec.clearance_id:
                 continue
             max_charge_qty = max(rec.clearance_id.container_qty or 0, rec.clearance_hs_code_qty or 0, 1)
-            max_charge_lines = rec.clearance_charge_lines.filtered(lambda line: line.charge_item_id.charge_based_on_max and not line.is_fixed_fee)
+            max_charge_lines = rec.clearance_charge_lines.filtered(lambda line: line.charge_based_on_max and not line.is_fixed_fee)
+            if max_charge_qty <= 1:
+                rec.clearance_charge_lines -= max_charge_lines
+                continue
             for line in max_charge_lines:
-                line.qty = max(max_charge_qty - 1, 0)
+                line.qty = max_charge_qty - 1
             max_charge_lines.compute_amount_total()
 
     @api.depends("handover_lines.parent_id", "handover_lines.state", "handover_lines.payable_state", "handover_lines.receivable_state", "clearance_lines.parent_id", "clearance_lines.state", "clearance_lines.payable_state", "clearance_lines.receivable_state")

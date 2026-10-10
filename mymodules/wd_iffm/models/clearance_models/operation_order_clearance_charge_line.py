@@ -43,16 +43,23 @@ class OperationOrderClearanceChargeLine(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         env_clearance = self.env["operation.order.clearance"]
+        env_charge_item = self.env["world.depot.charge.item"]
         for vals in vals_list:
             clearance = env_clearance.browse(vals.get("clearance_id")).exists()
             if clearance and clearance.receivable_state == "confirmed":
                 raise ValidationError(_("Confirmed receivable charge lines cannot be changed."))
+            charge_item = env_charge_item.sudo().browse(vals.get("charge_item_id")).exists()
+            if clearance and charge_item and charge_item.charge_based_on_max and not vals.get("is_fixed_fee") and max(clearance.container_qty or 0, clearance.hs_code_qty or 0, 1) <= 1:
+                raise ValidationError(_("No additional quantity is available for this charge item."))
         return super().create(vals_list)
 
     def write(self, vals):
+        charge_item = self.env["world.depot.charge.item"].sudo().browse(vals.get("charge_item_id")).exists() if vals.get("charge_item_id") else False
         for rec in self:
             if rec.clearance_id.receivable_state == "confirmed":
                 raise ValidationError(_("Confirmed receivable charge lines cannot be changed."))
+            if charge_item and charge_item.charge_based_on_max and not vals.get("is_fixed_fee", rec.is_fixed_fee) and max(rec.clearance_id.container_qty or 0, rec.clearance_id.hs_code_qty or 0, 1) <= 1:
+                raise ValidationError(_("No additional quantity is available for this charge item."))
         return super().write(vals)
 
     def unlink(self):
@@ -79,7 +86,8 @@ class OperationOrderClearanceChargeLine(models.Model):
                 rec.qty = 1.0
                 continue
             if rec.charge_item_id.charge_based_on_max:
-                max_charge_qty = max(rec.clearance_id.container_qty or 0, rec.clearance_id.hs_code_qty or 0, 1)
+                hs_code_qty = rec.env.context.get("clearance_hs_code_qty", rec.clearance_id.hs_code_qty)
+                max_charge_qty = max(rec.clearance_id.container_qty or 0, hs_code_qty or 0, 1)
                 rec.qty = max(max_charge_qty - 1, 0)
                 rec.compute_amount_total()
 
@@ -100,6 +108,9 @@ class OperationOrderClearanceChargeLine(models.Model):
         for rec in self:
             if not rec.charge_item_id or not rec.clearance_id:
                 continue
+            hs_code_qty = rec.env.context.get("clearance_hs_code_qty", rec.clearance_id.hs_code_qty)
+            if rec.charge_item_id.charge_based_on_max and not rec.is_fixed_fee and max(rec.clearance_id.container_qty or 0, hs_code_qty or 0, 1) <= 1:
+                raise ValidationError(_("No additional quantity is available for this charge item."))
             all_lines = rec.clearance_id.charge_line_ids
             other_lines = []
             for line in all_lines:
