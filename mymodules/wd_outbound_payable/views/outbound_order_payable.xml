@@ -79,6 +79,10 @@
 <!--                    <field name="receivable_confirm_time" readonly="1"/>-->
                 </group>
             </xpath>
+            <xpath expr="//field[@name='outbound_order_charge_ids']" position="before">
+                <field name="statement_period_id" invisible="1" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                <field name="statement_period_id_state" invisible="1" readonly="1"/>
+            </xpath>
             <xpath expr="//field[@name='outbound_order_charge_ids']" position="attributes">
                 <attribute name="readonly">state == 'cancel' or receivable_state == 'confirmed'</attribute>
             </xpath>

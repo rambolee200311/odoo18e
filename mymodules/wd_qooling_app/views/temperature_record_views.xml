@@ -50,37 +50,37 @@
                             invisible="state not in ('submitted', 'exception_pending', 'closed')"
                             groups="wd_qooling_app.group_temperature_supervisor"/>
                     <field name="state" widget="statusbar"
-                           statusbar_visible="draft,submitted,exception_pending,closed"/>
+                           statusbar_visible="draft,submitted,exception_pending,closed" readonly="1"/>
                 </header>
                 <sheet>
                     <div class="oe_title"><h1><field name="name" readonly="1"/></h1></div>
                     <group>
                         <group>
-                            <field name="date"/>
-                            <field name="manager_id"/>
-                            <field name="customer"/>
-                            <field name="container_number"/>
-                            <field name="location_id"/>
+                            <field name="date" readonly="state != 'draft'"/>
+                            <field name="manager_id" readonly="state != 'draft'"/>
+                            <field name="customer" readonly="state != 'draft'"/>
+                            <field name="container_number" readonly="state != 'draft'"/>
+                            <field name="location_id" readonly="state != 'draft'"/>
                         </group>
                         <group>
-                            <field name="filled_in_by_id"/>
-                            <field name="filing_date"/>
+                            <field name="filled_in_by_id" readonly="1"/>
+                            <field name="filing_date" readonly="state != 'draft'"/>
                             <field name="total_pallets" readonly="1"/>
                         </group>
                     </group>
                     <notebook>
                         <page string="Pallet Temperatures">
                             <group string="Quick temperature entry">
-                                <field name="quick_temperature"
+                                <field name="quick_temperature" readonly="state != 'draft'"
                                        widget="qooling_temperature_quick_entry"
                                        placeholder="Enter temperature and press Enter"/>
-                                <button name="action_add_quick_temperature" type="object"
-                                        string="Add temperature" class="btn-primary"/>
+                            <button name="action_add_quick_temperature" type="object"
+                                    string="Add temperature" class="btn-primary" invisible="state != 'draft'"/>
                             </group>
                             <button name="action_clear_lines" type="object"
-                                    string="Clear all pallets" class="btn-secondary"
+                                    string="Clear all pallets" class="btn-secondary" invisible="state != 'draft'"
                                     confirm="Clear all pallet lines?"/>
-                            <field name="line_ids">
+                            <field name="line_ids" readonly="state != 'draft'">
                                 <list editable="bottom" create="1" delete="0">
                                     <field name="pallet_number" readonly="1"/>
                                     <field name="temperature"/>
@@ -89,16 +89,16 @@
                         </page>
                         <page string="Checks and Evidence">
                             <group>
-                                <field name="packaging_damage"/>
-                                <field name="unpacked_housing_damage"/>
-                                <field name="electrolyte_leakage"/>
-                                <field name="storage_stability"/>
+                                <field name="packaging_damage" readonly="state != 'draft'"/>
+                                <field name="unpacked_housing_damage" readonly="state != 'draft'"/>
+                                <field name="electrolyte_leakage" readonly="state != 'draft'"/>
+                                <field name="storage_stability" readonly="state != 'draft'"/>
                             </group>
                             <group>
                                 <field name="photo_ids" widget="attachment_preview" readonly="state != 'draft'"
                                        options="{'accepted_file_extensions': 'image/*,video/*', 'number_of_files': 20, 'auto_create': True}"/>
-                                <field name="comments"/>
-                                <field name="signature" widget="qooling_signature"/>
+                                <field name="comments" readonly="state != 'draft'"/>
+                                <field name="signature" widget="qooling_signature" readonly="state != 'draft'"/>
                                 <field name="signer_id" readonly="1"/>
                                 <field name="signature_time" readonly="1"/>
                             </group>

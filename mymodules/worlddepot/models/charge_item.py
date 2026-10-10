@@ -22,6 +22,6 @@ class ChargeItem(models.Model):
     def _compute_full_item_name(self):
         for record in self:
             if record.parent_id:
-                record.full_item_name = f"{record.parent_id.full_item_name} / {record.item_name}"
+                record.full_item_name = f"{record.item_name} / {record.parent_id.full_item_name}"
             else:
                 record.full_item_name = record.item_name

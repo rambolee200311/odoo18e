@@ -507,6 +507,25 @@ class OperationOrderHandoverInvoiceLine(models.Model):
                                          default=lambda self: self.default_payment_company_id(), index=True)
     receipt_company_id = fields.Many2one("res.partner", string="Receipt Company", index=True)
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        records.bind_unlinked_attachments()
+        return records
+
+    def write(self, vals):
+        result = super().write(vals)
+        if {"vendor_invoice_attachment_ids", "bank_proof_attachment_ids"} & vals.keys():
+            self.bind_unlinked_attachments()
+        return result
+
+    def bind_unlinked_attachments(self):
+        for rec in self:
+            attachments = rec.vendor_invoice_attachment_ids | rec.bank_proof_attachment_ids
+            attachments_to_bind = attachments.filtered(lambda attachment: attachment.res_model in (False, rec._name) and not attachment.res_id)
+            if attachments_to_bind:
+                attachments_to_bind.write({"res_model": rec._name, "res_id": rec.id})
+
     @api.model
     def default_payment_company_id(self):
         handover_id = self.env.context.get("default_handover_id")

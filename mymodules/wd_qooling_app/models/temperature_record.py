@@ -1,6 +1,8 @@
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
+from .media_evidence import QOOLING_STATE_TRANSITION
+
 
 CHECK_SELECTION = [("yes", "Ja"), ("no", "Nee")]
 
@@ -96,7 +98,7 @@ class QoolingTemperatureRecord(models.Model):
         for record in self:
             if not record.signature:
                 raise UserError(_("A handwritten signature is required before submission."))
-            record.write({
+            record.with_context(qooling_state_transition=QOOLING_STATE_TRANSITION).write({
                 "state": "submitted",
                 "signer_id": record.signer_id.id or self.env.uid,
                 "signature_time": record.signature_time or fields.Datetime.now(),
@@ -130,17 +132,17 @@ class QoolingTemperatureRecord(models.Model):
 
     def action_mark_exception(self):
         self._check_supervisor()
-        self.write({"state": "exception_pending"})
+        self.with_context(qooling_state_transition=QOOLING_STATE_TRANSITION).write({"state": "exception_pending"})
         return True
 
     def action_close(self):
         self._check_supervisor()
-        self.write({"state": "closed"})
+        self.with_context(qooling_state_transition=QOOLING_STATE_TRANSITION).write({"state": "closed"})
         return True
 
     def action_reset_to_draft(self):
         self._check_supervisor()
-        self.write({"state": "draft"})
+        self.with_context(qooling_state_transition=QOOLING_STATE_TRANSITION).write({"state": "draft"})
         return True
 
 

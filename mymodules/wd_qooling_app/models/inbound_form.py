@@ -1,6 +1,8 @@
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
+from .media_evidence import QOOLING_STATE_TRANSITION
+
 
 class QoolingInboundForm(models.Model):
     _name = "wd.qooling.inbound.form"
@@ -28,6 +30,7 @@ class QoolingInboundForm(models.Model):
     location_id = fields.Many2one("stock.warehouse", string="Location", required=True)
     date = fields.Date(string="Date", required=True, default=fields.Date.context_today)
     supervisor_id = fields.Many2one("res.users", string="Supervisor", required=True)
+    warehouse_operator_id = fields.Many2one("res.users", string="Warehouse operator")
     ref_no = fields.Char(string="Business Reference")
     goods_status = fields.Selection(
         [
@@ -49,9 +52,10 @@ class QoolingInboundForm(models.Model):
     seal_number = fields.Char(string="Seal Number")
     skal_bio_product = fields.Selection(
         [("yes", "Yes"), ("no", "No")],
-        string="SKAL / BIO Product",
+        string="SKAL (Bio Product)",
     )
-    bl_number = fields.Char(string="B/L")
+    bl_number = fields.Char(string="B/L (Bill of Loading)")
+    bl_required = fields.Selection([("required", "Required"), ("not_required", "Not required")], string="B/L required?")
     container_shipment_number = fields.Char(string="Container Number / Shipment Number")
     filled_in_by_id = fields.Many2one(
         "res.users",
@@ -118,6 +122,8 @@ class QoolingInboundForm(models.Model):
         string="Temperature of each pallet is registered",
     )
     average_temperature_per_pallet = fields.Float(string="Average temperature per pallet (°C)")
+    amount_of_pallets = fields.Integer(string="Amount of pallets")
+    amount_of_cartons = fields.Integer(string="Amount of cartons")
     photo = fields.Binary(string="Photo", attachment=True)
     photo_ids = fields.Many2many(
         "ir.attachment",
@@ -154,6 +160,12 @@ class QoolingInboundForm(models.Model):
             if record.state == "submitted" and not record.warehouse_signature:
                 raise ValidationError(_("A handwritten warehouse signature is required before submission."))
 
+    @api.constrains("bl_required", "bl_number")
+    def check_bl_number(self):
+        for record in self:
+            if record.bl_required == "required" and not record.bl_number:
+                raise ValidationError(_("B/L number is required when B/L is required."))
+
     def action_sign(self, signature=None):
         self.ensure_one()
         if signature:
@@ -173,7 +185,7 @@ class QoolingInboundForm(models.Model):
                 or not record.pallet_temperature_registered
             ):
                 raise UserError(_("UN Number and temperature fields are required when ADR is Yes."))
-            record.write({
+            record.with_context(qooling_state_transition=QOOLING_STATE_TRANSITION).write({
                 "state": "submitted",
                 "signer_id": record.signer_id.id or self.env.user.id,
                 "signature_time": record.signature_time or fields.Datetime.now(),
@@ -183,5 +195,8 @@ class QoolingInboundForm(models.Model):
         return True
 
     def action_reset_to_draft(self):
-        self.write({"state": "draft"})
+        for record in self:
+            if not self.env.user.has_group("wd_qooling_app.group_qooling_inbound_reviewer") and not self.env.user.has_group("base.group_system"):
+                raise UserError(_("Only an Inbound reviewer can perform this action."))
+            record.with_context(qooling_state_transition=QOOLING_STATE_TRANSITION).write({"state": "draft"})
         return True

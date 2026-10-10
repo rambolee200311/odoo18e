@@ -25,6 +25,7 @@ class OperationOrderClearanceChargeLine(models.Model):
     currency_id = fields.Many2one("res.currency", string="Currency", related="clearance_id.quotation_id.currency_id", store=True, readonly=True, index=True)
 
     charge_item_id = fields.Many2one("world.depot.charge.item", string="Charge Item", tracking=True)
+    charge_based_on_max = fields.Boolean(related="charge_item_id.charge_based_on_max", string="Charge Based on Max Quantity", store=True)
     quotation_tab_category = fields.Selection(TAB_CATEGORY_LIST, related="charge_item_id.tab_category", string="Tab Category", tracking=True)
     charge_item_operation_type = fields.Selection(OPERATION_TYPE, string="Operation Type", related="charge_item_id.operation_type", store=True, index=True)
     is_fixed_fee = fields.Boolean(string="Fixed Fee", default=False, index=True)
@@ -78,8 +79,9 @@ class OperationOrderClearanceChargeLine(models.Model):
                 rec.qty = 1.0
                 continue
             if rec.charge_item_id.charge_based_on_max:
-                rec.qty = rec.charge_qty
-                #rec.qty = rec.charge_qty or 1.0
+                max_charge_qty = max(rec.clearance_id.container_qty or 0, rec.clearance_id.hs_code_qty or 0, 1)
+                rec.qty = max(max_charge_qty - 1, 0)
+                rec.compute_amount_total()
 
     @api.depends("qty", "unit_price",'charge_item_id', "is_fixed_fee")
     def compute_amount_total(self):
@@ -88,8 +90,8 @@ class OperationOrderClearanceChargeLine(models.Model):
                 rec.amount_total = rec.unit_price or 0.0
                 continue
             if rec.charge_item_id.charge_based_on_max:
-                rec.amount_total = ((rec.qty or 0) - 1) * (rec.unit_price or 0.0)
-                rec.remark = "Maximum charge (qty-1)*unit price"
+                rec.amount_total = (rec.qty or 0.0) * (rec.unit_price or 0.0)
+                rec.remark = "Maximum charge qty * unit price"
             else:
                 rec.amount_total = (rec.qty or 0.0) * (rec.unit_price or 0.0)
 

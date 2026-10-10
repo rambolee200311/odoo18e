@@ -1,6 +1,8 @@
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError, ValidationError
 
+from .media_evidence import QOOLING_STATE_TRANSITION
+
 
 class QoolingOutboundForm(models.Model):
     _name = "wd.qooling.outbound.form"
@@ -150,7 +152,9 @@ class QoolingOutboundForm(models.Model):
         for record in self:
             if record.date_arrival > record.start_loading_at or record.start_loading_at > record.end_loading_at:
                 raise UserError(_("Arrival, start loading, and end loading times must be in chronological order."))
-            record.write({
+            if not record.driver_signature or not record.warehouse_signature:
+                raise UserError(_("Both driver and warehouse operator signatures are required before submission."))
+            record.with_context(qooling_state_transition=QOOLING_STATE_TRANSITION).write({
                 "state": "submitted",
                 "driver_signer_id": record.driver_signer_id.id or self.env.uid if record.driver_signature else False,
                 "driver_signature_time": record.driver_signature_time or fields.Datetime.now() if record.driver_signature else False,
@@ -163,17 +167,17 @@ class QoolingOutboundForm(models.Model):
 
     def action_reset_to_draft(self):
         self._check_reviewer()
-        self.write({"state": "draft"})
+        self.with_context(qooling_state_transition=QOOLING_STATE_TRANSITION).write({"state": "draft"})
         return True
 
     def action_mark_exception(self):
         self._check_reviewer()
-        self.write({"state": "exception_pending"})
+        self.with_context(qooling_state_transition=QOOLING_STATE_TRANSITION).write({"state": "exception_pending"})
         return True
 
     def action_close(self):
         self._check_reviewer()
-        self.write({"state": "closed"})
+        self.with_context(qooling_state_transition=QOOLING_STATE_TRANSITION).write({"state": "closed"})
         return True
 
     def _check_reviewer(self):

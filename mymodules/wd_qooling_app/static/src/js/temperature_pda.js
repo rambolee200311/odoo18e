@@ -1,34 +1,27 @@
 /** @odoo-module **/
 
-import { Component, onPatched, onWillStart, onWillUnmount, useRef, useState } from "@odoo/owl";
+import { Component, onMounted, onWillStart, useRef, useState } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
+import { useFileUploader } from "@web/core/utils/files";
 import { _t } from "@web/core/l10n/translation";
 import { ImagePreviewComponent } from "@wd_attachment_preview/components/image_preview_component";
 
 const MAX_MEDIA_COUNT = 20;
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
 const MAX_VIDEO_SIZE = 100 * 1024 * 1024;
-const SWIPE_MIN_DISTANCE = 40;
 
 function getMediaError(file, currentCount) {
     if (currentCount >= MAX_MEDIA_COUNT) {
-        return `A record can contain at most ${MAX_MEDIA_COUNT} media files.`;
+        return _t("A record can contain at most 20 media files.");
     }
     if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
         return _t("Only image and video files can be uploaded.");
     }
     const limit = file.type.startsWith("video/") ? MAX_VIDEO_SIZE : MAX_IMAGE_SIZE;
-    return file.size > limit ? `This file exceeds the ${limit / (1024 * 1024)} MB limit.` : "";
+    return file.size > limit ? _t("This file exceeds the allowed size limit.") : "";
 }
 
-const STEPS = [
-    { key: "details", label: _t("Details") },
-    { key: "temperatures", label: _t("Pallet temperatures") },
-    { key: "checks", label: _t("Checks") },
-    { key: "evidence", label: _t("Evidence") },
-    { key: "signature", label: _t("Signature") },
-];
 const CHECKS = [
     ["packaging_damage", _t("Packaging visible damage")],
     ["unpacked_housing_damage", _t("Unpackaged housing damage")],
@@ -54,12 +47,13 @@ export class QoolingTemperaturePda extends Component {
         this.orm = useService("orm");
         this.notification = useService("notification");
         this.action = useService("action");
+        this.uploadFiles = useFileUploader();
         this.canvas = useRef("signatureCanvas");
-        this.stepsNav = useRef("stepsNav");
+        const localNow = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString();
         this.state = useState({
-            record: { date: new Date().toISOString().slice(0, 16), filing_date: new Date().toISOString().slice(0, 10) },
-            warehouses: [], users: [], recordId: null, readOnly: false, lines: [], photos: [], step: 0,
-            busy: false, error: "", saved: "", preview: false, quickTemperature: "",
+            record: { date: localNow.slice(0, 16), filing_date: localNow.slice(0, 10) },
+            warehouses: [], users: [], recordId: null, readOnly: false, lines: [], photos: [],
+            busy: false, error: "", saved: "", quickTemperature: "",
         });
         onWillStart(async () => {
             [this.state.warehouses, this.state.users] = await Promise.all([
@@ -68,18 +62,8 @@ export class QoolingTemperaturePda extends Component {
             ]);
             await this.loadDraft();
         });
-        onPatched(() => {
-            if (this.lastScrolledStep !== this.state.step) {
-                this.lastScrolledStep = this.state.step;
-                this.stepsNav.el?.querySelector("button.active")?.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
-            }
-            if (this.state.step === 4 && this.canvas.el && !this.signatureContext) this.setupCanvas();
-            if (this.state.step !== 4) this.teardownCanvas();
-        });
-        onWillUnmount(() => this.teardownCanvas());
+        onMounted(() => this.setupCanvas());
     }
-
-    get steps() { return STEPS; }
 
     get checks() { return CHECKS; }
 
@@ -95,12 +79,15 @@ export class QoolingTemperaturePda extends Component {
         const id = Number(contextId || storedId);
         if (!id) return;
         const [record] = await this.orm.read("wd.qooling.temperature.record", [id], RECORD_FIELDS);
-        if (!record || !["draft", "submitted"].includes(record.state)) {
+        if (!record || !["draft", "submitted", "exception_pending", "closed"].includes(record.state)) {
             sessionStorage.removeItem(DRAFT_STORAGE_KEY);
             return;
         }
         for (const field of ["manager_id", "location_id"]) record[field] = record[field]?.[0] || false;
-        record.date = record.date?.replace(" ", "T").slice(0, 16);
+        if (record.date) {
+            const datetime = new Date(`${record.date.replace(" ", "T")}Z`);
+            record.date = new Date(datetime.getTime() - datetime.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+        }
         this.state.recordId = record.id;
         this.state.readOnly = record.state !== "draft";
         Object.assign(this.state.record, record);
@@ -123,21 +110,21 @@ export class QoolingTemperaturePda extends Component {
         const field = event.target.dataset.field;
         let value = event.target.type === "checkbox" ? event.target.checked : event.target.value;
         if (["manager_id", "location_id"].includes(field)) value = Number(value);
-        if (event.target.type === "datetime-local") value = value.replace("T", " ");
         this.setValue(field, value);
     }
 
     validateRequired() {
         const fields = [["date", "Date"], ["manager_id", "Manager"], ["customer", "Customer"], ["container_number", "Container number"]];
         const missing = fields.find(([name]) => !this.state.record[name]);
-        if (missing) { this.state.error = `${missing[1]} is required before saving.`; return false; }
+        if (missing) { this.state.error = _t("Complete all required fields before saving."); return false; }
         return true;
     }
 
     async persist() {
         if (this.isReadOnly) return;
         const values = { ...this.state.record };
-        if (values.date) values.date = values.date.replace("T", " ");
+        delete values.state;
+        if (values.date) values.date = new Date(values.date).toISOString().slice(0, 19).replace("T", " ");
         if (this.state.recordId) await this.orm.write("wd.qooling.temperature.record", [this.state.recordId], values);
         else {
             [this.state.recordId] = await this.orm.create("wd.qooling.temperature.record", [values]);
@@ -150,52 +137,34 @@ export class QoolingTemperaturePda extends Component {
 
     async save() {
         if (this.isReadOnly) return;
+        this.state.saved = "";
         if (!this.validateRequired()) return;
         this.state.busy = true; this.state.error = "";
         try {
             await this.persist();
-            this.state.saved = "Draft saved";
-            this.notification.add("Temperature draft saved.", { type: "success" });
+            this.state.saved = _t("Draft saved");
+            this.notification.add(_t("Temperature draft saved."), { type: "success" });
         } catch (error) {
-            this.state.error = error.data?.message || error.message || "Could not save the draft.";
+            this.state.error = error.data?.message || error.message || _t("Could not save the draft.");
         } finally { this.state.busy = false; }
     }
 
     async submit() {
         if (this.isReadOnly) return;
+        this.state.saved = "";
         if (!this.validateRequired()) return;
-        if (!this.state.record.signature) { this.state.error = "Signature is required before submission."; return; }
+        if (!this.state.record.signature) { this.state.error = _t("Signature is required before submission."); return; }
         this.state.busy = true; this.state.error = "";
         try {
             await this.persist();
             await this.orm.call("wd.qooling.temperature.record", "action_submit", [[this.state.recordId]]);
             sessionStorage.removeItem(DRAFT_STORAGE_KEY);
             this.state.record.state = "submitted";
-            this.state.saved = "Submitted";
-            this.notification.add("Temperature record submitted.", { type: "success" });
+            this.state.saved = _t("Submitted");
+            this.notification.add(_t("Temperature record submitted."), { type: "success" });
         } catch (error) {
-            this.state.error = error.data?.message || error.message || "Could not submit the record.";
+            this.state.error = error.data?.message || error.message || _t("Could not submit the record.");
         } finally { this.state.busy = false; }
-    }
-
-    previous() { this.state.step = Math.max(0, this.state.step - 1); }
-    next() { this.state.step = Math.min(STEPS.length - 1, this.state.step + 1); }
-
-    onSwipeStart(event) {
-        if (event.pointerType !== "touch" || event.target.closest("input, textarea, select, button, a, canvas, video")) {
-            return;
-        }
-        this.swipeStart = { x: event.clientX, y: event.clientY };
-    }
-
-    onSwipeEnd(event) {
-        const swipeStart = this.swipeStart;
-        this.swipeStart = null;
-        if (!swipeStart || event.type === "pointercancel") return;
-        const offsetX = event.clientX - swipeStart.x;
-        const offsetY = event.clientY - swipeStart.y;
-        if (Math.abs(offsetX) < SWIPE_MIN_DISTANCE || Math.abs(offsetX) <= Math.abs(offsetY)) return;
-        if (offsetX < 0) this.next(); else this.previous();
     }
 
     openWebForm() {
@@ -214,7 +183,7 @@ export class QoolingTemperaturePda extends Component {
         if (this.isReadOnly) return;
         if (event) event.preventDefault();
         const value = Number(this.state.quickTemperature);
-        if (!Number.isFinite(value)) { this.state.error = "Enter a valid temperature."; return; }
+        if (this.state.quickTemperature === "" || !Number.isFinite(value)) { this.state.error = _t("Enter a valid temperature."); return; }
         try {
             if (!this.state.recordId) {
                 if (!this.validateRequired()) return;
@@ -227,7 +196,7 @@ export class QoolingTemperaturePda extends Component {
             this.state.quickTemperature = "";
             await this.loadLines();
         } catch (error) {
-            this.state.error = error.data?.message || error.message || "Could not add the temperature.";
+            this.state.error = error.data?.message || error.message || _t("Could not add the temperature.");
         }
     }
 
@@ -238,68 +207,68 @@ export class QoolingTemperaturePda extends Component {
             });
             await this.loadLines();
         } catch (error) {
-            this.state.error = error.data?.message || error.message || "Could not update the temperature.";
+            this.state.error = error.data?.message || error.message || _t("Could not update the temperature.");
         }
     }
 
     async clearAll() {
         if (this.isReadOnly) return;
-        if (!this.state.recordId || !confirm("Clear all pallet temperatures?")) return;
+        if (!this.state.recordId || !confirm(_t("Clear all pallet temperatures?"))) return;
         try {
             await this.orm.call("wd.qooling.temperature.record", "action_clear_lines", [[this.state.recordId]]);
             await this.loadLines();
         } catch (error) {
-            this.state.error = error.data?.message || error.message || "Could not clear pallet temperatures.";
+            this.state.error = error.data?.message || error.message || _t("Could not clear pallet temperatures.");
         }
     }
 
     async onPhoto(event) {
+        if (this.state.busy) return;
         if (!event.target.files.length) { event.target.value = ""; return; }
+        this.state.saved = "";
         if (!this.state.recordId) {
             await this.save();
             if (!this.state.recordId) { event.target.value = ""; return; }
+            this.state.saved = "";
         }
         if (this.state.record.state !== "draft") {
-            this.state.error = "Media evidence can only be changed while the record is a draft.";
+            this.state.error = _t("Media evidence can only be changed while the record is a draft.");
             event.target.value = ""; return;
         }
         let currentCount = this.state.photos.length;
+        const files = [];
         for (const file of event.target.files) {
             const mediaError = getMediaError(file, currentCount);
             if (mediaError) { this.state.error = mediaError; continue; }
             currentCount += 1;
-            const reader = new FileReader();
-            reader.onload = async () => {
-                try {
-                    const [attachmentId] = await this.orm.create("ir.attachment", [{
-                        name: file.name, datas: reader.result.split(",")[1], mimetype: file.type,
-                        res_model: "wd.qooling.temperature.record", res_id: this.state.recordId,
-                    }]);
-                    await this.orm.write("wd.qooling.temperature.record", [this.state.recordId], { photo_ids: [[4, attachmentId]] });
-                    await this.loadPhotos();
-                } catch (error) {
-                    this.state.error = error.data?.message || error.message || "Could not upload the media.";
-                }
-            };
-            reader.readAsDataURL(file);
+            files.push(file);
         }
         event.target.value = "";
-    }
-
-    isVideo(photo) {
-        return photo?.mimetype?.startsWith("video/");
-    }
-
-    getPreviewPhoto() {
-        return this.state.photos.find((photo) => photo.id === this.state.preview);
+        if (!files.length) return;
+        this.state.busy = true;
+        try {
+            const uploadedFiles = await this.uploadFiles("/web/binary/upload_attachment", {
+                csrf_token: odoo.csrf_token, ufile: files, model: "wd.qooling.temperature.record", id: this.state.recordId,
+            });
+            const uploadError = uploadedFiles?.find((file) => file.error)?.error;
+            if (uploadError) throw new Error(uploadError);
+            const photoIds = uploadedFiles?.map((file) => file.id).filter(Boolean) || [];
+            if (!photoIds.length) throw new Error(_t("Could not upload the media."));
+            await this.orm.write("wd.qooling.temperature.record", [this.state.recordId], { photo_ids: photoIds.map((id) => [4, id]) });
+            await this.loadPhotos();
+        } catch (error) {
+            this.state.error = error.data?.message || error.message || _t("Could not upload the media.");
+        } finally {
+            this.state.busy = false;
+        }
     }
 
     async loadPhotos() {
         if (!this.state.recordId) { this.state.photos = []; return; }
-        this.state.photos = await this.orm.searchRead("ir.attachment", [
-            ["res_model", "=", "wd.qooling.temperature.record"], ["res_id", "=", this.state.recordId],
-            ["res_field", "=", false],
-        ], ["name", "mimetype"]);
+        const [record] = await this.orm.read("wd.qooling.temperature.record", [this.state.recordId], ["photo_ids"]);
+        this.state.photos = record?.photo_ids.length
+            ? await this.orm.read("ir.attachment", record.photo_ids, ["name", "mimetype"])
+            : [];
     }
 
     async deletePhoto(id) {
@@ -309,12 +278,13 @@ export class QoolingTemperaturePda extends Component {
             await this.orm.unlink("ir.attachment", [id]);
             await this.loadPhotos();
         } catch (error) {
-            this.state.error = error.data?.message || error.message || "Could not delete the photo.";
+            this.state.error = error.data?.message || error.message || _t("Could not delete the photo.");
         }
     }
 
     setupCanvas() {
         const canvas = this.canvas.el;
+        if (!canvas) return;
         canvas.width = canvas.clientWidth || 500; canvas.height = 160;
         this.signatureContext = canvas.getContext("2d");
         this.signatureContext.lineWidth = 2; this.signatureContext.lineCap = "round";
@@ -359,8 +329,6 @@ export class QoolingTemperaturePda extends Component {
         if (this.signatureContext && this.canvas.el) this.signatureContext.clearRect(0, 0, this.canvas.el.width, this.canvas.el.height);
         this.setValue("signature", false);
     }
-
-    teardownCanvas() { this.signatureContext = null; this.drawing = false; }
 }
 
 registry.category("actions").add("wd_qooling_temperature_pda", QoolingTemperaturePda);

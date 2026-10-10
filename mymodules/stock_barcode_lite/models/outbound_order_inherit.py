@@ -71,34 +71,36 @@ class OutboundOrderInherit(models.Model):
             if rec.project.name != "SUNRISE":
                 continue
 
+            is_manual = rec.creation_source == "manual"
             missing_fields = []
             if not rec.p_date:
                 missing_fields.append(rec._fields["p_date"].string)
-            if not rec.vsourcebillcode:
-                missing_fields.append(rec._fields["vsourcebillcode"].string)
-            if not rec.cwarehouseid:
-                missing_fields.append(rec._fields["cwarehouseid"].string)
-            if not rec.ccustomerid:
-                missing_fields.append(rec._fields["ccustomerid"].string)
-            if not rec.u8c_delivery_method:
-                missing_fields.append(rec._fields["u8c_delivery_method"].string)
-            if rec.u8c_delivery_method == "pickup" and not rec.load_ref:
-                missing_fields.append(rec._fields["load_ref"].string)
-            if not rec.unload_company:
-                missing_fields.append(rec._fields["unload_company"].string)
-            if not rec.consignee_id:
-                missing_fields.append(rec._fields["consignee_id"].string)
-            if not rec.delivery_street:
-                missing_fields.append(rec._fields["delivery_street"].string)
-            if not rec.delivery_phone:
-                missing_fields.append(rec._fields["delivery_phone"].string)
-            if rec.u8c_delivery_method == "pickup" and not rec.time_slot:
-                missing_fields.append(rec._fields["time_slot"].string)
+            if not is_manual:
+                if not rec.vsourcebillcode:
+                    missing_fields.append(rec._fields["vsourcebillcode"].string)
+                if not rec.cwarehouseid:
+                    missing_fields.append(rec._fields["cwarehouseid"].string)
+                if not rec.ccustomerid:
+                    missing_fields.append(rec._fields["ccustomerid"].string)
+                if not rec.u8c_delivery_method:
+                    missing_fields.append(rec._fields["u8c_delivery_method"].string)
+                if rec.u8c_delivery_method == "pickup" and not rec.load_ref:
+                    missing_fields.append(rec._fields["load_ref"].string)
+                if not rec.unload_company:
+                    missing_fields.append(rec._fields["unload_company"].string)
+                if not rec.consignee_id:
+                    missing_fields.append(rec._fields["consignee_id"].string)
+                if not rec.delivery_street:
+                    missing_fields.append(rec._fields["delivery_street"].string)
+                if not rec.delivery_phone:
+                    missing_fields.append(rec._fields["delivery_phone"].string)
+                if rec.u8c_delivery_method == "pickup" and not rec.time_slot:
+                    missing_fields.append(rec._fields["time_slot"].string)
 
             if missing_fields:
                 raise UserError(_("Sunrise outbound order %s is missing required fields: %s") % (rec.reference or rec.billno or rec.id, ", ".join(missing_fields)))
 
-            if rec.u8c_delivery_method not in ("pickup", "wd"):
+            if not is_manual and rec.u8c_delivery_method not in ("pickup", "wd"):
                 raise UserError(_("Sunrise outbound order %s u8c_delivery_method must be pickup or wd.") % (rec.reference or rec.billno or rec.id))
 
             if not rec.outbound_order_product_ids:
@@ -116,20 +118,22 @@ class OutboundOrderInherit(models.Model):
                     line_missing_fields.append(line._fields["pallet_no"].string)
                 if not line.package_id:
                     line_missing_fields.append(line._fields["package_id"].string)
-                if not line.cprojectid:
-                    line_missing_fields.append(line._fields["cprojectid"].string)
-                if not line.vsourcebillcode:
-                    line_missing_fields.append(line._fields["vsourcebillcode"].string)
-                if not line.vsourcerowno:
-                    line_missing_fields.append(line._fields["vsourcerowno"].string)
-                if not line.cspaceid:
-                    line_missing_fields.append(line._fields["cspaceid"].string)
+                if not is_manual:
+                    if not line.cprojectid:
+                        line_missing_fields.append(line._fields["cprojectid"].string)
+                    if not line.vsourcebillcode:
+                        line_missing_fields.append(line._fields["vsourcebillcode"].string)
+                    if not line.vsourcerowno:
+                        line_missing_fields.append(line._fields["vsourcerowno"].string)
+                    if not line.cspaceid:
+                        line_missing_fields.append(line._fields["cspaceid"].string)
                 if not line.box_type:
                     line_missing_fields.append(line._fields["box_type"].string)
-                if not line.castunitid:
-                    line_missing_fields.append(line._fields["castunitid"].string)
-                if not line.u8_aux_uom_name:
-                    line_missing_fields.append(line._fields["u8_aux_uom_name"].string)
+                if not is_manual:
+                    if not line.castunitid:
+                        line_missing_fields.append(line._fields["castunitid"].string)
+                    if not line.u8_aux_uom_name:
+                        line_missing_fields.append(line._fields["u8_aux_uom_name"].string)
                 if not line.is_lot:
                     line_missing_fields.append(line._fields["is_lot"].string)
                 if line.is_lot == "Y" and not line.lot_name:
@@ -138,11 +142,15 @@ class OutboundOrderInherit(models.Model):
                 if line_missing_fields:
                     raise UserError(_("%s is missing required fields: %s") % (line_name, ", ".join(line_missing_fields)))
 
-                if line.vsourcebillcode != rec.vsourcebillcode:
+                if not is_manual and line.vsourcebillcode != rec.vsourcebillcode:
                     raise UserError(_("%s vsourcebillcode must equal outbound order vsourcebillcode.") % line_name)
 
                 if line.box_type not in ("full", "partial", "bulk"):
                     raise UserError(_("%s box_type must be full, partial, or bulk.") % line_name)
+                if is_manual:
+                    if line.quantity <= 0:
+                        raise UserError(_("%s quantity must be greater than 0.") % line_name)
+                    continue
                 if line.box_qty <= 0:
                     raise UserError(_("%s box_qty must be greater than 0.") % line_name)
                 if line.box_type in ("full", "partial") and not math.isclose(
