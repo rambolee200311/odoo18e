@@ -2,24 +2,18 @@
 
 import { BaseBarcodePage } from "./base_barcode_page";
 import { _t } from "@web/core/l10n/translation";
+import { standardActionServiceProps } from "@web/webclient/actions/action_service";
 
 class InternalTransfer extends BaseBarcodePage {
     static template = "stock_barcode_lite.InternalTransferPage";
-    static props = {};
+    static props = { ...standardActionServiceProps };
 
-    _bindVisibilityChange() {
-        this._onVisibilityChange = () => {
-            if (document.visibilityState === "visible") {
-                this._focusBarcodeInput();
-            }
-        };
-        document.addEventListener("visibilitychange", this._onVisibilityChange);
-    }
+    setup() {
+        super.setup();
 
-    _unbindVisibilityChange() {
-        if (this._onVisibilityChange) {
-            document.removeEventListener("visibilitychange", this._onVisibilityChange);
-            this._onVisibilityChange = null;
+        const data = this.props.action?.params?.picking_data;
+        if (data) {
+            this._initFromData(data);
         }
     }
 
@@ -46,16 +40,21 @@ class InternalTransfer extends BaseBarcodePage {
             this.showMessage(this.formatError(error), "danger");
             this._flashScreen([200, 100, 100], true);
         } finally {
-            this.state.loading = false;
             this._isProcessing = false;
-            this._focusBarcodeInput();
+            if (!this._isDestroyed) {
+                this.state.loading = false;
+                this._focusBarcodeInput();
+            }
         }
     }
 
     async _scanLocation(barcode) {
         const result = await this.orm.call("stock.picking", "action_scan_pda_destination_location", [
-            this.state.picking_id, barcode
+            [this.state.picking_id], barcode
         ]);
+        if (this._isDestroyed) {
+            return;
+        }
         if (result.success) {
             this.state.destination_id = result.destination_location?.id;
             this.state.destination_name = result.destination_location?.name;
@@ -84,7 +83,7 @@ class InternalTransfer extends BaseBarcodePage {
         }
 
         const result = await this.orm.call("stock.picking", "action_scan_pda_package", [
-            this.state.picking_id, barcode
+            [this.state.picking_id], barcode
         ]);
         if (result.success) {
             this.state.scanned_packages = result.package_scan_lines?.map(line => ({
@@ -112,7 +111,16 @@ class InternalTransfer extends BaseBarcodePage {
         this.state.picking_name = data.picking_name;
         this.state.picking_origin = data.origin || "";
         this.state.picking_state = data.state || "assigned";
-        this.state.nextStep = data.next_step === "scan_package" ? "scan_package" : "scan_location";
+
+        if (data.next_step === "completed") {
+            this.state.nextStep = "completed";
+        } else if (data.next_step === "scan_package") {
+            this.state.nextStep = "scan_package";
+        } else {
+            // 后端的 scan_destination 对应前端的 scan_location
+            this.state.nextStep = "scan_location";
+        }
+
         this.state.destination_id = data.destination_location?.id || null;
         this.state.destination_name = data.destination_location?.name || "";
         this.state.scanned_packages = data.package_scan_lines?.map(line => ({
@@ -123,20 +131,6 @@ class InternalTransfer extends BaseBarcodePage {
             location_name: line.source_location?.name || "",
             is_updated: false,
         })) || [];
-    }
-
-    async _loadPicking(picking_id) {
-        try {
-            this.state.loading = true;
-            const data = await this.orm.call("stock.picking", "get_pda_internal_transfer_scan_data", [picking_id]);
-            if (data) {
-                this._initFromData(data);
-            }
-        } catch (error) {
-            this.notification.add("Failed to load picking: " + error.message, { type: "danger" });
-        } finally {
-            this.state.loading = false;
-        }
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -164,19 +158,29 @@ class InternalTransfer extends BaseBarcodePage {
 
         try {
             const result = await this.orm.call("stock.picking", "button_validate", [
-                this.state.picking_id
+                [this.state.picking_id]
             ]);
+            if (this._isDestroyed) {
+                return;
+            }
+
+            if (result?.type) {
+                await this.action.doAction(result);
+                return;
+            }
 
             // button_validate 成功时返回 True，失败时抛出异常
             this.showMessage(_t("Transfer confirmed successfully!"), "success");
             this._flashScreen([100, 300, 100], true);
-            setTimeout(() => this._goHome(), 1500);
+            this._safeSetTimeout(() => this._goHome(), 1500);
         } catch (error) {
             this.showMessage(this.formatError(error), "danger");
             this._flashScreen([200, 100, 100], true);
         } finally {
-            this.state.is_validating = false;
-            this.state.loading = false;
+            if (!this._isDestroyed) {
+                this.state.is_validating = false;
+                this.state.loading = false;
+            }
         }
     }
 
@@ -184,9 +188,13 @@ class InternalTransfer extends BaseBarcodePage {
         if (this.state.loading) return;
         this.state.loading = true;
         this.orm.call("stock.picking", "action_remove_pda_package",
-            [this.state.picking_id],
+            [[this.state.picking_id]],
             { package_id: packageId }
         ).then((result) => {
+
+            if (this._isDestroyed) {
+                return;
+            }
             if (result && result.success) {
                 this.state.scanned_packages = this.state.scanned_packages.filter(p => p.package_id !== packageId);
                 this.showMessage(_t("Package removed"), "info");
@@ -195,23 +203,21 @@ class InternalTransfer extends BaseBarcodePage {
             console.error("[InternalTransfer] remove package error:", err);
             this.showMessage(this.formatError(err), "danger");
         }).finally(() => {
-            this.state.loading = false;
-            this._focusBarcodeInput();
+            if (!this._isDestroyed) {
+                this.state.loading = false;
+                this._focusBarcodeInput();
+            }
         });
-    }
-
-    _onClearDestination() {
-        this.state.destination_id = null;
-        this.state.destination_name = "";
-        this.state.scanned_packages = [];
-        this.state.nextStep = "scan_location";
     }
 
     resetScan() {
         this.state.loading = true;
         this.orm.call("stock.picking", "action_reset_pda_internal_transfer", [
-            this.state.picking_id
+            [this.state.picking_id]
         ]).then(() => {
+            if (!this._isDestroyed) {
+                this.state.loading = false;
+            }
             this.state.destination_id = null;
             this.state.destination_name = "";
             this.state.scanned_packages = [];
@@ -221,8 +227,9 @@ class InternalTransfer extends BaseBarcodePage {
         }).catch(err => {
             console.error("[InternalTransfer] reset error:", err);
         }).finally(() => {
-            this.state.loading = false;
-            this._focusBarcodeInput();
+            if (!this._isDestroyed) {
+                this.state.loading = false;
+            }
         });
     }
 
@@ -235,11 +242,11 @@ class InternalTransfer extends BaseBarcodePage {
         this.state.loading = true;
         try {
             await this.orm.call("stock.picking", "action_cancel_pda_internal_transfer", [
-                this.state.picking_id
+                [this.state.picking_id]
             ]);
             this.showMessage(_t("Transfer cancelled"), "info");
             this._flashScreen([200, 100, 100], false);
-            setTimeout(() => this.exit(), 500);
+            this._safeSetTimeout(() => this.exit(), 500);
         } catch (error) {
             this.showMessage(this.formatError(error), "danger");
             this._flashScreen([200, 100, 100], true);

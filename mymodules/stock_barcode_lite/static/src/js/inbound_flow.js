@@ -7,28 +7,10 @@ import { standardActionServiceProps } from "@web/webclient/actions/action_servic
 export class InboundFlow extends BaseBarcodePage {
     static template = "stock_barcode_lite.InboundPage";
     static props = { ...standardActionServiceProps };
-
-    _bindVisibilityChange() {
-        this._onVisibilityChange = () => {
-            if (
-                !this._isDestroyed &&
-                document.visibilityState === "visible"
-            ) {
-                this._focusBarcodeInput();
-            }
-        };
-
-        document.addEventListener("visibilitychange", this._onVisibilityChange);
-    }
-
-    _unbindVisibilityChange() {
-        if (this._onVisibilityChange) {
-            document.removeEventListener(
-                "visibilitychange",
-                this._onVisibilityChange
-            );
-            this._onVisibilityChange = null;
-        }
+    setup() {
+        super.setup();
+        this.state.nextStep = "scan_picking";
+        this._initScanState();
     }
 
     async _initScanState() {

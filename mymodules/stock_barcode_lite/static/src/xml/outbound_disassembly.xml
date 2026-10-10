@@ -14,7 +14,7 @@
             touch-action="none"
         />
 
-        <div class="o_sbl_inbound">
+        <div class="o_sbl_inbound o_sbl_disassembly_outbound">
             <!-- Header -->
             <div class="o_sbl_header">
                 <button type="button" class="btn btn-link text-dark p-1" t-on-click="exit" title="Home">

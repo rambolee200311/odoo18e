@@ -57,6 +57,44 @@
     animation: pulse_badge 1.5s ease-in-out infinite;
 }
 
+.o_sbl_inbound.o_sbl_disassembly_outbound {
+    .o_sbl_pallets {
+        min-height: 0;
+        margin-bottom: 0;
+    }
+}
+
+// PDA：卡片列表优先自身滚动；上方内容占满视口时，页面整体继续纵向滚动兜底。
+@media (max-width: 768px), (pointer: coarse) {
+    .o_sbl_inbound.o_sbl_disassembly_outbound {
+        height: 100vh;
+        height: 100dvh;
+        min-height: 100vh;
+        min-height: 100dvh;
+        overflow-x: hidden;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-y: contain;
+
+        // 让提示、步骤条、数量框等必要内容参与页面滚动，不被 flex 挤薄。
+        > :not(.o_sbl_pallets) {
+            flex-shrink: 0;
+        }
+
+        .o_sbl_pallets {
+            flex: 1 0 200px;
+            min-height: 200px;
+            overflow-x: hidden;
+            overflow-y: auto;
+            margin-bottom: 70px;
+            padding-bottom: 70px;
+            -webkit-overflow-scrolling: touch;
+            // 列表滚到底时允许把手势交给页面根容器。
+            overscroll-behavior-y: auto;
+        }
+    }
+}
+
 @keyframes pulse_icon {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.2); }

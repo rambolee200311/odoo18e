@@ -2,21 +2,19 @@
 
 import { useService } from "@web/core/utils/hooks";
 import { Component, useState } from "@odoo/owl";
+import { standardActionServiceProps } from "@web/webclient/actions/action_service";
+
 /**
  * Stock Barcode Lite - Homepage Component
  */
 export class Homepage extends Component {
     static template = "stock_barcode_lite.Homepage";
-    static props = {
-        action: { type: Object, optional: true },
-        actionId: { type: Number, optional: true },
-        updateActionState: { type: Function, optional: true },
-        className: { type: String, optional: true },
-    };
+    static props = { ...standardActionServiceProps };
 
     setup() {
         this.action = useService("action");
         this.orm = useService("orm");
+        this._creatingInternalTransfer = false;
     }
 
     _onInboundClick() {
@@ -32,19 +30,25 @@ export class Homepage extends Component {
     }
 
     async _onInternalTransferClick() {
+        if (this._creatingInternalTransfer) {
+            return;
+        }
+
+        this._creatingInternalTransfer = true;
         try {
             const result = await this.orm.call(
                 "stock.picking",
                 "action_create_pda_internal_transfer",
                 []
             );
-            if (result) {
-                if (result.type === "ir.actions.client") {
-                    this.action.doAction(result);
-                }
+
+            if (result?.type === "ir.actions.client") {
+                await this.action.doAction(result);
             }
         } catch (error) {
             console.error("Failed to create internal transfer:", error);
+        } finally {
+            this._creatingInternalTransfer = false;
         }
     }
 
