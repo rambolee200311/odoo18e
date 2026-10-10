@@ -149,6 +149,36 @@
     }
 }
 
+// PDA：列表自身滚动优先；内容过高时允许页面根容器继续纵向滚动。
+@media (max-width: 768px), (pointer: coarse) {
+    .o_stock_barcode_lite_inbound,
+    .o_stock_barcode_lite_outbound,
+    .o_sbl_outbound,
+    .o_sbl_inbound {
+        height: 100vh;
+        height: 100dvh;
+        min-height: 100vh;
+        min-height: 100dvh;
+        overflow-x: hidden;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior-y: contain;
+
+        // 提示、数量输入等非列表内容不能被 flex 挤压。
+        > :not(.o_sbl_pallets):not(.o_barcode_lines) {
+            flex-shrink: 0;
+        }
+
+        .o_barcode_lines,
+        .o_sbl_pallets {
+            flex: 1 0 200px;
+            min-height: 200px;
+            // 到达列表边缘后，把触摸滚动交给页面根容器兜底。
+            overscroll-behavior-y: auto;
+        }
+    }
+}
+
 // 底部按钮栏
 .o_barcode_footer,
 .o_sbl_footer {
