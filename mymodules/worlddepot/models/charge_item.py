@@ -1,6 +1,4 @@
 from odoo import models, fields, api
-
-
 class ChargeUnit(models.Model):
     _name = 'world.depot.charge.unit'
     _description = 'Charge Unit'
@@ -20,11 +18,10 @@ class ChargeItem(models.Model):
     full_item_name = fields.Char(string='Full Item Name', compute='_compute_full_item_name', store=True, recursive=True)
     unit_id = fields.Many2one('world.depot.charge.unit', string='Unit')
     description = fields.Text(string='Description')
-
     @api.depends('item_name', 'parent_id.full_item_name')
     def _compute_full_item_name(self):
         for record in self:
             if record.parent_id:
-                record.full_item_name = f"{record.parent_id.full_item_name} / {record.item_name}"
+                record.full_item_name = f"{record.item_name} / {record.parent_id.full_item_name}"
             else:
                 record.full_item_name = record.item_name
