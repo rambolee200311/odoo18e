@@ -136,7 +136,7 @@ class StockPicking(models.Model):
         for rec in self:
             if rec.barcode_scan_mode != "custom":
                 continue
-            if rec.project_id.name == "HOYMILES" and self.env.context.get("barcode_trigger"):
+            if rec.project_id.name == "HOYMILES" and rec.picking_type_id.code == "incoming":
                 continue
             if rec.picking_type_id.code != "incoming" or not rec.inbound_order_id or rec.state in ("done", "cancel"):
                 continue

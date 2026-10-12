@@ -64,7 +64,7 @@ class AutomaticPalletOutboundPicking(models.Model):
                 ("product_id", "in", product_ids),
                 ("package_id", "!=", False),
                 ("quantity", ">", 0),
-                ("location_id", "child_of", source_location.id),
+
                 ("location_id", "child_of", warehouse.view_location_id.id),
                 ("location_id.usage", "=", "internal"),
             ], order="in_date asc, id asc")
@@ -258,5 +258,6 @@ class AutomaticPalletOutboundPicking(models.Model):
                 "message": _("Automatic pallet outbound picking created successfully."),
                 "type": "success",
                 "sticky": False,
+                "next": {"type": "ir.actions.client", "tag": "reload"}
             },
         }
