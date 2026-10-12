@@ -95,16 +95,18 @@ class InboundOrder(models.Model):
                     "description_picking": _("Inbound receipt for %s") % product.display_name,
                 })
 
+            inbound_pallet_index = 0
             for pallet_line in record.inbound_order_product_ids:
                 pallet_count = int(pallet_line.pallets)
                 for pallet_index in range(1, pallet_count + 1):
+                    inbound_pallet_index += 1
                     package = False
                     if generation_mode == "inbound":
                         package = pallet_line.package_id
                     elif generation_mode == "picking":
-                        package_name = pallet_line.pallet_no or "%s-%s" % (record.reference, pallet_line.id)
-                        if pallet_count > 1:
-                            package_name = "%s-%03d" % (package_name, pallet_index)
+                        package_name = "%s-%s-%03d" % (
+                            pallet_line.pallet_no or record.project.name, record.reference, inbound_pallet_index,
+                        )
                         package = package_model.create({
                             "name": package_name,
                             "package_use": "disposable",
