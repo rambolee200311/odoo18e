@@ -24,6 +24,7 @@
                 <attribute name="duplicate">false</attribute>
             </xpath>
             <xpath expr="//field[@name='pick_type']" position="attributes">
+                <attribute name="readonly">state != 'new'</attribute>
                 <attribute name="domain">
                     [('code', '=', 'outgoing' if barcode_scan_mode == 'custom' and project_package_generation_mode in ('inbound', 'picking') else 'internal'),
                      ('warehouse_id', '=', warehouse),
@@ -64,8 +65,8 @@
             <xpath expr="//field[@name='confirm_time_server']" position="after">
                 <field name="barcode_scan_mode" invisible="1"/>
                 <field name="project_package_generation_mode" readonly="1" invisible="1"/>
-                <field name="whole_pallet_picking_id" readonly="1" invisible="barcode_scan_mode != 'custom'" options="{'no_create': True, 'no_open': True}"/>
-                <field name="partial_pallet_picking_id" readonly="1" invisible="barcode_scan_mode != 'custom'" options="{'no_create': True, 'no_open': True}"/>
+                <field name="whole_pallet_picking_id" readonly="1" invisible="barcode_scan_mode != 'custom'" options="{'no_create': True, 'no_open': False}"/>
+                <field name="partial_pallet_picking_id" readonly="1" invisible="barcode_scan_mode != 'custom'" options="{'no_create': True, 'no_open': False}"/>
                 <field name="outgoing_picking_lines" readonly="1" invisible="project_name != 'SUNRISE'"
                        widget="many2many_tags"/>
                 <field name="o_date" string='Manual Outbound Date' invisible="project_name != 'SUNRISE'"
