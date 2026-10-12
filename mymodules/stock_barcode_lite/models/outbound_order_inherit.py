@@ -69,8 +69,7 @@ class OutboundOrderInherit(models.Model):
                 continue
             if not rec.pick_type or rec.pick_type.code != "outgoing":
                 raise UserError(_("Custom Barcode Lite outbound orders must use an outgoing picking type."))
-            warehouse = rec.pick_type.warehouse_id
-            if not warehouse or warehouse.delivery_steps != "ship_only":
+            if rec.pick_type.default_location_src_id.usage != "internal" or rec.pick_type.default_location_dest_id.usage != "customer":
                 raise UserError(_("Custom Barcode Lite outbound orders must use a one-step outgoing picking type."))
         return True
 
