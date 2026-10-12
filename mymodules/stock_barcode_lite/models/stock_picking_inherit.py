@@ -18,7 +18,7 @@ class StockPicking(models.Model):
 
     def check_native_barcode_scan_allowed(self):
         for rec in self:
-            if rec.project_id.barcode_scan_mode == "custom" and rec.project_id.name != "HOYMILES":
+            if rec.project_id.barcode_scan_mode == "custom" and (rec.picking_type_id.code != "incoming" or rec.project_id.name != "HOYMILES"):
                 raise UserError(_("This picking must use Custom Barcode Lite scanning."))
 
     def action_open_picking_client_action(self):
