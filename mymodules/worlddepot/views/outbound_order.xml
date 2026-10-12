@@ -129,6 +129,10 @@
                                 <group col="2">
                                     <field name="delivery_method"/>
                                     <field name="unload_company"/>
+                                    <field name="delivery_partner_id"
+                                           domain="['&amp;', ('active', '=', True), '|', ('id', '=', unload_company), '&amp;', ('parent_id', '=', unload_company), ('type', '=', 'delivery')]"
+                                           readonly="state == 'cancel'" invisible="1"
+                                           options="{'no_create': True, 'no_open': True}"/>
                                     <field name="delivery_street"/>
                                     <field name="delivery_city"/>
                                     <field name="delivery_zip"/>
