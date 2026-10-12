@@ -18,6 +18,8 @@ class OutboundOrderInherit(models.Model):
     u8c_delivery_method = fields.Selection([("pickup", "Pickup"), ("wd", "WD Transport")], string="U8C Delivery Method", copy=False, tracking=True)
     transport_cost_reference = fields.Char(string="Transport Cost Reference", copy=False)
     transport_cost = fields.Float(string="Transport Cost", default=0.0, copy=False)
+    barcode_scan_mode = fields.Selection(related="project.barcode_scan_mode", string="Barcode Scan Mode", store=True, readonly=True, copy=False, index=True)
+    project_package_generation_mode = fields.Selection(related="project.package_generation_mode", string="Package Generation Mode", readonly=True)
 
     whole_pallet_picking_id = fields.Many2one("stock.picking", string="Whole Pallet Picking",copy=False,index=True)
     partial_pallet_picking_id = fields.Many2one("stock.picking", string="Partial Pallet Picking",copy=False, index=True)
@@ -60,6 +62,21 @@ class OutboundOrderInherit(models.Model):
             if rec.project.name == "SUNRISE":
                 rec.validate_sunrise_outbound_confirm_values()
         return super().action_confirm()
+
+    def check_custom_barcode_outgoing_one_step(self):
+        for rec in self:
+            if rec.project.barcode_scan_mode != "custom":
+                continue
+            if not rec.pick_type or rec.pick_type.code != "outgoing":
+                raise UserError(_("Custom Barcode Lite outbound orders must use an outgoing picking type."))
+            warehouse = rec.pick_type.warehouse_id
+            if not warehouse or warehouse.delivery_steps != "ship_only":
+                raise UserError(_("Custom Barcode Lite outbound orders must use a one-step outgoing picking type."))
+        return True
+
+    def action_create_picking_PICK(self):
+        self.check_custom_barcode_outgoing_one_step()
+        return super().action_create_picking_PICK()
 
     @api.depends("outbound_order_product_ids.product_id.product_tmpl_id.organic")
     def _compute_organic(self):
@@ -329,8 +346,9 @@ class OutboundOrderInherit(models.Model):
         lot_model = self.env["stock.lot"]
 
         for rec in self:
-            if rec.project.name != "SUNRISE":
-                raise UserError(_("Only SUNRISE projects can create a picking."))
+            rec.check_custom_barcode_outgoing_one_step()
+            if rec.project.package_generation_mode != "inbound":
+                raise UserError(_("This picking requires Package Generation Mode to be Inbound."))
             if rec.state != "confirm":
                 raise UserError(_("Only confirmed outbound orders can create a picking."))
             if not rec.pick_type:
@@ -365,11 +383,6 @@ class OutboundOrderInherit(models.Model):
                 if line.quantity <= 0:
                     raise UserError(
                         _('Quantity must be greater than 0 for product "%s".')
-                        % line.product_id.display_name
-                    )
-                if line.product_id.tracking == "serial":
-                    raise UserError(
-                        _('Serial-tracked product "%s" is not supported by Sunrise outgoing picking.')
                         % line.product_id.display_name
                     )
                 if line.de_palletize not in ("N", "Y"):

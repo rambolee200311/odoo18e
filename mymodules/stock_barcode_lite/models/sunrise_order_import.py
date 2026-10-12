@@ -587,8 +587,6 @@ class SunriseOrderImportLine(models.Model):
         return is_lot, lot_name
 
     def validate_product_tracking(self, product, is_lot, lot_name):
-        if product.tracking == "serial":
-            raise UserError(_('Row %s: serial-tracked product "%s" is not supported.') % (self.row_number, product.display_name))
         if product.tracking == "lot" and is_lot != "Y":
             raise UserError(_('Row %s: product "%s" enables lot tracking, so is_lot must be Y.') % (self.row_number, product.display_name))
         if product.tracking != "lot" and is_lot != "N":

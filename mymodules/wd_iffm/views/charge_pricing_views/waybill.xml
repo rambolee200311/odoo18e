@@ -303,7 +303,7 @@
                                         <field name="clearance_receivable_state" widget="statusbar" statusbar_visible="draft,confirmed" readonly="1"/>
                                         <button name="action_confirm_clearance_receivable_from_waybill_tab" type="object" string="Confirm Receivable" class="btn-success" invisible="not clearance_id or clearance_receivable_state == 'confirmed'"/>
                                         <button name="action_unconfirm_clearance_receivable_from_waybill_tab" type="object" string="Unconfirm Receivable" class="btn-secondary" confirm="Are you sure you want to unconfirm receivable?" invisible="not clearance_id or clearance_receivable_state != 'confirmed' or clearance_status in ('close', 'cancelled')"/>
-                                        <field name="clearance_charge_lines" readonly="clearance_receivable_state == 'confirmed'" context="{'default_clearance_id': clearance_id}">
+                                        <field name="clearance_charge_lines" readonly="clearance_receivable_state == 'confirmed'" context="{'default_clearance_id': clearance_id, 'clearance_hs_code_qty': clearance_hs_code_qty}">
                                             <list editable="bottom">
                                                 <field name="charge_qty" column_invisible="True"/>
                                                 <field name="charge_based_on_max" column_invisible="True"/>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_system_pallet_label" model="ir.actions.report">
+        <field name="name">System Pallet Labels</field>
+        <field name="model">stock.quant.package</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">stock_barcode_lite.report_system_pallet_label</field>
+        <field name="report_file">stock_barcode_lite.report_system_pallet_label</field>
+        <field name="print_report_name">'System Pallet Labels - %s' % (object.reference or object.name)</field>
+        <field name="paperformat_id" ref="paperformat_inbound_pallet_label"/>
+    </record>
+
+    <template id="report_system_pallet_label">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="package">
+                <div class="page" t-att-data-oe-model="package._name" t-att-data-oe-id="package.id">
+                    <style>
+                        .system-pallet-label { font-family: Arial, sans-serif; padding: 8mm; }
+                        .system-pallet-label-title { font-size: 22px; font-weight: bold; margin-bottom: 8mm; }
+                        .system-pallet-label-code { font-size: 18px; font-weight: bold; margin-bottom: 5mm; word-break: break-all; }
+                        .system-pallet-label-info { width: 100%; border-collapse: collapse; font-size: 13px; }
+                        .system-pallet-label-info td { padding: 2mm 0; vertical-align: top; }
+                        .system-pallet-label-info .label { width: 36mm; font-weight: bold; }
+                        .system-pallet-label-qr { margin-top: 8mm; text-align: center; }
+                        .system-pallet-label-barcode { margin-top: 3mm; font-size: 13px; font-weight: bold; word-break: break-all; }
+                    </style>
+                    <div class="system-pallet-label">
+                        <div class="system-pallet-label-title">System Pallet Label</div>
+                        <div class="system-pallet-label-code" t-esc="package.name"/>
+                        <table class="system-pallet-label-info">
+                            <tr><td class="label">Reference:</td><td t-esc="package.reference or ''"/></tr>
+                            <tr><td class="label">Bill No:</td><td t-esc="package.billno or ''"/></tr>
+                            <tr><td class="label">Container No:</td><td t-esc="package.cntr_no or ''"/></tr>
+                            <tr><td class="label">Source Inbound:</td><td t-esc="package.inbound_order_id.display_name or ''"/></tr>
+                        </table>
+                        <div class="system-pallet-label-qr">
+                            <div t-field="package.barcode" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 380, 'height': 380, 'img_style': 'width:260px;height:260px;'}"/>
+                            <div class="system-pallet-label-barcode" t-esc="package.barcode"/>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

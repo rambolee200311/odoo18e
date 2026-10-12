@@ -576,12 +576,6 @@ class InboundOrder(models.Model):
                             % detail_line.product_id.display_name
                         )
 
-                    if detail_line.product_id.tracking == "serial":
-                        raise UserError(
-                            _('Serial-tracked product "%s" is not supported by Sunrise incoming picking.')
-                            % detail_line.product_id.display_name
-                        )
-
                     if detail_line.is_lot == "Y":
                         if detail_line.product_id.tracking != "lot":
                             raise UserError(
@@ -799,11 +793,12 @@ class InboundOrderProduct(models.Model):
         package_model = self.env["stock.quant.package"]
         package = package_model.create({
             "name": self.get_sunrise_package_name(),
-            "barcode": package_model.generate_sunrise_package_barcode(),
+            "barcode": package_model.generate_package_barcode(),
             "package_use": "disposable",
             "billno": inbound_order.billno,
             "reference": inbound_order.reference,
             "cntr_no": inbound_order.cntr_no,
+            "inbound_order_id": inbound_order.id,
             "original_pallet_no": self.pallet_no,
         })
         self.write({"package_id": package.id, "is_reused_package": False})
@@ -843,6 +838,8 @@ class InboundOrderProduct(models.Model):
                 raise UserError(_("Pallet \"%s\" has a product line without a source product code.") % self.pallet_no)
             identities.add((product_code, lot_name))
         if len(identities) != 1:
+            if any(line.product_id.tracking == "serial" for line in self.inbound_order_product_pallet_ids):
+                return "MIXED", ""
             raise UserError(
                 _("Physical pallet \"%s\" must contain one source product and one lot.") % self.pallet_no
             )

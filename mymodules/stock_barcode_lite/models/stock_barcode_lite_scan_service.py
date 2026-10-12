@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from odoo import _, fields, models,api
+from odoo import _, api, fields, models
+from odoo.exceptions import UserError
+from odoo.tools.float_utils import float_compare
 
 
 class StockBarcodeLiteScanService(models.AbstractModel):
@@ -8,7 +10,7 @@ class StockBarcodeLiteScanService(models.AbstractModel):
     _description = "Stock Barcode Lite Scan Service"
 
     @api.model
-    def process_incoming_scan_barcode(self, code, picking_id=False, current_location_id=False):
+    def process_incoming_scan_barcode(self, code, picking_id=False, current_location_id=False, current_package_id=False, current_product_id=False):
 
         code = (code or "").strip()
         if not code:
@@ -19,8 +21,18 @@ class StockBarcodeLiteScanService(models.AbstractModel):
                 barcode=code,
                 picking_id=picking_id,
                 location_id=current_location_id,
+                package_id=current_package_id,
+                product_id=current_product_id,
                 action_name="scan_error",
                 success=False,
+            )
+        if current_package_id:
+            return self.process_incoming_serial_context_scan(
+                code,
+                picking_id=picking_id,
+                current_location_id=current_location_id,
+                current_package_id=current_package_id,
+                current_product_id=current_product_id,
             )
         if not picking_id:
             picking = self.get_picking_from_barcode(code)
@@ -176,6 +188,22 @@ class StockBarcodeLiteScanService(models.AbstractModel):
             )
 
         updated_count = self.apply_location_to_package(move_lines, location)
+        serial_progress = self.get_incoming_serial_progress(picking, package)
+
+        if serial_progress["remaining_quantity"]:
+            return self.build_scan_result(
+                "package",
+                _("Pallet"),
+                _("Pallet %s updated to %s. Please scan a serial-tracked product.") % (package.name, location.display_name),
+                barcode=code,
+                picking_id=picking.id,
+                location_id=location.id,
+                package_id=package.id,
+                action_name="update_package_location",
+                updated_move_line_ids=move_lines.ids,
+                success=True,
+                next_step="scan_serial_product",
+            )
 
         package_lines = picking.move_line_ids.filtered(lambda line: line.result_package_id)
         all_updated = bool(package_lines) and all(package_lines.mapped("is_location_updated"))
@@ -199,6 +227,306 @@ class StockBarcodeLiteScanService(models.AbstractModel):
             package_id=False if all_updated else package.id,
             action_name="update_package_location",
             updated_move_line_ids=move_lines.ids,
+            success=True,
+            next_step=next_step,
+        )
+
+    @api.model
+    def process_incoming_serial_context_scan(self, code, picking_id=False, current_location_id=False, current_package_id=False, current_product_id=False):
+        picking = self.env["stock.picking"].sudo().search([
+            ("id", "=", picking_id),
+            ("picking_type_id.code", "=", "incoming"),
+            ("state", "not in", ("done", "cancel")),
+        ], limit=1)
+        package = self.env["stock.quant.package"].sudo().search([("id", "=", current_package_id)], limit=1)
+        location = self.env["stock.location"].sudo().search([
+            ("id", "=", current_location_id),
+            ("usage", "=", "internal"),
+        ], limit=1)
+        if not picking or not package or not location or not self.get_package_move_lines(picking, package):
+            return self.build_scan_result(
+                "error",
+                _("Error"),
+                _("Please scan an incoming picking, location, and pallet first."),
+                barcode=code,
+                picking_id=picking_id,
+                location_id=current_location_id,
+                action_name="missing_serial_context",
+                success=False,
+            )
+        if current_product_id:
+            return self.process_incoming_serial_scan(
+                code,
+                picking=picking,
+                location=location,
+                package=package,
+                current_product_id=current_product_id,
+            )
+        return self.process_incoming_serial_product_scan(code, picking, location, package)
+
+    @api.model
+    def process_incoming_serial_product_scan(self, code, picking, location, package):
+        product = self.get_incoming_product_from_barcode(code)
+        if len(product) > 1:
+            return self.build_scan_result(
+                "error",
+                _("Error"),
+                _("Product barcode matched multiple products: %s") % code,
+                barcode=code,
+                picking_id=picking.id,
+                location_id=location.id,
+                package_id=package.id,
+                action_name="product_multiple_matches",
+                success=False,
+                next_step="scan_serial_product",
+            )
+        if not product or product.tracking != "serial":
+            return self.build_scan_result(
+                "error",
+                _("Error"),
+                _("Please scan a serial-tracked product on the current pallet."),
+                barcode=code,
+                picking_id=picking.id,
+                location_id=location.id,
+                package_id=package.id,
+                action_name="serial_product_not_found",
+                success=False,
+                next_step="scan_serial_product",
+            )
+        if not self.get_pending_incoming_serial_move_lines(picking, package, product):
+            return self.build_scan_result(
+                "error",
+                _("Error"),
+                _("Product %s has no remaining serial quantity on pallet %s.") % (product.display_name, package.name),
+                barcode=code,
+                picking_id=picking.id,
+                location_id=location.id,
+                package_id=package.id,
+                action_name="serial_product_completed",
+                success=False,
+                next_step="scan_serial_product",
+            )
+        return self.build_scan_result(
+            "product",
+            _("Product"),
+            _("Product %s selected. Please scan serial number.") % product.display_name,
+            barcode=code,
+            picking_id=picking.id,
+            location_id=location.id,
+            package_id=package.id,
+            product_id=product.id,
+            action_name="select_serial_product",
+            success=True,
+            next_step="scan_serial",
+        )
+
+    @api.model
+    def process_incoming_serial_scan(self, code, picking, location, package, current_product_id=False):
+        product = self.env["product.product"].sudo().search([
+            ("id", "=", current_product_id),
+            ("tracking", "=", "serial"),
+        ], limit=1)
+        if not product:
+            return self.build_scan_result(
+                "error",
+                _("Error"),
+                _("Please scan a serial-tracked product first."),
+                barcode=code,
+                picking_id=picking.id,
+                location_id=location.id,
+                package_id=package.id,
+                action_name="missing_serial_product",
+                success=False,
+                next_step="scan_serial_product",
+            )
+        serial_numbers = [value.strip() for value in code.replace("，", ",").replace("\r", "\n").replace("\n", ",").split(",") if value.strip()]
+        if not serial_numbers:
+            return self.build_scan_result(
+                "error",
+                _("Error"),
+                _("Please scan at least one serial number."),
+                barcode=code,
+                picking_id=picking.id,
+                location_id=location.id,
+                package_id=package.id,
+                product_id=product.id,
+                action_name="missing_serial_number",
+                success=False,
+                next_step="scan_serial",
+            )
+        if len(serial_numbers) != len(set(serial_numbers)):
+            return self.build_scan_result(
+                "error",
+                _("Error"),
+                _("The same serial number cannot be included more than once in one scan."),
+                barcode=code,
+                picking_id=picking.id,
+                location_id=location.id,
+                package_id=package.id,
+                product_id=product.id,
+                action_name="serial_duplicate_in_batch",
+                success=False,
+                next_step="scan_serial",
+            )
+        pending_lines = self.get_pending_incoming_serial_move_lines(picking, package, product)
+        if not pending_lines:
+            return self.build_scan_result(
+                "error",
+                _("Error"),
+                _("All serial numbers for product %s are already scanned.") % product.display_name,
+                barcode=code,
+                picking_id=picking.id,
+                location_id=location.id,
+                package_id=package.id,
+                action_name="serial_product_completed",
+                success=False,
+                next_step="scan_serial_product",
+            )
+        rounding = product.uom_id.rounding
+        pending_quantity = sum(pending_lines.mapped("quantity"))
+        if float_compare(pending_quantity, float(len(serial_numbers)), precision_rounding=rounding) < 0:
+            return self.build_scan_result(
+                "error",
+                _("Error"),
+                _("Scanned serial number count %s exceeds remaining quantity %s for product %s on pallet %s.") % (
+                    len(serial_numbers), pending_quantity, product.display_name, package.name
+                ),
+                barcode=code,
+                picking_id=picking.id,
+                location_id=location.id,
+                package_id=package.id,
+                product_id=product.id,
+                action_name="serial_batch_exceeds_remaining",
+                success=False,
+                next_step="scan_serial",
+            )
+        serial_lot_values = []
+        for serial_number in serial_numbers:
+            duplicate_lines = self.env["stock.move.line"].sudo().search([
+                ("picking_id", "=", picking.id),
+                ("product_id", "=", product.id),
+                "|",
+                ("lot_id.name", "=", serial_number),
+                ("lot_name", "=", serial_number),
+            ], limit=1)
+            if duplicate_lines:
+                return self.build_scan_result(
+                    "error",
+                    _("Error"),
+                    _("Serial number %s is already scanned on this incoming picking.") % serial_number,
+                    barcode=code,
+                    picking_id=picking.id,
+                    location_id=location.id,
+                    package_id=package.id,
+                    product_id=product.id,
+                    action_name="serial_duplicate_in_picking",
+                    success=False,
+                    next_step="scan_serial",
+                )
+            lots = self.env["stock.lot"].sudo().search([
+                ("name", "=", serial_number),
+                ("product_id", "=", product.id),
+                ("company_id", "=", picking.company_id.id),
+            ], limit=2)
+            if len(lots) > 1:
+                return self.build_scan_result(
+                    "error",
+                    _("Error"),
+                    _("Serial number matched multiple records for product %s: %s") % (product.display_name, serial_number),
+                    barcode=code,
+                    picking_id=picking.id,
+                    location_id=location.id,
+                    package_id=package.id,
+                    product_id=product.id,
+                    action_name="serial_multiple_matches",
+                    success=False,
+                    next_step="scan_serial",
+                )
+            lot = lots[:1]
+            if lot:
+                positive_quant = self.env["stock.quant"].sudo().search([
+                    ("lot_id", "=", lot.id),
+                    ("company_id", "=", picking.company_id.id),
+                    ("location_id.usage", "in", ("internal", "transit", "customer")),
+                    ("quantity", ">", 0),
+                ], limit=1)
+                if positive_quant:
+                    return self.build_scan_result(
+                        "error",
+                        _("Error"),
+                        _("Serial number %s already has stock in this company.") % serial_number,
+                        barcode=code,
+                        picking_id=picking.id,
+                        location_id=location.id,
+                        package_id=package.id,
+                        product_id=product.id,
+                        action_name="serial_has_existing_stock",
+                        success=False,
+                        next_step="scan_serial",
+                    )
+            elif not picking.picking_type_id.use_create_lots:
+                return self.build_scan_result(
+                    "error",
+                    _("Error"),
+                    _("The incoming operation type must allow creating serial numbers."),
+                    barcode=code,
+                    picking_id=picking.id,
+                    location_id=location.id,
+                    package_id=package.id,
+                    product_id=product.id,
+                    action_name="serial_creation_not_allowed",
+                    success=False,
+                    next_step="scan_serial",
+                )
+            serial_lot_values.append((serial_number, lot))
+
+        updated_move_line_ids = []
+        for serial_number, lot in serial_lot_values:
+            current_pending_lines = self.get_pending_incoming_serial_move_lines(picking, package, product)
+            updated_line = self.apply_incoming_serial_scan(current_pending_lines[:1], serial_number, lot)
+            updated_move_line_ids += updated_line.ids
+        serial_progress = self.get_incoming_serial_progress(picking, package)
+        current_progress = next(
+            (item for item in serial_progress["products"] if item["product_id"] == product.id),
+            {"remaining_quantity": 0.0},
+        )
+        package_lines = picking.move_line_ids.filtered(lambda line: line.result_package_id)
+        all_updated = bool(package_lines) and all(package_lines.mapped("is_location_updated"))
+        if current_progress["remaining_quantity"]:
+            next_step = "scan_serial"
+            package_id = package.id
+            product_id = product.id
+            message = (
+                _("Serial number %s scanned for product %s. Please scan next serial number.") % (serial_numbers[0], product.display_name)
+                if len(serial_numbers) == 1
+                else _("Serial numbers %s scanned for product %s. Please scan next serial number.") % (", ".join(serial_numbers), product.display_name)
+            )
+        elif serial_progress["remaining_quantity"]:
+            next_step = "scan_serial_product"
+            package_id = package.id
+            product_id = False
+            message = _("Product %s serial numbers completed. Please scan next serial-tracked product.") % product.display_name
+        elif all_updated:
+            next_step = "validate"
+            package_id = False
+            product_id = False
+            message = _("All pallets and serial numbers updated. Please validate incoming picking.")
+        else:
+            next_step = "scan_package"
+            package_id = False
+            product_id = False
+            message = _("Pallet %s serial numbers completed. Please scan next pallet.") % package.name
+        return self.build_scan_result(
+            "serial",
+            _("Serial Number"),
+            message,
+            barcode=code,
+            picking_id=picking.id,
+            location_id=location.id,
+            package_id=package_id,
+            product_id=product_id,
+            action_name="scan_incoming_serial",
+            updated_move_line_ids=updated_move_line_ids,
             success=True,
             next_step=next_step,
         )
@@ -231,12 +559,85 @@ class StockBarcodeLiteScanService(models.AbstractModel):
         return package
 
     @api.model
+    def get_incoming_product_from_barcode(self, code):
+        product_model = self.env["product.product"]
+        products = product_model.sudo().search([
+            ("barcode", "=", code),
+        ], limit=2)
+        if not products:
+            products = product_model.sudo().search([("name", "=", code)], limit=2)
+        return products
+
+    @api.model
     def get_package_move_lines(self, picking, package):
 
         return self.env["stock.move.line"].sudo().search([
             ("picking_id", "=", picking.id),
             ("result_package_id", "=", package.id),
         ])
+
+    @api.model
+    def get_pending_incoming_serial_move_lines(self, picking, package, product=False):
+        lines = self.get_package_move_lines(picking, package).filtered(
+            lambda line: line.product_id.tracking == "serial" and not line.lot_id and not line.lot_name and line.quantity > 0
+        )
+        return lines.filtered(lambda line: not product or line.product_id == product)
+
+    @api.model
+    def get_incoming_serial_progress(self, picking, package):
+        serial_lines = self.get_package_move_lines(picking, package).filtered(
+            lambda line: line.product_id.tracking == "serial" and line.quantity > 0
+        )
+        products = []
+        total_quantity = 0.0
+        scanned_quantity = 0.0
+        for product in serial_lines.mapped("product_id"):
+            product_lines = serial_lines.filtered(lambda line: line.product_id == product)
+            product_total = sum(product_lines.mapped("quantity"))
+            product_scanned = sum(product_lines.filtered(lambda line: line.lot_id or line.lot_name).mapped("quantity"))
+            products.append({
+                "product_id": product.id,
+                "product_name": product.display_name,
+                "total_quantity": product_total,
+                "scanned_quantity": product_scanned,
+                "remaining_quantity": max(product_total - product_scanned, 0.0),
+            })
+            total_quantity += product_total
+            scanned_quantity += product_scanned
+        return {
+            "products": products,
+            "total_quantity": total_quantity,
+            "scanned_quantity": scanned_quantity,
+            "remaining_quantity": max(total_quantity - scanned_quantity, 0.0),
+        }
+
+    @api.model
+    def apply_incoming_serial_scan(self, move_lines, serial_number, lot=False):
+        source_line = self.env["stock.move.line"].browse(move_lines[:1].id)
+        rounding = source_line.product_uom_id.rounding or source_line.product_id.uom_id.rounding
+        if float_compare(source_line.quantity, 1.0, precision_rounding=rounding) < 0:
+            raise UserError(_("Serial-tracked product %s must be received in whole units.") % source_line.product_id.display_name)
+        serial_values = {"lot_id": lot.id if lot else False, "lot_name": False if lot else serial_number}
+        if float_compare(source_line.quantity, 1.0, precision_rounding=rounding) == 0:
+            source_line.write(serial_values)
+            return source_line
+        source_line.write({"quantity": source_line.quantity - 1.0})
+        serial_values.update({
+            "picking_id": source_line.picking_id.id,
+            "move_id": source_line.move_id.id,
+            "product_id": source_line.product_id.id,
+            "product_uom_id": source_line.product_uom_id.id,
+            "quantity": 1.0,
+            "location_id": source_line.location_id.id,
+            "location_dest_id": source_line.location_dest_id.id,
+            "result_package_id": source_line.result_package_id.id,
+            "owner_id": source_line.owner_id.id,
+            "inbound_order_product_pallet_id": source_line.inbound_order_product_pallet_id.id,
+            "is_location_updated": source_line.is_location_updated,
+            "location_updated_by_id": source_line.location_updated_by_id.id,
+            "location_updated_datetime": source_line.location_updated_datetime,
+        })
+        return self.env["stock.move.line"].create(serial_values)
 
     @api.model
     def apply_location_to_package(self, move_lines, location):
@@ -301,14 +702,19 @@ class StockBarcodeLiteScanService(models.AbstractModel):
         return {}
 
     @api.model
-    def get_incoming_scan_state(self, picking_id=False, current_location_id=False, last_scan=None):
+    def get_incoming_scan_state(self, picking_id=False, current_location_id=False, last_scan=None, current_package_id=False, current_product_id=False):
         picking = self.env["stock.picking"].sudo().search([("id", "=", picking_id)], limit=1) if picking_id else self.env["stock.picking"]
         location = self.env["stock.location"].sudo().search([("id", "=", current_location_id)], limit=1) if current_location_id else self.env["stock.location"]
+        package = self.env["stock.quant.package"].sudo().search([("id", "=", current_package_id)], limit=1) if current_package_id else self.env["stock.quant.package"]
+        product = self.env["product.product"].sudo().search([("id", "=", current_product_id)], limit=1) if current_product_id else self.env["product.product"]
 
         if not picking:
             return {
                 "picking": {},
                 "current_location": self.format_location_for_scan_state(location),
+                "current_pallet": self.format_package_for_incoming_scan_state(package),
+                "current_product": self.format_product_for_incoming_scan_state(product),
+                "serial_progress": {"products": [], "total_quantity": 0.0, "scanned_quantity": 0.0, "remaining_quantity": 0.0},
                 "summary": {
                     "total_pallets": 0,
                     "updated_pallets": 0,
@@ -323,6 +729,7 @@ class StockBarcodeLiteScanService(models.AbstractModel):
         is_picking_done = picking.state == "done"
         package_lines = picking.move_line_ids.filtered(lambda line: line.result_package_id)
         packages = package_lines.mapped("result_package_id")
+        serial_progress = self.get_incoming_serial_progress(picking, package) if package else {"products": [], "total_quantity": 0.0, "scanned_quantity": 0.0, "remaining_quantity": 0.0}
         pallet_data = []
         updated_pallets = 0
         for package in packages:
@@ -335,6 +742,7 @@ class StockBarcodeLiteScanService(models.AbstractModel):
             pallet_location = lines[:1].location_dest_id if lines else self.env["stock.location"]
             products = []
             for line in lines:
+                serial_scanned_quantity = line.quantity if line.product_id.tracking == "serial" and (line.lot_id or line.lot_name) else 0.0
                 products.append({
                     "move_line_id": line.id,
                     "move_id": line.move_id.id,
@@ -343,7 +751,10 @@ class StockBarcodeLiteScanService(models.AbstractModel):
                     "product_barcode": line.product_id.barcode or "",
                     "default_code": line.product_id.default_code or "",
                     "quantity": line.quantity,
-                    "qty_done": line.quantity,
+                    "qty_done": serial_scanned_quantity if line.product_id.tracking == "serial" else line.quantity,
+                    "tracking": line.product_id.tracking,
+                    "serial_scanned_quantity": serial_scanned_quantity,
+                    "serial_remaining_quantity": line.quantity - serial_scanned_quantity,
                     "uom": line.product_uom_id.name,
                     "lot": line.lot_id.name or line.lot_name or "",
                     "source_location": line.location_id.display_name,
@@ -377,6 +788,9 @@ class StockBarcodeLiteScanService(models.AbstractModel):
                 "picking_type_code": picking.picking_type_code,
             },
             "current_location": self.format_location_for_scan_state(location),
+            "current_pallet": self.format_package_for_incoming_scan_state(package),
+            "current_product": self.format_product_for_incoming_scan_state(product),
+            "serial_progress": serial_progress,
             "summary": {
                 "total_pallets": total_pallets,
                 "updated_pallets": updated_pallets,
@@ -401,8 +815,32 @@ class StockBarcodeLiteScanService(models.AbstractModel):
         }
 
     @api.model
+    def format_package_for_incoming_scan_state(self, package):
+        if not package:
+            return {}
+        return {
+            "id": package.id,
+            "name": package.name,
+            "barcode": package.barcode or package.name,
+            "display_name": package.display_name,
+        }
+
+    @api.model
+    def format_product_for_incoming_scan_state(self, product):
+        if not product:
+            return {}
+        return {
+            "id": product.id,
+            "name": product.name,
+            "display_name": product.display_name,
+            "barcode": product.barcode or "",
+            "default_code": product.default_code or "",
+            "tracking": product.tracking,
+        }
+
+    @api.model
     def build_scan_result(self, result_type, barcode_type, message, barcode="",
-                          picking_id=False, location_id=False, package_id=False,
+                          picking_id=False, location_id=False, package_id=False, product_id=False,
                           action_name=False, updated_move_line_ids=None, success=True, next_step=False):
 
         #picking = rec.env["stock.picking"].sudo().search([("id", "=", picking_id)], limit=1) if picking_id else rec.env["stock.picking"]
@@ -424,6 +862,7 @@ class StockBarcodeLiteScanService(models.AbstractModel):
                 "picking_id": picking_id,
                 "location_id": location_id,
                 "package_id": package_id,
+                "product_id": product_id,
             },
             "action": {
                 "name": action_name or result_type,
@@ -434,6 +873,8 @@ class StockBarcodeLiteScanService(models.AbstractModel):
                 picking_id=picking_id,
                 current_location_id=location_id,
                 last_scan=last_scan,
+                current_package_id=package_id,
+                current_product_id=product_id,
             ),
         }
 

@@ -5761,6 +5761,12 @@ msgstr "此操作仅适用于无提单的手动清关。"
 
 #. module: wd_iffm
 #. odoo-python
+#: code:addons/wd_iffm/models/clearance_models/operation_order_clearance_charge_line.py:0
+msgid "No additional quantity is available for this charge item."
+msgstr "该费用项目没有额外数量可计费。"
+
+#. module: wd_iffm
+#. odoo-python
 #: code:addons/wd_iffm/models/charge_pricing_models/charge_quotation.py:0
 msgid ""
 "This expense item already exists in this classification tab of the current "

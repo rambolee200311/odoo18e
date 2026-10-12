@@ -16,7 +16,7 @@
         <delete id="rule_marstek_outbound_order_portal" model="ir.rule"/>
         <delete id="rule_marstek_outbound_order_product_portal" model="ir.rule"/>
         <delete id="rule_marstek_outbound_order_docs_portal" model="ir.rule"/>
-        <delete id="rule_marstek_ir_attachment_portal" model="ir.rule"/>
+<!--        <delete id="rule_marstek_ir_attachment_portal" model="ir.rule"/>-->
         <function model="ir.model.data" name="write">
             <function model="ir.model.data" name="search">
                 <value eval="[('module', '=', 'marstek_stock_portal'), ('name', 'in', ['rule_marstek_stock_quant_portal', 'rule_marstek_stock_move_line_portal', 'rule_marstek_stock_quant_package_portal', 'rule_marstek_outbound_order_sn_detail_portal'])]"/>
