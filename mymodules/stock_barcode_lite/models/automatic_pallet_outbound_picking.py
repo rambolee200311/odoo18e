@@ -16,6 +16,8 @@ class AutomaticPalletOutboundPicking(models.Model):
 
         for rec in self:
             rec.check_custom_barcode_outgoing_one_step()
+            if rec.project.package_generation_mode != "picking":
+                raise UserError(_("Automatic pallet picking requires Package Generation Mode to be Picking."))
             if rec.state != "confirm":
                 raise UserError(_("Only confirmed outbound orders can create a picking."))
             if not rec.pick_type or rec.pick_type.code != "outgoing":

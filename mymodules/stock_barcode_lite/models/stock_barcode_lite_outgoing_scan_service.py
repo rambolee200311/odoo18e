@@ -1712,6 +1712,8 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
                 "current_lot": self.format_lot_for_outgoing_scan_state(lot),
                 "summary": self.get_empty_outgoing_summary(),
                 "pallets": [],
+                "demand_products": [],
+                "current_pallet_products": [],
                 "last_scan": last_scan or {},
             }
 
@@ -1726,6 +1728,41 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
         completed_pallets = 0
         total_qty = 0.0
         scanned_qty = 0.0
+        demand_products = []
+        current_pallet_products = []
+
+        if picking.is_unspecified_pallet_outgoing:
+            move_model = self.env["stock.move"]
+            move_line_model = self.env["stock.move.line"]
+            moves = move_model.sudo().search([("picking_id", "=", picking.id), ("state", "!=", "cancel")], order="id")
+            scanned_lines = move_line_model.sudo().search([("move_id", "in", moves.ids), ("state", "!=", "cancel"), ("is_outbound_scanned", "=", True)], order="id") if moves else move_line_model
+            scanned_qty_by_move = {}
+            pallet_scanned_qty_by_product = {}
+            for line in scanned_lines:
+                scanned_qty_by_move[line.move_id.id] = scanned_qty_by_move.get(line.move_id.id, 0.0) + (line.outbound_scanned_quantity or 0.0)
+                if package and line.package_id == package:
+                    pallet_scanned_qty_by_product[line.product_id.id] = pallet_scanned_qty_by_product.get(line.product_id.id, 0.0) + (line.outbound_scanned_quantity or 0.0)
+            demand_by_product = {}
+            for move in moves:
+                product_data = demand_by_product.setdefault(move.product_id.id, {"product": move.product_id, "required_quantity": 0.0, "scanned_quantity": 0.0})
+                product_data["required_quantity"] += move.product_uom_qty or 0.0
+                product_data["scanned_quantity"] += scanned_qty_by_move.get(move.id, 0.0)
+            for product_id, product_data in sorted(demand_by_product.items()):
+                product = product_data["product"]
+                required_quantity = product_data["required_quantity"]
+                scanned_quantity = min(product_data["scanned_quantity"], required_quantity)
+                demand_products.append({"product_id": product_id, "product_name": product.display_name, "product_barcode": product.barcode or "", "default_code": product.default_code or "", "tracking": product.tracking, "required_quantity": required_quantity, "scanned_quantity": scanned_quantity, "remaining_quantity": max(required_quantity - scanned_quantity, 0.0)})
+            if package:
+                pallet_stock_data = self.get_package_stock_set(package)
+                pallet_available_qty_by_product = {}
+                for stock_line in pallet_stock_data["lines"].values():
+                    product_id = stock_line["product"].id
+                    pallet_available_qty_by_product[product_id] = pallet_available_qty_by_product.get(product_id, 0.0) + stock_line["available_quantity"]
+                for product_data in demand_products:
+                    product = demand_by_product[product_data["product_id"]]["product"]
+                    pallet_available_quantity = max(pallet_available_qty_by_product.get(product.id, 0.0) - pallet_scanned_qty_by_product.get(product.id, 0.0), 0.0)
+                    if float_compare(product_data["remaining_quantity"], 0.0, precision_rounding=product.uom_id.rounding) > 0 and float_compare(pallet_available_quantity, 0.0, precision_rounding=product.uom_id.rounding) > 0:
+                        current_pallet_products.append({"product_id": product.id, "product_name": product.display_name, "product_barcode": product.barcode or "", "default_code": product.default_code or "", "tracking": product.tracking, "picking_remaining_quantity": product_data["remaining_quantity"], "pallet_available_quantity": pallet_available_quantity})
 
         for pallet in packages:
             lines = package_lines.filtered(lambda line: line.package_id == pallet)
@@ -1797,6 +1834,9 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
                         self.is_outgoing_line_complete(line) for line in related_package_lines):
                     related_pending_picking_names.append(related_picking.name)
 
+        if picking.is_unspecified_pallet_outgoing:
+            total_qty = sum(product_data["required_quantity"] for product_data in demand_products)
+            scanned_qty = sum(product_data["scanned_quantity"] for product_data in demand_products)
         total_pallets = len(packages)
         return {
             "picking": {
@@ -1828,6 +1868,8 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
                 ),
             },
             "pallets": pallet_data,
+            "demand_products": demand_products,
+            "current_pallet_products": current_pallet_products,
             "last_scan": last_scan or {},
         }
 
