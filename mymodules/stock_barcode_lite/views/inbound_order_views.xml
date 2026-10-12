@@ -76,6 +76,12 @@
                         class="oe_stat_button"
                         icon="fa-file-text"
                         invisible="project_name !='SUNRISE'"/>
+                <button name="action_print_system_pallet_labels"
+                        type="object"
+                        string="Print System Pallet Labels"
+                        class="oe_stat_button"
+                        icon="fa-print"
+                        invisible="state != 'confirm' or project_name == 'SUNRISE' or project_package_generation_mode == 'none' or not stock_picking_id"/>
                 <button name="action_sunrise_prepare_recreate_incoming_picking"
                         type="object"
                         string="Prepare Recreate Receipt"

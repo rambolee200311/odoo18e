@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 from . import product_template_inherit
 from . import inbound_order
+from . import inbound_order_generic_picking
 from . import inbound_order_sunrise_status
 from . import outbound_order_inherit
+from . import automatic_pallet_outbound_picking
 from . import outbound_order_sunrise_status
 from . import sunrise_api
 from . import sunrise_product_master_import

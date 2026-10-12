@@ -31,11 +31,11 @@
                 </attribute>
             </xpath>
             <xpath expr="//field[@name='picking_PICK']" position="attributes">
-                <attribute name="invisible">project_name == 'SUNRISE'</attribute>
+                <attribute name="invisible">project_name == 'SUNRISE' or barcode_scan_mode == 'custom'</attribute>
             </xpath>
 
             <xpath expr="//field[@name='picking_Out']" position="attributes">
-                <attribute name="invisible">project_name == 'SUNRISE'</attribute>
+                <attribute name="invisible">project_name == 'SUNRISE' or barcode_scan_mode == 'custom'</attribute>
             </xpath>
             <xpath expr="//field[@name='picking_PICK_date']" position="attributes">
                 <attribute name="invisible">project_name == 'SUNRISE'</attribute>
@@ -59,8 +59,9 @@
             </xpath>
 
             <xpath expr="//field[@name='confirm_time_server']" position="after">
-                <field name="whole_pallet_picking_id" readonly="1" invisible="project_name != 'SUNRISE'"/>
-                <field name="partial_pallet_picking_id" readonly="1" invisible="project_name !='SUNRISE'"/>
+                <field name="barcode_scan_mode" invisible="1"/>
+                <field name="whole_pallet_picking_id" readonly="1" invisible="barcode_scan_mode != 'custom'" options="{'no_create': True, 'no_open': True}"/>
+                <field name="partial_pallet_picking_id" readonly="1" invisible="barcode_scan_mode != 'custom'" options="{'no_create': True, 'no_open': True}"/>
                 <field name="outgoing_picking_lines" readonly="1" invisible="project_name != 'SUNRISE'"
                        widget="many2many_tags"/>
                 <field name="o_date" string='Manual Outbound Date' invisible="project_name != 'SUNRISE'"

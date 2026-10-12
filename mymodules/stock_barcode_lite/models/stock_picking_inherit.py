@@ -11,6 +11,7 @@ class StockPicking(models.Model):
 
     outbound_scan_mode = fields.Selection([("whole_pallet", "Whole Pallet"), ("partial_pallet", "Partial Pallet")],
                                           string="Outbound Scan Mode", copy=False, index=True)
+    is_unspecified_pallet_outgoing = fields.Boolean(string="Unspecified Pallet Outgoing", copy=False, index=True)
     new_pallet_count = fields.Integer(string="New Pallet Count", default=0, copy=False)
     project_name = fields.Char(string='Project Name', related='project_id.name',stored=True)
     barcode_scan_mode = fields.Selection(related='project_id.barcode_scan_mode', store=True)
@@ -62,6 +63,8 @@ class StockPicking(models.Model):
             if not skip_scan_validation:
                 rec.check_incoming_pallet_location_updated()
                 rec.check_outgoing_pallet_scan_completed()
+                rec.check_unspecified_pallet_outgoing_scan_completed()
+                rec.check_custom_barcode_serial_tracking()
             if (
                 rec.project_name == "SUNRISE"
                 and rec.picking_type_id.code == "outgoing"
@@ -131,7 +134,7 @@ class StockPicking(models.Model):
 
     def check_incoming_pallet_location_updated(self):
         for rec in self:
-            if rec.project_name != "SUNRISE":
+            if rec.barcode_scan_mode != "custom":
                 continue
             if rec.picking_type_id.code != "incoming" or not rec.inbound_order_id or rec.state in ("done", "cancel"):
                 continue
@@ -174,6 +177,65 @@ class StockPicking(models.Model):
                 raise UserError(
                     _("Please complete outbound scanning before validating. Missing lines: %s")
                     % "; ".join(missing_messages)
+                )
+
+    def check_unspecified_pallet_outgoing_scan_completed(self):
+        move_model = self.env["stock.move"]
+        move_line_model = self.env["stock.move.line"]
+        for rec in self:
+            if not rec.is_unspecified_pallet_outgoing or rec.state in ("done", "cancel"):
+                continue
+            moves = move_model.sudo().search([("picking_id", "=", rec.id), ("state", "!=", "cancel")], order="id")
+            scanned_lines = move_line_model.sudo().search([("move_id", "in", moves.ids), ("state", "!=", "cancel"), ("is_outbound_scanned", "=", True)]) if moves else move_line_model
+            scanned_qty_by_move = {}
+            for line in scanned_lines:
+                scanned_qty_by_move[line.move_id.id] = scanned_qty_by_move.get(line.move_id.id, 0.0) + (line.outbound_scanned_quantity or 0.0)
+            missing_messages = []
+            for move in moves:
+                scanned_qty = scanned_qty_by_move.get(move.id, 0.0)
+                if float_compare(scanned_qty, move.product_uom_qty or 0.0, precision_rounding=move.product_uom.rounding) != 0:
+                    missing_messages.append("%s (%s/%s)" % (move.product_id.display_name, scanned_qty, move.product_uom_qty))
+            if missing_messages:
+                raise UserError(_("Please complete actual pallet scanning before validating. Missing products: %s") % "; ".join(missing_messages))
+
+    def check_custom_barcode_serial_tracking(self):
+        for rec in self:
+            if rec.barcode_scan_mode != "custom" or rec.picking_type_id.code not in ("incoming", "outgoing") or rec.state in ("done", "cancel"):
+                continue
+            serial_lines = rec.move_line_ids.filtered(
+                lambda line: line.product_id.tracking == "serial" and line.quantity > 0 and line.state != "cancel"
+            )
+            if not serial_lines:
+                continue
+            invalid_lines = []
+            serial_keys = set()
+            for line in serial_lines:
+                rounding = line.product_uom_id.rounding or line.product_id.uom_id.rounding
+                serial_name = line.lot_id.name or line.lot_name
+                if float_compare(line.quantity, 1.0, precision_rounding=rounding) != 0:
+                    invalid_lines.append(_("%s has quantity %s") % (line.product_id.display_name, line.quantity))
+                    continue
+                if rec.picking_type_id.code == "incoming":
+                    if not serial_name:
+                        invalid_lines.append(_("%s has no serial number") % line.product_id.display_name)
+                        continue
+                    if line.lot_name and not rec.picking_type_id.use_create_lots:
+                        invalid_lines.append(_("%s cannot create serial number %s") % (line.product_id.display_name, line.lot_name))
+                        continue
+                elif not line.lot_id:
+                    invalid_lines.append(_("%s has no serial number") % line.product_id.display_name)
+                    continue
+                elif not line.is_outbound_scanned or float_compare(line.outbound_scanned_quantity, line.quantity, precision_rounding=rounding) != 0:
+                    invalid_lines.append(_("%s serial number %s has not been scanned") % (line.product_id.display_name, serial_name))
+                    continue
+                serial_key = (line.product_id.id, serial_name)
+                if serial_key in serial_keys:
+                    invalid_lines.append(_("%s serial number %s is duplicated") % (line.product_id.display_name, serial_name))
+                    continue
+                serial_keys.add(serial_key)
+            if invalid_lines:
+                raise UserError(
+                    _("Please complete serial number scanning before validating: %s") % "; ".join(invalid_lines)
                 )
 
 
