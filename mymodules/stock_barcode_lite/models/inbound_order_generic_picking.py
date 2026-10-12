@@ -164,6 +164,7 @@ class InboundOrder(models.Model):
                 "title": _("Stock Picking Created"),
                 "message": _("Created %s receipt(s) and %s pallet package(s).") % (created_picking_count, created_package_count),
                 "sticky": False,
+                "next": {"type": "ir.actions.client", "tag": "reload"},
             },
         }
 
