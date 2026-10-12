@@ -1307,6 +1307,75 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
         return moves, remaining_by_move, remaining_qty
 
     @api.model
+    def get_unspecified_pallet_outgoing_suggestions(self, picking, moves, scanned_lines, demand_by_product):
+        remaining_by_product = {}
+        required_quantity = 0.0
+        for product_id, product_data in demand_by_product.items():
+            remaining_quantity = max((product_data["required_quantity"] or 0.0) - (product_data["scanned_quantity"] or 0.0), 0.0)
+            remaining_by_product[product_id] = remaining_quantity
+            required_quantity += remaining_quantity
+        suggestion_summary = {"suggested_pallet_count": 0, "required_quantity": required_quantity, "suggested_quantity": 0.0, "shortage_quantity": required_quantity, "is_fully_covered": all(float_compare(quantity, 0.0, precision_rounding=demand_by_product[product_id]["product"].uom_id.rounding) <= 0 for product_id, quantity in remaining_by_product.items())}
+        if not moves or not remaining_by_product or not picking.location_id:
+            return [], suggestion_summary
+
+        location_model = self.env["stock.location"]
+        quant_model = self.env["stock.quant"]
+        source_locations = location_model.sudo().search([("id", "child_of", picking.location_id.id), ("usage", "=", "internal")], order="id")
+        if not source_locations:
+            return [], suggestion_summary
+        quants = quant_model.sudo().search([("company_id", "=", picking.company_id.id), ("location_id", "in", source_locations.ids), ("package_id", "!=", False), ("product_id", "in", list(demand_by_product)), ("quantity", ">", 0)], order="location_id, package_id, product_id, lot_id, owner_id, id")
+        package_location_ids = {}
+        if quants:
+            package_quants = quant_model.sudo().search([("package_id", "in", quants.mapped("package_id").ids), ("location_id.usage", "=", "internal"), ("quantity", ">", 0)], order="package_id, location_id")
+            for quant in package_quants:
+                package_location_ids.setdefault(quant.package_id.id, set()).add(quant.location_id.id)
+        scanned_qty_by_variant = {}
+        for line in scanned_lines:
+            product = line.product_id
+            if not line.package_id or product.id not in demand_by_product:
+                continue
+            lot_id = line.lot_id.id if product.tracking == "lot" else 0
+            key = (line.location_id.id, line.package_id.id, product.id, lot_id, line.owner_id.id or 0)
+            scanned_qty_by_variant[key] = scanned_qty_by_variant.get(key, 0.0) + (line.outbound_scanned_quantity or 0.0)
+
+        available_by_variant = {}
+        for quant in quants:
+            product = quant.product_id
+            if len(package_location_ids.get(quant.package_id.id, set())) != 1 or (product.tracking in ("lot", "serial") and not quant.lot_id):
+                continue
+            available_quantity = max((quant.quantity or 0.0) - (quant.reserved_quantity or 0.0), 0.0)
+            if float_compare(available_quantity, 0.0, precision_rounding=product.uom_id.rounding) <= 0:
+                continue
+            lot_id = quant.lot_id.id if product.tracking == "lot" else 0
+            key = (quant.location_id.id, quant.package_id.id, product.id, lot_id, quant.owner_id.id or 0)
+            variant = available_by_variant.setdefault(key, {"location": quant.location_id, "package": quant.package_id, "product": product, "lot": quant.lot_id if product.tracking == "lot" else self.env["stock.lot"], "owner": quant.owner_id, "available_quantity": 0.0})
+            variant["available_quantity"] += available_quantity
+
+        pallet_suggestion_by_key = {}
+        suggested_quantity = 0.0
+        for key in sorted(available_by_variant):
+            variant = available_by_variant[key]
+            product = variant["product"]
+            available_quantity = max(variant["available_quantity"] - scanned_qty_by_variant.get(key, 0.0), 0.0)
+            remaining_quantity = remaining_by_product.get(product.id, 0.0)
+            if float_compare(available_quantity, 0.0, precision_rounding=product.uom_id.rounding) <= 0 or float_compare(remaining_quantity, 0.0, precision_rounding=product.uom_id.rounding) <= 0:
+                continue
+            suggested_line_quantity = min(available_quantity, remaining_quantity)
+            remaining_by_product[product.id] -= suggested_line_quantity
+            suggested_quantity += suggested_line_quantity
+            pallet_key = (variant["location"].id, variant["package"].id)
+            pallet_suggestion = pallet_suggestion_by_key.setdefault(pallet_key, {"priority": 0, "package_id": variant["package"].id, "package_name": variant["package"].name, "package_barcode": variant["package"].barcode or variant["package"].name, "source_location_id": variant["location"].id, "source_location_name": variant["location"].display_name, "suggested_total_quantity": 0.0, "products": []})
+            pallet_suggestion["suggested_total_quantity"] += suggested_line_quantity
+            pallet_suggestion["products"].append({"product_id": product.id, "product_name": product.display_name, "product_barcode": product.barcode or "", "default_code": product.default_code or "", "tracking": product.tracking, "lot_id": variant["lot"].id or False, "lot": variant["lot"].name or "", "owner_id": variant["owner"].id or False, "owner_name": variant["owner"].display_name or "", "available_quantity": available_quantity, "suggested_quantity": suggested_line_quantity})
+
+        pallet_suggestions = list(pallet_suggestion_by_key.values())
+        for index, pallet_suggestion in enumerate(pallet_suggestions, 1):
+            pallet_suggestion["priority"] = index
+        shortage_quantity = sum(max(quantity, 0.0) for quantity in remaining_by_product.values())
+        suggestion_summary.update({"suggested_pallet_count": len(pallet_suggestions), "suggested_quantity": suggested_quantity, "shortage_quantity": shortage_quantity, "is_fully_covered": all(float_compare(quantity, 0.0, precision_rounding=demand_by_product[product_id]["product"].uom_id.rounding) <= 0 for product_id, quantity in remaining_by_product.items())})
+        return pallet_suggestions, suggestion_summary
+
+    @api.model
     def create_unspecified_pallet_outgoing_move_lines(self, picking, package, location, product, quantity, lot=False):
         move_line_model = self.env["stock.move.line"]
         quant_model = self.env["stock.quant"]
@@ -1714,6 +1783,8 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
                 "pallets": [],
                 "demand_products": [],
                 "current_pallet_products": [],
+                "pallet_suggestions": [],
+                "suggestion_summary": {"suggested_pallet_count": 0, "required_quantity": 0.0, "suggested_quantity": 0.0, "shortage_quantity": 0.0, "is_fully_covered": True},
                 "last_scan": last_scan or {},
             }
 
@@ -1730,6 +1801,8 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
         scanned_qty = 0.0
         demand_products = []
         current_pallet_products = []
+        pallet_suggestions = []
+        suggestion_summary = {"suggested_pallet_count": 0, "required_quantity": 0.0, "suggested_quantity": 0.0, "shortage_quantity": 0.0, "is_fully_covered": True}
 
         if picking.is_unspecified_pallet_outgoing:
             move_model = self.env["stock.move"]
@@ -1752,6 +1825,7 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
                 required_quantity = product_data["required_quantity"]
                 scanned_quantity = min(product_data["scanned_quantity"], required_quantity)
                 demand_products.append({"product_id": product_id, "product_name": product.display_name, "product_barcode": product.barcode or "", "default_code": product.default_code or "", "tracking": product.tracking, "required_quantity": required_quantity, "scanned_quantity": scanned_quantity, "remaining_quantity": max(required_quantity - scanned_quantity, 0.0)})
+            pallet_suggestions, suggestion_summary = self.get_unspecified_pallet_outgoing_suggestions(picking, moves, scanned_lines, demand_by_product)
             if package:
                 pallet_stock_data = self.get_package_stock_set(package)
                 pallet_available_qty_by_product = {}
@@ -1870,6 +1944,8 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
             "pallets": pallet_data,
             "demand_products": demand_products,
             "current_pallet_products": current_pallet_products,
+            "pallet_suggestions": pallet_suggestions,
+            "suggestion_summary": suggestion_summary,
             "last_scan": last_scan or {},
         }
 
