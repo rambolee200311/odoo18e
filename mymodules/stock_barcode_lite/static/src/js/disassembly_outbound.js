@@ -93,11 +93,14 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
             const packageId = this.state.currentPallet?.id || false;
             const productId = this.state.currentProduct?.id || false;
             const lotId = this.state.currentLot?.id || false;
+            // Serial products use a dedicated backend scan operation. The backend
+            // records one unit for each accepted serial number.
+            const pendingOperation = this.state.nextStep === "scan_serial" ? "serial" : false;
 
             const result = await this.orm.call(
                 "stock.barcode.lite.scan.service",
                 "process_outgoing_scan_barcode",
-                [barcode, pickingId, locationId, packageId, productId, lotId, false, false]
+                [barcode, pickingId, locationId, packageId, productId, lotId, pendingOperation, false]
             );
             if (this._isDestroyed) return;
 
@@ -538,7 +541,7 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
     }
 
     get isScanLotStep() {
-        return this.state.nextStep === "scan_lot";
+        return this.state.nextStep === "scan_lot" || this.state.nextStep === "scan_serial";
     }
 
     get isScanQuantityStep() {
@@ -552,6 +555,7 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
             scan_pallet: _t("Scan Pallet"),
             scan_product: _t("Scan Product"),
             scan_lot: _t("Scan Lot/SN"),
+            scan_serial: _t("Scan Serial Number"),
             input_quantity: _t("Input Quantity"),
             validate: _t("All Done"),
         };
@@ -565,6 +569,7 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
             scan_pallet: _t("Scan pallet barcode - system will detect whole or disassembly"),
             scan_product: _t("Scan product barcode from the current pallet"),
             scan_lot: _t("Scan serial number or lot number"),
+            scan_serial: _t("Scan serial number for the current product"),
             input_quantity: _t("Input quantity for the current product/lot"),
             validate: _t("All pallets scanned. Click Confirm Outbound to complete."),
         };
