@@ -57,6 +57,17 @@
     animation: pulse_badge 1.5s ease-in-out infinite;
 }
 
+// 桌面端保留拆托出库原有的列表布局；PDA 滚动规则统一由公共样式处理。
+@media (min-width: 769px) and (pointer: fine),
+       (min-width: 769px) and (pointer: none) {
+    .o_sbl_inbound.o_sbl_disassembly_outbound {
+        .o_sbl_pallets {
+            min-height: 0;
+            margin-bottom: 0;
+        }
+    }
+}
+
 @keyframes pulse_icon {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.2); }
