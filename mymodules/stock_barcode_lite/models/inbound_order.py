@@ -100,6 +100,25 @@ class InboundOrder(models.Model):
 
     def action_confirm(self):
         for rec in self:
+            if rec.project_package_generation_mode == "inbound":
+                package_ids = set()
+                for pallet_line in rec.inbound_order_product_ids:
+                    if pallet_line.pallets != 1:
+                        raise UserError(
+                            _('Pallet "%s" pallets must be 1 before confirming an inbound-generated package order.')
+                            % (pallet_line.pallet_no or pallet_line.display_name)
+                        )
+                    if not pallet_line.package_id or not pallet_line.package_id.barcode:
+                        raise UserError(
+                            _('Pallet "%s" has no system package barcode. Generate or select a package before confirming the inbound order.')
+                            % (pallet_line.pallet_no or pallet_line.display_name)
+                        )
+                    if pallet_line.package_id.id in package_ids:
+                        raise UserError(
+                            _('Package "%s" is assigned to more than one pallet line on this inbound order.')
+                            % (pallet_line.package_id.name or pallet_line.package_id.barcode)
+                        )
+                    package_ids.add(pallet_line.package_id.id)
             if rec.project.name == "SUNRISE":
                 rec.validate_sunrise_inbound_confirm_values()
         return super().action_confirm()
@@ -140,12 +159,6 @@ class InboundOrder(models.Model):
 
                 if pallet_missing_fields:
                     raise UserError(_("Sunrise inbound pallet line %s is missing required fields: %s") % (pallet_index, ", ".join(pallet_missing_fields)))
-
-                if rec.project_package_generation_mode == "inbound" and not pallet_line.package_id:
-                    raise UserError(
-                        _('Pallet "%s" has no package. Generate packages before confirming the inbound order.')
-                        % pallet_line.pallet_no
-                    )
 
                 if rec.project_package_generation_mode == "none" and pallet_line.package_id:
                     raise UserError(
