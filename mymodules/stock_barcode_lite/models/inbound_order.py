@@ -113,17 +113,19 @@ class InboundOrder(models.Model):
     def validate_sunrise_inbound_confirm_values(self):
         for rec in self:
             product_box_modes = {}
+            is_manual = rec.creation_source == "manual"
             missing_fields = []
             if not rec.date:
                 missing_fields.append(rec._fields["date"].string)
             if not rec.a_date:
                 missing_fields.append(rec._fields["a_date"].string)
-            if not rec.cwarehouseid:
-                missing_fields.append(rec._fields["cwarehouseid"].string)
-            if not rec.vsourcebillcode:
-                missing_fields.append(rec._fields["vsourcebillcode"].string)
-            if rec.type == "service" and not rec.source_sale_delivery_reference:
-                missing_fields.append(rec._fields["source_sale_delivery_reference"].string)
+            if not is_manual:
+                if not rec.cwarehouseid:
+                    missing_fields.append(rec._fields["cwarehouseid"].string)
+                if not rec.vsourcebillcode:
+                    missing_fields.append(rec._fields["vsourcebillcode"].string)
+                if rec.type == "service" and not rec.source_sale_delivery_reference:
+                    missing_fields.append(rec._fields["source_sale_delivery_reference"].string)
 
             if missing_fields:
                 raise UserError(_("Sunrise inbound order %s is missing required fields: %s") % (rec.reference or rec.billno or rec.id, ", ".join(missing_fields)))
@@ -159,22 +161,24 @@ class InboundOrder(models.Model):
                         line_missing_fields.append(detail_line._fields["product_id"].string)
                     if pallet_line.creation_source in ("api", "import") and not detail_line.source_product_code:
                         line_missing_fields.append(detail_line._fields["source_product_code"].string)
-                    if not detail_line.cprojectid:
-                        line_missing_fields.append(detail_line._fields["cprojectid"].string)
-                    if not detail_line.ndiscounttaxtype:
-                        line_missing_fields.append(detail_line._fields["ndiscounttaxtype"].string)
-                    if not detail_line.vsourcebillcode:
-                        line_missing_fields.append(detail_line._fields["vsourcebillcode"].string)
-                    if not detail_line.vsourcerowno:
-                        line_missing_fields.append(detail_line._fields["vsourcerowno"].string)
-                    if not detail_line.cspaceid:
-                        line_missing_fields.append(detail_line._fields["cspaceid"].string)
+                    if not is_manual:
+                        if not detail_line.cprojectid:
+                            line_missing_fields.append(detail_line._fields["cprojectid"].string)
+                        if not detail_line.ndiscounttaxtype:
+                            line_missing_fields.append(detail_line._fields["ndiscounttaxtype"].string)
+                        if not detail_line.vsourcebillcode:
+                            line_missing_fields.append(detail_line._fields["vsourcebillcode"].string)
+                        if not detail_line.vsourcerowno:
+                            line_missing_fields.append(detail_line._fields["vsourcerowno"].string)
+                        if not detail_line.cspaceid:
+                            line_missing_fields.append(detail_line._fields["cspaceid"].string)
                     if not detail_line.box_type:
                         line_missing_fields.append(detail_line._fields["box_type"].string)
-                    if not detail_line.castunitid:
-                        line_missing_fields.append(detail_line._fields["castunitid"].string)
-                    if not detail_line.u8_aux_uom_name:
-                        line_missing_fields.append(detail_line._fields["u8_aux_uom_name"].string)
+                    if not is_manual:
+                        if not detail_line.castunitid:
+                            line_missing_fields.append(detail_line._fields["castunitid"].string)
+                        if not detail_line.u8_aux_uom_name:
+                            line_missing_fields.append(detail_line._fields["u8_aux_uom_name"].string)
                     if not detail_line.is_lot:
                         line_missing_fields.append(detail_line._fields["is_lot"].string)
                     if detail_line.is_lot == "Y" and not detail_line.lot_name:
@@ -186,7 +190,7 @@ class InboundOrder(models.Model):
 
                     if line_missing_fields:
                         raise UserError(_("%s is missing required fields: %s") % (line_name, ", ".join(line_missing_fields)))
-                    if detail_line.vsourcebillcode != rec.vsourcebillcode:
+                    if not is_manual and detail_line.vsourcebillcode != rec.vsourcebillcode:
                         raise UserError(_("%s vsourcebillcode must equal inbound order vsourcebillcode.") % line_name)
 
                     if detail_line.box_type not in ("full", "partial", "bulk"):
@@ -197,6 +201,10 @@ class InboundOrder(models.Model):
                     if expected_box_mode and expected_box_mode != incoming_box_mode:
                         raise UserError(_('%s product "%s" must use %s because its Sunrise inbound box mode has already been determined.') % (line_name, detail_line.product_id.display_name, "bulk" if expected_box_mode == "bulk" else "full or partial"))
                     product_box_modes[template.id] = (template, incoming_box_mode)
+                    if is_manual:
+                        if detail_line.quantity <= 0:
+                            raise UserError(_("%s quantity must be greater than 0.") % line_name)
+                        continue
                     if detail_line.box_qty <= 0:
                         raise UserError(_("%s box_qty must be greater than 0.") % line_name)
                     if detail_line.box_type in ("full", "partial") and not math.isclose(
@@ -828,6 +836,8 @@ class InboundOrderProduct(models.Model):
         identities = set()
         for detail_line in self.inbound_order_product_pallet_ids:
             product_code = (detail_line.source_product_code or detail_line.product_id.barcode or "").strip()
+            if not product_code and detail_line.product_id:
+                product_code = str(detail_line.product_id.id)
             lot_name = (detail_line.lot_name or "").strip() if detail_line.is_lot == "Y" else ""
             if not product_code:
                 raise UserError(_("Pallet \"%s\" has a product line without a source product code.") % self.pallet_no)
