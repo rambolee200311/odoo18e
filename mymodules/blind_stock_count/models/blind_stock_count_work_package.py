@@ -46,6 +46,18 @@ class BlindStockCountWorkPackage(models.Model):
             rec.with_context(blind_stock_count_work_package_action=True).write({"state": "in_progress"})
         return True
 
+    def action_open_blind_stock_count_list(self):
+        for rec in self:
+            return {"type": "ir.actions.act_window", "name": _("Blind Stock Counts"), "res_model": "blind.stock.count", "view_mode": "list,form", "domain": [("work_package_id", "=", rec.id)], "context": {"default_work_package_id": rec.id, "create": False}, "target": "current"}
+
+    def action_open_pallet_list(self):
+        for rec in self:
+            return {"type": "ir.actions.act_window", "name": _("Blind Stock Count Pallets"), "res_model": "blind.stock.count.pallet", "view_mode": "list,form", "domain": [("blind_stock_count_id.work_package_id", "=", rec.id)], "context": {"create": False}, "target": "current"}
+
+    def action_open_product_line_list(self):
+        for rec in self:
+            return {"type": "ir.actions.act_window", "name": _("Blind Stock Count Product Lines"), "res_model": "blind.stock.count.line", "view_mode": "list,form", "domain": [("work_package_id", "=", rec.id)], "context": {"create": False}, "target": "current"}
+
     def action_done(self):
         count_model = self.env["blind.stock.count"]
         for rec in self:
