@@ -4,14 +4,32 @@
         <field name="model">world.depot.charge.item</field>
         <field name="inherit_id" ref="worlddepot.view_world_depot_charge_item_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//sheet" position="inside">
+                <field name="active" invisible="True"/>
+            </xpath>
             <xpath expr="//field[@name='parent_id']" position="after">
-<!--                <field name="account_account_id" options="{'no_create': True}"-->
-<!--                       domain="[('account_category', '=','expense')]"/>-->
-<!--                <field name="tab_category" required="1"/>-->
-<!--                <field name="is_leaf"/>-->
+                <!--                <field name="account_account_id" options="{'no_create': True}"-->
+                <!--                       domain="[('account_category', '=','expense')]"/>-->
+                <!--                <field name="tab_category" required="1"/>-->
+                <!--                <field name="is_leaf"/>-->
                 <field name="operation_type"/>
                 <field name="charge_based_on_max"/>
             </xpath>
         </field>
+    </record>
+    <record id="view_world_depot_charge_item_search_inherit_parent" model="ir.ui.view">
+        <field name="name">charge.item.search.inherit.parent</field>
+        <field name="model">world.depot.charge.item</field>
+        <field name="inherit_id" ref="worlddepot.view_world_depot_charge_item_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <filter name="group_by_parent"
+                        string="Parent Item"
+                        context="{'group_by': 'parent_id'}"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="worlddepot.action_world_depot_charge_item" model="ir.actions.act_window">
+        <field name="context">{'search_default_group_by_parent': 1}</field>
     </record>
 </odoo>

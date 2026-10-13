@@ -259,7 +259,7 @@
                                 <field name="charge_line_ids" readonly="receivable_state == 'confirmed' or state == 'close'">
                                     <list editable="bottom">
                                         <field name="charge_item_id" options="{'no_create': True, 'no_open': True}"
-                                               domain="[('operation_type', '=','handover'),('is_leaf','=',True)]"
+                                               domain="['|', ('operation_type', '=', 'handover'), ('operation_type', '=', False), ('is_leaf', '=', True)]"
                                                required="1"/>
                                         <field name="qty"/>
                                         <field name="currency_id" readonly="1"/>

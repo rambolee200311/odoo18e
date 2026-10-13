@@ -36,6 +36,7 @@ class WaybillContainerInherit(models.Model):
                     "project": waybill.project.id,
                     "cntr_no": rec.container_number,
                     "bl_no": bl_no,
+                    "reference": f"{bl_no}-{rec.container_number}-{fields.Date.context_today(rec).strftime('%Y%m%d')}",
                     "waybill_id": rec.waybill_id.id,
                 })
             if rec.inbound_order_id != inbound_order:

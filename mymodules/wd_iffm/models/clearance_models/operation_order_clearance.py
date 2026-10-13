@@ -534,6 +534,7 @@ class OperationOrderClearance(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         env_clearance = self.env["operation.order.clearance"].sudo()
+        env_charge_item = self.env["world.depot.charge.item"]
         env_project = self.env["project.project"].sudo()
         env_waybill = self.env["world.depot.waybill"].sudo()
         pricing_date = fields.Date.context_today(self)
@@ -548,6 +549,7 @@ class OperationOrderClearance(models.Model):
             elif waybill:
                 quotation = waybill.quotation_id
                 vals["project_id"] = waybill.project.id
+                vals.setdefault("hs_code_qty", waybill.hs_code_qty)
             else:
                 project = env_project.browse(vals.get("project_id")).exists() if vals.get("project_id") else False
                 if not project:
@@ -564,9 +566,55 @@ class OperationOrderClearance(models.Model):
                 raise ValidationError(_("A quotation is required before creating clearance."))
 
             vals["quotation_id"] = quotation.id
+            charge_line_commands = vals.get("charge_line_ids", [])
+            charge_item_ids = [command[2].get("charge_item_id") for command in charge_line_commands if command[0] == 0 and command[2].get("charge_item_id")]
+            charge_item_map = {item.id: item for item in env_charge_item.sudo().browse(charge_item_ids)}
+            max_charge_qty = max(vals.get("container_qty") or 0, vals.get("hs_code_qty") or 0, 1)
+            valid_charge_line_commands = []
+            for command in charge_line_commands:
+                if command[0] != 0:
+                    valid_charge_line_commands.append(command)
+                    continue
+                charge_vals = command[2]
+                charge_item = charge_item_map.get(charge_vals.get("charge_item_id"))
+                if charge_item and charge_item.charge_based_on_max and not charge_vals.get("is_fixed_fee"):
+                    extra_charge_qty = max_charge_qty - 1
+                    if not extra_charge_qty:
+                        continue
+                    charge_vals["qty"] = extra_charge_qty
+                valid_charge_line_commands.append(command)
+            vals["charge_line_ids"] = valid_charge_line_commands
             if vals.get("name", _("New")) == _("New"):
                 vals["name"] = self.env["ir.sequence"].next_by_code("operation.order.clearance") or _("New")
         return super().create(vals_list)
+
+    def write(self, vals):
+        max_charge_fields = {"hs_code_qty", "container_qty", "clearance_container_ids"}
+        if max_charge_fields & vals.keys():
+            for rec in self:
+                max_charge_lines = rec.charge_line_ids.filtered(lambda line: line.charge_based_on_max and not line.is_fixed_fee)
+                if rec.receivable_state == "confirmed" and max_charge_lines:
+                    raise ValidationError(_("Cannot change container quantity or HS code quantity after receivable confirmation."))
+
+        result = super().write(vals)
+        if max_charge_fields & vals.keys():
+            self.update_max_charge_qty()
+        return result
+
+    def update_max_charge_qty(self):
+        for rec in self:
+            max_charge_qty = max(rec.container_qty or 0, rec.hs_code_qty or 0, 1)
+            max_charge_lines = rec.charge_line_ids.filtered(lambda line: line.charge_based_on_max and not line.is_fixed_fee)
+            if max_charge_qty <= 1:
+                max_charge_lines.unlink()
+                continue
+            for line in max_charge_lines:
+                line.qty = max_charge_qty - 1
+            max_charge_lines.compute_amount_total()
+
+    @api.onchange("hs_code_qty", "container_qty", "clearance_container_ids")
+    def onchange_max_charge_qty(self):
+        self.update_max_charge_qty()
 
     def unlink(self):
         env_clearance = self.env["operation.order.clearance"]
@@ -713,6 +761,25 @@ class OperationOrderClearanceInvoiceLine(models.Model):
                                          default=lambda self: self.default_payment_company_id(), index=True)
     receipt_company_id = fields.Many2one("res.partner", string="Receipt Company", index=True)
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        records.bind_unlinked_attachments()
+        return records
+
+    def write(self, vals):
+        result = super().write(vals)
+        if {"vendor_invoice_attachment_ids", "bank_proof_attachment_ids"} & vals.keys():
+            self.bind_unlinked_attachments()
+        return result
+
+    def bind_unlinked_attachments(self):
+        for rec in self:
+            attachments = rec.vendor_invoice_attachment_ids | rec.bank_proof_attachment_ids
+            attachments_to_bind = attachments.filtered(lambda attachment: attachment.res_model in (False, rec._name) and not attachment.res_id)
+            if attachments_to_bind:
+                attachments_to_bind.write({"res_model": rec._name, "res_id": rec.id})
+
     @api.model
     def default_payment_company_id(self):
         clearance_id = self.env.context.get("default_clearance_id")
@@ -781,11 +848,15 @@ class OperationOrderClearanceInvoiceLine(models.Model):
                 existing_item_ids = set(rec.clearance_id.charge_line_ids.mapped("charge_item_id").ids)
                 quotation_lines = rec.clearance_id.quotation_id.quotation_customs_lines
                 charge_vals = []
+                max_charge_qty = max(rec.clearance_id.container_qty or 0, rec.clearance_id.hs_code_qty or 0, 1)
                 for cost_line in rec.cost_line_ids.filtered(lambda line: line.create_receivable):
                     if cost_line.charge_item_id.id in existing_item_ids:
                         continue
                     quotation_line = quotation_lines.filtered(lambda line: line.charge_item_id == cost_line.charge_item_id)[:1]
-                    charge_vals.append((0, 0, {"charge_origin_type": "quotation", "charge_item_id": cost_line.charge_item_id.id, "is_fixed_fee": quotation_line.is_fixed_fee if quotation_line else False, "qty": 1.0 if (quotation_line.is_fixed_fee if quotation_line else False) else cost_line.qty, "unit_price": quotation_line.unit_price if quotation_line else 0.0, "remark": cost_line.remark}))
+                    is_fixed_fee = quotation_line.is_fixed_fee if quotation_line else False
+                    if cost_line.charge_item_id.charge_based_on_max and not is_fixed_fee and max_charge_qty <= 1:
+                        continue
+                    charge_vals.append((0, 0, {"charge_origin_type": "quotation", "charge_item_id": cost_line.charge_item_id.id, "is_fixed_fee": is_fixed_fee, "qty": 1.0 if is_fixed_fee else cost_line.qty, "unit_price": quotation_line.unit_price if quotation_line else 0.0, "remark": cost_line.remark}))
                 if charge_vals:
                     rec.clearance_id.write({"charge_line_ids": charge_vals})
             if rec.clearance_id.is_clearance_overdue:
