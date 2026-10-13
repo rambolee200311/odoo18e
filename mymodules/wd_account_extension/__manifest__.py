@@ -2,7 +2,7 @@
 {
     "name": "WD Account Extension",
     "version": "1.0.0",
-    "category": "Accounting",
+    "category": "Warehouse",
     "summary": "Common accounting enhancements",
     "depends": ["account", "worlddepot","wd_attachment_preview"],
     "pre_init_hook": "migrate_account_extension_xml_ids",
