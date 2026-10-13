@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <record id="paperformat_system_pallet_label" model="report.paperformat">
+        <field name="name">System Pallet Label A4</field>
+        <field name="default" eval="False"/>
+        <field name="format">A4</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">8</field>
+        <field name="margin_bottom">6</field>
+        <field name="margin_left">6</field>
+        <field name="margin_right">6</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">0</field>
+        <field name="dpi">90</field>
+    </record>
+
     <record id="action_report_system_pallet_label" model="ir.actions.report">
         <field name="name">System Pallet Labels</field>
         <field name="model">stock.quant.package</field>
@@ -7,37 +21,99 @@
         <field name="report_name">stock_barcode_lite.report_system_pallet_label</field>
         <field name="report_file">stock_barcode_lite.report_system_pallet_label</field>
         <field name="print_report_name">'System Pallet Labels - %s' % (object.reference or object.name)</field>
-        <field name="paperformat_id" ref="paperformat_inbound_pallet_label"/>
+        <field name="paperformat_id" ref="paperformat_system_pallet_label"/>
     </record>
 
     <template id="report_system_pallet_label">
         <t t-call="web.html_container">
+            <style>
+                .system-pallet-label-page { font-family: Arial, sans-serif; color: #111827; }
+                .system-pallet-label-page-break { page-break-before: always; }
+                .system-pallet-label-title { font-size: 32px; font-weight: bold; margin: 0 0 5px 0; }
+                .system-pallet-label-header { width: 100%; border-collapse: collapse; table-layout: fixed; border: 1px solid #111827; }
+                .system-pallet-label-header td { border: 1px solid #111827; vertical-align: top; }
+                .system-pallet-label-main { height: 276px; padding: 12px; }
+                .system-pallet-label-qr { width: 285px; padding: 8px; text-align: center; }
+                .system-pallet-label-pallet-no { font-size: 28px; font-weight: bold; margin: 0 0 14px 0; word-break: break-all; }
+                .system-pallet-label-info { width: 100%; height: 200px; border-collapse: collapse; font-size: 14px; }
+                .system-pallet-label-info tr { height: 33.333%; }
+                .system-pallet-label-info td { border: 1px solid #111827; padding: 3px 14px 3px 6px; vertical-align: middle; }
+                .system-pallet-label-info td:not(.label) { word-break: break-all; word-wrap: break-word; }
+                .system-pallet-label-info .label { width: 120px; font-weight: bold; white-space: nowrap; }
+                .system-pallet-label-qr-caption { font-size: 13px; font-weight: bold; }
+                .system-pallet-label-products { width: 100%; margin-top: 12px; border-collapse: collapse; table-layout: fixed; }
+                .system-pallet-label-products td { border: 1px solid #111827; vertical-align: middle; }
+                .system-pallet-label-product-qr { width: 240px; padding: 8px; text-align: center; }
+                .system-pallet-label-product-details { padding: 14px; }
+                .system-pallet-label-product-name { font-size: 24px; font-weight: bold; line-height: 1.25; word-break: break-word; }
+                .system-pallet-label-products .quantity { width: 34mm; padding: 14px 8px; text-align: center; }
+                .system-pallet-label-quantity-label { display: block; font-size: 14px; font-weight: bold; }
+                .system-pallet-label-quantity-value { display: block; margin-top: 8px; font-size: 30px; font-weight: bold; }
+            </style>
             <t t-foreach="docs" t-as="package">
-                <div class="page" t-att-data-oe-model="package._name" t-att-data-oe-id="package.id">
-                    <style>
-                        .system-pallet-label { font-family: Arial, sans-serif; padding: 8mm; }
-                        .system-pallet-label-title { font-size: 22px; font-weight: bold; margin-bottom: 8mm; }
-                        .system-pallet-label-code { font-size: 18px; font-weight: bold; margin-bottom: 5mm; word-break: break-all; }
-                        .system-pallet-label-info { width: 100%; border-collapse: collapse; font-size: 13px; }
-                        .system-pallet-label-info td { padding: 2mm 0; vertical-align: top; }
-                        .system-pallet-label-info .label { width: 36mm; font-weight: bold; }
-                        .system-pallet-label-qr { margin-top: 8mm; text-align: center; }
-                        .system-pallet-label-barcode { margin-top: 3mm; font-size: 13px; font-weight: bold; word-break: break-all; }
-                    </style>
-                    <div class="system-pallet-label">
-                        <div class="system-pallet-label-title">System Pallet Label</div>
-                        <div class="system-pallet-label-code" t-esc="package.name"/>
-                        <table class="system-pallet-label-info">
-                            <tr><td class="label">Reference:</td><td t-esc="package.reference or ''"/></tr>
-                            <tr><td class="label">Bill No:</td><td t-esc="package.billno or ''"/></tr>
-                            <tr><td class="label">Container No:</td><td t-esc="package.cntr_no or ''"/></tr>
-                            <tr><td class="label">Source Inbound:</td><td t-esc="package.inbound_order_id.display_name or ''"/></tr>
-                        </table>
-                        <div class="system-pallet-label-qr">
-                            <div t-field="package.barcode" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 380, 'height': 380, 'img_style': 'width:260px;height:260px;'}"/>
-                            <div class="system-pallet-label-barcode" t-esc="package.barcode"/>
-                        </div>
-                    </div>
+                <div t-attf-class="page system-pallet-label-page {{ 'system-pallet-label-page-break' if package_index else '' }}"
+                     t-att-data-oe-model="package._name" t-att-data-oe-id="package.id"
+                     t-att-data-oe-lang="package.env.context.get('lang')">
+                    <p class="system-pallet-label-title">World Depot B.V.</p>
+                    <table class="system-pallet-label-header">
+                        <tr>
+                            <td class="system-pallet-label-main">
+                                <p class="system-pallet-label-pallet-no">Pallet No: <span t-esc="package.name"/></p>
+                                <table class="system-pallet-label-info">
+                                    <tr>
+                                        <td class="label">Reference:</td><td t-esc="package.reference or ''"/>
+                                        <td class="label">Owner:</td><td t-esc="package.inbound_order_id.owner.name or ''"/>
+                                    </tr>
+                                    <tr>
+                                        <td class="label">Arrival Date:</td>
+                                        <td colspan="3" t-esc="package.inbound_order_id.a_date.strftime('%Y-%m-%d') if package.inbound_order_id.a_date else ''"/>
+                                    </tr>
+                                    <tr>
+                                        <td class="label">BL No:</td><td t-esc="package.inbound_order_id.bl_no or package.billno or ''"/>
+                                        <td class="label">Container No:</td><td t-esc="package.cntr_no or ''"/>
+                                    </tr>
+                                </table>
+                            </td>
+                            <td class="system-pallet-label-qr">
+                                <t t-if="package.barcode">
+                                    <div t-field="package.barcode"
+                                         t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 380, 'height': 380, 'img_style': 'width:260px;height:260px;'}"/>
+                                    <div class="system-pallet-label-qr-caption">Pallet QR Code</div>
+                                </t>
+                            </td>
+                        </tr>
+                    </table>
+                    <table class="system-pallet-label-products">
+                        <tbody>
+                            <t t-foreach="product_lines_by_package.get(package.id, [])" t-as="product_line">
+                                <t t-set="source_line" t-value="product_line['source_line']"/>
+                                <tr>
+                                    <td class="system-pallet-label-product-qr">
+                                        <t t-if="source_line.product_id.barcode">
+                                            <div t-field="source_line.product_id.barcode"
+                                                 t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 320, 'height': 320, 'img_style': 'width:230px;height:230px;'}"/>
+                                            <div class="system-pallet-label-qr-caption">Product QR Code</div>
+                                        </t>
+                                        <t t-elif="source_line.product_id.default_code">
+                                            <div t-field="source_line.product_id.default_code"
+                                                 t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 320, 'height': 320, 'img_style': 'width:230px;height:230px;'}"/>
+                                            <div class="system-pallet-label-qr-caption">Product QR Code</div>
+                                        </t>
+                                    </td>
+                                    <td class="system-pallet-label-product-details">
+                                        <div class="system-pallet-label-product-name" t-esc="source_line.product_id.display_name"/>
+                                    </td>
+                                    <td class="quantity">
+                                        <span class="system-pallet-label-quantity-label">Quantity</span>
+                                        <span class="system-pallet-label-quantity-value" t-esc="product_line['quantity']"/>
+                                    </td>
+                                </tr>
+                            </t>
+                            <t t-if="not product_lines_by_package.get(package.id, [])">
+                                <tr><td colspan="3">No product lines.</td></tr>
+                            </t>
+                        </tbody>
+                    </table>
                 </div>
             </t>
         </t>

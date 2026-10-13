@@ -36,19 +36,19 @@
             </xpath>
             <xpath expr="//field[@name='inbound_order_product_ids']" position="before">
                 <div class="mb-2">
-                    <button name="action_open_inbound_product_import_wizard"
-                            type="object"
-                            string="Import Products"
-                            class="btn btn-primary"
-                            icon="fa-upload"
-                            invisible="state != 'new' or project_name !='SUNRISE'"
-                            groups="stock_barcode_lite.group_sunrise_stock_manager"/>
+<!--                    <button name="action_open_inbound_product_import_wizard"-->
+<!--                            type="object"-->
+<!--                            string="Import Products"-->
+<!--                            class="btn btn-primary"-->
+<!--                            icon="fa-upload"-->
+<!--                            invisible="state != 'new' or project_name !='SUNRISE'"-->
+<!--                            groups="stock_barcode_lite.group_sunrise_stock_manager"/>-->
                     <button name="action_sunrise_generate_packages"
                             type="object"
                             string="Generate Packages"
                             class="btn btn-primary ms-3"
                             icon="fa-qrcode"
-                            invisible="state != 'new' or project_name != 'SUNRISE' or project_package_generation_mode != 'inbound'"/>
+                            invisible="state != 'new' or project_package_generation_mode != 'inbound'"/>
 
                 </div>
             </xpath>
@@ -81,7 +81,7 @@
                         string="Print System Pallet Labels"
                         class="oe_stat_button"
                         icon="fa-print"
-                        invisible="state != 'confirm' or project_name == 'SUNRISE' or project_package_generation_mode == 'none' or not stock_picking_id"/>
+                        invisible="project_package_generation_mode != 'picking' or not stock_picking_id"/>
                 <button name="action_sunrise_prepare_recreate_incoming_picking"
                         type="object"
                         string="Prepare Recreate Receipt"
@@ -94,8 +94,8 @@
             <xpath expr="//field[@name='inbound_order_product_ids']/list/field[@name='pallet_no']" position="after">
                 <field name="inbound_sunrise_ref" readonly="1" optional="show" column_invisible="parent.project_name != 'SUNRISE'"/>
 <!--                <field name="inbound_location" readonly="1" optional="show"/>-->
-                <field name="package_id" optional="show" column_invisible="parent.project_name != 'SUNRISE'"
-                       options="{'no_create': True, 'no_open': True}"/>
+                <field name="package_id" optional="show" column_invisible="parent.project_package_generation_mode != 'inbound'"
+                       options="{'no_create': True, 'no_open':False}"/>
                 <!--                <field name="package_barcode" optional="show" column_invisible="parent.project_name != 'SUNRISE'"/>-->
                 <!--                <field name="is_reused_package" optional="show" column_invisible="parent.project_name != 'SUNRISE'"/>-->
             </xpath>
