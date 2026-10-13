@@ -16,6 +16,7 @@ export class AttachmentPreviewField extends Component {
     static props = {
         ...standardFieldProps,
         acceptedFileExtensions: { type: String, optional: true },
+        autoCreateRecord: { type: Boolean, optional: true },
         className: { type: String, optional: true },
         numberOfFiles: { type: Number, optional: true },
     };
@@ -64,11 +65,19 @@ export class AttachmentPreviewField extends Component {
     }
 
     async on_file_uploaded(files) {
+        const createRecord = this.props.autoCreateRecord && !this.props.record.resId;
         for (const file of files) {
             if (file.error) {
                 return this.notification.add(file.error, { title: _t("Uploading error"), type: "danger" });
             }
             await this.operations.saveRecord([file.id]);
+        }
+        if (createRecord) {
+            try {
+                await this.props.record.save();
+            } catch (error) {
+                this.notification.add(error.data?.message || error.message || _t("Could not save the record."), { title: _t("Upload error"), type: "danger" });
+            }
         }
     }
 
@@ -94,6 +103,7 @@ export const attachment_preview_field = {
     ],
     extractProps: ({ attrs, options }) => ({
         acceptedFileExtensions: options.accepted_file_extensions,
+        autoCreateRecord: options.auto_create,
         className: attrs.class,
         numberOfFiles: options.number_of_files,
     }),
