@@ -75,6 +75,20 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
                 success=True,
             )
 
+        if pending_operation == "serial":
+            picking = self.get_valid_outgoing_picking(picking_id)
+            product = self.get_outgoing_product_from_barcode(code)
+            if picking.is_unspecified_pallet_outgoing and len(product) == 1:
+                has_demand = self.env["stock.move"].sudo().search([
+                    ("picking_id", "=", picking.id),
+                    ("product_id", "=", product.id),
+                    ("state", "not in", ("done", "cancel")),
+                ], limit=1)
+                if has_demand:
+                    current_product_id = False
+                    current_lot_id = False
+                    pending_operation = False
+
         operation = pending_operation or self.infer_outgoing_operation(
             picking_id=picking_id,
             current_location_id=current_location_id,
