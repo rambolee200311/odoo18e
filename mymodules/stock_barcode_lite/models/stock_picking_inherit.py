@@ -204,12 +204,20 @@ class StockPicking(models.Model):
         for rec in self:
             if rec.barcode_scan_mode != "custom" or rec.picking_type_id.code not in ("incoming", "outgoing") or rec.state in ("done", "cancel"):
                 continue
+            serial_moves = rec.move_ids.filtered(
+                lambda move: move.product_id.tracking == "serial" and move.state != "cancel" and move.product_uom_qty > 0
+            )
+            if not serial_moves:
+                continue
             serial_lines = rec.move_line_ids.filtered(
                 lambda line: line.product_id.tracking == "serial" and line.quantity > 0 and line.state != "cancel"
             )
-            if not serial_lines:
-                continue
             invalid_lines = []
+            for move in serial_moves:
+                rounding = move.product_uom.rounding or move.product_id.uom_id.rounding
+                move_line_quantity = sum(serial_lines.filtered(lambda line: line.move_id == move).mapped("quantity"))
+                if float_compare(move_line_quantity, move.product_uom_qty, precision_rounding=rounding) != 0:
+                    invalid_lines.append(_("%s serial move lines (%s/%s)") % (move.product_id.display_name, move_line_quantity, move.product_uom_qty))
             serial_keys = set()
             for line in serial_lines:
                 rounding = line.product_uom_id.rounding or line.product_id.uom_id.rounding

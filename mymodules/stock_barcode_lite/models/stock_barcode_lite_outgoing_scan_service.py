@@ -19,6 +19,29 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
     OUTGOING_OPERATIONS = set(OUTGOING_OPERATION_CODES.values())
 
     @api.model
+    def action_delete_outgoing_scanned_line(self, picking_id, move_line_id):
+        picking = self.get_valid_outgoing_picking(picking_id)
+        move_line_model = self.env["stock.move.line"]
+        line = move_line_model.sudo().search([
+            ("id", "=", move_line_id),
+            ("picking_id", "=", picking.id),
+            ("state", "not in", ("done", "cancel")),
+            ("outbound_scanned_quantity", ">", 0),
+        ], limit=1) if picking else move_line_model
+        if not line:
+            return self.build_outgoing_scan_result("error", _("Error"), _("The scanned line cannot be deleted."), picking_id=picking_id, action_name="delete_outgoing_scanned_line", success=False)
+        location_id = line.location_id.id
+        package_id = line.package_id.id
+        product_id = line.product_id.id
+        lot_id = line.lot_id.id
+        editable_line = move_line_model.browse(line.id)
+        if picking.is_unspecified_pallet_outgoing:
+            editable_line.unlink()
+        else:
+            editable_line.write({"is_outbound_scanned": False, "outbound_scanned_quantity": 0.0, "outbound_scanned_by_id": False, "outbound_scanned_datetime": False})
+        return self.build_outgoing_scan_result("delete", _("Delete"), _("Scanned line deleted."), picking_id=picking.id, location_id=location_id, package_id=package_id, product_id=product_id, lot_id=lot_id, action_name="delete_outgoing_scanned_line", updated_move_line_ids=[move_line_id], success=True)
+
+    @api.model
     def process_outgoing_scan_barcode(
         self,
         code,
@@ -1254,7 +1277,7 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
 
         lot_model = self.env["stock.lot"]
         move_line_model = self.env["stock.move.line"]
-        lots = lot_model.sudo().search([("name", "=", code), ("product_id", "=", product.id), ("company_id", "=", picking.company_id.id)], limit=2)
+        lots = lot_model.sudo().search([("name", "=", code), ("product_id", "=", product.id)], limit=2)
         if len(lots) > 1:
             return self.build_outgoing_scan_result("error", _("Error"), _("Serial number matched multiple records for product %s: %s") % (product.display_name, code), barcode=code, picking_id=picking.id, location_id=current_location_id, package_id=package.id, product_id=product.id, action_name="serial_multiple_matches", success=False, next_step="scan_serial")
         if not lots:
@@ -1893,6 +1916,7 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
                     "source_location": line.location_id.display_name,
                     "dest_location": line.location_dest_id.display_name,
                     "is_complete": line_is_complete,
+                    "can_delete": bool(line.outbound_scanned_quantity > 0 and not is_picking_done and line.state not in ("done", "cancel")),
                 })
             is_complete = is_picking_done or (
                 bool(lines) and all(self.is_outgoing_line_complete(line) for line in lines)

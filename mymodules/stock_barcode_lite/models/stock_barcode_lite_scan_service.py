@@ -224,7 +224,7 @@ class StockBarcodeLiteScanService(models.AbstractModel):
             barcode=code,
             picking_id=picking.id,
             location_id=location.id,
-            package_id=False if all_updated else package.id,
+            package_id=False,
             action_name="update_package_location",
             updated_move_line_ids=move_lines.ids,
             success=True,
