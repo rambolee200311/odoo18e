@@ -19,7 +19,7 @@ import { standardActionServiceProps } from "@web/webclient/actions/action_servic
  *  完成所有托盘后，可确认出库
  *
  * 本页面完全依赖后端接口 process_outgoing_scan_barcode 驱动流程，
- * 后端返回统一的 scan_state 结构，前端负责渲染和交互。
+ * 前端用 current 延续后续请求上下文，用 scan_state 渲染页面数据。
  */
 export class DisassemblyOutboundPage extends BaseBarcodePage {
     static template = "stock_barcode_lite.DisassemblyOutboundPage";
@@ -28,6 +28,7 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
     setup() {
         super.setup();
         this.state.expandedPalletIds = [];
+        this._resetScanContext();
     }
 
     _onBarcodeBlur(ev) {
@@ -88,19 +89,19 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
                 return;
             }
 
-            const pickingId = this.state.order?.id || false;
-            const locationId = this.state.currentLocation?.id || false;
-            const packageId = this.state.currentPallet?.id || false;
-            const productId = this.state.currentProduct?.id || false;
-            const lotId = this.state.currentLot?.id || false;
-            // Serial products use a dedicated backend scan operation. The backend
-            // records one unit for each accepted serial number.
-            const pendingOperation = this.state.nextStep === "scan_serial" ? "serial" : false;
+            const {
+                pickingId,
+                locationId,
+                packageId,
+                productId,
+                lotId,
+                pendingOperation,
+            } = this.scanContext;
 
             const result = await this.orm.call(
                 "stock.barcode.lite.scan.service",
                 "process_outgoing_scan_barcode",
-                [barcode, pickingId, locationId, packageId, productId, lotId, pendingOperation, false]
+                [barcode, pickingId, locationId, packageId, productId, lotId, pendingOperation || false, false]
             );
             if (this._isDestroyed) return;
 
@@ -121,6 +122,7 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
                 this.state.currentPallet = {};
                 this.state.currentProduct = {};
                 this.state.currentLot = {};
+                this._resetScanContext();
                 this.state.nextStep = "scan_picking";
                 this.state.summary = this._getEmptySummary();
                 this.state.lastScan = {};
@@ -146,7 +148,7 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
    }
 
     /**
-     * 映射后端 scan_state 到前端 state
+     * 应用后端返回：current 更新请求上下文，scan_state 更新页面展示
      * 后端返回结构：
      * {
      *   success, type, barcode, barcode_type, message, next_step,
@@ -165,12 +167,24 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
     _applyScanResult(result, notify = true) {
         if (!result) return;
 
+        // `current` is the authoritative request context.
+        // `scan_state` is used below only to populate display data.
+        const current = result.current || {};
+        this.scanContext = {
+            pickingId: current.picking_id || false,
+            locationId: current.location_id || false,
+            packageId: current.package_id || false,
+            productId: current.product_id || false,
+            lotId: current.lot_id || false,
+            pendingOperation: current.pending_operation || false,
+        };
+
         const scanState = result.scan_state || {};
 
         // 更新出库单信息
         this.state.order = scanState.picking ? { ...scanState.picking } : null;
 
-        // 更新当前上下文
+        // 更新当前picking页面基础信息
         this.state.currentLocation = scanState.current_location ? { ...scanState.current_location } : {};
         this.state.currentPallet = scanState.current_pallet ? { ...scanState.current_pallet } : {};
         this.state.currentProduct = scanState.current_product ? { ...scanState.current_product } : {};
@@ -221,8 +235,8 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
 
             // 后端 current_product 缺少 move_line_id，需要从 pallets 中补全
             // 优先使用当前托盘的数据，避免跨托盘错误匹配
-            const currentProductId = this.state.currentProduct?.id;
-            const currentPalletId = this.state.currentPallet?.id;
+            const currentProductId = this.scanContext.productId;
+            const currentPalletId = this.scanContext.packageId;
 
             if (currentProductId && scanState.pallets) {
                 let fullProduct = null;
@@ -316,7 +330,7 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
             return;
         }
 
-        if (!this.state.currentProduct?.id) {
+        if (!this.scanContext.productId) {
             this.showMessage(_t("Please scan product first"), "danger");
             return;
         }
@@ -337,11 +351,11 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
                 [
                     "",
                     qty,
-                    this.state.order?.id || false,
-                    this.state.currentLocation?.id || false,
-                    this.state.currentPallet?.id || false,
-                    this.state.currentProduct?.id || false,
-                    this.state.currentLot?.id || false,
+                    this.scanContext.pickingId,
+                    this.scanContext.locationId,
+                    this.scanContext.packageId,
+                    this.scanContext.productId,
+                    this.scanContext.lotId,
                     false,
                 ]
             );
@@ -377,7 +391,8 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
     // ═══════════════════════════════════════════════════════════════
 
     async confirmOutbound() {
-        if (!this.state.order) {
+        const pickingId = this.scanContext.pickingId;
+        if (!pickingId) {
             this.showMessage(_t("No order loaded"), "danger");
             return;
         }
@@ -402,7 +417,7 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
 
         this.state.loading = true;
         try {
-            const result = await this.orm.call("stock.picking", "button_validate", [[this.state.order.id]]);
+            const result = await this.orm.call("stock.picking", "button_validate", [[pickingId]]);
             if (this._isDestroyed) return;
             if (result?.type) {
                 await this.action.doAction(result);
@@ -425,6 +440,17 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
     // 重置 / 退出
     // ═══════════════════════════════════════════════════════════════
 
+    _resetScanContext() {
+        this.scanContext = {
+            pickingId: false,
+            locationId: false,
+            packageId: false,
+            productId: false,
+            lotId: false,
+            pendingOperation: false,
+        };
+    }
+
     resetScan() {
         this.state.order = null;
         this.state.pallets = [];
@@ -442,6 +468,7 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
         this._focusBarcodeInput();
         this.state.currentScannedPalletId = null;
         this.state.expandedPalletIds = [];
+        this._resetScanContext();
     }
 
     exit() {
