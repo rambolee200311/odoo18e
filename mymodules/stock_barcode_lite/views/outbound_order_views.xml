@@ -271,6 +271,7 @@
         <field name="arch" type="xml">
             <search string="Sunrise Outbound Orders">
                 <field name="vsourcebillcode"/>
+                <field name="outbound_sunrise_ref"/>
                 <field name="billno"/>
                 <field name="reference"/>
                 <field name="load_ref"/>
