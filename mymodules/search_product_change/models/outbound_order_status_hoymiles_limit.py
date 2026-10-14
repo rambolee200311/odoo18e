@@ -197,7 +197,8 @@ class OutboundOrderStatusHoymilesLimit(models.Model):
                 pack_list = order.sudo().outbound_order_pack_ids
                 if not pack_list:
                     raise UserError("请先维护打包信息。")
-                order.check_hoymiles_outbound_pack_sn()
+                if order.hoymiles_send_serials:
+                    order.check_hoymiles_outbound_pack_sn()
 
                 order.check_hoymiles_click_time('outbound_pack_sync_click_time', 180103)
         return super().action_set_outbound_pack_sync()

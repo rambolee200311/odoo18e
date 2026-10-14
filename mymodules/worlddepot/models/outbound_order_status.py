@@ -85,6 +85,7 @@ class OutboundOrderStatus(models.Model):
     set_status_to_pick_finished_time=fields.Datetime(string='Set Status to Pick Finished Time', default=None)
     status_to_pick_finished_error_msg=fields.Text(string='Status to Pick Finished Error Message', default=None)
     set_outbound_pack_sync=fields.Boolean(string='Set Outbound Pack Sync', default=False)
+    hoymiles_send_serials = fields.Boolean(string='Hoymiles Send Serials', default=True, copy=False)
     set_outbound_pack_sync_time=fields.Datetime(string='Set Outbound Pack Sync Time', default=None)
     outbound_pack_sync_time_user=fields.Datetime(string='Outbound Pack Sync Time User', default=None)
     outbound_pack_sync_error_msg=fields.Text(string='Outbound Pack Sync Error Message', default=None)
@@ -529,14 +530,15 @@ class OutboundOrderStatus(models.Model):
 
                             # collect serials for this move
                             serials = set()
-                            for move_line in getattr(move, 'move_line_ids', []) or []:
-                                try:
-                                    lot = getattr(move_line, 'lot_id', None) or getattr(move_line, 'lot_name', None)
-                                    serial_name = getattr(lot, 'name', None) if hasattr(lot, 'name') else (lot or '')
-                                    if serial_name:
-                                        serials.add(str(serial_name))
-                                except Exception:
-                                    _logger.exception('Failed to read move_line serial/lot for move %s', getattr(move, 'id', False))
+                            if order.hoymiles_send_serials:
+                                for move_line in getattr(move, 'move_line_ids', []) or []:
+                                    try:
+                                        lot = getattr(move_line, 'lot_id', None) or getattr(move_line, 'lot_name', None)
+                                        serial_name = getattr(lot, 'name', None) if hasattr(lot, 'name') else (lot or '')
+                                        if serial_name:
+                                            serials.add(str(serial_name))
+                                    except Exception:
+                                        _logger.exception('Failed to read move_line serial/lot for move %s', getattr(move, 'id', False))
 
                             if key not in groups:
                                 groups[key] = {
@@ -563,8 +565,9 @@ class OutboundOrderStatus(models.Model):
                         #if val.get('oop'):
                         #    line['outboundOrderProductId'] = val.get('oop')
                         payload['lines'].append(line)
-                        for s in sorted(val.get('serials') or []):
-                            payload['serials'].append({'serialNumber': s})
+                        if order.hoymiles_send_serials:
+                            for s in sorted(val.get('serials') or []):
+                                payload['serials'].append({'serialNumber': s})
 
                 token = order.env['hoymiles.token.utils'].get_oauth_token()
 
