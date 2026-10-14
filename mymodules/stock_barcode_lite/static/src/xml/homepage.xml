@@ -6,18 +6,14 @@
             <div class="container-fluid py-2">
 
                 <!-- Inbound -->
-                <div class="row">
-                    <div class="col-10 offset-1 col-md-6 offset-md-3 col-lg-3 offset-lg-0">
-                        <div class="section-header">
-                            <h5 class="section-title">Inbound</h5>
-                        </div>
-                    </div>
+                <div class="section-header">
+                    <h5 class="section-title">Inbound</h5>
                 </div>
-                <div class="row justify-content-center g-4">
+                <div class="row justify-content-center g-3 g-md-4">
                     <!-- lg卡片宽度-->
-                    <div class="col-11 col-md-6 col-lg-6">
+                    <div class="col-12 col-md-6 col-lg-6">
                         <div class="card h-100 shadow-sm o_homepage_card o_inbound_card" t-on-click="_onInboundClick">
-                            <div class="card-header bg-primary text-white">
+                            <div class="card-header bg-light text-dark o_homepage_card_header">
                                 <h3 class="mb-0">
                                     <i class="fa fa-sign-in me-2"/>Full Pallet Putaway
                                 </h3>
@@ -30,9 +26,9 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-11 col-md-6 col-lg-6">
+                    <div class="col-12 col-md-6 col-lg-6">
                         <div class="card h-100 shadow-sm o_homepage_card o_actual_inbound_confirmation_card" t-on-click="_onActualInboundConfirmationClick">
-                            <div class="card-header bg-secondary text-white">
+                            <div class="card-header bg-light text-dark o_homepage_card_header">
                                 <h3 class="mb-0">
                                     <i class="fa fa-check-circle me-2"/>Actual Inbound Confirmation
                                 </h3>
@@ -48,17 +44,13 @@
                 </div>
 
                 <!-- Outbound -->
-                <div class="row">
-                    <div class="col-10 offset-1 col-md-6 offset-md-3 col-lg-3 offset-lg-0">
-                        <div class="section-header">
-                            <h5 class="section-title">Outbound</h5>
-                        </div>
-                    </div>
+                <div class="section-header">
+                    <h5 class="section-title">Outbound</h5>
                 </div>
-                <div class="row justify-content-center g-3">
-                    <div class="col-11 col-md-6 col-lg-6">
+                <div class="row justify-content-center g-3 g-md-4">
+                    <div class="col-12 col-md-6 col-lg-6">
                         <div class="card h-100 shadow-sm o_homepage_card o_outbound_whole_card" t-on-click="_onOutboundWholeClick">
-                            <div class="card-header bg-success text-white">
+                            <div class="card-header bg-light text-dark o_homepage_card_header">
                                 <h3 class="mb-0">
                                     <i class="fa fa-sign-out me-2"/>Full Pallet Pick
                                 </h3>
@@ -71,9 +63,9 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-11 col-md-6 col-lg-6">
+                    <div class="col-12 col-md-6 col-lg-6">
                         <div class="card h-100 shadow-sm o_homepage_card o_outbound_break_card" t-on-click="_onOutboundBreakClick">
-                            <div class="card-header bg-warning text-dark">
+                            <div class="card-header bg-light text-dark o_homepage_card_header">
                                 <h3 class="mb-0">
                                     <i class="fa fa-sign-out me-2"/>Break Bulk Pick
                                 </h3>
@@ -89,17 +81,13 @@
                 </div>
 
                 <!-- Internal Transfer -->
-                <div class="row">
-                    <div class="col-10 offset-1 col-md-6 offset-md-3 col-lg-3 offset-lg-0">
-                        <div class="section-header">
-                            <h5 class="section-title">Internal Transfer</h5>
-                        </div>
-                    </div>
+                <div class="section-header">
+                    <h5 class="section-title">Internal Transfer</h5>
                 </div>
-                <div class="row justify-content-center g-3">
-                    <div class="col-11 col-md-6 col-lg-6">
+                <div class="row justify-content-center justify-content-lg-start g-3 g-md-4">
+                    <div class="col-12 col-md-6 col-lg-6">
                         <div class="card h-100 shadow-sm o_homepage_card o_internal_transfer_card" t-on-click="_onInternalTransferClick">
-                            <div class="card-header bg-info text-white">
+                            <div class="card-header bg-light text-dark o_homepage_card_header">
                                 <h3 class="mb-0">
                                     <i class="fa fa-arrows-alt me-2"/>Internal Transfer
                                 </h3>

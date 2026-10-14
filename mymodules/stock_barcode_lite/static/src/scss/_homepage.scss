@@ -2,7 +2,7 @@
 
 /* 菜单页面内容块 */
 .o_stock_barcode_lite_homepage {
-    max-width: 650px;
+    max-width: 960px;
     margin: 0 auto;
     padding: 24px 24px 80px 24px;
     min-height: calc(100vh - 50px);  /* PC端避开顶部导航栏 */
@@ -25,41 +25,97 @@
     }
 
     .section-header {
-        padding: 8px 4px 4px 4px;
-        margin-bottom: 12px;
-    }
+        padding: 0 4px;
+        margin: 24px 0 16px;
 
-    @media (min-width: 992px) {
-        .section-header {
-            margin-left: 24px;
+        &:first-of-type {
+            margin-top: 6px;
         }
     }
 
     .section-title {
         font-weight: 700;
-        color: #212529;
+        color: var(--bs-body-color, #212529);
         text-transform: uppercase;
         letter-spacing: 0.5px;
         font-size: 14px;
         margin: 0;
         padding-bottom: 8px;
-        border-bottom: 2px solid #212529;
+        border-bottom: 2px solid var(--bs-body-color, #212529);
         display: inline-block;
         white-space: nowrap;
     }
 
+    @media (max-width: 768px), (pointer: coarse) {
+        .section-header {
+            margin-top: 20px;
+            margin-bottom: 14px;
+
+            &:first-of-type {
+                margin-top: 8px;
+            }
+        }
+    }
+
+    .o_inbound_card {
+        --o-sbl-home-card-accent: var(--bs-primary, #714B67);
+    }
+
+    .o_actual_inbound_confirmation_card {
+        --o-sbl-home-card-accent: var(--bs-secondary, #6c757d);
+    }
+
+    .o_outbound_whole_card {
+        --o-sbl-home-card-accent: var(--bs-success, #198754);
+    }
+
+    .o_outbound_break_card {
+        --o-sbl-home-card-accent: var(--bs-warning, #ffc107);
+    }
+
+    .o_internal_transfer_card {
+        --o-sbl-home-card-accent: var(--bs-info, #0dcaf0);
+    }
+
     .o_homepage_card {
         cursor: pointer;
-        transition: transform 0.2s, box-shadow 0.2s;
+        border: 1px solid var(--bs-border-color, #dee2e6);
+        border-radius: 14px;
+        overflow: hidden;
+        transition: transform 0.18s ease, box-shadow 0.18s ease;
         margin-bottom: 16px;
+
+        .o_homepage_card_header {
+            display: flex;
+            align-items: center;
+            min-height: 72px;
+            padding: 14px 18px;
+            border-top: 4px solid var(--o-sbl-home-card-accent, var(--bs-primary, #714B67));
+        }
+
+        .o_homepage_card_header .fa {
+            color: var(--o-sbl-home-card-accent, var(--bs-primary, #714B67));
+        }
+
+        .card-body > button {
+            min-height: 48px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
 
         &:last-child {
             margin-bottom: 0;
         }
 
-        &:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+        &:active {
+            transform: scale(0.99);
+        }
+
+        @media (hover: hover) and (pointer: fine) {
+            &:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 10px 22px rgba(0, 0, 0, 0.14);
+            }
         }
 
         .card-header h3 {
