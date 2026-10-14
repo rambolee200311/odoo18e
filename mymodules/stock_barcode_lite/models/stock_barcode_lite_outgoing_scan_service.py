@@ -1797,7 +1797,7 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
         picking = self.env["stock.picking"].sudo().search([("id", "=", picking_id)], limit=1) if picking_id else self.env["stock.picking"]
         location = self.env["stock.location"].sudo().search([("id", "=", current_location_id)], limit=1) if current_location_id else self.env["stock.location"]
         package = self.env["stock.quant.package"].sudo().search([("id", "=", current_package_id)], limit=1) if current_package_id else self.env["stock.quant.package"]
-        product = self.env["product.product"].sudo().search([("id", "=", current_product_id)], limit=1) if current_product_id else self.env["product.product"]
+        current_product = self.env["product.product"].sudo().search([("id", "=", current_product_id)], limit=1) if current_product_id else self.env["product.product"]
         lot = self.env["stock.lot"].sudo().search([("id", "=", current_lot_id)], limit=1) if current_lot_id else self.env["stock.lot"]
 
         if not picking:
@@ -1805,7 +1805,7 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
                 "picking": {},
                 "current_location": self.format_location_for_scan_state(location),
                 "current_pallet": self.format_package_for_outgoing_scan_state(package),
-                "current_product": self.format_product_for_outgoing_scan_state(product),
+                "current_product": self.format_product_for_outgoing_scan_state(current_product),
                 "current_lot": self.format_lot_for_outgoing_scan_state(lot),
                 "summary": self.get_empty_outgoing_summary(),
                 "pallets": [],
@@ -1845,10 +1845,10 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
                 product_data["required_quantity"] += move.product_uom_qty or 0.0
                 product_data["scanned_quantity"] += scanned_qty_by_move.get(move.id, 0.0)
             for product_id, product_data in sorted(demand_by_product.items()):
-                product = product_data["product"]
+                demand_product = product_data["product"]
                 required_quantity = product_data["required_quantity"]
                 scanned_quantity = min(product_data["scanned_quantity"], required_quantity)
-                demand_products.append({"product_id": product_id, "product_name": product.display_name, "product_barcode": product.barcode or "", "default_code": product.default_code or "", "tracking": product.tracking, "required_quantity": required_quantity, "scanned_quantity": scanned_quantity, "remaining_quantity": max(required_quantity - scanned_quantity, 0.0)})
+                demand_products.append({"product_id": product_id, "product_name": demand_product.display_name, "product_barcode": demand_product.barcode or "", "default_code": demand_product.default_code or "", "tracking": demand_product.tracking, "required_quantity": required_quantity, "scanned_quantity": scanned_quantity, "remaining_quantity": max(required_quantity - scanned_quantity, 0.0)})
             if package:
                 pallet_stock_data = self.get_package_stock_set(package)
                 pallet_available_qty_by_product = {}
@@ -1856,10 +1856,10 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
                     product_id = stock_line["product"].id
                     pallet_available_qty_by_product[product_id] = pallet_available_qty_by_product.get(product_id, 0.0) + stock_line["available_quantity"]
                 for product_data in demand_products:
-                    product = demand_by_product[product_data["product_id"]]["product"]
-                    pallet_available_quantity = max(pallet_available_qty_by_product.get(product.id, 0.0) - pallet_scanned_qty_by_product.get(product.id, 0.0), 0.0)
-                    if float_compare(product_data["remaining_quantity"], 0.0, precision_rounding=product.uom_id.rounding) > 0 and float_compare(pallet_available_quantity, 0.0, precision_rounding=product.uom_id.rounding) > 0:
-                        current_pallet_products.append({"product_id": product.id, "product_name": product.display_name, "product_barcode": product.barcode or "", "default_code": product.default_code or "", "tracking": product.tracking, "picking_remaining_quantity": product_data["remaining_quantity"], "pallet_available_quantity": pallet_available_quantity})
+                    demand_product = demand_by_product[product_data["product_id"]]["product"]
+                    pallet_available_quantity = max(pallet_available_qty_by_product.get(demand_product.id, 0.0) - pallet_scanned_qty_by_product.get(demand_product.id, 0.0), 0.0)
+                    if float_compare(product_data["remaining_quantity"], 0.0, precision_rounding=demand_product.uom_id.rounding) > 0 and float_compare(pallet_available_quantity, 0.0, precision_rounding=demand_product.uom_id.rounding) > 0:
+                        current_pallet_products.append({"product_id": demand_product.id, "product_name": demand_product.display_name, "product_barcode": demand_product.barcode or "", "default_code": demand_product.default_code or "", "tracking": demand_product.tracking, "picking_remaining_quantity": product_data["remaining_quantity"], "pallet_available_quantity": pallet_available_quantity})
 
         for pallet in packages:
             lines = package_lines.filtered(lambda line: line.package_id == pallet)
@@ -1948,7 +1948,7 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
             },
             "current_location": self.format_location_for_scan_state(location),
             "current_pallet": self.format_package_for_outgoing_scan_state(package),
-            "current_product": self.format_product_for_outgoing_scan_state(product),
+            "current_product": self.format_product_for_outgoing_scan_state(current_product),
             "current_lot": self.format_lot_for_outgoing_scan_state(lot),
             "summary": {
                 "total_pallets": total_pallets,

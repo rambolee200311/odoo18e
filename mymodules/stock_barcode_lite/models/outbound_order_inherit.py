@@ -14,6 +14,7 @@ class OutboundOrderInherit(models.Model):
     time_slot = fields.Char(string='Expected harvest time period')  # 预计收货时间段
     cwarehouseid = fields.Char(string="U8C Warehouse ID", copy=False, index=True)
     vsourcebillcode = fields.Char(string="Source Bill Code", copy=False, index=True, tracking=True)
+    outbound_sunrise_ref = fields.Char(string="Outbound Sunrise Ref", compute="_compute_outbound_sunrise_ref", store=True, readonly=True, index=True)
     ccustomerid = fields.Char(string="U8C Customer ID", copy=False)
     u8c_delivery_method = fields.Selection([("pickup", "Pickup"), ("wd", "WD Transport")], string="U8C Delivery Method", copy=False, tracking=True)
     transport_cost_reference = fields.Char(string="Transport Cost Reference", copy=False)
@@ -56,6 +57,12 @@ class OutboundOrderInherit(models.Model):
     def _compute_sunrise_pallet_count(self):
         for rec in self:
             rec.sunrise_pallet_count = len(rec.outbound_order_product_ids.mapped("package_id"))
+
+    @api.depends("outbound_order_product_ids.cprojectid")
+    def _compute_outbound_sunrise_ref(self):
+        for rec in self:
+            sunrise_refs = sorted({line.cprojectid.strip() for line in rec.outbound_order_product_ids if line.cprojectid and line.cprojectid.strip()})
+            rec.outbound_sunrise_ref = ", ".join(sunrise_refs)
 
     def action_confirm(self):
         for rec in self:

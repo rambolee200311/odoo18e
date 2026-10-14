@@ -10,7 +10,6 @@
                 <field name="alias_name"/>
                 <field name="name"/>
                 <field name="state"/>
-                <field name="is_active"/>
                 <field name="effective_from"/>
                 <field name="effective_to"/>
                 <field name="currency_id"/>
