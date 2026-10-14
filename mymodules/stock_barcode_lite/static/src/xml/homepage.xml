@@ -39,7 +39,7 @@
                             </div>
                             <div class="card-body d-flex flex-column">
                                 <p class="text-muted mb-auto">Confirm actual inbound time for confirmed orders.</p>
-                                <button class="btn btn-info mt-3">
+                                <button class="btn btn-secondary mt-3">
                                     <i class="fa fa-arrow-right me-2"/>Go
                                 </button>
                             </div>
