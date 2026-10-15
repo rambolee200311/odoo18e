@@ -40,10 +40,19 @@
         letter-spacing: 0.5px;
         font-size: 14px;
         margin: 0;
-        padding-bottom: 8px;
-        border-bottom: 2px solid var(--bs-body-color, #212529);
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
         white-space: nowrap;
+
+        &::before {
+            content: "";
+            width: 4px;
+            height: 16px;
+            flex: 0 0 auto;
+            border-radius: 999px;
+            background: var(--bs-primary, #714B67);
+        }
     }
 
     @media (max-width: 768px), (pointer: coarse) {
