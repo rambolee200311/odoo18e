@@ -120,11 +120,11 @@
                     <div class="o_step_circle">5</div>
                     <div class="o_step_label">Lot/SN</div>
                 </div>
-                <div class="o_step_line" t-attf-class="{ active: isScanQuantityStep }"/>
-                <div class="o_step_item" t-attf-class="{ active: isScanQuantityStep }">
-                    <div class="o_step_circle">6</div>
-                    <div class="o_step_label">Quantity</div>
-                </div>
+<!--                <div class="o_step_line" t-attf-class="{ active: isScanQuantityStep }"/>-->
+<!--                <div class="o_step_item" t-attf-class="{ active: isScanQuantityStep }">-->
+<!--                    <div class="o_step_circle">6</div>-->
+<!--                    <div class="o_step_label">Quantity</div>-->
+<!--                </div>-->
             </div>
 
             <!-- 扫描提示 -->
