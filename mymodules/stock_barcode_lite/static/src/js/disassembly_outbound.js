@@ -69,6 +69,7 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
 
         this._isProcessing = true;
         this.state.loading = true;
+        let progressBeforeScan = null;
 
         try {
             if (this.state.nextStep === "validate") {
@@ -98,12 +99,21 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
                 pendingOperation,
             } = this.scanContext;
 
+            // Clear the displayed completion marks for the step being scanned.
+            // If this barcode is an operation command (not the expected item),
+            // the previous marks are restored after the backend response.
+            progressBeforeScan = this._prepareStepProgressForScan(this.state.nextStep);
+
             const result = await this.orm.call(
                 "stock.barcode.lite.scan.service",
                 "process_outgoing_scan_barcode",
                 [barcode, pickingId, locationId, packageId, productId, lotId, pendingOperation || false, false]
             );
             if (this._isDestroyed) return;
+
+            if (result?.type === "operation") {
+                this.state.stepProgress = progressBeforeScan;
+            }
 
             // 先校验当前 picking 的扫描模式，不匹配就直接提示并重置
             const nextStep = result.next_step || "scan_picking";
@@ -135,6 +145,9 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
 
             this._applyScanResult(result, true);
         } catch (error) {
+            if (progressBeforeScan) {
+                this.state.stepProgress = progressBeforeScan;
+            }
             console.error("[DisassemblyOutbound] scan error:", error);
             this.showMessage(this.formatError(error), "danger");
             this._flashScreen([200, 100, 100], true);
@@ -210,6 +223,10 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
 
         // 更新下一步
         this.state.nextStep = result.next_step || "scan_picking";
+
+        // 步骤条对号表示当前轮的条码已被系统接受；不代表该托盘/产品的
+        // 出库数量已经全部完成。序列号可能需要多次扫描，直到离开 scan_serial 才完成。
+        this._applyStepProgressFromResult(result);
 
         // 记录当前扫描的托盘ID（用于UI高亮标识）
         if (this.state.currentPallet?.id) {
@@ -449,6 +466,57 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
             lotId: false,
             pendingOperation: false,
         };
+        this.state.stepProgress = {
+            palletDone: false,
+            productDone: false,
+            lotDone: false,
+        };
+    }
+
+    _prepareStepProgressForScan(step) {
+        const previous = { ...this.state.stepProgress };
+        const progress = { ...previous };
+
+        if (step === "scan_pallet") {
+            progress.palletDone = false;
+            progress.productDone = false;
+            progress.lotDone = false;
+        } else if (step === "scan_product") {
+            progress.productDone = false;
+            progress.lotDone = false;
+        } else if (step === "scan_lot" || step === "scan_serial") {
+            progress.lotDone = false;
+        }
+
+        this.state.stepProgress = progress;
+        return previous;
+    }
+
+    _applyStepProgressFromResult(result) {
+        if (!result || result.success === false) return;
+
+        const progress = { ...this.state.stepProgress };
+        switch (result.type) {
+            case "pallet":
+                progress.palletDone = true;
+                progress.productDone = false;
+                progress.lotDone = false;
+                break;
+            case "product":
+                progress.productDone = true;
+                progress.lotDone = false;
+                break;
+            case "lot":
+                progress.lotDone = true;
+                break;
+            case "serial":
+                // A serial-tracked product can require several serial scans.
+                if (this.state.nextStep !== "scan_serial") {
+                    progress.lotDone = true;
+                }
+                break;
+        }
+        this.state.stepProgress = progress;
     }
 
     resetScan() {
