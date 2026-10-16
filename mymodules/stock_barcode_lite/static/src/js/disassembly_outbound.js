@@ -218,6 +218,11 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
             this.state.pallets = [];
         }
 
+        // 订单级产品需求由 scan_state.demand_products 提供，与托盘明细分开保存。
+        this.state.demandProducts = Array.isArray(scanState.demand_products)
+            ? scanState.demand_products.map(product => ({ ...product }))
+            : [];
+
         // 更新 lastScan
         this.state.lastScan = scanState.last_scan ? { ...scanState.last_scan } : {};
 
@@ -466,6 +471,8 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
             lotId: false,
             pendingOperation: false,
         };
+        this.state.orderProductDetailsExpanded = false;
+        this.state.demandProducts = [];
         this.state.stepProgress = {
             palletDone: false,
             productDone: false,
@@ -709,6 +716,18 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
 
     get palletList() {
         return Array.isArray(this.state.pallets) ? this.state.pallets : [];
+    }
+
+    get orderProductLines() {
+        const products = Array.isArray(this.state.demandProducts) ? this.state.demandProducts : [];
+        return products.map((product, index) => ({
+            ...product,
+            order_product_key: `${product.product_id || product.product_barcode || "product"}-${index}`,
+        }));
+    }
+
+    toggleOrderProductDetails() {
+        this.state.orderProductDetailsExpanded = !this.state.orderProductDetailsExpanded;
     }
 
     get orderReference() {

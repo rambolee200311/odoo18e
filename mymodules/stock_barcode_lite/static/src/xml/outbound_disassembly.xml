@@ -93,6 +93,32 @@
                         </strong>
                     </span>
                 </div>
+                <button t-if="orderProductLines.length > 0"
+                        type="button"
+                        class="o_picking_products_toggle"
+                        t-on-click="toggleOrderProductDetails"
+                        t-att-aria-expanded="state.orderProductDetailsExpanded ? 'true' : 'false'">
+                    <span>
+                        <i class="fa fa-cubes text-muted me-1"/>
+                        Product Details (<t t-esc="orderProductLines.length"/>)
+                    </span>
+                    <i t-if="state.orderProductDetailsExpanded" class="fa fa-chevron-up"/>
+                    <i t-else="" class="fa fa-chevron-down"/>
+                </button>
+                <div t-if="state.orderProductDetailsExpanded" class="o_picking_products_list">
+                    <t t-foreach="orderProductLines" t-as="item" t-key="item.order_product_key">
+                        <div class="o_picking_product_line">
+                            <div class="o_picking_product_info">
+                                <span class="o_picking_product_name">
+                                    <t t-esc="item.product_barcode || item.default_code || item.product_name || 'Product'"/>
+                                </span>
+                            </div>
+                            <span class="o_picking_product_qty">
+                                <strong><t t-esc="item.scanned_quantity || 0"/> / <t t-esc="item.required_quantity || 0"/></strong>
+                            </span>
+                        </div>
+                    </t>
+                </div>
             </div>
 
             <!-- ═══ 扫描提示步骤条：Order -> Location -> Pallet -> [Product] [Lot] [Quantity] ═══ -->
