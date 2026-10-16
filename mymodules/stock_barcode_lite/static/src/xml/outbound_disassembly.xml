@@ -55,12 +55,12 @@
 <!--            </div>-->
 
             <!-- 当前货位信息 -->
-<!--            <div t-if="hasLocation" class="o_sbl_location_bar">-->
-<!--                <i class="fa fa-map-marker text-danger me-1"/>-->
-<!--                <span class="me-1">Location:</span>-->
-<!--                <strong class="text-primary"><t t-esc="currentLocationName"/></strong>-->
-<!--                <span class="text-muted ms-1" t-if="currentLocationBarcode">(<t t-esc="currentLocationBarcode"/>)</span>-->
-<!--            </div>-->
+            <div t-if="hasLocation" class="o_sbl_location_bar">
+                <i class="fa fa-map-marker text-danger me-1"/>
+                <span class="me-1">Location:</span>
+                <strong class="text-primary"><t t-esc="currentLocationName"/></strong>
+                <span class="text-muted ms-1" t-if="currentLocationBarcode">(<t t-esc="currentLocationBarcode"/>)</span>
+            </div>
 
             <!-- 当前Picking信息 -->
             <div t-if="hasOrder" class="o_sbl_picking_bar">
@@ -76,7 +76,7 @@
                         <t t-esc="pickingStateLabel"/>
                     </span>
                 </div>
-                <div class="o_picking_extra" t-if="orderOrigin || orderPartner">
+                <div class="o_picking_extra">
 <!--                    <span t-if="orderOrigin" class="me-3">-->
 <!--                        <i class="fa fa-link text-muted me-1"/>-->
 <!--                        <t t-esc="orderOrigin"/>-->
@@ -84,6 +84,13 @@
                     <span t-if="orderPartner">
                         <i class="fa fa-user text-muted me-1"/>
                         <t t-esc="orderPartner"/>
+                    </span>
+                    <span>
+                        <i class="fa fa-cubes text-muted me-1"/>
+                        Demand:
+                        <strong class="ms-1">
+                            <t t-esc="state.summary.scanned_quantity || 0"/> / <t t-esc="state.summary.total_quantity || 0"/>
+                        </strong>
                     </span>
                 </div>
             </div>
