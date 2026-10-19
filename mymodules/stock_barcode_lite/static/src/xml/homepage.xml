@@ -9,7 +9,7 @@
                 <div class="section-header">
                     <h5 class="section-title">Inbound</h5>
                 </div>
-                <div class="row justify-content-center g-3 g-md-4">
+                <div class="row justify-content-center justify-content-lg-start g-3 g-md-4">
                     <!-- lg卡片宽度-->
                     <div class="col-12 col-md-6 col-lg-6">
                         <div class="card h-100 shadow-sm o_homepage_card o_inbound_card">
@@ -21,6 +21,21 @@
                             <div class="card-body d-flex flex-column">
                                 <p class="text-muted mb-auto">Receive pallets &amp; complete full pallet putaway operations.</p>
                                 <button class="btn btn-primary mt-3" t-on-click="_onInboundClick">
+                                    <i class="fa fa-arrow-right me-2"/>Go
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-6">
+                        <div class="card h-100 shadow-sm o_homepage_card o_inbound_card">
+                            <div class="card-header bg-light text-dark o_homepage_card_header">
+                                <h3 class="mb-0">
+                                    <i class="fa fa-sign-in me-2"/>Inbound Actual Pallet Binding
+                                </h3>
+                            </div>
+                            <div class="card-body d-flex flex-column">
+                                <p class="text-muted mb-auto">Bind scanned products and serial numbers to actual inbound pallets.</p>
+                                <button class="btn btn-primary mt-3" t-on-click="_onInboundBindClick">
                                     <i class="fa fa-arrow-right me-2"/>Go
                                 </button>
                             </div>
@@ -72,7 +87,7 @@
                             </div>
                             <div class="card-body d-flex flex-column">
                                 <p class="text-muted mb-auto">Break pallets &amp; pick single items from mixed pallets.</p>
-                                <button class="btn btn-warning mt-3" t-on-click="_onOutboundBreakClick">
+                                <button class="btn btn-success mt-3" t-on-click="_onOutboundBreakClick">
                                     <i class="fa fa-arrow-right me-2"/>Go
                                 </button>
                             </div>

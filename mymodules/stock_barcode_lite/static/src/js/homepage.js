@@ -21,6 +21,10 @@ export class Homepage extends Component {
         this.action.doAction("stock_barcode_lite_inbound");
     }
 
+    _onInboundBindClick() {
+        this.action.doAction("stock_barcode_lite_actual_pallet_binding");
+    }
+
     _onOutboundBreakClick() {
         this.action.doAction("stock_barcode_lite_outbound_disassembly");
     }
