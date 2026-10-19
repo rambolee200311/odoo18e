@@ -180,8 +180,11 @@ class InboundOrder(models.Model):
                     tracking_quantity = sum(product_line.serial_lines.mapped("quantity"))
                     if product.tracking == "lot" and float_compare(product_line.quantity, tracking_quantity, precision_rounding=product.uom_id.rounding):
                         raise UserError(_("Tracking quantities for product %s must equal the actual pallet product quantity.") % product.display_name)
-                    if product.tracking == "serial" and tracking_quantity and float_compare(product_line.quantity, tracking_quantity, precision_rounding=product.uom_id.rounding):
-                        raise UserError(_("Tracking quantities for product %s must equal the actual pallet product quantity.") % product.display_name)
+                    if product.tracking == "serial":
+                        if not product_line.serial_lines:
+                            raise UserError(_("All serial numbers for product %s must be maintained on the actual pallet before validation.") % product.display_name)
+                        if float_compare(product_line.quantity, tracking_quantity, precision_rounding=product.uom_id.rounding):
+                            raise UserError(_("Serial number quantities for product %s must equal the actual pallet product quantity.") % product.display_name)
                     if product.tracking != "serial":
                         continue
                     for serial_line in product_line.serial_lines:
@@ -271,11 +274,10 @@ class InboundOrder(models.Model):
                         "result_package_id": actual_pallet.package_id.id,
                     }
                     if product.tracking == "serial":
-                        if product_line.serial_lines:
-                            for serial_line in product_line.serial_lines:
-                                move_line_model.create(dict(move_line_values, quantity=1.0, lot_id=False, lot_name=serial_line.serial_number))
-                        else:
-                            move_line_model.create(dict(move_line_values, quantity=product_line.quantity, lot_id=False, lot_name=False))
+                        if not product_line.serial_lines:
+                            raise UserError(_("All serial numbers for product %s must be maintained before creating the receipt.") % product.display_name)
+                        for serial_line in product_line.serial_lines:
+                            move_line_model.create(dict(move_line_values, quantity=1.0, lot_id=False, lot_name=serial_line.serial_number))
                     elif product.tracking == "lot":
                         for serial_line in product_line.serial_lines:
                             move_line_model.create(dict(move_line_values, quantity=serial_line.quantity, lot_id=False, lot_name=serial_line.serial_number))
@@ -340,8 +342,11 @@ class InboundActualPallet(models.Model):
                 tracking_quantity = sum(product_line.serial_lines.mapped("quantity"))
                 if product_line.product_id.tracking == "lot" and float_compare(product_line.quantity, tracking_quantity, precision_rounding=product_line.product_id.uom_id.rounding):
                     raise UserError(_("Tracking quantities for product %s must equal the actual pallet product quantity.") % product_line.product_id.display_name)
-                if product_line.product_id.tracking == "serial" and tracking_quantity and float_compare(product_line.quantity, tracking_quantity, precision_rounding=product_line.product_id.uom_id.rounding):
-                    raise UserError(_("Tracking quantities for product %s must equal the actual pallet product quantity.") % product_line.product_id.display_name)
+                if product_line.product_id.tracking == "serial":
+                    if not product_line.serial_lines:
+                        raise UserError(_("All serial numbers for product %s must be maintained before completing the actual pallet.") % product_line.product_id.display_name)
+                    if float_compare(product_line.quantity, tracking_quantity, precision_rounding=product_line.product_id.uom_id.rounding):
+                        raise UserError(_("Serial number quantities for product %s must equal the actual pallet product quantity.") % product_line.product_id.display_name)
             rec.write({"state": "ready"})
         return {"type": "ir.actions.client", "tag": "reload"}
 
