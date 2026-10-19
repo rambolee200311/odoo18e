@@ -11,9 +11,23 @@ class ReportSystemPalletLabel(models.AbstractModel):
         package_model = self.env["stock.quant.package"]
         move_line_model = self.env["stock.move.line"]
         package_ids = package_model.sudo().browse(docids or self.env.context.get("active_ids", [])).exists()
+        package_ids = package_ids.filtered(lambda package: not package.actual_inbound_pallet_id or package.actual_inbound_pallet_id.state != "void")
         product_lines_by_package = {package.id: {} for package in package_ids}
+        actual_package_ids = set()
+        for package in package_ids:
+            actual_pallet = package.actual_inbound_pallet_id
+            if not actual_pallet or actual_pallet.state == "void":
+                continue
+            actual_package_ids.add(package.id)
+            for product_line in actual_pallet.product_lines:
+                product_data = product_lines_by_package[package.id].setdefault(product_line.product_id.id, {
+                    "source_line": product_line,
+                    "quantity": 0.0,
+                })
+                product_data["quantity"] += product_line.quantity
+
         move_line_ids = move_line_model.sudo().search([
-            ("result_package_id", "in", package_ids.ids),
+            ("result_package_id", "in", list(set(package_ids.ids) - actual_package_ids)),
             ("picking_id", "in", package_ids.mapped("inbound_order_id.stock_picking_id").ids),
             ("quantity", ">", 0),
         ], order="id asc")

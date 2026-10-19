@@ -16,6 +16,7 @@ from . import sunrise_outbound_pallet_summary_report
 from . import sunrise_location_occupancy_report
 from . import stock_quant_package
 from . import stock_barcode_lite_scan_service
+from . import inbound_unknown_pallet
 from . import stock_barcode_lite_outgoing_scan_service
 from . import stock_move_line_inherit
 from . import move_line_location_import

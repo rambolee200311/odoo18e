@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_inbound_actual_pallet_create_wizard_form" model="ir.ui.view">
+        <field name="name">inbound.actual.pallet.create.wizard.form</field>
+        <field name="model">inbound.actual.pallet.create.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Create Actual Pallets" duplicate="false">
+                <sheet>
+                    <group>
+                        <field name="inbound_order_id" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="pallet_count" required="1"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_create_actual_pallets" type="object" string="Create" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>
