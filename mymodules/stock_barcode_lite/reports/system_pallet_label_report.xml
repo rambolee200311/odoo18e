@@ -33,7 +33,7 @@
                 .system-pallet-label-header { width: 100%; border-collapse: collapse; table-layout: fixed; border: 1px solid #111827; }
                 .system-pallet-label-header td { border: 1px solid #111827; vertical-align: top; }
                 .system-pallet-label-main { height: 276px; padding: 12px; }
-                .system-pallet-label-qr { width: 285px; padding: 8px; text-align: center; }
+                .system-pallet-label-qr { width: 245px; padding: 8px; text-align: center; }
                 .system-pallet-label-pallet-no { font-size: 28px; font-weight: bold; margin: 0 0 14px 0; word-break: break-all; }
                 .system-pallet-label-info { width: 100%; height: 200px; border-collapse: collapse; font-size: 14px; }
                 .system-pallet-label-info tr { height: 33.333%; }
@@ -43,7 +43,7 @@
                 .system-pallet-label-qr-caption { font-size: 13px; font-weight: bold; }
                 .system-pallet-label-products { width: 100%; margin-top: 12px; border-collapse: collapse; table-layout: fixed; }
                 .system-pallet-label-products td { border: 1px solid #111827; vertical-align: middle; }
-                .system-pallet-label-product-qr { width: 240px; padding: 8px; text-align: center; }
+                .system-pallet-label-product-qr { width: 170px; padding: 8px; text-align: center; }
                 .system-pallet-label-product-details { padding: 14px; }
                 .system-pallet-label-product-name { font-size: 24px; font-weight: bold; line-height: 1.25; word-break: break-word; }
                 .system-pallet-label-products .quantity { width: 34mm; padding: 14px 8px; text-align: center; }
@@ -77,26 +77,27 @@
                             <td class="system-pallet-label-qr">
                                 <t t-if="package.barcode">
                                     <div t-field="package.barcode"
-                                         t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 380, 'height': 380, 'img_style': 'width:260px;height:260px;'}"/>
+                                         t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 320, 'height': 320, 'img_style': 'width:220px;height:220px;'}"/>
                                     <div class="system-pallet-label-qr-caption">Pallet QR Code</div>
                                 </t>
                             </td>
                         </tr>
                     </table>
-                    <table class="system-pallet-label-products">
-                        <tbody>
+                    <t t-if="product_lines_by_package.get(package.id, [])">
+                        <table class="system-pallet-label-products">
+                            <tbody>
                             <t t-foreach="product_lines_by_package.get(package.id, [])" t-as="product_line">
                                 <t t-set="source_line" t-value="product_line['source_line']"/>
                                 <tr>
                                     <td class="system-pallet-label-product-qr">
                                         <t t-if="source_line.product_id.barcode">
                                             <div t-field="source_line.product_id.barcode"
-                                                 t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 320, 'height': 320, 'img_style': 'width:230px;height:230px;'}"/>
+                                                 t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 220, 'height': 220, 'img_style': 'width:150px;height:150px;'}"/>
                                             <div class="system-pallet-label-qr-caption">Product QR Code</div>
                                         </t>
                                         <t t-elif="source_line.product_id.default_code">
                                             <div t-field="source_line.product_id.default_code"
-                                                 t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 320, 'height': 320, 'img_style': 'width:230px;height:230px;'}"/>
+                                                 t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 220, 'height': 220, 'img_style': 'width:150px;height:150px;'}"/>
                                             <div class="system-pallet-label-qr-caption">Product QR Code</div>
                                         </t>
                                     </td>
@@ -109,11 +110,9 @@
                                     </td>
                                 </tr>
                             </t>
-                            <t t-if="not product_lines_by_package.get(package.id, [])">
-                                <tr><td colspan="3">No product lines.</td></tr>
-                            </t>
-                        </tbody>
-                    </table>
+                            </tbody>
+                        </table>
+                    </t>
                 </div>
             </t>
         </t>

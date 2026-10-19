@@ -19,6 +19,7 @@ class StockQuantPackage(models.Model):
     inbound_order_id = fields.Many2one("world.depot.inbound.order", string="Source Inbound", readonly=True, copy=False, index=True)
     barcode = fields.Char(string="Barcode", copy=False, index=True)
     original_pallet_no = fields.Char(string="Original Pallet No", copy=False, index=True)
+    actual_inbound_pallet_id = fields.Many2one("world.depot.inbound.order.actual.pallet", string="Actual Inbound Pallet", readonly=True, copy=False, index=True, ondelete="restrict")
     lifecycle_state = fields.Selection([("active", "Active"), ("consumed", "Consumed"), ("closed", "Closed")], string="Sunrise Lifecycle State", readonly=True, copy=False, index=True)
     lifecycle_start_datetime = fields.Datetime(string="Lifecycle Start At", readonly=True, copy=False, index=True)
     consumed_datetime = fields.Datetime(string="Consumed At", readonly=True, copy=False, index=True)

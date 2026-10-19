@@ -19,6 +19,7 @@
                        required="type == 'service' and project_name == 'SUNRISE'"
                        invisible="project_name !='SUNRISE' or type != 'service'"/>
                 <field name="project_package_generation_mode" invisible="1"/>
+                <field name="project_pallet_structure_mode" invisible="1"/>
                 <field name="project_stock_report_date_mode" readonly="1" invisible="1"/>
             </xpath>
             <xpath expr="//header/button[@name='action_cancel']" position="after">
@@ -48,7 +49,7 @@
                             string="Generate Packages"
                             class="btn btn-primary ms-3"
                             icon="fa-qrcode"
-                            invisible="state != 'new' or project_package_generation_mode != 'inbound'"/>
+                            invisible="state != 'new' or project_package_generation_mode != 'inbound' or project_pallet_structure_mode == 'unknown'"/>
 
                 </div>
             </xpath>
@@ -94,7 +95,7 @@
             <xpath expr="//field[@name='inbound_order_product_ids']/list/field[@name='pallet_no']" position="after">
                 <field name="inbound_sunrise_ref" readonly="1" optional="show" column_invisible="parent.project_name != 'SUNRISE'"/>
 <!--                <field name="inbound_location" readonly="1" optional="show"/>-->
-                <field name="package_id" optional="show" column_invisible="parent.project_package_generation_mode != 'inbound'"
+                <field name="package_id" optional="show" column_invisible="parent.project_package_generation_mode != 'inbound' or parent.project_pallet_structure_mode == 'unknown'"
                        options="{'no_create': True, 'no_open':False}"/>
                 <!--                <field name="package_barcode" optional="show" column_invisible="parent.project_name != 'SUNRISE'"/>-->
                 <!--                <field name="is_reused_package" optional="show" column_invisible="parent.project_name != 'SUNRISE'"/>-->

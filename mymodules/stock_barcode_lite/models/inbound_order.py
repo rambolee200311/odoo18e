@@ -100,7 +100,9 @@ class InboundOrder(models.Model):
 
     def action_confirm(self):
         for rec in self:
-            if rec.project_package_generation_mode == "inbound":
+            if rec.project.pallet_structure_mode == "unknown":
+                rec.validate_unknown_pallet_structure()
+            elif rec.project_package_generation_mode == "inbound":
                 package_ids = set()
                 for pallet_line in rec.inbound_order_product_ids:
                     if pallet_line.pallets != 1:
@@ -469,6 +471,8 @@ class InboundOrder(models.Model):
         created_count = 0
 
         for rec in self:
+            if rec.project_pallet_structure_mode == "unknown":
+                raise UserError(_("Unknown pallet structure inbound orders must generate packages from Actual Pallets."))
             if rec.project.name != "SUNRISE":
                 raise UserError(_("Only SUNRISE inbound orders can generate packages."))
             if rec.project_package_generation_mode != "inbound":

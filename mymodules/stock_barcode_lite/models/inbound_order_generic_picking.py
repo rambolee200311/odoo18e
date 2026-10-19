@@ -9,6 +9,11 @@ class InboundOrder(models.Model):
     _inherit = "world.depot.inbound.order"
 
     def action_create_stock_picking(self):
+        unknown_records = self.filtered(lambda record: record.project.pallet_structure_mode == "unknown")
+        if unknown_records:
+            if self - unknown_records:
+                raise UserError(_("Create receipts for known and unknown pallet structure inbound orders separately."))
+            return unknown_records.action_create_unknown_pallet_stock_picking()
         picking_model = self.env["stock.picking"]
         move_model = self.env["stock.move"]
         move_line_model = self.env["stock.move.line"]
@@ -177,6 +182,7 @@ class InboundOrder(models.Model):
             package_ids |= package_model.sudo().search([
                 ("inbound_order_id", "=", record.id),
             ], order="id asc")
+        package_ids = package_ids.filtered(lambda package: not package.actual_inbound_pallet_id or package.actual_inbound_pallet_id.state != "void")
         if not package_ids:
             raise UserError(_("No system pallet packages were found for the selected inbound order."))
         return self.env.ref("stock_barcode_lite.action_report_system_pallet_label").report_action(package_ids)
