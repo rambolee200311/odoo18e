@@ -482,7 +482,9 @@ class StockBarcodeLiteScanService(models.AbstractModel):
             inbound_order.action_validate_actual_pallets()
         except UserError as error:
             return self.build_actual_pallet_binding_result("error", _("Validation"), error.args[0], inbound_order=inbound_order, action_name="validate_actual_pallets", success=False, next_step="scan_package")
-        return self.build_actual_pallet_binding_result("validation", _("Validation"), _("Actual pallet product quantities match the inbound demand."), inbound_order=inbound_order, action_name="validate_actual_pallets", next_step="create_receipt")
+        result = self.build_actual_pallet_binding_result("validation", _("Validation"), _("Actual pallet product quantities match the inbound demand."), inbound_order=inbound_order, action_name="validate_actual_pallets", next_step="scan_inbound")
+        result.pop("scan_state", None)
+        return result
 
     @api.model
     def process_actual_pallet_binding_scan(self, code, inbound_order_id=False, current_actual_pallet_id=False, current_product_id=False, current_tracking_number=False, quantity=False):
