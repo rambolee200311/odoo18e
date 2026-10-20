@@ -11,7 +11,7 @@
             spellcheck="false"
             inputmode="none"
             touch-action="none"
-            t-att-disabled="state.quantityEntry || state.loading"
+            t-att-disabled="state.quantityEntry"
         />
 
         <div class="o_sbl_inbound o_sbl_actual_pallet_binding">
@@ -128,7 +128,7 @@
                     <div class="input-group">
                         <input id="actual_pallet_quantity" t-ref="quantityInput" type="number" min="0.000001" step="any"
                                class="form-control" t-model="state.quantityValue"
-                               t-on-keydown="(ev) => ev.key === 'Enter' and submitQuantity()"
+                               t-on-keydown="(ev) => ev.key === 'Enter' and this.submitQuantity()"
                                t-att-disabled="state.loading"/>
                         <button class="btn btn-primary" t-on-click="submitQuantity" t-att-disabled="state.loading">
                             <i class="fa fa-check me-1"/>Add
@@ -194,7 +194,7 @@
                                 <span class="badge bg-secondary"><t t-esc="pallet.state || '-'"/></span>
                                 <button t-if="pallet.state !== 'void' and !(pallet.product_lines || []).length"
                                         type="button" class="btn btn-sm btn-outline-danger o_binding_void_button"
-                                        t-on-click.stop="() => voidPallet(pallet)" t-att-disabled="state.loading"
+                                        t-on-click.stop="() => this.voidPallet(pallet)" t-att-disabled="state.loading"
                                         title="Void empty pallet">
                                     <i class="fa fa-ban me-1"/>Void
                                 </button>
@@ -228,11 +228,11 @@
                                 </div>
                                 <button t-if="line.tracking === 'none' || line.tracking === 'quantity'"
                                         type="button" class="btn btn-sm btn-outline-primary"
-                                        t-on-click="() => beginQuantityEdit(line)" t-att-disabled="state.loading">
+                                        t-on-click="() => this.beginQuantityEdit(line)" t-att-disabled="state.loading">
                                     Edit Qty
                                 </button>
                                 <button type="button" class="btn btn-sm btn-outline-danger"
-                                        t-on-click="() => deleteProduct(pallet, line)" t-att-disabled="state.loading">
+                                        t-on-click="() => this.deleteProduct(pallet, line)" t-att-disabled="state.loading">
                                     Delete
                                 </button>
                             </div>
@@ -246,7 +246,7 @@
                             <div t-if="state.editingQuantityId === line.id" class="input-group input-group-sm mt-2">
                                 <input type="number" min="0.000001" step="any" class="form-control"
                                        t-model="state.editQuantityValue" t-att-disabled="state.loading"/>
-                                <button class="btn btn-primary" t-on-click="() => saveQuantityEdit(pallet, line)" t-att-disabled="state.loading">Save</button>
+                                <button class="btn btn-primary" t-on-click="() => this.saveQuantityEdit(pallet, line)" t-att-disabled="state.loading">Save</button>
                                 <button class="btn btn-outline-secondary" t-on-click="cancelQuantityEdit" t-att-disabled="state.loading">Cancel</button>
                             </div>
 
@@ -258,12 +258,12 @@
                                         <span class="o_binding_tracking_name"><t t-esc="trackingLine.number || trackingLine.name"/></span>
                                         <span class="text-muted">Qty <t t-esc="trackingLine.quantity || 1"/></span>
                                         <button t-if="line.tracking === 'lot' and trackingLine.id" type="button" class="btn btn-sm btn-link"
-                                                t-on-click="() => beginTrackingQuantityEdit(line, trackingLine)" t-att-disabled="state.loading"
+                                                t-on-click="() => this.beginTrackingQuantityEdit(line, trackingLine)" t-att-disabled="state.loading"
                                                 title="Edit lot quantity">
                                             <i class="fa fa-pencil"/>
                                         </button>
                                         <button t-if="trackingLine.id" type="button" class="btn btn-sm btn-link text-danger p-0"
-                                                t-on-click="() => deleteTracking(pallet, line, trackingLine)" t-att-disabled="state.loading"
+                                                t-on-click="() => this.deleteTracking(pallet, line, trackingLine)" t-att-disabled="state.loading"
                                                 title="Delete tracking number">
                                             <i class="fa fa-trash"/>
                                         </button>
@@ -272,7 +272,7 @@
                                          class="input-group input-group-sm w-100 mt-1">
                                         <input type="number" min="0.000001" step="any" class="form-control"
                                                t-model="state.editTrackingQuantityValue" t-att-disabled="state.loading"/>
-                                        <button class="btn btn-primary" t-on-click="() => saveTrackingQuantityEdit(pallet, line, trackingLine)"
+                                        <button class="btn btn-primary" t-on-click="() => this.saveTrackingQuantityEdit(pallet, line, trackingLine)"
                                                 t-att-disabled="state.loading">Save</button>
                                         <button class="btn btn-outline-secondary" t-on-click="cancelTrackingQuantityEdit"
                                                 t-att-disabled="state.loading">Cancel</button>

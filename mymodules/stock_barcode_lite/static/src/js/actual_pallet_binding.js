@@ -2,6 +2,8 @@
 
 import { onPatched, useRef } from "@odoo/owl";
 import { _t } from "@web/core/l10n/translation";
+import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
+import { useService } from "@web/core/utils/hooks";
 import { standardActionServiceProps } from "@web/webclient/actions/action_service";
 import { BaseBarcodePage } from "./base_barcode_page";
 
@@ -11,6 +13,7 @@ export class ActualPalletBinding extends BaseBarcodePage {
 
     setup() {
         super.setup();
+        this.dialogService = useService("dialog");
         this.quantityInputRef = useRef("quantityInput");
         this.state.inbound = {};
         this.state.currentPallet = {};
@@ -30,10 +33,14 @@ export class ActualPalletBinding extends BaseBarcodePage {
         this.state.editingTrackingId = false;
         this.state.editTrackingQuantityValue = "";
         this._trackingHydrationRequest = 0;
+        this._refocusBarcodeInputAfterPatch = false;
 
         onPatched(() => {
             if (this.state.quantityEntry) {
                 this.quantityInputRef.el?.focus();
+            } else if (this._refocusBarcodeInputAfterPatch) {
+                this._refocusBarcodeInputAfterPatch = false;
+                this._focusBarcodeInput();
             }
         });
     }
@@ -293,13 +300,13 @@ export class ActualPalletBinding extends BaseBarcodePage {
     }
 
     cancelQuantityEntry() {
+        this._refocusBarcodeInputAfterPatch = true;
         this.state.quantityEntry = false;
         this.state.quantityValue = "";
         if (this.state.currentProduct?.tracking === "lot") {
             this.state.currentTrackingNumber = false;
             this.state.nextStep = "scan_lot";
         }
-        this._focusBarcodeInput();
     }
 
     async submitQuantity() {
@@ -337,6 +344,7 @@ export class ActualPalletBinding extends BaseBarcodePage {
             }
             this._applyScanResult(result);
             if (result?.success !== false) {
+                this._refocusBarcodeInputAfterPatch = true;
                 this.state.quantityEntry = false;
                 this.state.quantityValue = "";
             }
@@ -348,21 +356,25 @@ export class ActualPalletBinding extends BaseBarcodePage {
             if (!this._isDestroyed) {
                 this.state.loading = false;
                 if (!this.state.quantityEntry) {
-                    this._focusBarcodeInput();
+                    if (!this._refocusBarcodeInputAfterPatch) {
+                        this._focusBarcodeInput();
+                    }
                 }
             }
             this._isProcessing = false;
         }
     }
 
-    async voidPallet(pallet) {
+    voidPallet(pallet) {
         if (!pallet?.id || !this.state.inbound?.id || this._isBusy()) {
             return;
         }
-        if (!window.confirm(_t("Void this empty actual pallet?"))) {
-            return;
-        }
-        await this._callVoidPallet(pallet.id);
+        this._showDestructiveConfirmation(
+            _t("Void actual pallet"),
+            _t("Void this empty actual pallet?"),
+            _t("Void"),
+            () => this._callVoidPallet(pallet.id)
+        );
     }
 
     async validateBinding() {
@@ -474,29 +486,60 @@ export class ActualPalletBinding extends BaseBarcodePage {
         );
     }
 
-    async deleteProduct(pallet, line) {
+    deleteProduct(pallet, line) {
         if (!line?.id || this._isBusy()) {
             return;
         }
-        if (!window.confirm(_t("Delete this product and all of its serial or lot entries?"))) {
-            return;
-        }
-        await this._callEdit("delete_product", pallet.id, line.id, false, false, false, () => {
-            this._removeProductLocally(pallet.id, line);
-        });
+        this._showDestructiveConfirmation(
+            _t("Delete product"),
+            _t("Delete this product and all of its serial or lot entries?"),
+            _t("Delete"),
+            () => this._callEdit("delete_product", pallet.id, line.id, false, false, null, () => {
+                this._removeProductLocally(pallet.id, line);
+            })
+        );
     }
 
-    async deleteTracking(pallet, line, trackingLine) {
+    deleteTracking(pallet, line, trackingLine) {
         if (!line?.id || !trackingLine?.id || this._isBusy()) {
             return;
         }
         const trackingLabel = trackingLine.number || trackingLine.name || "";
-        if (!window.confirm(_t("Delete tracking number: ") + trackingLabel + "?")) {
-            return;
-        }
-        await this._callEdit("delete_tracking", pallet.id, line.id, trackingLine.id, false, false, () => {
-            this._removeTrackingLocally(pallet.id, line, trackingLine);
-        });
+        this._showDestructiveConfirmation(
+            _t("Delete tracking number"),
+            _t("Delete tracking number: ") + trackingLabel + "?",
+            _t("Delete"),
+            () => this._callEdit("delete_tracking", pallet.id, line.id, trackingLine.id, false, null, () => {
+                this._removeTrackingLocally(pallet.id, line, trackingLine);
+            })
+        );
+    }
+
+    _showDestructiveConfirmation(title, body, confirmLabel, confirm) {
+        this.dialogService.add(
+            ConfirmationDialog,
+            {
+                title,
+                body,
+                confirm,
+                confirmLabel,
+                confirmClass: "btn-danger",
+                cancel: () => {},
+                cancelLabel: _t("Cancel"),
+            },
+            {
+                onClose: () => {
+                    if (this._isDestroyed) {
+                        return;
+                    }
+                    if (this.state.quantityEntry) {
+                        this.quantityInputRef.el?.focus();
+                    } else {
+                        this._focusBarcodeInput();
+                    }
+                },
+            }
+        );
     }
 
     async _callEdit(operation, actualPalletId, productLineId, trackingLineId, quantity, afterSuccess, applyLocal) {
