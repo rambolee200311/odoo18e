@@ -14,7 +14,7 @@
             t-att-disabled="state.quantityEntry || state.loading"
         />
 
-        <div class="o_sbl_inbound">
+        <div class="o_sbl_inbound o_sbl_actual_pallet_binding">
             <div class="o_sbl_header">
                 <button type="button" class="btn btn-link text-dark p-1" t-on-click="exit" title="Home">
                     <i class="fa fa-arrow-left"/>
@@ -37,65 +37,85 @@
                 <t t-esc="stepHint"/>
             </div>
 
-            <div t-if="state.inbound.id" class="o_sbl_picking_card">
-                <div class="d-flex flex-wrap gap-3 align-items-center">
-                    <span><strong>Inbound:</strong> <t t-esc="state.inbound.billno || '-'"/></span>
-                    <span><strong>Reference:</strong> <t t-esc="state.inbound.reference || '-'"/></span>
-                    <span><strong>Status:</strong> <t t-esc="state.inbound.state || '-'"/></span>
+            <div t-if="state.inbound.id" class="o_sbl_picking_bar o_sbl_binding_info">
+                <div class="o_picking_info_row">
+                    <span class="o_picking_label">
+                        <i class="fa fa-clipboard-list text-primary me-1"/>Inbound:
+                    </span>
+                    <strong class="o_picking_name text-primary">
+                        <t t-esc="state.inbound.billno || '-'"/>
+                    </strong>
+                    <span class="o_binding_status badge bg-secondary">
+                        <t t-esc="state.inbound.state || '-'"/>
+                    </span>
+                </div>
+                <div t-if="state.inbound.reference" class="o_picking_extra">
+                    <span>
+                        <i class="fa fa-link text-muted me-1"/>
+                        Reference: <strong><t t-esc="state.inbound.reference"/></strong>
+                    </span>
                 </div>
             </div>
 
-            <div t-if="state.currentPallet.id" class="px-3 py-2 bg-light border-bottom">
-                <div class="d-flex flex-wrap gap-3 align-items-center">
-                    <span><strong>Current Pallet:</strong> <t t-esc="state.currentPallet.pallet_no"/></span>
-                    <span><strong>Product:</strong>
+            <div t-if="state.currentPallet.id" class="o_sbl_binding_context">
+                <div class="o_binding_context_row">
+                    <span class="o_binding_context_label">
+                        <i class="fa fa-cube text-primary me-1"/>Current Pallet
+                    </span>
+                    <strong class="o_binding_context_pallet"><t t-esc="state.currentPallet.pallet_no"/></strong>
+                </div>
+                <div class="o_binding_context_row o_binding_product_row">
+                    <span class="o_binding_context_label">Product</span>
+                    <span class="o_binding_context_product">
                         <t t-esc="state.currentProduct.display_name || 'Scan a product'"/>
                     </span>
-                    <span t-if="state.currentTrackingNumber"><strong>Lot:</strong> <t t-esc="state.currentTrackingNumber"/></span>
+                    <span t-if="state.currentTrackingNumber" class="o_binding_context_lot">
+                        <i class="fa fa-tag me-1"/>Lot: <strong><t t-esc="state.currentTrackingNumber"/></strong>
+                    </span>
                 </div>
             </div>
 
-            <div t-if="state.summary.expected_quantity !== undefined" class="row g-2 px-3 py-2">
-                <div class="col-4">
-                    <div class="border rounded p-2 h-100">
-                        <div class="small text-muted">Expected</div>
-                        <strong><t t-esc="expectedQuantity"/></strong>
-                    </div>
-                </div>
-                <div class="col-4">
-                    <div class="border rounded p-2 h-100">
-                        <div class="small text-muted">Bound</div>
-                        <strong><t t-esc="actualQuantity"/></strong>
-                    </div>
-                </div>
-                <div class="col-4">
-                    <div class="border rounded p-2 h-100">
-                        <div class="small text-muted">Remaining</div>
-                        <strong><t t-esc="remainingQuantity"/></strong>
-                    </div>
-                </div>
-            </div>
+<!--            <div t-if="state.summary.expected_quantity !== undefined" class="row g-2 px-3 py-2">-->
+<!--                <div class="col-4">-->
+<!--                    <div class="border rounded p-2 h-100">-->
+<!--                        <div class="small text-muted">Expected</div>-->
+<!--                        <strong><t t-esc="expectedQuantity"/></strong>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--                <div class="col-4">-->
+<!--                    <div class="border rounded p-2 h-100">-->
+<!--                        <div class="small text-muted">Bound</div>-->
+<!--                        <strong><t t-esc="actualQuantity"/></strong>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--                <div class="col-4">-->
+<!--                    <div class="border rounded p-2 h-100">-->
+<!--                        <div class="small text-muted">Remaining</div>-->
+<!--                        <strong><t t-esc="remainingQuantity"/></strong>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </div>-->
 
-            <div t-if="state.summary.total_pallets !== undefined" class="row g-2 px-3 pb-2">
-                <div class="col-4">
-                    <div class="border rounded p-2 h-100">
-                        <div class="small text-muted">Total Pallets</div>
-                        <strong><t t-esc="state.summary.total_pallets"/></strong>
-                    </div>
-                </div>
-                <div class="col-4">
-                    <div class="border rounded p-2 h-100">
-                        <div class="small text-muted">Ready</div>
-                        <strong><t t-esc="state.summary.ready_pallets"/></strong>
-                    </div>
-                </div>
-                <div class="col-4">
-                    <div class="border rounded p-2 h-100">
-                        <div class="small text-muted">Pending</div>
-                        <strong><t t-esc="state.summary.pending_pallets"/></strong>
-                    </div>
-                </div>
-            </div>
+<!--            <div t-if="state.summary.total_pallets !== undefined" class="row g-2 px-3 pb-2">-->
+<!--                <div class="col-4">-->
+<!--                    <div class="border rounded p-2 h-100">-->
+<!--                        <div class="small text-muted">Total Pallets</div>-->
+<!--                        <strong><t t-esc="state.summary.total_pallets"/></strong>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--                <div class="col-4">-->
+<!--                    <div class="border rounded p-2 h-100">-->
+<!--                        <div class="small text-muted">Ready</div>-->
+<!--                        <strong><t t-esc="state.summary.ready_pallets"/></strong>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--                <div class="col-4">-->
+<!--                    <div class="border rounded p-2 h-100">-->
+<!--                        <div class="small text-muted">Pending</div>-->
+<!--                        <strong><t t-esc="state.summary.pending_pallets"/></strong>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </div>-->
 
             <div t-if="state.quantityEntry" class="card mx-3 my-2 border-primary">
                 <div class="card-body">
@@ -121,8 +141,18 @@
             </div>
 
             <div t-if="state.expectedProducts.length" class="px-3 py-2">
-                <h6 class="mb-2">Expected Products</h6>
-                <div class="table-responsive">
+                <button type="button"
+                        class="btn btn-link text-dark text-decoration-none px-0 d-flex justify-content-between align-items-center w-100"
+                        t-on-click="toggleExpectedProducts"
+                        t-att-aria-expanded="state.expectedProductsExpanded ? 'true' : 'false'">
+                    <span class="fw-semibold">
+                        <i class="fa fa-cubes text-muted me-1"/>
+                        Expected Products (<t t-esc="state.expectedProducts.length"/>)
+                    </span>
+                    <i t-if="state.expectedProductsExpanded" class="fa fa-chevron-up text-muted"/>
+                    <i t-else="" class="fa fa-chevron-down text-muted"/>
+                </button>
+                <div t-if="state.expectedProductsExpanded" class="table-responsive mt-2">
                     <table class="table table-sm table-bordered mb-0">
                         <thead class="table-light">
                             <tr><th>Product</th><th>Expected</th><th>Bound</th><th>Remaining</th></tr>
@@ -148,31 +178,54 @@
                     </div>
                 </t>
 
-                <div t-foreach="state.pallets" t-as="pallet" t-key="pallet.id" class="card mb-2">
-                    <div class="card-header d-flex flex-wrap align-items-center gap-2">
-                        <div class="me-auto">
-                            <strong><t t-esc="pallet.pallet_no || ('Pallet ' + pallet.id)"/></strong>
-                            <span class="text-muted ms-2"><t t-esc="pallet.package_barcode"/></span>
+                <div t-foreach="state.pallets" t-as="pallet" t-key="pallet.id"
+                     t-attf-class="o_sbl_pallet {{ pallet.id === state.currentPallet.id ? 'o_pallet_active' : '' }}">
+                    <div class="o_pallet_header"
+                         t-on-click="() => this.togglePalletExpansion(pallet.id)"
+                         t-att-aria-expanded="isPalletExpanded(pallet.id) ? 'true' : 'false'">
+                        <div class="o_pallet_row1">
+                            <div class="o_pallet_info">
+                                <i class="fa fa-cube text-secondary me-1"/>
+                                <strong class="o_pallet_name">
+                                    <t t-esc="pallet.pallet_no || ('Pallet ' + pallet.id)"/>
+                                </strong>
+                            </div>
+                            <div class="o_pallet_right">
+                                <span class="badge bg-secondary"><t t-esc="pallet.state || '-'"/></span>
+                                <button t-if="pallet.state !== 'void' and !(pallet.product_lines || []).length"
+                                        type="button" class="btn btn-sm btn-outline-danger o_binding_void_button"
+                                        t-on-click.stop="() => voidPallet(pallet)" t-att-disabled="state.loading"
+                                        title="Void empty pallet">
+                                    <i class="fa fa-ban me-1"/>Void
+                                </button>
+                                <i class="fa fa-chevron-down collapse-arrow"/>
+                            </div>
                         </div>
-                        <span class="badge bg-secondary"><t t-esc="pallet.state"/></span>
-                        <button t-if="pallet.state !== 'void' and !(pallet.product_lines || []).length"
-                                type="button" class="btn btn-sm btn-outline-danger"
-                                t-on-click="() => voidPallet(pallet)" t-att-disabled="state.loading">
-                            <i class="fa fa-ban me-1"/>Void
-                        </button>
+                        <div class="o_pallet_row2">
+                            <span class="o_pallet_product_count">
+                                <t t-esc="(pallet.product_lines || []).length"/> products
+                            </span>
+                            <span t-if="pallet.package_barcode" class="o_pallet_location">
+                                <i class="fa fa-barcode text-muted me-1"/>
+                                <t t-esc="pallet.package_barcode"/>
+                            </span>
+                        </div>
                     </div>
-                    <div class="card-body py-2">
+                    <div t-att-class="getPalletProductsClass(pallet.id)">
                         <t t-if="!(pallet.product_lines || []).length">
-                            <span class="small text-muted">No products bound</span>
+                            <div class="o_sbl_empty_state text-center text-muted py-3">
+                                <p class="mb-0 small">No products bound</p>
+                            </div>
                         </t>
-                        <div t-foreach="pallet.product_lines || []" t-as="line" t-key="line.id" class="border rounded p-2 mb-2">
-                            <div class="d-flex flex-wrap gap-2 align-items-center">
-                                <div class="me-auto">
-                                    <strong><t t-esc="line.product_name"/></strong>
-                                    <small class="text-muted ms-2"><t t-esc="line.default_code || line.product_barcode"/></small>
+                        <div t-foreach="pallet.product_lines || []" t-as="line" t-key="line.id"
+                             t-attf-class="o_product_subcard {{ line.product_id === state.currentProduct.id ? 'o_item_active' : '' }}">
+                            <div class="o_product_row_top">
+                                <div class="o_product_icon"><i class="fa fa-box-open"/></div>
+                                <div class="o_product_name"><t t-esc="line.product_name"/></div>
+                                <div class="o_product_qty">
+                                    <span class="o_qty_value"><t t-esc="line.quantity"/></span>
+                                    <span class="o_qty_label">Qty</span>
                                 </div>
-                                <span class="badge bg-light text-dark"><t t-esc="line.tracking"/></span>
-                                <strong>Qty: <t t-esc="line.quantity"/></strong>
                                 <button t-if="line.tracking === 'none' || line.tracking === 'quantity'"
                                         type="button" class="btn btn-sm btn-outline-primary"
                                         t-on-click="() => beginQuantityEdit(line)" t-att-disabled="state.loading">
@@ -180,10 +233,16 @@
                                 </button>
                                 <button type="button" class="btn btn-sm btn-outline-danger"
                                         t-on-click="() => deleteProduct(pallet, line)" t-att-disabled="state.loading">
-                                    Delete Product
+                                    Delete
                                 </button>
                             </div>
-
+                            <div class="o_product_row_bottom">
+                                <span t-if="line.default_code" class="o_meta_code"><t t-esc="line.default_code"/></span>
+                                <span t-if="line.product_barcode" class="o_meta_barcode">
+                                    <i class="fa fa-barcode me-1"/><t t-esc="line.product_barcode"/>
+                                </span>
+                                <span class="badge bg-light text-dark"><t t-esc="line.tracking || 'none'"/></span>
+                            </div>
                             <div t-if="state.editingQuantityId === line.id" class="input-group input-group-sm mt-2">
                                 <input type="number" min="0.000001" step="any" class="form-control"
                                        t-model="state.editQuantityValue" t-att-disabled="state.loading"/>
@@ -191,22 +250,24 @@
                                 <button class="btn btn-outline-secondary" t-on-click="cancelQuantityEdit" t-att-disabled="state.loading">Cancel</button>
                             </div>
 
-                            <div t-if="(line.tracking_lines || []).length" class="mt-2">
+                            <div t-if="(line.tracking_lines || []).length" class="o_binding_tracking_list">
                                 <div t-foreach="line.tracking_lines || []" t-as="trackingLine" t-key="trackingLine.id || trackingLine.number"
-                                     class="d-flex align-items-center gap-2 border-top py-1">
-                                    <i t-attf-class="fa {{ line.tracking === 'serial' ? 'fa-barcode' : 'fa-tag' }} text-muted"/>
-                                    <span class="me-auto"><t t-esc="trackingLine.number || trackingLine.name"/></span>
-                                    <span class="text-muted">Qty <t t-esc="trackingLine.quantity || 1"/></span>
-                                    <button t-if="line.tracking === 'lot' and trackingLine.id" type="button" class="btn btn-sm btn-link"
-                                            t-on-click="() => beginTrackingQuantityEdit(line, trackingLine)" t-att-disabled="state.loading"
-                                            title="Edit lot quantity">
-                                        <i class="fa fa-pencil"/>
-                                    </button>
-                                    <button t-if="trackingLine.id" type="button" class="btn btn-sm btn-link text-danger p-0"
-                                            t-on-click="() => deleteTracking(pallet, line, trackingLine)" t-att-disabled="state.loading"
-                                            title="Delete tracking number">
-                                        <i class="fa fa-trash"/>
-                                    </button>
+                                     class="o_binding_tracking_item">
+                                    <div class="o_binding_tracking_line">
+                                        <i t-attf-class="fa {{ line.tracking === 'serial' ? 'fa-barcode' : 'fa-tag' }} text-muted"/>
+                                        <span class="o_binding_tracking_name"><t t-esc="trackingLine.number || trackingLine.name"/></span>
+                                        <span class="text-muted">Qty <t t-esc="trackingLine.quantity || 1"/></span>
+                                        <button t-if="line.tracking === 'lot' and trackingLine.id" type="button" class="btn btn-sm btn-link"
+                                                t-on-click="() => beginTrackingQuantityEdit(line, trackingLine)" t-att-disabled="state.loading"
+                                                title="Edit lot quantity">
+                                            <i class="fa fa-pencil"/>
+                                        </button>
+                                        <button t-if="trackingLine.id" type="button" class="btn btn-sm btn-link text-danger p-0"
+                                                t-on-click="() => deleteTracking(pallet, line, trackingLine)" t-att-disabled="state.loading"
+                                                title="Delete tracking number">
+                                            <i class="fa fa-trash"/>
+                                        </button>
+                                    </div>
                                     <div t-if="line.tracking === 'lot' and state.editingTrackingId === trackingLine.id"
                                          class="input-group input-group-sm w-100 mt-1">
                                         <input type="number" min="0.000001" step="any" class="form-control"

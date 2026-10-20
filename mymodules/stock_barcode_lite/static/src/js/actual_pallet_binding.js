@@ -17,7 +17,9 @@ export class ActualPalletBinding extends BaseBarcodePage {
         this.state.currentProduct = {};
         this.state.summary = {};
         this.state.pallets = [];
+        this.state.expandedPalletIds = [];
         this.state.expectedProducts = [];
+        this.state.expectedProductsExpanded = false;
         this.state.lastScan = {};
         this.state.nextStep = "scan_inbound";
         this.state.currentTrackingNumber = false;
@@ -79,6 +81,26 @@ export class ActualPalletBinding extends BaseBarcodePage {
 
     get remainingQuantity() {
         return this.state.summary?.remaining_quantity || 0;
+    }
+
+    toggleExpectedProducts() {
+        this.state.expectedProductsExpanded = !this.state.expectedProductsExpanded;
+    }
+
+    isPalletExpanded(palletId) {
+        return this.state.expandedPalletIds.includes(palletId);
+    }
+
+    togglePalletExpansion(palletId) {
+        this.state.expandedPalletIds = this.isPalletExpanded(palletId)
+            ? this.state.expandedPalletIds.filter((id) => id !== palletId)
+            : [...this.state.expandedPalletIds, palletId];
+    }
+
+    getPalletProductsClass(palletId) {
+        return this.isPalletExpanded(palletId)
+            ? "o_pallet_products collapse show"
+            : "o_pallet_products collapse";
     }
 
     _isBusy() {
@@ -183,6 +205,18 @@ export class ActualPalletBinding extends BaseBarcodePage {
                 this.state.currentTrackingNumber = false;
             }
         }
+
+        const availablePalletIds = new Set(this.state.pallets.map((pallet) => pallet.id));
+        let expandedPalletIds = this.state.expandedPalletIds.filter((id) => availablePalletIds.has(id));
+        if (!this.state.inbound?.id) {
+            expandedPalletIds = [];
+        } else if (this.state.currentPallet?.id && availablePalletIds.has(this.state.currentPallet.id)) {
+            if (!expandedPalletIds.includes(this.state.currentPallet.id)) {
+                expandedPalletIds = [...expandedPalletIds, this.state.currentPallet.id];
+            }
+        }
+        this.state.expandedPalletIds = expandedPalletIds;
+
         this.state.nextStep = result.next_step || this.state.nextStep;
 
         if (result.message) {
