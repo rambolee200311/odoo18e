@@ -188,8 +188,8 @@ class InboundOrder(models.Model):
                     if product.tracking != "serial":
                         continue
                     for serial_line in product_line.serial_lines:
-                        lot_ids = lot_model.sudo().search([("name", "=", serial_line.serial_number), ("product_id", "=", product.id), ("company_id", "=", rec.company_id.id)])
-                        if lot_ids and quant_model.sudo().search([("lot_id", "in", lot_ids.ids), ("company_id", "=", rec.company_id.id), ("quantity", ">", 0)], limit=1):
+                        lot_ids = lot_model.sudo().search([("name", "=", serial_line.serial_number), ("product_id", "=", product.id)])
+                        if lot_ids and quant_model.sudo().search([("lot_id", "in", lot_ids.ids), ("quantity", ">", 0)], limit=1):
                             raise UserError(_("Serial number %s already has stock in this company.") % serial_line.serial_number)
             expected_product_ids = set(expected_quantity_by_product)
             actual_product_ids = set(actual_quantity_by_product)
@@ -552,8 +552,8 @@ class StockBarcodeLiteScanService(models.AbstractModel):
             existing_serial = actual_serial_model.sudo().search([("inbound_order_id", "=", inbound_order.id), ("product_id", "=", product.id), ("serial_number", "in", serial_numbers)], limit=1)
             if existing_serial:
                 return self.build_actual_pallet_binding_result("error", _("Serial Number"), _("Serial number %s was already scanned.") % existing_serial.serial_number, barcode=code, inbound_order=inbound_order, actual_pallet_id=actual_pallet.id, product_id=product.id, action_name="scan_serial", success=False, next_step="scan_serial")
-            lot_ids = lot_model.sudo().search([("name", "in", serial_numbers), ("product_id", "=", product.id), ("company_id", "=", inbound_order.company_id.id)])
-            existing_quant = quant_model.sudo().search([("lot_id", "in", lot_ids.ids), ("company_id", "=", inbound_order.company_id.id), ("quantity", ">", 0)], limit=1)
+            lot_ids = lot_model.sudo().search([("name", "in", serial_numbers), ("product_id", "=", product.id)])
+            existing_quant = quant_model.sudo().search([("lot_id", "in", lot_ids.ids), ("quantity", ">", 0)], limit=1)
             if existing_quant:
                 return self.build_actual_pallet_binding_result("error", _("Serial Number"), _("Serial number %s already has stock in this company.") % existing_quant.lot_id.name, barcode=code, inbound_order=inbound_order, actual_pallet_id=actual_pallet.id, product_id=product.id, action_name="scan_serial", success=False, next_step="scan_serial")
             if float_compare(actual_quantity_by_product.get(product.id, 0.0) + len(serial_numbers), expected_quantity_by_product[product.id], precision_rounding=product.uom_id.rounding) > 0:
