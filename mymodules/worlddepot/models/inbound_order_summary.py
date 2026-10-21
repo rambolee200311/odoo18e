@@ -141,8 +141,9 @@ class InboundOrderSummary(models.Model):
         except Exception as e:
             _logger.error(f"Error initializing InboundOrderSummary: {e}")
 
-    def init(self):
-        """Initialize the summary table with data from inbound orders."""
+    @api.model
+    def rebuild_summary(self):
+        """Rebuild the summary table only when requested from the user interface."""
         try:
             # Clear existing data
             self.env.cr.execute(f"DELETE FROM {self._table}")
@@ -150,7 +151,7 @@ class InboundOrderSummary(models.Model):
             domain = [('state', '!=', 'cancel')]
 
             # Include ALL orders (remove state filter)
-            inbound_orders = self.env['world.depot.inbound.order'].search(domain)
+            inbound_orders = self.env['world.depot.inbound.order'].sudo().search(domain)
 
             _logger.info(f"Processing {len(inbound_orders)} inbound orders")
 
@@ -160,7 +161,7 @@ class InboundOrderSummary(models.Model):
 
             for order in inbound_orders:
                 orders_processed += 1
-                pallets = self.env['world.depot.inbound.order.product'].search([
+                pallets = self.env['world.depot.inbound.order.product'].sudo().search([
                     ('inbound_order_id', '=', order.id)
                 ])
 
@@ -194,7 +195,7 @@ class InboundOrderSummary(models.Model):
 
                 for pallet in pallets:
                     mixed = len(pallet.inbound_order_product_pallet_ids) > 1
-                    products = self.env['world.depot.inbound.order.products.pallet'].search([
+                    products = self.env['world.depot.inbound.order.products.pallet'].sudo().search([
                         ('inbound_order_product_id', '=', pallet.id)
                     ])
 
@@ -280,13 +281,13 @@ class InboundOrderSummary(models.Model):
     def action_manual_refresh(self, *args, **kwargs):
         """Manual entry point to refresh the inbound order summary.
 
-        This can be called from an automated action or server action in Odoo UI.
-        It simply rebuilds the summary table by calling the `init` method.
+        This can be called from the summary list in Odoo UI.
+        It rebuilds the summary table only on demand.
         """
         _logger.info("Manual refresh of InboundOrderSummary requested")
         try:
             # Rebuild the summary
-            self.init()
+            self.rebuild_summary()
             _logger.info("Manual refresh completed successfully")
             return True
         except Exception as e:
