@@ -159,8 +159,8 @@ class BlindStockCount(models.Model):
 
     def action_cancel(self):
         for rec in self:
-            if rec.state not in ("draft","counting"):
-                raise UserError(_("Only draft can be cancelled."))
+            if rec.state not in ("draft", "counting"):
+                raise UserError(_("Only draft or counting blind stock counts can be cancelled."))
             rec.write({"state": "cancel"})
         return True
 
@@ -181,6 +181,7 @@ class BlindStockCount(models.Model):
         for rec in self:
             is_replacement_update = set(vals) == {"is_replaced"} and self.env.context.get("blind_stock_count_recount_action")
             is_return_to_counting = set(vals) == {"state"} and vals.get("state") == "counting" and rec.state == "done"
+            is_receipt_queue_update = set(vals).issubset({"receipt_generation_state", "receipt_generation_error", "receipt_queue_job_id"}) and self.env.context.get("blind_stock_count_receipt_queue_action")
             if is_return_to_counting:
                 if not (self.env.user.has_group("blind_stock_count.group_blind_stock_count_administrator") or self.env.user.has_group("base.group_system")):
                     raise UserError(_("Only a warehouse manager or system administrator can return a completed blind stock count to counting."))
@@ -188,7 +189,7 @@ class BlindStockCount(models.Model):
                     raise UserError(_("The work package must be in progress before returning a blind stock count to counting."))
                 if rec.is_replaced or self.sudo().search_count([("recounted_from_id", "=", rec.id), ("state", "!=", "cancel")]):
                     raise UserError(_("A blind stock count with an active recount cannot be returned to counting."))
-            if rec.state in ("done", "cancel") and not (is_replacement_update or is_return_to_counting):
+            if rec.state in ("done", "cancel") and not (is_replacement_update or is_return_to_counting or is_receipt_queue_update):
                 raise UserError(_("Completed or cancelled blind stock counts cannot be changed."))
             if "is_replaced" in vals and not is_replacement_update:
                 raise UserError(_("The replacement status is managed by the recount completion action."))

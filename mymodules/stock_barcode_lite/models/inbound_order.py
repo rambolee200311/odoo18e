@@ -100,6 +100,27 @@ class InboundOrder(models.Model):
 
     def action_confirm(self):
         for rec in self:
+            if rec.project.pallet_structure_mode == "unknown":
+                rec.validate_unknown_pallet_structure()
+            elif rec.project_package_generation_mode == "inbound":
+                package_ids = set()
+                for pallet_line in rec.inbound_order_product_ids:
+                    if pallet_line.pallets != 1:
+                        raise UserError(
+                            _('Pallet "%s" pallets must be 1 before confirming an inbound-generated package order.')
+                            % (pallet_line.pallet_no or pallet_line.display_name)
+                        )
+                    if not pallet_line.package_id or not pallet_line.package_id.barcode:
+                        raise UserError(
+                            _('Pallet "%s" has no system package barcode. Generate or select a package before confirming the inbound order.')
+                            % (pallet_line.pallet_no or pallet_line.display_name)
+                        )
+                    if pallet_line.package_id.id in package_ids:
+                        raise UserError(
+                            _('Package "%s" is assigned to more than one pallet line on this inbound order.')
+                            % (pallet_line.package_id.name or pallet_line.package_id.barcode)
+                        )
+                    package_ids.add(pallet_line.package_id.id)
             if rec.project.name == "SUNRISE":
                 rec.validate_sunrise_inbound_confirm_values()
         return super().action_confirm()
@@ -140,12 +161,6 @@ class InboundOrder(models.Model):
 
                 if pallet_missing_fields:
                     raise UserError(_("Sunrise inbound pallet line %s is missing required fields: %s") % (pallet_index, ", ".join(pallet_missing_fields)))
-
-                if rec.project_package_generation_mode == "inbound" and not pallet_line.package_id:
-                    raise UserError(
-                        _('Pallet "%s" has no package. Generate packages before confirming the inbound order.')
-                        % pallet_line.pallet_no
-                    )
 
                 if rec.project_package_generation_mode == "none" and pallet_line.package_id:
                     raise UserError(
@@ -456,6 +471,8 @@ class InboundOrder(models.Model):
         created_count = 0
 
         for rec in self:
+            if rec.project_pallet_structure_mode == "unknown":
+                raise UserError(_("Unknown pallet structure inbound orders must generate packages from Actual Pallets."))
             if rec.project.name != "SUNRISE":
                 raise UserError(_("Only SUNRISE inbound orders can generate packages."))
             if rec.project_package_generation_mode != "inbound":
@@ -573,12 +590,6 @@ class InboundOrder(models.Model):
                     if detail_line.quantity <= 0:
                         raise UserError(
                             _('Product "%s" quantity must be greater than 0.')
-                            % detail_line.product_id.display_name
-                        )
-
-                    if detail_line.product_id.tracking == "serial":
-                        raise UserError(
-                            _('Serial-tracked product "%s" is not supported by Sunrise incoming picking.')
                             % detail_line.product_id.display_name
                         )
 
@@ -799,11 +810,12 @@ class InboundOrderProduct(models.Model):
         package_model = self.env["stock.quant.package"]
         package = package_model.create({
             "name": self.get_sunrise_package_name(),
-            "barcode": package_model.generate_sunrise_package_barcode(),
+            "barcode": package_model.generate_package_barcode(),
             "package_use": "disposable",
             "billno": inbound_order.billno,
             "reference": inbound_order.reference,
             "cntr_no": inbound_order.cntr_no,
+            "inbound_order_id": inbound_order.id,
             "original_pallet_no": self.pallet_no,
         })
         self.write({"package_id": package.id, "is_reused_package": False})
@@ -843,6 +855,8 @@ class InboundOrderProduct(models.Model):
                 raise UserError(_("Pallet \"%s\" has a product line without a source product code.") % self.pallet_no)
             identities.add((product_code, lot_name))
         if len(identities) != 1:
+            if any(line.product_id.tracking == "serial" for line in self.inbound_order_product_pallet_ids):
+                return "MIXED", ""
             raise UserError(
                 _("Physical pallet \"%s\" must contain one source product and one lot.") % self.pallet_no
             )

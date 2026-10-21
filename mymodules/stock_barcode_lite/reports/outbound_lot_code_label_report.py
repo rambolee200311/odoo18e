@@ -11,6 +11,7 @@ class ReportOutboundLotCodeLabel(models.AbstractModel):
     def _get_report_values(self, docids, data=None):
         order_model = self.env["world.depot.outbound.order"]
         line_model = self.env["world.depot.outbound.order.product"]
+        outgoing_scan_service = self.env["stock.barcode.lite.scan.service"]
         docs = order_model.sudo().browse(docids).exists()
         sections_by_order = {}
 
@@ -31,6 +32,34 @@ class ReportOutboundLotCodeLabel(models.AbstractModel):
                     move_lines = picking.move_line_ids.filtered(
                         lambda move_line: move_line.state != "cancel" and move_line.quantity > 0
                     )
+                    if not move_lines and picking.is_unspecified_pallet_outgoing:
+                        pallet_suggestions, _suggestion_summary = outgoing_scan_service.get_unspecified_pallet_outgoing_suggestions(picking)
+                        pallet_groups = []
+                        for pallet_suggestion in pallet_suggestions:
+                            pallet_groups.append({
+                                "pallet_no": pallet_suggestion["package_name"] or pallet_suggestion["package_barcode"] or "",
+                                "actual_package_name": pallet_suggestion["package_barcode"] or "",
+                                "has_package_mismatch": False,
+                                "is_suggestion": True,
+                                "source_location_name": pallet_suggestion["source_location_name"] or "",
+                                "rows": [{
+                                    "product_name": product["product_name"],
+                                    "lot_name": product["lot"],
+                                    "barcode": product["product_barcode"],
+                                    "box_in_qty": "",
+                                    "uom_name": "",
+                                    "quantity": product["suggested_quantity"],
+                                    "unit": product["uom_name"],
+                                } for product in pallet_suggestion["products"]],
+                            })
+                        if pallet_groups:
+                            sections.append({
+                                "title": _("Suggested Partial Pallet Picking"),
+                                "picking": picking,
+                                "pallet_groups": pallet_groups,
+                                "is_suggestion": True,
+                            })
+                        continue
                     missing_detail_move_line = move_lines.filtered(
                         lambda move_line: not move_line.move_id.outbound_order_product_id
                     )[:1]
@@ -68,6 +97,8 @@ class ReportOutboundLotCodeLabel(models.AbstractModel):
                             "pallet_no": line.pallet_no or package.name or "",
                             "actual_package_name": package.name or "",
                             "has_package_mismatch": False,
+                            "is_suggestion": False,
+                            "source_location_name": "",
                             "rows": [],
                             "row_map": {},
                         })
@@ -97,10 +128,11 @@ class ReportOutboundLotCodeLabel(models.AbstractModel):
                         "title": title,
                         "picking": picking,
                         "pallet_groups": pallet_groups,
+                        "is_suggestion": False,
                     })
 
             if not sections:
-                raise UserError(_("The outbound picking has no pallet move lines linked to outbound product details."))
+                raise UserError(_("The outbound picking has no pallet move lines or pallet suggestions to print."))
 
             sections_by_order[rec.id] = sections
 

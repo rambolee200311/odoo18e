@@ -2,6 +2,7 @@
 
 import { BaseBarcodePage } from "./base_barcode_page";
 import { _t } from "@web/core/l10n/translation";
+import { standardActionServiceProps } from "@web/webclient/actions/action_service";
 
 /**
  * Disassembly Outbound Flow (Backend-driven)
@@ -18,70 +19,31 @@ import { _t } from "@web/core/l10n/translation";
  *  完成所有托盘后，可确认出库
  *
  * 本页面完全依赖后端接口 process_outgoing_scan_barcode 驱动流程，
- * 后端返回统一的 scan_state 结构，前端负责渲染和交互。
+ * 前端用 current 延续后续请求上下文，用 scan_state 渲染页面数据。
  */
 export class DisassemblyOutboundPage extends BaseBarcodePage {
     static template = "stock_barcode_lite.DisassemblyOutboundPage";
-    static props = {};
+    static props = {...standardActionServiceProps};
 
-    _bindFocusGuard() {
-        const container = this.el;
-        if (!container) return;
-
-        this._onFocusOut = (ev) => {
-            const related = ev.relatedTarget;
-            const isInputElement = related && (
-                related.tagName === "INPUT" ||
-                related.tagName === "TEXTAREA" ||
-                related.isContentEditable
-            );
-            const shouldRefocus = !isInputElement && !this.isScanQuantityStep && !this._isProcessing;
-
-            if (shouldRefocus) {
-                requestAnimationFrame(() => {
-                    this._focusBarcodeInput();
-                });
-            }
-        };
-
-        this._onDocumentPointerDown = (ev) => {
-            const toggle = ev.target.closest?.('[data-bs-toggle="collapse"]') || ev.target.closest?.('.o_pallet_header');
-            if (!toggle) return;
-            if (this.isScanQuantityStep || this._isProcessing) return;
-        };
-
-        this._onDocumentPointerUp = (ev) => {
-            const toggle = ev.target.closest?.('[data-bs-toggle="collapse"]') || ev.target.closest?.('.o_pallet_header');
-            if (!toggle) return;
-            if (this.isScanQuantityStep || this._isProcessing) return;
-
-            setTimeout(() => {
-                this._focusBarcodeInput();
-            }, 100);
-        };
-
-        container.addEventListener("focusout", this._onFocusOut);
-        document.addEventListener("pointerdown", this._onDocumentPointerDown);
-        document.addEventListener("pointerup", this._onDocumentPointerUp);
+    setup() {
+        super.setup();
+        this.state.expandedPalletIds = [];
+        this._resetScanContext();
     }
 
-    _unbindFocusGuard() {
-        if (this._onFocusOut) {
-            this.el?.removeEventListener("focusout", this._onFocusOut);
-            this._onFocusOut = null;
+    _onBarcodeBlur(ev) {
+        // 数量录入时，允许数量框持有焦点
+        if (this.isScanQuantityStep) {
+            return;
         }
-        if (this._onDocumentPointerDown) {
-            document.removeEventListener("pointerdown", this._onDocumentPointerDown);
-            this._onDocumentPointerDown = null;
-        }
-        if (this._onDocumentPointerUp) {
-            document.removeEventListener("pointerup", this._onDocumentPointerUp);
-            this._onDocumentPointerUp = null;
-        }
+        super._onBarcodeBlur(ev);
     }
 
     _reconcileFocus() {
+        if (this._isDestroyed) return;
+
         requestAnimationFrame(() => {
+            if (this._isDestroyed) return;
             if (this.isScanQuantityStep) {
                 const qtyInput = this.el?.querySelector('.o_sbl_quantity_panel input[type="number"]');
                 if (qtyInput) qtyInput.focus();
@@ -93,110 +55,6 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
                 }
             }
         });
-    }
-
-   _bindKeyListener() {
-        const input = this.barcodeInputRef.el;
-        if (!input) return;
-
-        this._boundOnBarcodeInput = this._onBarcodeInput.bind(this);
-        this._boundOnBarcodeKeydown = this._onBarcodeKeydown.bind(this);
-        this._boundOnBarcodeBlur = this._onBarcodeBlur.bind(this);
-
-        input.addEventListener("input", this._boundOnBarcodeInput);
-        input.addEventListener("keydown", this._boundOnBarcodeKeydown);
-        input.addEventListener("blur", this._boundOnBarcodeBlur);
-
-        if (!this._isPDA) {
-            input.focus();
-        }
-//        else {
-//            console.log("[BarcodeMonitor] _bindKeyListener PDA mode - deferred focus");
-//        }
-    }
-
-    _unbindKeyListener() {
-        const input = this.barcodeInputRef.el;
-        if (!input) return;
-
-        if (this._boundOnBarcodeInput) {
-            input.removeEventListener("input", this._boundOnBarcodeInput);
-            this._boundOnBarcodeInput = null;
-        }
-        if (this._boundOnBarcodeKeydown) {
-            input.removeEventListener("keydown", this._boundOnBarcodeKeydown);
-            this._boundOnBarcodeKeydown = null;
-        }
-        if (this._boundOnBarcodeBlur) {
-            input.removeEventListener("blur", this._boundOnBarcodeBlur);
-            this._boundOnBarcodeBlur = null;
-        }
-    }
-
-    _bindGlobalKeyListener() {
-        this._onGlobalKeyDown = (ev) => {
-            const target = ev.target;
-            if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) {
-                return;
-            }
-
-            if (ev.key.length > 1 && ev.key !== "Enter") {
-                return;
-            }
-
-            const input = this.barcodeInputRef.el;
-            if (!input) return;
-
-            if (ev.key === "Enter") {
-                ev.preventDefault();
-                const barcode = input.value.trim();
-                if (barcode) {
-                    input.value = "";
-                    this.onBarcodeScanned(barcode);
-                }
-            } else {
-                input.value += ev.key;
-                if (input.value.includes("\n") || input.value.includes("\r")) {
-                    const barcode = input.value.replace(/\n/g, "").replace(/\r/g, "").trim();
-                    if (barcode) {
-                        input.value = "";
-                        this.onBarcodeScanned(barcode);
-                    }
-                }
-            }
-        };
-
-        document.addEventListener("keydown", this._onGlobalKeyDown);
-    }
-
-    _unbindGlobalKeyListener() {
-        if (this._onGlobalKeyDown) {
-            document.removeEventListener("keydown", this._onGlobalKeyDown);
-            this._onGlobalKeyDown = null;
-        }
-    }
-
-    _bindVisibilityChange() {
-        this._onVisibilityChange = () => {
-            if (document.visibilityState === "visible") {
-                this._focusBarcodeInput();
-            }
-        };
-        document.addEventListener("visibilitychange", this._onVisibilityChange);
-    }
-
-    _unbindVisibilityChange() {
-        if (this._onVisibilityChange) {
-            document.removeEventListener("visibilitychange", this._onVisibilityChange);
-            this._onVisibilityChange = null;
-        }
-    }
-
-    _clearScanTimer() {
-        if (this._scanTimer) {
-            clearTimeout(this._scanTimer);
-            this._scanTimer = null;
-        }
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -231,17 +89,21 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
                 return;
             }
 
-            const pickingId = this.state.order?.id || false;
-            const locationId = this.state.currentLocation?.id || false;
-            const packageId = this.state.currentPallet?.id || false;
-            const productId = this.state.currentProduct?.id || false;
-            const lotId = this.state.currentLot?.id || false;
+            const {
+                pickingId,
+                locationId,
+                packageId,
+                productId,
+                lotId,
+                pendingOperation,
+            } = this.scanContext;
 
             const result = await this.orm.call(
                 "stock.barcode.lite.scan.service",
                 "process_outgoing_scan_barcode",
-                [barcode, pickingId, locationId, packageId, productId, lotId, false, false]
+                [barcode, pickingId, locationId, packageId, productId, lotId, pendingOperation || false, false]
             );
+            if (this._isDestroyed) return;
 
             // 先校验当前 picking 的扫描模式，不匹配就直接提示并重置
             const nextStep = result.next_step || "scan_picking";
@@ -260,34 +122,33 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
                 this.state.currentPallet = {};
                 this.state.currentProduct = {};
                 this.state.currentLot = {};
+                this._resetScanContext();
                 this.state.nextStep = "scan_picking";
                 this.state.summary = this._getEmptySummary();
                 this.state.lastScan = {};
-                this.state.updatedMoveLineIds = [];
-                this.state.currentProductIndex = -1;
-                this.state.isDisassemblyMode = false;
+                this.state.currentScannedPalletId = null;
+                this.state.expandedPalletIds = [];
+                this.state.quantityInput = "";
                 this._focusBarcodeInput();
                 return;
             }
 
-            await this._applyScanResult(result, true);
-
-            if (result.action?.updated_move_line_ids?.length) {
-                this.state.updatedMoveLineIds = result.action.updated_move_line_ids;
-            }
+            this._applyScanResult(result, true);
         } catch (error) {
             console.error("[DisassemblyOutbound] scan error:", error);
             this.showMessage(this.formatError(error), "danger");
             this._flashScreen([200, 100, 100], true);
        } finally {
-           this.state.loading = false;
            this._isProcessing = false;
-            this._reconcileFocus();
+           if (!this._isDestroyed) {
+                this.state.loading = false;
+                this._reconcileFocus();
+            }
        }
    }
 
     /**
-     * 映射后端 scan_state 到前端 state
+     * 应用后端返回：current 更新请求上下文，scan_state 更新页面展示
      * 后端返回结构：
      * {
      *   success, type, barcode, barcode_type, message, next_step,
@@ -303,15 +164,27 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
      *   }
      * }
      */
-    async _applyScanResult(result, notify = true) {
+    _applyScanResult(result, notify = true) {
         if (!result) return;
+
+        // `current` is the authoritative request context.
+        // `scan_state` is used below only to populate display data.
+        const current = result.current || {};
+        this.scanContext = {
+            pickingId: current.picking_id || false,
+            locationId: current.location_id || false,
+            packageId: current.package_id || false,
+            productId: current.product_id || false,
+            lotId: current.lot_id || false,
+            pendingOperation: current.pending_operation || false,
+        };
 
         const scanState = result.scan_state || {};
 
         // 更新出库单信息
         this.state.order = scanState.picking ? { ...scanState.picking } : null;
 
-        // 更新当前上下文
+        // 更新当前picking页面基础信息
         this.state.currentLocation = scanState.current_location ? { ...scanState.current_location } : {};
         this.state.currentPallet = scanState.current_pallet ? { ...scanState.current_pallet } : {};
         this.state.currentProduct = scanState.current_product ? { ...scanState.current_product } : {};
@@ -350,9 +223,6 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
         // 渲染完成后展开托盘卡片
         this._expandCurrentPalletAfterRender();
 
-        // 判断是否进入拆托模式（需要扫产品）
-        this.state.isDisassemblyMode = this.state.nextStep === "scan_product";
-
         // 数量输入模式需要保留当前 product/lot 上下文，避免前端误清空
         if (result.next_step === "input_quantity") {
             this.state.currentProduct = scanState.current_product
@@ -365,8 +235,8 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
 
             // 后端 current_product 缺少 move_line_id，需要从 pallets 中补全
             // 优先使用当前托盘的数据，避免跨托盘错误匹配
-            const currentProductId = this.state.currentProduct?.id;
-            const currentPalletId = this.state.currentPallet?.id;
+            const currentProductId = this.scanContext.productId;
+            const currentPalletId = this.scanContext.packageId;
 
             if (currentProductId && scanState.pallets) {
                 let fullProduct = null;
@@ -456,7 +326,11 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
             ev.preventDefault();
         }
 
-        if (!this.state.currentProduct?.id) {
+        if (this.state.loading || this._isProcessing) {
+            return;
+        }
+
+        if (!this.scanContext.productId) {
             this.showMessage(_t("Please scan product first"), "danger");
             return;
         }
@@ -477,14 +351,15 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
                 [
                     "",
                     qty,
-                    this.state.order?.id || false,
-                    this.state.currentLocation?.id || false,
-                    this.state.currentPallet?.id || false,
-                    this.state.currentProduct?.id || false,
-                    this.state.currentLot?.id || false,
+                    this.scanContext.pickingId,
+                    this.scanContext.locationId,
+                    this.scanContext.packageId,
+                    this.scanContext.productId,
+                    this.scanContext.lotId,
                     false,
                 ]
             );
+            if (this._isDestroyed) return;
 
             // 后端返回错误
             if (result.success === false) {
@@ -496,16 +371,18 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
 
             // 正常处理：后端已经清掉了 product_id/lot_id，
             // 并返回了正确的 next_step，前端直接沿用
-           await this._applyScanResult(result, true);
+           this._applyScanResult(result, true);
            this.state.quantityInput = "";
 
         } catch (error) {
             this.showMessage(this.formatError(error), "danger");
             this._flashScreen([200, 100, 100], true);
         } finally {
-            this.state.loading = false;
             this._isProcessing = false;
-            this._reconcileFocus();
+            if (!this._isDestroyed) {
+                this.state.loading = false;
+                this._reconcileFocus();
+            }
         }
     }
 
@@ -514,7 +391,8 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
     // ═══════════════════════════════════════════════════════════════
 
     async confirmOutbound() {
-        if (!this.state.order) {
+        const pickingId = this.scanContext.pickingId;
+        if (!pickingId) {
             this.showMessage(_t("No order loaded"), "danger");
             return;
         }
@@ -539,20 +417,39 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
 
         this.state.loading = true;
         try {
-            await this.orm.call("stock.picking", "button_validate", [this.state.order.id]);
+            const result = await this.orm.call("stock.picking", "button_validate", [[pickingId]]);
+            if (this._isDestroyed) return;
+            if (result?.type) {
+                await this.action.doAction(result);
+                return;
+            }
+
             this.showMessage(_t("Outbound confirmed successfully!"), "success");
             this._flashScreen([100, 300, 100], true);
-            setTimeout(() => this.resetScan(), 2000);
+            this._safeSetTimeout(() => this.resetScan(), 2000);
         } catch (error) {
             this.showMessage(this.formatError(error), "danger");
         } finally {
-            this.state.loading = false;
+            if (!this._isDestroyed) {
+                this.state.loading = false;
+            }
         }
     }
 
     // ═══════════════════════════════════════════════════════════════
     // 重置 / 退出
     // ═══════════════════════════════════════════════════════════════
+
+    _resetScanContext() {
+        this.scanContext = {
+            pickingId: false,
+            locationId: false,
+            packageId: false,
+            productId: false,
+            lotId: false,
+            pendingOperation: false,
+        };
+    }
 
     resetScan() {
         this.state.order = null;
@@ -567,11 +464,11 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
         this.state.loading = false;
         this.state.summary = this._getEmptySummary();
         this.state.lastScan = {};
-        this.state.updatedMoveLineIds = [];
-        this.state.currentProductIndex = -1;
-        this.state.isDisassemblyMode = false;
         this.state.quantityInput = "";
         this._focusBarcodeInput();
+        this.state.currentScannedPalletId = null;
+        this.state.expandedPalletIds = [];
+        this._resetScanContext();
     }
 
     exit() {
@@ -583,32 +480,6 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
     // ═══════════════════════════════════════════════════════════════
 
     /**
-     * 初始化 Bootstrap 折叠效果
-     */
-    _initCollapse() {
-        if (typeof window.bootstrap !== 'undefined') {
-            const collapseElements = this.el?.querySelectorAll('.collapse');
-            if (collapseElements) {
-                collapseElements.forEach(el => {
-                    // 确保已展开的托盘正确显示
-                    const targetId = el.id;
-                    if (targetId && targetId.startsWith('pallet_products_')) {
-                        const palletId = parseInt(targetId.split('_').pop());
-                        if (this.isPalletExpanded(palletId)) {
-                            el.classList.add('show');
-                            // 更新对应的 header aria-expanded
-                            const header = this.el?.querySelector(`[data-bs-target="#${targetId}"]`);
-                            if (header) {
-                                header.setAttribute('aria-expanded', 'true');
-                            }
-                        }
-                    }
-                });
-            }
-        }
-    }
-
-    /**
      * 渲染后展开当前托盘
      * Owl 渲染完成后调用，确保 collapse 面板正确展开
      */
@@ -617,45 +488,33 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
 
         const currentPalletId = this.state.currentScannedPalletId;
         const targetId = `pallet_products_${currentPalletId}`;
-        const collapseEl = this.el?.querySelector(`#${targetId}`);
-        const headerEl = this.el?.querySelector(`[data-bs-target="#${targetId}"]`);
 
-        // 尝试使用 Owl 的渲染后钩子
-        const tryExpand = (attempt) => {
-            const el = this.el?.querySelector(`#${targetId}`);
-            const hdr = this.el?.querySelector(`[data-bs-target="#${targetId}"]`);
-
-            if (el && !el.classList.contains('show')) {
-                el.classList.add('show');
-                if (hdr) {
-                    hdr.setAttribute('aria-expanded', 'true');
-                }
+        const tryExpand = () => {
+            // 扫描目标已变化或页面已关闭时，停止旧托盘的重试
+            if (
+                this._isDestroyed ||
+                this.state.currentScannedPalletId !== currentPalletId
+            ) {
                 return true;
             }
-            return false;
+
+            const el = this.el?.querySelector(`#${targetId}`);
+            if (!el) return false;
+
+            const hdr = this.el?.querySelector(`[data-bs-target="#${targetId}"]`);
+            if (!el.classList.contains("show")) {
+                el.classList.add("show");
+                hdr?.setAttribute("aria-expanded", "true");
+            }
+            return true;
         };
 
-        // 立即尝试
-        if (!tryExpand(0)) {
-            // 依次延迟重试，等待 Owl 完成 DOM 更新
-            [50, 100, 200, 350, 500].forEach(delay => {
-                setTimeout(() => tryExpand(delay), delay);
-            });
-        }
-    }
-
-    /**
-     * 展开指定的托盘卡片（手动控制 Bootstrap collapse）
-     */
-    _expandPallet(palletId) {
-        const targetId = `pallet_products_${palletId}`;
-        const collapseEl = this.el?.querySelector(`#${targetId}`);
-        const headerEl = this.el?.querySelector(`[data-bs-target="#${targetId}"]`);
-
-        if (collapseEl && headerEl) {
-            collapseEl.classList.add('show');
-            headerEl.setAttribute('aria-expanded', 'true');
-        }
+        const delays = [50, 100, 200, 350, 500];
+        const retry = (index = 0) => {
+            if (tryExpand() || index >= delays.length) return;
+            this._safeSetTimeout(() => retry(index + 1), delays[index]);
+        };
+        retry();
     }
 
     _getEmptySummary() {
@@ -709,7 +568,7 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
     }
 
     get isScanLotStep() {
-        return this.state.nextStep === "scan_lot";
+        return this.state.nextStep === "scan_lot" || this.state.nextStep === "scan_serial";
     }
 
     get isScanQuantityStep() {
@@ -723,6 +582,7 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
             scan_pallet: _t("Scan Pallet"),
             scan_product: _t("Scan Product"),
             scan_lot: _t("Scan Lot/SN"),
+            scan_serial: _t("Scan Serial Number"),
             input_quantity: _t("Input Quantity"),
             validate: _t("All Done"),
         };
@@ -736,6 +596,7 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
             scan_pallet: _t("Scan pallet barcode - system will detect whole or disassembly"),
             scan_product: _t("Scan product barcode from the current pallet"),
             scan_lot: _t("Scan serial number or lot number"),
+            scan_serial: _t("Scan serial number for the current product"),
             input_quantity: _t("Input quantity for the current product/lot"),
             validate: _t("All pallets scanned. Click Confirm Outbound to complete."),
         };

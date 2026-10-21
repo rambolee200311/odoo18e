@@ -16,12 +16,15 @@ Chenyang Chemical warehouse customizations.
         "data/pda_internal_transfer_cron.xml",
 
         "reports/inbound_pallet_label_report.xml",
+        "reports/system_pallet_label_report.xml",
         "reports/inbound_arrival_note_report.xml",
+        "reports/inbound_order_report.xml",
         "reports/outbound_lot_code_label_report.xml",
         "reports/outbound_order_report.xml",
         "reports/inbound_lot_code_label_report.xml",
 
         "views/inbound_order_views.xml",
+        "views/inbound_actual_pallet_views.xml",
         "views/outbound_order_views.xml",
         "views/stock_picking_views.xml",
         "views/sunrise_stock_report_views.xml",
@@ -40,6 +43,7 @@ Chenyang Chemical warehouse customizations.
 
         "wizard/inbound_product_import_wizard_views.xml",
         "wizard/inbound_actual_inbound_confirmation_wizard_views.xml",
+        "wizard/inbound_actual_pallet_create_wizard_views.xml",
         "wizard/outbound_product_import_wizard_views.xml",
 
 

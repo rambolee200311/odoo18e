@@ -100,7 +100,7 @@
         <field name="arch" type="xml">
             <form string="Inbound Order" class="o_inbound_order worlddepot_required_highlight" >
                 <header>
-                    <button name="save_record" type="object" string="Save" class="btn-primary" invisible="state!='new'"/>
+<!--                    <button name="save_record" type="object" string="Save" class="btn-primary" invisible="state!='new'"/>-->
                     <button name="action_confirm" type="object" string="Confirm" class="btn-primary" invisible="state!='new'"/>
                     <button name="action_unconfirm" type="object" string="UnConfirm" class="btn-primary" invisible="state!='confirm'"/>
                     <button name="action_cancel" type="object" string="Cancel" class="btn-secondary" invisible="state not in ['new', 'confirm']"/>
@@ -148,7 +148,7 @@
                             <field name="type" readonly="state!='new'"/>
                             <field name="reference" readonly="state!='new'"/>
                             <field name="date" readonly="state!='new'"/>
-                            <field name="a_date" readonly="state!='new'"/>
+                            <field name="a_date" readonly="state!='new'" required="1"/>
                             <field name="project" readonly="state!='new'"/>
                             <field name="owner"  readonly="1" options="{'no_create': True, 'no_open': True}"/>
                             <field name="warehouse"/>

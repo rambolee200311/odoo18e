@@ -5,8 +5,11 @@ from odoo.exceptions import UserError, ValidationError
 
 
 def build_delivery_address_key(street, street2, city, zip_code, state_code, country_code):
-    values = [street or "", street2 or "", city or "", zip_code or "", state_code or "", country_code or ""]
-    return "|".join(re.sub(r"[\W_]+", "", str(value).casefold()) for value in values)
+    normalized_values = []
+    for value in [street, street2, city, zip_code, state_code, country_code]:
+        normalized_value = re.sub(r"\s*([./-])\s*", r"\1", str(value or "").casefold())
+        normalized_values.append(re.sub(r"[^\w./-]|_", "", normalized_value))
+    return "|".join(normalized_values)
 
 
 class ResPartner(models.Model):

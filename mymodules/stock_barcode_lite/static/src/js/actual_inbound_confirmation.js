@@ -2,10 +2,11 @@
 
 import { BaseBarcodePage } from "./base_barcode_page";
 import { _t } from "@web/core/l10n/translation";
+import { standardActionServiceProps } from "@web/webclient/actions/action_service";
 
 export class ActualInboundConfirmation extends BaseBarcodePage {
     static template = "stock_barcode_lite.ActualInboundConfirmationPage";
-    static props = {};
+    static props = {...standardActionServiceProps};
 
     async onBarcodeScanned(barcode) {
         if (this.state.loading) return;
@@ -18,6 +19,11 @@ export class ActualInboundConfirmation extends BaseBarcodePage {
                 "action_open_actual_inbound_confirmation_wizard_by_barcode",
                 [barcode]
             );
+
+            if (this._isDestroyed) {
+                return;
+            }
+
             if (result) {
                 this.action.doAction(result);
             }

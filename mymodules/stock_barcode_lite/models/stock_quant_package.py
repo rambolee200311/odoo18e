@@ -16,11 +16,21 @@ class StockQuantPackage(models.Model):
     billno = fields.Char(string="Bill No", copy=False)
     reference = fields.Char(string="Reference", copy=False)
     cntr_no = fields.Char(string="Container No", copy=False)
+    inbound_order_id = fields.Many2one("world.depot.inbound.order", string="Source Inbound", readonly=True, copy=False, index=True)
     barcode = fields.Char(string="Barcode", copy=False, index=True)
     original_pallet_no = fields.Char(string="Original Pallet No", copy=False, index=True)
+    actual_inbound_pallet_id = fields.Many2one("world.depot.inbound.order.actual.pallet", string="Actual Inbound Pallet", readonly=True, copy=False, index=True, ondelete="restrict")
     lifecycle_state = fields.Selection([("active", "Active"), ("consumed", "Consumed"), ("closed", "Closed")], string="Sunrise Lifecycle State", readonly=True, copy=False, index=True)
     lifecycle_start_datetime = fields.Datetime(string="Lifecycle Start At", readonly=True, copy=False, index=True)
     consumed_datetime = fields.Datetime(string="Consumed At", readonly=True, copy=False, index=True)
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        vals_list = [dict(vals) for vals in vals_list]
+        for vals in vals_list:
+            if not vals.get("barcode"):
+                vals["barcode"] = self.generate_package_barcode()
+        return super().create(vals_list)
 
     @api.model
     def cron_backfill_sunrise_package_lifecycle(self):
@@ -108,8 +118,8 @@ class StockQuantPackage(models.Model):
         return True
 
     @api.model
-    def generate_sunrise_package_barcode(self):
-        """Return an unused eight-character barcode for a Sunrise package."""
+    def generate_package_barcode(self):
+        """Return an unused eight-character barcode for a warehouse package."""
         for _attempt in range(20):
             barcode = uuid.uuid4().hex[:8].upper()
             if not self.sudo().search([("barcode", "=", barcode)], limit=1):

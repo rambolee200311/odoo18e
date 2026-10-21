@@ -244,6 +244,9 @@
                             <t t-foreach="pallet_groups" t-as="pallet_group">
                                 <div class="pallet-section">
                                     <div class="pallet-title">
+                                        <t t-if="pallet_group['is_suggestion']">
+                                            Suggested Source Location: <span t-esc="pallet_group['source_location_name']"/> |
+                                        </t>
                                         Pallet No: <span t-esc="pallet_group['pallet_no']"/>
                                         <t t-if="pallet_group['has_package_mismatch']">
                                             <span> | Actual Package: </span><span t-esc="pallet_group['actual_package_name']"/>
