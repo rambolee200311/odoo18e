@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_blind_stock_count_generate_clearance_batch_form" model="ir.ui.view">
+        <field name="name">blind.stock.count.generate.clearance.batch.form</field>
+        <field name="model">blind.stock.count.generate.clearance.batch</field>
+        <field name="arch" type="xml">
+            <form string="Generate Clearance Pickings" duplicate="false">
+                <group>
+                    <field name="work_package_id" required="1" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                    <field name="maximum_lines_per_clearance" required="1"/>
+                </group>
+                <p class="text-muted">This submits a background task. It releases stale reservations, silently normalizes matching negative stock to zero, then creates standard outbound pickings directly. No clearance orders or clearance lines are created.</p>
+                <footer>
+                    <button name="action_generate_clearance_batch" string="Queue Outbound Pickings" type="object" class="btn-primary"/>
+                    <button string="Close" special="cancel" class="btn-secondary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

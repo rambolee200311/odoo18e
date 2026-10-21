@@ -19,6 +19,7 @@ class BlindStockCountWorkPackage(models.Model):
     state = fields.Selection([("draft", "Draft"), ("in_progress", "In Progress"), ("done", "Done"), ("cancel", "Cancelled")], string="Status", required=True, default="draft", copy=False, index=True, tracking=True)
     location_line_ids = fields.Many2many("stock.location", "blind_stock_count_work_package_location_rel", "work_package_id", "location_id",tracking=True, string="Location Scope", copy=False)
     count_lines = fields.One2many("blind.stock.count", "work_package_id", string="Blind Stock Counts", copy=False)
+    cancelled_picking_log_lines = fields.One2many("blind.stock.count.cancelled.picking.log", "work_package_id", string="Cancelled Picking Logs", copy=False)
     note = fields.Text(string="Notes", copy=False)
 
     @api.depends("name", "task_name")
@@ -58,13 +59,26 @@ class BlindStockCountWorkPackage(models.Model):
         for rec in self:
             return {"type": "ir.actions.act_window", "name": _("Blind Stock Count Product Lines"), "res_model": "blind.stock.count.line", "view_mode": "list,form", "domain": [("work_package_id", "=", rec.id)], "context": {"create": False}, "target": "current"}
 
+    def action_open_outbound_picking_list(self):
+        outbound_picking_list_view = self.env.ref("blind_stock_count.view_blind_stock_count_outbound_picking_list")
+        for rec in self:
+            return {"type": "ir.actions.act_window", "name": _("Outbound Pickings"), "res_model": "stock.picking", "view_mode": "list,form", "views": [(outbound_picking_list_view.id, "list"), (False, "form")], "domain": [("blind_stock_count_work_package_id", "=", rec.id), ("is_blind_stock_count_clearance", "=", True)], "context": {"create": False, "edit": False, "delete": False}, "target": "current"}
+
     def action_done(self):
         count_model = self.env["blind.stock.count"]
         for rec in self:
             if rec.state != "in_progress":
                 raise UserError(_("Only in-progress work packages can be completed."))
-            if count_model.sudo().search_count([("work_package_id", "=", rec.id), ("state", "!=", "done")]):
+            if count_model.sudo().search_count([("work_package_id", "=", rec.id), ("state", "in", ["draft", "counting"])]):
                 raise UserError(_("Complete every blind stock count before completing the work package."))
+            if not rec.clearance_picking_type_id or rec.clearance_picking_type_id.code != "outgoing":
+                raise UserError(_("Select a clearance outbound operation type before completing the work package."))
+            if not rec.clearance_destination_location_id:
+                raise UserError(_("Select a clearance destination location before completing the work package."))
+            if not rec.receipt_picking_type_id or rec.receipt_picking_type_id.code != "incoming":
+                raise UserError(_("Select a receipt inbound operation type before completing the work package."))
+            if not rec.receipt_source_location_id:
+                raise UserError(_("Select a receipt source location before completing the work package."))
             rec.with_context(blind_stock_count_work_package_action=True).write({"state": "done"})
         return True
 

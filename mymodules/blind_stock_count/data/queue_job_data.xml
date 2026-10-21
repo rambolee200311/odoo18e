@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="channel_blind_stock_count" model="queue.job.channel">
+        <field name="name">blind_stock_count</field>
+        <field name="parent_id" ref="queue_job.channel_root"/>
+    </record>
+    <record id="job_function_blind_stock_count_cancel_picking_batch_line" model="queue.job.function">
+        <field name="model_id" ref="model_blind_stock_count_cancel_picking_batch_line"/>
+        <field name="method">job_cancel_pickings</field>
+        <field name="channel_id" ref="channel_blind_stock_count"/>
+        <field name="retry_pattern" eval="{1: 60, 3: 300}"/>
+    </record>
+    <record id="job_function_blind_stock_count_clearance_batch" model="queue.job.function">
+        <field name="model_id" ref="model_blind_stock_count_clearance_batch"/>
+        <field name="method">job_generate_outbound_pickings</field>
+        <field name="channel_id" ref="channel_blind_stock_count"/>
+        <field name="retry_pattern" eval="{1: 60, 3: 300}"/>
+    </record>
+    <record id="job_function_blind_stock_count_receipt" model="queue.job.function">
+        <field name="model_id" ref="model_blind_stock_count"/>
+        <field name="method">job_create_inbound_picking</field>
+        <field name="channel_id" ref="channel_blind_stock_count"/>
+        <field name="retry_pattern" eval="{1: 60, 3: 300}"/>
+    </record>
+    <record id="job_function_stock_picking_blind_stock_count_validation" model="queue.job.function">
+        <field name="model_id" ref="stock.model_stock_picking"/>
+        <field name="method">job_validate_blind_stock_count_pickings</field>
+        <field name="channel_id" ref="channel_blind_stock_count"/>
+        <field name="retry_pattern" eval="{1: 60, 3: 300}"/>
+    </record>
+</odoo>
