@@ -140,17 +140,12 @@ export class ActualPalletBinding extends BaseBarcodePage {
 
             this._applyScanResult(result);
             const tracking = this.state.currentProduct?.tracking;
-            const selectedQuantityProduct =
-                this.state.currentProduct?.id &&
-                ["none", "quantity"].includes(tracking) &&
-                (result?.next_step === "input_quantity" ||
-                    result?.next_step === "enter_quantity" ||
-                    result?.next_step === "scan_quantity" ||
-                    result?.action?.name === "select_product");
-            const selectedLot =
-                tracking === "lot" &&
-                (result?.type === "lot" || result?.next_step === "input_quantity");
-            if (result?.success !== false && (selectedQuantityProduct || selectedLot)) {
+            const quantityStepReady =
+                result?.success !== false && result?.next_step === "input_quantity";
+            const quantityModeReady =
+                tracking === "none" ||
+                (tracking === "lot" && Boolean(this.state.currentTrackingNumber));
+            if (this.state.currentProduct?.id && quantityStepReady && quantityModeReady) {
                 this._openQuantityEntry();
             }
         } catch (error) {
