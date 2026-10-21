@@ -1,182 +1,198 @@
 # -*- coding: utf-8 -*-
 
-from odoo import _, api, fields, models
-from odoo.exceptions import UserError, ValidationError
+from odoo import _, fields, models
+from odoo.exceptions import UserError
 from odoo.tools.float_utils import float_compare
 
 
 class BlindStockCountWorkPackage(models.Model):
     _inherit = "blind.stock.count.work.package"
 
-    clearance_lines = fields.One2many("blind.stock.count.clearance", "work_package_id", string="Clearance Orders", copy=False)
+    clearance_batch_lines = fields.One2many("blind.stock.count.clearance.batch", "work_package_id", string="Clearance Batches", copy=False)
+    outbound_picking_lines = fields.One2many("stock.picking", "blind_stock_count_work_package_id", string="Outbound Pickings", domain=[("is_blind_stock_count_clearance", "=", True)], copy=False)
+    cancel_picking_batch_lines = fields.One2many("blind.stock.count.cancel.picking.batch", "work_package_id", string="Cancellation Batches", copy=False)
+    clearance_picking_type_id = fields.Many2one("stock.picking.type", string="Clearance Outbound Operation Type", copy=False, index=True, domain=[("code", "=", "outgoing")], tracking=True)
+    clearance_destination_location_id = fields.Many2one("stock.location", string="Clearance Destination Location", copy=False, index=True, domain=[("usage", "not in", ["internal", "view"])], tracking=True)
+    receipt_picking_type_id = fields.Many2one("stock.picking.type", string="Receipt Inbound Operation Type", copy=False, index=True, domain=[("code", "=", "incoming")], tracking=True)
+    receipt_source_location_id = fields.Many2one("stock.location", string="Receipt Source Location", copy=False, index=True, domain=[("usage", "not in", ["internal", "view"])], tracking=True)
+
+    def get_cancelable_pending_pickings(self):
+        picking_model = self.env["stock.picking"]
+        product_model = self.env["product.product"]
+        picking_ids = []
+        for rec in self:
+            domain = [("picking_type_id.code", "in", ["outgoing", "internal", "incoming"]), ("move_ids.product_id.categ_id", "child_of", rec.category_id.id)]
+            pending_pickings = picking_model.sudo().search(domain + [("state", "not in", ["done", "cancel"])], order="id desc")
+            inconsistent_done_pickings = picking_model.sudo().search(domain + [("state", "=", "done"), ("move_ids.state", "in", ["draft", "waiting", "confirmed", "partially_available", "assigned"])], order="id desc")
+            for picking in pending_pickings | inconsistent_done_pickings:
+                active_moves = picking.move_ids.filtered(lambda move: move.state != "cancel")
+                allowed_products = product_model.sudo().search([("id", "in", active_moves.product_id.ids), ("categ_id", "child_of", rec.category_id.id)])
+                relevant_locations = active_moves.location_dest_id if picking.picking_type_id.code == "incoming" else active_moves.location_id
+                if not active_moves or active_moves.filtered(lambda move: move.state == "done") or relevant_locations.filtered(lambda location: location.usage != "internal") or (rec.location_line_ids and relevant_locations.filtered(lambda location: location not in rec.location_line_ids)) or set(active_moves.product_id.ids) != set(allowed_products.ids):
+                    continue
+                picking_ids.append(picking.id)
+        return picking_model.browse(sorted(set(picking_ids), reverse=True))
+
+    def action_open_cancel_pending_picking_list(self):
+        picking_model = self.env["stock.picking"]
+        pending_picking_list_view = self.env.ref("blind_stock_count.view_blind_stock_count_pending_picking_list")
+        for rec in self:
+            if not (self.env.user.has_group("blind_stock_count.group_blind_stock_count_administrator") or self.env.user.has_group("base.group_system")):
+                raise UserError(_("Only a warehouse manager or system administrator can cancel pending pickings."))
+            if rec.state != "done":
+                raise UserError(_("Pending pickings can only be cancelled from a completed work package."))
+            if picking_model.sudo().search([("blind_stock_count_work_package_id", "=", rec.id), ("is_blind_stock_count_clearance", "=", True), ("state", "not in", ["done", "cancel"])], limit=1):
+                raise UserError(_("Pending pickings cannot be cancelled while clearance outbound pickings are still in progress."))
+            pickings = rec.get_cancelable_pending_pickings()
+            if not pickings:
+                raise UserError(_("No pending outbound, internal, or inbound pickings match this work package category and location scope."))
+            return {"type": "ir.actions.act_window", "name": _("Pending Pickings"), "res_model": "stock.picking", "view_mode": "list,form", "views": [(pending_picking_list_view.id, "list"), (False, "form")], "domain": [("id", "in", pickings.ids)], "context": {"blind_stock_count_cancel_work_package_id": rec.id, "create": False, "edit": False, "delete": False}, "target": "current"}
 
     def action_create_clearance(self):
-        clearance_model = self.env["blind.stock.count.clearance"]
-        clearance_line_model = self.env["blind.stock.count.clearance.line"]
-        quant_model = self.env["stock.quant"]
-        clearance = False
+        cancel_picking_batch_line_model = self.env["blind.stock.count.cancel.picking.batch.line"]
+        clearance_batch_model = self.env["blind.stock.count.clearance.batch"]
+        picking_model = self.env["stock.picking"]
+        wizard_model = self.env["blind.stock.count.generate.clearance.batch"]
         if not (self.env.user.has_group("blind_stock_count.group_blind_stock_count_administrator") or self.env.user.has_group("base.group_system")):
             raise UserError(_("Only a warehouse manager or system administrator can generate a clearance order."))
         for rec in self:
             if rec.state != "done":
                 raise UserError(_("A clearance order can only be generated from a completed work package."))
-            if clearance_model.sudo().search([("work_package_id", "=", rec.id), ("state", "!=", "cancel")], limit=1):
-                raise UserError(_("An active clearance order already exists for this work package."))
-            quant_domain = [("location_id.usage", "=", "internal"), ("product_id.categ_id", "child_of", rec.category_id.id), ("quantity", ">", 0)]
-            if rec.location_line_ids:
-                quant_domain.append(("location_id", "in", rec.location_line_ids.ids))
-            quants = quant_model.sudo().search(quant_domain, order="location_id, product_id, id")
-            if not quants:
-                raise UserError(_("No on-hand stock matches this work package category and location scope."))
-            clearance = clearance_model.create({"work_package_id": rec.id})
-            clearance_line_model.create([{"clearance_id": clearance.id, "source_quant_id": quant.id, "location_id": quant.location_id.id, "product_id": quant.product_id.id, "lot_id": quant.lot_id.id, "package_id": quant.package_id.id, "owner_id": quant.owner_id.id, "quantity": quant.quantity} for quant in quants])
-        return {"type": "ir.actions.act_window", "res_model": "blind.stock.count.clearance", "view_mode": "form", "res_id": clearance.id, "target": "current"} if clearance else True
+            if not rec.clearance_picking_type_id or rec.clearance_picking_type_id.code != "outgoing":
+                raise UserError(_("Select a clearance outbound operation type on the work package before generating clearance pickings."))
+            if not rec.clearance_destination_location_id:
+                raise UserError(_("Select a clearance destination location on the work package before generating clearance pickings."))
+            if cancel_picking_batch_line_model.sudo().search_count([("cancel_picking_batch_id.work_package_id", "=", rec.id), ("state", "in", ["queued", "running"])]):
+                raise UserError(_("Wait for the queued pending picking cancellations to finish before generating clearance pickings."))
+            if clearance_batch_model.sudo().search_count([("work_package_id", "=", rec.id), ("state", "in", ["queued", "running"])]):
+                raise UserError(_("A clearance picking generation task is already queued or running for this work package."))
+            if picking_model.sudo().search([("blind_stock_count_work_package_id", "=", rec.id), ("is_blind_stock_count_clearance", "=", True), ("state", "!=", "cancel")], limit=1):
+                raise UserError(_("An active clearance outbound picking already exists for this work package."))
+            wizard = wizard_model.create({"work_package_id": rec.id})
+            return {"type": "ir.actions.act_window", "name": _("Generate Clearance Pickings"), "res_model": "blind.stock.count.generate.clearance.batch", "view_mode": "form", "res_id": wizard.id, "target": "new"}
 
     def action_cancel(self):
-        clearance_model = self.env["blind.stock.count.clearance"]
-        receipt_model = self.env["blind.stock.count.receipt"]
+        picking_model = self.env["stock.picking"]
+        clearance_batch_model = self.env["blind.stock.count.clearance.batch"]
         for rec in self:
-            if clearance_model.sudo().search_count([("work_package_id", "=", rec.id), ("state", "!=", "cancel")]) or receipt_model.sudo().search_count([("work_package_id", "=", rec.id), ("state", "!=", "cancel")]):
-                raise UserError(_("Cancel the active clearance and receipt orders before cancelling the work package."))
+            if clearance_batch_model.sudo().search_count([("work_package_id", "=", rec.id), ("state", "in", ["queued", "running"])]):
+                raise UserError(_("Wait for the clearance picking generation task before cancelling the work package."))
+            if picking_model.sudo().search_count([("blind_stock_count_work_package_id", "=", rec.id), ("is_blind_stock_count_clearance", "=", True), ("state", "!=", "cancel")]) or picking_model.sudo().search_count([("blind_stock_count_work_package_id", "=", rec.id), ("is_blind_stock_count_receipt", "=", True), ("state", "!=", "cancel")]):
+                raise UserError(_("Cancel the active clearance or inbound pickings before cancelling the work package."))
         return super().action_cancel()
 
 
-class BlindStockCountClearance(models.Model):
-    _name = "blind.stock.count.clearance"
+class BlindStockCountClearanceBatch(models.Model):
+    _name = "blind.stock.count.clearance.batch"
     _inherit = ["mail.thread"]
-    _description = "Blind Stock Count Clearance"
+    _description = "Blind Stock Count Clearance Batch"
     _order = "id desc"
 
-    name = fields.Char(string="Clearance Number", required=True, readonly=True, copy=False, index=True, default=lambda self: self.env["ir.sequence"].next_by_code("blind.stock.count.clearance") or _("New"))
+    name = fields.Char(string="Clearance Batch Number", required=True, readonly=True, copy=False, index=True, default=lambda self: self.env["ir.sequence"].next_by_code("blind.stock.count.clearance.batch") or _("New"))
     work_package_id = fields.Many2one("blind.stock.count.work.package", string="Work Package", required=True, ondelete="restrict", copy=False, index=True, tracking=True)
     category_id = fields.Many2one(related="work_package_id.category_id", string="Product Category", readonly=True)
     location_line_ids = fields.Many2many(related="work_package_id.location_line_ids", string="Location Scope", readonly=True)
-    picking_type_id = fields.Many2one("stock.picking.type", string="Outbound Operation Type", copy=False, index=True, domain=[("code", "=", "outgoing")], tracking=True)
-    destination_location_id = fields.Many2one("stock.location", string="Destination Location", copy=False, index=True, domain=[("usage", "not in", ["internal", "view"])], tracking=True)
-    state = fields.Selection([("draft", "Draft"), ("confirmed", "Confirmed"), ("picking", "Picking Created"), ("done", "Done"), ("cancel", "Cancelled")], string="Status", required=True, default="draft", copy=False, index=True, tracking=True)
-    clearance_lines = fields.One2many("blind.stock.count.clearance.line", "clearance_id", string="Clearance Lines", copy=False)
-    picking_id = fields.Many2one("stock.picking", string="Outbound Picking", readonly=True, copy=False, index=True, tracking=True)
-    return_picking_id = fields.Many2one("stock.picking", string="Return Picking", readonly=True, copy=False, index=True, tracking=True)
-    note = fields.Text(string="Notes", copy=False, tracking=True)
+    maximum_lines_per_clearance = fields.Integer(string="Maximum Lines per Clearance", required=True, readonly=True, copy=False)
+    source_quant_count = fields.Integer(string="Source Quant Count", required=True, readonly=True, copy=False)
+    normalized_negative_quant_count = fields.Integer(string="Normalized Negative Quant Count", required=True, readonly=True, copy=False)
+    released_orphan_reservation_quant_count = fields.Integer(string="Released Orphan Reservation Quant Count", required=True, readonly=True, copy=False, default=0)
+    released_orphan_reservation_quantity = fields.Float(string="Released Orphan Reservation Quantity", required=True, readonly=True, copy=False, default=0.0)
+    outbound_picking_lines = fields.One2many("stock.picking", "blind_stock_count_clearance_batch_id", string="Outbound Pickings", copy=False)
+    requested_by_id = fields.Many2one("res.users", string="Requested By", required=True, readonly=True, default=lambda self: self.env.user, copy=False, index=True)
+    requested_at = fields.Datetime(string="Requested At", required=True, readonly=True, default=fields.Datetime.now, copy=False, index=True)
+    state = fields.Selection([("queued", "Queued"), ("running", "Running"), ("done", "Done"), ("failed", "Failed")], string="Status", required=True, readonly=True, default="queued", copy=False, index=True, tracking=True)
+    queue_job_id = fields.Many2one("queue.job", string="Queue Job", readonly=True, ondelete="set null", copy=False, index=True)
+    error_message = fields.Text(string="Error Message", readonly=True, copy=False)
 
-    @api.constrains("destination_location_id")
-    def check_destination_location(self):
-        for rec in self:
-            if rec.destination_location_id and rec.destination_location_id.usage in ("internal", "view"):
-                raise ValidationError(_("The clearance destination location must be outside internal stock."))
-
-    def action_confirm(self):
-        clearance_line_model = self.env["blind.stock.count.clearance.line"]
-        for rec in self:
-            if rec.state != "draft":
-                raise UserError(_("Only draft clearance orders can be confirmed."))
-            if not rec.picking_type_id or rec.picking_type_id.code != "outgoing":
-                raise UserError(_("Select an outbound operation type before confirming."))
-            if not rec.destination_location_id:
-                raise UserError(_("Select a destination location before confirming."))
-            if not clearance_line_model.sudo().search_count([("clearance_id", "=", rec.id)]):
-                raise UserError(_("The clearance order has no stock lines."))
-            rec.with_context(blind_stock_count_processing_action=True).write({"state": "confirmed"})
-        return True
-
-    def action_create_picking(self):
-        picking_model = self.env["stock.picking"]
-        move_model = self.env["stock.move"]
+    def job_generate_outbound_pickings(self):
         move_line_model = self.env["stock.move.line"]
-        action = False
+        move_model = self.env["stock.move"]
+        picking_model = self.env["stock.picking"]
+        quant_model = self.env["stock.quant"]
         for rec in self:
-            if rec.state != "confirmed":
-                raise UserError(_("Only confirmed clearance orders can create an outbound picking."))
-            if rec.picking_id and rec.picking_id.state != "cancel":
-                raise UserError(_("An active outbound picking already exists for this clearance order."))
-            first_line = rec.clearance_lines[:1]
-            picking = picking_model.create({"picking_type_id": rec.picking_type_id.id, "location_id": first_line.location_id.id, "location_dest_id": rec.destination_location_id.id, "origin": rec.name})
-            for line in rec.clearance_lines:
-                move = move_model.create({"name": line.product_id.display_name, "product_id": line.product_id.id, "product_uom_qty": line.quantity, "product_uom": line.product_id.uom_id.id, "picking_id": picking.id, "location_id": line.location_id.id, "location_dest_id": rec.destination_location_id.id})
-                move_line_model.create({"move_id": move.id, "picking_id": picking.id, "product_id": line.product_id.id, "product_uom_id": line.product_id.uom_id.id, "quantity": line.quantity, "location_id": line.location_id.id, "location_dest_id": rec.destination_location_id.id, "lot_id": line.lot_id.id, "package_id": line.package_id.id, "owner_id": line.owner_id.id})
-            rec.with_context(blind_stock_count_processing_action=True).write({"state": "picking", "picking_id": picking.id})
-            action = {"type": "ir.actions.act_window", "res_model": "stock.picking", "view_mode": "form", "res_id": picking.id, "target": "current"}
-        return action or True
-
-    def action_done(self):
-        for rec in self:
-            if rec.state != "picking" or rec.picking_id.state != "done":
-                raise UserError(_("Validate the outbound picking before completing the clearance order."))
-            if any(float_compare(move.quantity, move.product_uom_qty, precision_rounding=move.product_uom.rounding) != 0 for move in rec.picking_id.move_ids):
-                raise UserError(_("Complete every outbound picking line before completing the clearance order."))
-            rec.with_context(blind_stock_count_processing_action=True).write({"state": "done"})
+            rec.write({"state": "running", "error_message": False})
+            try:
+                with self.env.cr.savepoint():
+                    if rec.work_package_id.state != "done":
+                        raise UserError(_("A clearance picking can only be generated from a completed work package."))
+                    if not rec.work_package_id.clearance_picking_type_id or rec.work_package_id.clearance_picking_type_id.code != "outgoing":
+                        raise UserError(_("Select a clearance outbound operation type on the work package before generating clearance pickings."))
+                    if not rec.work_package_id.clearance_destination_location_id:
+                        raise UserError(_("Select a clearance destination location on the work package before generating clearance pickings."))
+                    if self.env["blind.stock.count.cancel.picking.batch.line"].sudo().search_count([("cancel_picking_batch_id.work_package_id", "=", rec.work_package_id.id), ("state", "in", ["queued", "running"])]):
+                        raise UserError(_("Wait for the queued pending picking cancellations to finish before generating clearance pickings."))
+                    if picking_model.sudo().search_count([("blind_stock_count_work_package_id", "=", rec.work_package_id.id), ("is_blind_stock_count_clearance", "=", True), ("state", "!=", "cancel")]):
+                        raise UserError(_("An active clearance outbound picking already exists for this work package."))
+                    quant_domain = [("location_id.usage", "=", "internal"), ("product_id.categ_id", "child_of", rec.work_package_id.category_id.id)]
+                    if rec.work_package_id.location_line_ids:
+                        quant_domain.append(("location_id", "in", rec.work_package_id.location_line_ids.ids))
+                    reserved_quants = quant_model.sudo()._read_group(quant_domain + [("reserved_quantity", "!=", 0)], ["product_id", "location_id", "lot_id", "package_id", "owner_id"], ["reserved_quantity:sum", "id:recordset"])
+                    reservation_move_domain = [("state", "in", ["assigned", "partially_available", "waiting", "confirmed"]), ("quantity_product_uom", "!=", 0), ("product_id.is_storable", "=", True), ("location_id.usage", "=", "internal"), ("product_id.categ_id", "child_of", rec.work_package_id.category_id.id)]
+                    if rec.work_package_id.location_line_ids:
+                        reservation_move_domain.append(("location_id", "in", rec.work_package_id.location_line_ids.ids))
+                    reserved_move_lines = move_line_model.sudo()._read_group(reservation_move_domain, ["product_id", "location_id", "lot_id", "package_id", "owner_id"], ["quantity_product_uom:sum"])
+                    reserved_move_quantities = {(product.id, location.id, lot.id if lot else False, package.id if package else False, owner.id if owner else False): reserved_quantity for product, location, lot, package, owner, reserved_quantity in reserved_move_lines}
+                    released_orphan_reservation_quant_count = 0
+                    released_orphan_reservation_quantity = 0.0
+                    for product, location, lot, package, owner, reserved_quantity, quants in reserved_quants:
+                        reserved_move_quantity = reserved_move_quantities.get((product.id, location.id, lot.id if lot else False, package.id if package else False, owner.id if owner else False), 0)
+                        target_reserved_quantity = 0 if location.should_bypass_reservation() else reserved_move_quantity
+                        if float_compare(reserved_quantity, target_reserved_quantity, precision_rounding=product.uom_id.rounding) > 0:
+                            quant_model._update_reserved_quantity(product, location, target_reserved_quantity - reserved_quantity, lot_id=lot, package_id=package, owner_id=owner)
+                            released_orphan_reservation_quant_count += len(quants)
+                            released_orphan_reservation_quantity += reserved_quantity - target_reserved_quantity
+                    negative_quant_ids = quant_model.sudo().search(quant_domain + [("quantity", "<", 0)], order="location_id, product_id, id").ids
+                    if negative_quant_ids:
+                        if not (self.env.user.has_group("stock.group_stock_manager") or self.env.user.has_group("base.group_system")):
+                            raise UserError(_("Inventory Manager permission is required to normalize negative stock before clearance generation."))
+                        quant_model.browse(negative_quant_ids).with_context(inventory_mode=True, set_inventory_quantity_auto_apply=True).write({"inventory_quantity_auto_apply": 0})
+                    quants = quant_model.sudo().search(quant_domain + [("quantity", ">", 0)], order="location_id, product_id, id")
+                    if not quants:
+                        raise UserError(_("No on-hand stock matches this work package category and location scope."))
+                    chunks = []
+                    current_chunk = []
+                    product_quants = {}
+                    for quant in quants:
+                        product_quants.setdefault(quant.product_id.id, []).append(quant)
+                    for product_lines in product_quants.values():
+                        if len(product_lines) <= rec.maximum_lines_per_clearance:
+                            if current_chunk and len(current_chunk) + len(product_lines) > rec.maximum_lines_per_clearance:
+                                chunks.append(current_chunk)
+                                current_chunk = []
+                            current_chunk.extend(product_lines)
+                            continue
+                        if current_chunk:
+                            chunks.append(current_chunk)
+                            current_chunk = []
+                        for start_index in range(0, len(product_lines), rec.maximum_lines_per_clearance):
+                            chunk = product_lines[start_index:start_index + rec.maximum_lines_per_clearance]
+                            if len(chunk) == rec.maximum_lines_per_clearance:
+                                chunks.append(chunk)
+                            else:
+                                current_chunk = chunk
+                    if current_chunk:
+                        chunks.append(current_chunk)
+                    for quant_lines in chunks:
+                        first_line = quant_lines[0]
+                        picking = picking_model.create({"picking_type_id": rec.work_package_id.clearance_picking_type_id.id, "location_id": first_line.location_id.id, "location_dest_id": rec.work_package_id.clearance_destination_location_id.id, "origin": rec.name, "is_blind_stock_count_clearance": True, "blind_stock_count_work_package_id": rec.work_package_id.id, "blind_stock_count_clearance_batch_id": rec.id})
+                        line_groups = {}
+                        for quant in quant_lines:
+                            line_groups.setdefault((quant.product_id.id, quant.location_id.id), []).append(quant)
+                        for lines in line_groups.values():
+                            first_group_line = lines[0]
+                            move = move_model.create({"name": first_group_line.product_id.display_name, "product_id": first_group_line.product_id.id, "product_uom_qty": sum(line.quantity for line in lines), "product_uom": first_group_line.product_id.uom_id.id, "picking_id": picking.id, "location_id": first_group_line.location_id.id, "location_dest_id": rec.work_package_id.clearance_destination_location_id.id})
+                            move_line_model.create([{"move_id": move.id, "picking_id": picking.id, "product_id": line.product_id.id, "product_uom_id": line.product_id.uom_id.id, "quantity": line.quantity, "location_id": line.location_id.id, "location_dest_id": rec.work_package_id.clearance_destination_location_id.id, "lot_id": line.lot_id.id, "package_id": line.package_id.id, "owner_id": line.owner_id.id} for line in lines])
+                    rec.write({"state": "done", "source_quant_count": len(quants), "normalized_negative_quant_count": len(negative_quant_ids), "released_orphan_reservation_quant_count": released_orphan_reservation_quant_count, "released_orphan_reservation_quantity": released_orphan_reservation_quantity, "error_message": False})
+                    if released_orphan_reservation_quant_count:
+                        message = _("Released %s stale reservation quant(s), quantity %s, before clearance generation.") % (released_orphan_reservation_quant_count, released_orphan_reservation_quantity)
+                        rec.work_package_id.message_post(body=message)
+                        rec.message_post(body=message)
+                    if negative_quant_ids:
+                        message = _("Normalized %s negative stock quant(s) to zero before clearance generation.") % len(negative_quant_ids)
+                        rec.work_package_id.message_post(body=message)
+                        rec.message_post(body=message)
+                    rec.message_post(body=_("Created %s outbound picking(s) directly from this clearance batch.") % len(chunks))
+            except Exception as error:
+                rec.write({"state": "failed", "error_message": str(error)})
+                rec.message_post(body=_("Outbound picking generation failed: %s") % error)
         return True
-
-    def action_return_to_draft(self):
-        receipt_model = self.env["blind.stock.count.receipt"]
-        for rec in self:
-            if rec.state not in ("confirmed", "picking", "done"):
-                raise UserError(_("Only confirmed or processed clearance orders can be returned to draft."))
-            if receipt_model.sudo().search_count([("clearance_id", "=", rec.id), ("state", "!=", "cancel")]):
-                raise UserError(_("Cancel or return every linked receipt order before returning this clearance order to draft."))
-            if rec.picking_id and rec.picking_id.state == "done":
-                if not rec.return_picking_id or rec.return_picking_id.state != "done":
-                    raise UserError(_("Create and validate a return picking before returning this clearance order to draft."))
-            elif rec.picking_id and rec.picking_id.state != "cancel":
-                rec.picking_id.action_cancel()
-            rec.with_context(blind_stock_count_processing_action=True).write({"state": "draft", "picking_id": False, "return_picking_id": False})
-        return True
-
-    def action_create_return_picking(self):
-        return_wizard_model = self.env["stock.return.picking"]
-        action = False
-        for rec in self:
-            if rec.state not in ("picking", "done") or rec.picking_id.state != "done":
-                raise UserError(_("A validated outbound picking is required to create a return picking."))
-            if rec.return_picking_id and rec.return_picking_id.state != "cancel":
-                raise UserError(_("An active return picking already exists for this clearance order."))
-            return_wizard = return_wizard_model.with_context(active_model="stock.picking", active_id=rec.picking_id.id, active_ids=[rec.picking_id.id]).create({"picking_id": rec.picking_id.id})
-            action = return_wizard.action_create_returns_all()
-            rec.with_context(blind_stock_count_processing_action=True).write({"return_picking_id": action["res_id"]})
-        return action or True
-
-    def action_cancel(self):
-        for rec in self:
-            if rec.state not in ("draft", "confirmed", "picking"):
-                raise UserError(_("Only draft, confirmed, or unvalidated clearance orders can be cancelled."))
-            if rec.picking_id and rec.picking_id.state not in ("cancel", "done"):
-                rec.picking_id.action_cancel()
-            if rec.picking_id and rec.picking_id.state == "done":
-                raise UserError(_("Create a return picking instead of cancelling a validated clearance order."))
-            rec.with_context(blind_stock_count_processing_action=True).write({"state": "cancel"})
-        return True
-
-    def action_open_picking(self):
-        for rec in self:
-            if not rec.picking_id:
-                raise UserError(_("No outbound picking has been created."))
-            return {"type": "ir.actions.act_window", "res_model": "stock.picking", "view_mode": "form", "res_id": rec.picking_id.id, "target": "current"}
-
-    def write(self, vals):
-        for rec in self:
-            if rec.state in ("done", "cancel") and not self.env.context.get("blind_stock_count_processing_action"):
-                raise UserError(_("Completed or cancelled clearance orders cannot be changed."))
-            if "state" in vals and vals["state"] != rec.state and not self.env.context.get("blind_stock_count_processing_action"):
-                raise UserError(_("The clearance order status cannot be changed directly."))
-        return super().write(vals)
-
-
-class BlindStockCountClearanceLine(models.Model):
-    _name = "blind.stock.count.clearance.line"
-    _description = "Blind Stock Count Clearance Line"
-    _order = "id desc"
-
-    clearance_id = fields.Many2one("blind.stock.count.clearance", string="Clearance Order", required=True, ondelete="cascade", copy=False, index=True)
-    source_quant_id = fields.Many2one("stock.quant", string="Source Quant", readonly=True, copy=False, index=True)
-    location_id = fields.Many2one("stock.location", string="Source Location", required=True, readonly=True, copy=False, index=True)
-    product_id = fields.Many2one("product.product", string="Product", required=True, readonly=True, copy=False, index=True)
-    lot_id = fields.Many2one("stock.lot", string="Lot / Serial Number", readonly=True, copy=False, index=True)
-    package_id = fields.Many2one("stock.quant.package", string="Package", readonly=True, copy=False, index=True)
-    owner_id = fields.Many2one("res.partner", string="Owner", readonly=True, copy=False, index=True)
-    quantity = fields.Float(string="Quantity", required=True, readonly=True, copy=False)
-
-    @api.constrains("quantity")
-    def check_quantity(self):
-        for rec in self:
-            if rec.quantity <= 0:
-                raise ValidationError(_("The clearance quantity must be greater than zero."))
