@@ -388,6 +388,9 @@ export class ActualPalletBinding extends BaseBarcodePage {
                 return;
             }
             this._applyScanResult(result);
+            if (result?.success === true) {
+                this._resetBindingState();
+            }
         } catch (error) {
             if (!this._isDestroyed) {
                 this.showMessage(this.formatError(error), "danger");
@@ -399,6 +402,28 @@ export class ActualPalletBinding extends BaseBarcodePage {
             }
             this._isProcessing = false;
         }
+    }
+
+    _resetBindingState() {
+        this._trackingHydrationRequest++;
+        this.state.inbound = {};
+        this.state.currentPallet = {};
+        this.state.currentProduct = {};
+        this.state.summary = {};
+        this.state.pallets = [];
+        this.state.expandedPalletIds = [];
+        this.state.expectedProducts = [];
+        this.state.expectedProductsExpanded = false;
+        this.state.lastScan = {};
+        this.state.nextStep = "scan_inbound";
+        this.state.currentTrackingNumber = false;
+        this.state.quantityEntry = false;
+        this.state.quantityValue = "";
+        this.state.editingQuantityId = false;
+        this.state.editQuantityValue = "";
+        this.state.editingTrackingId = false;
+        this.state.editTrackingQuantityValue = "";
+        this._refocusBarcodeInputAfterPatch = false;
     }
 
     async _callVoidPallet(palletId) {
