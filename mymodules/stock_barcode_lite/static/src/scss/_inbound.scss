@@ -220,7 +220,7 @@
             margin-bottom: 0;
             // Keep the fixed footer clear of the last pallet when the page
             // reaches its scroll limit; override the template's .py-2 utility.
-            padding-bottom: calc(70px + env(safe-area-inset-bottom)) !important;
+            padding-bottom: calc(120px + env(safe-area-inset-bottom)) !important;
         }
     }
 }
