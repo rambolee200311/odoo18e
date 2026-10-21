@@ -515,11 +515,12 @@ class StockBarcodeLiteScanService(models.AbstractModel):
             return self.build_actual_pallet_binding_result("error", _("Error"), _("Inbound order was not found."), barcode=code, action_name="scan_inbound", success=False)
         if inbound_order.project.pallet_structure_mode != "unknown":
             return self.build_actual_pallet_binding_result("error", _("Error"), _("This inbound order does not use actual pallet binding."), barcode=code, action_name="scan_inbound", success=False)
-        if not code and not (current_actual_pallet_id and current_product_id and quantity is not False and quantity is not None):
+        is_quantity_input = bool(current_actual_pallet_id and current_product_id and quantity is not False and quantity is not None)
+        if not code and not is_quantity_input:
             return self.build_actual_pallet_binding_result("error", _("Error"), _("Please scan a barcode."), inbound_order=inbound_order, actual_pallet_id=current_actual_pallet_id, product_id=current_product_id, tracking_number=current_tracking_number, action_name="scan_error", success=False, next_step="scan_package")
         actual_pallet_result = actual_pallet_model.sudo().search([("id", "=", current_actual_pallet_id), ("inbound_order_id", "=", inbound_order.id), ("state", "!=", "void")], limit=1) if current_actual_pallet_id else actual_pallet_model
         actual_pallet = actual_pallet_model.browse(actual_pallet_result.id) if actual_pallet_result else actual_pallet_model
-        package = self.env["stock.quant.package"].sudo().search([("barcode", "=", code)], limit=1)
+        package = self.env["stock.quant.package"].sudo().search([("barcode", "=", code)], limit=1) if code and not is_quantity_input else self.env["stock.quant.package"]
         if package:
             scanned_pallet = actual_pallet_model.sudo().search([("package_id", "=", package.id), ("inbound_order_id", "=", inbound_order.id), ("state", "!=", "void")], limit=1)
             if not scanned_pallet:
@@ -531,7 +532,7 @@ class StockBarcodeLiteScanService(models.AbstractModel):
         if not actual_pallet:
             return self.build_actual_pallet_binding_result("error", _("Error"), _("Please scan an active actual pallet first."), barcode=code, inbound_order=inbound_order, action_name="missing_pallet", success=False, next_step="scan_package")
         expected_quantity_by_product = inbound_order.get_unknown_expected_quantity_by_product()
-        scanned_product = product_model.sudo().search([("id", "in", list(expected_quantity_by_product)), "|", ("barcode", "=", code), ("default_code", "=", code)], limit=1) if code else product_model
+        scanned_product = product_model.sudo().search([("id", "in", list(expected_quantity_by_product)), "|", ("barcode", "=", code), ("default_code", "=", code)], limit=1) if code and not is_quantity_input else product_model
         if not current_product_id or scanned_product:
             if not scanned_product:
                 return self.build_actual_pallet_binding_result("error", _("Product"), _("Scanned product is not expected on this inbound order."), barcode=code, inbound_order=inbound_order, actual_pallet_id=actual_pallet.id, action_name="scan_product", success=False, next_step="scan_product")
