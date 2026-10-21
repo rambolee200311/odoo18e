@@ -18,7 +18,7 @@ class StockPicking(models.Model):
 
     def check_native_barcode_scan_allowed(self):
         for rec in self:
-            if rec.project_id.barcode_scan_mode == "custom" and (rec.picking_type_id.code != "incoming" or rec.project_id.name != "HOYMILES"):
+            if rec.project_id.barcode_scan_mode == "custom":
                 raise UserError(_("This picking must use Custom Barcode Lite scanning."))
 
     def action_open_picking_client_action(self):
@@ -135,8 +135,6 @@ class StockPicking(models.Model):
     def check_incoming_pallet_location_updated(self):
         for rec in self:
             if rec.barcode_scan_mode != "custom":
-                continue
-            if rec.project_id.name == "HOYMILES" and rec.picking_type_id.code == "incoming":
                 continue
             if rec.picking_type_id.code != "incoming" or not rec.inbound_order_id or rec.state in ("done", "cancel"):
                 continue

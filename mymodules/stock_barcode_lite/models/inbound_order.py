@@ -101,7 +101,7 @@ class InboundOrder(models.Model):
     def action_confirm(self):
         for rec in self:
             if rec.project.pallet_structure_mode == "unknown":
-                rec.validate_unknown_pallet_structure()
+                rec.check_actual_pallet_structure_validated()
             elif rec.project_package_generation_mode == "inbound":
                 package_ids = set()
                 for pallet_line in rec.inbound_order_product_ids:
