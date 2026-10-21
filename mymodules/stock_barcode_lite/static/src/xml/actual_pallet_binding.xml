@@ -140,32 +140,28 @@
                 </div>
             </div>
 
-            <div t-if="state.expectedProducts.length" class="px-3 py-2">
+            <div t-if="state.expectedProducts.length" class="o_sbl_picking_bar o_sbl_expected_products">
                 <button type="button"
-                        class="btn btn-link text-dark text-decoration-none px-0 d-flex justify-content-between align-items-center w-100"
+                        class="o_picking_products_toggle"
                         t-on-click="toggleExpectedProducts"
                         t-att-aria-expanded="state.expectedProductsExpanded ? 'true' : 'false'">
-                    <span class="fw-semibold">
+                    <span>
                         <i class="fa fa-cubes text-muted me-1"/>
                         Expected Products (<t t-esc="state.expectedProducts.length"/>)
                     </span>
-                    <i t-if="state.expectedProductsExpanded" class="fa fa-chevron-up text-muted"/>
-                    <i t-else="" class="fa fa-chevron-down text-muted"/>
+                    <i t-if="state.expectedProductsExpanded" class="fa fa-chevron-up"/>
+                    <i t-else="" class="fa fa-chevron-down"/>
                 </button>
-                <div t-if="state.expectedProductsExpanded" class="table-responsive mt-2">
-                    <table class="table table-sm table-bordered mb-0">
-                        <thead class="table-light">
-                            <tr><th>Product</th><th>Expected</th><th>Bound</th><th>Remaining</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr t-foreach="state.expectedProducts" t-as="product" t-key="product.product_id">
-                                <td><t t-esc="product.product_name"/></td>
-                                <td><t t-esc="product.expected_quantity"/></td>
-                                <td><t t-esc="product.actual_quantity"/></td>
-                                <td><t t-esc="product.remaining_quantity"/></td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <div t-if="state.expectedProductsExpanded" class="o_picking_products_list">
+                    <div t-foreach="state.expectedProducts" t-as="product" t-key="product.product_id"
+                         class="o_picking_product_line">
+                        <div class="o_picking_product_info">
+                            <span class="o_picking_product_name"><t t-esc="product.product_name"/></span>
+                        </div>
+                        <span class="o_picking_product_qty">
+                            <strong><t t-esc="product.actual_quantity || 0"/> / <t t-esc="product.expected_quantity || 0"/></strong>
+                        </span>
+                    </div>
                 </div>
             </div>
 
