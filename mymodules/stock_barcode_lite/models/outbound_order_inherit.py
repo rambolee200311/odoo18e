@@ -21,6 +21,7 @@ class OutboundOrderInherit(models.Model):
     transport_cost = fields.Float(string="Transport Cost", default=0.0, copy=False)
     barcode_scan_mode = fields.Selection(related="project.barcode_scan_mode", string="Barcode Scan Mode", store=True, readonly=True, copy=False, index=True)
     project_package_generation_mode = fields.Selection(related="project.package_generation_mode", string="Package Generation Mode", readonly=True)
+    project_pallet_structure_mode = fields.Selection(related="project.pallet_structure_mode", string="Pallet Structure Mode", readonly=True)
 
     whole_pallet_picking_id = fields.Many2one("stock.picking", string="Whole Pallet Picking",copy=False,index=True)
     partial_pallet_picking_id = fields.Many2one("stock.picking", string="Partial Pallet Picking",copy=False, index=True)
