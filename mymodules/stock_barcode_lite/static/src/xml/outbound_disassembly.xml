@@ -296,38 +296,92 @@
 
                         <!-- 托盘内产品列表 - 默认折叠，当前扫描托盘通过 collapse show 展开 -->
                         <div t-attf-id="pallet_products_{{ pallet.package_id }}" t-att-class="getPalletProductsClass(pallet.package_id)">
-                            <t t-if="!(pallet.products || []).length">
+                            <t t-if="!(pallet.products || []).length and !(pallet.package_id === state.currentPallet.id and pendingProductPreview)">
                                 <div class="o_sbl_empty_state text-center text-muted py-4">
                                     <p class="mb-0 small">No products loaded</p>
                                 </div>
                             </t>
-                            <t t-foreach="pallet.products || []" t-as="item" t-key="item.move_line_id">
+                            <div t-if="pallet.package_id === state.currentPallet.id and pendingProductPreview"
+                                 class="o_product_subcard o_product_pending">
+                                <div class="o_product_row_top">
+                                    <div class="o_product_icon"><i class="fa fa-box-open"/></div>
+                                    <div class="o_product_name">
+                                        <t t-esc="pendingProductPreview.display_name || pendingProductPreview.name"/>
+                                    </div>
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                </div>
+                                <div class="o_product_row_bottom">
+                                    <span t-if="pendingProductPreview.default_code" class="o_meta_code">
+                                        <t t-esc="pendingProductPreview.default_code"/>
+                                    </span>
+                                    <span t-if="pendingProductPreview.barcode" class="o_meta_barcode">
+                                        <i class="fa fa-barcode me-1"/><t t-esc="pendingProductPreview.barcode"/>
+                                    </span>
+                                    <span class="badge bg-light text-dark">
+                                        <t t-esc="pendingProductPreview.tracking || 'none'"/>
+                                    </span>
+                                    <span t-if="state.currentLot?.name" class="o_meta_lot">
+                                        <i class="fa fa-tag me-1"/><t t-esc="state.currentLot.name"/>
+                                    </span>
+                                </div>
+                                <div class="o_product_pending_hint">
+                                    <i class="fa fa-clock-o me-1"/><t t-esc="pendingProductStatus"/>
+                                </div>
+                            </div>
+                            <t t-foreach="getPalletProductGroups(pallet)" t-as="group" t-key="group.key">
+                                <t t-set="item" t-value="group.lines[0]"/>
                                 <div t-attf-class="o_product_subcard {{ pallet.is_complete ? 'o_pallet_updated' : '' }}">
                                     <div class="o_product_row_top">
                                         <div class="o_product_icon">
                                             <i class="fa fa-box-open"/>
                                         </div>
                                         <div class="o_product_name">
-                                            <t t-esc="item.product_name"/>
+                                            <t t-esc="group.product_name"/>
                                         </div>
                                         <div class="o_product_qty">
-                                            <span class="o_qty_value"><t t-esc="item.scanned_quantity || 0"/></span>
-                                            <span class="o_qty_label">/ <t t-esc="item.quantity || 0"/></span>
+                                            <span class="o_qty_value"><t t-esc="group.scanned_quantity"/></span>
+                                            <span class="o_qty_label">/ <t t-esc="group.quantity"/></span>
                                         </div>
                                     </div>
                                     <div class="o_product_row_bottom">
-                                        <span t-if="item.default_code" class="o_meta_code"><t t-esc="item.default_code"/></span>
-                                        <span t-if="item.product_barcode" class="o_meta_barcode">
+                                        <span t-if="group.default_code" class="o_meta_code"><t t-esc="group.default_code"/></span>
+                                        <span t-if="group.product_barcode" class="o_meta_barcode">
                                             <i class="fa fa-barcode me-1"/>
-                                            <t t-esc="item.product_barcode"/>
+                                            <t t-esc="group.product_barcode"/>
                                         </span>
-                                        <span class="o_meta_uom">
-                                            <t t-esc="item.uom"/>
+                                        <span t-if="group.uom" class="o_meta_uom">
+                                            <t t-esc="group.uom"/>
                                         </span>
                                     </div>
-                                    <!-- 批次/SN 卡片 -->
-                                    <div t-if="item.lot" class="o_lot_card mt-2">
-                                        <div class="o_lot_card_header">
+                                    <t t-if="group.is_serial">
+                                        <button type="button" class="btn btn-sm btn-link px-0 mt-2 text-decoration-none"
+                                                t-on-click.stop="() => this.toggleSerialGroup(pallet.package_id, group.product_id)"
+                                                t-att-aria-expanded="this.isSerialGroupExpanded(pallet.package_id, group.product_id) ? 'true' : 'false'">
+                                            <i t-attf-class="fa {{ this.isSerialGroupExpanded(pallet.package_id, group.product_id) ? 'fa-chevron-up' : 'fa-chevron-down' }} me-1"/>
+                                            SN (<t t-esc="group.lines.length"/>)
+                                        </button>
+                                        <div t-if="this.isSerialGroupExpanded(pallet.package_id, group.product_id)" class="mt-1">
+                                            <div t-foreach="group.lines" t-as="serialLine" t-key="serialLine.move_line_id"
+                                                 class="d-flex align-items-center gap-2 py-1 border-top">
+                                                <i class="fa fa-barcode text-muted"/>
+                                                <span class="font-monospace"><t t-esc="serialLine.lot || '-'"/></span>
+                                                <span class="small text-muted ms-auto">
+                                                    <t t-esc="serialLine.scanned_quantity || 0"/> / <t t-esc="serialLine.quantity || 0"/>
+                                                </span>
+                                                <button t-if="serialLine.can_delete" type="button"
+                                                        class="btn btn-sm btn-link text-danger p-0"
+                                                        t-on-click.stop="() => this.deleteOutgoingScannedLine(serialLine)"
+                                                        t-att-disabled="state.loading"
+                                                        title="Delete scanned serial number"
+                                                        aria-label="Delete scanned serial number">
+                                                    <i class="fa fa-trash"/>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </t>
+                                    <!-- 批次卡片 -->
+                                    <div t-if="!group.is_serial and item.lot" class="o_lot_card mt-2">
+                                        <div class="o_lot_card_header d-flex align-items-center">
                                             <i class="fa fa-tag me-1"/>
                                             <span class="o_lot_name"><t t-esc="item.lot"/></span>
                                             <span class="o_lot_qty ms-auto">
@@ -352,13 +406,6 @@
                                                 </t>
                                             </div>
                                         </div>
-                                    </div>
-                                    <!-- 已扫描的SN列表 -->
-                                    <div t-if="item.serial_numbers &amp;&amp; item.serial_numbers.length > 0" class="o_sn_list mt-2">
-                                        <span class="small text-muted me-2">SN:</span>
-                                        <t t-foreach="item.serial_numbers" t-as="sn" t-key="sn">
-                                            <span class="o_sn_tag"><t t-esc="sn"/></span>
-                                        </t>
                                     </div>
                                 </div>
                             </t>
