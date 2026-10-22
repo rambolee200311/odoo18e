@@ -513,7 +513,7 @@ class InboundActualPalletProduct(models.Model):
     product_tracking = fields.Selection(related="product_id.tracking", string="Tracking", readonly=True)
     quantity = fields.Float(string="Quantity", required=True, default=1.0)
     serial_lines = fields.One2many("world.depot.inbound.order.actual.pallet.product.serial", "actual_pallet_product_id", string="Lot / Serial Numbers", copy=False)
-    available_product_line_ids = fields.Many2many("product.product", string="Available Products", compute="_compute_available_product_line_ids", store=True, readonly=True, copy=False)
+    available_product_line_ids = fields.Many2many("product.product", "wd_actual_pallet_product_available_rel", "actual_pallet_product_id", "product_id", string="Available Products", compute="_compute_available_product_line_ids", store=True, readonly=True, copy=False)
 
     @api.depends("actual_pallet_id.inbound_order_id.inbound_order_product_ids.inbound_order_product_pallet_ids.product_id")
     def _compute_available_product_line_ids(self):
