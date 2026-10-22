@@ -123,6 +123,18 @@
         white-space: nowrap;
     }
 
+    .o_product_subcard.o_product_pending {
+        background: #fffdf5;
+        border: 1px dashed #e0a800;
+    }
+
+    .o_product_pending_hint {
+        display: flex;
+        align-items: center;
+        color: #856404;
+        font-size: 11px;
+    }
+
     .o_binding_void_button {
         flex-shrink: 0;
     }

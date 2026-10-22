@@ -208,11 +208,38 @@
                         </div>
                     </div>
                     <div t-att-class="getPalletProductsClass(pallet.id)">
-                        <t t-if="!(pallet.product_lines || []).length">
+                        <t t-if="!(pallet.product_lines || []).length and !(pallet.id === state.currentPallet.id and pendingProductPreview)">
                             <div class="o_sbl_empty_state text-center text-muted py-3">
                                 <p class="mb-0 small">No products bound</p>
                             </div>
                         </t>
+                        <div t-if="pallet.id === state.currentPallet.id and pendingProductPreview"
+                             class="o_product_subcard o_product_pending">
+                            <div class="o_product_row_top">
+                                <div class="o_product_icon"><i class="fa fa-box-open"/></div>
+                                <div class="o_product_name">
+                                    <t t-esc="pendingProductPreview.display_name || pendingProductPreview.name"/>
+                                </div>
+                                <span class="badge bg-warning text-dark">Pending</span>
+                            </div>
+                            <div class="o_product_row_bottom">
+                                <span t-if="pendingProductPreview.default_code" class="o_meta_code">
+                                    <t t-esc="pendingProductPreview.default_code"/>
+                                </span>
+                                <span t-if="pendingProductPreview.barcode" class="o_meta_barcode">
+                                    <i class="fa fa-barcode me-1"/><t t-esc="pendingProductPreview.barcode"/>
+                                </span>
+                                <span class="badge bg-light text-dark">
+                                    <t t-esc="pendingProductPreview.tracking || 'none'"/>
+                                </span>
+                                <span t-if="state.currentTrackingNumber" class="o_meta_lot">
+                                    <i class="fa fa-tag me-1"/><t t-esc="state.currentTrackingNumber"/>
+                                </span>
+                            </div>
+                            <div class="o_product_pending_hint">
+                                <i class="fa fa-clock-o me-1"/><t t-esc="pendingProductStatus"/>
+                            </div>
+                        </div>
                         <div t-foreach="pallet.product_lines || []" t-as="line" t-key="line.id"
                              t-attf-class="o_product_subcard {{ line.product_id === state.currentProduct.id ? 'o_item_active' : '' }}">
                             <div class="o_product_row_top">
