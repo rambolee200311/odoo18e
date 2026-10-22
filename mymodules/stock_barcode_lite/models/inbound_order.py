@@ -767,6 +767,20 @@ class InboundOrderProduct(models.Model):
 
     creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import"), ("portal", "Portal")], string="Creation Source", default="manual", readonly=True, copy=False)
     pallet_no = fields.Char(index=True)
+    gross_weight_total = fields.Float(string="Pallet Total Gross Weight (kg)", compute="_compute_gross_weight_total", store=True)
+
+    @api.depends("inbound_order_product_pallet_ids.quantity", "inbound_order_product_pallet_ids.gross_weight")
+    def _compute_gross_weight_total(self):
+        for rec in self:
+            total = 0.0
+            for product_line in rec.inbound_order_product_pallet_ids:
+                try:
+                    product_gross_weight = float(product_line.gross_weight)
+                except (TypeError, ValueError):
+                    product_gross_weight = 0.0
+                if product_gross_weight > 0:
+                    total += (product_line.quantity or 0.0) * product_gross_weight * (rec.pallets or 0.0)
+            rec.gross_weight_total = total
     package_id = fields.Many2one("stock.quant.package", string="Package", copy=False, index=True)
     package_barcode = fields.Char(related="package_id.barcode", string="Package Barcode", readonly=True)
     is_reused_package = fields.Boolean(string="Reused Package", default=False, readonly=True, copy=False, index=True)

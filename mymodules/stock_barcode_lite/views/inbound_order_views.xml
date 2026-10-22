@@ -391,4 +391,14 @@
         <field name="context">{'create': False, 'delete': False}</field>
     </record>
 
+    <record id="view_inbound_order_form_gross_weight_total" model="ir.ui.view">
+        <field name="name">world.depot.inbound.order.product.form.gross.weight.total</field>
+        <field name="model">world.depot.inbound.order.product</field>
+        <field name="inherit_id" ref="worlddepot.view_inbound_order_product_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='weight_total']" position="after">
+                <field name="gross_weight_total" string="Pallet Total Gross Weight (kg)" readonly="1"/>
+            </xpath>
+        </field>
+    </record>
 </odoo>

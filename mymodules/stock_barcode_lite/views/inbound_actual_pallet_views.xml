@@ -25,8 +25,8 @@
                     <group>
                         <field name="inbound_order_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                         <field name="actual_pallet_structure_locked" invisible="1"/>
-                        <field name="pallet_no" readonly="1"/>
-                        <field name="package_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+<!--                        <field name="pallet_no" readonly="1"/>-->
+                        <field name="package_id" readonly="1" options="{'no_create': True, 'no_open': False}"/>
                     </group>
                     <notebook>
                         <page string="Products">
@@ -126,7 +126,7 @@
                     <field name="actual_pallet_lines" readonly="state != 'new' or actual_pallet_structure_locked" mode="list,form" context="{'default_inbound_order_id': id}">
                         <list create="false" delete="false">
                             <field name="pallet_no"/>
-                            <field name="package_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="package_id" options="{'no_create': True, 'no_open': False}"/>
                             <field name="state"/>
                         </list>
                     </field>
