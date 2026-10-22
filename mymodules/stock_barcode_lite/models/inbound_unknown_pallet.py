@@ -78,7 +78,6 @@ class InboundOrder(models.Model):
                 continue
             if rec.actual_pallet_difference_confirmed:
                 raise UserError(_("Actual pallets cannot be changed after the pallet difference is confirmed."))
-            rec.actual_pallet_difference_lines.unlink()
             rec.write({"actual_pallet_structure_validated": False})
         return True
 
@@ -126,6 +125,7 @@ class InboundOrder(models.Model):
                 })
                 package.write({"actual_inbound_pallet_id": actual_pallet.id})
                 created_pallet_lines |= actual_pallet
+            rec.refresh_actual_pallet_difference_lines()
         return created_pallet_lines
 
     def get_actual_pallet_binding_scan_state(self, current_actual_pallet_id=False, current_product_id=False):
@@ -260,24 +260,32 @@ class InboundOrder(models.Model):
         difference_model = self.env["world.depot.inbound.order.actual.pallet.difference"]
         product_model = self.env["product.product"]
         for rec in self:
-            rec.actual_pallet_difference_lines.unlink()
             expected_quantity_by_product = rec.get_unknown_expected_quantity_by_product()
             actual_quantity_by_product = rec.get_unknown_actual_quantity_by_product()
             product_ids = set(expected_quantity_by_product) | set(actual_quantity_by_product)
+            difference_by_product_id = {difference.product_id.id: difference for difference in rec.actual_pallet_difference_lines}
             for product_id in sorted(product_ids):
                 product = product_model.sudo().browse(product_id).exists()
                 if not product:
                     continue
                 expected_quantity = expected_quantity_by_product.get(product.id, 0.0)
                 actual_quantity = actual_quantity_by_product.get(product.id, 0.0)
+                difference_line = difference_by_product_id.pop(product.id, difference_model)
                 if not float_compare(actual_quantity, expected_quantity, precision_rounding=product.uom_id.rounding):
+                    difference_line.unlink()
                     continue
                 pallet_quantity_by_id = defaultdict(float)
                 for actual_pallet in rec.actual_pallet_lines.filtered(lambda pallet: pallet.state != "void"):
                     for product_line in actual_pallet.product_lines.filtered(lambda line: line.product_id == product):
                         pallet_quantity_by_id[actual_pallet.id] += product_line.quantity
                 pallet_quantity_lines = [(0, 0, {"actual_pallet_id": actual_pallet_id, "quantity": quantity}) for actual_pallet_id, quantity in pallet_quantity_by_id.items()]
-                difference_model.create({"inbound_order_id": rec.id, "product_id": product.id, "original_quantity": expected_quantity, "actual_scanned_quantity": actual_quantity, "difference_quantity": actual_quantity - expected_quantity, "actual_pallet_count": len(pallet_quantity_by_id), "pallet_quantity_lines": pallet_quantity_lines})
+                values = {"original_quantity": expected_quantity, "actual_scanned_quantity": actual_quantity, "difference_quantity": actual_quantity - expected_quantity, "actual_pallet_count": len(pallet_quantity_by_id), "pallet_quantity_lines": [(5, 0, 0)] + pallet_quantity_lines}
+                if difference_line:
+                    difference_line.write(values)
+                else:
+                    difference_model.create(dict(values, inbound_order_id=rec.id, product_id=product.id))
+            for difference_line in difference_by_product_id.values():
+                difference_line.unlink()
         return True
 
     def action_validate_actual_pallets(self):
@@ -466,6 +474,7 @@ class InboundActualPallet(models.Model):
                 raise UserError(_("Only empty actual pallets can be voided."))
             rec.write({"state": "void"})
             rec.inbound_order_id.clear_actual_pallet_structure_validation()
+            rec.inbound_order_id.refresh_actual_pallet_difference_lines()
         return {"type": "ir.actions.client", "tag": "reload"}
 
     def action_complete_actual_pallet_binding(self):
@@ -504,6 +513,18 @@ class InboundActualPalletProduct(models.Model):
     product_tracking = fields.Selection(related="product_id.tracking", string="Tracking", readonly=True)
     quantity = fields.Float(string="Quantity", required=True, default=1.0)
     serial_lines = fields.One2many("world.depot.inbound.order.actual.pallet.product.serial", "actual_pallet_product_id", string="Lot / Serial Numbers", copy=False)
+    available_product_line_ids = fields.Many2many("product.product", string="Available Products", compute="_compute_available_product_line_ids", store=True, readonly=True, copy=False)
+
+    @api.depends("actual_pallet_id.inbound_order_id.inbound_order_product_ids.inbound_order_product_pallet_ids.product_id")
+    def _compute_available_product_line_ids(self):
+        for rec in self:
+            rec.available_product_line_ids = rec.actual_pallet_id.inbound_order_id.inbound_order_product_ids.mapped("inbound_order_product_pallet_ids.product_id")
+
+    @api.onchange("serial_lines")
+    def update_tracking_quantity_onchange(self):
+        for rec in self:
+            if rec.product_tracking in ("serial", "lot"):
+                rec.quantity = sum(rec.serial_lines.mapped("quantity"))
 
     @api.model_create_multi
     def create(self, values_list):
@@ -513,6 +534,7 @@ class InboundActualPalletProduct(models.Model):
         records = super().create(values_list)
         records.mapped("inbound_order_id").clear_actual_pallet_structure_validation()
         records.mapped("actual_pallet_id").filtered(lambda pallet: pallet.state == "ready").write({"state": "binding"})
+        records.mapped("inbound_order_id").refresh_actual_pallet_difference_lines()
         return records
 
     def write(self, values):
@@ -521,6 +543,7 @@ class InboundActualPalletProduct(models.Model):
         result = super().write(values)
         self.mapped("inbound_order_id").clear_actual_pallet_structure_validation()
         (actual_pallet_lines | self.mapped("actual_pallet_id")).filtered(lambda pallet: pallet.state == "ready").write({"state": "binding"})
+        self.mapped("inbound_order_id").refresh_actual_pallet_difference_lines()
         return result
 
     def unlink(self):
@@ -530,18 +553,28 @@ class InboundActualPalletProduct(models.Model):
         result = super().unlink()
         inbound_orders.clear_actual_pallet_structure_validation()
         actual_pallet_lines.exists().filtered(lambda pallet: pallet.state == "ready").write({"state": "binding"})
+        inbound_orders.refresh_actual_pallet_difference_lines()
         return result
 
     def sync_tracking_quantity(self):
         for rec in self:
-            if rec.product_tracking != "none":
-                rec.write({"quantity": sum(rec.serial_lines.mapped("quantity"))})
+            if rec.product_tracking in ("serial", "lot"):
+                quantity = sum(rec.serial_lines.mapped("quantity"))
+                if rec.quantity != quantity:
+                    rec.write({"quantity": quantity})
 
     @api.constrains("product_id", "quantity")
     def check_actual_pallet_product_values(self):
         for rec in self:
             if rec.quantity < 0:
                 raise ValidationError(_("Actual pallet product quantity cannot be negative."))
+
+    @api.constrains("actual_pallet_id", "product_id")
+    def check_actual_pallet_product_expected_product(self):
+        for rec in self:
+            expected_quantity_by_product = rec.actual_pallet_id.inbound_order_id.get_unknown_expected_quantity_by_product()
+            if rec.product_id and rec.product_id.id not in expected_quantity_by_product:
+                raise ValidationError(_("Product %s is not expected on inbound order %s.") % (rec.product_id.display_name, rec.inbound_order_id.display_name))
 
 
 class InboundActualPalletProductSerial(models.Model):
@@ -564,6 +597,7 @@ class InboundActualPalletProductSerial(models.Model):
         records = super().create(values_list)
         records.mapped("inbound_order_id").clear_actual_pallet_structure_validation()
         records.mapped("actual_pallet_product_id").sync_tracking_quantity()
+        records.mapped("inbound_order_id").refresh_actual_pallet_difference_lines()
         return records
 
     def write(self, values):
@@ -572,6 +606,7 @@ class InboundActualPalletProductSerial(models.Model):
         result = super().write(values)
         self.mapped("inbound_order_id").clear_actual_pallet_structure_validation()
         (product_lines | self.mapped("actual_pallet_product_id")).sync_tracking_quantity()
+        self.mapped("inbound_order_id").refresh_actual_pallet_difference_lines()
         return result
 
     def unlink(self):
@@ -581,6 +616,7 @@ class InboundActualPalletProductSerial(models.Model):
         result = super().unlink()
         inbound_orders.clear_actual_pallet_structure_validation()
         product_lines.exists().sync_tracking_quantity()
+        inbound_orders.refresh_actual_pallet_difference_lines()
         return result
 
     @api.constrains("serial_number", "quantity", "product_id", "inbound_order_id")
@@ -655,7 +691,7 @@ class StockBarcodeLiteScanService(models.AbstractModel):
         return "validate"
 
     @api.model
-    def process_actual_pallet_binding_validate(self, inbound_order_id):
+    def process_actual_pallet_binding_validate(self, inbound_order_id, current_actual_pallet_id=False, current_product_id=False):
         inbound_order_model = self.env["world.depot.inbound.order"]
         inbound_order_result = inbound_order_model.sudo().search([("id", "=", inbound_order_id)], limit=1)
         if not inbound_order_result:
@@ -885,42 +921,3 @@ class StockBarcodeLiteScanService(models.AbstractModel):
                     product_line.write({"quantity": quantity})
                 message = _("Quantity for %s was updated.") % product.display_name
         return self.build_actual_pallet_binding_result("edit", _("Edit"), message, inbound_order=inbound_order, actual_pallet_id=actual_pallet.id, product_id=product.id, action_name=operation, next_step=self.get_actual_pallet_binding_completion_step(inbound_order))
-
-
-class ActualInboundPalletProductQuantitySync(models.Model):
-    _inherit = "world.depot.inbound.order.actual.pallet.product"
-
-    @api.onchange("serial_lines")
-    def update_tracking_quantity_onchange(self):
-        for rec in self:
-            if rec.product_id.tracking in ("serial", "lot"):
-                rec.quantity = sum(rec.serial_lines.mapped("quantity"))
-
-    def sync_tracking_quantity(self):
-        for rec in self:
-            if rec.product_id.tracking in ("serial", "lot"):
-                quantity = sum(rec.serial_lines.mapped("quantity"))
-                if rec.quantity != quantity:
-                    rec.write({"quantity": quantity})
-
-
-class ActualInboundPalletProductSerialQuantitySync(models.Model):
-    _inherit = "world.depot.inbound.order.actual.pallet.product.serial"
-
-    @api.model_create_multi
-    def create(self, vals_list):
-        records = super().create(vals_list)
-        records.mapped("actual_pallet_product_id").sync_tracking_quantity()
-        return records
-
-    def write(self, vals):
-        product_lines = self.mapped("actual_pallet_product_id")
-        result = super().write(vals)
-        (product_lines | self.mapped("actual_pallet_product_id")).sync_tracking_quantity()
-        return result
-
-    def unlink(self):
-        product_lines = self.mapped("actual_pallet_product_id")
-        result = super().unlink()
-        product_lines.sync_tracking_quantity()
-        return result
