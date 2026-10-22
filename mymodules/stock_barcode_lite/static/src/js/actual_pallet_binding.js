@@ -78,6 +78,42 @@ export class ActualPalletBinding extends BaseBarcodePage {
         return _t("Scan a product barcode");
     }
 
+    // A selected product is only a visual preview until its lot/serial/quantity
+    // has been submitted. Keep it separate from pallet.product_lines, which
+    // contains persisted binding rows returned by the server.
+    get pendingProductPreview() {
+        const pendingSteps = ["scan_lot", "scan_serial", "input_quantity"];
+        const currentProductId = this.state.currentProduct?.id;
+        const currentPallet =
+            this.state.pallets.find((pallet) => pallet.id === this.state.currentPallet?.id) ||
+            this.state.currentPallet;
+        const alreadyBound = currentProductId && (currentPallet?.product_lines || []).some(
+            (line) => String(line.product_id) === String(currentProductId)
+        );
+        if (
+            !this.state.currentPallet?.id ||
+            !currentProductId ||
+            !pendingSteps.includes(this.state.nextStep) ||
+            alreadyBound
+        ) {
+            return false;
+        }
+        return this.state.currentProduct;
+    }
+
+    get pendingProductStatus() {
+        switch (this.state.nextStep) {
+            case "scan_lot":
+                return _t("Waiting for lot number");
+            case "scan_serial":
+                return _t("Waiting for serial number");
+            case "input_quantity":
+                return _t("Waiting for quantity");
+            default:
+                return _t("Pending binding");
+        }
+    }
+
     get expectedQuantity() {
         return this.state.summary?.expected_quantity || 0;
     }
