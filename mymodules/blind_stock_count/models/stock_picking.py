@@ -27,7 +27,7 @@ class StockPicking(models.Model):
         if blind_stock_count_pickings:
             result = blind_stock_count_pickings.action_queue_validate_blind_stock_count_pickings()
         if other_pickings:
-            result = other_pickings.button_validate()
+            result = super(StockPicking, other_pickings).button_validate()
         return result
 
     def action_queue_validate_blind_stock_count_pickings(self):
