@@ -213,6 +213,13 @@
             }
         }
 
+        .o_product_name {
+            white-space: normal;
+            overflow: visible;
+            text-overflow: clip;
+            overflow-wrap: anywhere;
+        }
+
         .o_sbl_pallets {
             flex: 0 0 auto;
             min-height: 0;
