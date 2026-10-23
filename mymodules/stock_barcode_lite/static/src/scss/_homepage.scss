@@ -71,7 +71,7 @@
     }
 
     .o_actual_inbound_confirmation_card {
-        --o-sbl-home-card-accent: var(--bs-secondary, #6c757d);
+        --o-sbl-home-card-accent: var(--bs-primary, #714B67);
     }
 
     .o_outbound_whole_card {
@@ -79,7 +79,7 @@
     }
 
     .o_outbound_break_card {
-        --o-sbl-home-card-accent: var(--bs-warning, #ffc107);
+        --o-sbl-home-card-accent: var(--bs-success, #198754);
     }
 
     .o_internal_transfer_card {

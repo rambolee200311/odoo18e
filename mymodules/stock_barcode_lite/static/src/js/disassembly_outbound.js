@@ -28,6 +28,8 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
     setup() {
         super.setup();
         this.state.expandedPalletIds = [];
+        this.state.expandedSerialGroupKeys = [];
+        this.state.collapsedSerialGroupKeys = [];
         this._resetScanContext();
     }
 
@@ -69,6 +71,7 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
 
         this._isProcessing = true;
         this.state.loading = true;
+        let progressBeforeScan = null;
 
         try {
             if (this.state.nextStep === "validate") {
@@ -98,12 +101,21 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
                 pendingOperation,
             } = this.scanContext;
 
+            // Clear the displayed completion marks for the step being scanned.
+            // If this barcode is an operation command (not the expected item),
+            // the previous marks are restored after the backend response.
+            progressBeforeScan = this._prepareStepProgressForScan(this.state.nextStep);
+
             const result = await this.orm.call(
                 "stock.barcode.lite.scan.service",
                 "process_outgoing_scan_barcode",
                 [barcode, pickingId, locationId, packageId, productId, lotId, pendingOperation || false, false]
             );
             if (this._isDestroyed) return;
+
+            if (result?.type === "operation") {
+                this.state.stepProgress = progressBeforeScan;
+            }
 
             // 先校验当前 picking 的扫描模式，不匹配就直接提示并重置
             const nextStep = result.next_step || "scan_picking";
@@ -135,6 +147,9 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
 
             this._applyScanResult(result, true);
         } catch (error) {
+            if (progressBeforeScan) {
+                this.state.stepProgress = progressBeforeScan;
+            }
             console.error("[DisassemblyOutbound] scan error:", error);
             this.showMessage(this.formatError(error), "danger");
             this._flashScreen([200, 100, 100], true);
@@ -205,11 +220,20 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
             this.state.pallets = [];
         }
 
+        // 订单级产品需求由 scan_state.demand_products 提供，与托盘明细分开保存。
+        this.state.demandProducts = Array.isArray(scanState.demand_products)
+            ? scanState.demand_products.map(product => ({ ...product }))
+            : [];
+
         // 更新 lastScan
         this.state.lastScan = scanState.last_scan ? { ...scanState.last_scan } : {};
 
         // 更新下一步
         this.state.nextStep = result.next_step || "scan_picking";
+
+        // 步骤条对号表示当前轮的条码已被系统接受；不代表该托盘/产品的
+        // 出库数量已经全部完成。序列号可能需要多次扫描，直到离开 scan_serial 才完成。
+        this._applyStepProgressFromResult(result);
 
         // 记录当前扫描的托盘ID（用于UI高亮标识）
         if (this.state.currentPallet?.id) {
@@ -386,6 +410,42 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
         }
     }
 
+    async deleteOutgoingScannedLine(item) {
+        const pickingId = this.scanContext?.pickingId || this.state.order?.id;
+        const moveLineId = item?.move_line_id;
+        if (!pickingId || !moveLineId || this.state.loading || this._isProcessing) {
+            return;
+        }
+
+        this._isProcessing = true;
+        this.state.loading = true;
+        try {
+            const result = await this.orm.call(
+                "stock.barcode.lite.scan.service",
+                "action_delete_outgoing_scanned_line",
+                [pickingId, moveLineId]
+            );
+            if (this._isDestroyed) return;
+
+            if (!result || result.success === false) {
+                this.showMessage(result?.message || _t("Unable to delete the scanned serial number."), "danger");
+                this._flashScreen([200, 100, 100], true);
+                return;
+            }
+
+            this._applyScanResult(result, true);
+        } catch (error) {
+            this.showMessage(this.formatError(error), "danger");
+            this._flashScreen([200, 100, 100], true);
+        } finally {
+            this._isProcessing = false;
+            if (!this._isDestroyed) {
+                this.state.loading = false;
+                this._reconcileFocus();
+            }
+        }
+    }
+
     // ═══════════════════════════════════════════════════════════════
     // 确认出库
     // ═══════════════════════════════════════════════════════════════
@@ -449,6 +509,62 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
             lotId: false,
             pendingOperation: false,
         };
+        this.state.orderProductDetailsExpanded = false;
+        this.state.demandProducts = [];
+        this.state.stepProgress = {
+            palletDone: false,
+            productDone: false,
+            lotDone: false,
+        };
+    }
+
+    _prepareStepProgressForScan(step) {
+        const previous = { ...this.state.stepProgress };
+        const progress = { ...previous };
+
+        if (step === "scan_pallet") {
+            progress.palletDone = false;
+            progress.productDone = false;
+            progress.lotDone = false;
+        } else if (step === "scan_product") {
+            progress.productDone = false;
+            progress.lotDone = false;
+        } else if (step === "scan_lot" || step === "scan_serial") {
+            progress.lotDone = false;
+        }
+
+        this.state.stepProgress = progress;
+        return previous;
+    }
+
+    _applyStepProgressFromResult(result) {
+        if (!result || result.success === false) return;
+
+        const progress = { ...this.state.stepProgress };
+        switch (result.type) {
+            case "pallet":
+                progress.palletDone = true;
+                progress.productDone = false;
+                progress.lotDone = false;
+                break;
+            case "product":
+                progress.productDone = true;
+                progress.lotDone = false;
+                break;
+            case "lot":
+                progress.lotDone = true;
+                break;
+            case "serial":
+                // A serial-tracked product can require several serial scans.
+                if (this.state.nextStep !== "scan_serial") {
+                    progress.lotDone = true;
+                }
+                break;
+            case "delete":
+                progress.lotDone = false;
+                break;
+        }
+        this.state.stepProgress = progress;
     }
 
     resetScan() {
@@ -468,6 +584,8 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
         this._focusBarcodeInput();
         this.state.currentScannedPalletId = null;
         this.state.expandedPalletIds = [];
+        this.state.expandedSerialGroupKeys = [];
+        this.state.collapsedSerialGroupKeys = [];
         this._resetScanContext();
     }
 
@@ -640,7 +758,155 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
     }
 
     get palletList() {
-        return Array.isArray(this.state.pallets) ? this.state.pallets : [];
+        const pallets = Array.isArray(this.state.pallets) ? this.state.pallets : [];
+        const currentPallet = this.state.currentPallet || {};
+        if (!currentPallet.id || pallets.some((pallet) => String(pallet.package_id) === String(currentPallet.id))) {
+            return pallets;
+        }
+
+        // An unspecified-pallet scan has no move line yet, so the server's
+        // pallet list stays empty until the first product/serial is scanned.
+        return [{
+            package_id: currentPallet.id,
+            package_name: currentPallet.name || currentPallet.display_name || "",
+            package_barcode: currentPallet.barcode || currentPallet.name || "",
+            location_name: this.state.currentLocation?.display_name || this.state.currentLocation?.name || "",
+            is_complete: false,
+            can_ship_whole: false,
+            products: [],
+        }, ...pallets];
+    }
+
+    get pendingProductPreview() {
+        const pendingSteps = ["scan_lot", "scan_serial", "input_quantity"];
+        const currentPalletId = this.state.currentPallet?.id;
+        const currentProduct = this.state.currentProduct;
+        const currentProductId = currentProduct?.id;
+        if (!currentPalletId || !currentProductId || !pendingSteps.includes(this.state.nextStep)) {
+            return false;
+        }
+
+        const currentPallet = this.state.pallets.find(
+            (pallet) => String(pallet.package_id) === String(currentPalletId)
+        );
+        const alreadyScanned = (currentPallet?.products || []).some(
+            (line) => String(line.product_id) === String(currentProductId)
+        );
+        return alreadyScanned ? false : currentProduct;
+    }
+
+    get pendingProductStatus() {
+        switch (this.state.nextStep) {
+            case "scan_lot":
+                return _t("Waiting for lot number");
+            case "scan_serial":
+                return _t("Waiting for serial number");
+            case "input_quantity":
+                return _t("Waiting for quantity");
+            default:
+                return _t("Pending scan");
+        }
+    }
+
+    isSerialTrackedProduct(productId) {
+        if (!productId) return false;
+        const demandProduct = (this.state.demandProducts || []).find(
+            (product) => String(product.product_id) === String(productId)
+        );
+        if (demandProduct) {
+            return demandProduct.tracking === "serial";
+        }
+        return String(this.state.currentProduct?.id) === String(productId)
+            && this.state.currentProduct?.tracking === "serial";
+    }
+
+    getPalletProductGroups(pallet) {
+        const groups = [];
+        const serialGroupsByProduct = new Map();
+
+        for (const item of pallet?.products || []) {
+            if (!this.isSerialTrackedProduct(item.product_id)) {
+                groups.push({
+                    key: `line-${item.move_line_id}`,
+                    product_id: item.product_id,
+                    product_name: item.product_name,
+                    product_barcode: item.product_barcode,
+                    default_code: item.default_code,
+                    tracking: false,
+                    uom: item.uom,
+                    scanned_quantity: item.scanned_quantity || 0,
+                    quantity: item.quantity || 0,
+                    is_serial: false,
+                    lines: [item],
+                });
+                continue;
+            }
+
+            const key = `serial-${item.product_id}`;
+            let group = serialGroupsByProduct.get(key);
+            if (!group) {
+                group = {
+                    key,
+                    product_id: item.product_id,
+                    product_name: item.product_name,
+                    product_barcode: item.product_barcode,
+                    default_code: item.default_code,
+                    tracking: "serial",
+                    uom: item.uom,
+                    scanned_quantity: 0,
+                    quantity: 0,
+                    is_serial: true,
+                    lines: [],
+                };
+                serialGroupsByProduct.set(key, group);
+                groups.push(group);
+            }
+            group.lines.push(item);
+            group.scanned_quantity += Number(item.scanned_quantity || 0);
+            group.quantity += Number(item.quantity || 0);
+        }
+
+        return groups;
+    }
+
+    serialGroupKey(palletId, productId) {
+        const pickingId = this.scanContext?.pickingId || this.state.order?.id || "";
+        return `${pickingId}:${palletId}:${productId}`;
+    }
+
+    isSerialGroupExpanded(palletId, productId) {
+        const key = this.serialGroupKey(palletId, productId);
+        if ((this.state.collapsedSerialGroupKeys || []).includes(key)) {
+            return false;
+        }
+        if ((this.state.expandedSerialGroupKeys || []).includes(key)) {
+            return true;
+        }
+        return String(this.state.currentPallet?.id) === String(palletId)
+            && String(this.state.currentProduct?.id) === String(productId);
+    }
+
+    toggleSerialGroup(palletId, productId) {
+        const key = this.serialGroupKey(palletId, productId);
+        if (this.isSerialGroupExpanded(palletId, productId)) {
+            this.state.expandedSerialGroupKeys = (this.state.expandedSerialGroupKeys || []).filter((value) => value !== key);
+            this.state.collapsedSerialGroupKeys = [...new Set([...(this.state.collapsedSerialGroupKeys || []), key])];
+        } else {
+            this.state.collapsedSerialGroupKeys = (this.state.collapsedSerialGroupKeys || []).filter((value) => value !== key);
+            this.state.expandedSerialGroupKeys = [...new Set([...(this.state.expandedSerialGroupKeys || []), key])];
+        }
+    }
+
+    get orderProductLines() {
+        const products = Array.isArray(this.state.demandProducts) ? this.state.demandProducts : [];
+        return products.map((product, index) => ({
+            ...product,
+            order_product_key: `${product.product_id || product.product_barcode || "product"}-${index}`,
+        }));
+    }
+
+    toggleOrderProductDetails() {
+        this.state.orderProductDetailsExpanded = !this.state.orderProductDetailsExpanded;
     }
 
     get orderReference() {
