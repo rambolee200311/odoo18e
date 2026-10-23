@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import math
+
 from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
@@ -14,8 +16,9 @@ class OutboundOrder(models.Model):
     receivable_confirm_user_id = fields.Many2one("res.users", string="Receivable Confirmed By", readonly=True, index=True, copy=False)
     receivable_confirm_time = fields.Datetime(string="Receivable Confirmed On", readonly=True, index=True, copy=False)
     manual_amount_total = fields.Monetary(string="Manual Total Amount", currency_field="currency_id", default=0.0)
+    charge_calculation_remark = fields.Text(string="Charge Calculation Remark", copy=False)
     project_stock_report_date_mode = fields.Selection([("validation", "Picking Validation Time"), ("business", "Order Business Date")], string="Stock Report Date Mode", compute="_compute_project_stock_report_date_mode", store=True, readonly=True)
-    statement_outbound_date = fields.Date(string="Statement Outbound Date", compute="_compute_statement_outbound_date", store=True, readonly=True)
+    statement_outbound_date = fields.Date(string="Statement Outbound Date", compute="_compute_statement_outbound_date", store=True, readonly=True, index=True)
     statement_period_id = fields.Many2one("statement.period", string="Statement Period", ondelete="set null", readonly=True, index=True, copy=False)
     statement_period_id_state = fields.Selection(related="statement_period_id.state", string="Statement Period State", store=True, readonly=True, index=True)
 
@@ -35,13 +38,99 @@ class OutboundOrder(models.Model):
         for rec in self:
             rec.project_stock_report_date_mode = getattr(rec.project, "stock_report_date_mode", "validation")
 
-    @api.depends("project", "o_date", "picking_Out_date")
+    @api.depends("project.stock_report_date_mode", "o_date", "whole_pallet_picking_id.date_done", "partial_pallet_picking_id.date_done", "confirm_time_server")
     def _compute_statement_outbound_date(self):
         for rec in self:
             if getattr(rec.project, "stock_report_date_mode", "validation") == "business":
-                rec.statement_outbound_date = rec.o_date
+                rec.statement_outbound_date = rec.o_date or (fields.Datetime.to_datetime(rec.confirm_time_server).date() if rec.confirm_time_server else False)
             else:
-                rec.statement_outbound_date = fields.Datetime.to_datetime(rec.picking_Out_date).date() if rec.picking_Out_date else False
+                picking_datetimes = [picking.date_done for picking in (rec.whole_pallet_picking_id | rec.partial_pallet_picking_id) if picking.date_done]
+                outbound_datetime = max(picking_datetimes) if picking_datetimes else rec.confirm_time_server
+                rec.statement_outbound_date = fields.Datetime.to_datetime(outbound_datetime).date() if outbound_datetime else False
+
+    def prepare_outbound_charge_values(self):
+        charge_data_by_order_id = {}
+        for rec in self:
+            quotation = getattr(rec.project, "quotation_id", False)
+            charge_values = []
+            remarks = []
+            if not quotation:
+                raise ValidationError(_("The outbound order project must have a quotation before confirmation."))
+            if rec.outbound_order_charge_ids.filtered(lambda line: line.is_import_quotation_charge):
+                charge_data_by_order_id[rec.id] = {"charge_values": charge_values, "currency_id": False, "remark": False}
+                continue
+            quotation_lines = quotation.quotation_wh_out_lines.filtered(lambda line: line.active)
+            pallet_product_lines_by_package_id = {}
+            for product_line in rec.outbound_order_product_ids:
+                if product_line.package_id:
+                    pallet_product_lines_by_package_id.setdefault(product_line.package_id.id, []).append(product_line)
+            pallet_quantity = len(pallet_product_lines_by_package_id)
+            carton_quantity = sum(product_line.quantity or 0.0 for product_line in rec.outbound_order_product_ids)
+            pallet_weight_data = []
+            carton_weight_data = []
+            for product_lines in pallet_product_lines_by_package_id.values():
+                gross_weight = 0.0
+                has_missing_weight = False
+                for product_line in product_lines:
+                    product_gross_weight = product_line.product_id.gross_weight or 0.0
+                    product_net_weight = product_line.product_id.weight or 0.0
+                    product_weight = product_gross_weight if math.isfinite(product_gross_weight) and product_gross_weight > 0 else product_net_weight
+                    if not math.isfinite(product_weight) or product_weight <= 0:
+                        has_missing_weight = True
+                    gross_weight += (product_line.quantity or 0.0) * product_weight
+                pallet_weight_data.append((1.0, gross_weight if not has_missing_weight else 0.0))
+            for product_line in rec.outbound_order_product_ids:
+                carton_quantity = product_line.quantity or 0.0
+                product_gross_weight = product_line.product_id.gross_weight or 0.0
+                product_net_weight = product_line.product_id.weight or 0.0
+                product_weight = product_gross_weight if math.isfinite(product_gross_weight) and product_gross_weight > 0 else product_net_weight
+                if carton_quantity > 0:
+                    carton_weight_data.append((carton_quantity, product_weight if math.isfinite(product_weight) and product_weight > 0 else 0.0))
+            has_pallet_weight_tier = any(line.charge_item_id.charge_billing_object == "pallet" and line.charge_item_id.is_weight_tier for line in quotation_lines)
+            has_carton_weight_tier = any(line.charge_item_id.charge_billing_object == "carton" and line.charge_item_id.is_weight_tier for line in quotation_lines)
+            missing_pallet_quantity = sum(quantity for quantity, gross_weight in pallet_weight_data if not gross_weight or not math.isfinite(gross_weight) or gross_weight <= 0)
+            missing_carton_quantity = sum(quantity for quantity, gross_weight in carton_weight_data if not gross_weight or not math.isfinite(gross_weight) or gross_weight <= 0)
+            if has_pallet_weight_tier and not pallet_weight_data:
+                missing_pallet_quantity = pallet_quantity
+            if has_carton_weight_tier and not carton_weight_data:
+                missing_carton_quantity = carton_quantity
+            if has_pallet_weight_tier and missing_pallet_quantity:
+                remarks.append(_("Gross and net weight are both missing for %s pallets, so their weight-tier charges were not generated.") % missing_pallet_quantity)
+            if has_carton_weight_tier and missing_carton_quantity:
+                remarks.append(_("Gross and net weight are both missing for %s cartons, so their weight-tier charges were not generated.") % missing_carton_quantity)
+            for quotation_line in quotation_lines:
+                charge_item = quotation_line.charge_item_id
+                quantity = 0.0
+                if quotation_line.is_fixed_fee or charge_item.charge_billing_object not in ("pallet", "carton"):
+                    quantity = 1.0
+                elif charge_item.charge_billing_object == "pallet":
+                    if charge_item.is_weight_tier:
+                        quantity = sum(pack_quantity for pack_quantity, gross_weight in pallet_weight_data if gross_weight and math.isfinite(gross_weight) and gross_weight > charge_item.minimum_gross_weight and (not charge_item.maximum_gross_weight or gross_weight <= charge_item.maximum_gross_weight))
+                    else:
+                        quantity = pallet_quantity
+                elif charge_item.charge_billing_object == "carton":
+                    if charge_item.is_weight_tier:
+                        quantity = sum(pack_quantity for pack_quantity, gross_weight in carton_weight_data if gross_weight and math.isfinite(gross_weight) and gross_weight > charge_item.minimum_gross_weight and (not charge_item.maximum_gross_weight or gross_weight <= charge_item.maximum_gross_weight))
+                    else:
+                        quantity = carton_quantity
+                if quantity:
+                    charge_values.append((0, 0, {"charge_item_id": charge_item.id, "charge_billing_object": "fixed" if quotation_line.is_fixed_fee else charge_item.charge_billing_object, "quantity": quantity, "charge_unit_id": charge_item.unit_id.id, "unit_price": quotation_line.unit_price, "currency_id": quotation.currency_id.id, "description": quotation_line.remark or _("Generated from quotation %s") % quotation.display_name, "quotation_id": quotation.id, "quotation_line_id": quotation_line.id, "is_import_quotation_charge": True}))
+            charge_data_by_order_id[rec.id] = {"charge_values": charge_values, "currency_id": quotation.currency_id.id, "remark": "\n".join(remarks) or False}
+        return charge_data_by_order_id
+
+    def action_confirm(self):
+        charge_data_by_order_id = self.prepare_outbound_charge_values()
+        result = super().action_confirm()
+        for rec in self:
+            charge_data = charge_data_by_order_id[rec.id]
+            values = {"currency_id": charge_data["currency_id"]} if charge_data["currency_id"] else {}
+            if charge_data["charge_values"]:
+                values["outbound_order_charge_ids"] = charge_data["charge_values"]
+            if charge_data["remark"]:
+                values["charge_calculation_remark"] = charge_data["remark"]
+            if values:
+                rec.write(values)
+        return result
 
     def action_confirm_receivable(self):
         for rec in self:
@@ -264,6 +353,17 @@ class OutboundOrderPayable(models.Model):
 
 class OutboundOrderCharge(models.Model):
     _inherit = "world.depot.outbound.order.charge"
+
+    manual_amount_total = fields.Monetary(string="Manual Amount", currency_field="currency_id", default=0.0)
+    charge_billing_object = fields.Selection([("fixed", "Fixed"), ("carton", "Carton"), ("pallet", "Pallet")], string="Billing Object", copy=False)
+    quotation_id = fields.Many2one("charge.quotation", string="Quotation", readonly=True, index=True, copy=False, ondelete="restrict")
+    quotation_line_id = fields.Many2one("charge.quotation.line", string="Quotation Line", readonly=True, index=True, copy=False, ondelete="restrict")
+    is_import_quotation_charge = fields.Boolean(string="Imported Quotation Charge", default=False, readonly=True, copy=False, index=True)
+
+    @api.depends("quantity", "unit_price", "manual_amount_total")
+    def _compute_amount(self):
+        for rec in self:
+            rec.amount = rec.manual_amount_total if rec.manual_amount_total > 0 else (rec.quantity or 0.0) * (rec.unit_price or 0.0)
 
     @api.model_create_multi
     def create(self, vals_list):

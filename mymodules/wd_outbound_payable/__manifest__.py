@@ -4,10 +4,11 @@
     "version": "1.0.0",
     "category": "Warehouse",
     "summary": "Outbound order payable records",
-    "depends": ["account", "wd_account_extension", "wd_iffm", "worlddepot"],
+    "depends": ["account", "wd_account_extension", "wd_iffm", "worlddepot", "stock_barcode_lite"],
     "data": [
         "security/ir.model.access.csv",
         "views/outbound_order_payable.xml",
+        "views/inbound_order_payable.xml",
         "views/account_move.xml",
         "views/statement_period.xml",
     ],

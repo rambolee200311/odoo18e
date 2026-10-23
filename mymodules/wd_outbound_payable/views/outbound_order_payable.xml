@@ -75,6 +75,7 @@
                     <field name="receivable_state" widget="statusbar" statusbar_visible="draft,confirmed" readonly="1"/>
                     <button name="action_confirm_receivable" type="object" string="Confirm Receivable" class="btn-success" invisible="state == 'cancel' or receivable_state == 'confirmed'"/>
                     <button name="action_unconfirm_receivable" type="object" string="Unconfirm Receivable" class="btn-secondary" confirm="Are you sure you want to unconfirm receivable?" invisible="state == 'cancel' or receivable_state != 'confirmed'"/>
+                    <field name="charge_calculation_remark"/>
 <!--                    <field name="receivable_confirm_user_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>-->
 <!--                    <field name="receivable_confirm_time" readonly="1"/>-->
                 </group>
@@ -85,6 +86,19 @@
             </xpath>
             <xpath expr="//field[@name='outbound_order_charge_ids']" position="attributes">
                 <attribute name="readonly">state == 'cancel' or receivable_state == 'confirmed'</attribute>
+            </xpath>
+            <xpath expr="//field[@name='outbound_order_charge_ids']/list/field[@name='charge_item_id']" position="attributes">
+                <attribute name="domain">[('operation_type', '=', 'outbound')]</attribute>
+                <attribute name="options">{'no_create': True, 'no_open': True}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='outbound_order_charge_ids']/list/field[@name='quantity']" position="before">
+                <field name="charge_billing_object"/>
+            </xpath>
+            <xpath expr="//field[@name='outbound_order_charge_ids']/list/field[@name='amount']" position="after">
+                <field name="manual_amount_total"/>
+                <field name="quotation_id" column_invisible="1" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                <field name="quotation_line_id" column_invisible="1" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                <field name="is_import_quotation_charge" column_invisible="1" readonly="1"/>
             </xpath>
         </field>
     </record>

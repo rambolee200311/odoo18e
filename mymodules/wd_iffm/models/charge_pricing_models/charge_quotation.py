@@ -69,7 +69,7 @@ class ChargeQuotation(models.Model):
         "charge.quotation.line",
         "quotation_id",
         string="WH Inbound Lines",
-        domain=[("tab_category", "=", "clearance")],
+        domain=[("tab_category", "=", "inbound")],
     )
     quotation_storage_lines = fields.One2many(
         "charge.quotation.line",
@@ -81,7 +81,7 @@ class ChargeQuotation(models.Model):
         "charge.quotation.line",
         "quotation_id",
         string="WH Outbound Lines",
-        domain=[("tab_category", "=", "clearance")],
+        domain=[("tab_category", "=", "outbound")],
     )
     quotation_wh_extra_lines = fields.One2many(
         "charge.quotation.line",
