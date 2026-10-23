@@ -309,6 +309,36 @@
 <!--                            </field>-->
 <!--                        </page>-->
 
+                        <page string="Inbound">
+                            <group>
+                                <button name="%(action_charge_quotation_add_wizard)d" string="Batch Add" type="action" class="btn-secondary" invisible="state != 'draft'" context="{'default_quotation_id': id, 'default_tab_category': 'inbound'}"/>
+                            </group>
+                            <field name="quotation_wh_in_lines" readonly="state != 'draft'" context="{'default_tab_category': 'inbound'}">
+                                <list editable="bottom">
+                                    <field name="charge_item_id" required="1" options="{'no_create': True, 'no_open': True}" domain="['|', ('operation_type', '=', 'inbound'), ('operation_type', '=', False), ('is_leaf', '=', True)]"/>
+                                    <field name="tab_category" column_invisible="1"/>
+                                    <field name="is_fixed_fee"/>
+                                    <field name="unit_price"/>
+                                    <field name="remark"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Outbound">
+                            <group>
+                                <button name="%(action_charge_quotation_add_wizard)d" string="Batch Add" type="action" class="btn-secondary" invisible="state != 'draft'" context="{'default_quotation_id': id, 'default_tab_category': 'outbound'}"/>
+                            </group>
+                            <field name="quotation_wh_out_lines" readonly="state != 'draft'" context="{'default_tab_category': 'outbound'}">
+                                <list editable="bottom">
+                                    <field name="charge_item_id" required="1" options="{'no_create': True, 'no_open': True}" domain="['|', ('operation_type', '=', 'outbound'), ('operation_type', '=', False), ('is_leaf', '=', True)]"/>
+                                    <field name="tab_category" column_invisible="1"/>
+                                    <field name="is_fixed_fee"/>
+                                    <field name="unit_price"/>
+                                    <field name="remark"/>
+                                </list>
+                            </field>
+                        </page>
+
                     </notebook>
                 </sheet>
                  <chatter>
