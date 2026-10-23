@@ -953,13 +953,11 @@ class OutboundOrderProduct(models.Model):
 
         for rec in self:
             project = rec.outbound_order_id.project or rec.project
-            if project.name != "SUNRISE":
-                continue
-
+            is_sunrise = project.name == "SUNRISE"
             rec.gross_weight = False
-            rec.pallet_dimensions = False
-
-            if not rec.package_id or not rec.product_id:
+            if is_sunrise:
+                rec.pallet_dimensions = False
+            if not rec.product_id:
                 continue
             template = template_model.browse(rec.product_id.product_tmpl_id.id)
             lot = False
@@ -969,11 +967,12 @@ class OutboundOrderProduct(models.Model):
                     ("name", "=", rec.lot_name),
                 ], limit=1)
             gross_weight = lot.gross_weight if lot and lot.gross_weight else template.gross_weight
-            if rec.box_type == "partial" and not (lot and lot.gross_weight):
+            if is_sunrise and rec.box_type == "partial" and not (lot and lot.gross_weight):
                 if template.gross_weight and rec.box_in_qty > 0 and rec.u8_conversion_rate > 0:
                     gross_weight = template.gross_weight / rec.u8_conversion_rate * rec.box_in_qty
             rec.gross_weight = str(gross_weight) if gross_weight else False
-            rec.pallet_dimensions = (lot.product_dimensions if lot and lot.product_dimensions else template.product_dimensions) or False
+            if is_sunrise:
+                rec.pallet_dimensions = (lot.product_dimensions if lot and lot.product_dimensions else template.product_dimensions) or False
 
 
     def init(self):

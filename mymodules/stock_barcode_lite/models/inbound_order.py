@@ -1007,10 +1007,10 @@ class InboundOrderProductsPallet(models.Model):
         template_model = self.env["product.template"].sudo()
         for rec in self:
             inbound_order = rec.inbound_order_product_id.inbound_order_id
-            if not inbound_order or inbound_order.project.name != "SUNRISE":
-                continue
+            is_sunrise = inbound_order and inbound_order.project.name == "SUNRISE"
             rec.gross_weight = False
-            rec.pallet_dimensions = False
+            if is_sunrise:
+                rec.pallet_dimensions = False
             if not rec.product_id:
                 continue
             template = template_model.browse(rec.product_id.product_tmpl_id.id)
@@ -1021,11 +1021,12 @@ class InboundOrderProductsPallet(models.Model):
                     ("name", "=", rec.lot_name),
                 ], limit=1)
             gross_weight = lot.gross_weight if lot and lot.gross_weight else template.gross_weight
-            if rec.box_type == "partial" and not (lot and lot.gross_weight):
+            if is_sunrise and rec.box_type == "partial" and not (lot and lot.gross_weight):
                 if template.gross_weight and rec.box_in_qty > 0 and rec.u8_conversion_rate > 0:
                     gross_weight = template.gross_weight / rec.u8_conversion_rate * rec.box_in_qty
             rec.gross_weight = str(gross_weight) if gross_weight else False
-            rec.pallet_dimensions = (lot.product_dimensions if lot and lot.product_dimensions else template.product_dimensions) or False
+            if is_sunrise:
+                rec.pallet_dimensions = (lot.product_dimensions if lot and lot.product_dimensions else template.product_dimensions) or False
 
     def get_sunrise_product_specification(self, allow_missing=False):
         if not self:
