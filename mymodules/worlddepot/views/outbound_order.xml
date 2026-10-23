@@ -231,12 +231,12 @@
                             <field name="outbound_order_charge_ids" readonly="state=='cancel'">
                                 <list editable="bottom">
                                     <field name="charge_item_id"/>
+<!--                                    <field name="charge_unit_id"/>-->
                                     <field name="quantity" sum="Total Quantity"/>
-                                    <field name="charge_unit_name"/>
-                                    <field name="charge_unit_id"/>
+                                    <field name="currency_id"/>
+<!--                                    <field name="charge_unit_name"/>-->
                                     <field name="unit_price"/>
                                     <field name="amount" sum="Total Amount"/>
-                                    <field name="currency_id"/>
                                 </list>
                             </field>
                         </page>

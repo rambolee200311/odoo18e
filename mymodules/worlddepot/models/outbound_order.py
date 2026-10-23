@@ -1617,8 +1617,8 @@ class OutboundOrderProduct(models.Model):
 
     barcode = fields.Char(string='Barcode', related='product_id.barcode', store=True, readonly=True)
     default_code = fields.Char(string='Default Code', related='product_id.default_code', store=True, readonly=True)
-    weight = fields.Float(string='Weight', related='product_id.weight', store=True, readonly=True, tracking=True)
-    weight_subtotal = fields.Float(string='Weight Subtotal', compute='_compute_weight_subtotal', store=True, tracking=True)
+    weight = fields.Float(string='Net Weight(kg)', related='product_id.weight', store=True, readonly=True, tracking=True)
+    weight_subtotal = fields.Float(string='Net Weight Subtotal(kg)', compute='_compute_weight_subtotal', store=True, tracking=True)
     
     locations=fields.Char(string='Locations', help='Storage locations of the product in the warehouse', tracking=True)
     

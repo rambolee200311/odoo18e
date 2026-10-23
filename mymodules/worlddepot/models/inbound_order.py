@@ -57,10 +57,10 @@ class InboundOrder(models.Model):
     scanning_quantity = fields.Float(string='Scanning Quantity', default=0.0, tracking=True)
     is_adr = fields.Boolean(string='ADR', default=True, tracking=True)
 
-    weight_total = fields.Float(string='Total Weight (kg)', help='Total weight of the product in kilograms',
+    weight_total = fields.Float(string='Total Net Weight (kg)', help='Total net weight of the product in kilograms',
                                 default=0.0, compute='_onchange_sum', store=True, tracking=True, )
     weight_total_input = fields.Float(
-        string='Total Weight Input (kg)', help='Total weight of the product in kilograms', default=0.0, tracking=True
+        string='Total Net Weight Input (kg)', help='Total net weight of the product in kilograms', default=0.0, tracking=True
     )
     confirm_user_id = fields.Many2one(
         'res.users', string='Confirmed By', readonly=True, help="User who confirmed the order."
@@ -607,7 +607,7 @@ class InboundOrderProduct(models.Model):
     un_number = fields.Char(string='UN Number', help='United Nations number for dangerous goods classification')
     quantity = fields.Float(string='Quantity', compute='_compute_quantity', store=True, tracking=True,
                             readonly=True, )
-    weight_total = fields.Float(string='Total Weight (kg)', help='Total weight of the product in kilograms',
+    weight_total = fields.Float(string='Total Net Weight (kg)', help='Total weight of the product in kilograms',
                                 default=0.0, compute='_compute_quantity', store=True, tracking=True, )
     remark = fields.Text(string='Remark')
     is_serial_tracked = fields.Boolean(string='Tracked by Serial', )
@@ -758,9 +758,9 @@ class InboundOrderProductsOfPallet(models.Model):
     un_number = fields.Char(string='UN Number', help='United Nations number for dangerous goods classification',
                             related='product_id.un_code', store=True, readonly=True)
     quantity = fields.Float(string='Quantity', default=1.0)
-    weight = fields.Float(string='Weight (kg)', help='Weight of the product in kilograms',
+    weight = fields.Float(string='Net Weight (kg)', help='Weight of the product in kilograms',
                           related='product_id.weight', )
-    weight_subtotal = fields.Float(string='Subtotal Weight (kg)', compute='_compute_weight_subtotal', store=True)
+    weight_subtotal = fields.Float(string='Subtotal Net Weight (kg)', compute='_compute_weight_subtotal', store=True)
     is_serial_tracked = fields.Boolean(string='Tracked by Serial', compute='_compute_is_serial_tracked', store=True)
     remark = fields.Text(string='Remark')
 
