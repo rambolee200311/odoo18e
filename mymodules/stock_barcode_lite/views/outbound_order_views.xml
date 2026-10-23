@@ -1,19 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Rebind the payable child before other outbound views trigger combined-view validation. -->
-    <record id="view_stock_barcode_lite_sunrise_outbound_payables_form_inherit" model="ir.ui.view">
-        <field name="name">stock.barcode.lite.sunrise.outbound.payables.form.inherit</field>
-        <field name="model">world.depot.outbound.order</field>
-        <field name="inherit_id" ref="wd_outbound_payable.view_outbound_order_form_payable"/>
-        <field name="arch" type="xml">
-            <xpath expr="//group[field[@name='payable_lines']]" position="attributes">
-                <attribute name="invisible">project_name == 'SUNRISE'</attribute>
-            </xpath>
-            <xpath expr="//field[@name='payable_lines']" position="attributes">
-                <attribute name="invisible">project_name == 'SUNRISE'</attribute>
-            </xpath>
-        </field>
-    </record>
+    <delete id="view_stock_barcode_lite_sunrise_outbound_payables_form_inherit" model="ir.ui.view"/>
 
     <record id="view_stock_barcode_lite_outbound_order_form_inherit" model="ir.ui.view">
         <field name="name">stock.barcode.lite.outbound.order.form.inherit</field>
@@ -127,7 +114,6 @@
                 <!--                <field name="de_palletize" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>-->
                 <field name="package_id" optional="show" column_invisible="parent.project_name !='SUNRISE'"
                        options="{'no_create': True, 'no_open': True}"/>
-                <field name="package_barcode" optional="hide" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="source_product_code" optional="hide" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="product_ean" optional="hide" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="cprojectid" optional="hide" column_invisible="parent.project_name != 'SUNRISE'"/>
