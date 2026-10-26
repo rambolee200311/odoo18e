@@ -12,6 +12,7 @@ class BlindStockCountLine(models.Model):
     blind_stock_count_pallet_id = fields.Many2one("blind.stock.count.pallet", string="Blind Stock Count Pallet", required=True, ondelete="cascade", copy=False, index=True)
     blind_stock_count_id = fields.Many2one(related="blind_stock_count_pallet_id.blind_stock_count_id", string="Blind Stock Count", readonly=True, store=True, index=True)
     work_package_id = fields.Many2one(related="blind_stock_count_id.work_package_id", string="Work Package", readonly=True, store=True, index=True)
+    location_id = fields.Many2one(related="blind_stock_count_id.location_id", string="Count Location", readonly=True, store=True, index=True)
     product_category_id = fields.Many2one(related="blind_stock_count_id.product_category_id", string="Product Category", readonly=True)
     state = fields.Selection(related="blind_stock_count_id.state", string="Status", readonly=True, store=True, index=True)
     product_id = fields.Many2one("product.product", string="Product", required=True, copy=False, index=True)

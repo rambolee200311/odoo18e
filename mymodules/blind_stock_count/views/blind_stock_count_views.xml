@@ -24,7 +24,8 @@
                 <header>
                     <button name="action_start" type="object" string="Start" class="btn-primary" invisible="state != 'draft'" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
                     <button name="action_done" type="object" string="Complete" class="btn-primary" invisible="state != 'in_progress'" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
-                    <button name="action_create_clearance" type="object" string="Generate Clearance" invisible="state != 'done'" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
+                    <button name="action_open_cancel_pending_picking_list" type="object" string="Cancel Pending Pickings" invisible="state != 'done'" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
+                    <button name="action_create_clearance" type="object" string="Queue Clearance Pickings" invisible="state != 'done'" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
                     <button name="action_cancel" type="object" string="Cancel" invisible="state not in ('draft', 'in_progress')" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,in_progress,done,cancel"/>
                 </header>
@@ -39,19 +40,71 @@
                         </group>
                         <group>
                             <field name="location_line_ids" widget="many2many_tags" readonly="state != 'draft'" options="{'no_create': True, 'no_open': True}" domain="[('usage', '=', 'internal')]"/>
+                            <field name="clearance_picking_type_id" readonly="state in ('done', 'cancel')" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="clearance_destination_location_id" readonly="state in ('done', 'cancel')" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="receipt_picking_type_id" readonly="state in ('done', 'cancel')" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="receipt_source_location_id" readonly="state in ('done', 'cancel')" options="{'no_create': True, 'no_open': True}"/>
                             <field name="create_uid" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                             <field name="create_date" readonly="1"/>
                             <field name="note" readonly="state in ('done', 'cancel')"/>
                         </group>
                     </group>
                     <notebook>
-                        <page string="Clearance Orders" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system">
-                            <field name="clearance_lines" readonly="1">
+                        <page string="Clearance Batches" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system">
+                            <field name="clearance_batch_lines" readonly="1">
                                 <list create="false" edit="false" delete="false">
                                     <field name="name"/>
+                                    <field name="state" widget="badge"/>
+                                    <field name="maximum_lines_per_clearance"/>
+                                    <field name="source_quant_count"/>
+                                    <field name="normalized_negative_quant_count"/>
+                                    <field name="released_orphan_reservation_quant_count"/>
+                                    <field name="released_orphan_reservation_quantity"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Outbound Pickings" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system">
+                            <button name="action_open_outbound_picking_list" type="object" string="Open Outbound Picking List" class="btn-secondary"/>
+                            <field name="outbound_picking_lines" readonly="1">
+                                <list create="false" edit="false" delete="false">
+                                    <header>
+                                        <button name="action_queue_validate_blind_stock_count_pickings" type="object" string="Queue Validate Selected Pickings" class="btn-primary" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
+                                    </header>
+                                    <field name="name"/>
                                     <field name="picking_type_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="location_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="location_dest_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="state" widget="badge"/>
+                                    <field name="blind_stock_count_validation_state" widget="badge" optional="hide"/>
+                                    <field name="blind_stock_count_validation_error" optional="hide"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Cancelled Pickings" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system">
+                            <field name="cancelled_picking_log_lines" readonly="1">
+                                <list create="false" edit="false" delete="false">
+                                    <field name="picking_name"/>
+                                    <field name="state_before"/>
+                                    <field name="picking_type_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="source_location_id" options="{'no_create': True, 'no_open': True}"/>
                                     <field name="destination_location_id" options="{'no_create': True, 'no_open': True}"/>
-                                    <field name="picking_id" optional="hide" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="cancelled_by_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="cancelled_at"/>
+                                    <field name="reason"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Cancellation Batches" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system">
+                            <field name="cancel_picking_batch_lines" readonly="1">
+                                <list create="false" edit="false" delete="false">
+                                    <field name="name"/>
+                                    <field name="requested_by_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="requested_at"/>
+                                    <field name="total_count"/>
+                                    <field name="pending_count"/>
+                                    <field name="cancelled_count"/>
+                                    <field name="skipped_count"/>
+                                    <field name="failed_count"/>
                                     <field name="state" widget="badge"/>
                                 </list>
                             </field>
@@ -84,7 +137,12 @@
         <field name="model">blind.stock.count.work.package</field>
         <field name="arch" type="xml">
             <form string="Blind Stock Count Records"  duplicate="false">
-                <header><field name="state" widget="statusbar" statusbar_visible="draft,in_progress,done,cancel" readonly="1"/></header>
+                <header>
+                    <button name="action_open_blind_stock_count_list" type="object" string="Open Blind Stock Counts" class="btn-primary"/>
+                    <button name="action_open_pallet_list" type="object" string="Open Pallets"/>
+                    <button name="action_open_product_line_list" type="object" string="Open Product Lines"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,in_progress,done,cancel" readonly="1"/>
+                </header>
                 <sheet>
                     <group>
                         <field name="name" required="1" readonly="1"/>
@@ -103,6 +161,8 @@
                             <field name="recounted_from_id" optional="hide" options="{'no_create': True, 'no_open': True}"/>
                             <field name="is_replaced"/>
                             <field name="state" widget="badge"/>
+                            <field name="receipt_generation_state" widget="badge"/>
+                            <field name="receipt_picking_state" widget="badge"/>
                             <button name="action_open_from_work_package" type="object" string="Open" icon="fa-external-link"/>
                         </list>
                     </field>
@@ -115,7 +175,12 @@
         <field name="name">blind.stock.count.list</field>
         <field name="model">blind.stock.count</field>
         <field name="arch" type="xml">
-            <list string="Blind Stock Counts" default_group_by="location_id" default_order="location_id,recount_round desc">
+            <list string="Blind Stock Counts" default_order="location_id,recount_round desc">
+                <header>
+                    <button name="action_batch_create_receipt_pickings" type="object" string="Queue Inbound Pickings" class="btn-primary" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
+                    <button name="action_batch_validate_receipt_pickings" type="object" string="Queue Validate Inbound Pickings" class="btn-primary" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
+                    <button name="action_cancel" type="object" string="Cancel" groups="blind_stock_count.group_blind_stock_count_user,base.group_system"/>
+                </header>
                 <field name="name"/>
                 <field name="date"/>
                 <field name="work_package_id" options="{'no_create': True, 'no_open': True}"/>
@@ -124,7 +189,24 @@
                 <field name="recounted_from_id" optional="hide" options="{'no_create': True, 'no_open': True}"/>
                 <field name="is_replaced"/>
                 <field name="state" widget="badge"/>
+                <field name="receipt_generation_state" widget="badge"/>
+                <field name="receipt_picking_state" widget="badge"/>
             </list>
+        </field>
+    </record>
+
+    <record id="view_blind_stock_count_search" model="ir.ui.view">
+        <field name="name">blind.stock.count.search</field>
+        <field name="model">blind.stock.count</field>
+        <field name="arch" type="xml">
+            <search string="Blind Stock Counts">
+                <field name="name"/>
+                <field name="work_package_id"/>
+                <field name="location_id"/>
+                <group expand="0" string="Group By">
+                    <filter string="Work Package" name="group_by_work_package" context="{'group_by': 'work_package_id'}"/>
+                </group>
+            </search>
         </field>
     </record>
 
@@ -202,6 +284,19 @@
         </field>
     </record>
 
+    <record id="view_blind_stock_count_pallet_list" model="ir.ui.view">
+        <field name="name">blind.stock.count.pallet.list</field>
+        <field name="model">blind.stock.count.pallet</field>
+        <field name="arch" type="xml">
+            <list string="Blind Stock Count Pallets" create="false" delete="false">
+                <field name="blind_stock_count_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="location_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="package_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
     <record id="view_blind_stock_count_pallet_form" model="ir.ui.view">
         <field name="name">blind.stock.count.pallet.form</field>
         <field name="model">blind.stock.count.pallet</field>
@@ -243,6 +338,69 @@
         </field>
     </record>
 
+    <record id="view_blind_stock_count_line_list" model="ir.ui.view">
+        <field name="name">blind.stock.count.line.list</field>
+        <field name="model">blind.stock.count.line</field>
+        <field name="arch" type="xml">
+            <list string="Blind Stock Count Product Lines" create="false" delete="false">
+                <field name="blind_stock_count_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="blind_stock_count_pallet_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="location_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="product_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="product_barcode"/>
+                <field name="lot_name"/>
+                <field name="counted_qty"/>
+                <field name="counted_by_id" optional="hide" options="{'no_create': True, 'no_open': True}"/>
+                <field name="counted_at" optional="hide"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_blind_stock_count_line_search" model="ir.ui.view">
+        <field name="name">blind.stock.count.line.search</field>
+        <field name="model">blind.stock.count.line</field>
+        <field name="arch" type="xml">
+            <search string="Blind Stock Count Product Lines">
+                <filter string="Draft" name="filter_state_draft" domain="[('state', '=', 'draft')]"/>
+                <filter string="Counting" name="filter_state_counting" domain="[('state', '=', 'counting')]"/>
+                <filter string="Done" name="filter_state_done" domain="[('state', '=', 'done')]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_blind_stock_count_line_form" model="ir.ui.view">
+        <field name="name">blind.stock.count.line.form</field>
+        <field name="model">blind.stock.count.line</field>
+        <field name="arch" type="xml">
+            <form string="Blind Stock Count Product Line" duplicate="false">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="blind_stock_count_pallet_id" required="1" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="blind_stock_count_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="work_package_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="location_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="product_category_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="state" readonly="1" widget="badge"/>
+                        </group>
+                        <group>
+                            <field name="product_id" required="1" readonly="state != 'counting'" options="{'no_create': True, 'no_open': True}" domain="[('categ_id', 'child_of', product_category_id)]"/>
+                            <field name="product_barcode" readonly="1"/>
+                            <field name="product_tracking" readonly="1"/>
+                            <field name="lot_name" required="product_tracking != 'none'" readonly="state != 'counting'"/>
+                            <field name="counted_qty" required="1" readonly="state != 'counting'"/>
+                            <field name="counted_by_id" required="1" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="counted_at" required="1" readonly="1"/>
+                            <field name="matched_lot_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="note" readonly="state != 'counting'"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
     <record id="view_blind_stock_count_form" model="ir.ui.view">
         <field name="name">blind.stock.count.form</field>
         <field name="model">blind.stock.count</field>
@@ -254,7 +412,7 @@
                     <button name="action_done" type="object" string="Complete" class="btn-primary" invisible="state != 'counting'" groups="blind_stock_count.group_blind_stock_count_user,base.group_system"/>
                     <button name="action_return_to_counting" type="object" string="Return to Counting" class="btn-secondary" invisible="not can_return_to_counting" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
                     <button name="action_create_check" type="object" string="Create Check" invisible="state != 'done'" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
-                    <button name="action_create_receipt" type="object" string="Generate Receipt" invisible="state != 'done' or is_replaced" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
+                    <button name="action_create_receipt" type="object" string="Queue Inbound Picking" invisible="state != 'done' or is_replaced" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
                     <button name="action_create_recount" type="object" string="Create Recount" invisible="state != 'done' or is_replaced" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
                     <button name="action_cancel" type="object" string="Cancel" invisible="state not in ('draft', 'counting')" groups="blind_stock_count.group_blind_stock_count_user,base.group_system"/>
                     <field name="is_replaced" invisible="1" readonly="1"/>
@@ -275,6 +433,8 @@
                         </group>
                         <group>
                             <field name="note" readonly="state in ('done', 'cancel')"/>
+                            <field name="receipt_generation_state" readonly="1"/>
+                            <field name="receipt_generation_error" readonly="1" invisible="not receipt_generation_error"/>
                         </group>
                     </group>
                     <notebook>
@@ -296,14 +456,19 @@
                                 </list>
                             </field>
                         </page>
-                        <page string="Receipt Orders" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system">
-                            <field name="receipt_lines" readonly="1">
+                        <page string="Inbound Pickings" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system">
+                            <field name="inbound_picking_lines" readonly="1">
                                 <list create="false" edit="false" delete="false">
+                                    <header>
+                                        <button name="action_queue_validate_blind_stock_count_pickings" type="object" string="Queue Validate Selected Pickings" class="btn-primary" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
+                                    </header>
                                     <field name="name"/>
-                                    <field name="clearance_id" options="{'no_create': True, 'no_open': True}"/>
                                     <field name="picking_type_id" options="{'no_create': True, 'no_open': True}"/>
-                                    <field name="picking_id" optional="hide" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="location_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="location_dest_id" options="{'no_create': True, 'no_open': True}"/>
                                     <field name="state" widget="badge"/>
+                                    <field name="blind_stock_count_validation_state" widget="badge" optional="hide"/>
+                                    <field name="blind_stock_count_validation_error" optional="hide"/>
                                 </list>
                             </field>
                         </page>
@@ -409,6 +574,46 @@
         <field name="res_model">blind.stock.count.check</field>
         <field name="view_mode">list,form</field>
         <field name="groups_id" eval="[(6, 0, [ref('blind_stock_count.group_blind_stock_count_checker'), ref('base.group_system')])]"/>
+    </record>
+
+    <record id="view_blind_stock_count_pending_picking_list" model="ir.ui.view">
+        <field name="name">blind.stock.count.pending.picking.list</field>
+        <field name="model">stock.picking</field>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <list string="Pending Pickings" create="false" edit="false" delete="false">
+                <header>
+                    <button name="action_cancel_blind_stock_count_pending_pickings" type="object" string="Queue Cancel Selected Pickings" class="btn-primary" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
+                </header>
+                <field name="name"/>
+                <field name="picking_type_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="location_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="location_dest_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="origin" optional="hide"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_blind_stock_count_outbound_picking_list" model="ir.ui.view">
+        <field name="name">blind.stock.count.outbound.picking.list</field>
+        <field name="model">stock.picking</field>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <list string="Outbound Pickings" create="false" edit="false" delete="false">
+                <header>
+                    <button name="action_queue_validate_blind_stock_count_pickings" type="object" string="Queue Validate Selected Pickings" class="btn-primary" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
+                </header>
+                <field name="name"/>
+                <field name="picking_type_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="location_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="location_dest_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="state" widget="badge"/>
+                <field name="blind_stock_count_validation_state" widget="badge" optional="hide"/>
+                <field name="blind_stock_count_validation_error" optional="hide"/>
+                <field name="origin" optional="hide"/>
+            </list>
+        </field>
     </record>
 
     <menuitem id="menu_blind_stock_count_root" name="Blind Stock Count" sequence="55" web_icon="blind_stock_count,static/description/img.png"/>
