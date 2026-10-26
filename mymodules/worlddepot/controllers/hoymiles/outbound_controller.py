@@ -113,6 +113,8 @@ class OutboundOrderAPI(http.Controller):
             order_vals = {
                 'type': data.get('type', 'outbound'),
                 'project': odoo_project.id if odoo_project else False,
+                'warehouse': odoo_project.warehouse.id if odoo_project and odoo_project.warehouse else False,
+                'pick_type': odoo_project.outbound_pick_type.id if odoo_project and odoo_project.outbound_pick_type else False,
                 'unload_company': unload_company.id,
                 'reference': data['reference'],
                 'outbound_order_product_ids': [],

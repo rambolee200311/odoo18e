@@ -2271,13 +2271,13 @@ msgstr "已装车"
 #: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__load_date
 #: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_pack_info__loading_date
 msgid "Loading Date"
-msgstr "装车日期"
+msgstr "装车/配送日期"
 
 #. module: worlddepot
 #: model:ir.model.fields,field_description:worlddepot.field_stock_picking__load_ref
 #: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__load_ref
-msgid "Loading Reference"
-msgstr "装车参考"
+msgid "Loading / Pickup / Vehicle Plate / Courier Reference No."
+msgstr "装车/自提/快递参考号"
 
 #. module: worlddepot
 #: model_terms:ir.ui.view,arch_db:worlddepot.view_stock_location_type_form
@@ -4056,8 +4056,8 @@ msgstr ""
 
 #. module: worlddepot
 #: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order_products_pallet__weight_subtotal
-msgid "Subtotal Weight (kg)"
-msgstr "重量小计(kg)"
+msgid "Subtotal Net Weight (kg)"
+msgstr "净重量小计(kg)"
 
 #. module: worlddepot
 #. odoo-python
@@ -4300,8 +4300,8 @@ msgstr "总重量"
 #. module: worlddepot
 #: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__weight_total
 #: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order_product__weight_total
-msgid "Total Weight (kg)"
-msgstr "总重量(kg)"
+msgid "Total Net Weight (kg)"
+msgstr "总净重量(kg)"
 
 #. module: worlddepot
 #: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order__weight_total_input
@@ -4601,8 +4601,8 @@ msgstr ""
 #. module: worlddepot
 #: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__unload_company
 #: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_summary__unload_company
-msgid "Unload Company/Person"
-msgstr "卸货公司/人员"
+msgid "Unload Company/Recipient"
+msgstr "卸货公司/收货人"
 
 #. module: worlddepot
 #: model:ir.actions.server,name:worlddepot.action_update_nine_digit_linglong_code
@@ -4719,18 +4719,18 @@ msgstr ""
 
 #. module: worlddepot
 #: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_product__weight
-msgid "Weight"
-msgstr ""
+msgid "Net Weight(kg)"
+msgstr "净重量(kg)"
 
 #. module: worlddepot
 #: model:ir.model.fields,field_description:worlddepot.field_world_depot_inbound_order_products_pallet__weight
-msgid "Weight (kg)"
-msgstr "重量(kg)"
+msgid "Net Weight (kg)"
+msgstr "净重量(kg)"
 
 #. module: worlddepot
 #: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order_product__weight_subtotal
-msgid "Weight Subtotal"
-msgstr ""
+msgid "Net Weight Subtotal(kg)"
+msgstr "总净重(kg)"
 
 #. module: worlddepot
 #: model:ir.model.fields,help:worlddepot.field_world_depot_outbound_order_pack_info__tare_weight
@@ -4788,7 +4788,7 @@ msgstr "世界仓库仪表板"
 
 #. module: worlddepot
 #: model:ir.ui.menu,name:worlddepot.world_depot_logi_menu
-msgid "WorldDepot"
+msgid "WD EUROPE"
 msgstr "仓储订单管理"
 
 #. module: worlddepot

@@ -67,15 +67,16 @@ class OutboundOrderSummary(models.Model):
         except Exception as e:
             _logger.error(f"Error initializing OutboundOrderSummary: {e}")
 
-    def init(self):
-        """Initialize the summary table with data from outbound orders."""
+    @api.model
+    def rebuild_summary(self):
+        """Rebuild the summary table only when requested from the user interface."""
         try:
             # Clear existing data
             self.env.cr.execute(f"DELETE FROM {self._table}")
             self.env.cr.flush()
             # Fetch ALL outbound orders (including cancelled if needed)
             domain = [('state', '!=', 'cancel')]
-            outbound_orders = self.env['world.depot.outbound.order'].search(domain)
+            outbound_orders = self.env['world.depot.outbound.order'].sudo().search(domain)
             _logger.info(f"Found {len(outbound_orders)} outbound orders to process")
 
             summary_data = []
@@ -86,7 +87,7 @@ class OutboundOrderSummary(models.Model):
                 orders_processed += 1
 
                 # Check if order has pallets/products
-                pallets = self.env['world.depot.outbound.order.product'].search([
+                pallets = self.env['world.depot.outbound.order.product'].sudo().search([
                     ('outbound_order_id', '=', order.id)
                 ])
 
@@ -179,13 +180,13 @@ class OutboundOrderSummary(models.Model):
     def action_manual_refresh(self, *args, **kwargs):
         """Manual entry point to refresh the outbound order summary.
 
-        This can be called from an automated action or server action in Odoo UI.
-        It simply rebuilds the summary table by calling the `init` method.
+        This can be called from the summary list in Odoo UI.
+        It rebuilds the summary table only on demand.
         """
         _logger.info("Manual refresh of OutboundOrderSummary requested")
         try:
             # Rebuild the summary
-            self.init()
+            self.rebuild_summary()
             _logger.info("Manual refresh completed successfully")
             return True
         except Exception as e:

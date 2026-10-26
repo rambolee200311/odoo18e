@@ -6,9 +6,10 @@
             <list string="Inbound Order Summary">
                 <header>
                     <button name="action_manual_refresh" 
-                            string="Refresh Summary" 
+                            string="Rebuild Summary" 
                             type="object" 
-                            class="btn-primary"/>
+                            class="btn-primary"
+                            />
                 </header>
                 <field name="order_id" widget="many2one" optional="show"/>
                 <field name="state" optional="show"/>

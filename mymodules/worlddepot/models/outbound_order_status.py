@@ -85,7 +85,7 @@ class OutboundOrderStatus(models.Model):
     set_status_to_pick_finished_time=fields.Datetime(string='Set Status to Pick Finished Time', default=None)
     status_to_pick_finished_error_msg=fields.Text(string='Status to Pick Finished Error Message', default=None)
     set_outbound_pack_sync=fields.Boolean(string='Set Outbound Pack Sync', default=False)
-    hoymiles_send_serials=fields.Boolean(string='Hoymiles Send Serials', default=True, copy=False)
+    hoymiles_send_serials = fields.Boolean(string='Hoymiles Send Serials', default=True, copy=False)
     set_outbound_pack_sync_time=fields.Datetime(string='Set Outbound Pack Sync Time', default=None)
     outbound_pack_sync_time_user=fields.Datetime(string='Outbound Pack Sync Time User', default=None)
     outbound_pack_sync_error_msg=fields.Text(string='Outbound Pack Sync Error Message', default=None)
@@ -97,6 +97,23 @@ class OutboundOrderStatus(models.Model):
     outbound_result_sync_time_user=fields.Datetime(string='Outbound Result Sync Time User', default=None)
     set_outbound_result_sync_time=fields.Datetime(string='Set Outbound Result Sync Time', default=None)
     outbound_result_sync_error_msg=fields.Text(string='Outbound Result Sync Error Message', default=None)
+
+    def get_hoymiles_outbound_sync_picking_list(self):
+        picking_model = self.env['stock.picking']
+        picking_list = picking_model
+        for rec in self:
+            configured_picking_list = (rec.whole_pallet_picking_id | rec.partial_pallet_picking_id).exists()
+            if not configured_picking_list:
+                continue
+            pending_picking_list = configured_picking_list.filtered(lambda picking: picking.state != 'done')
+            if pending_picking_list:
+                raise UserError(
+                    "All whole-pallet and partial-pallet pickings must be completed before syncing outbound results: %s"
+                    % ', '.join(pending_picking_list.mapped('name'))
+                )
+            picking_list |= configured_picking_list
+        return picking_list.sorted('id')
+
     # 禾迈-拣货开始
     def action_set_status_to_confirmed(self):
         for order in self:
@@ -235,14 +252,21 @@ class OutboundOrderStatus(models.Model):
     def action_set_status_to_pick_finished(self):
         for order in self:
             if order.project and order.project.name.lower() == 'hoymiles':
-                local_time = self.get_local_time('NL', order.picking_PICK.date_done)
+                outbound_picking_list = order.get_hoymiles_outbound_sync_picking_list()
+                if outbound_picking_list:
+                    latest_done_datetime = max(outbound_picking_list.mapped('date_done'))
+                    ws_op_order_no = ','.join(outbound_picking_list.mapped('name'))
+                else:
+                    latest_done_datetime = order.picking_PICK.date_done
+                    ws_op_order_no = order.billno
+                local_time = self.get_local_time('NL', latest_done_datetime)
                 if order.status_to_pick_finished_time_user:
                     local_time = order.status_to_pick_finished_time_user
-                    
+
                 payload = {
                     "thirdPartyWsCode": "WD",
                     "thirdPartyWsName": "WD warehouse",
-                    "wsOpOrderNo": order.billno,
+                    "wsOpOrderNo": ws_op_order_no,
                     "reference": order.reference,
                     "operateType": "PICK_FINISHED",
                     "operationTime": local_time.strftime("%Y-%m-%d %H:%M:%S"),
@@ -367,7 +391,14 @@ class OutboundOrderStatus(models.Model):
     def action_set_outbound_pack_sync(self):
         for order in self:
             if order.project and order.project.name.lower() == 'hoymiles':
-                local_time = self.get_local_time('NL', order.picking_PICK.date_done)
+                outbound_picking_list = order.get_hoymiles_outbound_sync_picking_list()
+                if outbound_picking_list:
+                    latest_done_datetime = max(outbound_picking_list.mapped('date_done'))
+                    ws_op_order_no = ','.join(outbound_picking_list.mapped('name'))
+                else:
+                    latest_done_datetime = order.picking_PICK.date_done
+                    ws_op_order_no = order.picking_PICK.name if order.picking_PICK else ""
+                local_time = self.get_local_time('NL', latest_done_datetime)
                 if order.outbound_pack_sync_time_user:
                     local_time = order.outbound_pack_sync_time_user                                    
                 # generate boxPalletSpec (use safe getattr with defaults to avoid errors if fields are missing)                
@@ -433,7 +464,7 @@ class OutboundOrderStatus(models.Model):
                 payload = {
                     "thirdPartyWsCode": "WD",
                     "thirdPartyWsName": "WD warehouse",
-                    "wsOpOrderNo": order.picking_PICK.name if order.picking_PICK else "",                    
+                    "wsOpOrderNo": ws_op_order_no,
                     "reference": order.reference,
                     "grossWeight": gross_sum,
                     "netWeight": net_sum,
@@ -456,10 +487,14 @@ class OutboundOrderStatus(models.Model):
                     "pickupWarehouse": "WD",
                 }
 
-                if order.picking_PICK:
+                if outbound_picking_list or order.picking_PICK:
                     # Group moves by outbound_order_product_id when available, otherwise by product
                     groups = {}
-                    moves=self.env['stock.move'].search([('picking_id.outbound_order_id','=',order.id),('picking_id.state','=','done')])
+                    move_model = self.env['stock.move']
+                    if outbound_picking_list:
+                        moves = move_model.sudo().search([('picking_id', 'in', outbound_picking_list.ids), ('picking_id.state', '=', 'done')])
+                    else:
+                        moves = move_model.sudo().search([('picking_id.outbound_order_id', '=', order.id), ('picking_id.state', '=', 'done')])
                     
                     for move in moves: #order.picking_PICK.move_ids:
                         try:
@@ -495,14 +530,15 @@ class OutboundOrderStatus(models.Model):
 
                             # collect serials for this move
                             serials = set()
-                            for move_line in getattr(move, 'move_line_ids', []) or []:
-                                try:
-                                    lot = getattr(move_line, 'lot_id', None) or getattr(move_line, 'lot_name', None)
-                                    serial_name = getattr(lot, 'name', None) if hasattr(lot, 'name') else (lot or '')
-                                    if serial_name:
-                                        serials.add(str(serial_name))
-                                except Exception:
-                                    _logger.exception('Failed to read move_line serial/lot for move %s', getattr(move, 'id', False))
+                            if order.hoymiles_send_serials:
+                                for move_line in getattr(move, 'move_line_ids', []) or []:
+                                    try:
+                                        lot = getattr(move_line, 'lot_id', None) or getattr(move_line, 'lot_name', None)
+                                        serial_name = getattr(lot, 'name', None) if hasattr(lot, 'name') else (lot or '')
+                                        if serial_name:
+                                            serials.add(str(serial_name))
+                                    except Exception:
+                                        _logger.exception('Failed to read move_line serial/lot for move %s', getattr(move, 'id', False))
 
                             if key not in groups:
                                 groups[key] = {
@@ -778,97 +814,77 @@ class OutboundOrderStatus(models.Model):
     # 禾迈 -出库结果
     def action_set_outbound_result_sync(self):
         for order in self:
-            
             if order.project and order.project.name.lower() == 'hoymiles':
-                payload = payload = {
-                            "thirdPartyWsCode": "WD",
-                            "thirdPartyWsName": "WD warehouse",                            
-                            "attribute1": "",
-                            "attribute2": "",
-                            "attribute3": "",
-                            "attribute4": "",
-                            "attribute5": "",
-                            "attribute6": "",
-                            "attribute7": "",
-                            "attribute8": "",
-                            "attribute9": "",
-                            "attribute10": "",
-                            "lines": [],
-                            "serials": []
-                        }
-                picks=self.env['stock.picking'].search([('outbound_order_id','=',order.id),('state','=','done')])
-                outbounds = order.env['stock.picking'].sudo().browse()
-                for pick in picks:
-                    current_outbound_list = self.env['stock.picking'].search(
-                        [('origin', '=', pick.name), ('picking_type_code', '=', 'outgoing')])
-                    if not current_outbound_list :
-                        current_outbound_list = pick.move_ids.move_dest_ids.picking_id.filtered(
-                            lambda picking: picking.picking_type_code == 'outgoing' and picking.state != 'cancel'
-                        )
-                    if not current_outbound_list :
-                        current_outbound_list = order.env['stock.picking'].sudo().search([
+                picking_model = self.env['stock.picking']
+                outbound_picking_list = order.get_hoymiles_outbound_sync_picking_list()
+                if not outbound_picking_list:
+                    outbound_picking_list = picking_model
+                    picking_list = picking_model.sudo().search([
+                        ('outbound_order_id', '=', order.id),
+                        ('state', '=', 'done'),
+                    ])
+                    for picking in picking_list:
+                        outbound_picking_list |= picking_model.sudo().search([
+                            ('origin', '=', picking.name),
                             ('picking_type_code', '=', 'outgoing'),
-                            ('state', '!=', 'cancel'),
-                            ('move_ids.move_orig_ids.picking_id', '=', pick.id),
+                            ('state', '=', 'done'),
                         ])
-                    outbounds |=current_outbound_list
-                    local_time = self.get_local_time('NL', outbounds[0].date_done if outbounds else None)
-                    if order.outbound_result_sync_time_user:
-                        local_time = order.outbound_result_sync_time_user
-                        
-                    if outbounds:
-                        payload.update({
-                            "wsOpOrderNo": outbounds[0].name if outbounds else "",
-                            "reference": order.reference,
-                            "operationTime": local_time.strftime("%Y-%m-%d %H:%M:%S"),
-                        })  
-                        # Aggregate shipped quantities grouped by product barcode
-                        groups = {}
-                        for outbound in outbounds:
-                            for move in outbound.move_ids:
-                                try:
-                                    prod = getattr(move, 'product_id', None)
-                                    # prefer barcode, fallback to default_code or empty string
-                                    barcode = ''
-                                    if prod:
-                                        barcode = (getattr(prod, 'barcode', None) or getattr(prod, 'default_code', '') or '')
+                    outbound_picking_list = outbound_picking_list.sorted('id')
 
-                                    # quantity field may be named differently; try common names
-                                    qty = getattr(move, 'quantity', None)
-                                    if qty is None:
-                                        qty = getattr(move, 'product_uom_qty', None)
-                                    if qty is None:
-                                        qty = getattr(move, 'product_qty', None)
-                                    if qty is None:
-                                        qty = 0
-                                    try:
-                                        qty_val = float(qty)
-                                    except Exception:
-                                        qty_val = 0.0
+                if not outbound_picking_list:
+                    raise UserError("No completed outgoing picking was found for this outbound order.")
 
-                                    key = barcode or '__UNKNOWN__'
-                                    if key not in groups:
-                                        groups[key] = {
-                                            'itemNum': barcode,
-                                            'shipQuantity': 0.0,
-                                        }
-                                    groups[key]['shipQuantity'] += qty_val
-                                except Exception:
-                                    _logger.exception('Failed to aggregate move %s for outbound result', getattr(move, 'id', False))
+                latest_done_datetime = max(outbound_picking_list.mapped('date_done'))
+                local_time = self.get_local_time('NL', latest_done_datetime)
+                if order.outbound_result_sync_time_user:
+                    local_time = order.outbound_result_sync_time_user
 
-                        # Build payload lines from aggregated groups
-                        for g in groups.values():
-                            try:
-                                ship_qty = int(g.get('shipQuantity') or 0)
-                            except Exception:
-                                ship_qty = 0
-                            payload['lines'].append({
-                                'itemNum': g.get('itemNum', ''),
-                                'shipQuantity': ship_qty,
-                                'shipTime': local_time.strftime("%Y-%m-%d %H:%M:%S"),
-                            })
-                            
-                            
+                payload = {
+                    "thirdPartyWsCode": "WD",
+                    "thirdPartyWsName": "WD warehouse",
+                    "wsOpOrderNo": ','.join(outbound_picking_list.mapped('name')),
+                    "reference": order.reference,
+                    "operationTime": local_time.strftime("%Y-%m-%d %H:%M:%S"),
+                    "attribute1": "",
+                    "attribute2": "",
+                    "attribute3": "",
+                    "attribute4": "",
+                    "attribute5": "",
+                    "attribute6": "",
+                    "attribute7": "",
+                    "attribute8": "",
+                    "attribute9": "",
+                    "attribute10": "",
+                    "lines": [],
+                    "serials": []
+                }
+                groups = {}
+                for outbound_picking in outbound_picking_list:
+                    for move in outbound_picking.move_ids:
+                        try:
+                            product = getattr(move, 'product_id', None)
+                            barcode = ''
+                            if product:
+                                barcode = getattr(product, 'barcode', None) or getattr(product, 'default_code', '') or ''
+                            quantity = getattr(move, 'quantity', None)
+                            if quantity is None:
+                                quantity = getattr(move, 'product_uom_qty', None)
+                            if quantity is None:
+                                quantity = getattr(move, 'product_qty', None)
+                            quantity = float(quantity or 0.0)
+                            key = barcode or '__UNKNOWN__'
+                            if key not in groups:
+                                groups[key] = {'itemNum': barcode, 'shipQuantity': 0.0}
+                            groups[key]['shipQuantity'] += quantity
+                        except Exception:
+                            _logger.exception('Failed to aggregate move %s for outbound result', getattr(move, 'id', False))
+
+                for group in groups.values():
+                    payload['lines'].append({
+                        'itemNum': group.get('itemNum', ''),
+                        'shipQuantity': int(group.get('shipQuantity') or 0),
+                        'shipTime': local_time.strftime("%Y-%m-%d %H:%M:%S"),
+                    })
 
                 token = order.env['hoymiles.token.utils'].get_oauth_token()
 

@@ -61,6 +61,8 @@ class InboundOrderAPI(http.Controller):
                 'remark': data.get('remark', False),
                 'remark1': data.get('remark1', False),
                 'project': odoo_project.id if odoo_project else False,
+                'warehouse': odoo_project.warehouse.id if odoo_project and odoo_project.warehouse else False,
+                'pick_type': odoo_project.inbound_pick_type.id if odoo_project and odoo_project.inbound_pick_type else False,
                 'inbound_order_product_ids': [],
             }
 

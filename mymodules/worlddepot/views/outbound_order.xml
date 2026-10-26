@@ -172,7 +172,7 @@
                                     <field name="remark"/>
                                     <field name="locations" readonly="1" optional="show"/>
                                     <field name="weight" optional="show"/>
-                                    <field name="weight_subtotal" optional="show"/>
+                                    <field name="weight_subtotal" readonly="1" optional="show"/>
                                     <!--<field name="is_outbound_handling"/>
                                     <field name="outbound_handling_price"/>
                                     <field name="outbound_handling_unit"/>
@@ -213,14 +213,14 @@
                         </page>
                         <page string="Charges">
                             <field name="outbound_order_charge_ids" readonly="state=='cancel'">
-                                <list>
+                                <list editable="bottom">
                                     <field name="charge_item_id"/>
+<!--                                    <field name="charge_unit_id"/>-->
                                     <field name="quantity" sum="Total Quantity"/>
-                                    <field name="charge_unit_name"/>
-                                    <field name="charge_unit_id"/>
+                                    <field name="currency_id"/>
+<!--                                    <field name="charge_unit_name"/>-->
                                     <field name="unit_price"/>
                                     <field name="amount" sum="Total Amount"/>
-                                    <field name="currency_id"/>
                                 </list>
                             </field>
                         </page>
@@ -420,7 +420,7 @@
                         <field name="remark" readonly="outbound_order_state != 'new'"/>
                         <field name="locations" readonly="1" optional="show"/>
                         <field name="weight" optional="show"/>
-                        <field name="weight_subtotal" optional="show" readonly="outbound_order_state != 'new'"/>
+                        <field name="weight_subtotal" optional="show" readonly="1"/>
                     </group>
                 </sheet>
                 <chatter/>
