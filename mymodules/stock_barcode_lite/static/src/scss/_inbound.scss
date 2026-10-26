@@ -167,6 +167,26 @@
 // Actual pallet binding: keep one vertical scroll area on PDA so expanding
 // expected products does not hand scrolling between the page and pallet list.
 @media (max-width: 768px), (pointer: coarse) {
+    // Inbound flow: pin everything above the step bar and let the page scroll as one area.
+    .o_sbl_inbound_flow {
+        > .o_sbl_inbound_flow_sticky_top {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            flex: 0 0 auto;
+            background: #fff;
+        }
+
+        .o_sbl_pallets {
+            flex: 0 0 auto;
+            min-height: 0;
+            overflow: visible;
+            margin-bottom: 0;
+            // Keep the fixed footer clear of the last pallet at the page scroll limit.
+            padding-bottom: calc(120px + env(safe-area-inset-bottom)) !important;
+        }
+    }
+
     .o_sbl_actual_pallet_binding {
         .o_sbl_binding_info {
             padding: 4px 10px;
