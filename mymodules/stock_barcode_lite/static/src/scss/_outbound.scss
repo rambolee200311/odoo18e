@@ -148,9 +148,10 @@
     }
 }
 
-// PDA 上固定步骤条以上的页面信息，托盘列表继续由整个页面滚动。
+// PDA 上固定出库页步骤条以上的信息，托盘列表继续由整个页面滚动。
 @media (max-width: 768px), (pointer: coarse) {
-    .o_sbl_inbound.o_sbl_disassembly_outbound {
+    .o_sbl_inbound.o_sbl_disassembly_outbound,
+    .o_sbl_inbound.o_sbl_whole_pallet_outbound {
         .o_sbl_outbound_sticky_top {
             position: sticky;
             top: 0;
