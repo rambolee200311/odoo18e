@@ -464,6 +464,8 @@ msgstr ""
 #. module: worlddepot
 #: model:ir.model.fields.selection,name:worlddepot.selection__world_depot_inbound_order__state__cancel
 #: model:ir.model.fields.selection,name:worlddepot.selection__world_depot_transfer_order__state__cancel
+#: model_terms:ir.ui.view,arch_db:worlddepot.view_inbound_order_search
+#: model_terms:ir.ui.view,arch_db:worlddepot.view_outbound_order_search
 #: model_terms:ir.ui.view,arch_db:worlddepot.view_transfer_order_search
 msgid "Cancelled"
 msgstr "已取消"
@@ -834,6 +836,8 @@ msgstr "用户所在时区的确认时间"
 #. module: worlddepot
 #: model:ir.model.fields.selection,name:worlddepot.selection__world_depot_inbound_order__state__confirm
 #: model:ir.model.fields.selection,name:worlddepot.selection__world_depot_transfer_order__state__confirm
+#: model_terms:ir.ui.view,arch_db:worlddepot.view_inbound_order_search
+#: model_terms:ir.ui.view,arch_db:worlddepot.view_outbound_order_search
 #: model_terms:ir.ui.view,arch_db:worlddepot.view_transfer_order_search
 msgid "Confirmed"
 msgstr "已确认"
@@ -1354,6 +1358,12 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:worlddepot.view_product_import_search
 msgid "Draft"
 msgstr ""
+
+#. module: worlddepot
+#: model_terms:ir.ui.view,arch_db:worlddepot.view_inbound_order_search
+#: model_terms:ir.ui.view,arch_db:worlddepot.view_outbound_order_search
+msgid "Draft Orders"
+msgstr "草稿订单"
 
 #. module: worlddepot
 #: model:ir.model.fields,field_description:worlddepot.field_world_depot_outbound_order__driver_sign_date
@@ -3343,6 +3353,9 @@ msgstr ""
 #: model:ir.model.fields,field_description:worlddepot.field_world_depot_transfer_order__project
 #: model:ir.model.fields,field_description:worlddepot.field_world_depot_transfer_order_line__project
 #: model_terms:ir.ui.view,arch_db:worlddepot.view_charge_summary_form
+#: model_terms:ir.ui.view,arch_db:worlddepot.view_inbound_order_search
+#: model_terms:ir.ui.view,arch_db:worlddepot.view_outbound_order_search
+#: model_terms:ir.ui.view,arch_db:worlddepot.view_transfer_order_search
 msgid "Project"
 msgstr "项目"
 
