@@ -49,10 +49,12 @@ class OutboundOrderStatusHoymilesLimit(models.Model):
     def check_hoymiles_outbound_pack_sn(self):
         for order in self:
             order_sudo = order.sudo()
-            if not order_sudo.picking_PICK:
-                raise UserError("请先生成拣货出库单。")
-            if order_sudo.picking_PICK.state != 'done':
-                raise UserError("拣货出库单未验证，不能回传 SN。")
+            outbound_picking_list = order.get_hoymiles_outbound_sync_picking_list()
+            if not outbound_picking_list:
+                if not order_sudo.picking_PICK:
+                    raise UserError("请先生成拣货出库单。")
+                if order_sudo.picking_PICK.state != 'done':
+                    raise UserError("拣货出库单未验证，不能回传 SN。")
 
             serial_line_list = order_sudo.outbound_order_product_ids.filtered(
                 lambda line: line.product_id.tracking == 'serial')
@@ -60,9 +62,12 @@ class OutboundOrderStatusHoymilesLimit(models.Model):
                 continue
 
             move_env = order.env['stock.move'].sudo()
-            move_list = move_env.search(
-                [('picking_id.outbound_order_id', '=', order.id), ('picking_id.state', '=', 'done'),
-                 ('product_id.tracking', '=', 'serial')])
+            if outbound_picking_list:
+                move_list = move_env.search([('picking_id', 'in', outbound_picking_list.ids), ('product_id.tracking', '=', 'serial')])
+            else:
+                move_list = move_env.search(
+                    [('picking_id.outbound_order_id', '=', order.id), ('picking_id.state', '=', 'done'),
+                     ('product_id.tracking', '=', 'serial')])
             if not move_list:
                 raise UserError("拣货出库单没有找到已验证的 SN 产品移动明细。")
 
@@ -94,33 +99,28 @@ class OutboundOrderStatusHoymilesLimit(models.Model):
             order_sudo = order.sudo()
             picking_env = order.env['stock.picking'].sudo()
             product_env = order.env['product.product'].sudo()
-
-            pick_list = picking_env.search([('outbound_order_id', '=', order.id), ('state', '!=', 'cancel')])
-            if not pick_list:
-                raise UserError("未找到拣货出库单，不能回传出库结果。")
-
-            # not_done_pick_list = pick_list.filtered(lambda picking: picking.state != 'done')
-            # if not_done_pick_list:
-            #     raise UserError("拣货出库单 %s 未验证，不能回传出库结果。" % ', '.join(not_done_pick_list.mapped('name')))
-
-            outbound_list = picking_env.browse()
-            for pick in pick_list:
-                current_outbound_list = picking_env.search([
-                    ('origin', '=', pick.name),
-                    ('picking_type_code', '=', 'outgoing'),
-                    ('state', '!=', 'cancel'),
-                ])
-                if not current_outbound_list:
-                    current_outbound_list = pick.move_ids.move_dest_ids.picking_id.filtered(
-                        lambda picking: picking.picking_type_code == 'outgoing' and picking.state != 'cancel'
-                    )
-                if not current_outbound_list:
+            outbound_list = order.get_hoymiles_outbound_sync_picking_list()
+            if not outbound_list:
+                pick_list = picking_env.search([('outbound_order_id', '=', order.id), ('state', '!=', 'cancel')])
+                if not pick_list:
+                    raise UserError("未找到拣货出库单，不能回传出库结果。")
+                for pick in pick_list:
                     current_outbound_list = picking_env.search([
+                        ('origin', '=', pick.name),
                         ('picking_type_code', '=', 'outgoing'),
                         ('state', '!=', 'cancel'),
-                        ('move_ids.move_orig_ids.picking_id', '=', pick.id),
                     ])
-                outbound_list |= current_outbound_list
+                    if not current_outbound_list:
+                        current_outbound_list = pick.move_ids.move_dest_ids.picking_id.filtered(
+                            lambda picking: picking.picking_type_code == 'outgoing' and picking.state != 'cancel'
+                        )
+                    if not current_outbound_list:
+                        current_outbound_list = picking_env.search([
+                            ('picking_type_code', '=', 'outgoing'),
+                            ('state', '!=', 'cancel'),
+                            ('move_ids.move_orig_ids.picking_id', '=', pick.id),
+                        ])
+                    outbound_list |= current_outbound_list
             if not outbound_list:
                 raise UserError("未找到关联的出库交货单，不能回传出库结果。")
 
@@ -170,7 +170,9 @@ class OutboundOrderStatusHoymilesLimit(models.Model):
             if order.project and (order.project.name or '').lower() == 'hoymiles':
                 if order.set_status_to_pick_finished:
                     return {'type': 'ir.actions.client', 'tag': 'display_notification', 'params': {'title': '提示', 'message': 'Pick Finished 已回传成功，请勿重复回传。', 'type': 'warning', 'sticky': False}}
-                success_log = order.get_hoymiles_success_log('Outbound Order Pick Finished', order.billno or '')
+                outbound_picking_list = order.get_hoymiles_outbound_sync_picking_list()
+                ws_op_order_no = ','.join(outbound_picking_list.mapped('name')) if outbound_picking_list else order.billno or ''
+                success_log = order.get_hoymiles_success_log('Outbound Order Pick Finished', ws_op_order_no)
                 if success_log:
                     order.write({'set_status_to_pick_finished': True, 'set_status_to_pick_finished_time': success_log.request_time or fields.Datetime.now(), 'status_to_pick_finished_error_msg': False})
                     return {'type': 'ir.actions.client', 'tag': 'display_notification', 'params': {'title': '提示', 'message': '已根据成功日志修正 Pick Finished 状态，请勿重复回传。', 'type': 'success', 'sticky': False,'next': {'type': 'ir.actions.client', 'tag': 'soft_reload'},}}
@@ -182,7 +184,13 @@ class OutboundOrderStatusHoymilesLimit(models.Model):
             if order.project and (order.project.name or '').lower() == 'hoymiles':
                 if order.set_outbound_pack_sync:
                     return {'type': 'ir.actions.client', 'tag': 'display_notification', 'params': {'title': '提示', 'message': 'Outbound Pack 已回传成功，请勿重复回传。', 'type': 'warning', 'sticky': False}}
-                success_log = order.get_hoymiles_success_log('Outbound Pack', order.sudo().picking_PICK.name if order.sudo().picking_PICK else '')
+                outbound_picking_list = order.get_hoymiles_outbound_sync_picking_list()
+                if outbound_picking_list:
+                    ws_op_order_no = ','.join(outbound_picking_list.mapped('name'))
+                else:
+                    legacy_picking = order.sudo().picking_PICK
+                    ws_op_order_no = legacy_picking.name if legacy_picking else ''
+                success_log = order.get_hoymiles_success_log('Outbound Pack', ws_op_order_no)
                 if success_log:
                     order.write({'set_outbound_pack_sync': True, 'set_outbound_pack_sync_time': success_log.request_time or fields.Datetime.now(), 'outbound_pack_sync_error_msg': False})
                     return {'type': 'ir.actions.client', 'tag': 'display_notification', 'params': {'title': '提示', 'message': '已根据成功日志修正 Outbound Pack 状态，请勿重复回传。', 'type': 'success', 'sticky': False,'next': {'type': 'ir.actions.client', 'tag': 'soft_reload'},}}
@@ -214,25 +222,26 @@ class OutboundOrderStatusHoymilesLimit(models.Model):
                     return {'type': 'ir.actions.client', 'tag': 'display_notification', 'params': {'title': '提示', 'message': 'Outbound Result 已回传成功，请勿重复回传。', 'type': 'warning', 'sticky': False}}
 
                 picking_env = order.env['stock.picking'].sudo()
-                pick_list = picking_env.search([('outbound_order_id', '=', order.id), ('state', '=', 'done')])
-                outbound_list = picking_env.browse()
+                outbound_list = order.get_hoymiles_outbound_sync_picking_list()
+                if not outbound_list:
+                    pick_list = picking_env.search([('outbound_order_id', '=', order.id), ('state', '=', 'done')])
+                    outbound_list = picking_env.browse()
+                    for pick in pick_list:
+                        current_outbound_list = picking_env.search(
+                            [('origin', '=', pick.name), ('picking_type_code', '=', 'outgoing'), ('state', '!=', 'cancel')])
+                        if not current_outbound_list:
+                            current_outbound_list = pick.move_ids.move_dest_ids.picking_id.filtered(
+                                lambda picking: picking.picking_type_code == 'outgoing' and picking.state != 'cancel'
+                            )
+                        if not current_outbound_list:
+                            current_outbound_list = picking_env.search([
+                                ('picking_type_code', '=', 'outgoing'),
+                                ('state', '!=', 'cancel'),
+                                ('move_ids.move_orig_ids.picking_id', '=', pick.id),
+                            ])
+                        outbound_list |= current_outbound_list
 
-                for pick in pick_list:
-                    current_outbound_list = picking_env.search(
-                        [('origin', '=', pick.name), ('picking_type_code', '=', 'outgoing'), ('state', '!=', 'cancel')])
-                    if not current_outbound_list:
-                        current_outbound_list = pick.move_ids.move_dest_ids.picking_id.filtered(
-                            lambda picking: picking.picking_type_code == 'outgoing' and picking.state != 'cancel'
-                        )
-                    if not current_outbound_list:
-                        current_outbound_list = picking_env.search([
-                            ('picking_type_code', '=', 'outgoing'),
-                            ('state', '!=', 'cancel'),
-                            ('move_ids.move_orig_ids.picking_id', '=', pick.id),
-                        ])
-                    outbound_list |= current_outbound_list
-
-                outbound_result_ws_op_order_no = outbound_list[0].name if outbound_list else ''
+                outbound_result_ws_op_order_no = ','.join(outbound_list.sorted('id').mapped('name'))
                 success_log = order.get_hoymiles_success_log('Outbound Result', outbound_result_ws_op_order_no)
 
                 if success_log:
