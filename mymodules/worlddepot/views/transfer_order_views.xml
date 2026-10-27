@@ -156,6 +156,9 @@
                     <filter name="filter_state_new" string="New" domain="[['state','=','new']]"/>
                     <filter name="filter_state_confirm" string="Confirmed" domain="[['state','=','confirm']]"/>
                     <filter name="filter_state_cancel" string="Cancelled" domain="[['state','=','cancel']]"/>
+                    <group expand="0" string="Group By">
+                        <filter name="group_by_project" string="Project" context="{'group_by': 'project'}"/>
+                    </group>
                 </search>
             </field>
         </record>

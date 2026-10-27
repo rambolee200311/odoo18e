@@ -902,6 +902,34 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
             )
         lot = lots[:1]
         move_line_model = self.env["stock.move.line"]
+        occupied_lines = move_line_model.sudo().search([
+            ("picking_id", "!=", picking.id),
+            ("picking_id.state", "not in", ("done", "cancel")),
+            ("product_id", "=", product.id),
+            ("lot_id", "=", lot.id),
+            ("quantity", ">", 0),
+            ("state", "!=", "cancel"),
+        ], order="picking_id")
+        if occupied_lines:
+            occupied_picking_names = []
+            for occupied_picking in occupied_lines.mapped("picking_id"):
+                occupied_name = occupied_picking.name
+                if occupied_picking.outbound_order_id:
+                    occupied_name = _("%s (Outbound: %s)") % (occupied_name, occupied_picking.outbound_order_id.billno)
+                occupied_picking_names.append(occupied_name)
+            return self.build_outgoing_scan_result(
+                "error",
+                _("Error"),
+                _("Serial number %s is already used by unfinished picking(s): %s") % (code, ", ".join(occupied_picking_names)),
+                barcode=code,
+                picking_id=picking.id,
+                location_id=current_location_id,
+                package_id=package.id,
+                product_id=product.id,
+                action_name="serial_used_by_unfinished_picking",
+                success=False,
+                next_step="scan_serial",
+            )
         quant_model = self.env["stock.quant"]
         duplicate_line = move_line_model.sudo().search([
             ("picking_id", "=", picking.id),
@@ -1283,6 +1311,22 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
         if not lots:
             return self.build_outgoing_scan_result("error", _("Error"), _("Serial number not found for product %s: %s") % (product.display_name, code), barcode=code, picking_id=picking.id, location_id=current_location_id, package_id=package.id, product_id=product.id, action_name="serial_not_found", success=False, next_step="scan_serial")
         lot = lots[:1]
+        occupied_lines = move_line_model.sudo().search([
+            ("picking_id", "!=", picking.id),
+            ("picking_id.state", "not in", ("done", "cancel")),
+            ("product_id", "=", product.id),
+            ("lot_id", "=", lot.id),
+            ("quantity", ">", 0),
+            ("state", "!=", "cancel"),
+        ], order="picking_id")
+        if occupied_lines:
+            occupied_picking_names = []
+            for occupied_picking in occupied_lines.mapped("picking_id"):
+                occupied_name = occupied_picking.name
+                if occupied_picking.outbound_order_id:
+                    occupied_name = _("%s (Outbound: %s)") % (occupied_name, occupied_picking.outbound_order_id.billno)
+                occupied_picking_names.append(occupied_name)
+            return self.build_outgoing_scan_result("error", _("Error"), _("Serial number %s is already used by unfinished picking(s): %s") % (code, ", ".join(occupied_picking_names)), barcode=code, picking_id=picking.id, location_id=current_location_id, package_id=package.id, product_id=product.id, action_name="serial_used_by_unfinished_picking", success=False, next_step="scan_serial")
         duplicate_line = move_line_model.sudo().search([("picking_id", "=", picking.id), ("product_id", "=", product.id), ("lot_id", "=", lot.id), ("outbound_scanned_quantity", ">", 0)], limit=1)
         if duplicate_line:
             return self.build_outgoing_scan_result("error", _("Error"), _("Serial number %s is already scanned on this outgoing picking.") % code, barcode=code, picking_id=picking.id, location_id=current_location_id, package_id=package.id, product_id=product.id, action_name="serial_duplicate_in_picking", success=False, next_step="scan_serial")
