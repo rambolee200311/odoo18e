@@ -7,6 +7,8 @@
             <list>
                 <field name="bonded_book_id"/>
                 <field name="product_id"/>
+                <field name="inbound_tracking_no"/>
+                <field name="customer_batch_no"/>
                 <field name="lot_id"/>
                 <field name="location_id"/>
                 <field name="current_customs_status"/>
@@ -23,14 +25,16 @@
         <field name="name">bonded.stock.form</field>
         <field name="model">bonded.stock</field>
         <field name="arch" type="xml">
-            <form>
+            <form duplicate="false" class="bonded_required_highlight">
                 <sheet>
                     <group>
                         <group string="Stock Info">
-                            <field name="bonded_book_id"/>
-                            <field name="product_id"/>
-                            <field name="lot_id"/>
-                            <field name="location_id"/>
+                            <field name="bonded_book_id" required="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="product_id" required="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="inbound_tracking_no" required="1"/>
+                            <field name="customer_batch_no"/>
+                            <field name="lot_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="location_id" required="1" options="{'no_create': True, 'no_open': True}"/>
                         </group>
                         <group string="Customs">
                             <field name="current_customs_status"/>
@@ -52,17 +56,35 @@
         </field>
     </record>
 
+    <record id="view_bonded_stock_m2o_tracking_list" model="ir.ui.view">
+        <field name="name">bonded.stock.m2o.tracking.list</field>
+        <field name="model">bonded.stock</field>
+        <field name="arch" type="xml">
+            <list string="Bonded Stock" create="false" edit="false" delete="false">
+                <field name="inbound_tracking_no"/>
+                <field name="product_id"/>
+                <field name="customer_batch_no"/>
+                <field name="quantity"/>
+                <field name="current_customs_status"/>
+            </list>
+        </field>
+    </record>
+
+
     <record id="bonded_stock_view_search" model="ir.ui.view">
         <field name="name">bonded.stock.search</field>
         <field name="model">bonded.stock</field>
         <field name="arch" type="xml">
             <search>
                 <field name="product_id"/>
+                <field name="inbound_tracking_no"/>
+                <field name="customer_batch_no"/>
                 <field name="lot_id"/>
                 <field name="location_id"/>
                 <filter name="entrepot" string="Bonded" domain="[('current_customs_status','=','entrepot')]"/>
                 <filter name="vrij" string="Free Circulation" domain="[('current_customs_status','=','vrij')]"/>
-                <filter name="in_transit" string="In T1 Transit" domain="[('current_customs_status','=','in_t1_transit')]"/>
+                <filter name="in_transit" string="In T1 Transit"
+                        domain="[('current_customs_status','=','in_t1_transit')]"/>
                 <filter name="locked" string="Locked" domain="[('locked','=',True)]"/>
                 <separator/>
                 <group expand="0" string="Group By">

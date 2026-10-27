@@ -15,6 +15,8 @@ class BondedBook(models.Model):
                                       help='e.g. NLRTM')
     operator_company = fields.Many2one('res.partner', string='Operator Company', required=True,
                                        domain=[('company_type', '=', 'company')])
+    eori_entity_id = fields.Many2one('bonded.eori.entity', string='EORI Entity', required=True,
+                                     ondelete='restrict', index=True)
     consignor_company = fields.Many2one('res.partner', string='Consignor Company')
     consignee_company = fields.Many2one('res.partner', string='Consignee Company')
     valid_from = fields.Date(string='Valid From', required=True)
@@ -30,6 +32,7 @@ class BondedBook(models.Model):
     value_limit_ids = fields.One2many('bonded.value.limit', 'bonded_book_id', string='Value Limits')
     bonded_product_ids = fields.One2many('bonded.product', 'bonded_book_id', string='Bonded Products')
     customs_file_ids = fields.One2many('bonded.customs.file', 'bonded_book_id', string='Customs Declarations')
+    ledger_lines = fields.One2many('bonded.book.line', 'bonded_book_id', string='Ledger Lines')
 
     # 配置
     shortage_threshold_percent = fields.Float(string='Shortage Threshold (%)', default=1.0,

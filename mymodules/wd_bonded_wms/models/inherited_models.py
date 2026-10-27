@@ -20,18 +20,18 @@ class StockPicking(models.Model):
         for picking in self:
             # ---- 入库: bonded.inbound必须是done ----
             if picking.picking_type_code == 'incoming' and picking.bonded_inbound_id:
-                if picking.bonded_inbound_id.state != 'done':
+                if picking.bonded_inbound_id.state != 'in_progress':
                     raise UserError(_(
                         'Cannot validate stock picking: bonded inbound instruction (%s) '
-                        'is in state "%s". Inbound instruction must be in "done" state first.'
+                        'is in state "%s". Inbound instruction must be in "in progress" state first.'
                         % (picking.bonded_inbound_id.name, picking.bonded_inbound_id.state)
                     ))
             # ---- 出库: bonded.outbound必须是done ----
             if picking.picking_type_code == 'outgoing' and picking.bonded_outbound_id:
-                if picking.bonded_outbound_id.state != 'done':
+                if picking.bonded_outbound_id.state != 'in_progress':
                     raise UserError(_(
                         'Cannot validate stock picking: bonded outbound instruction (%s) '
-                        'is in state "%s". Outbound instruction must be in "done" state first.'
+                        'is in state "%s". Outbound instruction must be in "in progress" state first.'
                         % (picking.bonded_outbound_id.name, picking.bonded_outbound_id.state)
                     ))
         result = super(StockPicking, self).button_validate()
@@ -39,9 +39,9 @@ class StockPicking(models.Model):
         for picking in self:
             try:
                 if picking.picking_type_code == 'incoming' and picking.bonded_inbound_id:
-                    picking.bonded_inbound_id._action_done()
+                    picking.bonded_inbound_id.action_done()
                 if picking.picking_type_code == 'outgoing' and picking.bonded_outbound_id:
-                    picking.bonded_outbound_id._action_done()
+                    picking.bonded_outbound_id.action_done()
             except Exception as e:
                 _logger.error("Error in bonded post-validation for picking %s: %s", picking.name, str(e))
         return result
@@ -52,6 +52,8 @@ class StockMove(models.Model):
     _inherit = 'stock.move'
 
     bonded_stock_id = fields.Many2one('bonded.stock', string='Bonded Stock', readonly=True, copy=False)
+    bonded_inbound_line_id = fields.Many2one('bonded.inbound.line', string='Bonded Inbound Line', readonly=True, copy=False)
+    bonded_outbound_line_id = fields.Many2one('bonded.outbound.line', string='Bonded Outbound Line', readonly=True, copy=False)
 
 
 # ===== Stock Location 扩展 =====
@@ -106,3 +108,21 @@ class ResUsers(models.Model):
         string='Default Warehouse',
         help='Default warehouse for warehouse operations and record rules',
     )
+
+
+class ResPartner(models.Model):
+    _inherit = 'res.partner'
+
+    eori_number = fields.Char(string='Default EORI Number', index=True)
+    eori_valid_until = fields.Date(string='EORI Valid Until')
+    vat_number = fields.Char(string='VAT Number', index=True)
+    eori_entity_lines = fields.One2many('bonded.eori.entity', 'partner_id', string='EORI Entities')
+    customs_authorization_lines = fields.One2many('bonded.customs.authorization', 'partner_id', string='Customs Authorizations')
+
+
+class ResCompany(models.Model):
+    _inherit = 'res.company'
+
+    eori_number = fields.Char(string='EORI Number', index=True)
+    warehouse_license_no = fields.Char(string='Bonded Warehouse License No.', index=True)
+    warehouse_license_expiry = fields.Date(string='Bonded Warehouse License Expiry')

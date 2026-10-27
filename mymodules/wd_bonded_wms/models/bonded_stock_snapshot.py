@@ -44,8 +44,9 @@ class BondedStockSnapshot(models.Model):
             ('last_snapshot_date', '<', today),
             ('last_snapshot_date', '=', False),
         ]
-        stocks = self.env['bonded.stock'].search(domain)
+        stocks = self.env['bonded.stock'].sudo().search(domain)
         batch = []
+        ledger_batch = []
         for stock in stocks:
             batch.append({
                 'snapshot_date': today,
@@ -59,7 +60,22 @@ class BondedStockSnapshot(models.Model):
                 'currency_id': stock.currency_id.id,
                 'mrn': stock.related_t1_out_mrn or '',
             })
-            stock.last_snapshot_date = today
+            ledger_batch.append({
+                'bonded_book_id': stock.bonded_book_id.id,
+                'date': today,
+                'operation_type': 'snapshot',
+                'product_id': stock.product_id.id,
+                'qty_change': 0.0,
+                'to_status': stock.current_customs_status,
+                'direction': 'none',
+                'ref_doc_no': 'SNAP-%s' % today,
+                'inbound_tracking_no': stock.inbound_tracking_no or 'STOCK-%s' % stock.id,
+                'customer_batch_no': stock.customer_batch_no,
+                'bonded_stock_id': stock.id,
+            })
+            self.env['bonded.stock'].browse(stock.id).write({'last_snapshot_date': today})
         if batch:
             self.create(batch)
+        if ledger_batch:
+            self.env['bonded.book.line'].create(ledger_batch)
         _logger.info('Snapshot generated: %s records', len(batch))

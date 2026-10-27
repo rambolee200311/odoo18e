@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
+from odoo.exceptions import ValidationError
 
 
 class GateArrival(models.Model):
@@ -29,12 +30,10 @@ class GateArrival(models.Model):
     container_no = fields.Char(string='Container Number', required=True)
     seal_no = fields.Char(string='Seal Number', required=True)
     seal_intact = fields.Boolean(string='Seal Intact', default=True, tracking=True)
-    seal_photo = fields.Binary(string='Seal Photo', attachment=True)
-    seal_photo_filename = fields.Char(string='Seal Photo Filename')
+    seal_attachment_line_ids = fields.Many2many('ir.attachment', 'gate_arrival_seal_attachment_rel', 'gate_arrival_id', 'attachment_id', string='Seal Attachments', copy=False)
 
     # POD
-    pod_file = fields.Binary(string='POD File', attachment=True)
-    pod_filename = fields.Char(string='POD Filename')
+    pod_attachment_line_ids = fields.Many2many('ir.attachment', 'gate_arrival_pod_attachment_rel', 'gate_arrival_id', 'attachment_id', string='POD Attachments', copy=False)
 
     # 运输信息
     carrier_id = fields.Many2one('res.partner', string='Carrier', required=True)
@@ -54,17 +53,23 @@ class GateArrival(models.Model):
     ], string='Status', default='pending', required=True, tracking=True)
     t1_closed_date = fields.Datetime(string='T1 Closed Date', readonly=True)
 
-    # 关联入库指令 (Many2many, 支持多T1合并到一个bonded.inbound)
-    bonded_inbound_ids = fields.Many2many(
-        'bonded.inbound',
-        'gate_arrival_bonded_inbound_rel',
-        'gate_arrival_id',
-        'bonded_inbound_id',
-        string='Related Bonded Inbounds'
-    )
+    # 关联入库指令 (每条到仓登记只属于一个入库单)
+    bonded_inbound_id = fields.Many2one('bonded.inbound', string='Bonded Inbound', required=True,
+                                        ondelete='restrict', index=True)
+    inbound_tracking_no = fields.Char(string='Inbound Tracking No.', related='bonded_inbound_id.inbound_tracking_no', readonly=True, store=True, index=True)
 
     remark = fields.Text(string='Remark')
     company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.company)
+
+    @api.constrains('customs_file_id', 'bonded_inbound_id')
+    def check_inbound_link(self):
+        for rec in self:
+            if rec.customs_file_id and rec.customs_file_id.declaration_type != 't1_in':
+                raise ValidationError(_('Gate arrival must be linked to a T1 customs declaration.'))
+            if rec.bonded_inbound_id and rec.bonded_inbound_id.cargo_source == 'direct':
+                raise ValidationError(_('Direct entry inbound cannot have a gate arrival.'))
+            if rec.customs_file_id and rec.bonded_inbound_id and rec.customs_file_id.bonded_book_id != rec.bonded_inbound_id.bonded_book_id:
+                raise ValidationError(_('The T1 customs declaration and bonded inbound must use the same bonded book.'))
 
     _sql_constraints = [
         ('name_uniq', 'unique(name)', 'Gate arrival number must be unique!'),
@@ -79,10 +84,10 @@ class GateArrival(models.Model):
 
     def action_confirm_seal_intact(self):
         """确认封志完好"""
-        self.ensure_one()
-        if not self.seal_photo:
-            raise UserError(_('Please upload seal photo before confirming seal is intact.'))
-        self.seal_intact = True
+        for rec in self:
+            if not rec.seal_attachment_line_ids:
+                raise UserError(_('Please upload seal attachments before confirming seal is intact.'))
+            rec.write({'seal_intact': True})
 
     def action_report_seal_damaged(self):
         """报告封志损坏"""

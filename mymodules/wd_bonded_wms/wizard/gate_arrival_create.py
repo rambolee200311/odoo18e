@@ -10,6 +10,8 @@ class GateArrivalCreate(models.TransientModel):
                                       required=True,
                                       domain=[('declaration_type', '=', 't1_in'),
                                               ('state', '=', 'customs_approved')])
+    bonded_inbound_id = fields.Many2one('bonded.inbound', string='Bonded Inbound', required=True,
+                                        ondelete='restrict')
     container_no = fields.Char(string='Container Number', required=True)
     seal_no = fields.Char(string='Seal Number', required=True)
     carrier_id = fields.Many2one('res.partner', string='Carrier', required=True)
@@ -22,6 +24,7 @@ class GateArrivalCreate(models.TransientModel):
         self.ensure_one()
         gate = self.env['gate.arrival'].create({
             'customs_file_id': self.customs_file_id.id,
+            'bonded_inbound_id': self.bonded_inbound_id.id,
             'container_no': self.container_no,
             'seal_no': self.seal_no,
             'carrier_id': self.carrier_id.id,

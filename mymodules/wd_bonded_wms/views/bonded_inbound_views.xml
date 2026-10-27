@@ -7,6 +7,8 @@
             <list>
                 <field name="name"/>
                 <field name="customs_file_id"/>
+                <field name="bonded_book_id"/>
+                <field name="inbound_tracking_no"/>
                 <field name="expected_date"/>
                 <field name="total_value" widget="monetary"/>
                 <field name="cargo_source"/>
@@ -20,48 +22,57 @@
         <field name="name">bonded.inbound.form</field>
         <field name="model">bonded.inbound</field>
         <field name="arch" type="xml">
-            <form>
+            <form duplicate="false" class="bonded_required_highlight">
                 <header>
                     <button name="action_confirm" string="Confirm" type="object" invisible="state != 'draft'" class="btn-primary"/>
-                    <button name="action_create_picking" string="Create Stock Picking" type="object" invisible="state != 'confirmed'" class="btn-primary"/>
-                    <button name="action_start" string="Start" type="object" invisible="state != 'confirmed'"/>
-                    <button name="action_done" string="Set to Done" type="object" invisible="state not in ('confirmed', 'in_progress')" class="btn-success"/>
-                    <button name="action_cancel" string="Cancel" type="object" invisible="state != 'draft'"/>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,done"/>
+                    <button name="action_create_picking" string="Create Stock Picking" type="object" invisible="state != 'released'" class="btn-primary"/>
+                    <button name="action_start" string="Start" type="object" invisible="state != 'released'"/>
+                    <button name="action_done" string="Set to Done" type="object" invisible="state != 'in_progress'" class="btn-success"/>
+                    <button name="action_cancel" string="Cancel" type="object" invisible="state not in ('draft', 'confirmed', 'declared')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,declared,released,in_progress,done"/>
                 </header>
                 <sheet>
                     <group>
                         <group string="Inbound Info">
                             <field name="name" readonly="1"/>
-                            <field name="bonded_book_id"/>
-                            <field name="customs_file_id"/>
-                            <field name="cargo_source"/>
+                            <field name="bonded_book_id" required="1" readonly="state != 'draft'" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="customs_file_id" readonly="state not in ('draft', 'confirmed')" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="inbound_tracking_no" readonly="1"/>
+                            <field name="cargo_source" readonly="state != 'draft'"/>
+                            <field name="warehouse" required="1" readonly="state != 'draft'" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="pick_type" required="1" readonly="state != 'draft'" domain="[('code', '=', 'incoming'), ('warehouse_id', '=', warehouse)]" options="{'no_create': True, 'no_open': True}"/>
                         </group>
                         <group string="Schedule">
-                            <field name="expected_date"/>
-                            <field name="total_value" widget="monetary"/>
+                            <field name="expected_date" readonly="state != 'draft'"/>
+                            <field name="total_value" readonly="state != 'draft'" widget="monetary"/>
+                            <field name="currency_id" readonly="state != 'draft'" options="{'no_create': True, 'no_open': True}"/>
                         </group>
                     </group>
                     <notebook>
                         <page string="Products">
-                            <field name="line_ids">
+                            <field name="line_ids" readonly="state != 'draft'">
                                 <list editable="bottom">
-                                    <field name="product_id"/>
+                                    <field name="eligible_product_ids" column_invisible="1"/>
+                                    <field name="product_id" domain="[('id', 'in', eligible_product_ids)]"/>
+                                    <field name="customer_batch_no"/>
                                     <field name="planned_qty"/>
                                     <field name="done_qty"/>
-                                    <field name="uom_id"/>
-                                    <field name="customs_file_line_id"/>
+                                    <field name="uom_id" readonly="1"/>
+                                    <field name="customs_file_id" column_invisible="1"/>
+                                    <field name="available_customs_file_line_ids" column_invisible="1"/>
+                                    <field name="customs_file_line_id" domain="[('customs_file_id', '=', parent.customs_file_id), ('product_id', '=', product_id), ('id', 'in', available_customs_file_line_ids)]" readonly="not parent.customs_file_id" options="{'no_create': True, 'no_open': True}"/>
                                 </list>
                             </field>
                         </page>
-                        <page string="Gate Arrivals">
-                            <field name="gate_arrival_ids"/>
+                        <page name="gate_arrivals" string="Gate Arrivals" invisible="cargo_source == 'direct'">
+                            <field name="gate_arrival_ids" readonly="state != 'draft'"/>
                         </page>
                         <page string="Stock Picking">
                             <field name="picking_id" readonly="1"/>
                         </page>
                     </notebook>
                 </sheet>
+                <chatter/>
             </form>
         </field>
     </record>

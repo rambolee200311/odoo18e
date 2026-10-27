@@ -19,7 +19,8 @@ class BondedCustomsFileLine(models.Model):
     currency_id = fields.Many2one('res.currency', string='Currency',
                                   default=lambda self: self.env.ref('base.EUR').id)
     quantity = fields.Float(string='Quantity', required=True, default=1.0)
-    uom_id = fields.Many2one('uom.uom', string='UoM', required=True)
+    uom_id = fields.Many2one('uom.uom', string='UoM', related='product_id.uom_id', readonly=True)
+    eligible_product_ids = fields.Many2many('product.product', compute='_compute_eligible_product_ids')
     marks_numbers = fields.Text(string='Marks & Numbers')
     initial_customs_status = fields.Selection([
         ('entrepot', 'Entrepot (Bonded)'),
@@ -28,3 +29,32 @@ class BondedCustomsFileLine(models.Model):
         ('in_t1_transit', 'In T1 Transit'),
     ], string='Initial Customs Status', required=True, default='entrepot')
     remark = fields.Text(string='Remark')
+
+    @api.depends('customs_file_id.bonded_book_id')
+    def _compute_eligible_product_ids(self):
+        for rec in self:
+            book = rec.customs_file_id.bonded_book_id
+            filings = self.env['bonded.product'].sudo().search([
+                ('bonded_book_id', '=', book.id),
+                ('state', '=', 'active'),
+            ]) if book else self.env['bonded.product']
+            rec.eligible_product_ids = filings.mapped('product_id')
+
+    @api.depends('customs_file_id.declaration_no', 'item_no', 'product_id.display_name', 'hs_code', 'quantity', 'uom_id.display_name')
+    def _compute_display_name(self):
+        for rec in self:
+            parts = []
+            if rec.customs_file_id.declaration_no:
+                parts.append(rec.customs_file_id.declaration_no)
+            if rec.item_no:
+                parts.append('#%s' % rec.item_no)
+            if rec.product_id:
+                parts.append(rec.product_id.display_name)
+            if rec.hs_code:
+                parts.append('HS %s' % rec.hs_code)
+            if rec.quantity:
+                quantity = f'{rec.quantity:g}'
+                if rec.uom_id:
+                    quantity = f'{quantity} {rec.uom_id.display_name}'
+                parts.append(quantity)
+            rec.display_name = ' / '.join(parts) or str(rec.id)
