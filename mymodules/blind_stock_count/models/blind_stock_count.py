@@ -222,7 +222,7 @@ class BlindStockCount(models.Model):
 
     @api.model
     def get_scannable_work_packages(self):
-        work_packages = self.env["blind.stock.count.work.package"].sudo().search([("state", "=", "in_progress")], order="id desc")
+        work_packages = self.env["blind.stock.count.work.package"].sudo().search(["|", ("state", "=", "in_progress"), "&", ("state", "=", "done"), ("count_lines.state", "in", ["draft", "counting"])], order="id desc")
         return [{"id": rec.id, "name": rec.display_name, "category_name": rec.category_id.display_name, "owner_name": rec.owner_id.display_name, "location_names": ", ".join(rec.location_line_ids.mapped("display_name"))} for rec in work_packages]
 
     @api.model
@@ -237,7 +237,7 @@ class BlindStockCount(models.Model):
             raise UserError(_("The blind stock count was not found."))
         if not count.work_package_id:
             raise UserError(_("Select a work package on the blind stock count before continuing PDA scanning."))
-        if count.state != "done" and count.work_package_id.state != "in_progress":
+        if count.state != "done" and count.work_package_id.state not in ("in_progress", "done"):
             raise UserError(_("The work package is not active."))
         pallets = self.env["blind.stock.count.pallet"].sudo().search([("blind_stock_count_id", "=", count.id)], order="id desc")
         pallet_data = pallets.get_scan_data()
@@ -269,7 +269,7 @@ class BlindStockCount(models.Model):
         work_package = self.env["blind.stock.count.work.package"].sudo().search([("id", "=", work_package_id)], limit=1)
         if not work_package:
             raise UserError(_("The blind stock count work package was not found."))
-        if work_package.state != "in_progress":
+        if work_package.state not in ("in_progress", "done"):
             raise UserError(_("The work package is not active."))
         counts = self.sudo().search([("work_package_id", "=", work_package.id)], order="id desc")
         return [{"id": rec.id, "name": rec.name, "date": rec.date, "work_package_name": rec.work_package_id.display_name, "location_id": rec.location_id.id, "location_name": rec.location_id.display_name, "recount_round": rec.recount_round, "recounted_from_name": rec.recounted_from_id.name or "", "is_replaced": rec.is_replaced, "state": rec.state} for rec in counts]
