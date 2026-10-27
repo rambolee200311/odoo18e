@@ -141,19 +141,35 @@ class BlindStockCountClearanceBatch(models.Model):
                             quant_model._update_reserved_quantity(product, location, target_reserved_quantity - reserved_quantity, lot_id=lot, package_id=package, owner_id=owner)
                             released_orphan_reservation_quant_count += len(quants)
                             released_orphan_reservation_quantity += reserved_quantity - target_reserved_quantity
-                    negative_quant_ids = quant_model.sudo().search(quant_domain + [("quantity", "<", 0)], order="location_id, product_id, id").ids
-                    if negative_quant_ids:
+                    quant_groups = quant_model.sudo()._read_group(quant_domain + [("quantity", "!=", 0)], ["product_id", "location_id", "lot_id", "package_id", "owner_id"], ["quantity:sum", "id:recordset"])
+                    negative_groups = [(product, location, lot, package, owner, quantity, quants) for product, location, lot, package, owner, quantity, quants in quant_groups if float_compare(quantity, 0, precision_rounding=product.uom_id.rounding) < 0]
+                    if negative_groups:
                         if not (self.env.user.has_group("stock.group_stock_manager") or self.env.user.has_group("base.group_system")):
                             raise UserError(_("Inventory Manager permission is required to normalize negative stock before clearance generation."))
-                        quant_model.browse(negative_quant_ids).with_context(inventory_mode=True, set_inventory_quantity_auto_apply=True).write({"inventory_quantity_auto_apply": 0})
-                    quants = quant_model.sudo().search(quant_domain + [("quantity", ">", 0)], order="location_id, product_id, id")
-                    if not quants:
+                        adjustment_quant_ids = []
+                        for product, location, lot, package, owner, quantity, group_quants in negative_groups:
+                            quant = quant_model.browse(group_quants[0].id)
+                            quant.with_context(inventory_mode=True).write({"inventory_quantity": quant.quantity - quantity})
+                            adjustment_quant_ids.append(quant.id)
+                        quant_model.browse(adjustment_quant_ids).with_context(inventory_mode=True, set_inventory_quantity_auto_apply=True).action_apply_inventory()
+                    quant_groups = quant_model.sudo()._read_group(quant_domain + [("quantity", "!=", 0)], ["product_id", "location_id", "lot_id", "package_id", "owner_id"], ["quantity:sum", "id:recordset"])
+                    remaining_negative_groups = [(product, location) for product, location, lot, package, owner, quantity, group_quants in quant_groups if float_compare(quantity, 0, precision_rounding=product.uom_id.rounding) < 0]
+                    if remaining_negative_groups:
+                        raise UserError(_("Negative stock remains after normalization for product %(product)s at %(location)s.", product=remaining_negative_groups[0][0].display_name, location=remaining_negative_groups[0][1].display_name))
+                    quant_lines = [(product, location, lot, package, owner, quantity) for product, location, lot, package, owner, quantity, group_quants in quant_groups if float_compare(quantity, 0, precision_rounding=product.uom_id.rounding) > 0]
+                    if not quant_lines:
+                        if negative_groups:
+                            rec.write({"state": "done", "source_quant_count": 0, "normalized_negative_quant_count": len(negative_groups), "released_orphan_reservation_quant_count": released_orphan_reservation_quant_count, "released_orphan_reservation_quantity": released_orphan_reservation_quantity, "error_message": False})
+                            message = _("Normalized %s negative stock dimension(s) to zero; no outbound pickings were needed.") % len(negative_groups)
+                            rec.work_package_id.message_post(body=message)
+                            rec.message_post(body=message)
+                            continue
                         raise UserError(_("No on-hand stock matches this work package category and location scope."))
                     chunks = []
                     current_chunk = []
                     product_quants = {}
-                    for quant in quants:
-                        product_quants.setdefault(quant.product_id.id, []).append(quant)
+                    for line in quant_lines:
+                        product_quants.setdefault(line[0].id, []).append(line)
                     for product_lines in product_quants.values():
                         if len(product_lines) <= rec.maximum_lines_per_clearance:
                             if current_chunk and len(current_chunk) + len(product_lines) > rec.maximum_lines_per_clearance:
@@ -174,21 +190,22 @@ class BlindStockCountClearanceBatch(models.Model):
                         chunks.append(current_chunk)
                     for quant_lines in chunks:
                         first_line = quant_lines[0]
-                        picking = picking_model.create({"picking_type_id": rec.work_package_id.clearance_picking_type_id.id, "location_id": first_line.location_id.id, "location_dest_id": rec.work_package_id.clearance_destination_location_id.id, "origin": rec.name, "is_blind_stock_count_clearance": True, "blind_stock_count_work_package_id": rec.work_package_id.id, "blind_stock_count_clearance_batch_id": rec.id})
+                        picking = picking_model.create({"picking_type_id": rec.work_package_id.clearance_picking_type_id.id, "location_id": first_line[1].id, "location_dest_id": rec.work_package_id.clearance_destination_location_id.id, "origin": rec.name, "is_blind_stock_count_clearance": True, "blind_stock_count_work_package_id": rec.work_package_id.id, "blind_stock_count_clearance_batch_id": rec.id})
                         line_groups = {}
-                        for quant in quant_lines:
-                            line_groups.setdefault((quant.product_id.id, quant.location_id.id), []).append(quant)
+                        for line in quant_lines:
+                            line_groups.setdefault((line[0].id, line[1].id), []).append(line)
                         for lines in line_groups.values():
                             first_group_line = lines[0]
-                            move = move_model.create({"name": first_group_line.product_id.display_name, "product_id": first_group_line.product_id.id, "product_uom_qty": sum(line.quantity for line in lines), "product_uom": first_group_line.product_id.uom_id.id, "picking_id": picking.id, "location_id": first_group_line.location_id.id, "location_dest_id": rec.work_package_id.clearance_destination_location_id.id})
-                            move_line_model.create([{"move_id": move.id, "picking_id": picking.id, "product_id": line.product_id.id, "product_uom_id": line.product_id.uom_id.id, "quantity": line.quantity, "location_id": line.location_id.id, "location_dest_id": rec.work_package_id.clearance_destination_location_id.id, "lot_id": line.lot_id.id, "package_id": line.package_id.id, "owner_id": line.owner_id.id} for line in lines])
-                    rec.write({"state": "done", "source_quant_count": len(quants), "normalized_negative_quant_count": len(negative_quant_ids), "released_orphan_reservation_quant_count": released_orphan_reservation_quant_count, "released_orphan_reservation_quantity": released_orphan_reservation_quantity, "error_message": False})
+                            product, location = first_group_line[:2]
+                            move = move_model.create({"name": product.display_name, "product_id": product.id, "product_uom_qty": sum(line[5] for line in lines), "product_uom": product.uom_id.id, "picking_id": picking.id, "location_id": location.id, "location_dest_id": rec.work_package_id.clearance_destination_location_id.id})
+                            move_line_model.create([{"move_id": move.id, "picking_id": picking.id, "product_id": product.id, "product_uom_id": product.uom_id.id, "quantity": quantity, "location_id": location.id, "location_dest_id": rec.work_package_id.clearance_destination_location_id.id, "lot_id": lot.id, "package_id": package.id, "owner_id": owner.id} for product, location, lot, package, owner, quantity in lines])
+                    rec.write({"state": "done", "source_quant_count": sum(len(group_quants) for product, location, lot, package, owner, quantity, group_quants in quant_groups if float_compare(quantity, 0, precision_rounding=product.uom_id.rounding) > 0), "normalized_negative_quant_count": len(negative_groups), "released_orphan_reservation_quant_count": released_orphan_reservation_quant_count, "released_orphan_reservation_quantity": released_orphan_reservation_quantity, "error_message": False})
                     if released_orphan_reservation_quant_count:
                         message = _("Released %s stale reservation quant(s), quantity %s, before clearance generation.") % (released_orphan_reservation_quant_count, released_orphan_reservation_quantity)
                         rec.work_package_id.message_post(body=message)
                         rec.message_post(body=message)
-                    if negative_quant_ids:
-                        message = _("Normalized %s negative stock quant(s) to zero before clearance generation.") % len(negative_quant_ids)
+                    if negative_groups:
+                        message = _("Normalized %s negative stock dimension(s) to zero before clearance generation.") % len(negative_groups)
                         rec.work_package_id.message_post(body=message)
                         rec.message_post(body=message)
                     rec.message_post(body=_("Created %s outbound picking(s) directly from this clearance batch.") % len(chunks))

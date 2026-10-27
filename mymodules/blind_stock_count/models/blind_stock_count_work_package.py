@@ -65,12 +65,9 @@ class BlindStockCountWorkPackage(models.Model):
             return {"type": "ir.actions.act_window", "name": _("Outbound Pickings"), "res_model": "stock.picking", "view_mode": "list,form", "views": [(outbound_picking_list_view.id, "list"), (False, "form")], "domain": [("blind_stock_count_work_package_id", "=", rec.id), ("is_blind_stock_count_clearance", "=", True)], "context": {"create": False, "edit": False, "delete": False}, "target": "current"}
 
     def action_done(self):
-        count_model = self.env["blind.stock.count"]
         for rec in self:
             if rec.state != "in_progress":
                 raise UserError(_("Only in-progress work packages can be completed."))
-            if count_model.sudo().search_count([("work_package_id", "=", rec.id), ("state", "in", ["draft", "counting"])]):
-                raise UserError(_("Complete every blind stock count before completing the work package."))
             if not rec.clearance_picking_type_id or rec.clearance_picking_type_id.code != "outgoing":
                 raise UserError(_("Select a clearance outbound operation type before completing the work package."))
             if not rec.clearance_destination_location_id:
