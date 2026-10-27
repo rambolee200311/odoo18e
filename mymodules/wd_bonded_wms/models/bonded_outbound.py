@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import logging
+
 from odoo import api, fields, models, _
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError,ValidationError
 
 _logger = logging.getLogger(__name__)
 
@@ -37,6 +38,8 @@ class BondedOutbound(models.Model):
     state = fields.Selection([
         ('draft', 'Draft'),
         ('confirmed', 'Confirmed'),
+        ('declared', 'Declared'),
+        ('released', 'Released'),
         ('in_progress', 'In Progress'),
         ('done', 'Done'),
         ('cancelled', 'Cancelled'),
@@ -44,7 +47,10 @@ class BondedOutbound(models.Model):
     line_ids = fields.One2many('bonded.outbound.line', 'bonded_outbound_id', string='Products')
     remark = fields.Text(string='Remark')
     company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.company)
-
+    warehouse = fields.Many2one('stock.warehouse', string='Warehouse', tracking=True,
+                                stored=True)
+    pick_type = fields.Many2one('stock.picking.type', string='Picking Type', tracking=True,
+                                domain=[('code', '=', 'incoming')])
     _sql_constraints = [
         ('name_uniq', 'unique(name)', 'Outbound number must be unique!'),
     ]
@@ -57,119 +63,140 @@ class BondedOutbound(models.Model):
         return super().create(vals_list)
 
     def action_confirm(self):
-        """确认出库指令 - T1场景自动由customs_approved触发"""
         for rec in self:
-            # ---- F-05前置校验 ----
-            if rec.customs_file_id.state not in ('customs_approved', 'done'):
-                raise UserError(_(
-                    'Bonded outbound instruction (%s) cannot be confirmed:\n'
-                    'related customs declaration (%s) is in state "%s".'
-                    % (rec.name, rec.customs_file_id.declaration_no, rec.customs_file_id.state)
-                ))
-            # T1出库 + B3出库: 锁定库存
-            rec._lock_stock()
-            rec.state = 'confirmed'
+            if not rec.line_ids:
+                raise UserError(_('Please add outbound lines before confirming.'))
+            for line in rec.line_ids:
+                if not line.bonded_stock_id:
+                    raise UserError(_('Please select bonded stock for each outbound line.'))
+                if line.bonded_stock_id.current_customs_status != 'entrepot':
+                    raise UserError(_('Only bonded stock in entrepot status can be outbound.'))
+                if line.bonded_stock_id.quantity < line.demand_qty:
+                    raise UserError(_('Insufficient bonded stock for tracking no. %s.') % line.inbound_tracking_no)
+            rec.write({'state': 'confirmed'})
 
     def action_start(self):
-        self.filtered(lambda r: r.state == 'confirmed').write({'state': 'in_progress'})
-
-    def _action_done(self):
-        """指令完成 - 由stock.picking完成时调用"""
         for rec in self:
-            if rec.state not in ('confirmed', 'in_progress'):
-                raise UserError(_('Only confirmed/in-progress instructions can be set to done.'))
-            rec.state = 'done'
-            if rec.picking_id:
-                for move_line in rec.picking_id.move_line_ids:
-                    # 查找对应的bonded.stock
-                    bonded_stock = self.env['bonded.stock'].search([
-                        ('product_id', '=', move_line.product_id.id),
-                        ('location_id', '=', move_line.location_id.id),
-                        ('current_customs_status', '=', 'entrepot'),
-                        ('locked', '=', True),
-                        ('quantity', '>', 0),
-                    ], order='inbound_date, id', limit=1)
-                    if bonded_stock:
-                        to_status = 'in_t1_transit' if rec.outbound_type == 't1_transit' else 'vrij'
-                        bonded_stock.write({
-                            'current_customs_status': to_status,
-                            'locked': False,
-                            'related_t1_out_mrn': rec.mrn if rec.outbound_type == 't1_transit' else False,
-                        })
-                        # 核销记录
-                        self.env['bonded.verification'].create({
-                            'bonded_book_id': rec.bonded_book_id.id,
-                            'verification_type': 'outbound',
-                            'customs_file_id': rec.customs_file_id.id,
-                            'bonded_stock_id': bonded_stock.id,
-                            'from_status': 'entrepot',
-                            'to_status': to_status,
-                            'quantity': move_line.quantity,
-                            'write_off_value': bonded_stock.unit_value * move_line.quantity,
-                            'operator_id': self.env.user.id,
-                            'mrn': rec.mrn or False,
-                        })
-            # 释放货值额度 (由value.limit compute自动处理)
-            rec.customs_file_id.write({'state': 'done'})
+            if rec.state != 'released':
+                raise UserError(_('Only released outbound instructions can be started.'))
+            rec.write({'state': 'in_progress'})
+
+    def action_done(self):
+        for rec in self:
+            if rec.state != 'in_progress':
+                raise UserError(_('Only in-progress instructions can be set to done.'))
+            if not rec.picking_id:
+                raise UserError(_('Please create and validate a stock picking first.'))
+            for move_line in rec.picking_id.move_line_ids:
+                outbound_line = move_line.move_id.bonded_outbound_line_id
+                if not outbound_line or not outbound_line.bonded_stock_id:
+                    continue
+                source_stock = outbound_line.bonded_stock_id
+                done_qty = move_line.quantity
+                if done_qty <= 0:
+                    continue
+                if source_stock.quantity < done_qty:
+                    raise UserError(_('Outbound quantity exceeds bonded stock quantity for %s.') % source_stock.inbound_tracking_no)
+                to_status = {
+                    't1_transit': 'in_t1_transit',
+                    'destruction': 'destroyed',
+                    're_export': 'rto',
+                }.get(rec.outbound_type, 'vrij')
+                if done_qty < source_stock.quantity:
+                    source_stock.write({'quantity': source_stock.quantity - done_qty, 'locked': False})
+                    moved_stock = self.env['bonded.stock'].create({
+                        'bonded_book_id': source_stock.bonded_book_id.id,
+                        'product_id': source_stock.product_id.id,
+                        'stock_move_line_id': move_line.id,
+                        'lot_id': source_stock.lot_id.id if source_stock.lot_id else False,
+                        'location_id': move_line.location_dest_id.id,
+                        'inbound_tracking_no': source_stock.inbound_tracking_no,
+                        'customer_batch_no': source_stock.customer_batch_no,
+                        'current_customs_status': to_status,
+                        'quantity': done_qty,
+                        'unit_value': source_stock.unit_value,
+                        'currency_id': source_stock.currency_id.id,
+                        'inbound_date': source_stock.inbound_date,
+                        'gate_arrival_ids': [(4, gate.id) for gate in source_stock.gate_arrival_ids],
+                        'related_t1_in_mrn_ids': [(4, mrn.id) for mrn in source_stock.related_t1_in_mrn_ids],
+                        'related_t1_out_mrn': rec.mrn if rec.outbound_type == 't1_transit' else False,
+                    })
+                else:
+                    source_stock.write({
+                        'current_customs_status': to_status,
+                        'locked': False,
+                        'location_id': move_line.location_dest_id.id,
+                        'related_t1_out_mrn': rec.mrn if rec.outbound_type == 't1_transit' else False,
+                    })
+                    moved_stock = source_stock
+                self.env['bonded.verification'].create({
+                    'bonded_book_id': rec.bonded_book_id.id,
+                    'verification_type': 'outbound',
+                    'customs_file_id': rec.customs_file_id.id if rec.customs_file_id else False,
+                    'bonded_stock_id': moved_stock.id,
+                    'from_status': 'entrepot',
+                    'to_status': to_status,
+                    'quantity': done_qty,
+                    'write_off_value': source_stock.unit_value * done_qty,
+                    'operator_id': self.env.user.id,
+                    'mrn': rec.mrn or False,
+                })
+                self.env['bonded.book.line'].create({
+                    'bonded_book_id': rec.bonded_book_id.id,
+                    'date': fields.Date.today(),
+                    'operation_type': 't1_outbound' if rec.outbound_type == 't1_transit' else 'customs_outbound',
+                    'product_id': source_stock.product_id.id,
+                    'qty_change': -done_qty,
+                    'from_status': 'entrepot',
+                    'to_status': to_status,
+                    'direction': 'out',
+                    'ref_doc_no': rec.name,
+                    'inbound_tracking_no': source_stock.inbound_tracking_no,
+                    'customer_batch_no': source_stock.customer_batch_no,
+                    'bonded_stock_id': source_stock.id,
+                    'customs_file_id': rec.customs_file_id.id if rec.customs_file_id else False,
+                    'picking_id': rec.picking_id.id,
+                })
+            rec.write({'state': 'done'})
+            if rec.customs_file_id and rec.customs_file_id.state == 'customs_approved':
+                rec.customs_file_id.write({'state': 'done'})
 
     def action_cancel(self):
-        """取消出库指令 - 自动解锁库存(R1)"""
         for rec in self:
             if rec.state not in ('draft',):
                 raise UserError(_('Only draft outbound instructions can be cancelled.'))
-            # 解锁库存
-            bonded_stocks = self.env['bonded.stock'].search([
-                ('product_id', 'in', rec.line_ids.mapped('product_id').ids),
-                ('locked', '=', True),
-                ('current_customs_status', '=', 'entrepot'),
-            ])
-            bonded_stocks.write({'locked': False})
-            # 记录日志
+            rec.line_ids.mapped('bonded_stock_id').write({'locked': False})
             self.env['bonded.log'].create({
                 'model_name': 'bonded.outbound',
                 'res_id': rec.id,
                 'operation_type': 'action_cancel',
-                'operation_detail': _('Cancelled with stock unlock: %s records') % len(bonded_stocks),
+                'operation_detail': _('Cancelled with stock unlock.'),
             })
-            rec.state = 'cancelled'
+            rec.write({'state': 'cancelled'})
 
-    def _lock_stock(self):
-        """锁定保税库存"""
+    def lock_stock(self):
         for rec in self:
             for line in rec.line_ids:
-                stocks = self.env['bonded.stock'].search([
-                    ('product_id', '=', line.product_id.id),
-                    ('current_customs_status', '=', 'entrepot'),
-                    ('locked', '=', False),
-                    ('quantity', '>', 0),
-                ], order='inbound_date, id')
-                total_available = sum(stocks.mapped('quantity'))
-                if total_available < line.demand_qty:
-                    raise UserError(_(
-                        'Insufficient bonded stock for product %s.\n'
-                        'Available: %s, Required: %s'
-                        % (line.product_id.name, total_available, line.demand_qty)
-                    ))
-                # 按FIFO锁定
-                remaining = line.demand_qty
-                for stock in stocks:
-                    if remaining <= 0:
-                        break
-                    lock_qty = min(stock.quantity, remaining)
-                    stock.write({'locked': True})
-                    remaining -= lock_qty
+                stock = line.bonded_stock_id
+                if not stock:
+                    raise UserError(_('Please select bonded stock for each outbound line.'))
+                if stock.locked:
+                    raise UserError(_('Bonded stock %s is already locked.') % stock.display_name)
+                if stock.current_customs_status != 'entrepot' or stock.quantity < line.demand_qty:
+                    raise UserError(_('Insufficient available bonded stock for %s.') % stock.inbound_tracking_no)
+                stock.write({'locked': True})
 
     def action_create_picking(self):
-        """一键创建stock.picking出库单"""
         self.ensure_one()
-        if self.state != 'confirmed':
-            raise UserError(_('Only confirmed instructions can create pickings.'))
+        if self.state != 'released':
+            raise UserError(_('Only released instructions can create pickings.'))
         if self.picking_id:
             raise UserError(_('Stock picking already exists.'))
+        self.lock_stock()
         picking = self.env['stock.picking'].create({
-            'picking_type_id': self.env.ref('stock.picking_type_out').id,
-            'location_id': self.env.ref('stock.stock_location_stock').id,
-            'location_dest_id': self.env.ref('stock.stock_location_customers').id,
+            'picking_type_id': self.pick_type.id,
+            'location_id': self.pick_type.default_location_src_id.id,
+            'location_dest_id': self.pick_type.default_location_dest_id.id,
             'origin': self.name,
             'bonded_outbound_id': self.id,
         })
@@ -182,11 +209,10 @@ class BondedOutbound(models.Model):
                 'picking_id': picking.id,
                 'location_id': picking.location_id.id,
                 'location_dest_id': picking.location_dest_id.id,
+                'bonded_stock_id': line.bonded_stock_id.id,
+                'bonded_outbound_line_id': line.id,
             })
-        self.write({
-            'picking_id': picking.id,
-            'state': 'in_progress',
-        })
+        self.write({'picking_id': picking.id, 'state': 'in_progress'})
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'stock.picking',
@@ -201,19 +227,33 @@ class BondedOutboundLine(models.Model):
     _description = 'Bonded Outbound Line'
     _order = 'bonded_outbound_id, id'
 
-    bonded_outbound_id = fields.Many2one('bonded.outbound', string='Outbound Instruction',
-                                         required=True, ondelete='cascade', index=True)
-    product_id = fields.Many2one('product.product', string='Product', required=True)
+    bonded_outbound_id = fields.Many2one('bonded.outbound', string='Outbound Instruction', required=True, ondelete='cascade', index=True)
+    bonded_stock_id = fields.Many2one('bonded.stock', string='Bonded Stock', required=True, ondelete='restrict', index=True, domain=[('current_customs_status', '=', 'entrepot'), ('quantity', '>', 0), ('locked', '=', False)])
+    product_id = fields.Many2one('product.product', string='Product', index=True)
+    inbound_tracking_no = fields.Char(string='Inbound Tracking No.', related='bonded_stock_id.inbound_tracking_no', store=True, index=True)
+    customer_batch_no = fields.Char(string='Customer Batch No.', related='bonded_stock_id.customer_batch_no', store=True, index=True)
     demand_qty = fields.Float(string='Demand Qty', required=True, default=1.0)
     done_qty = fields.Float(string='Done Qty', compute='_compute_done_qty', store=True)
     uom_id = fields.Many2one('uom.uom', string='UoM', required=True)
 
-    @api.depends('bonded_outbound_id.picking_id.move_ids')
+    @api.constrains('bonded_stock_id', 'product_id')
+    def check_bonded_stock_product(self):
+        for rec in self:
+            if rec.bonded_stock_id and rec.product_id and rec.bonded_stock_id.product_id != rec.product_id:
+                raise ValidationError(_('Selected inbound tracking stock does not match the product.'))
+
+    @api.onchange('bonded_stock_id')
+    def onchange_bonded_stock_id(self):
+        for rec in self:
+            if rec.bonded_stock_id:
+                rec.uom_id = rec.bonded_stock_id.product_id.uom_id
+
+    @api.depends('bonded_outbound_id.picking_id.move_ids.state', 'bonded_outbound_id.picking_id.move_ids.product_uom_qty')
     def _compute_done_qty(self):
         for rec in self:
             if rec.bonded_outbound_id.picking_id:
                 moves = rec.bonded_outbound_id.picking_id.move_ids.filtered(
-                    lambda m: m.product_id.id == rec.product_id.id and m.state == 'done'
+                    lambda move: move.bonded_outbound_line_id == rec and move.state == 'done'
                 )
                 rec.done_qty = sum(moves.mapped('product_uom_qty'))
             else:

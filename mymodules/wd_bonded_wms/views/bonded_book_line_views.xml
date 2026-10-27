@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="bonded_book_line_view_list" model="ir.ui.view">
+        <field name="name">bonded.book.line.list</field>
+        <field name="model">bonded.book.line</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="date"/>
+                <field name="bonded_book_id"/>
+                <field name="operation_type"/>
+                <field name="product_id"/>
+                <field name="inbound_tracking_no"/>
+                <field name="customer_batch_no"/>
+                <field name="qty_change"/>
+                <field name="running_balance_qty"/>
+                <field name="from_status"/>
+                <field name="to_status"/>
+                <field name="ref_doc_no"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="bonded_book_line_view_form" model="ir.ui.view">
+        <field name="name">bonded.book.line.form</field>
+        <field name="model">bonded.book.line</field>
+        <field name="arch" type="xml">
+            <form duplicate="false" class="bonded_required_highlight">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="date" required="1"/>
+                            <field name="bonded_book_id" required="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="operation_type" required="1"/>
+                            <field name="product_id" required="1" options="{'no_create': True, 'no_open': True}"/>
+                        </group>
+                        <group>
+                            <field name="inbound_tracking_no" required="1"/>
+                            <field name="customer_batch_no"/>
+                            <field name="qty_change" required="1"/>
+                            <field name="running_balance_qty" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="from_status"/>
+                            <field name="to_status"/>
+                            <field name="direction" required="1"/>
+                            <field name="ref_doc_no"/>
+                        </group>
+                        <group>
+                            <field name="bonded_stock_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="customs_file_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="picking_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="verification_id" options="{'no_create': True, 'no_open': True}"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="bonded_book_line_view_search" model="ir.ui.view">
+        <field name="name">bonded.book.line.search</field>
+        <field name="model">bonded.book.line</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="inbound_tracking_no"/>
+                <field name="customer_batch_no"/>
+                <field name="product_id"/>
+                <field name="bonded_book_id"/>
+                <filter name="inbound" string="Inbound" domain="[('direction','=','in')]"/>
+                <filter name="outbound" string="Outbound" domain="[('direction','=','out')]"/>
+                <filter name="snapshot" string="Snapshot" domain="[('operation_type','=','snapshot')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="by_book" string="Bonded Book" context="{'group_by':'bonded_book_id'}"/>
+                    <filter name="by_tracking" string="Tracking No." context="{'group_by':'inbound_tracking_no'}"/>
+                    <filter name="by_operation" string="Operation" context="{'group_by':'operation_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+</odoo>

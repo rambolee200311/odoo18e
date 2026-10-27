@@ -8,6 +8,7 @@
                 <field name="name"/>
                 <field name="customs_office_code"/>
                 <field name="operator_company"/>
+                <field name="eori_entity_id"/>
                 <field name="valid_from"/>
                 <field name="valid_until"/>
                 <field name="state"/>
@@ -19,7 +20,7 @@
         <field name="name">bonded.book.form</field>
         <field name="model">bonded.book</field>
         <field name="arch" type="xml">
-            <form>
+            <form duplicate="false" class="bonded_required_highlight">
                 <header>
                     <button name="action_activate" string="Activate" type="object" invisible="state != 'draft'" class="btn-primary"/>
                     <button name="action_expire" string="Expire" type="object" invisible="state != 'active'"/>
@@ -31,8 +32,9 @@
                         <group string="Book Info">
                             <field name="name" readonly="1"/>
                             <field name="customs_office_code"/>
-                            <field name="operator_company"/>
-                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="operator_company" required="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="eori_entity_id" required="1" options="{'no_create': False, 'no_open': False}"/>
+                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True, 'no_open': True}"/>
                         </group>
                         <group string="Validity">
                             <field name="valid_from"/>
@@ -71,8 +73,22 @@
                                 </list>
                             </field>
                         </page>
+                        <page string="Ledger Lines">
+                            <field name="ledger_lines">
+                                <list>
+                                    <field name="date"/>
+                                    <field name="operation_type"/>
+                                    <field name="product_id"/>
+                                    <field name="inbound_tracking_no"/>
+                                    <field name="qty_change"/>
+                                    <field name="running_balance_qty"/>
+                                    <field name="ref_doc_no"/>
+                                </list>
+                            </field>
+                        </page>
                     </notebook>
                 </sheet>
+                <chatter/>
             </form>
         </field>
     </record>

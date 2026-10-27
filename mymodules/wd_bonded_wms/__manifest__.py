@@ -25,7 +25,8 @@
         'product',
         'mail',
         'worlddepot',
-        'wd_immg',
+        'wd_iffm',
+        'wd_attachment_preview',
     ],
     'data': [
         'security/bonded_security_groups.xml',
@@ -35,6 +36,9 @@
         'data/bonded_charge_seed_data.xml',
         'data/bonded_cron.xml',
         # Views
+        'views/bonded_eori_entity_views.xml',
+        'views/bonded_customs_authorization_views.xml',
+        'views/bonded_book_line_views.xml',
         'views/bonded_book_views.xml',
         'views/bonded_value_limit_views.xml',
         'views/bonded_customs_file_views.xml',
@@ -53,7 +57,11 @@
         # Report
     ],
     'demo': [],
-    'assets': {},
+    'assets': {
+        'web.assets_backend': [
+            'wd_bonded_wms/static/src/scss/bonded_required_field_highlight.scss',
+        ],
+    },
     'installable': True,
     'application': True,
     'license': 'LGPL-3',

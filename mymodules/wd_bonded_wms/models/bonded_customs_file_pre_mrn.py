@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
+import re
+
 from odoo import api, fields, models, _
+from odoo.exceptions import ValidationError
 
 
 class CustomsFilePreMRN(models.Model):
@@ -27,13 +30,16 @@ class CustomsFilePreMRN(models.Model):
          'MRN must be unique per B3 declaration!'),
     ]
 
-    @api.model
+    @api.model_create_multi
     def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get('mrn'):
+                vals['mrn'] = vals['mrn'].strip().upper()
         records = super().create(vals_list)
         for rec in records:
             if rec.mrn:
                 # Auto-link to T1 customs file
-                t1_file = self.env['bonded.customs.file'].search([
+                t1_file = self.env['bonded.customs.file'].sudo().search([
                     ('mrn', '=', rec.mrn),
                     ('declaration_type', 'in', ('t1_in',)),
                 ], limit=1)
@@ -43,3 +49,15 @@ class CustomsFilePreMRN(models.Model):
                         rec.status = 'closed'
                         rec.satisfied_date = t1_file.t1_closed_date
         return records
+
+    def write(self, vals):
+        if vals.get('mrn'):
+            vals['mrn'] = vals['mrn'].strip().upper()
+        return super().write(vals)
+
+    @api.constrains('mrn')
+    def check_mrn(self):
+        pattern = re.compile(r'^\d{2}[A-Z]{2}[A-Z0-9]{14}$')
+        for rec in self:
+            if rec.mrn and not pattern.match(rec.mrn):
+                raise ValidationError(_('MRN must be 18 characters: 2 digits + 2 letters + 14 letters/digits.'))

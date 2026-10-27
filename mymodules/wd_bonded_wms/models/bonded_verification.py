@@ -64,6 +64,7 @@ class BondedVerification(models.Model):
         ('destruction', 'Destruction'),
         ('re_export', 'Re-export'),
         ('shortage', 'Shortage'),
+        ('rto', 'RTO'),
     ], string='Write-off Type')
     customs_approval_no = fields.Char(string='Customs Approval No.',
                                      help='Required for destruction/shortage')
@@ -73,9 +74,42 @@ class BondedVerification(models.Model):
     remark = fields.Text(string='Remark')
 
     def action_approve(self):
-        self.write({'review_status': 'approved', 'review_user_id': self.env.user.id,
-                    'review_date': fields.Datetime.now()})
+        for rec in self:
+            rec.write({'review_status': 'approved', 'review_user_id': self.env.user.id,
+                       'review_date': fields.Datetime.now()})
+            if rec.verification_type not in ('write_off', 'status_change'):
+                continue
+            existing_line = self.env['bonded.book.line'].sudo().search([
+                ('verification_id', '=', rec.id),
+            ], limit=1)
+            if existing_line:
+                continue
+            operation_type = 'status_change'
+            if rec.write_off_type == 'destruction':
+                operation_type = 'destruction'
+            elif rec.write_off_type in ('shortage',):
+                operation_type = 'shortage'
+            elif rec.write_off_type in ('re_export', 'rto'):
+                operation_type = 'rto'
+            qty_change = 0.0 if rec.verification_type == 'status_change' else -abs(rec.quantity)
+            self.env['bonded.book.line'].create({
+                'bonded_book_id': rec.bonded_book_id.id,
+                'date': fields.Date.today(),
+                'operation_type': operation_type,
+                'product_id': rec.bonded_stock_id.product_id.id,
+                'qty_change': qty_change,
+                'from_status': rec.from_status or False,
+                'to_status': rec.to_status,
+                'direction': 'none' if qty_change == 0.0 else 'out',
+                'ref_doc_no': rec.customs_file_id.declaration_no if rec.customs_file_id else 'VER-%s' % rec.id,
+                'inbound_tracking_no': rec.bonded_stock_id.inbound_tracking_no or 'STOCK-%s' % rec.bonded_stock_id.id,
+                'customer_batch_no': rec.bonded_stock_id.customer_batch_no,
+                'bonded_stock_id': rec.bonded_stock_id.id,
+                'customs_file_id': rec.customs_file_id.id if rec.customs_file_id else False,
+                'verification_id': rec.id,
+            })
 
     def action_reject(self):
-        self.write({'review_status': 'rejected', 'review_user_id': self.env.user.id,
-                    'review_date': fields.Datetime.now()})
+        for rec in self:
+            rec.write({'review_status': 'rejected', 'review_user_id': self.env.user.id,
+                       'review_date': fields.Datetime.now()})

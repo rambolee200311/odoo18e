@@ -8,6 +8,7 @@
                 <field name="declaration_no"/>
                 <field name="declaration_type"/>
                 <field name="mrn"/>
+                <field name="declarant_eori_entity_id"/>
                 <field name="consignor_eori"/>
                 <field name="consignee_eori"/>
                 <field name="total_packages"/>
@@ -22,14 +23,14 @@
         <field name="name">bonded.customs.file.form</field>
         <field name="model">bonded.customs.file</field>
         <field name="arch" type="xml">
-            <form>
+            <form duplicate="false" class="bonded_required_highlight">
                 <header>
                     <button name="action_submit" string="Submit" type="object" invisible="state not in ('draft', 'to_be_submitted')" class="btn-primary"/>
                     <button name="action_approve" string="Approve (Simulate)" type="object" invisible="state != 'submitted'" class="btn-success"/>
                     <button name="action_reject" string="Reject" type="object" invisible="state != 'submitted'" class="btn-danger"/>
                     <button name="action_done" string="Set to Done" type="object" invisible="state != 'customs_approved'"/>
                     <button name="action_cancel" string="Cancel" type="object" invisible="state not in ('draft', 'to_be_submitted', 'submitted')"/>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,customs_approved,done"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,customs_approved,done" readonly="1"/>
                 </header>
                 <sheet>
                     <div class="alert alert-warning" role="alert" invisible="pre_condition != 't1_closed'">
@@ -38,25 +39,28 @@
                     <div class="alert alert-danger" role="alert" invisible="state != 'customs_rejected'">
                         <i class="fa fa-times-circle"/> Rejected: <field name="rejection_reason"/>
                     </div>
-                    <group>
+                    <group readonly="state != 'draft'">
                         <group string="Declaration Header (SAD/C88)">
                             <field name="declaration_no" readonly="1"/>
                             <field name="declaration_type"/>
-                            <field name="bonded_book_id"/>
-                            <field name="mrn" placeholder="Auto-filled on T1 approval"/>
+                            <field name="bonded_book_id" required="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="mrn" placeholder="00NLABCDEFGHIJKLMN"/>
                             <field name="customs_code"/>
                         </group>
                         <group string="Parties">
+                            <field name="consignor_eori_entity_id" options="{'no_create': True, 'no_open': True}"/>
                             <field name="consignor_eori"/>
+                            <field name="consignee_eori_entity_id" options="{'no_create': True, 'no_open': True}"/>
                             <field name="consignee_eori"/>
+                            <field name="declarant_eori_entity_id" options="{'no_create': True, 'no_open': True}"/>
                             <field name="declarant_eori"/>
                             <field name="procedure_code"/>
                             <field name="bonded_warehouse_no"/>
                             <field name="previous_doc_no"/>
                         </group>
                         <group string="Transport">
-                            <field name="origin_country_id"/>
-                            <field name="destination_country_id"/>
+                            <field name="origin_country_id" required="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="destination_country_id" required="1" options="{'no_create': True, 'no_open': True}"/>
                             <field name="transport_mode"/>
                             <field name="estimated_distance_km" invisible="transport_mode != 'road'"/>
                             <field name="transit_deadline"/>
@@ -69,15 +73,16 @@
                         </group>
                     </group>
                     <notebook>
-                        <page string="Declaration Lines (Box6)">
+                        <page string="Declaration Lines (Box6)" readonly="state != 'draft'">
                             <field name="line_ids">
                                 <list editable="bottom">
                                     <field name="item_no"/>
-                                    <field name="product_id"/>
+                                    <field name="eligible_product_ids" column_invisible="1"/>
+                                    <field name="product_id" domain="[('id', 'in', eligible_product_ids)]" options="{'no_create': True, 'no_open': True}"/>
                                     <field name="hs_code"/>
-                                    <field name="origin_country_id"/>
+                                    <field name="origin_country_id" options="{'no_create': True, 'no_open': True}"/>
                                     <field name="quantity"/>
-                                    <field name="uom_id"/>
+                                    <field name="uom_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                                     <field name="gross_weight"/>
                                     <field name="net_weight"/>
                                     <field name="line_value" widget="monetary"/>
@@ -85,7 +90,7 @@
                                 </list>
                             </field>
                         </page>
-                        <page string="Pre-conditions (F-02)" invisible="declaration_type != 'b3_in'">
+                        <page string="Pre-conditions (F-02)" invisible="declaration_type != 'b3_in'" readonly="state != 'draft'">
                             <group>
                                 <field name="pre_condition"/>
                                 <field name="pre_satisfied_date" readonly="1"/>
@@ -93,26 +98,39 @@
                             <field name="pre_mrn_ids" context="{'default_customs_file_id': id}">
                                 <list editable="bottom">
                                     <field name="mrn"/>
-                                    <field name="t1_customs_file_id"/>
+                                    <field name="t1_customs_file_id" options="{'no_create': True, 'no_open': True}"/>
                                     <field name="status"/>
                                     <field name="satisfied_date"/>
                                 </list>
                             </field>
                         </page>
                         <page string="Gate Arrivals" invisible="declaration_type not in ('t1_in')">
-                            <field name="gate_arrival_ids"/>
+                            <field name="gate_arrival_ids" readonly="state != 'draft'"/>
+                        </page>
+                        <page string="Bonded Inbounds" invisible="declaration_type != 'b3_in'">
+                            <field name="inbound_ids" readonly="1">
+                                <list create="false" delete="false">
+                                    <field name="name"/>
+                                    <field name="inbound_tracking_no"/>
+                                    <field name="cargo_source"/>
+                                    <field name="expected_date"/>
+                                    <field name="total_value" widget="monetary"/>
+                                    <field name="state"/>
+                                    <field name="picking_id"/>
+                                </list>
+                            </field>
                         </page>
                         <page string="Attachments">
                             <group>
-                                <field name="declaration_file" filename="response_filename"/>
-                                <field name="response_file" filename="response_filename"/>
-                                <field name="response_filename" invisible="1"/>
+                                <field name="declaration_attachment_line_ids" widget="attachment_preview" readonly="state != 'draft'"/>
+                                <field name="response_attachment_line_ids" widget="attachment_preview" readonly="state != 'draft'"/>
                                 <field name="approval_no" readonly="1"/>
                                 <field name="approval_date" readonly="1"/>
                             </group>
                         </page>
                     </notebook>
                 </sheet>
+                <chatter/>
             </form>
         </field>
     </record>
@@ -124,6 +142,7 @@
             <search>
                 <field name="declaration_no"/>
                 <field name="mrn"/>
+                <field name="declarant_eori_entity_id"/>
                 <field name="consignor_eori"/>
                 <field name="consignee_eori"/>
                 <filter name="t1_in" string="T1 In" domain="[('declaration_type','=','t1_in')]"/>

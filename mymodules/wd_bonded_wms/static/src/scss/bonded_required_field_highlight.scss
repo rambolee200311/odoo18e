@@ -1,0 +1,36 @@
+.bonded_required_highlight label.o_required_modifier,
+.bonded_required_highlight .o_required_modifier > label {
+    color: #b42318 !important;
+    font-weight: 700;
+}
+
+.bonded_required_highlight .o_required_modifier .o_input,
+.bonded_required_highlight .o_required_modifier input,
+.bonded_required_highlight .o_required_modifier textarea,
+.bonded_required_highlight .o_required_modifier select {
+    border-left: 4px solid #d92d20 !important;
+    background-color: transparent !important;
+    color: #1f2937 !important;
+    caret-color: #1f2937;
+}
+
+.bonded_required_highlight label.o_required_modifier::after {
+    content: " *";
+    color: #d92d20;
+    font-weight: 800;
+}
+
+.bonded_required_highlight td.o_data_cell .o_required_modifier .o_input,
+.bonded_required_highlight td.o_data_cell .o_required_modifier input,
+.bonded_required_highlight td.o_data_cell .o_required_modifier textarea,
+.bonded_required_highlight td.o_data_cell .o_required_modifier select {
+    border-left: 3px solid #d92d20 !important;
+    box-shadow: none !important;
+    background-color: transparent !important;
+    padding-left: 0 !important;
+    color: inherit !important;
+}
+
+.bonded_required_highlight td.o_data_cell:has(.o_required_modifier) {
+    background-color: transparent !important;
+}

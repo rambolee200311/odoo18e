@@ -1,5 +1,14 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 
+access_bonded_eori_entity,bonded.eori.entity,model_bonded_eori_entity,group_bonded_admin,1,1,1,1
+access_bonded_eori_entity_user,bonded.eori.entity.user,model_bonded_eori_entity,group_bonded_customs_declaration,1,0,0,0
+access_bonded_eori_entity_audit,bonded.eori.entity.audit,model_bonded_eori_entity,group_bonded_customs_audit,1,0,0,0
+access_bonded_customs_authorization,bonded.customs.authorization,model_bonded_customs_authorization,group_bonded_admin,1,1,1,1
+access_bonded_customs_authorization_user,bonded.customs.authorization.user,model_bonded_customs_authorization,group_bonded_customs_declaration,1,0,0,0
+access_bonded_customs_authorization_audit,bonded.customs.authorization.audit,model_bonded_customs_authorization,group_bonded_customs_audit,1,0,0,0
+access_bonded_book_line,bonded.book.line,model_bonded_book_line,group_bonded_warehouse,1,0,0,0
+access_bonded_book_line_review,bonded.book.line.review,model_bonded_book_line,group_bonded_customs_review,1,0,0,0
+access_bonded_book_line_audit,bonded.book.line.audit,model_bonded_book_line,group_bonded_customs_audit,1,0,0,0
 access_bonded_book,bonded.book,model_bonded_book,group_bonded_admin,1,1,1,1
 access_bonded_book_user,bonded.book.user,model_bonded_book,group_bonded_customs_declaration,1,0,0,0
 access_bonded_book_audit,bonded.book.audit,model_bonded_book,group_bonded_customs_audit,1,0,0,0
@@ -53,3 +62,6 @@ access_bonded_verification_system,bonded.verification,model_bonded_verification,
 access_bonded_log_system,bonded.log,model_bonded_log,base.group_system,1,1,1,1
 access_bonded_monthly_report_system,bonded.monthly.report,model_bonded_monthly_report,base.group_system,1,1,1,1
 access_bonded_stock_snapshot_system,bonded.stock.snapshot,model_bonded_stock_snapshot,base.group_system,1,1,1,1
+access_bonded_eori_entity_system,bonded.eori.entity,model_bonded_eori_entity,base.group_system,1,1,1,1
+access_bonded_customs_authorization_system,bonded.customs.authorization,model_bonded_customs_authorization,base.group_system,1,1,1,1
+access_bonded_book_line_system,bonded.book.line,model_bonded_book_line,base.group_system,1,1,1,1
