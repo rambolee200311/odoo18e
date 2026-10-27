@@ -4,6 +4,7 @@ import os
 
 from odoo import _, fields, models
 from odoo.exceptions import UserError
+from odoo.tools.float_utils import float_compare
 
 
 class StockPicking(models.Model):
@@ -66,6 +67,16 @@ class StockPicking(models.Model):
                 with self.env.cr.savepoint():
                     context = {"skip_backorder": True}
                     if rec.is_blind_stock_count_clearance:
+                        move_line_groups = self.env["stock.move.line"].sudo()._read_group([("picking_id", "=", rec.id), ("state", "not in", ["done", "cancel"]), ("quantity_product_uom", ">", 0)], ["product_id", "location_id", "lot_id", "package_id", "owner_id"], ["quantity_product_uom:sum"])
+                        if move_line_groups:
+                            product_ids = list({product.id for product, location, lot, package, owner, quantity in move_line_groups})
+                            location_ids = list({location.id for product, location, lot, package, owner, quantity in move_line_groups})
+                            quant_groups = self.env["stock.quant"].sudo()._read_group([("product_id", "in", product_ids), ("location_id", "in", location_ids)], ["product_id", "location_id", "lot_id", "package_id", "owner_id"], ["quantity:sum"])
+                            quantities = {(product.id, location.id, lot.id, package.id, owner.id): quantity for product, location, lot, package, owner, quantity in quant_groups}
+                            for product, location, lot, package, owner, quantity in move_line_groups:
+                                on_hand = quantities.get((product.id, location.id, lot.id, package.id, owner.id), 0)
+                                if float_compare(on_hand, quantity, precision_rounding=product.uom_id.rounding) < 0:
+                                    raise UserError(_("Insufficient clearance stock: product %(product)s, location %(location)s, lot/SN %(lot)s, package %(package)s, owner %(owner)s, required %(required)s, on hand %(on_hand)s.", product=product.display_name, location=location.display_name, lot=lot.display_name or "-", package=package.display_name or "-", owner=owner.display_name or "-", required=quantity, on_hand=on_hand))
                         context.update({"blind_stock_count_clearance_validation": True, "skip_sanity_check": True})
                     else:
                         context["blind_stock_count_queue_validation"] = True
