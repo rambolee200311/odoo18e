@@ -46,7 +46,7 @@ class OutboundOrder(models.Model):
     pick_type = fields.Many2one('stock.picking.type', string='Picking Type',
                                 tracking=True, help='Picking type for this project', stored=True,
                                 domain=[('code', '=', 'internal')])
-    unload_company = fields.Many2one('res.partner', string='Unload Company/Recipient', tracking=True)
+    unload_company = fields.Many2one('res.partner', string='Unload Company/Recipient',required=True, tracking=True)
     remark = fields.Text(string='Remark')
     remark1 = fields.Text(string='Remark 1')
     reference = fields.Char(string='Reference', required=True, help='Reference for the Order No of Owner',tracking=True )

@@ -33,7 +33,7 @@ class InboundOrderProductsOfPalletInherit(models.Model):
         records = super().create(vals_list)
         for rec in records:
             if rec.product_id and not rec.product_id.weight and rec.weight > 0:
-                rec.product_id.write({
+                rec.product_id.sudo().write({
                     "weight": rec.weight,
                 })
         return records
@@ -49,7 +49,7 @@ class InboundOrderProductsOfPalletInherit(models.Model):
         if "weight" in vals:
             for rec in self:
                 if rec.product_id and not rec.product_id.weight and rec.weight > 0:
-                    rec.product_id.write({
+                    rec.product_id.sudo().write({
                         "weight": rec.weight,
                     })
         return result
