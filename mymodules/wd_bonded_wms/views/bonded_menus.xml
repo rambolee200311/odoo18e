@@ -115,9 +115,21 @@
         <field name="res_model">bonded.stock.snapshot</field>
         <field name="view_mode">list,form</field>
     </record>
-    <record id="action_bonded_charge_unit" model="ir.actions.act_window"><field name="name">Charge Units</field><field name="res_model">bonded.charge.unit</field><field name="view_mode">list,form</field></record>
-    <record id="action_bonded_charge_item" model="ir.actions.act_window"><field name="name">Charge Items</field><field name="res_model">bonded.charge.item</field><field name="view_mode">list,form</field></record>
-    <record id="action_bonded_charge_line" model="ir.actions.act_window"><field name="name">Bonded Charges</field><field name="res_model">bonded.charge.line</field><field name="view_mode">list,form</field></record>
+    <record id="action_bonded_charge_unit" model="ir.actions.act_window">
+        <field name="name">Charge Units</field>
+        <field name="res_model">bonded.charge.unit</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="action_bonded_charge_item" model="ir.actions.act_window">
+        <field name="name">Charge Items</field>
+        <field name="res_model">bonded.charge.item</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="action_bonded_charge_line" model="ir.actions.act_window">
+        <field name="name">Bonded Charges</field>
+        <field name="res_model">bonded.charge.line</field>
+        <field name="view_mode">list,form</field>
+    </record>
 
     <!-- Menus -->
     <menuitem id="menu_bonded_root" name="Bonded WMS" sequence="90" web_icon="wd_bonded_wms,static/description/icon.png"/>

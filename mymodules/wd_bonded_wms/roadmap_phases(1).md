@@ -138,7 +138,7 @@
 
 ### 2.1 仓储计费自动化
 
-现有 `worlddepot` 已有 charge item / charge unit / charge summary 框架，但计费是手动分配的。
+现有 `bonded.charge.item`、`bonded.charge.unit` 和 `bonded.charge.line` 已提供保税计费基础数据与费用明细，计费仍为手动分配。
 
 **新建模型：**
 
@@ -152,7 +152,7 @@
 - 仓储费：每天/每月跑批，计算每票货物在仓天数 × 单价
 - 操作费：入库/出库完成时自动生成
 - 报关费：customs_file submit 时自动生成
-- 结果写入 `world.depot.inbound.order.charge` / `outbound.order.charge`
+- 结果写入 `bonded.charge.line`
 
 **自动触发点：**
 

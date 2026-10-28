@@ -3,7 +3,7 @@
     'name': "World Depot Bonded WMS",
     'summary': "荷兰保税仓管理模块 - Bonded Warehouse Management",
     'description': """
-荷兰保税仓管理模块，覆盖从进口货代口岸端到陆路转运、保税仓入库、仓内监管、出库再转运的全链路。
+荷兰保税仓管理模块，覆盖保税申报、保税仓入出库、仓内监管和出库再转运的全链路。
 
 核心功能:
 - T1/B3海关申报管理 (SAD/C88格式)
@@ -23,8 +23,8 @@
         'base',
         'stock',
         'product',
+        'account',
         'mail',
-        'wd_iffm',
         'wd_attachment_preview',
     ],
     'data': [

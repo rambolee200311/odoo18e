@@ -3,31 +3,107 @@
     <record id="bonded_charge_unit_view_list" model="ir.ui.view">
         <field name="name">bonded.charge.unit.list</field>
         <field name="model">bonded.charge.unit</field>
-        <field name="arch" type="xml"><list><field name="name"/><field name="code"/><field name="active" widget="boolean_toggle"/></list></field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
     </record>
     <record id="bonded_charge_unit_view_form" model="ir.ui.view">
         <field name="name">bonded.charge.unit.form</field>
         <field name="model">bonded.charge.unit</field>
-        <field name="arch" type="xml"><form duplicate="false" class="bonded_required_highlight"><sheet><group><field name="name"/><field name="code"/><field name="active"/></group></sheet></form></field>
+        <field name="arch" type="xml">
+            <form duplicate="false" class="bonded_required_highlight">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="code"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
     </record>
     <record id="bonded_charge_item_view_list" model="ir.ui.view">
         <field name="name">bonded.charge.item.list</field>
         <field name="model">bonded.charge.item</field>
-        <field name="arch" type="xml"><list><field name="name"/><field name="code"/><field name="charge_unit_id"/><field name="default_unit_price" widget="monetary"/><field name="currency_id" optional="hide"/><field name="active" widget="boolean_toggle"/></list></field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="charge_unit_id"/>
+                <field name="default_unit_price" widget="monetary"/>
+                <field name="currency_id" optional="hide"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
     </record>
     <record id="bonded_charge_item_view_form" model="ir.ui.view">
         <field name="name">bonded.charge.item.form</field>
         <field name="model">bonded.charge.item</field>
-        <field name="arch" type="xml"><form duplicate="false" class="bonded_required_highlight"><sheet><group><field name="name"/><field name="code"/><field name="charge_unit_id" options="{'no_create': True, 'no_open': True}"/><field name="default_unit_price" widget="monetary"/><field name="currency_id" options="{'no_create': True, 'no_open': True}"/><field name="active"/></group></sheet></form></field>
+        <field name="arch" type="xml">
+            <form duplicate="false" class="bonded_required_highlight">
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="code"/>
+                        <field name="charge_unit_id" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="default_unit_price" widget="monetary"/>
+                        <field name="currency_id" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
     </record>
     <record id="bonded_charge_line_view_list" model="ir.ui.view">
         <field name="name">bonded.charge.line.list</field>
         <field name="model">bonded.charge.line</field>
-        <field name="arch" type="xml"><list><field name="charge_date"/><field name="bonded_book_id"/><field name="charge_item_id"/><field name="charge_unit_id"/><field name="quantity"/><field name="unit_price" widget="monetary"/><field name="amount" widget="monetary"/><field name="currency_id" optional="hide"/></list></field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="charge_date"/>
+                <field name="bonded_book_id"/>
+                <field name="charge_item_id"/>
+                <field name="charge_unit_id"/>
+                <field name="quantity"/>
+                <field name="unit_price" widget="monetary"/>
+                <field name="amount" widget="monetary"/>
+                <field name="currency_id" optional="hide"/>
+            </list>
+        </field>
     </record>
     <record id="bonded_charge_line_view_form" model="ir.ui.view">
         <field name="name">bonded.charge.line.form</field>
         <field name="model">bonded.charge.line</field>
-        <field name="arch" type="xml"><form duplicate="false" class="bonded_required_highlight"><sheet><group><group string="Charge"><field name="charge_item_id" options="{'no_create': True, 'no_open': True}"/><field name="charge_unit_id" readonly="1" options="{'no_create': True, 'no_open': True}"/><field name="charge_date"/><field name="quantity"/><field name="unit_price" widget="monetary"/><field name="amount" widget="monetary" readonly="1"/><field name="currency_id" options="{'no_create': True, 'no_open': True}"/></group><group string="References"><field name="bonded_book_id" options="{'no_create': True, 'no_open': True}"/><field name="customs_file_id" options="{'no_create': True, 'no_open': True}"/><field name="bonded_inbound_id" options="{'no_create': True, 'no_open': True}"/><field name="bonded_outbound_id" options="{'no_create': True, 'no_open': True}"/><field name="gate_arrival_id" options="{'no_create': True, 'no_open': True}"/><field name="company_id" groups="base.group_multi_company" options="{'no_create': True, 'no_open': True}"/></group></group><group><field name="remark"/></group></sheet></form></field>
+        <field name="arch" type="xml">
+            <form duplicate="false" class="bonded_required_highlight">
+                <sheet>
+                    <group>
+                        <group string="Charge">
+                            <field name="charge_item_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="charge_unit_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="charge_date"/>
+                            <field name="quantity"/>
+                            <field name="unit_price" widget="monetary"/>
+                            <field name="amount" widget="monetary" readonly="1"/>
+                            <field name="currency_id" options="{'no_create': True, 'no_open': True}"/>
+                        </group>
+                        <group string="References">
+                            <field name="bonded_book_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="customs_file_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="bonded_inbound_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="bonded_outbound_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="gate_arrival_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True, 'no_open': True}"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="remark"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
     </record>
 </odoo>
