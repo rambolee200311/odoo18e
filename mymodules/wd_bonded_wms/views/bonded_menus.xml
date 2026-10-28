@@ -115,6 +115,9 @@
         <field name="res_model">bonded.stock.snapshot</field>
         <field name="view_mode">list,form</field>
     </record>
+    <record id="action_bonded_charge_unit" model="ir.actions.act_window"><field name="name">Charge Units</field><field name="res_model">bonded.charge.unit</field><field name="view_mode">list,form</field></record>
+    <record id="action_bonded_charge_item" model="ir.actions.act_window"><field name="name">Charge Items</field><field name="res_model">bonded.charge.item</field><field name="view_mode">list,form</field></record>
+    <record id="action_bonded_charge_line" model="ir.actions.act_window"><field name="name">Bonded Charges</field><field name="res_model">bonded.charge.line</field><field name="view_mode">list,form</field></record>
 
     <!-- Menus -->
     <menuitem id="menu_bonded_root" name="Bonded WMS" sequence="90" web_icon="wd_bonded_wms,static/description/icon.png"/>
@@ -124,6 +127,8 @@
     <menuitem id="menu_bonded_value_limit" name="Value Limits" parent="menu_bonded_masters" action="action_bonded_value_limit" sequence="30"/>
     <menuitem id="menu_bonded_eori_entity" name="EORI Entities" parent="menu_bonded_masters" action="action_bonded_eori_entity" sequence="40"/>
     <menuitem id="menu_bonded_customs_authorization" name="Customs Authorizations" parent="menu_bonded_masters" action="action_bonded_customs_authorization" sequence="50"/>
+    <menuitem id="menu_bonded_charge_unit" name="Charge Units" parent="menu_bonded_masters" action="action_bonded_charge_unit" sequence="60"/>
+    <menuitem id="menu_bonded_charge_item" name="Charge Items" parent="menu_bonded_masters" action="action_bonded_charge_item" sequence="70"/>
     <menuitem id="menu_bonded_customs" name="Customs Declaration" parent="menu_bonded_root" sequence="20"/>
     <menuitem id="menu_bonded_customs_file" name="Customs Files" parent="menu_bonded_customs" action="action_bonded_customs_file" sequence="10"/>
     <menuitem id="menu_bonded_customs_file_t1_in" name="T1 Inbound" parent="menu_bonded_customs" action="action_bonded_customs_file_t1_in" sequence="20"/>
@@ -145,6 +150,8 @@
     <menuitem id="menu_bonded_release_ledger" name="Customs Release Ledger" parent="menu_bonded_ledgers" action="action_bonded_customs_file" sequence="30"/>
     <menuitem id="menu_bonded_mrn_ledger" name="MRN Control Ledger" parent="menu_bonded_ledgers" action="action_bonded_mrn_ledger" sequence="40"/>
     <menuitem id="menu_bonded_verification_ledger" name="Verification Disposal Ledger" parent="menu_bonded_ledgers" action="action_bonded_verification" sequence="50"/>
+    <menuitem id="menu_bonded_finance" name="Finance" parent="menu_bonded_root" sequence="46"/>
+    <menuitem id="menu_bonded_charge_line" name="Bonded Charges" parent="menu_bonded_finance" action="action_bonded_charge_line" sequence="10"/>
     <menuitem id="menu_bonded_monitor" name="Monitoring" parent="menu_bonded_root" sequence="50"/>
     <menuitem id="menu_bonded_log" name="Audit Log" parent="menu_bonded_monitor" action="action_bonded_log" sequence="10"/>
     </data>

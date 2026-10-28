@@ -88,17 +88,6 @@ class ProductProduct(models.Model):
                                                 string='Bonded Product Filings')
 
 
-# ===== Inbound Order Charge 扩展 =====
-class InboundOrderCharge(models.Model):
-    _inherit = 'world.depot.inbound.order.charge'
-
-    gate_arrival_id = fields.Many2one(
-        'gate.arrival',
-        string='Gate Arrival',
-        help='Reference to the gate arrival record for cost splitting',
-    )
-
-
 # ===== Res Users 扩展 =====
 class ResUsers(models.Model):
     _inherit = 'res.users'

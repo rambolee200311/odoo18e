@@ -42,9 +42,7 @@ class GateArrival(models.Model):
     driver_phone = fields.Char(string='Driver Phone')
     arrival_datetime = fields.Datetime(string='Arrival Time', required=True)
 
-    # 费用分摊(R1)
-    charge_line_ids = fields.One2many('world.depot.inbound.order.charge', 'gate_arrival_id', string='Allocated Charges',
-                                      help='Charges allocated to this gate arrival (for cost splitting)')
+    charge_lines = fields.One2many('bonded.charge.line', 'gate_arrival_id', string='Charge Lines')
 
     # 状态
     state = fields.Selection([
