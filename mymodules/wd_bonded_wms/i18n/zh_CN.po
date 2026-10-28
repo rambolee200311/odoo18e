@@ -508,6 +508,7 @@ msgid "Bonded WMS"
 msgstr "保税仓管理"
 
 #. module: wd_bonded_wms
+#: model:ir.module.category,name:wd_bonded_wms.module_category_bonded
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_stock_location__is_bonded
 msgid "Bonded Warehouse"
 msgstr "保税仓库"
