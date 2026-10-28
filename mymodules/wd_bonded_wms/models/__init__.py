@@ -4,6 +4,7 @@ from . import bonded_eori_entity
 from . import bonded_customs_authorization
 from . import bonded_book_line
 from . import bonded_value_limit
+from . import bonded_charge
 from . import bonded_customs_file
 from . import bonded_customs_file_pre_mrn
 from . import bonded_customs_file_line

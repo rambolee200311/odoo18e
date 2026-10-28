@@ -3283,3 +3283,77 @@ msgstr "签收证明附件"
 #: code:addons/wd_bonded_wms/models/gate_arrival.py:0
 msgid "Please upload seal attachments before confirming seal is intact."
 msgstr "确认封志完好前，请先上传封志附件。"
+
+#. module: wd_bonded_wms
+#: model:ir.model,name:wd_bonded_wms.model_bonded_charge_unit
+msgid "Bonded Charge Unit"
+msgstr "保税计费单位"
+
+#. module: wd_bonded_wms
+#: model:ir.model,name:wd_bonded_wms.model_bonded_charge_item
+msgid "Bonded Charge Item"
+msgstr "保税费用项目"
+
+#. module: wd_bonded_wms
+#: model:ir.model,name:wd_bonded_wms.model_bonded_charge_line
+msgid "Bonded Charge Line"
+msgstr "保税费用明细"
+
+#. module: wd_bonded_wms
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_charge_item__charge_unit_id
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_charge_line__charge_unit_id
+msgid "Charge Unit"
+msgstr "计费单位"
+
+#. module: wd_bonded_wms
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_charge_line__charge_item_id
+msgid "Charge Item"
+msgstr "费用项目"
+
+#. module: wd_bonded_wms
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_charge_item__default_unit_price
+msgid "Default Unit Price"
+msgstr "默认单价"
+
+#. module: wd_bonded_wms
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_charge_line__unit_price
+msgid "Unit Price"
+msgstr "单价"
+
+#. module: wd_bonded_wms
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_charge_line__charge_date
+msgid "Charge Date"
+msgstr "计费日期"
+
+#. module: wd_bonded_wms
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_gate_arrival__charge_lines
+msgid "Charge Lines"
+msgstr "费用明细"
+
+#. module: wd_bonded_wms
+#: model:ir.actions.act_window,name:wd_bonded_wms.action_bonded_charge_unit
+#: model:ir.ui.menu,name:wd_bonded_wms.menu_bonded_charge_unit
+msgid "Charge Units"
+msgstr "计费单位"
+
+#. module: wd_bonded_wms
+#: model:ir.actions.act_window,name:wd_bonded_wms.action_bonded_charge_item
+#: model:ir.ui.menu,name:wd_bonded_wms.menu_bonded_charge_item
+msgid "Charge Items"
+msgstr "费用项目"
+
+#. module: wd_bonded_wms
+#: model:ir.actions.act_window,name:wd_bonded_wms.action_bonded_charge_line
+#: model:ir.ui.menu,name:wd_bonded_wms.menu_bonded_charge_line
+msgid "Bonded Charges"
+msgstr "保税费用"
+
+#. module: wd_bonded_wms
+#: model_terms:ir.ui.view,arch_db:wd_bonded_wms.bonded_charge_line_view_form
+msgid "Charge"
+msgstr "计费信息"
+
+#. module: wd_bonded_wms
+#: model_terms:ir.ui.view,arch_db:wd_bonded_wms.bonded_charge_line_view_form
+msgid "References"
+msgstr "关联单据"
