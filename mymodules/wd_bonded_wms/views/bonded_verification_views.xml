@@ -1,1 +1,65 @@
-<?xml version="1.0"?><odoo><record id="tree" model="ir.ui.view"><field name="name">stub.tree</field><field name="model">bonded.verification</field><field name="arch" type="xml"><list><field name="id"/></list></field></record></odoo>
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="bonded_verification_view_list" model="ir.ui.view">
+        <field name="name">bonded.verification.list</field>
+        <field name="model">bonded.verification</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="verification_date"/>
+                <field name="bonded_book_id"/>
+                <field name="verification_type"/>
+                <field name="bonded_stock_id"/>
+                <field name="quantity"/>
+                <field name="from_status"/>
+                <field name="to_status"/>
+                <field name="review_status"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="bonded_verification_view_form" model="ir.ui.view">
+        <field name="name">bonded.verification.form</field>
+        <field name="model">bonded.verification</field>
+        <field name="arch" type="xml">
+            <form duplicate="false" class="bonded_required_highlight">
+                <header>
+                    <button name="action_approve" string="Approve" type="object" class="btn-primary" invisible="review_status != 'pending'"/>
+                    <button name="action_reject" string="Reject" type="object" invisible="review_status != 'pending'"/>
+                    <field name="review_status" widget="statusbar" readonly="1"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group string="Verification">
+                            <field name="bonded_book_id" options="{'no_create': True, 'no_open': True}" readonly="review_status != 'pending'"/>
+                            <field name="verification_type" readonly="review_status != 'pending'"/>
+                            <field name="bonded_stock_id" options="{'no_create': True, 'no_open': True}" readonly="review_status != 'pending'"/>
+                            <field name="customs_file_id" options="{'no_create': True, 'no_open': True}" readonly="review_status != 'pending'"/>
+                            <field name="mrn" readonly="review_status != 'pending'"/>
+                            <field name="verification_date" readonly="review_status != 'pending'"/>
+                            <field name="operator_id" options="{'no_create': True, 'no_open': True}" readonly="review_status != 'pending'"/>
+                        </group>
+                        <group string="Status And Quantity">
+                            <field name="from_status" readonly="review_status != 'pending'"/>
+                            <field name="to_status" readonly="review_status != 'pending'"/>
+                            <field name="quantity" readonly="review_status != 'pending'"/>
+                            <field name="write_off_value" widget="monetary" readonly="review_status != 'pending'"/>
+                            <field name="currency_id" options="{'no_create': True, 'no_open': True}" readonly="review_status != 'pending'"/>
+                            <field name="write_off_type" readonly="review_status != 'pending'"/>
+                            <field name="customs_approval_no" readonly="review_status != 'pending'"/>
+                        </group>
+                    </group>
+                    <group string="Review">
+                        <field name="review_user_id" options="{'no_create': True, 'no_open': True}" readonly="1"/>
+                        <field name="review_date" readonly="1"/>
+                    </group>
+                    <group string="Supporting Documents">
+                        <field name="certificate_file" filename="certificate_filename" readonly="review_status != 'pending'"/>
+                        <field name="certificate_filename" invisible="1"/>
+                        <field name="remark" readonly="review_status != 'pending'"/>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+</odoo>

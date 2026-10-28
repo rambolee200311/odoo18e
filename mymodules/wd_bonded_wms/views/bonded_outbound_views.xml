@@ -7,6 +7,7 @@
             <list>
                 <field name="name"/>
                 <field name="customs_file_id"/>
+                <field name="bonded_book_id"/>
                 <field name="outbound_type"/>
                 <field name="mrn"/>
                 <field name="expected_date"/>
@@ -21,20 +22,20 @@
         <field name="name">bonded.outbound.form</field>
         <field name="model">bonded.outbound</field>
         <field name="arch" type="xml">
-            <form>
+            <form duplicate="false" class="bonded_required_highlight">
                 <header>
                     <button name="action_confirm" string="Confirm" type="object" invisible="state != 'draft'" class="btn-primary"/>
-                    <button name="action_create_picking" string="Create Stock Picking" type="object" invisible="state != 'confirmed'" class="btn-primary"/>
-                    <button name="action_start" string="Start" type="object" invisible="state != 'confirmed'"/>
-                    <button name="action_cancel" string="Cancel" type="object" invisible="state != 'draft'"/>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,done"/>
+                    <button name="action_create_picking" string="Create Stock Picking" type="object" invisible="state != 'released'" class="btn-primary"/>
+                    <button name="action_start" string="Start" type="object" invisible="state != 'released'"/>
+                    <button name="action_cancel" string="Cancel" type="object" invisible="state not in ('draft', 'confirmed', 'declared', 'released')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,declared,released,in_progress,done"/>
                 </header>
                 <sheet>
                     <group>
                         <group string="Outbound Info">
                             <field name="name" readonly="1"/>
-                            <field name="bonded_book_id"/>
-                            <field name="customs_file_id"/>
+                            <field name="bonded_book_id" required="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="customs_file_id" options="{'no_create': True, 'no_open': True}"/>
                             <field name="outbound_type"/>
                         </group>
                         <group string="Schedule">
@@ -47,7 +48,21 @@
                         <page string="Products">
                             <field name="line_ids">
                                 <list editable="bottom">
-                                    <field name="product_id"/>
+                                   <field name="product_id" required="1" readonly="parent.state != 'draft'" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="bonded_stock_id"
+                                           string="Inbound Tracking No."
+                                           required="1"
+                                           readonly="parent.state != 'draft'"
+                                           options="{'no_create': True, 'no_open': True}"
+                                           context="{'outbound_show_tracking_only': 1, 'list_view_ref': 'wd_bonded_wms.view_bonded_stock_m2o_tracking_list'}"
+                                           domain="[('product_id', '=', product_id),
+                                                    ('quantity', '>', 0),
+                                                    ('locked', '=', False),
+                                                    ('current_customs_status', '=', 'entrepot'),
+                                                    ('inbound_id.state', '=', 'done'),
+                                                    ('inbound_id.picking_id.state', '=', 'done')]"/>
+                                    <field name="inbound_tracking_no" column_invisible="1"/>
+                                    <field name="customer_batch_no" readonly="1"/>
                                     <field name="demand_qty"/>
                                     <field name="done_qty"/>
                                     <field name="uom_id"/>
@@ -59,6 +74,7 @@
                         </page>
                     </notebook>
                 </sheet>
+                <chatter/>
             </form>
         </field>
     </record>

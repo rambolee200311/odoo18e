@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
+from odoo.exceptions import UserError
 
 
 class BondedLog(models.Model):
@@ -31,4 +32,4 @@ class BondedLog(models.Model):
         return super().create(vals_list)
 
     def unlink(self):
-        raise models.UserError(_('Bonded log records cannot be deleted!'))
+        raise UserError(_('Bonded log records cannot be deleted!'))

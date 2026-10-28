@@ -28,7 +28,7 @@ class CustomsFileCreateFromHandover(models.TransientModel):
         """R5: 自动检索已完成的T1并建议作为pre_mrn"""
         if self.declaration_type == 'b3_in' and self.handover_id:
             # 查找该handover下所有已done的T1 customs.file
-            t1_files = self.env['bonded.customs.file'].search([
+            t1_files = self.env['bonded.customs.file'].sudo().search([
                 ('handover_id', '=', self.handover_id.id),
                 ('declaration_type', '=', 't1_in'),
                 ('state', '=', 'done'),
@@ -55,7 +55,7 @@ class CustomsFileCreateFromHandover(models.TransientModel):
         }
         # B3 with T1 source: set pre_condition
         if self.declaration_type == 'b3_in':
-            t1_done = self.env['bonded.customs.file'].search([
+            t1_done = self.env['bonded.customs.file'].sudo().search([
                 ('handover_id', '=', self.handover_id.id),
                 ('declaration_type', '=', 't1_in'),
                 ('state', '=', 'done'),

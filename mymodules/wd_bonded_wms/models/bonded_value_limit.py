@@ -35,7 +35,7 @@ class BondedValueLimit(models.Model):
     def _compute_usage(self):
         for rec in self:
             # 已用额度 = 该账册下所有 bonded.stock 的 total_value 之和
-            stocks = self.env['bonded.stock'].search([
+            stocks = self.env['bonded.stock'].sudo().search([
                 ('bonded_book_id', '=', rec.bonded_book_id.id),
                 ('current_customs_status', '=', 'entrepot'),
             ])

@@ -6,6 +6,7 @@
         <field name="arch" type="xml">
             <list>
                 <field name="name"/>
+                <field name="inbound_tracking_no"/>
                 <field name="container_no"/>
                 <field name="mrn"/>
                 <field name="seal_no"/>
@@ -21,7 +22,7 @@
         <field name="name">gate.arrival.form</field>
         <field name="model">gate.arrival</field>
         <field name="arch" type="xml">
-            <form>
+            <form duplicate="false" class="bonded_required_highlight">
                 <header>
                     <button name="action_confirm_seal_intact" string="Confirm Seal Intact" type="object" invisible="state != 'pending'" class="btn-success"/>
                     <button name="action_report_seal_damaged" string="Report Seal Damaged" type="object" invisible="state != 'pending'" class="btn-danger"/>
@@ -34,7 +35,9 @@
                     <group>
                         <group string="Arrival Info">
                             <field name="name" readonly="1"/>
-                            <field name="customs_file_id"/>
+                            <field name="customs_file_id" required="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="bonded_inbound_id" required="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="inbound_tracking_no" readonly="1"/>
                             <field name="mrn" readonly="1"/>
                             <field name="handover_id"/>
                             <field name="arrival_datetime"/>
@@ -43,7 +46,7 @@
                             <field name="container_no"/>
                             <field name="seal_no"/>
                             <field name="seal_intact" widget="boolean_toggle"/>
-                            <field name="seal_photo" widget="binary"/>
+                            <field name="seal_attachment_line_ids" widget="attachment_preview" options="{'accepted_file_extensions': 'image/*,video/*'}" readonly="state == 'closed'"/>
                         </group>
                         <group string="Transport">
                             <field name="carrier_id"/>
@@ -52,18 +55,33 @@
                             <field name="driver_phone"/>
                         </group>
                         <group string="POD">
-                            <field name="pod_file" widget="binary"/>
+                            <field name="pod_attachment_line_ids" widget="attachment_preview" readonly="state == 'closed'"/>
                         </group>
                     </group>
                     <notebook>
-                        <page string="Related Inbounds">
-                            <field name="bonded_inbound_ids"/>
+                        <page string="Related Inbound">
+                            <group>
+                                <field name="bonded_inbound_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                                <field name="inbound_tracking_no" readonly="1"/>
+                            </group>
                         </page>
-                        <page string="Charges (R1)">
-                            <field name="charge_line_ids"/>
+                        <page string="Charges">
+                            <field name="charge_lines">
+                                <list editable="bottom">
+                                    <field name="bonded_book_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="charge_item_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="charge_unit_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="charge_date"/>
+                                    <field name="quantity"/>
+                                    <field name="unit_price" widget="monetary"/>
+                                    <field name="amount" widget="monetary" readonly="1"/>
+                                    <field name="currency_id" column_invisible="1" options="{'no_create': True, 'no_open': True}"/>
+                                </list>
+                            </field>
                         </page>
                     </notebook>
                 </sheet>
+                <chatter/>
             </form>
         </field>
     </record>
