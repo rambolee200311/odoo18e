@@ -10,11 +10,10 @@ class TestProductADR(TransactionCase):
         super().setUp()
         self.product = self.env['product.product'].create({
             'name': 'Test DG Product',
-            'is_dangerous_good': True,
-            'adr_un_number': 'UN1203',
             'adr_class': '3',
             'adr_packing_group': 'II',
         })
+        self.product.product_tmpl_id.write({'is_dg': True, 'un_code': 'UN1203'})
         self.partner = self.env['res.partner'].create({'name': 'Test'})
         self.order = self.env['tlmp.transport.order'].create({
             'transport_type': 'to_customer', 'partner_id': self.partner.id,
@@ -27,8 +26,8 @@ class TestProductADR(TransactionCase):
         })
 
     def test_50_product_adr_fields(self):
-        self.assertTrue(self.product.is_dangerous_good)
-        self.assertEqual(self.product.adr_un_number, 'UN1203')
+        self.assertTrue(self.product.is_dg)
+        self.assertEqual(self.product.un_code, 'UN1203')
         self.assertEqual(self.product.adr_class, '3')
         self.assertEqual(self.product.adr_packing_group, 'II')
 

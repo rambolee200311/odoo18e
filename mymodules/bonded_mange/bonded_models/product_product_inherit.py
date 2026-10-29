@@ -5,24 +5,6 @@ from odoo.addons.bonded_mange.bonded_models.new_models.customs_document_core imp
 class ProductProduct(models.Model):
     _inherit = "product.product"
 
-    origin_country = fields.Many2one("res.country", string="Country of Origin", tracking=True, index=True)
-    goods_value = fields.Monetary(
-        string='Goods Value',
-        currency_field='currency_id',
-        tracking=True)
-    hs_code = fields.Char(string="HS Code", tracking=True, index=True)
-    weight = fields.Float(string="Weight", tracking=True)
-    customs_code = fields.Char(string="Customs Code", tracking=True, index=True)
-    article_number = fields.Char(string="Article Number", tracking=True, index=True)
-    product_description = fields.Char(string="Product Description", tracking=True)
-    technical_description = fields.Text(string="Technical Description", tracking=True)
-
-
-    currency_id = fields.Many2one(
-        'res.currency',
-        string='Currency',
-        default=lambda self: self.env.company.currency_id)
-
     customs_status = fields.Selection(CUSTOMS_STATUS_SELECTION, string="Customs Status", index=True, tracking=True,default="vrij")
 
 

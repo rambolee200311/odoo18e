@@ -7,6 +7,14 @@ from odoo.exceptions import ValidationError
 class ProjectProject(models.Model):
     _inherit = "project.project"
 
+    category = fields.Many2one("product.category", string="Category", index=True, tracking=True)
+    owner = fields.Many2one("res.partner", string="Owner", index=True, tracking=True)
+    inbound_cmr_template_file = fields.Binary(string="Template File(Inbound CMR)", help="Upload the Excel template file.")
+    inbound_cmr_template_file_name = fields.Char(string="Template File Name(Inbound CMR)", help="The name of the uploaded template file.")
+    outbound_cmr_template_file = fields.Binary(string="Template File(Outbound CMR)", help="Upload the Excel template file.")
+    outbound_cmr_template_file_name = fields.Char(string="Template File Name(Outbound CMR)", help="The name of the uploaded template file.")
+    charge_of_pallet = fields.Boolean(string="Charge of Pallet", default=True, tracking=True, help="Whether to charge for pallets.")
+    is_check_origin_doc = fields.Boolean(string="Check Origin Doc", default=True, tracking=True, help="Whether to check the origin document.")
     warehouse = fields.Many2one("stock.warehouse", string="Warehouse", tracking=True)
     inbound_pick_type = fields.Many2one("stock.picking.type", string="Inbound Picking Type", domain=[("code", "=", "incoming")], tracking=True)
     outbound_pick_type = fields.Many2one("stock.picking.type", string="Outbound Picking Type", domain=[("code", "in", ["outgoing", "internal"])], tracking=True)

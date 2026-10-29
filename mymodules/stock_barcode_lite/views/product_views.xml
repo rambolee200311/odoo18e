@@ -20,16 +20,6 @@
         <field name="inherit_id" ref="product.product_template_form_view"/>
         <field name="arch" type="xml">
        <xpath expr="//page[@name='inventory']//div[@name='volume']" position="after">
-            <label for="gross_weight"/>
-            <div class="o_row" name="sunrise_gross_weight">
-                <field name="gross_weight" class="oe_inline"/>
-            </div>
-
-            <label for="product_dimensions"/>
-            <div class="o_row" name="sunrise_product_dimensions">
-                <field name="product_dimensions" class="oe_inline"/>
-            </div>
-
             <label for="sunrise_inbound_box_mode"/>
             <div class="o_row" name="sunrise_inbound_box_mode">
                 <field name="sunrise_inbound_box_mode" readonly="1"/>

@@ -4,7 +4,7 @@
     "summary": "Shared warehouse project configuration",
     "version": "18.0.1.0.0",
     "category": "Operations",
-    "depends": ["base", "mail", "project", "stock"],
+    "depends": ["base", "mail", "project", "product", "stock"],
     "data": [
         "views/project_project_views.xml",
     ],

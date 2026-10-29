@@ -12,7 +12,6 @@ from . import my_stock_reverse_validate
 from . import my_stock_force_validate
 #from . import my_stock_move_validate
 #from . import my_stock_move_line_validate
-from . import my_project
 from . import my_product
 #from . import my_report
 #from . import my_user
