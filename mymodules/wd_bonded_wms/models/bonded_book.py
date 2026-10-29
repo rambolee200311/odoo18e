@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
+from odoo.exceptions import ValidationError
 
 
 class BondedBook(models.Model):
@@ -21,6 +22,8 @@ class BondedBook(models.Model):
     consignee_company = fields.Many2one('res.partner', string='Consignee Company')
     valid_from = fields.Date(string='Valid From', required=True)
     valid_until = fields.Date(string='Valid Until', required=True)
+    currency_id = fields.Many2one('res.currency', related='company_id.currency_id', string='Currency', readonly=True)
+    company_total_value_limit = fields.Monetary(string='Company Total Value Limit', required=True, default=0.0)
     state = fields.Selection([
         ('draft', 'Draft'),
         ('active', 'Active'),
@@ -53,6 +56,17 @@ class BondedBook(models.Model):
             if vals.get('name', _('New')) == _('New'):
                 vals['name'] = self.env['ir.sequence'].next_by_code('seq.bonded.book') or _('New')
         return super().create(vals_list)
+
+    @api.constrains('company_total_value_limit')
+    def check_company_total_value_limit(self):
+        env_bonded_value_limit = self.env['bonded.value.limit'].sudo()
+        for rec in self:
+            project_limit = env_bonded_value_limit.search([
+                ('bonded_book_id', '=', rec.id),
+                ('total_value', '>', rec.company_total_value_limit),
+            ], limit=1)
+            if project_limit:
+                raise ValidationError(_('A project value limit cannot exceed the company total value limit.'))
 
     def action_activate(self):
         self.state = 'active'

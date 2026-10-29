@@ -35,6 +35,8 @@
                             <field name="operator_company" required="1" options="{'no_create': True, 'no_open': True}"/>
                             <field name="eori_entity_id" required="1" options="{'no_create': False, 'no_open': False}"/>
                             <field name="company_id" groups="base.group_multi_company" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="company_total_value_limit" required="1" widget="monetary"/>
+                            <field name="currency_id" readonly="1"/>
                         </group>
                         <group string="Validity">
                             <field name="valid_from"/>
@@ -49,11 +51,11 @@
                         <page string="Value Limits">
                             <field name="value_limit_ids">
                                 <list editable="bottom">
-                                    <field name="limit_type"/>
-                                    <field name="product_category_id"/>
-                                    <field name="total_value" widget="monetary"/>
-                                    <field name="used_value" widget="monetary"/>
-                                    <field name="available_value" widget="monetary"/>
+                                    <field name="project_id" required="1" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                    <field name="total_value" required="1" widget="monetary"/>
+                                    <field name="used_value" readonly="1" widget="monetary"/>
+                                    <field name="available_value" readonly="1" widget="monetary"/>
                                     <field name="effective_date"/>
                                     <field name="expiry_date"/>
                                     <field name="state"/>
