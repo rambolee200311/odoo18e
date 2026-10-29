@@ -55,15 +55,15 @@ class SunriseInboundController(http.Controller, SunriseControllerMixin):
 
                 pallet_data = {}
                 for parsed_line in parsed_lines:
-                    physical_key = parsed_line["physical_key"]
-                    if physical_key not in pallet_data:
-                        pallet_data[physical_key] = {
+                    pallet_no = parsed_line["pallet_no"]
+                    if pallet_no not in pallet_data:
+                        pallet_data[pallet_no] = {
                             "pallet_no": parsed_line["pallet_no"],
                             "pallets": 1,
                             "creation_source": "api",
                             "inbound_order_product_pallet_ids": [],
                         }
-                    pallet_data[physical_key]["inbound_order_product_pallet_ids"].append((0, 0, parsed_line["product_vals"]))
+                    pallet_data[pallet_no]["inbound_order_product_pallet_ids"].append((0, 0, parsed_line["product_vals"]))
 
                 order_vals = {
                     "type": order_type,
@@ -175,7 +175,6 @@ class SunriseInboundController(http.Controller, SunriseControllerMixin):
 
         return {
             "pallet_no": pallet_no,
-            "physical_key": (product_code, lot_name if is_lot == "Y" else "", pallet_no),
             "vsourcebillcode": vsourcebillcode,
             "product_vals": {
                 "product_id": product.id,
