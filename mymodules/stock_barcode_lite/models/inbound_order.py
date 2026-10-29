@@ -869,11 +869,7 @@ class InboundOrderProduct(models.Model):
                 raise UserError(_("Pallet \"%s\" has a product line without a source product code.") % self.pallet_no)
             identities.add((product_code, lot_name))
         if len(identities) != 1:
-            if any(line.product_id.tracking == "serial" for line in self.inbound_order_product_pallet_ids):
-                return "MIXED", ""
-            raise UserError(
-                _("Physical pallet \"%s\" must contain one source product and one lot.") % self.pallet_no
-            )
+            return "MIXED", ""
         return identities.pop()
 
     def validate_sunrise_physical_pallet_identity(self):
@@ -909,6 +905,8 @@ class InboundOrderProduct(models.Model):
     def get_sunrise_package_name(self):
         self.ensure_one()
         product_code, lot_name = self.get_sunrise_physical_pallet_identity()
+        if product_code == "MIXED":
+            return "MIXED-%s" % self.pallet_no
         return "%s-%s-%s" % (lot_name or "NOLOT", product_code, self.pallet_no)
 
     def init(self):
