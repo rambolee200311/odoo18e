@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_inbound_actual_pallet_list" model="ir.ui.view">
+        <field name="name">inbound.actual.pallet.list</field>
+        <field name="model">world.depot.inbound.order.actual.pallet</field>
+        <field name="arch" type="xml">
+            <list string="Actual Pallets" create="false" delete="false">
+                <field name="pallet_no"/>
+                <field name="package_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_inbound_actual_pallet_form" model="ir.ui.view">
+        <field name="name">inbound.actual.pallet.form</field>
+        <field name="model">world.depot.inbound.order.actual.pallet</field>
+        <field name="arch" type="xml">
+            <form string="Actual Pallet" duplicate="false">
+                <header>
+                    <button name="action_void_actual_pallet" type="object" string="Void Empty Pallet" class="btn-secondary" confirm="Void this empty pallet? Its system barcode cannot be reused." invisible="state == 'void' or actual_pallet_structure_locked"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,binding,ready,void" readonly="1"/>
+                </header>
+                <sheet>
+                    <group>
+                        <field name="inbound_order_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="actual_pallet_structure_locked" invisible="1"/>
+<!--                        <field name="pallet_no" readonly="1"/>-->
+                        <field name="package_id" readonly="1" options="{'no_create': True, 'no_open': False}"/>
+                    </group>
+                    <notebook>
+                        <page string="Products">
+                            <field name="product_lines" readonly="state == 'void' or actual_pallet_structure_locked">
+                                <list>
+                                    <field name="available_product_line_ids" column_invisible="1"/>
+                                    <field name="product_id" domain="[('id', 'in', available_product_line_ids)]" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="quantity"/>
+                                </list>
+                                <form string="Actual Pallet Product" duplicate="false">
+                                    <sheet>
+                                        <group>
+                                            <field name="actual_pallet_id" readonly="1" column_invisible="1" options="{'no_create': True, 'no_open': True}"/>
+                                            <field name="available_product_line_ids" invisible="1"/>
+                                            <field name="product_id" domain="[('id', 'in', available_product_line_ids)]" options="{'no_create': True, 'no_open': True}"/>
+                                            <field name="product_tracking" invisible="1"/>
+                                            <field name="quantity" readonly="product_tracking != 'none' and serial_lines"/>
+                                        </group>
+                                        <group string="Lot / Serial Numbers" invisible="product_tracking == 'none'">
+                                            <field name="serial_lines" context="{'default_actual_pallet_id': actual_pallet_id}">
+                                                <list editable="bottom">
+                                                    <field name="actual_pallet_id" column_invisible="1"/>
+                                                    <field name="actual_pallet_product_id" column_invisible="1"/>
+                                                    <field name="serial_number"/>
+                                                    <field name="quantity" readonly="parent.product_tracking == 'serial'"/>
+                                                </list>
+                                            </field>
+                                        </group>
+                                    </sheet>
+                                </form>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_inbound_actual_pallet_difference_list" model="ir.ui.view">
+        <field name="name">inbound.actual.pallet.difference.list</field>
+        <field name="model">world.depot.inbound.order.actual.pallet.difference</field>
+        <field name="arch" type="xml">
+            <list string="Actual Pallet Difference" create="false" delete="false" edit="false">
+                <field name="product_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="product_tracking"/>
+                <field name="original_quantity"/>
+                <field name="actual_scanned_quantity"/>
+                <field name="difference_quantity"/>
+                <field name="actual_pallet_count"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_inbound_actual_pallet_difference_form" model="ir.ui.view">
+        <field name="name">inbound.actual.pallet.difference.form</field>
+        <field name="model">world.depot.inbound.order.actual.pallet.difference</field>
+        <field name="arch" type="xml">
+            <form string="Actual Pallet Difference" duplicate="false">
+                <sheet>
+                    <group>
+                        <field name="inbound_order_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="product_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="product_tracking" readonly="1"/>
+                        <field name="original_quantity" readonly="1"/>
+                        <field name="actual_scanned_quantity" readonly="1"/>
+                        <field name="difference_quantity" readonly="1"/>
+                        <field name="actual_pallet_count" readonly="1"/>
+                    </group>
+                    <group string="Actual Pallets">
+                        <field name="pallet_quantity_lines" readonly="1">
+                            <list create="false" delete="false" edit="false">
+                                <field name="pallet_no"/>
+                                <field name="quantity"/>
+                            </list>
+                        </field>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_inbound_order_actual_pallet_inherit" model="ir.ui.view">
+        <field name="name">inbound.order.actual.pallet.inherit</field>
+        <field name="model">world.depot.inbound.order</field>
+        <field name="inherit_id" ref="stock_barcode_lite.view_chenyang_chemical_inbound_order_form_inherit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_print_system_pallet_labels']" position="attributes">
+                <attribute name="invisible">project_package_generation_mode == 'none'</attribute>
+            </xpath>
+            <xpath expr="//page[.//field[@name='inbound_order_product_ids']]" position="after">
+                <page string="Actual Pallets" invisible="project_pallet_structure_mode != 'unknown'">
+                    <field name="actual_pallet_structure_validated" invisible="1"/>
+                    <field name="actual_pallet_difference_confirmed" invisible="1"/>
+                    <field name="actual_pallet_structure_locked" invisible="1"/>
+                    <button name="action_open_actual_pallet_create_wizard" type="object" string="Create Actual Pallets" class="btn-secondary" icon="fa-cubes" invisible="state != 'new' or actual_pallet_structure_locked"/>
+                    <button name="action_validate_actual_pallets" type="object" string="Validate Actual Pallets" class="btn-primary" icon="fa-check" invisible="state != 'new' or actual_pallet_structure_locked"/>
+                    <field name="actual_pallet_lines" readonly="state != 'new' or actual_pallet_structure_locked" mode="list,form" context="{'default_inbound_order_id': id}">
+                        <list create="false" delete="false">
+                            <field name="pallet_no"/>
+                            <field name="package_id" options="{'no_create': True, 'no_open': False}"/>
+                            <field name="state"/>
+                        </list>
+                    </field>
+                </page>
+                <page string="Actual Pallet Difference" invisible="project_pallet_structure_mode != 'unknown' or not actual_pallet_difference_lines">
+                    <group>
+                        <field name="actual_pallet_difference_confirmed" readonly="1"/>
+                        <field name="actual_pallet_difference_confirmed_by_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="actual_pallet_difference_confirmed_datetime" readonly="1"/>
+                    </group>
+                    <button name="action_confirm_actual_pallet_difference" type="object" string="Confirm Actual Pallet Difference" class="btn-primary" icon="fa-check" invisible="state != 'new' or actual_pallet_difference_confirmed"/>
+                    <button name="action_export_actual_pallet_difference_excel" type="object" string="Export Actual Pallet Difference" class="btn-secondary" icon="fa-download"/>
+                    <field name="actual_pallet_difference_lines" readonly="1" mode="list,form">
+                        <list create="false" delete="false" edit="false">
+                            <field name="product_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="product_tracking"/>
+                            <field name="original_quantity"/>
+                            <field name="actual_scanned_quantity"/>
+                            <field name="difference_quantity"/>
+                            <field name="actual_pallet_count"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

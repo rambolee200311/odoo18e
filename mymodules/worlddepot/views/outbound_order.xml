@@ -365,6 +365,13 @@
                 <field name="load_ref"/>
                 <field name="state"/>
                 <filter string="Active Orders" name="state_not_cancel" domain="[('state', '!=', 'cancel')]"/>
+                <separator/>
+                <filter string="Draft Orders" name="filter_state_new" domain="[('state', '=', 'new')]"/>
+                <filter string="Confirmed" name="filter_state_confirm" domain="[('state', '=', 'confirm')]"/>
+                <filter string="Cancelled" name="filter_state_cancel" domain="[('state', '=', 'cancel')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_by_project" string="Project" context="{'group_by': 'project'}"/>
+                </group>
             </search>
         </field>
     </record>

@@ -153,7 +153,6 @@
                     Cancel
                 </button>
                 <button class="btn btn-primary flex-grow-1"
-                        style="background-color: #0d6efd; border-color: #0d6efd; color: white;"
                         t-on-click="confirmTransfer"
                         t-att-disabled="state.loading || !hasDestination">
                     Confirm

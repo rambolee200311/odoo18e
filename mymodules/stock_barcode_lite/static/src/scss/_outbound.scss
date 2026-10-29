@@ -37,6 +37,65 @@
         font-size: 11px;
         color: #6c757d;
     }
+
+    .o_picking_products_toggle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        margin-top: 6px;
+        padding: 4px 0 0;
+        border: 0;
+        border-top: 1px solid rgba(13, 110, 253, 0.15);
+        background: transparent;
+        color: #495057;
+        font-size: 11px;
+        font-weight: 600;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    .o_picking_products_list {
+        max-height: 180px;
+        margin-top: 2px;
+        padding-right: 4px;
+        overflow-y: auto;
+    }
+
+    .o_picking_product_line {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 5px 0;
+        border-bottom: 1px solid rgba(108, 117, 125, 0.15);
+        font-size: 11px;
+    }
+
+    .o_picking_product_info {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
+
+    .o_picking_product_name {
+        overflow: hidden;
+        color: #495057;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .o_picking_product_meta {
+        color: #6c757d;
+        font-size: 10px;
+    }
+
+    .o_picking_product_qty {
+        flex-shrink: 0;
+        color: #0d6efd;
+        text-align: right;
+        white-space: nowrap;
+    }
 }
 
 // ── 拆托出库 - 托盘高亮样式 ──
@@ -55,6 +114,17 @@
     background-color: #0d6efd !important;
     color: white !important;
     animation: pulse_badge 1.5s ease-in-out infinite;
+}
+
+// 桌面端保留拆托出库原有的列表布局；PDA 滚动规则统一由公共样式处理。
+@media (min-width: 769px) and (pointer: fine),
+       (min-width: 769px) and (pointer: none) {
+    .o_sbl_inbound.o_sbl_disassembly_outbound {
+        .o_sbl_pallets {
+            min-height: 0;
+            margin-bottom: 0;
+        }
+    }
 }
 
 @keyframes pulse_icon {

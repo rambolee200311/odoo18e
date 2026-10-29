@@ -1,19 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Rebind the payable child before other outbound views trigger combined-view validation. -->
-    <record id="view_stock_barcode_lite_sunrise_outbound_payables_form_inherit" model="ir.ui.view">
-        <field name="name">stock.barcode.lite.sunrise.outbound.payables.form.inherit</field>
-        <field name="model">world.depot.outbound.order</field>
-        <field name="inherit_id" ref="wd_outbound_payable.view_outbound_order_form_payable"/>
-        <field name="arch" type="xml">
-            <xpath expr="//group[field[@name='payable_lines']]" position="attributes">
-                <attribute name="invisible">project_name == 'SUNRISE'</attribute>
-            </xpath>
-            <xpath expr="//field[@name='payable_lines']" position="attributes">
-                <attribute name="invisible">project_name == 'SUNRISE'</attribute>
-            </xpath>
-        </field>
-    </record>
+    <delete id="view_stock_barcode_lite_sunrise_outbound_payables_form_inherit" model="ir.ui.view"/>
 
     <record id="view_stock_barcode_lite_outbound_order_form_inherit" model="ir.ui.view">
         <field name="name">stock.barcode.lite.outbound.order.form.inherit</field>
@@ -24,11 +11,15 @@
                 <attribute name="duplicate">false</attribute>
             </xpath>
             <xpath expr="//field[@name='pick_type']" position="attributes">
+                <attribute name="readonly">state != 'new'</attribute>
                 <attribute name="domain">
-                    [('code', '=', 'outgoing' if project_name == 'SUNRISE' else 'internal'),
+                    [('code', '=', 'outgoing' if barcode_scan_mode == 'custom' and project_package_generation_mode in ('inbound', 'picking') else 'internal'),
                      ('warehouse_id', '=', warehouse),
                      ('warehouse_id', '!=', False)]
                 </attribute>
+            </xpath>
+            <xpath expr="//button[@name='action_create_picking_PICK']" position="attributes">
+                <attribute name="invisible">project_name == 'LINGLONG' or (barcode_scan_mode == 'custom' and project_package_generation_mode in ('inbound', 'picking'))</attribute>
             </xpath>
             <xpath expr="//field[@name='picking_PICK']" position="attributes">
                 <attribute name="invisible">project_name == 'SUNRISE'</attribute>
@@ -59,8 +50,11 @@
             </xpath>
 
             <xpath expr="//field[@name='confirm_time_server']" position="after">
-                <field name="whole_pallet_picking_id" readonly="1" invisible="project_name != 'SUNRISE'"/>
-                <field name="partial_pallet_picking_id" readonly="1" invisible="project_name !='SUNRISE'"/>
+                <field name="barcode_scan_mode" invisible="1"/>
+                <field name="project_package_generation_mode" readonly="1" invisible="1"/>
+                <field name="project_pallet_structure_mode" readonly="1" invisible="1"/>
+                <field name="whole_pallet_picking_id" readonly="1" invisible="barcode_scan_mode != 'custom'" options="{'no_create': True, 'no_open': False}"/>
+                <field name="partial_pallet_picking_id" readonly="1" invisible="barcode_scan_mode != 'custom'" options="{'no_create': True, 'no_open': False}"/>
                 <field name="outgoing_picking_lines" readonly="1" invisible="project_name != 'SUNRISE'"
                        widget="many2many_tags"/>
                 <field name="o_date" string='Manual Outbound Date' invisible="project_name != 'SUNRISE'"
@@ -94,7 +88,13 @@
                         string="Sunrise Create outgoing Picking"
                         class="oe_stat_button"
                         icon="fa-file-text"
-                        invisible="project_name !='SUNRISE'"/>
+                        invisible="barcode_scan_mode != 'custom' or project_package_generation_mode != 'inbound' or project_pallet_structure_mode != 'known'"/>
+                <button name="action_create_automatic_pallet_outgoing_picking"
+                        type="object"
+                        string="Create Automatic Pallet Picking"
+                        class="oe_stat_button"
+                        icon="fa-file-text"
+                        invisible="barcode_scan_mode != 'custom' or project_pallet_structure_mode != 'unknown'"/>
                 <button name="action_sunrise_prepare_recreate_outgoing_picking"
                         type="object"
                         string="Prepare Recreate Picking"
@@ -114,7 +114,6 @@
                 <!--                <field name="de_palletize" optional="show" column_invisible="parent.project_name !='SUNRISE'"/>-->
                 <field name="package_id" optional="show" column_invisible="parent.project_name !='SUNRISE'"
                        options="{'no_create': True, 'no_open': True}"/>
-                <field name="package_barcode" optional="hide" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="source_product_code" optional="hide" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="product_ean" optional="hide" column_invisible="parent.project_name !='SUNRISE'"/>
                 <field name="cprojectid" optional="hide" column_invisible="parent.project_name != 'SUNRISE'"/>
@@ -259,6 +258,7 @@
         <field name="arch" type="xml">
             <search string="Sunrise Outbound Orders">
                 <field name="vsourcebillcode"/>
+                <field name="outbound_sunrise_ref"/>
                 <field name="billno"/>
                 <field name="reference"/>
                 <field name="load_ref"/>

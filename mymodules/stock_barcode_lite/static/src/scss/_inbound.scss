@@ -57,3 +57,189 @@
     .o_order_name { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
     .o_order_details { font-size: 14px; color: #6c757d; }
 }
+
+// Actual pallet binding uses the shared outbound card language while keeping
+// its inbound context compact on handheld screens.
+.o_sbl_actual_pallet_binding {
+    .o_sbl_binding_info {
+        .o_picking_info_row {
+            gap: 4px 8px;
+        }
+
+        .o_binding_status {
+            font-size: 10px;
+        }
+    }
+
+    .o_sbl_binding_context {
+        padding: 6px 16px;
+        background: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+        flex-shrink: 0;
+    }
+
+    .o_binding_context_row {
+        display: flex;
+        align-items: center;
+        gap: 4px 8px;
+        min-width: 0;
+        font-size: 12px;
+        line-height: 1.25;
+
+        & + .o_binding_context_row {
+            margin-top: 3px;
+        }
+    }
+
+    .o_binding_context_label {
+        color: #6c757d;
+        font-size: 11px;
+        white-space: nowrap;
+    }
+
+    .o_binding_context_pallet {
+        min-width: 0;
+        font-size: 12px;
+        overflow-wrap: anywhere;
+    }
+
+    .o_binding_context_product {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        color: #333;
+        font-size: 12px;
+        font-weight: 600;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .o_binding_context_lot {
+        display: inline-flex;
+        align-items: center;
+        flex-shrink: 0;
+        color: #856404;
+        font-size: 11px;
+        white-space: nowrap;
+    }
+
+    .o_product_subcard.o_product_pending {
+        background: #fffdf5;
+        border: 1px dashed #e0a800;
+    }
+
+    .o_product_pending_hint {
+        display: flex;
+        align-items: center;
+        color: #856404;
+        font-size: 11px;
+    }
+
+    .o_binding_void_button {
+        flex-shrink: 0;
+    }
+
+    .o_binding_tracking_list {
+        margin-top: 5px;
+    }
+
+    .o_binding_tracking_item {
+        padding: 4px 0;
+        border-top: 1px solid rgba(108, 117, 125, 0.15);
+    }
+
+    .o_binding_tracking_line {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        min-width: 0;
+        font-size: 11px;
+    }
+
+    .o_binding_tracking_name {
+        flex: 1;
+        min-width: 0;
+        overflow-wrap: anywhere;
+        font-family: monospace;
+    }
+}
+
+// Actual pallet binding: keep one vertical scroll area on PDA so expanding
+// expected products does not hand scrolling between the page and pallet list.
+@media (max-width: 768px), (pointer: coarse) {
+    .o_sbl_actual_pallet_binding {
+        .o_sbl_binding_info {
+            padding: 4px 10px;
+
+            .o_picking_info_row {
+                gap: 3px 6px;
+                font-size: 11px;
+            }
+
+            .o_picking_name {
+                max-width: 150px;
+                font-size: 12px;
+            }
+
+            .o_picking_extra {
+                margin-top: 2px;
+                font-size: 10px;
+            }
+        }
+
+        .o_sbl_binding_context {
+            padding: 4px 10px;
+        }
+
+        .o_binding_context_row {
+            gap: 3px 6px;
+            font-size: 11px;
+
+            &.o_binding_product_row {
+                flex-wrap: nowrap;
+            }
+        }
+
+        .o_binding_context_label,
+        .o_binding_context_lot {
+            font-size: 10px;
+        }
+
+        .o_binding_context_product {
+            font-size: 11px;
+        }
+
+        .o_product_subcard {
+            margin-right: 6px;
+            margin-left: 6px;
+            padding: 8px;
+        }
+
+        .o_product_row_top {
+            gap: 6px;
+
+            > .btn {
+                padding: 3px 6px;
+                font-size: 11px;
+                white-space: nowrap;
+            }
+        }
+
+        .o_product_name {
+            white-space: normal;
+            overflow: visible;
+            text-overflow: clip;
+            overflow-wrap: anywhere;
+        }
+
+        .o_sbl_pallets {
+            flex: 0 0 auto;
+            min-height: 0;
+            overflow: visible;
+            margin-bottom: 0;
+            // Keep the fixed footer clear of the last pallet when the page
+            // reaches its scroll limit; override the template's .py-2 utility.
+            padding-bottom: calc(120px + env(safe-area-inset-bottom)) !important;
+        }
+    }
+}

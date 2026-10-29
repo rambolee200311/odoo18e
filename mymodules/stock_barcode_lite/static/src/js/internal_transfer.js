@@ -1,133 +1,19 @@
 /** @odoo-module **/
 
-import { useService } from "@web/core/utils/hooks";
-import { Component, useState, useRef, onMounted, onWillUnmount } from "@odoo/owl";
+import { BaseBarcodePage } from "./base_barcode_page";
 import { _t } from "@web/core/l10n/translation";
+import { standardActionServiceProps } from "@web/webclient/actions/action_service";
 
-class InternalTransfer extends Component {
+class InternalTransfer extends BaseBarcodePage {
     static template = "stock_barcode_lite.InternalTransferPage";
-    static props = {};
+    static props = { ...standardActionServiceProps };
 
     setup() {
-        this.action = useService("action");
-        this.orm = useService("orm");
-        this.notification = useService("notification");
+        super.setup();
 
-        this.barcodeInputRef = useRef("barcodeInput");
-
-        this.state = useState({
-            loading: false,
-            message: "",
-            messageType: "info",
-            nextStep: "scan_location",
-            picking_id: null,
-            picking_name: "",
-            picking_origin: "",
-            picking_state: "",
-            destination_id: null,
-            destination_name: "",
-            scanned_packages: [],
-            is_validating: false,
-        });
-
-        this._isProcessing = false;
-
-        this._boundOnBarcodeInput = this._onBarcodeInput.bind(this);
-        this._boundOnBarcodeKeydown = this._onBarcodeKeydown.bind(this);
-        this._boundOnBarcodeBlur = this._onBarcodeBlur.bind(this);
-
-        onMounted(async () => {
-            this._bindVisibilityChange();
-            const barcodeInput = this.barcodeInputRef.el;
-            if (barcodeInput) {
-                barcodeInput.addEventListener("input", this._boundOnBarcodeInput);
-                barcodeInput.addEventListener("keydown", this._boundOnBarcodeKeydown);
-                barcodeInput.addEventListener("blur", this._boundOnBarcodeBlur);
-                this._focusBarcodeInput();
-            }
-        });
-
-        onWillUnmount(() => {
-            this._unbindVisibilityChange();
-            const barcodeInput = this.barcodeInputRef.el;
-            if (barcodeInput) {
-                barcodeInput.removeEventListener("input", this._boundOnBarcodeInput);
-                barcodeInput.removeEventListener("keydown", this._boundOnBarcodeKeydown);
-                barcodeInput.removeEventListener("blur", this._boundOnBarcodeBlur);
-            }
-        });
-
-        const action = this.env.config.action || {};
-        const params = this.props?.action?.params || action.params || action.context || {};
-
-        if (params.message) {
-            this.notification.add(params.message, { type: "success" });
-        }
-
-        if (params.picking_data) {
-            this._initFromData(params.picking_data);
-        } else if (params["picking.id"]) {
-            this._loadPicking(params["picking.id"]);
-        }
-    }
-
-    // ═══════════════════════════════════════════════════════════════
-    // 扫码监听
-    // ═══════════════════════════════════════════════════════════════
-
-    _onBarcodeInput(ev) {
-        const input = ev.target;
-        if (!input) return;
-
-        const value = input.value;
-        if (ev.inputType === "insertLineFeed" || value.includes("\n") || value.includes("\r")) {
-            const barcode = value.replace(/\n/g, "").replace(/\r/g, "").trim();
-            if (barcode) {
-                input.value = "";
-                this.onBarcodeScanned(barcode);
-            }
-        }
-    }
-
-    _onBarcodeKeydown(ev) {
-        if (ev.key === "Enter") {
-            ev.preventDefault();
-            const input = ev.target;
-            const barcode = input.value.trim();
-            if (barcode) {
-                input.value = "";
-                this.onBarcodeScanned(barcode);
-            }
-        }
-    }
-
-    _onBarcodeBlur(ev) {
-        if (!this._isProcessing) {
-            setTimeout(() => this._focusBarcodeInput(), 0);
-        }
-    }
-
-    _focusBarcodeInput() {
-        const input = this.barcodeInputRef.el;
-        if (input) {
-            input.focus();
-            input.value = "";
-        }
-    }
-
-    _bindVisibilityChange() {
-        this._onVisibilityChange = () => {
-            if (document.visibilityState === "visible") {
-                this._focusBarcodeInput();
-            }
-        };
-        document.addEventListener("visibilitychange", this._onVisibilityChange);
-    }
-
-    _unbindVisibilityChange() {
-        if (this._onVisibilityChange) {
-            document.removeEventListener("visibilitychange", this._onVisibilityChange);
-            this._onVisibilityChange = null;
+        const data = this.props.action?.params?.picking_data;
+        if (data) {
+            this._initFromData(data);
         }
     }
 
@@ -154,16 +40,21 @@ class InternalTransfer extends Component {
             this.showMessage(this.formatError(error), "danger");
             this._flashScreen([200, 100, 100], true);
         } finally {
-            this.state.loading = false;
             this._isProcessing = false;
-            this._focusBarcodeInput();
+            if (!this._isDestroyed) {
+                this.state.loading = false;
+                this._focusBarcodeInput();
+            }
         }
     }
 
     async _scanLocation(barcode) {
         const result = await this.orm.call("stock.picking", "action_scan_pda_destination_location", [
-            this.state.picking_id, barcode
+            [this.state.picking_id], barcode
         ]);
+        if (this._isDestroyed) {
+            return;
+        }
         if (result.success) {
             this.state.destination_id = result.destination_location?.id;
             this.state.destination_name = result.destination_location?.name;
@@ -192,7 +83,7 @@ class InternalTransfer extends Component {
         }
 
         const result = await this.orm.call("stock.picking", "action_scan_pda_package", [
-            this.state.picking_id, barcode
+            [this.state.picking_id], barcode
         ]);
         if (result.success) {
             this.state.scanned_packages = result.package_scan_lines?.map(line => ({
@@ -220,7 +111,16 @@ class InternalTransfer extends Component {
         this.state.picking_name = data.picking_name;
         this.state.picking_origin = data.origin || "";
         this.state.picking_state = data.state || "assigned";
-        this.state.nextStep = data.next_step === "scan_package" ? "scan_package" : "scan_location";
+
+        if (data.next_step === "completed") {
+            this.state.nextStep = "completed";
+        } else if (data.next_step === "scan_package") {
+            this.state.nextStep = "scan_package";
+        } else {
+            // 后端的 scan_destination 对应前端的 scan_location
+            this.state.nextStep = "scan_location";
+        }
+
         this.state.destination_id = data.destination_location?.id || null;
         this.state.destination_name = data.destination_location?.name || "";
         this.state.scanned_packages = data.package_scan_lines?.map(line => ({
@@ -231,20 +131,6 @@ class InternalTransfer extends Component {
             location_name: line.source_location?.name || "",
             is_updated: false,
         })) || [];
-    }
-
-    async _loadPicking(picking_id) {
-        try {
-            this.state.loading = true;
-            const data = await this.orm.call("stock.picking", "get_pda_internal_transfer_scan_data", [picking_id]);
-            if (data) {
-                this._initFromData(data);
-            }
-        } catch (error) {
-            this.notification.add("Failed to load picking: " + error.message, { type: "danger" });
-        } finally {
-            this.state.loading = false;
-        }
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -272,19 +158,29 @@ class InternalTransfer extends Component {
 
         try {
             const result = await this.orm.call("stock.picking", "button_validate", [
-                this.state.picking_id
+                [this.state.picking_id]
             ]);
+            if (this._isDestroyed) {
+                return;
+            }
+
+            if (result?.type) {
+                await this.action.doAction(result);
+                return;
+            }
 
             // button_validate 成功时返回 True，失败时抛出异常
             this.showMessage(_t("Transfer confirmed successfully!"), "success");
             this._flashScreen([100, 300, 100], true);
-            setTimeout(() => this._goHome(), 1500);
+            this._safeSetTimeout(() => this._goHome(), 1500);
         } catch (error) {
             this.showMessage(this.formatError(error), "danger");
             this._flashScreen([200, 100, 100], true);
         } finally {
-            this.state.is_validating = false;
-            this.state.loading = false;
+            if (!this._isDestroyed) {
+                this.state.is_validating = false;
+                this.state.loading = false;
+            }
         }
     }
 
@@ -292,9 +188,13 @@ class InternalTransfer extends Component {
         if (this.state.loading) return;
         this.state.loading = true;
         this.orm.call("stock.picking", "action_remove_pda_package",
-            [this.state.picking_id],
+            [[this.state.picking_id]],
             { package_id: packageId }
         ).then((result) => {
+
+            if (this._isDestroyed) {
+                return;
+            }
             if (result && result.success) {
                 this.state.scanned_packages = this.state.scanned_packages.filter(p => p.package_id !== packageId);
                 this.showMessage(_t("Package removed"), "info");
@@ -303,23 +203,21 @@ class InternalTransfer extends Component {
             console.error("[InternalTransfer] remove package error:", err);
             this.showMessage(this.formatError(err), "danger");
         }).finally(() => {
-            this.state.loading = false;
-            this._focusBarcodeInput();
+            if (!this._isDestroyed) {
+                this.state.loading = false;
+                this._focusBarcodeInput();
+            }
         });
-    }
-
-    _onClearDestination() {
-        this.state.destination_id = null;
-        this.state.destination_name = "";
-        this.state.scanned_packages = [];
-        this.state.nextStep = "scan_location";
     }
 
     resetScan() {
         this.state.loading = true;
         this.orm.call("stock.picking", "action_reset_pda_internal_transfer", [
-            this.state.picking_id
+            [this.state.picking_id]
         ]).then(() => {
+            if (!this._isDestroyed) {
+                this.state.loading = false;
+            }
             this.state.destination_id = null;
             this.state.destination_name = "";
             this.state.scanned_packages = [];
@@ -329,8 +227,9 @@ class InternalTransfer extends Component {
         }).catch(err => {
             console.error("[InternalTransfer] reset error:", err);
         }).finally(() => {
-            this.state.loading = false;
-            this._focusBarcodeInput();
+            if (!this._isDestroyed) {
+                this.state.loading = false;
+            }
         });
     }
 
@@ -343,11 +242,11 @@ class InternalTransfer extends Component {
         this.state.loading = true;
         try {
             await this.orm.call("stock.picking", "action_cancel_pda_internal_transfer", [
-                this.state.picking_id
+                [this.state.picking_id]
             ]);
             this.showMessage(_t("Transfer cancelled"), "info");
             this._flashScreen([200, 100, 100], false);
-            setTimeout(() => this.exit(), 500);
+            this._safeSetTimeout(() => this.exit(), 500);
         } catch (error) {
             this.showMessage(this.formatError(error), "danger");
             this._flashScreen([200, 100, 100], true);
@@ -356,46 +255,8 @@ class InternalTransfer extends Component {
         }
     }
 
-    exit() {
-        this.action.doAction("stock_barcode_lite_homepage");
-    }
-
     _goHome() {
         this.action.doAction("stock_barcode_lite_homepage");
-    }
-
-    // ═══════════════════════════════════════════════════════════════
-    // 辅助方法
-    // ═══════════════════════════════════════════════════════════════
-
-    showMessage(text, type = "info") {
-        this.state.message = text;
-        this.state.messageType = type;
-        clearTimeout(this._messageTimer);
-        if (type !== "danger") {
-            this._messageTimer = setTimeout(() => {
-                if (this.state.message === text) {
-                    this.state.message = "";
-                }
-            }, 4000);
-        }
-    }
-
-    _flashScreen(pattern, repeat) {
-        if ("vibrate" in navigator) {
-            navigator.vibrate(repeat ? pattern : 100);
-        }
-    }
-
-    formatError(err) {
-        return (
-            err?.data?.arguments?.[0] ||
-            (err?.data?.message
-                ? err.data.message.replace(/^odoo\.exceptions\.[^:]+:\s*/, "")
-                : "") ||
-            err?.message ||
-            _t("Unknown error")
-        );
     }
 
     // ═══════════════════════════════════════════════════════════════
@@ -461,30 +322,6 @@ class InternalTransfer extends Component {
     get isAllComplete() {
         return this.state.scanned_packages.length > 0 &&
                this.state.scanned_packages.every(p => p.is_updated);
-    }
-
-    getStateBadgeClass(state) {
-        const map = {
-            draft: "bg-secondary",
-            waiting: "bg-warning text-dark",
-            confirmed: "bg-info",
-            assigned: "bg-primary",
-            done: "bg-success",
-            cancel: "bg-danger",
-        };
-        return map[state] || "bg-secondary";
-    }
-
-    getStateLabel(state) {
-        const map = {
-            draft: _t("Draft"),
-            waiting: _t("Waiting"),
-            confirmed: _t("Confirmed"),
-            assigned: _t("Ready"),
-            done: _t("Done"),
-            cancel: _t("Cancelled"),
-        };
-        return map[state] || state;
     }
 }
 

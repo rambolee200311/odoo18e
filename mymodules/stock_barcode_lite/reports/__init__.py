@@ -3,4 +3,5 @@ from . import inbound_pallet_label_report
 from . import inbound_arrival_note_report
 from . import inbound_lot_code_label_report
 from . import outbound_lot_code_label_report
+from . import system_pallet_label_report
 

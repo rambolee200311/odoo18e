@@ -14,10 +14,14 @@ class OutboundOrderInherit(models.Model):
     time_slot = fields.Char(string='Expected harvest time period')  # 预计收货时间段
     cwarehouseid = fields.Char(string="U8C Warehouse ID", copy=False, index=True)
     vsourcebillcode = fields.Char(string="Source Bill Code", copy=False, index=True, tracking=True)
+    outbound_sunrise_ref = fields.Char(string="Outbound Sunrise Ref", compute="_compute_outbound_sunrise_ref", store=True, readonly=True, index=True)
     ccustomerid = fields.Char(string="U8C Customer ID", copy=False)
     u8c_delivery_method = fields.Selection([("pickup", "Pickup"), ("wd", "WD Transport")], string="U8C Delivery Method", copy=False, tracking=True)
     transport_cost_reference = fields.Char(string="Transport Cost Reference", copy=False)
     transport_cost = fields.Float(string="Transport Cost", default=0.0, copy=False)
+    barcode_scan_mode = fields.Selection(related="project.barcode_scan_mode", string="Barcode Scan Mode", store=True, readonly=True, copy=False, index=True)
+    project_package_generation_mode = fields.Selection(related="project.package_generation_mode", string="Package Generation Mode", readonly=True)
+    project_pallet_structure_mode = fields.Selection(related="project.pallet_structure_mode", string="Pallet Structure Mode", readonly=True)
 
     whole_pallet_picking_id = fields.Many2one("stock.picking", string="Whole Pallet Picking",copy=False,index=True)
     partial_pallet_picking_id = fields.Many2one("stock.picking", string="Partial Pallet Picking",copy=False, index=True)
@@ -55,11 +59,31 @@ class OutboundOrderInherit(models.Model):
         for rec in self:
             rec.sunrise_pallet_count = len(rec.outbound_order_product_ids.mapped("package_id"))
 
+    @api.depends("outbound_order_product_ids.cprojectid")
+    def _compute_outbound_sunrise_ref(self):
+        for rec in self:
+            sunrise_refs = sorted({line.cprojectid.strip() for line in rec.outbound_order_product_ids if line.cprojectid and line.cprojectid.strip()})
+            rec.outbound_sunrise_ref = ", ".join(sunrise_refs)
+
     def action_confirm(self):
         for rec in self:
             if rec.project.name == "SUNRISE":
                 rec.validate_sunrise_outbound_confirm_values()
         return super().action_confirm()
+
+    def check_custom_barcode_outgoing_one_step(self):
+        for rec in self:
+            if rec.project.barcode_scan_mode != "custom":
+                continue
+            if not rec.pick_type or rec.pick_type.code != "outgoing":
+                raise UserError(_("Custom Barcode Lite outbound orders must use an outgoing picking type."))
+            if rec.pick_type.default_location_src_id.usage != "internal" or rec.pick_type.default_location_dest_id.usage != "customer":
+                raise UserError(_("Custom Barcode Lite outbound orders must use a one-step outgoing picking type."))
+        return True
+
+    def action_create_picking_PICK(self):
+        self.check_custom_barcode_outgoing_one_step()
+        return super().action_create_picking_PICK()
 
     @api.depends("outbound_order_product_ids.product_id.product_tmpl_id.organic")
     def _compute_organic(self):
@@ -329,8 +353,9 @@ class OutboundOrderInherit(models.Model):
         lot_model = self.env["stock.lot"]
 
         for rec in self:
-            if rec.project.name != "SUNRISE":
-                raise UserError(_("Only SUNRISE projects can create a picking."))
+            rec.check_custom_barcode_outgoing_one_step()
+            if rec.project.package_generation_mode != "inbound":
+                raise UserError(_("This picking requires Package Generation Mode to be Inbound."))
             if rec.state != "confirm":
                 raise UserError(_("Only confirmed outbound orders can create a picking."))
             if not rec.pick_type:
@@ -365,11 +390,6 @@ class OutboundOrderInherit(models.Model):
                 if line.quantity <= 0:
                     raise UserError(
                         _('Quantity must be greater than 0 for product "%s".')
-                        % line.product_id.display_name
-                    )
-                if line.product_id.tracking == "serial":
-                    raise UserError(
-                        _('Serial-tracked product "%s" is not supported by Sunrise outgoing picking.')
                         % line.product_id.display_name
                     )
                 if line.de_palletize not in ("N", "Y"):
@@ -933,13 +953,11 @@ class OutboundOrderProduct(models.Model):
 
         for rec in self:
             project = rec.outbound_order_id.project or rec.project
-            if project.name != "SUNRISE":
-                continue
-
+            is_sunrise = project.name == "SUNRISE"
             rec.gross_weight = False
-            rec.pallet_dimensions = False
-
-            if not rec.package_id or not rec.product_id:
+            if is_sunrise:
+                rec.pallet_dimensions = False
+            if not rec.product_id:
                 continue
             template = template_model.browse(rec.product_id.product_tmpl_id.id)
             lot = False
@@ -949,11 +967,12 @@ class OutboundOrderProduct(models.Model):
                     ("name", "=", rec.lot_name),
                 ], limit=1)
             gross_weight = lot.gross_weight if lot and lot.gross_weight else template.gross_weight
-            if rec.box_type == "partial" and not (lot and lot.gross_weight):
+            if is_sunrise and rec.box_type == "partial" and not (lot and lot.gross_weight):
                 if template.gross_weight and rec.box_in_qty > 0 and rec.u8_conversion_rate > 0:
                     gross_weight = template.gross_weight / rec.u8_conversion_rate * rec.box_in_qty
             rec.gross_weight = str(gross_weight) if gross_weight else False
-            rec.pallet_dimensions = (lot.product_dimensions if lot and lot.product_dimensions else template.product_dimensions) or False
+            if is_sunrise:
+                rec.pallet_dimensions = (lot.product_dimensions if lot and lot.product_dimensions else template.product_dimensions) or False
 
 
     def init(self):

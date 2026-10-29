@@ -100,6 +100,27 @@ class InboundOrder(models.Model):
 
     def action_confirm(self):
         for rec in self:
+            if rec.project.pallet_structure_mode == "unknown":
+                rec.check_actual_pallet_structure_validated()
+            elif rec.project_package_generation_mode == "inbound":
+                package_ids = set()
+                for pallet_line in rec.inbound_order_product_ids:
+                    if pallet_line.pallets != 1:
+                        raise UserError(
+                            _('Pallet "%s" pallets must be 1 before confirming an inbound-generated package order.')
+                            % (pallet_line.pallet_no or pallet_line.display_name)
+                        )
+                    if not pallet_line.package_id or not pallet_line.package_id.barcode:
+                        raise UserError(
+                            _('Pallet "%s" has no system package barcode. Generate or select a package before confirming the inbound order.')
+                            % (pallet_line.pallet_no or pallet_line.display_name)
+                        )
+                    if pallet_line.package_id.id in package_ids:
+                        raise UserError(
+                            _('Package "%s" is assigned to more than one pallet line on this inbound order.')
+                            % (pallet_line.package_id.name or pallet_line.package_id.barcode)
+                        )
+                    package_ids.add(pallet_line.package_id.id)
             if rec.project.name == "SUNRISE":
                 rec.validate_sunrise_inbound_confirm_values()
         return super().action_confirm()
@@ -140,12 +161,6 @@ class InboundOrder(models.Model):
 
                 if pallet_missing_fields:
                     raise UserError(_("Sunrise inbound pallet line %s is missing required fields: %s") % (pallet_index, ", ".join(pallet_missing_fields)))
-
-                if rec.project_package_generation_mode == "inbound" and not pallet_line.package_id:
-                    raise UserError(
-                        _('Pallet "%s" has no package. Generate packages before confirming the inbound order.')
-                        % pallet_line.pallet_no
-                    )
 
                 if rec.project_package_generation_mode == "none" and pallet_line.package_id:
                     raise UserError(
@@ -456,6 +471,8 @@ class InboundOrder(models.Model):
         created_count = 0
 
         for rec in self:
+            if rec.project_pallet_structure_mode == "unknown":
+                raise UserError(_("Unknown pallet structure inbound orders must generate packages from Actual Pallets."))
             if rec.project.name != "SUNRISE":
                 raise UserError(_("Only SUNRISE inbound orders can generate packages."))
             if rec.project_package_generation_mode != "inbound":
@@ -573,12 +590,6 @@ class InboundOrder(models.Model):
                     if detail_line.quantity <= 0:
                         raise UserError(
                             _('Product "%s" quantity must be greater than 0.')
-                            % detail_line.product_id.display_name
-                        )
-
-                    if detail_line.product_id.tracking == "serial":
-                        raise UserError(
-                            _('Serial-tracked product "%s" is not supported by Sunrise incoming picking.')
                             % detail_line.product_id.display_name
                         )
 
@@ -756,6 +767,20 @@ class InboundOrderProduct(models.Model):
 
     creation_source = fields.Selection([("manual", "Manual"), ("api", "API"), ("import", "Import"), ("portal", "Portal")], string="Creation Source", default="manual", readonly=True, copy=False)
     pallet_no = fields.Char(index=True)
+    gross_weight_total = fields.Float(string="Pallet Total Gross Weight (kg)", compute="_compute_gross_weight_total", store=True)
+
+    @api.depends("inbound_order_product_pallet_ids.quantity", "inbound_order_product_pallet_ids.gross_weight")
+    def _compute_gross_weight_total(self):
+        for rec in self:
+            total = 0.0
+            for product_line in rec.inbound_order_product_pallet_ids:
+                try:
+                    product_gross_weight = float(product_line.gross_weight)
+                except (TypeError, ValueError):
+                    product_gross_weight = 0.0
+                if product_gross_weight > 0:
+                    total += (product_line.quantity or 0.0) * product_gross_weight * (rec.pallets or 0.0)
+            rec.gross_weight_total = total
     package_id = fields.Many2one("stock.quant.package", string="Package", copy=False, index=True)
     package_barcode = fields.Char(related="package_id.barcode", string="Package Barcode", readonly=True)
     is_reused_package = fields.Boolean(string="Reused Package", default=False, readonly=True, copy=False, index=True)
@@ -799,11 +824,12 @@ class InboundOrderProduct(models.Model):
         package_model = self.env["stock.quant.package"]
         package = package_model.create({
             "name": self.get_sunrise_package_name(),
-            "barcode": package_model.generate_sunrise_package_barcode(),
+            "barcode": package_model.generate_package_barcode(),
             "package_use": "disposable",
             "billno": inbound_order.billno,
             "reference": inbound_order.reference,
             "cntr_no": inbound_order.cntr_no,
+            "inbound_order_id": inbound_order.id,
             "original_pallet_no": self.pallet_no,
         })
         self.write({"package_id": package.id, "is_reused_package": False})
@@ -843,9 +869,7 @@ class InboundOrderProduct(models.Model):
                 raise UserError(_("Pallet \"%s\" has a product line without a source product code.") % self.pallet_no)
             identities.add((product_code, lot_name))
         if len(identities) != 1:
-            raise UserError(
-                _("Physical pallet \"%s\" must contain one source product and one lot.") % self.pallet_no
-            )
+            return "MIXED", ""
         return identities.pop()
 
     def validate_sunrise_physical_pallet_identity(self):
@@ -881,6 +905,8 @@ class InboundOrderProduct(models.Model):
     def get_sunrise_package_name(self):
         self.ensure_one()
         product_code, lot_name = self.get_sunrise_physical_pallet_identity()
+        if product_code == "MIXED":
+            return "MIXED-%s" % self.pallet_no
         return "%s-%s-%s" % (lot_name or "NOLOT", product_code, self.pallet_no)
 
     def init(self):
@@ -979,10 +1005,10 @@ class InboundOrderProductsPallet(models.Model):
         template_model = self.env["product.template"].sudo()
         for rec in self:
             inbound_order = rec.inbound_order_product_id.inbound_order_id
-            if not inbound_order or inbound_order.project.name != "SUNRISE":
-                continue
+            is_sunrise = inbound_order and inbound_order.project.name == "SUNRISE"
             rec.gross_weight = False
-            rec.pallet_dimensions = False
+            if is_sunrise:
+                rec.pallet_dimensions = False
             if not rec.product_id:
                 continue
             template = template_model.browse(rec.product_id.product_tmpl_id.id)
@@ -993,11 +1019,12 @@ class InboundOrderProductsPallet(models.Model):
                     ("name", "=", rec.lot_name),
                 ], limit=1)
             gross_weight = lot.gross_weight if lot and lot.gross_weight else template.gross_weight
-            if rec.box_type == "partial" and not (lot and lot.gross_weight):
+            if is_sunrise and rec.box_type == "partial" and not (lot and lot.gross_weight):
                 if template.gross_weight and rec.box_in_qty > 0 and rec.u8_conversion_rate > 0:
                     gross_weight = template.gross_weight / rec.u8_conversion_rate * rec.box_in_qty
             rec.gross_weight = str(gross_weight) if gross_weight else False
-            rec.pallet_dimensions = (lot.product_dimensions if lot and lot.product_dimensions else template.product_dimensions) or False
+            if is_sunrise:
+                rec.pallet_dimensions = (lot.product_dimensions if lot and lot.product_dimensions else template.product_dimensions) or False
 
     def get_sunrise_product_specification(self, allow_missing=False):
         if not self:

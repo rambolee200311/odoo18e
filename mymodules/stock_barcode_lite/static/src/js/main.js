@@ -7,6 +7,7 @@ import { WholePalletOutboundPage } from "./whole_outbound";
 import { DisassemblyOutboundPage } from "./disassembly_outbound";
 import { InternalTransferPage } from "./internal_transfer";
 import { ActualInboundConfirmation } from "./actual_inbound_confirmation";
+import { ActualPalletBinding } from "./actual_pallet_binding";
 
 class InboundPage extends InboundFlow {
     static template = "stock_barcode_lite.InboundPage";
@@ -27,3 +28,4 @@ registry.category("actions").add("stock_barcode_lite_outbound_disassembly", Brea
 registry.category("actions").add("stock_barcode_lite_outbound_whole", WholeOutboundPage);
 registry.category("actions").add("stock_barcode_lite_internal_transfer", InternalTransferPage);
 registry.category("actions").add("stock_barcode_lite_actual_inbound_confirmation", ActualInboundConfirmation);
+registry.category("actions").add("stock_barcode_lite_actual_pallet_binding", ActualPalletBinding);
