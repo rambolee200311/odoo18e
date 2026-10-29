@@ -1,0 +1,9 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_wd_charge_unit,world.depot.charge.unit,model_world_depot_charge_unit,,1,1,1,1
+access_wd_charge_item,world.depot.charge.item,model_world_depot_charge_item,,1,1,1,1
+access_wd_charge_quotation,charge.quotation,model_charge_quotation,,1,1,1,1
+access_wd_charge_quotation_line,charge.quotation.line,model_charge_quotation_line,,1,1,1,1
+access_wd_vendor_cost_quotation,vendor.cost.quotation,model_vendor_cost_quotation,,1,1,1,1
+access_wd_vendor_cost_quotation_line,vendor.cost.quotation.line,model_vendor_cost_quotation_line,,1,1,1,1
+access_wd_charge_quotation_add_wizard,charge.quotation.add.wizard,model_charge_quotation_add_wizard,,1,1,1,1
+access_wd_charge_quotation_add_wizard_line,charge.quotation.add.wizard.line,model_charge_quotation_add_wizard_line,,1,1,1,1

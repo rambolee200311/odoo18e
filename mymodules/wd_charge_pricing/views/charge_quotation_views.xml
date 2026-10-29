@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_charge_quotation_list" model="ir.ui.view">
+        <field name="name">charge.quotation.list</field>
+        <field name="model">charge.quotation</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="alias_name"/>
+                <field name="effective_from"/>
+                <field name="effective_to"/>
+                <field name="currency_id"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_charge_quotation_form" model="ir.ui.view">
+        <field name="name">charge.quotation.form</field>
+        <field name="model">charge.quotation</field>
+        <field name="arch" type="xml">
+            <form duplicate="false" class="wd_charge_pricing_required_highlight">
+                <header>
+                    <button name="action_set_active" type="object" string="Activate" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_set_draft" type="object" string="Set Draft" invisible="state != 'active'"/>
+                    <button name="action_set_expired" type="object" string="Expire" invisible="state != 'active'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,active,expired" readonly="1"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="alias_name" required="1" readonly="state != 'draft'"/>
+                            <field name="name" readonly="1"/>
+                            <field name="currency_id" required="1" readonly="state != 'draft'" options="{'no_create': True, 'no_open': True}"/>
+                        </group>
+                        <group>
+                            <field name="date" required="1" readonly="state != 'draft'"/>
+                            <field name="effective_from" required="1" readonly="state != 'draft'"/>
+                            <field name="effective_to" readonly="state != 'draft'"/>
+                            <field name="remark" readonly="state != 'draft'"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="THC Handling">
+                            <group>
+                                <button name="%(action_charge_quotation_add_wizard)d" string="Batch Add" type="action" class="btn-secondary" invisible="state != 'draft'" context="{'default_quotation_id': id, 'default_tab_category': 'handover'}"/>
+                            </group>
+                            <field name="quotation_thc_lines" readonly="state != 'draft'" context="{'default_tab_category': 'handover'}">
+                                <list editable="bottom">
+                                    <field name="charge_item_id" required="1" options="{'no_create': True, 'no_open': True}" domain="['|', ('operation_type', '=', 'handover'), ('operation_type', '=', False), ('is_leaf', '=', True)]"/>
+                                    <field name="tab_category" column_invisible="1"/>
+                                    <field name="is_fixed_fee"/>
+                                    <field name="unit_price" required="1"/>
+                                    <field name="remark"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Customs Formalities">
+                            <group>
+                                <button name="%(action_charge_quotation_add_wizard)d" string="Batch Add" type="action" class="btn-secondary" invisible="state != 'draft'" context="{'default_quotation_id': id, 'default_tab_category': 'clearance'}"/>
+                            </group>
+                            <field name="quotation_customs_lines" readonly="state != 'draft'" context="{'default_tab_category': 'clearance'}">
+                                <list editable="bottom">
+                                    <field name="charge_item_id" required="1" options="{'no_create': True, 'no_open': True}" domain="['|', ('operation_type', '=', 'clearance'), ('operation_type', '=', False), ('is_leaf', '=', True)]"/>
+                                    <field name="tab_category" column_invisible="1"/>
+                                    <field name="is_fixed_fee"/>
+                                    <field name="unit_price" required="1"/>
+                                    <field name="remark"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Inbound">
+                            <group>
+                                <button name="%(action_charge_quotation_add_wizard)d" string="Batch Add" type="action" class="btn-secondary" invisible="state != 'draft'" context="{'default_quotation_id': id, 'default_tab_category': 'inbound'}"/>
+                            </group>
+                            <field name="quotation_wh_in_lines" readonly="state != 'draft'" context="{'default_tab_category': 'inbound'}">
+                                <list editable="bottom">
+                                    <field name="charge_item_id" required="1" options="{'no_create': True, 'no_open': True}" domain="['|', ('operation_type', '=', 'inbound'), ('operation_type', '=', False), ('is_leaf', '=', True)]"/>
+                                    <field name="tab_category" column_invisible="1"/>
+                                    <field name="is_fixed_fee"/>
+                                    <field name="unit_price" required="1"/>
+                                    <field name="remark"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Outbound">
+                            <group>
+                                <button name="%(action_charge_quotation_add_wizard)d" string="Batch Add" type="action" class="btn-secondary" invisible="state != 'draft'" context="{'default_quotation_id': id, 'default_tab_category': 'outbound'}"/>
+                            </group>
+                            <field name="quotation_wh_out_lines" readonly="state != 'draft'" context="{'default_tab_category': 'outbound'}">
+                                <list editable="bottom">
+                                    <field name="charge_item_id" required="1" options="{'no_create': True, 'no_open': True}" domain="['|', ('operation_type', '=', 'outbound'), ('operation_type', '=', False), ('is_leaf', '=', True)]"/>
+                                    <field name="tab_category" column_invisible="1"/>
+                                    <field name="is_fixed_fee"/>
+                                    <field name="unit_price" required="1"/>
+                                    <field name="remark"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter>
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </chatter>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_charge_quotation" model="ir.actions.act_window">
+        <field name="name">Receivable Quotations</field>
+        <field name="res_model">charge.quotation</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+</odoo>

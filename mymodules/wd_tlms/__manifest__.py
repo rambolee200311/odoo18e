@@ -11,7 +11,7 @@
     'depends': [
         'base', 'mail', 'stock', 'account',
         'portal', 'contacts', 'product', 'fleet',
-        'worlddepot',
+        'worlddepot', 'wd_charge_pricing',
     ],
     'data': [
         'data/transport_type_data.xml',

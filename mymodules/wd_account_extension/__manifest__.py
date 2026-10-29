@@ -4,7 +4,7 @@
     "version": "1.0.0",
     "category": "Warehouse",
     "summary": "Common accounting enhancements",
-    "depends": ["account", "worlddepot","wd_attachment_preview"],
+    "depends": ["account", "wd_charge_pricing", "wd_attachment_preview"],
     "pre_init_hook": "migrate_account_extension_xml_ids",
     "data": [
         "security/security.xml",
