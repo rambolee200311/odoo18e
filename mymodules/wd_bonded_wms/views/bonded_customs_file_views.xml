@@ -48,11 +48,11 @@
                             <field name="customs_code"/>
                         </group>
                         <group string="Parties">
-                            <field name="consignor_eori_entity_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="consignor_eori_entity_id" required="1" options="{'no_create': True, 'no_open': True}"/>
                             <field name="consignor_eori"/>
-                            <field name="consignee_eori_entity_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="consignee_eori_entity_id" required="1" options="{'no_create': True, 'no_open': True}"/>
                             <field name="consignee_eori"/>
-                            <field name="declarant_eori_entity_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="declarant_eori_entity_id" required="1" options="{'no_create': True, 'no_open': True}"/>
                             <field name="declarant_eori"/>
                             <field name="procedure_code"/>
                             <field name="bonded_warehouse_no"/>
@@ -74,7 +74,7 @@
                     </group>
                     <notebook>
                         <page string="Declaration Lines (Box6)" readonly="state != 'draft'">
-                            <field name="line_ids">
+                            <field name="line_ids" readonly="state != 'draft'">
                                 <list editable="bottom">
                                     <field name="item_no"/>
                                     <field name="eligible_product_ids" column_invisible="1"/>
@@ -105,7 +105,7 @@
                             </field>
                         </page>
                         <page string="Gate Arrivals" invisible="declaration_type not in ('t1_in')">
-                            <field name="gate_arrival_ids" readonly="state != 'draft'"/>
+                            <field name="gate_arrival_ids" readonly="state != 'customs_approved'"/>
                         </page>
                         <page string="Bonded Inbounds" invisible="declaration_type != 'b3_in'">
                             <field name="inbound_ids" readonly="1">

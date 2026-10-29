@@ -39,7 +39,6 @@
                             <field name="bonded_inbound_id" required="1" options="{'no_create': True, 'no_open': True}"/>
                             <field name="inbound_tracking_no" readonly="1"/>
                             <field name="mrn" readonly="1"/>
-                            <field name="handover_id"/>
                             <field name="arrival_datetime"/>
                         </group>
                         <group string="Container &amp; Seal">

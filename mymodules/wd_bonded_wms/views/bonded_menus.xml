@@ -117,12 +117,12 @@
     </record>
     <record id="action_bonded_charge_unit" model="ir.actions.act_window">
         <field name="name">Charge Units</field>
-        <field name="res_model">bonded.charge.unit</field>
+        <field name="res_model">world.depot.charge.unit</field>
         <field name="view_mode">list,form</field>
     </record>
     <record id="action_bonded_charge_item" model="ir.actions.act_window">
         <field name="name">Charge Items</field>
-        <field name="res_model">bonded.charge.item</field>
+        <field name="res_model">world.depot.charge.item</field>
         <field name="view_mode">list,form</field>
     </record>
     <record id="action_bonded_charge_line" model="ir.actions.act_window">

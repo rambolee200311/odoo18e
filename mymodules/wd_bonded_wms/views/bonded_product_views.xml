@@ -1,12 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record id="tree" model="ir.ui.view">
-        <field name="name">stub.tree</field>
+    <record id="bonded_product_view_list" model="ir.ui.view">
+        <field name="name">bonded.product.list</field>
         <field name="model">bonded.product</field>
         <field name="arch" type="xml">
             <list>
-                <field name="id"/>
+                <field name="bonded_book_id"/>
+                <field name="product_id"/>
+                <field name="hs_code"/>
+                <field name="goods_value" widget="monetary"/>
+                <field name="customs_code"/>
+                <field name="article_number"/>
+                <field name="product_description"/>
+                <field name="state"/>
             </list>
+        </field>
+    </record>
+
+    <record id="bonded_product_view_form" model="ir.ui.view">
+        <field name="name">bonded.product.form</field>
+        <field name="model">bonded.product</field>
+        <field name="arch" type="xml">
+            <form duplicate="false">
+                <header>
+                    <button name="action_activate" string="Activate" type="object" invisible="state != 'draft'" class="btn-primary"/>
+                    <button name="action_cancel" string="Cancel" type="object" invisible="state != 'active'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group string="Filing">
+                            <field name="bonded_book_id" required="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="product_id" required="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="hs_code" required="1"/>
+                            <field name="declared_unit_price" required="1" widget="monetary"/>
+                            <field name="currency_id" required="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="uom_id" required="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="supervision_conditions"/>
+                        </group>
+                        <group string="Product Profile">
+                            <field name="goods_value" widget="monetary"/>
+                            <field name="customs_code"/>
+                            <field name="article_number"/>
+                            <field name="product_description"/>
+                            <field name="technical_description"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
         </field>
     </record>
 </odoo>

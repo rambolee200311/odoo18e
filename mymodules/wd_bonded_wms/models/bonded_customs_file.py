@@ -28,9 +28,9 @@ class BondedCustomsFile(models.Model):
     mrn = fields.Char(string='MRN Number', index=True, help='Movement Reference Number (T1 only)')
     declaration_no = fields.Char(string='Declaration No.(Box3)', required=True, copy=False, default=lambda self: _('New'), readonly=True, index=True)
     customs_code = fields.Char(string='Customs Code(Box5)', required=True, index=True,help='e.g. NLAMS001')
-    consignor_eori_entity_id = fields.Many2one('bonded.eori.entity', string='Consignor EORI Entity', ondelete='restrict', index=True)
-    consignee_eori_entity_id = fields.Many2one('bonded.eori.entity', string='Consignee EORI Entity', ondelete='restrict', index=True)
-    declarant_eori_entity_id = fields.Many2one('bonded.eori.entity', string='Declarant EORI Entity', ondelete='restrict', index=True)
+    consignor_eori_entity_id = fields.Many2one('bonded.eori.entity', string='Consignor EORI Entity', required=True, ondelete='restrict', index=True)
+    consignee_eori_entity_id = fields.Many2one('bonded.eori.entity', string='Consignee EORI Entity', required=True, ondelete='restrict', index=True)
+    declarant_eori_entity_id = fields.Many2one('bonded.eori.entity', string='Declarant EORI Entity', required=True, ondelete='restrict', index=True)
     consignor_eori = fields.Char(string='Consignor EORI(Box8)', index=True)
     consignee_eori = fields.Char(string='Consignee EORI(Box9)', index=True)
     declarant_eori = fields.Char(string='Declarant EORI', index=True)
@@ -70,10 +70,9 @@ class BondedCustomsFile(models.Model):
     declaration_attachment_line_ids = fields.Many2many('ir.attachment', 'bonded_customs_file_declaration_attachment_rel', 'customs_file_id', 'attachment_id', string='Declaration Attachments', copy=False)
     response_attachment_line_ids = fields.Many2many('ir.attachment', 'bonded_customs_file_response_attachment_rel', 'customs_file_id', 'attachment_id', string='Customs Response Attachments', copy=False)
     line_ids = fields.One2many('bonded.customs.file.line', 'customs_file_id', string='Declaration Lines')
-    handover_id = fields.Many2one('operation.order.handover', string='Handover', index=True,help='Related import handover (data flows from handover)')
     gate_arrival_ids = fields.One2many('gate.arrival', 'customs_file_id', string='Gate Arrivals',
                                        help='T1 only: container arrival records linked to this T1')
-    inbound_ids = fields.One2many('bonded.inbound', 'customs_file_id', string='Bonded Inbounds')
+    inbound_ids = fields.Many2many('bonded.inbound', 'bonded_inbound_customs_file_rel', 'customs_file_id', 'bonded_inbound_id', string='Bonded Inbounds')
     outbound_ids = fields.One2many('bonded.outbound', 'customs_file_id', string='Bonded Outbounds')
     remark = fields.Text(string='Remark')
     company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.company)
@@ -148,7 +147,7 @@ class BondedCustomsFile(models.Model):
             if rec.declaration_type in ('t1_in', 't1_out') and not rec.mrn:
                 raise UserError(_('T1 declarations require an MRN before submission.'))
             if rec.declaration_type == 'b3_in':
-                inbound_records = self.env['bonded.inbound'].sudo().search([('customs_file_id', '=', rec.id)])
+                inbound_records = self.env['bonded.inbound'].sudo().search([('customs_file_ids', 'in', rec.ids)])
                 inbound_t1_mrns = set()
                 b3_pre_mrns = set(rec.pre_mrn_ids.mapped('mrn'))
                 has_t1_source = False
@@ -239,9 +238,11 @@ class BondedCustomsFile(models.Model):
                 (rec.consignee_eori_entity_id, rec.consignee_eori, _('Consignee EORI')),
                 (rec.declarant_eori_entity_id, rec.declarant_eori, _('Declarant EORI')),
             ):
-                if entity:
-                    entity.validate_active_on_date(check_date)
-                    continue
+                if not entity:
+                    raise UserError(_('%s entity is required.') % label)
+                entity.validate_active_on_date(check_date)
+                if entity.eori_no != eori_no:
+                    raise UserError(_('%s does not match the selected EORI entity.') % label)
                 if not eori_no or not pattern.match(eori_no.strip().upper()):
                     raise UserError(_('%s is required and must be a valid EORI number.') % label)
         return True
@@ -278,18 +279,21 @@ class BondedCustomsFile(models.Model):
     def sync_instruction_state(self, target_state):
         for rec in self:
             if rec.declaration_type == 'b3_in':
-                inbound_ids = self.env['bonded.inbound'].sudo().search([('customs_file_id', '=', rec.id)]).ids
-                if not inbound_ids:
+                inbounds = self.env['bonded.inbound'].sudo().search([('customs_file_ids', 'in', rec.ids)])
+                if not inbounds:
                     raise UserError(
                         _('Please create and link a bonded inbound instruction before submitting this declaration.'))
-
-                inbounds = self.env['bonded.inbound'].browse(inbound_ids)
                 invalid_inbounds = inbounds.filtered(
                     lambda inbound: inbound.state not in ('confirmed', 'declared', 'released'))
                 if invalid_inbounds:
                     raise UserError(
                         _('Please confirm linked inbound instructions before submitting customs declaration.'))
-                inbounds.write({'state': target_state})
+                if target_state == 'declared':
+                    ready_inbounds = inbounds.filtered(lambda inbound: all(customs_file.state in ('submitted', 'customs_approved', 'done') for customs_file in inbound.customs_file_ids))
+                    ready_inbounds.filtered(lambda inbound: inbound.state == 'confirmed').write({'state': 'declared'})
+                elif target_state == 'released':
+                    ready_inbounds = inbounds.filtered(lambda inbound: all(customs_file.state in ('customs_approved', 'done') for customs_file in inbound.customs_file_ids))
+                    ready_inbounds.filtered(lambda inbound: inbound.state in ('confirmed', 'declared')).write({'state': 'released'})
 
             elif rec.declaration_type in ('b3_out', 't1_out', 'ex', 'destruction'):
                 outbound_ids = self.env['bonded.outbound'].sudo().search([('customs_file_id', '=', rec.id)]).ids
@@ -308,7 +312,7 @@ class BondedCustomsFile(models.Model):
     def reset_inbound_on_rejection(self):
         for rec in self:
             inbound_ids = self.env['bonded.inbound'].sudo().search([
-                ('customs_file_id', '=', rec.id),
+                ('customs_file_ids', 'in', rec.ids),
                 ('state', 'in', ('declared', 'released')),
             ])
             for inbound in inbound_ids:

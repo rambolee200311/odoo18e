@@ -18,6 +18,7 @@ class BondedOutbound(models.Model):
                        default=lambda self: _('New'), readonly=True, index=True)
     bonded_book_id = fields.Many2one('bonded.book', string='Bonded Book', required=True,
                                      ondelete='restrict', index=True)
+    project_id = fields.Many2one('project.project', string='Project', ondelete='restrict', index=True, tracking=True)
     customs_file_id = fields.Many2one('bonded.customs.file', string='Customs Declaration',
                                       required=True, ondelete='restrict')
     outbound_type = fields.Selection([
@@ -50,7 +51,7 @@ class BondedOutbound(models.Model):
     warehouse = fields.Many2one('stock.warehouse', string='Warehouse', tracking=True,
                                 stored=True)
     pick_type = fields.Many2one('stock.picking.type', string='Picking Type', tracking=True,
-                                domain=[('code', '=', 'incoming')])
+                                domain=[('code', 'in', ['outgoing', 'internal'])])
     _sql_constraints = [
         ('name_uniq', 'unique(name)', 'Outbound number must be unique!'),
     ]
@@ -61,6 +62,13 @@ class BondedOutbound(models.Model):
             if vals.get('name', _('New')) == _('New'):
                 vals['name'] = self.env['ir.sequence'].next_by_code('seq.bonded.outbound') or _('New')
         return super().create(vals_list)
+
+    @api.onchange('project_id')
+    def onchange_project_id(self):
+        for rec in self:
+            if rec.project_id:
+                rec.warehouse = rec.project_id.warehouse
+                rec.pick_type = rec.project_id.outbound_pick_type
 
     def action_confirm(self):
         for rec in self:

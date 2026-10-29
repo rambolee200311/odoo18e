@@ -8,6 +8,7 @@
                 <field name="name"/>
                 <field name="customs_file_id"/>
                 <field name="bonded_book_id"/>
+                <field name="project_id"/>
                 <field name="outbound_type"/>
                 <field name="mrn"/>
                 <field name="expected_date"/>
@@ -35,6 +36,9 @@
                         <group string="Outbound Info">
                             <field name="name" readonly="1"/>
                             <field name="bonded_book_id" required="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="project_id" readonly="state != 'draft'" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="warehouse" readonly="state != 'draft'" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="pick_type" readonly="state != 'draft'" domain="[('code', 'in', ['outgoing', 'internal']), ('warehouse_id', '=', warehouse)]" options="{'no_create': True, 'no_open': True}"/>
                             <field name="customs_file_id" options="{'no_create': True, 'no_open': True}"/>
                             <field name="outbound_type"/>
                         </group>
