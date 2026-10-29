@@ -33,6 +33,10 @@ export class Homepage extends Component {
         this.action.doAction("stock_barcode_lite_outbound_whole");
     }
 
+    _onOutboundPalletBindingClick() {
+        this.action.doAction("stock_barcode_lite_outbound_pallet_binding");
+    }
+
     async _onInternalTransferClick() {
         if (this._creatingInternalTransfer) {
             return;

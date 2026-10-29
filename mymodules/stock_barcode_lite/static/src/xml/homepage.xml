@@ -102,7 +102,7 @@
                             </div>
                             <div class="card-body d-flex flex-column">
                                 <p class="text-muted mb-auto">Group picked products onto an existing or newly generated pallet.</p>
-                                <button class="btn btn-success mt-3" t-on-click="">
+                                <button class="btn btn-success mt-3" t-on-click="_onOutboundPalletBindingClick">
                                     <i class="fa fa-arrow-right me-2"/>Go
                                 </button>
                             </div>

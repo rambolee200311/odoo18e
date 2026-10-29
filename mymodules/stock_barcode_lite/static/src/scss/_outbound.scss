@@ -117,6 +117,11 @@
 }
 
 .o_sbl_outbound_binding {
+    .o_sbl_outbound_sticky_top {
+        flex: 0 0 auto;
+        background: #fff;
+    }
+
     .o_sbl_binding_content {
         flex: 1 1 auto;
         min-height: 0;
@@ -125,12 +130,69 @@
         -webkit-overflow-scrolling: touch;
     }
 
-    .o_sbl_bound_pallet .card-header {
-        background: #f8f9fa;
+    .o_sbl_binding_order_stats {
+        justify-content: flex-start;
+        gap: 6px 24px;
+    }
+
+    .o_sbl_binding_section_heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 14px 0 8px;
+        color: #495057;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .o_sbl_binding_target_pallet {
+        border-color: #0d6efd;
+        background: linear-gradient(135deg, #e7f1ff 0%, #fff 100%);
+        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.18);
+
+        .o_pallet_header {
+            cursor: default;
+            background: transparent;
+        }
+    }
+
+    .o_sbl_binding_pallet_header {
+        cursor: default;
+    }
+
+    .o_sbl_binding_product_line {
+        align-items: center;
+    }
+
+    .o_sbl_binding_product_info {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .o_sbl_binding_product_qtys {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 4px 12px;
+        color: #6c757d;
+        font-size: 11px;
+        white-space: nowrap;
+    }
+
+    .o_sbl_binding_scanned_product {
+        margin-top: 8px;
+        background: #e7f1ff;
+        border-color: #cfe2ff;
     }
 
     .o_sbl_quantity_entry {
         border-color: #0d6efd;
+    }
+
+    .o_sbl_step_indicator {
+        .o_step_label {
+            text-align: center;
+        }
     }
 }
 
@@ -151,13 +213,21 @@
 // PDA 上固定出库页步骤条以上的信息，托盘列表继续由整个页面滚动。
 @media (max-width: 768px), (pointer: coarse) {
     .o_sbl_inbound.o_sbl_disassembly_outbound,
-    .o_sbl_inbound.o_sbl_whole_pallet_outbound {
+    .o_sbl_inbound.o_sbl_whole_pallet_outbound,
+    .o_sbl_inbound.o_sbl_outbound_binding {
         .o_sbl_outbound_sticky_top {
             position: sticky;
             top: 0;
             z-index: 20;
             flex: 0 0 auto;
             background: #fff;
+        }
+
+        .o_sbl_binding_content {
+            flex: 0 0 auto;
+            min-height: auto;
+            overflow: visible;
+            padding: 10px 12px calc(24px + env(safe-area-inset-bottom));
         }
 
         .o_sbl_pallets {
@@ -167,6 +237,19 @@
             margin-bottom: 0;
             // Keep the fixed footer clear of the last pallet at the page scroll limit.
             padding-bottom: calc(120px + env(safe-area-inset-bottom)) !important;
+        }
+    }
+
+    .o_sbl_inbound.o_sbl_outbound_binding {
+        .o_sbl_binding_product_line {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .o_sbl_binding_product_qtys {
+            justify-content: flex-start;
+            gap: 4px 12px;
         }
     }
 }
