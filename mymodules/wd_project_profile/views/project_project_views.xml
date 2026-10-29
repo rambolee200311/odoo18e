@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_project_form_inherit_profile" model="ir.ui.view">
+        <field name="name">project.project.form.inherit.profile</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.edit_project"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='settings']" position="after">
+                <page name="warehouse_profile" string="Warehouse Profile">
+                    <group string="Project Information">
+                        <group>
+                            <field name="category" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="owner" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="charge_of_pallet"/>
+                            <field name="is_check_origin_doc"/>
+                        </group>
+                        <group string="CMR Templates">
+                            <field name="inbound_cmr_template_file" widget="binary" filename="inbound_cmr_template_file_name"/>
+                            <field name="inbound_cmr_template_file_name" invisible="1"/>
+                            <field name="outbound_cmr_template_file" widget="binary" filename="outbound_cmr_template_file_name"/>
+                            <field name="outbound_cmr_template_file_name" invisible="1"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="warehouse" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="inbound_pick_type" domain="[('code', '=', 'incoming'), ('warehouse_id', '=', warehouse), ('warehouse_id', '!=', False)]" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="outbound_pick_type" domain="[('code', 'in', ['outgoing', 'internal']), ('warehouse_id', '=', warehouse), ('warehouse_id', '!=', False)]" options="{'no_create': True, 'no_open': True}"/>
+                        </group>
+                        <group>
+                            <field name="package_generation_mode" required="1"/>
+                            <field name="pallet_structure_mode" required="1"/>
+                            <field name="stock_report_date_mode" required="1"/>
+                            <field name="barcode_scan_mode" required="1"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="project.open_view_project_all" model="ir.actions.act_window">
+        <field name="view_mode">list,kanban,form</field>
+        <field name="view_id" ref="project.view_project"/>
+    </record>
+
+    <record id="project.open_view_project_all_group_stage" model="ir.actions.act_window">
+        <field name="view_mode">list,kanban,form,calendar,activity</field>
+        <field name="view_id" ref="project.project_list_view_group_stage"/>
+    </record>
+
+    <record id="project.open_view_project_all_group_stage_tree_view" model="ir.actions.act_window.view">
+        <field name="sequence">1</field>
+    </record>
+
+    <record id="project.open_view_project_all_group_stage_kanban_view" model="ir.actions.act_window.view">
+        <field name="sequence">2</field>
+    </record>
+</odoo>

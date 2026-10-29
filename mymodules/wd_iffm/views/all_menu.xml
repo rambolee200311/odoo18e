@@ -18,7 +18,19 @@
     <menuitem id="charge_account_menu" name="Charge Management" parent="menu_wd_charge_root" sequence="60"/>
 
     <menuitem id="charge_item_menu" name="Charge Management" parent="charge_account_menu"
-              action="worlddepot.action_world_depot_charge_item" sequence="10"/>
+              action="wd_charge_pricing.action_charge_item" sequence="10"/>
+
+    <delete model="ir.ui.menu" id="wd_charge_pricing.menu_charge_receivable_quotation"/>
+    <delete model="ir.ui.menu" id="wd_charge_pricing.menu_vendor_cost_quotation"/>
+    <delete model="ir.ui.menu" id="wd_charge_pricing.menu_charge_quotation"/>
+    <delete model="ir.ui.menu" id="wd_charge_pricing.menu_charge_item"/>
+    <delete model="ir.ui.menu" id="wd_charge_pricing.menu_charge_unit"/>
+    <delete model="ir.ui.menu" id="wd_charge_pricing.menu_charge_pricing_root"/>
+
+    <menuitem id="menu_wd_charge_quotation" name="Quotations" parent="menu_wd_charge_root" sequence="41"/>
+    <menuitem id="menu_wd_charge_receivable_quotation" name="Receivable Quotations" parent="menu_wd_charge_quotation" action="wd_charge_pricing.action_charge_quotation" sequence="10"/>
+    <menuitem id="menu_wd_charge_payable_quotation" name="Payable Quotations" parent="menu_wd_charge_quotation" action="wd_charge_pricing.action_vendor_cost_quotation" sequence="20"/>
+    <menuitem id="menu_wd_charge_unit" name="Charge Units" parent="charge_account_menu" action="wd_charge_pricing.action_charge_unit" sequence="30"/>
 
 
     <record id="action_wd_iffm_expense_account" model="ir.actions.act_window">

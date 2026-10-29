@@ -11,7 +11,7 @@
     'depends': [
         'base', 'mail', 'stock', 'account',
         'portal', 'contacts', 'product', 'fleet',
-        'worlddepot',
+        'worlddepot', 'wd_charge_pricing', 'wd_product_profile',
     ],
     'data': [
         'data/transport_type_data.xml',
@@ -80,7 +80,6 @@
         'views/transport_scene_views.xml',
         'views/business_matrix_views.xml',
         'views/pickup_schedule_templates.xml',
-        'views/product_adr_views.xml',
         'views/tlmp_menus.xml',
     ],
     'assets': {

@@ -55,7 +55,8 @@ class OutboundOrder(models.Model):
             charge_values = []
             remarks = []
             if not quotation:
-                raise ValidationError(_("The outbound order project must have a quotation before confirmation."))
+                charge_data_by_order_id[rec.id] = {"charge_values": charge_values, "currency_id": False, "remark": False}
+                continue
             if rec.outbound_order_charge_ids.filtered(lambda line: line.is_import_quotation_charge):
                 charge_data_by_order_id[rec.id] = {"charge_values": charge_values, "currency_id": False, "remark": False}
                 continue

@@ -2,7 +2,7 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
 import json
-from odoo.addons.wd_iffm.models.charge_item_inherit import TAB_CATEGORY_LIST,OPERATION_TYPE
+from odoo.addons.wd_charge_pricing.models.charge_item import OPERATION_TYPE, TAB_CATEGORY_LIST
 
 
 class OperationOrderHandoverChargeLine(models.Model):

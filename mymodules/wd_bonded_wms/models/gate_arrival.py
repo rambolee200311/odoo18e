@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
-from odoo.exceptions import ValidationError
+from odoo.exceptions import UserError, ValidationError
 
 
 class GateArrival(models.Model):
@@ -21,10 +21,6 @@ class GateArrival(models.Model):
     # 反向关联pre.mrn中间表 (一个集装箱唯一归属一个T1 MRN)
     pre_mrn_t1_id = fields.Many2one('customs.file.pre.mrn', string='Pre-condition MRN Link',
                                     help='Each container belongs to exactly one T1 MRN')
-
-    # 货代换单关联
-    handover_id = fields.Many2one('operation.order.handover', string='Handover',
-                                  help='Import handover, auto-brings DO/container/seal info')
 
     # 集装箱与封志
     container_no = fields.Char(string='Container Number', required=True)

@@ -1,45 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data noupdate="1">
-        <record id="bonded_charge_unit_piece_v2" model="bonded.charge.unit">
+        <record id="bonded_charge_unit_piece_v2" model="world.depot.charge.unit">
             <field name="name">Per Piece</field>
-            <field name="code">piece</field>
         </record>
-        <record id="bonded_charge_unit_shipment_v2" model="bonded.charge.unit">
+        <record id="bonded_charge_unit_shipment_v2" model="world.depot.charge.unit">
             <field name="name">Per Shipment</field>
-            <field name="code">shipment</field>
         </record>
-        <record id="bonded_charge_unit_mrn_v2" model="bonded.charge.unit">
+        <record id="bonded_charge_unit_mrn_v2" model="world.depot.charge.unit">
             <field name="name">Per MRN</field>
-            <field name="code">mrn</field>
         </record>
-        <record id="bonded_charge_unit_day_v2" model="bonded.charge.unit">
+        <record id="bonded_charge_unit_day_v2" model="world.depot.charge.unit">
             <field name="name">Per Day</field>
-            <field name="code">day</field>
         </record>
-        <record id="bonded_charge_unit_month_v2" model="bonded.charge.unit">
+        <record id="bonded_charge_unit_month_v2" model="world.depot.charge.unit">
             <field name="name">Per Month</field>
-            <field name="code">month</field>
         </record>
-        <record id="bonded_charge_unit_pallet_day_v2" model="bonded.charge.unit">
+        <record id="bonded_charge_unit_pallet_day_v2" model="world.depot.charge.unit">
             <field name="name">Per Pallet/Day</field>
-            <field name="code">pallet_day</field>
         </record>
 
-        <record id="bonded_charge_item_customs_v2" model="bonded.charge.item">
-            <field name="name">Bonded Customs Declaration</field>
-            <field name="code">customs_declaration</field>
-            <field name="charge_unit_id" ref="bonded_charge_unit_mrn_v2"/>
+        <record id="bonded_charge_item_customs_v2" model="world.depot.charge.item">
+            <field name="item_name">Bonded Customs Declaration</field>
+            <field name="unit_id" ref="bonded_charge_unit_mrn_v2"/>
         </record>
-        <record id="bonded_charge_item_storage_v2" model="bonded.charge.item">
-            <field name="name">Bonded Storage</field>
-            <field name="code">storage</field>
-            <field name="charge_unit_id" ref="bonded_charge_unit_pallet_day_v2"/>
+        <record id="bonded_charge_item_storage_v2" model="world.depot.charge.item">
+            <field name="item_name">Bonded Storage</field>
+            <field name="unit_id" ref="bonded_charge_unit_pallet_day_v2"/>
         </record>
-        <record id="bonded_charge_item_other_v2" model="bonded.charge.item">
-            <field name="name">Bonded Other Services</field>
-            <field name="code">other_services</field>
-            <field name="charge_unit_id" ref="bonded_charge_unit_piece_v2"/>
+        <record id="bonded_charge_item_other_v2" model="world.depot.charge.item">
+            <field name="item_name">Bonded Other Services</field>
+            <field name="unit_id" ref="bonded_charge_unit_piece_v2"/>
         </record>
     </data>
 </odoo>

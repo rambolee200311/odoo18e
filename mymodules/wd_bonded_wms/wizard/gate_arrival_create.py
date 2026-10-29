@@ -32,7 +32,6 @@ class GateArrivalCreate(models.TransientModel):
             'driver_name': self.driver_name,
             'driver_phone': self.driver_phone,
             'arrival_datetime': self.arrival_datetime,
-            'handover_id': self.customs_file_id.handover_id.id if self.customs_file_id.handover_id else False,
             'state': 'pending',
         })
         return {

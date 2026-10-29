@@ -65,15 +65,7 @@ access_bonded_stock_snapshot_system,bonded.stock.snapshot,model_bonded_stock_sna
 access_bonded_eori_entity_system,bonded.eori.entity,model_bonded_eori_entity,base.group_system,1,1,1,1
 access_bonded_customs_authorization_system,bonded.customs.authorization,model_bonded_customs_authorization,base.group_system,1,1,1,1
 access_bonded_book_line_system,bonded.book.line,model_bonded_book_line,base.group_system,1,1,1,1
-access_bonded_charge_unit_admin,bonded.charge.unit,model_bonded_charge_unit,group_bonded_admin,1,1,1,1
-access_bonded_charge_unit_finance,bonded.charge.unit,model_bonded_charge_unit,group_bonded_finance,1,0,0,0
-access_bonded_charge_unit_audit,bonded.charge.unit,model_bonded_charge_unit,group_bonded_customs_audit,1,0,0,0
-access_bonded_charge_item_admin,bonded.charge.item,model_bonded_charge_item,group_bonded_admin,1,1,1,1
-access_bonded_charge_item_finance,bonded.charge.item,model_bonded_charge_item,group_bonded_finance,1,1,1,0
-access_bonded_charge_item_audit,bonded.charge.item,model_bonded_charge_item,group_bonded_customs_audit,1,0,0,0
 access_bonded_charge_line_admin,bonded.charge.line,model_bonded_charge_line,group_bonded_admin,1,1,1,1
 access_bonded_charge_line_finance,bonded.charge.line,model_bonded_charge_line,group_bonded_finance,1,1,1,0
 access_bonded_charge_line_audit,bonded.charge.line,model_bonded_charge_line,group_bonded_customs_audit,1,0,0,0
-access_bonded_charge_unit_system,bonded.charge.unit,model_bonded_charge_unit,base.group_system,1,1,1,1
-access_bonded_charge_item_system,bonded.charge.item,model_bonded_charge_item,base.group_system,1,1,1,1
 access_bonded_charge_line_system,bonded.charge.line,model_bonded_charge_line,base.group_system,1,1,1,1

@@ -2,41 +2,14 @@
 from odoo import api, fields, models
 
 
-class BondedChargeUnit(models.Model):
-    _name = 'bonded.charge.unit'
-    _description = 'Bonded Charge Unit'
-    _order = 'id desc'
-
-    name = fields.Char(string='Name', required=True, index=True)
-    code = fields.Char(string='Code', required=True, index=True)
-    active = fields.Boolean(string='Active', default=True)
-
-    _sql_constraints = [('bonded_charge_unit_code_uniq', 'unique(code)', 'Bonded charge unit code must be unique!')]
-
-
-class BondedChargeItem(models.Model):
-    _name = 'bonded.charge.item'
-    _description = 'Bonded Charge Item'
-    _order = 'id desc'
-
-    name = fields.Char(string='Name', required=True, index=True)
-    code = fields.Char(string='Code', required=True, index=True)
-    charge_unit_id = fields.Many2one('bonded.charge.unit', string='Charge Unit', required=True, ondelete='restrict', index=True)
-    default_unit_price = fields.Monetary(string='Default Unit Price', default=0.0)
-    currency_id = fields.Many2one('res.currency', string='Currency', required=True, default=lambda self: self.env.ref('base.EUR').id)
-    active = fields.Boolean(string='Active', default=True)
-
-    _sql_constraints = [('bonded_charge_item_code_uniq', 'unique(code)', 'Bonded charge item code must be unique!')]
-
-
 class BondedChargeLine(models.Model):
     _name = 'bonded.charge.line'
     _description = 'Bonded Charge Line'
     _rec_name = 'charge_item_id'
     _order = 'id desc'
 
-    charge_item_id = fields.Many2one('bonded.charge.item', string='Charge Item', required=True, ondelete='restrict', index=True)
-    charge_unit_id = fields.Many2one('bonded.charge.unit', string='Charge Unit', related='charge_item_id.charge_unit_id', store=True, readonly=True, index=True)
+    charge_item_id = fields.Many2one('world.depot.charge.item', string='Charge Item', required=True, ondelete='restrict', index=True)
+    charge_unit_id = fields.Many2one('world.depot.charge.unit', string='Charge Unit', related='charge_item_id.unit_id', store=True, readonly=True, index=True)
     bonded_book_id = fields.Many2one('bonded.book', string='Bonded Book', ondelete='restrict', index=True)
     customs_file_id = fields.Many2one('bonded.customs.file', string='Customs Declaration', ondelete='set null', index=True)
     bonded_inbound_id = fields.Many2one('bonded.inbound', string='Bonded Inbound', ondelete='set null', index=True)

@@ -12,11 +12,8 @@ class ProductTemplateInherit(models.Model):
     sunrise_shelf_life_months = fields.Integer(string="Sunrise Shelf Life Months", copy=False)
     sunrise_shelf_life_years = fields.Integer(string="Sunrise Shelf Life Years", copy=False)
     category_name = fields.Char(string="Sunrise Category Name", related="categ_id.name", store=True)
-    organic = fields.Boolean(string="Organic", default=False, copy=False, index=True)
     sunrise_inbound_box_mode = fields.Selection([("bulk", "Bulk"), ("package", "Full / Partial")], string="Sunrise Inbound Box Mode", copy=False, readonly=True)
     sunrise_product_category_name = fields.Char(string="Sunrise Product Category", copy=False, index=True)#类别
-    gross_weight = fields.Float(string="Gross Weight (kg)", copy=False)
-    product_dimensions = fields.Char(string="Product Dimensions (m)", copy=False)
 
     def action_update_sunrise_organic(self):
         template_model = self.env["product.template"]

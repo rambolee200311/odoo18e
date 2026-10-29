@@ -6,8 +6,9 @@
         <field name="arch" type="xml">
             <list>
                 <field name="name"/>
-                <field name="customs_file_id"/>
+                <field name="customs_file_ids" widget="many2many_tags"/>
                 <field name="bonded_book_id"/>
+                <field name="project_id"/>
                 <field name="inbound_tracking_no"/>
                 <field name="expected_date"/>
                 <field name="total_value" widget="monetary"/>
@@ -36,7 +37,7 @@
                         <group string="Inbound Info">
                             <field name="name" readonly="1"/>
                             <field name="bonded_book_id" required="1" readonly="state != 'draft'" options="{'no_create': True, 'no_open': True}"/>
-                            <field name="customs_file_id" readonly="state not in ('draft', 'confirmed')" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="project_id" readonly="state != 'draft'" options="{'no_create': True, 'no_open': True}"/>
                             <field name="inbound_tracking_no" readonly="1"/>
                             <field name="cargo_source" readonly="state != 'draft'"/>
                             <field name="warehouse" required="1" readonly="state != 'draft'" options="{'no_create': True, 'no_open': True}"/>
@@ -58,11 +59,13 @@
                                     <field name="planned_qty"/>
                                     <field name="done_qty"/>
                                     <field name="uom_id" readonly="1"/>
-                                    <field name="customs_file_id" column_invisible="1"/>
                                     <field name="available_customs_file_line_ids" column_invisible="1"/>
-                                    <field name="customs_file_line_id" domain="[('customs_file_id', '=', parent.customs_file_id), ('product_id', '=', product_id), ('id', 'in', available_customs_file_line_ids)]" readonly="not parent.customs_file_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="customs_file_line_id" domain="[('customs_file_id', 'in', parent.customs_file_ids), ('product_id', '=', product_id), ('id', 'in', available_customs_file_line_ids)]" readonly="not parent.customs_file_ids" options="{'no_create': True, 'no_open': True}"/>
                                 </list>
                             </field>
+                        </page>
+                        <page string="Customs Declarations">
+                            <field name="customs_file_ids" widget="many2many_tags" domain="[('declaration_type', '=', 'b3_in')]" readonly="state not in ('draft', 'confirmed')" options="{'no_create': True, 'no_open': True}"/>
                         </page>
                         <page name="gate_arrivals" string="Gate Arrivals" invisible="cargo_source == 'direct'">
                             <field name="gate_arrival_ids" readonly="state != 'draft'"/>
