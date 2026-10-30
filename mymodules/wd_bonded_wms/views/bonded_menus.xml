@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data noupdate="1">
+    <data>
     <!-- Actions -->
     <record id="action_bonded_book" model="ir.actions.act_window">
         <field name="name">Bonded Books</field>
@@ -64,10 +64,9 @@
     </record>
     <record id="action_bonded_mrn_ledger" model="ir.actions.act_window">
         <field name="name">MRN Control Ledger</field>
-        <field name="res_model">bonded.customs.file</field>
+        <field name="res_model">bonded.mrn</field>
         <field name="view_mode">list,form</field>
-        <field name="domain">[('declaration_type','in',('t1_in','t1_out'))]</field>
-        <field name="search_view_id" ref="bonded_customs_file_view_search"/>
+        <field name="search_view_id" ref="bonded_mrn_view_search"/>
     </record>
     <record id="action_gate_arrival" model="ir.actions.act_window">
         <field name="name">Gate Arrivals</field>
@@ -133,7 +132,7 @@
 
     <!-- Menus -->
     <menuitem id="menu_bonded_root" name="Bonded WMS" sequence="90" web_icon="wd_bonded_wms,static/description/icon.png"/>
-    <menuitem id="menu_bonded_masters" name="Masters" parent="menu_bonded_root" sequence="10"/>
+    <menuitem id="menu_bonded_masters" name="Masters" parent="menu_bonded_root" sequence="90"/>
     <menuitem id="menu_bonded_book" name="Bonded Books" parent="menu_bonded_masters" action="action_bonded_book" sequence="10"/>
     <menuitem id="menu_bonded_product" name="Bonded Product Filing" parent="menu_bonded_masters" action="action_bonded_product" sequence="20"/>
     <menuitem id="menu_bonded_value_limit" name="Value Limits" parent="menu_bonded_masters" action="action_bonded_value_limit" sequence="30"/>
@@ -142,15 +141,15 @@
     <menuitem id="menu_bonded_charge_unit" name="Charge Units" parent="menu_bonded_masters" action="action_bonded_charge_unit" sequence="60"/>
     <menuitem id="menu_bonded_charge_item" name="Charge Items" parent="menu_bonded_masters" action="action_bonded_charge_item" sequence="70"/>
     <menuitem id="menu_bonded_customs" name="Customs Declaration" parent="menu_bonded_root" sequence="20"/>
-    <menuitem id="menu_bonded_customs_file" name="Customs Files" parent="menu_bonded_customs" action="action_bonded_customs_file" sequence="10"/>
-    <menuitem id="menu_bonded_customs_file_t1_in" name="T1 Inbound" parent="menu_bonded_customs" action="action_bonded_customs_file_t1_in" sequence="20"/>
-    <menuitem id="menu_bonded_customs_file_b3_in" name="B3 Inbound" parent="menu_bonded_customs" action="action_bonded_customs_file_b3_in" sequence="30"/>
-    <menuitem id="menu_bonded_customs_file_b3_out" name="B3 Outbound" parent="menu_bonded_customs" action="action_bonded_customs_file_b3_out" sequence="40"/>
-    <menuitem id="menu_bonded_customs_file_t1_out" name="T1 Outbound" parent="menu_bonded_customs" action="action_bonded_customs_file_t1_out" sequence="50"/>
-    <menuitem id="menu_bonded_operations" name="Operations" parent="menu_bonded_root" sequence="30"/>
-    <menuitem id="menu_gate_arrival" name="Gate Arrivals" parent="menu_bonded_operations" action="action_gate_arrival" sequence="10"/>
-    <menuitem id="menu_bonded_inbound" name="Bonded Inbound" parent="menu_bonded_operations" action="action_bonded_inbound" sequence="20"/>
-    <menuitem id="menu_bonded_outbound" name="Bonded Outbound" parent="menu_bonded_operations" action="action_bonded_outbound" sequence="30"/>
+    <menuitem id="menu_bonded_customs_file" name="Customs Files" parent="menu_bonded_customs" action="action_bonded_customs_file" sequence="10" active="False"/>
+    <menuitem id="menu_bonded_customs_file_t1_in" name="T1 Inbound" parent="menu_bonded_customs" action="action_bonded_customs_file_t1_in" sequence="10"/>
+    <menuitem id="menu_bonded_customs_file_b3_in" name="B3 Inbound" parent="menu_bonded_customs" action="action_bonded_customs_file_b3_in" sequence="20"/>
+    <menuitem id="menu_bonded_customs_file_b3_out" name="B3 Outbound" parent="menu_bonded_customs" action="action_bonded_customs_file_b3_out" sequence="30"/>
+    <menuitem id="menu_bonded_customs_file_t1_out" name="T1 Outbound" parent="menu_bonded_customs" action="action_bonded_customs_file_t1_out" sequence="40"/>
+    <menuitem id="menu_bonded_operations" name="Warehouse Operations" parent="menu_bonded_root" sequence="10"/>
+    <menuitem id="menu_bonded_inbound" name="Bonded Inbound" parent="menu_bonded_operations" action="action_bonded_inbound" sequence="10"/>
+    <menuitem id="menu_bonded_outbound" name="Bonded Outbound" parent="menu_bonded_operations" action="action_bonded_outbound" sequence="20"/>
+    <menuitem id="menu_gate_arrival" name="Gate Arrivals" parent="menu_bonded_operations" action="action_gate_arrival" sequence="30"/>
     <menuitem id="menu_bonded_stock" name="Bonded Stock" parent="menu_bonded_root" sequence="40"/>
     <menuitem id="menu_bonded_stock_all" name="All Bonded Stock" parent="menu_bonded_stock" action="action_bonded_stock" sequence="10"/>
     <menuitem id="menu_bonded_verification" name="Verifications" parent="menu_bonded_stock" action="action_bonded_verification" sequence="20"/>
@@ -162,6 +161,7 @@
     <menuitem id="menu_bonded_release_ledger" name="Customs Release Ledger" parent="menu_bonded_ledgers" action="action_bonded_customs_file" sequence="30"/>
     <menuitem id="menu_bonded_mrn_ledger" name="MRN Control Ledger" parent="menu_bonded_ledgers" action="action_bonded_mrn_ledger" sequence="40"/>
     <menuitem id="menu_bonded_verification_ledger" name="Verification Disposal Ledger" parent="menu_bonded_ledgers" action="action_bonded_verification" sequence="50"/>
+    <menuitem id="menu_bonded_value_record_ledger" name="Value Ledger" parent="menu_bonded_ledgers" action="action_bonded_value_ledger" sequence="60"/>
     <menuitem id="menu_bonded_finance" name="Finance" parent="menu_bonded_root" sequence="46"/>
     <menuitem id="menu_bonded_charge_line" name="Bonded Charges" parent="menu_bonded_finance" action="action_bonded_charge_line" sequence="10"/>
     <menuitem id="menu_bonded_monitor" name="Monitoring" parent="menu_bonded_root" sequence="50"/>

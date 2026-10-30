@@ -34,7 +34,7 @@
                 </header>
                 <sheet>
                     <div class="alert alert-warning" role="alert" invisible="pre_condition != 't1_closed'">
-                        <i class="fa fa-exclamation-triangle"/> This B3 declaration requires T1 pre-condition. Verify pre_mrn_ids below.
+                        <i class="fa fa-exclamation-triangle"/> Related T1 declarations are generated from linked inbound gate arrivals.
                     </div>
                     <div class="alert alert-danger" role="alert" invisible="state != 'customs_rejected'">
                         <i class="fa fa-times-circle"/> Rejected: <field name="rejection_reason"/>
@@ -43,24 +43,24 @@
                         <group string="Declaration Header (SAD/C88)">
                             <field name="declaration_no" readonly="1"/>
                             <field name="declaration_type"/>
-                            <field name="bonded_book_id" required="1" options="{'no_create': True, 'no_open': True}"/>
-                            <field name="mrn" placeholder="00NLABCDEFGHIJKLMN"/>
+                            <field name="bonded_book_id" required="1" options="{'no_create': True, 'no_open': False}"/>
+                            <field name="mrn_id" domain="[('customs_file_id', '=', id)]" context="{'default_customs_file_id': id}" options="{'create_name_field': 'mrn'}"/>
                             <field name="customs_code"/>
                         </group>
                         <group string="Parties">
-                            <field name="consignor_eori_entity_id" required="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="consignor_eori_entity_id" required="1" options="{'no_create': True, 'no_open': False}"/>
                             <field name="consignor_eori"/>
-                            <field name="consignee_eori_entity_id" required="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="consignee_eori_entity_id" required="1" options="{'no_create': True, 'no_open': False}"/>
                             <field name="consignee_eori"/>
-                            <field name="declarant_eori_entity_id" required="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="declarant_eori_entity_id" required="1" options="{'no_create': True, 'no_open': False}"/>
                             <field name="declarant_eori"/>
                             <field name="procedure_code"/>
                             <field name="bonded_warehouse_no"/>
                             <field name="previous_doc_no"/>
                         </group>
                         <group string="Transport">
-                            <field name="origin_country_id" required="1" options="{'no_create': True, 'no_open': True}"/>
-                            <field name="destination_country_id" required="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="origin_country_id" required="1" options="{'no_create': True, 'no_open': False}"/>
+                            <field name="destination_country_id" required="1" options="{'no_create': True, 'no_open': False}"/>
                             <field name="transport_mode"/>
                             <field name="estimated_distance_km" invisible="transport_mode != 'road'"/>
                             <field name="transit_deadline"/>
@@ -77,12 +77,13 @@
                             <field name="line_ids" readonly="state != 'draft'">
                                 <list editable="bottom">
                                     <field name="item_no"/>
-                                    <field name="eligible_product_ids" column_invisible="1"/>
-                                    <field name="product_id" domain="[('id', 'in', eligible_product_ids)]" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="eligible_bonded_product_ids" column_invisible="1"/>
+                                    <field name="bonded_product_id" domain="[('id', 'in', eligible_bonded_product_ids)]" required="1" options="{'no_create': True, 'no_open': False}"/>
+                                    <field name="product_id" readonly="1" options="{'no_create': True, 'no_open': False}"/>
                                     <field name="hs_code"/>
-                                    <field name="origin_country_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="origin_country_id" options="{'no_create': True, 'no_open': False}"/>
                                     <field name="quantity"/>
-                                    <field name="uom_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="uom_id" readonly="1" options="{'no_create': True, 'no_open': False}"/>
                                     <field name="gross_weight"/>
                                     <field name="net_weight"/>
                                     <field name="line_value" widget="monetary"/>
@@ -91,21 +92,17 @@
                             </field>
                         </page>
                         <page string="Pre-conditions (F-02)" invisible="declaration_type != 'b3_in'" readonly="state != 'draft'">
-                            <group>
-                                <field name="pre_condition"/>
-                                <field name="pre_satisfied_date" readonly="1"/>
-                            </group>
-                            <field name="pre_mrn_ids" context="{'default_customs_file_id': id}">
-                                <list editable="bottom">
+                            <field name="t1_precondition_file_ids" readonly="1" options="{'no_create': True, 'no_open': False}">
+                                <list create="false" delete="false">
+                                    <field name="declaration_no"/>
                                     <field name="mrn"/>
-                                    <field name="t1_customs_file_id" options="{'no_create': True, 'no_open': True}"/>
-                                    <field name="status"/>
-                                    <field name="satisfied_date"/>
+                                    <field name="state"/>
+                                    <field name="t1_closed_date"/>
                                 </list>
                             </field>
                         </page>
                         <page string="Gate Arrivals" invisible="declaration_type not in ('t1_in')">
-                            <field name="gate_arrival_ids" readonly="state != 'customs_approved'"/>
+                            <field name="gate_arrival_ids" readonly="state == 'done'"/>
                         </page>
                         <page string="Bonded Inbounds" invisible="declaration_type != 'b3_in'">
                             <field name="inbound_ids" readonly="1">

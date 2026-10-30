@@ -26,6 +26,8 @@ class GateArrival(models.Model):
     container_no = fields.Char(string='Container Number', required=True)
     seal_no = fields.Char(string='Seal Number', required=True)
     seal_intact = fields.Boolean(string='Seal Intact', default=True, tracking=True)
+    seal_confirmed = fields.Boolean(string='Seal Confirmed', default=False, readonly=True, tracking=True)
+    seal_confirm_datetime = fields.Datetime(string='Seal Confirmation Time', readonly=True, copy=False)
     seal_attachment_line_ids = fields.Many2many('ir.attachment', 'gate_arrival_seal_attachment_rel', 'gate_arrival_id', 'attachment_id', string='Seal Attachments', copy=False)
 
     # POD
@@ -79,9 +81,13 @@ class GateArrival(models.Model):
     def action_confirm_seal_intact(self):
         """确认封志完好"""
         for rec in self:
+            if rec.seal_confirmed:
+                continue
+            if not rec.seal_intact:
+                raise UserError(_('A damaged seal cannot be confirmed as intact.'))
             if not rec.seal_attachment_line_ids:
                 raise UserError(_('Please upload seal attachments before confirming seal is intact.'))
-            rec.write({'seal_intact': True})
+            rec.write({'seal_confirmed': True, 'seal_confirm_datetime': fields.Datetime.now()})
 
     def action_report_seal_damaged(self):
         """报告封志损坏"""

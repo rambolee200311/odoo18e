@@ -20,7 +20,8 @@ class BondedOutbound(models.Model):
                                      ondelete='restrict', index=True)
     project_id = fields.Many2one('project.project', string='Project', ondelete='restrict', index=True, tracking=True)
     customs_file_id = fields.Many2one('bonded.customs.file', string='Customs Declaration',
-                                      required=True, ondelete='restrict')
+                                      required=True, ondelete='restrict', index=True,
+                                      domain=[('declaration_type', 'in', ('b3_out', 't1_out', 'ex', 'destruction'))])
     outbound_type = fields.Selection([
         ('l2f', 'L2F (Local Clearance)'),
         ('eu_dispatch', 'EU Dispatch'),
@@ -28,10 +29,10 @@ class BondedOutbound(models.Model):
         ('destruction', 'Destruction'),
         ('re_export', 'Re-export (RTO)'),
     ], string='Outbound Type', required=True, default='l2f')
-    mrn = fields.Char(string='MRN Number',
-                      help='Outbound MRN (T1 transit only)')
+    mrn_id = fields.Many2one('bonded.mrn', string='MRN Number', ondelete='restrict', index=True, copy=False)
+    mrn = fields.Char(string='MRN Number', index=True, help='Outbound MRN (T1 transit only)')
     expected_date = fields.Date(string='Expected Date', required=True, default=fields.Date.today)
-    total_value = fields.Monetary(string='Total Value', required=True, default=0.0)
+    total_value = fields.Monetary(string='Total Value', compute='_compute_total_value', store=True, readonly=True)
     currency_id = fields.Many2one('res.currency', string='Currency',
                                   default=lambda self: self.env.ref('base.EUR').id)
     picking_id = fields.Many2one('stock.picking', string='Stock Picking',
@@ -59,9 +60,36 @@ class BondedOutbound(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
+            if vals.get('customs_file_id'):
+                customs_file = self.env['bonded.customs.file'].sudo().browse(vals['customs_file_id'])
+                vals['outbound_type'] = {
+                    'b3_out': 'l2f', 't1_out': 't1_transit', 'ex': 'eu_dispatch', 'destruction': 'destruction',
+                }.get(customs_file.declaration_type)
+                if not vals['outbound_type']:
+                    raise ValidationError(_('Outbound instructions require a B3 Outbound, T1 Outbound, EU Dispatch, or Destruction customs declaration.'))
+            if 'mrn_id' in vals:
+                vals['mrn'] = self.env['bonded.mrn'].sudo().browse(vals['mrn_id']).mrn if vals['mrn_id'] else False
+            elif vals.get('customs_file_id'):
+                vals['mrn_id'] = customs_file.mrn_id.id
+                vals['mrn'] = customs_file.mrn
             if vals.get('name', _('New')) == _('New'):
                 vals['name'] = self.env['ir.sequence'].next_by_code('seq.bonded.outbound') or _('New')
         return super().create(vals_list)
+
+    def write(self, vals):
+        if 'customs_file_id' in vals:
+            customs_file = self.env['bonded.customs.file'].sudo().browse(vals['customs_file_id'])
+            vals['outbound_type'] = {
+                'b3_out': 'l2f', 't1_out': 't1_transit', 'ex': 'eu_dispatch', 'destruction': 'destruction',
+            }.get(customs_file.declaration_type)
+            if not vals['outbound_type']:
+                raise ValidationError(_('Outbound instructions require a B3 Outbound, T1 Outbound, EU Dispatch, or Destruction customs declaration.'))
+            if 'mrn_id' not in vals:
+                vals['mrn_id'] = customs_file.mrn_id.id
+                vals['mrn'] = customs_file.mrn
+        if 'mrn_id' in vals:
+            vals['mrn'] = self.env['bonded.mrn'].sudo().browse(vals['mrn_id']).mrn if vals['mrn_id'] else False
+        return super().write(vals)
 
     @api.onchange('project_id')
     def onchange_project_id(self):
@@ -70,8 +98,29 @@ class BondedOutbound(models.Model):
                 rec.warehouse = rec.project_id.warehouse
                 rec.pick_type = rec.project_id.outbound_pick_type
 
+    @api.onchange('customs_file_id')
+    def onchange_customs_file_id(self):
+        for rec in self:
+            rec.outbound_type = {
+                'b3_out': 'l2f', 't1_out': 't1_transit', 'ex': 'eu_dispatch', 'destruction': 'destruction',
+            }.get(rec.customs_file_id.declaration_type)
+            rec.mrn_id = rec.customs_file_id.mrn_id
+            rec.mrn = rec.customs_file_id.mrn
+
+    @api.onchange('mrn_id')
+    def onchange_mrn_id(self):
+        for rec in self:
+            rec.mrn = rec.mrn_id.mrn
+
+    @api.depends('line_ids.subtotal_value')
+    def _compute_total_value(self):
+        for rec in self:
+            rec.total_value = sum(rec.line_ids.mapped('subtotal_value'))
+
     def action_confirm(self):
         for rec in self:
+            if rec.state != 'draft':
+                raise UserError(_('Only draft outbound instructions can be confirmed.'))
             if not rec.line_ids:
                 raise UserError(_('Please add outbound lines before confirming.'))
             for line in rec.line_ids:
@@ -81,6 +130,7 @@ class BondedOutbound(models.Model):
                     raise UserError(_('Only bonded stock in entrepot status can be outbound.'))
                 if line.bonded_stock_id.quantity < line.demand_qty:
                     raise UserError(_('Insufficient bonded stock for tracking no. %s.') % line.inbound_tracking_no)
+            rec.bonded_book_id.reserve_document_value(rec.total_value, project_id=rec.project_id.id, outbound_id=rec.id)
             rec.write({'state': 'confirmed'})
 
     def action_start(self):
@@ -237,24 +287,79 @@ class BondedOutboundLine(models.Model):
 
     bonded_outbound_id = fields.Many2one('bonded.outbound', string='Outbound Instruction', required=True, ondelete='cascade', index=True)
     bonded_stock_id = fields.Many2one('bonded.stock', string='Bonded Stock', required=True, ondelete='restrict', index=True, domain=[('current_customs_status', '=', 'entrepot'), ('quantity', '>', 0), ('locked', '=', False)])
+    bonded_product_id = fields.Many2one('bonded.product', string='Bonded Product Filing', ondelete='restrict', index=True)
     product_id = fields.Many2one('product.product', string='Product', index=True)
     inbound_tracking_no = fields.Char(string='Inbound Tracking No.', related='bonded_stock_id.inbound_tracking_no', store=True, index=True)
     customer_batch_no = fields.Char(string='Customer Batch No.', related='bonded_stock_id.customer_batch_no', store=True, index=True)
     demand_qty = fields.Float(string='Demand Qty', required=True, default=1.0)
+    declared_unit_price = fields.Monetary(string='Declared Unit Price', required=True, default=0.0)
+    subtotal_value = fields.Monetary(string='Subtotal', compute='_compute_subtotal_value', store=True)
+    currency_id = fields.Many2one('res.currency', related='bonded_outbound_id.currency_id', string='Currency', readonly=True)
     done_qty = fields.Float(string='Done Qty', compute='_compute_done_qty', store=True)
     uom_id = fields.Many2one('uom.uom', string='UoM', required=True)
+    eligible_bonded_product_ids = fields.Many2many('bonded.product', compute='_compute_eligible_bonded_product_ids')
 
-    @api.constrains('bonded_stock_id', 'product_id')
+    @api.model_create_multi
+    def create(self, vals_list):
+        env_bonded_outbound = self.env['bonded.outbound'].sudo()
+        env_bonded_product = self.env['bonded.product'].sudo()
+        env_bonded_stock = self.env['bonded.stock'].sudo()
+        for vals in vals_list:
+            outbound = env_bonded_outbound.browse(vals.get('bonded_outbound_id')).exists()
+            if not outbound:
+                continue
+            filing = env_bonded_product.browse(vals.get('bonded_product_id')).exists()
+            if filing:
+                vals['product_id'] = filing.product_id.id
+            elif vals.get('product_id'):
+                filing = env_bonded_product.search([
+                    ('bonded_book_id', '=', outbound.bonded_book_id.id),
+                    ('product_id', '=', vals['product_id']),
+                    ('state', '=', 'active'),
+                ], limit=1)
+            if filing:
+                vals.setdefault('bonded_product_id', filing.id)
+            bonded_stock = env_bonded_stock.browse(vals.get('bonded_stock_id')).exists()
+            if bonded_stock:
+                vals.setdefault('declared_unit_price', bonded_stock.unit_value)
+        return super().create(vals_list)
+
+    @api.constrains('bonded_outbound_id', 'bonded_stock_id', 'bonded_product_id', 'product_id')
     def check_bonded_stock_product(self):
         for rec in self:
+            if rec.bonded_product_id and (rec.bonded_product_id.bonded_book_id != rec.bonded_outbound_id.bonded_book_id or rec.bonded_product_id.product_id != rec.product_id or rec.bonded_product_id.state != 'active'):
+                raise ValidationError(_('The bonded product filing must be active and belong to the outbound instruction bonded book.'))
             if rec.bonded_stock_id and rec.product_id and rec.bonded_stock_id.product_id != rec.product_id:
                 raise ValidationError(_('Selected inbound tracking stock does not match the product.'))
+
+    @api.onchange('bonded_product_id')
+    def onchange_bonded_product_id(self):
+        for rec in self:
+            if rec.bonded_product_id:
+                rec.product_id = rec.bonded_product_id.product_id
+                rec.uom_id = rec.bonded_product_id.product_id.uom_id
 
     @api.onchange('bonded_stock_id')
     def onchange_bonded_stock_id(self):
         for rec in self:
             if rec.bonded_stock_id:
+                rec.product_id = rec.bonded_stock_id.product_id
                 rec.uom_id = rec.bonded_stock_id.product_id.uom_id
+                rec.declared_unit_price = rec.bonded_stock_id.unit_value
+
+    @api.depends('demand_qty', 'declared_unit_price')
+    def _compute_subtotal_value(self):
+        for rec in self:
+            rec.subtotal_value = rec.demand_qty * rec.declared_unit_price
+
+    @api.depends('bonded_outbound_id.bonded_book_id')
+    def _compute_eligible_bonded_product_ids(self):
+        for rec in self:
+            book = rec.bonded_outbound_id.bonded_book_id
+            rec.eligible_bonded_product_ids = self.env['bonded.product'].sudo().search([
+                ('bonded_book_id', '=', book.id),
+                ('state', '=', 'active'),
+            ]) if book else self.env['bonded.product']
 
     @api.depends('bonded_outbound_id.picking_id.move_ids.state', 'bonded_outbound_id.picking_id.move_ids.product_uom_qty')
     def _compute_done_qty(self):

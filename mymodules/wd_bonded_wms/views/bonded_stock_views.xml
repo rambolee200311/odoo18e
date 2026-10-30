@@ -29,12 +29,12 @@
                 <sheet>
                     <group>
                         <group string="Stock Info">
-                            <field name="bonded_book_id" required="1" options="{'no_create': True, 'no_open': True}"/>
-                            <field name="product_id" required="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="bonded_book_id" required="1" options="{'no_create': True, 'no_open': False}"/>
+                            <field name="product_id" required="1" options="{'no_create': True, 'no_open': False}"/>
                             <field name="inbound_tracking_no" required="1"/>
                             <field name="customer_batch_no"/>
-                            <field name="lot_id" options="{'no_create': True, 'no_open': True}"/>
-                            <field name="location_id" required="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="lot_id" options="{'no_create': True, 'no_open': False}"/>
+                            <field name="location_id" required="1" options="{'no_create': True, 'no_open': False}"/>
                         </group>
                         <group string="Customs">
                             <field name="current_customs_status"/>

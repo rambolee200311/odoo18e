@@ -30,12 +30,12 @@
                 <sheet>
                     <group>
                         <group string="Filing">
-                            <field name="bonded_book_id" required="1" options="{'no_create': True, 'no_open': True}"/>
-                            <field name="product_id" required="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="bonded_book_id" required="1" options="{'no_create': True, 'no_open': False}"/>
+                            <field name="product_id" required="1" options="{'no_create': True, 'no_open': False}"/>
                             <field name="hs_code" required="1"/>
                             <field name="declared_unit_price" required="1" widget="monetary"/>
-                            <field name="currency_id" required="1" options="{'no_create': True, 'no_open': True}"/>
-                            <field name="uom_id" required="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="currency_id" required="1" options="{'no_create': True, 'no_open': False}"/>
+                            <field name="uom_id" required="1" options="{'no_create': True, 'no_open': False}"/>
                             <field name="supervision_conditions"/>
                         </group>
                         <group string="Product Profile">

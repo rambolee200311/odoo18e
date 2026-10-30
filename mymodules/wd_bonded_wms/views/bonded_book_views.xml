@@ -32,10 +32,12 @@
                         <group string="Book Info">
                             <field name="name" readonly="1"/>
                             <field name="customs_office_code"/>
-                            <field name="operator_company" required="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="operator_company" required="1" options="{'no_create': True, 'no_open': False}"/>
                             <field name="eori_entity_id" required="1" options="{'no_create': False, 'no_open': False}"/>
-                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True, 'no_open': False}"/>
                             <field name="company_total_value_limit" required="1" widget="monetary"/>
+                            <field name="reserved_value" readonly="1" widget="monetary"/>
+                            <field name="available_value" readonly="1" widget="monetary"/>
                             <field name="currency_id" readonly="1"/>
                         </group>
                         <group string="Validity">
@@ -51,7 +53,7 @@
                         <page string="Value Limits">
                             <field name="value_limit_ids">
                                 <list editable="bottom">
-                                    <field name="project_id" required="1" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="project_id" required="1" options="{'no_create': True, 'no_open': False}"/>
                                     <field name="currency_id" column_invisible="1"/>
                                     <field name="total_value" required="1" widget="monetary"/>
                                     <field name="used_value" readonly="1" widget="monetary"/>
@@ -59,6 +61,23 @@
                                     <field name="effective_date"/>
                                     <field name="expiry_date"/>
                                     <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Value Ledger">
+                            <field name="value_ledger_ids" readonly="1">
+                                <list create="false" delete="false">
+                                    <field name="operation_datetime"/>
+                                    <field name="operation_type"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                    <field name="value_amount" widget="monetary"/>
+                                    <field name="reserved_change" widget="monetary"/>
+                                    <field name="deducted_change" widget="monetary"/>
+                                    <field name="available_value_after" widget="monetary"/>
+                                    <field name="inbound_id"/>
+                                    <field name="outbound_id"/>
+                                    <field name="customs_file_id"/>
+                                    <field name="operator_id"/>
                                 </list>
                             </field>
                         </page>
