@@ -8,8 +8,7 @@ class BondedProduct(models.Model):
     _rec_name = 'product_id'
     _order = 'bonded_book_id, product_id'
 
-    bonded_book_id = fields.Many2one('bonded.book', string='Bonded Book', required=True,
-                                     ondelete='cascade', index=True)
+    bonded_book_id = fields.Many2one('bonded.book', string='Bonded Book', required=True, ondelete='cascade', index=True, domain=[('state', '=', 'active')])
     product_id = fields.Many2one('product.product', string='Product', required=True,
                                  ondelete='restrict', index=True)
     hs_code = fields.Char(string='HS Code', required=True)

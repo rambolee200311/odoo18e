@@ -44,7 +44,8 @@
                             <field name="declaration_no" readonly="1"/>
                             <field name="declaration_type"/>
                             <field name="bonded_book_id" required="1" options="{'no_create': True, 'no_open': False}"/>
-                            <field name="mrn_id" domain="[('customs_file_id', '=', id)]" context="{'default_customs_file_id': id}" options="{'create_name_field': 'mrn'}"/>
+                            <field name="mrn" invisible="id"/>
+                            <field name="mrn_id" invisible="not id" domain="[('customs_file_id', '=', id)]" context="{'default_customs_file_id': id}" options="{'create_name_field': 'mrn'}"/>
                             <field name="customs_code"/>
                         </group>
                         <group string="Parties">

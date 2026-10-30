@@ -9,8 +9,7 @@ class BondedVerification(models.Model):
     _rec_name = 'id'
     _order = 'verification_date desc, id desc'
 
-    bonded_book_id = fields.Many2one('bonded.book', string='Bonded Book', required=True,
-                                     ondelete='restrict', index=True)
+    bonded_book_id = fields.Many2one('bonded.book', string='Bonded Book', required=True, ondelete='restrict', index=True, domain=[('state', '=', 'active')])
     verification_type = fields.Selection([
         ('inbound', 'Inbound (核注)'),
         ('outbound', 'Outbound (核销)'),

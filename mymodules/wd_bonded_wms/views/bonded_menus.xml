@@ -63,7 +63,7 @@
         <field name="search_view_id" ref="bonded_customs_file_view_search"/>
     </record>
     <record id="action_bonded_mrn_ledger" model="ir.actions.act_window">
-        <field name="name">MRN Control Ledger</field>
+        <field name="name">MRN Numbers</field>
         <field name="res_model">bonded.mrn</field>
         <field name="view_mode">list,form</field>
         <field name="search_view_id" ref="bonded_mrn_view_search"/>
@@ -140,6 +140,7 @@
     <menuitem id="menu_bonded_customs_authorization" name="Customs Authorizations" parent="menu_bonded_masters" action="action_bonded_customs_authorization" sequence="50"/>
     <menuitem id="menu_bonded_charge_unit" name="Charge Units" parent="menu_bonded_masters" action="action_bonded_charge_unit" sequence="60"/>
     <menuitem id="menu_bonded_charge_item" name="Charge Items" parent="menu_bonded_masters" action="action_bonded_charge_item" sequence="70"/>
+    <menuitem id="menu_bonded_mrn_ledger" name="MRN Numbers" parent="menu_bonded_masters" action="action_bonded_mrn_ledger" sequence="80"/>
     <menuitem id="menu_bonded_customs" name="Customs Declaration" parent="menu_bonded_root" sequence="20"/>
     <menuitem id="menu_bonded_customs_file" name="Customs Files" parent="menu_bonded_customs" action="action_bonded_customs_file" sequence="10" active="False"/>
     <menuitem id="menu_bonded_customs_file_t1_in" name="T1 Inbound" parent="menu_bonded_customs" action="action_bonded_customs_file_t1_in" sequence="10"/>
@@ -157,10 +158,8 @@
     <menuitem id="menu_bonded_stock_snapshot" name="Daily Snapshots" parent="menu_bonded_stock" action="action_bonded_stock_snapshot" sequence="40"/>
     <menuitem id="menu_bonded_ledgers" name="Ledgers" parent="menu_bonded_root" sequence="45"/>
     <menuitem id="menu_bonded_goods_ledger" name="Bonded Goods Ledger" parent="menu_bonded_ledgers" action="action_bonded_book_line" sequence="10"/>
-    <menuitem id="menu_bonded_value_ledger" name="Value Limit Ledger" parent="menu_bonded_ledgers" action="action_bonded_value_limit" sequence="20"/>
+    <menuitem id="menu_bonded_value_ledger" name="Project Value Limit Configuration" parent="menu_bonded_ledgers" action="action_bonded_value_limit" sequence="20"/>
     <menuitem id="menu_bonded_release_ledger" name="Customs Release Ledger" parent="menu_bonded_ledgers" action="action_bonded_customs_file" sequence="30"/>
-    <menuitem id="menu_bonded_mrn_ledger" name="MRN Control Ledger" parent="menu_bonded_ledgers" action="action_bonded_mrn_ledger" sequence="40"/>
-    <menuitem id="menu_bonded_verification_ledger" name="Verification Disposal Ledger" parent="menu_bonded_ledgers" action="action_bonded_verification" sequence="50"/>
     <menuitem id="menu_bonded_value_record_ledger" name="Value Ledger" parent="menu_bonded_ledgers" action="action_bonded_value_ledger" sequence="60"/>
     <menuitem id="menu_bonded_finance" name="Finance" parent="menu_bonded_root" sequence="46"/>
     <menuitem id="menu_bonded_charge_line" name="Bonded Charges" parent="menu_bonded_finance" action="action_bonded_charge_line" sequence="10"/>

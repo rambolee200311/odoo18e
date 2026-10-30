@@ -16,8 +16,7 @@ class BondedInbound(models.Model):
 
     name = fields.Char(string='Inbound No.', required=True, copy=False,
                        default=lambda self: _('New'), readonly=True, index=True)
-    bonded_book_id = fields.Many2one('bonded.book', string='Bonded Book', required=True,
-                                     ondelete='restrict', index=True)
+    bonded_book_id = fields.Many2one('bonded.book', string='Bonded Book', required=True, ondelete='restrict', index=True, domain=[('state', '=', 'active')])
     project_id = fields.Many2one('project.project', string='Project', ondelete='restrict', index=True, tracking=True)
     customs_file_ids = fields.Many2many('bonded.customs.file', 'bonded_inbound_customs_file_rel', 'bonded_inbound_id', 'customs_file_id', string='Customs Declarations', copy=False)
 

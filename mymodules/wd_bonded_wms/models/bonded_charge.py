@@ -10,7 +10,7 @@ class BondedChargeLine(models.Model):
 
     charge_item_id = fields.Many2one('world.depot.charge.item', string='Charge Item', required=True, ondelete='restrict', index=True)
     charge_unit_id = fields.Many2one('world.depot.charge.unit', string='Charge Unit', related='charge_item_id.unit_id', store=True, readonly=True, index=True)
-    bonded_book_id = fields.Many2one('bonded.book', string='Bonded Book', ondelete='restrict', index=True)
+    bonded_book_id = fields.Many2one('bonded.book', string='Bonded Book', ondelete='restrict', index=True, domain=[('state', '=', 'active')])
     customs_file_id = fields.Many2one('bonded.customs.file', string='Customs Declaration', ondelete='set null', index=True)
     bonded_inbound_id = fields.Many2one('bonded.inbound', string='Bonded Inbound', ondelete='set null', index=True)
     bonded_outbound_id = fields.Many2one('bonded.outbound', string='Bonded Outbound', ondelete='set null', index=True)
