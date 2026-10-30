@@ -23,16 +23,12 @@ class BondedValueLimit(models.Model):
         ('expired', 'Expired'),
     ], string='Status', default='active', required=True)
 
-    @api.depends('bonded_book_id', 'project_id', 'total_value', 'used_value')
+    @api.depends('bonded_book_id.value_ledger_ids.project_id', 'bonded_book_id.value_ledger_ids.reserved_change', 'bonded_book_id.value_ledger_ids.deducted_change', 'project_id', 'total_value')
     def _compute_usage(self):
+        env_value_ledger = self.env['bonded.value.ledger'].sudo()
         for rec in self:
-            # 已用额度 = 该账册指定项目下所有保税库存的 total_value 之和
-            stocks = self.env['bonded.stock'].sudo().search([
-                ('bonded_book_id', '=', rec.bonded_book_id.id),
-                ('inbound_id.project_id', '=', rec.project_id.id),
-                ('current_customs_status', '=', 'entrepot'),
-            ])
-            rec.used_value = sum(stocks.mapped('total_value'))
+            ledger_records = env_value_ledger.search([('bonded_book_id', '=', rec.bonded_book_id.id), ('project_id', '=', rec.project_id.id)])
+            rec.used_value = sum(ledger_records.mapped('reserved_change')) + sum(ledger_records.mapped('deducted_change'))
             rec.available_value = rec.total_value - rec.used_value
 
     @api.constrains('bonded_book_id', 'project_id', 'total_value')

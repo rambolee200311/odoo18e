@@ -26,8 +26,8 @@
                 <sheet>
                     <group>
                         <group>
-                            <field name="bonded_book_id" required="1" options="{'no_create': True, 'no_open': True}"/>
-                            <field name="project_id" required="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="bonded_book_id" required="1" options="{'no_create': True, 'no_open': False}"/>
+                            <field name="project_id" required="1" options="{'no_create': True, 'no_open': False}"/>
                             <field name="total_value" required="1" widget="monetary"/>
                             <field name="currency_id" readonly="1"/>
                         </group>

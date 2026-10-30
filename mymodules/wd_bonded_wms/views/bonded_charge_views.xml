@@ -25,21 +25,21 @@
                 <sheet>
                     <group>
                         <group string="Charge">
-                            <field name="charge_item_id" required="1" options="{'no_create': True, 'no_open': True}"/>
-                            <field name="charge_unit_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="charge_item_id" required="1" options="{'no_create': True, 'no_open': False}"/>
+                            <field name="charge_unit_id" readonly="1" options="{'no_create': True, 'no_open': False}"/>
                             <field name="charge_date" required="1"/>
                             <field name="quantity" required="1"/>
                             <field name="unit_price" required="1" widget="monetary"/>
                             <field name="amount" readonly="1" widget="monetary"/>
-                            <field name="currency_id" required="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="currency_id" required="1" options="{'no_create': True, 'no_open': False}"/>
                         </group>
                         <group string="References">
-                            <field name="bonded_book_id" options="{'no_create': True, 'no_open': True}"/>
-                            <field name="customs_file_id" options="{'no_create': True, 'no_open': True}"/>
-                            <field name="bonded_inbound_id" options="{'no_create': True, 'no_open': True}"/>
-                            <field name="bonded_outbound_id" options="{'no_create': True, 'no_open': True}"/>
-                            <field name="gate_arrival_id" options="{'no_create': True, 'no_open': True}"/>
-                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="bonded_book_id" options="{'no_create': True, 'no_open': False}"/>
+                            <field name="customs_file_id" options="{'no_create': True, 'no_open': False}"/>
+                            <field name="bonded_inbound_id" options="{'no_create': True, 'no_open': False}"/>
+                            <field name="bonded_outbound_id" options="{'no_create': True, 'no_open': False}"/>
+                            <field name="gate_arrival_id" options="{'no_create': True, 'no_open': False}"/>
+                            <field name="company_id" groups="base.group_multi_company" options="{'no_create': True, 'no_open': False}"/>
                         </group>
                     </group>
                     <group>

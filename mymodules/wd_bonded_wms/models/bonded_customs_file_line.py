@@ -11,6 +11,7 @@ class BondedCustomsFileLine(models.Model):
     customs_file_id = fields.Many2one('bonded.customs.file', string='Customs Declaration',
                                       required=True, ondelete='cascade', index=True)
     item_no = fields.Integer(string='Item No. (Box6)', required=True, default=1)
+    bonded_product_id = fields.Many2one('bonded.product', string='Bonded Product Filing', ondelete='restrict', index=True)
     product_id = fields.Many2one('product.product', string='Product', required=True)
     hs_code = fields.Char(string='HS Code (CN8, Box33)', required=True)
     origin_country_id = fields.Many2one('res.country', string='Country of Origin (Box34)', required=True)
@@ -22,6 +23,7 @@ class BondedCustomsFileLine(models.Model):
     quantity = fields.Float(string='Quantity', required=True, default=1.0)
     uom_id = fields.Many2one('uom.uom', string='UoM', related='product_id.uom_id', readonly=True)
     eligible_product_ids = fields.Many2many('product.product', compute='_compute_eligible_product_ids')
+    eligible_bonded_product_ids = fields.Many2many('bonded.product', compute='_compute_eligible_product_ids')
     marks_numbers = fields.Text(string='Marks & Numbers')
     initial_customs_status = fields.Selection([
         ('entrepot', 'Entrepot (Bonded)'),
@@ -40,6 +42,7 @@ class BondedCustomsFileLine(models.Model):
                 ('state', '=', 'active'),
             ]) if book else self.env['bonded.product']
             rec.eligible_product_ids = filings.mapped('product_id')
+            rec.eligible_bonded_product_ids = filings
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -47,17 +50,29 @@ class BondedCustomsFileLine(models.Model):
         env_bonded_product = self.env['bonded.product'].sudo()
         for vals in vals_list:
             customs_file = env_customs_file.browse(vals.get('customs_file_id')).exists()
-            if not customs_file or not vals.get('product_id'):
+            if not customs_file:
                 continue
-            filing = env_bonded_product.search([
-                ('bonded_book_id', '=', customs_file.bonded_book_id.id),
-                ('product_id', '=', vals['product_id']),
-                ('state', '=', 'active'),
-            ], limit=1)
+            filing = env_bonded_product.browse(vals.get('bonded_product_id')).exists()
+            if filing:
+                vals['product_id'] = filing.product_id.id
+            elif vals.get('product_id'):
+                filing = env_bonded_product.search([
+                    ('bonded_book_id', '=', customs_file.bonded_book_id.id),
+                    ('product_id', '=', vals['product_id']),
+                    ('state', '=', 'active'),
+                ], limit=1)
             if not filing:
                 raise ValidationError(_('The product must have an active bonded product filing in this bonded book.'))
+            vals.setdefault('bonded_product_id', filing.id)
             vals['hs_code'] = filing.hs_code
         return super().create(vals_list)
+
+    @api.onchange('bonded_product_id')
+    def onchange_bonded_product_id(self):
+        for rec in self:
+            if rec.bonded_product_id:
+                rec.product_id = rec.bonded_product_id.product_id
+                rec.hs_code = rec.bonded_product_id.hs_code
 
     @api.onchange('customs_file_id', 'product_id')
     def onchange_product_id(self):
@@ -72,21 +87,24 @@ class BondedCustomsFileLine(models.Model):
                 ('state', '=', 'active'),
             ], limit=1)
             if filing:
+                rec.bonded_product_id = filing
                 rec.hs_code = filing.hs_code
 
-    @api.constrains('customs_file_id', 'product_id', 'hs_code')
+    @api.constrains('customs_file_id', 'bonded_product_id', 'product_id', 'hs_code')
     def check_hs_code_from_bonded_product(self):
         env_bonded_product = self.env['bonded.product'].sudo()
         for rec in self:
             if not rec.customs_file_id or not rec.product_id:
                 continue
-            filing = env_bonded_product.search([
+            filing = rec.bonded_product_id.sudo() or env_bonded_product.search([
                 ('bonded_book_id', '=', rec.customs_file_id.bonded_book_id.id),
                 ('product_id', '=', rec.product_id.id),
                 ('state', '=', 'active'),
             ], limit=1)
             if not filing:
                 raise ValidationError(_('The product must have an active bonded product filing in this bonded book.'))
+            if filing.bonded_book_id != rec.customs_file_id.bonded_book_id or filing.product_id != rec.product_id or filing.state != 'active':
+                raise ValidationError(_('The bonded product filing must be active and belong to the customs declaration bonded book.'))
             if rec.hs_code != filing.hs_code:
                 raise ValidationError(_('The HS Code must match the active bonded product filing.'))
 

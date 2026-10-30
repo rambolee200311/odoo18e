@@ -27,7 +27,6 @@
                 <header>
                     <button name="action_confirm" string="Confirm" type="object" invisible="state != 'draft'" class="btn-primary"/>
                     <button name="action_create_picking" string="Create Stock Picking" type="object" invisible="state != 'released'" class="btn-primary"/>
-                    <button name="action_start" string="Start" type="object" invisible="state != 'released'"/>
                     <button name="action_done" string="Set to Done" type="object" invisible="state != 'in_progress'" class="btn-success"/>
                     <button name="action_cancel" string="Cancel" type="object" invisible="state not in ('draft', 'confirmed', 'declared')"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,declared,released,in_progress,done"/>
@@ -36,36 +35,50 @@
                     <group>
                         <group string="Inbound Info">
                             <field name="name" readonly="1"/>
-                            <field name="bonded_book_id" required="1" readonly="state != 'draft'" options="{'no_create': True, 'no_open': True}"/>
-                            <field name="project_id" readonly="state != 'draft'" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="bonded_book_id" required="1" readonly="state != 'draft'" options="{'no_create': True, 'no_open': False}"/>
+                            <field name="project_id" readonly="state != 'draft'" options="{'no_create': True, 'no_open': False}"/>
                             <field name="inbound_tracking_no" readonly="1"/>
                             <field name="cargo_source" readonly="state != 'draft'"/>
-                            <field name="warehouse" required="1" readonly="state != 'draft'" options="{'no_create': True, 'no_open': True}"/>
-                            <field name="pick_type" required="1" readonly="state != 'draft'" domain="[('code', '=', 'incoming'), ('warehouse_id', '=', warehouse)]" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="warehouse" required="1" readonly="state != 'draft'" options="{'no_create': True, 'no_open': False}"/>
+                            <field name="pick_type" required="1" readonly="state != 'draft'" domain="[('code', '=', 'incoming'), ('warehouse_id', '=', warehouse)]" options="{'no_create': True, 'no_open': False}"/>
                         </group>
                         <group string="Schedule">
                             <field name="expected_date" readonly="state != 'draft'"/>
-                            <field name="total_value" readonly="state != 'draft'" widget="monetary"/>
-                            <field name="currency_id" readonly="state != 'draft'" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="total_value" readonly="1" widget="monetary"/>
+                            <field name="currency_id" readonly="state != 'draft'" options="{'no_create': True, 'no_open': False}"/>
                         </group>
                     </group>
                     <notebook>
                         <page string="Products">
                             <field name="line_ids" readonly="state != 'draft'">
                                 <list editable="bottom">
-                                    <field name="eligible_product_ids" column_invisible="1"/>
-                                    <field name="product_id" domain="[('id', 'in', eligible_product_ids)]"/>
+                                    <field name="eligible_bonded_product_ids" column_invisible="1"/>
+                                    <field name="bonded_product_id" domain="[('id', 'in', eligible_bonded_product_ids)]" required="1" options="{'no_create': True, 'no_open': False}"/>
+                                    <field name="product_id" readonly="1" options="{'no_create': True, 'no_open': False}"/>
                                     <field name="customer_batch_no"/>
                                     <field name="planned_qty"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                    <field name="declared_unit_price" required="1" widget="monetary"/>
+                                    <field name="subtotal_value" readonly="1" widget="monetary"/>
                                     <field name="done_qty"/>
                                     <field name="uom_id" readonly="1"/>
                                     <field name="available_customs_file_line_ids" column_invisible="1"/>
-                                    <field name="customs_file_line_id" domain="[('customs_file_id', 'in', parent.customs_file_ids), ('product_id', '=', product_id), ('id', 'in', available_customs_file_line_ids)]" readonly="not parent.customs_file_ids" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="customs_file_line_id" domain="[('customs_file_id', 'in', parent.customs_file_ids), ('product_id', '=', product_id), ('id', 'in', available_customs_file_line_ids)]" readonly="not parent.customs_file_ids" options="{'no_create': True, 'no_open': False}"/>
                                 </list>
                             </field>
                         </page>
                         <page string="Customs Declarations">
-                            <field name="customs_file_ids" widget="many2many_tags" domain="[('declaration_type', '=', 'b3_in')]" readonly="state not in ('draft', 'confirmed')" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="customs_file_ids" readonly="state not in ('draft', 'confirmed')" options="{'no_create': True}">
+                                <list>
+                                    <field name="declaration_no" readonly="1"/>
+                                    <field name="declaration_type" readonly="1"/>
+                                    <field name="mrn" readonly="1"/>
+                                    <field name="customs_code" readonly="1"/>
+                                    <field name="invoice_amount" readonly="1" widget="monetary"/>
+                                    <field name="declaration_date" readonly="1"/>
+                                    <field name="state" readonly="1"/>
+                                </list>
+                            </field>
                         </page>
                         <page name="gate_arrivals" string="Gate Arrivals" invisible="cargo_source == 'direct'">
                             <field name="gate_arrival_ids" readonly="state != 'draft'"/>
