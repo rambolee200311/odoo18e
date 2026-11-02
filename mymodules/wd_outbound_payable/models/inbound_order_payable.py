@@ -12,6 +12,7 @@ class InboundOrder(models.Model):
     receivable_state = fields.Selection([("draft", "Charge Unconfirmed"), ("confirmed", "Charge Confirmed")], string="Receivable Status", default="draft", required=True, tracking=True, index=True, copy=False)
     receivable_confirm_user_id = fields.Many2one("res.users", string="Receivable Confirmed By", readonly=True, index=True, copy=False)
     receivable_confirm_time = fields.Datetime(string="Receivable Confirmed On", readonly=True, index=True, copy=False)
+    currency_id = fields.Many2one("res.currency", string="Currency", default=lambda self: self.env.company.currency_id.id, copy=False, index=True)
     charge_calculation_remark = fields.Text(string="Charge Calculation Remark", copy=False)
     statement_inbound_date = fields.Date(string="Statement Inbound Date", compute="_compute_statement_inbound_date", store=True, readonly=True, index=True)
     statement_period_id = fields.Many2one("statement.period", string="Statement Period", ondelete="set null", readonly=True, index=True, copy=False)

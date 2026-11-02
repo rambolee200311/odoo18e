@@ -18,7 +18,7 @@
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base','contacts','web','mail','stock','project','product', 'stock_barcode'],
+    'depends': ['base','contacts','web','mail','stock','project','product', 'stock_barcode', 'wd_charge_pricing', 'wd_project_profile', 'wd_product_profile'],
 
     # always loaded
     'data': [
@@ -27,7 +27,6 @@
         #'views/templates.xml',
         #'vies/my_partner.xml',
         'views/location_type.xml',
-        #'views/my_project.xml',
         'views/my_stock.xml',
         'views/my_product.xml',
        # 'views/my_user.xml',
@@ -48,7 +47,6 @@
         'views/product_duplicate.xml',
         'views/hoymiles/hoymiles_api_logs.xml',
         'views/hoymiles/hoymiles_api_urls.xml',
-        'views/charge_item.xml',
         'views/inbound_order_charge.xml',
         'views/outbound_order_pack_info.xml',
         'views/outbound_order_charge.xml',
