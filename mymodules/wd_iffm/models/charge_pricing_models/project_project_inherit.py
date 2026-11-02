@@ -1,14 +1,9 @@
-from odoo import fields, models, _
+from odoo import models, _
 from odoo.exceptions import AccessError
 
 class ProjectProjectInherit(models.Model):
     _inherit = "project.project"
 
-
-    quotation_id = fields.Many2one("charge.quotation", string="Quotation", index=True, tracking=True)
-    vendor_cost_quotation_id = fields.Many2one("vendor.cost.quotation", string="Vendor Cost Quotation", ondelete="restrict", index=True, tracking=True)
-    allowed_user_ids = fields.Many2many("res.users", "project_allowed_user_rel", "project_id", "user_id", string="Allowed Users", groups="wd_iffm.group_import_manager,base.group_system")
-    payment_company_id = fields.Many2one("res.partner", string="Payment Company", index=True, tracking=True)
 
     def write(self, vals):
         import_freight_fields = {"quotation_id", "vendor_cost_quotation_id", "payment_company_id"}

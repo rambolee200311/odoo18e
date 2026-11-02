@@ -12,7 +12,7 @@ class BondedStockSnapshot(models.Model):
     _rec_name = 'snapshot_date'
 
     snapshot_date = fields.Date(string='Snapshot Date', required=True, index=True)
-    bonded_book_id = fields.Many2one('bonded.book', string='Bonded Book', required=True, index=True)
+    bonded_book_id = fields.Many2one('bonded.book', string='Bonded Book', required=True, index=True, domain=[('state', '=', 'active')])
     product_id = fields.Many2one('product.product', string='Product', required=True)
     lot_id = fields.Many2one('stock.lot', string='Lot/SN')
     location_id = fields.Many2one('stock.location', string='Location')

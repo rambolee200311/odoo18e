@@ -29,9 +29,9 @@
                     <group>
                         <group>
                             <field name="date" required="1"/>
-                            <field name="bonded_book_id" required="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="bonded_book_id" required="1" options="{'no_create': True, 'no_open': False}"/>
                             <field name="operation_type" required="1"/>
-                            <field name="product_id" required="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="product_id" required="1" options="{'no_create': True, 'no_open': False}"/>
                         </group>
                         <group>
                             <field name="inbound_tracking_no" required="1"/>
@@ -46,10 +46,10 @@
                             <field name="ref_doc_no"/>
                         </group>
                         <group>
-                            <field name="bonded_stock_id" options="{'no_create': True, 'no_open': True}"/>
-                            <field name="customs_file_id" options="{'no_create': True, 'no_open': True}"/>
-                            <field name="picking_id" options="{'no_create': True, 'no_open': True}"/>
-                            <field name="verification_id" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="bonded_stock_id" options="{'no_create': True, 'no_open': False}"/>
+                            <field name="customs_file_id" options="{'no_create': True, 'no_open': False}"/>
+                            <field name="picking_id" options="{'no_create': True, 'no_open': False}"/>
+                            <field name="verification_id" options="{'no_create': True, 'no_open': False}"/>
                         </group>
                     </group>
                 </sheet>

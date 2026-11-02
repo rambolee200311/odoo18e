@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <record id="view_vendor_cost_quotation_list" model="ir.ui.view">
         <field name="name">vendor.cost.quotation.list</field>
@@ -5,8 +6,8 @@
         <field name="arch" type="xml">
             <list>
                 <field name="name"/>
-                <field name="state"/>
                 <field name="currency_id"/>
+                <field name="state"/>
             </list>
         </field>
     </record>
@@ -15,11 +16,11 @@
         <field name="name">vendor.cost.quotation.form</field>
         <field name="model">vendor.cost.quotation</field>
         <field name="arch" type="xml">
-            <form string="Vendor Cost Quotation" duplicate="false" class="wd_iffm_required_highlight">
+            <form duplicate="false" class="wd_charge_pricing_required_highlight">
                 <header>
                     <button name="action_set_active" type="object" string="Activate" class="btn-primary" invisible="state != 'draft'"/>
                     <button name="action_set_draft" type="object" string="Set Draft" invisible="state != 'active'"/>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,active"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,active" readonly="1"/>
                 </header>
                 <sheet>
                     <group>
@@ -28,7 +29,7 @@
                         </group>
                         <group>
                             <field name="currency_id" required="1" readonly="state != 'draft'" options="{'no_create': True, 'no_open': True}"/>
-                            <field name="remark"/>
+                            <field name="remark" readonly="state != 'draft'"/>
                         </group>
                     </group>
                     <notebook>
@@ -72,5 +73,4 @@
         <field name="view_mode">list,form</field>
     </record>
 
-    <menuitem id="menu_vendor_cost_quotation" name="Payable Quotations" parent="menu_wd_charge_quotation" action="action_vendor_cost_quotation" sequence="20"/>
 </odoo>

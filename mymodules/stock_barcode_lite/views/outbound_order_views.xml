@@ -279,6 +279,7 @@
                         domain="[('u8c_delivery_method', '=', 'wd')]"/>
                 <filter string="Organic" name="organic_true" domain="[('organic', '=', True)]"/>
                 <filter string="Non-organic" name="organic_false" domain="[('organic', '=', False)]"/>
+                <filter string="Missing Manual Time" name="missing_manual_outbound_date" domain="[('o_date', '=', False)]"/>
 
                 <group expand="0" string="Group By">
                     <filter string="Active Orders" name="state_not_cancel" domain="[('state', '!=', 'cancel')]"/>

@@ -12,7 +12,7 @@ class BondedMonthlyReport(models.Model):
     _order = 'report_month desc, product_id'
 
     report_month = fields.Date(string='Report Month', required=True, index=True)
-    bonded_book_id = fields.Many2one('bonded.book', string='Bonded Book', required=True, index=True)
+    bonded_book_id = fields.Many2one('bonded.book', string='Bonded Book', required=True, index=True, domain=[('state', '=', 'active')])
     product_id = fields.Many2one('product.product', string='Product', required=True)
     batch_no = fields.Char(string='Batch No.')
     hs_code = fields.Char(string='HS Code')

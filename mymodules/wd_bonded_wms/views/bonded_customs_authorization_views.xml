@@ -23,7 +23,7 @@
                 <sheet>
                     <group>
                         <group>
-                            <field name="eori_entity_id" required="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="eori_entity_id" required="1" options="{'no_create': True, 'no_open': False}"/>
                             <field name="auth_type" required="1"/>
                             <field name="auth_no" required="1"/>
                             <field name="state" required="1"/>

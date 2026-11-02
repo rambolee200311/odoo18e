@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="bonded_mrn_view_list" model="ir.ui.view">
+        <field name="name">bonded.mrn.list</field>
+        <field name="model">bonded.mrn</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="mrn"/>
+                <field name="customs_file_id"/>
+                <field name="declaration_no"/>
+                <field name="declaration_type"/>
+                <field name="bonded_book_id"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="bonded_mrn_view_form" model="ir.ui.view">
+        <field name="name">bonded.mrn.form</field>
+        <field name="model">bonded.mrn</field>
+        <field name="arch" type="xml">
+            <form duplicate="false">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="mrn" required="1"/>
+                            <field name="customs_file_id" required="1" options="{'no_create': True, 'no_open': False}"/>
+                        </group>
+                        <group>
+                            <field name="declaration_no" readonly="1"/>
+                            <field name="declaration_type" readonly="1"/>
+                            <field name="bonded_book_id" readonly="1"/>
+                            <field name="state" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="bonded_mrn_view_search" model="ir.ui.view">
+        <field name="name">bonded.mrn.search</field>
+        <field name="model">bonded.mrn</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="mrn"/>
+                <field name="customs_file_id"/>
+                <field name="declaration_no"/>
+                <filter name="t1_in" string="T1 In" domain="[('declaration_type','=','t1_in')]"/>
+                <filter name="t1_out" string="T1 Out" domain="[('declaration_type','=','t1_out')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="by_type" string="Type" context="{'group_by': 'declaration_type'}"/>
+                    <filter name="by_state" string="Status" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+</odoo>
