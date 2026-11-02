@@ -31,7 +31,7 @@
 <!--                        class="btn-secondary" invisible="state != 'confirm' or project_stock_report_date_mode != 'business'"/>-->
 <!--            </xpath>-->
             <xpath expr="//field[@name='confirm_time_server']" position="after">
-                <field name="actual_inbound_date" readonly="1" invisible="0"/>
+                <field name="actual_inbound_date" readonly="0" invisible="0"/>
                 <field name="actual_inbound_datetime" readonly="1" invisible="project_stock_report_date_mode != 'business'"/>
                 <field name="actual_inbound_attachment_line_ids" widget="attachment_preview" readonly="1" invisible="project_stock_report_date_mode != 'business' or not actual_inbound_attachment_line_ids"/>
             </xpath>
