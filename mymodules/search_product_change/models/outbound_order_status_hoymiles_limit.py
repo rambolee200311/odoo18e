@@ -1,6 +1,8 @@
 import json
 from datetime import timedelta
 
+import requests
+
 from odoo import fields, models
 from odoo.exceptions import UserError
 from odoo.tools.float_utils import float_compare
@@ -12,6 +14,8 @@ class OutboundOrderStatusHoymilesLimit(models.Model):
     outbound_pack_sync_click_time=fields.Datetime(string='Outbound Pack Sync Click Time', copy=False, index=True)
     logistics_info_sync_click_time=fields.Datetime(string='Logistics Info Sync Click Time', copy=False, index=True)
     outbound_result_sync_click_time=fields.Datetime(string='Outbound Result Sync Click Time', copy=False, index=True)
+    blind_clearance_result_sync = fields.Boolean(string='Blind Clearance Result Sync', copy=False)
+    picking_Out_date = fields.Datetime(string='Outbound Date', readonly=False, copy=False, help='Date when the stock delivery was validated or manually confirmed for blind clearance result sync.')
 
     def get_hoymiles_success_log(self, request_source, ws_op_order_no):
         for order in self:
@@ -215,7 +219,69 @@ class OutboundOrderStatusHoymilesLimit(models.Model):
                 order.check_hoymiles_click_time('logistics_info_sync_click_time', 180104)
         return super().action_set_logistics_info_sync()
 
+    def action_set_blind_clearance_outbound_result_sync(self):
+        cancelled_log_model = self.env['blind.stock.count.cancelled.picking.log'].sudo()
+        picking_model = self.env['stock.picking'].sudo()
+        api_log_model = self.env['hoymiles.api.logs']
+        api_url_model = self.env['hoymiles.api.urls'].sudo()
+        for order in self:
+            if order.set_outbound_result_sync:
+                raise UserError('Outbound Result has already been synced.')
+            if not order.picking_Out_date:
+                raise UserError('Enter the Outbound Date before syncing the blind clearance result.')
+            source_pickings = picking_model.search([('outbound_order_id', '=', order.id)])
+            linked_outbound_pickings = picking_model.search([('picking_type_code', '=', 'outgoing'), ('state', '=', 'cancel'), '|', '|', ('outbound_order_id', '=', order.id), ('origin', 'in', source_pickings.mapped('name')), ('move_ids.move_orig_ids.picking_id', 'in', source_pickings.ids)])
+            cancelled_outbound_pickings = cancelled_log_model.search([('picking_id', 'in', linked_outbound_pickings.ids)]).mapped('picking_id').filtered(lambda picking: picking.state == 'cancel')
+            if not cancelled_outbound_pickings:
+                raise UserError('No blind clearance cancelled outgoing picking was found for this outbound order.')
+            active_outbound_pickings = picking_model.search([('picking_type_code', '=', 'outgoing'), '|', '|', ('outbound_order_id', '=', order.id), ('origin', 'in', source_pickings.mapped('name')), ('move_ids.move_orig_ids.picking_id', 'in', source_pickings.ids)]).filtered(lambda picking: picking.state != 'cancel')
+            if active_outbound_pickings:
+                raise UserError('Blind clearance result sync is only allowed when every linked outgoing picking is cancelled: %s' % ', '.join(active_outbound_pickings.mapped('name')))
+            outbound_pickings = cancelled_outbound_pickings.sorted('id')
+            ws_op_order_no = ','.join(outbound_pickings.mapped('name'))
+            success_log = order.get_hoymiles_success_log('Outbound Result', ws_op_order_no)
+            if success_log:
+                order.write({'set_outbound_result_sync': True, 'set_outbound_result_sync_time': success_log.request_time or fields.Datetime.now(), 'outbound_result_sync_error_msg': False})
+                continue
+            order.check_hoymiles_click_time('outbound_result_sync_click_time', 180105)
+            groups = {}
+            for line in order.outbound_order_product_ids:
+                if not line.product_id:
+                    continue
+                barcode = line.product_id.barcode or line.product_id.default_code or ''
+                group = groups.setdefault(barcode or '__UNKNOWN__', {'itemNum': barcode, 'shipQuantity': 0.0})
+                group['shipQuantity'] += line.quantity or 0.0
+            if not groups:
+                raise UserError('The outbound order has no product lines to sync.')
+            payload = {'thirdPartyWsCode': 'WD', 'thirdPartyWsName': 'WD warehouse', 'wsOpOrderNo': ws_op_order_no, 'reference': order.reference, 'operationTime': order.picking_Out_date.strftime('%Y-%m-%d %H:%M:%S'), 'attribute1': '', 'attribute2': '', 'attribute3': '', 'attribute4': '', 'attribute5': '', 'attribute6': '', 'attribute7': '', 'attribute8': '', 'attribute9': '', 'attribute10': '', 'lines': [{'itemNum': group['itemNum'], 'shipQuantity': int(group['shipQuantity'] or 0), 'shipTime': order.picking_Out_date.strftime('%Y-%m-%d %H:%M:%S')} for group in groups.values()], 'serials': []}
+            token = self.env['hoymiles.token.utils'].get_oauth_token()
+            api_url = api_url_model.search([('name', '=', 'outbound-result-sync')], limit=1)
+            if not token:
+                raise UserError('Failed to retrieve OAuth token.')
+            if not api_url or not api_url.url:
+                raise UserError('API URL configuration is missing.')
+            try:
+                response = requests.post(api_url.url, headers={'Content-Type': 'application/json', 'Authorization': f'Bearer {token}'}, data=json.dumps(payload), timeout=60)
+                response_data = response.json()
+                api_log_model.create({'request_source': 'Outbound Result', 'request_time': fields.Datetime.now(), 'request_path': api_url.url, 'request_data': json.dumps(payload), 'response_data': response.text})
+                if response.status_code == 200 and response_data.get('failed') is False:
+                    order.write({'set_outbound_result_sync': True, 'set_outbound_result_sync_time': order.picking_Out_date, 'outbound_result_sync_error_msg': False})
+                else:
+                    order.write({'set_outbound_result_sync': False, 'set_outbound_result_sync_time': False, 'outbound_result_sync_error_msg': response.text})
+            except (requests.exceptions.RequestException, ValueError) as error:
+                api_log_model.create({'request_source': 'Outbound Result', 'request_time': fields.Datetime.now(), 'request_path': api_url.url, 'request_data': json.dumps(payload), 'response_data': False, 'exception_details': str(error)})
+                order.write({'set_outbound_result_sync': False, 'set_outbound_result_sync_time': False, 'outbound_result_sync_error_msg': str(error)})
+        return True
+
     def action_set_outbound_result_sync(self):
+        if not self.env.context.get('blind_clearance_result_sync_processed'):
+            special_orders = self.filtered(lambda order: order.blind_clearance_result_sync and order.project and (order.project.name or '').lower() == 'hoymiles')
+            if special_orders:
+                special_orders.action_set_blind_clearance_outbound_result_sync()
+            normal_orders = self - special_orders
+            if normal_orders:
+                return normal_orders.with_context(blind_clearance_result_sync_processed=True).action_set_outbound_result_sync()
+            return True
         for order in self:
             if order.project and (order.project.name or '').lower() == 'hoymiles':
                 if order.set_outbound_result_sync:
