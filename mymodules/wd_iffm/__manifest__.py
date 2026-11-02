@@ -18,7 +18,7 @@ Long description of module's purpose
     'version': '0.2',
 
     # any module necessary for this one to work correctly
-    'depends': ['base','account','worlddepot','wd_account_extension',"wd_attachment_preview"],
+    'depends': ['base','account','worlddepot','wd_account_extension','wd_charge_pricing','wd_project_profile',"wd_attachment_preview"],
 
     # hooks
     'post_init_hook': '_init_workbench_lanes',
@@ -37,7 +37,6 @@ Long description of module's purpose
         'data/portbase_api_data.xml',
         #'data/workbench_lane_data.xml',
 
-        'wizard/charge_quotation_add_wizard_views.xml',
         'wizard/waybill_arrival_wizard_views.xml',
         'wizard/waybill_create_clearance_wizard_views.xml',
         'wizard/clearance/clearance_reclearance_wizard_views.xml',
@@ -45,8 +44,6 @@ Long description of module's purpose
 
 
 
-        'views/charge_pricing_views/charge_quotation_views.xml',
-        'views/charge_pricing_views/vendor_cost_quotation_views.xml',
         'views/charge_pricing_views/project_project_inherit_views.xml',
         'views/charge_pricing_views/waybill.xml',
         'wizard/protbase_import/portbase_waybill_import_wizard.xml',
@@ -70,7 +67,6 @@ Long description of module's purpose
 
         'views/settlement_account_views/account_move_inherit_views.xml',
 
-        'views/charge_item_inherit_views.xml',
         'views/workbench_views/operation_workbench_dashboard_data_views.xml',
         'views/workbench_views/operation_blocking_reason_views.xml',
         'views/workbench_views/operation_workbench_alert_rule_views.xml',

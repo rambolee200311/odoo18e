@@ -22,7 +22,7 @@
             (0, 0, {'view_mode': 'form', 'view_id': ref('wd_iffm.view_world_depot_waybill_form')})
             ]"/>
         <field name="search_view_id" ref="view_world_depot_waybill_search"/>
-        <field name="context">{'search_default_group_by_state': 1,'search_default_state_not_cancel': 1}</field>
+        <field name="context">{'search_default_group_by_state': 1,'search_default_state_not_cancel': 1, 'search_default_group_by_project': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 No import bill data
