@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="product_template_form_view_profile" model="ir.ui.view">
+        <field name="name">product.template.form.profile</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page name="product_profile" string="Product Profile">
+                    <group string="Trade And Logistics">
+                        <group>
+                            <field name="brand"/>
+                            <field name="duty_rate"/>
+                            <field name="pcs_per_pallet"/>
+                            <field name="organic"/>
+                        </group>
+                        <group>
+                            <field name="weight"/>
+                            <field name="gross_weight"/>
+                            <field name="product_dimensions"/>
+                            <field name="volume"/>
+                        </group>
+                    </group>
+<!--                    <group string="Dangerous Goods">-->
+<!--                        <field name="is_dg"/>-->
+<!--                        <field name="un_code"/>-->
+<!--                    </group>-->
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="product_template_form_view_hide_inventory_logistics" model="ir.ui.view">
+        <field name="name">product.template.form.hide.inventory.logistics</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='inventory']//label[@for='weight']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//page[@name='inventory']//div[@name='weight']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//page[@name='inventory']//label[@for='volume']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+            <xpath expr="//page[@name='inventory']//div[@name='volume']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

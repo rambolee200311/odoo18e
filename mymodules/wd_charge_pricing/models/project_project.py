@@ -1,0 +1,11 @@
+# -*- coding: utf-8 -*-
+
+from odoo import fields, models
+
+
+class ProjectProject(models.Model):
+    _inherit = "project.project"
+
+    quotation_id = fields.Many2one("charge.quotation", string="Quotation", index=True, tracking=True)
+    vendor_cost_quotation_id = fields.Many2one("vendor.cost.quotation", string="Vendor Cost Quotation", ondelete="restrict", index=True, tracking=True)
+    payment_company_id = fields.Many2one("res.partner", string="Payment Company", index=True, tracking=True)
