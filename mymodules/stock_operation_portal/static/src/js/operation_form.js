@@ -24,12 +24,13 @@ publicWidget.registry.InboundOrderForm = publicWidget.Widget.extend({
         'click .remove-product': '_onRemoveProductLine',
         'change [name="project_id"]': '_onProjectChange',
         'submit': '_onFormSubmit',
+        'input .product-search-input': '_onProductSearchInput',
+        'click .product-item': '_onProductItemClick',
     },
 
     start: function () {
         this._super.apply(this, arguments);
-        this._productOptionsHtml =
-            this.$('#inbound_product_options_source').html() || '';
+        this._searchTimeout = null;
     },
 
     // --------------------------------------------------------
@@ -42,7 +43,6 @@ publicWidget.registry.InboundOrderForm = publicWidget.Widget.extend({
         this._clearValidation();
 
         var idx = $container.find('.pallet-line').length + 1;
-        var opts = this._productOptionsHtml || '<option value="">-- No products loaded --</option>';
 
         var html = '<div class="operation-line-item pallet-line" data-line-id="">'
             + '<div class="d-flex justify-content-between align-items-start mb-2">'
@@ -50,7 +50,7 @@ publicWidget.registry.InboundOrderForm = publicWidget.Widget.extend({
             + '<button type="button" class="btn btn-sm btn-outline-danger remove-line"><i class="fa fa-trash"/></button>'
             + '</div>'
             + '<div class="row g-2 mb-2">'
-            + '<div class="col-md-3"><label class="form-label">Pallet No</label><input type="text" class="form-control pallet_no" placeholder="e.g. PALLET-001"/></div>'
+            + '<div class="col-md-3"><label class="form-label">Pallet No<span class="text-danger">*</span></label><input type="text" class="form-control pallet_no" placeholder="e.g. PALLET-001"/></div>'
             + '<div class="col-md-2"><label class="form-label">Pallets <span class="text-danger">*</span></label><input type="number" class="form-control pallets" min="0.01" step="0.01" value="1"/></div>'
             + '<div class="col-md-2"><label class="form-label">Type</label><input type="text" class="form-control pallet_type" placeholder="e.g. WOOD"/></div>'
             + '<div class="col-md-5"><label class="form-label">Remark</label><input type="text" class="form-control line_remark"/></div>'
@@ -72,8 +72,16 @@ publicWidget.registry.InboundOrderForm = publicWidget.Widget.extend({
 
     _onRemovePalletLine: function (ev) {
         ev.preventDefault();
-        $(ev.currentTarget).closest('.pallet-line').remove();
+        var $pallet = $(ev.currentTarget).closest('.pallet-line');
+        var lineId = $pallet.attr('data-line-id');
+        if (lineId) {
+            var deleted = (this.$el.data('deleted-line-ids') || []);
+            deleted.push(parseInt(lineId));
+            this.$el.data('deleted-line-ids', deleted);
+        }
+        $pallet.remove();
         this._renumberPallets();
+
         if (!this.$('.pallet-line').length) {
             this.$('#empty_lines_hint').show();
         }
@@ -92,10 +100,14 @@ publicWidget.registry.InboundOrderForm = publicWidget.Widget.extend({
     _onAddProductLine: function (ev) {
         ev.preventDefault();
         var $tbody = $(ev.currentTarget).closest('.ms-3').find('.product-table tbody');
-        var opts = this._productOptionsHtml || '<option value="">-- No products --</option>';
 
         var html = '<tr class="product-line" data-product-line-id="">'
-            + '<td><select class="form-select form-select-sm product-select" required="required"><option value="">-- Select --</option>' + opts + '</select></td>'
+            + '<td class="position-relative product-lookup-cell">'
+            +   '<input type="text" class="form-control form-control-sm product-search-input" '
+            +          'placeholder="Type code / name (min 2 chars)" autocomplete="off"/>'
+            +   '<input type="hidden" class="product-id-input"/>'
+            +   '<div class="list-group product-results position-absolute w-100" style="z-index:1000; display:none;"></div>'
+            + '</td>'
             + '<td><input type="number" class="form-control form-control-sm product-qty" min="0.01" step="0.01" value="1" required="required"/></td>'
             + '<td><input type="number" class="form-control form-control-sm product-gross" min="0" step="0.01" value="0"/></td>'
             + '<td><input type="number" class="form-control form-control-sm product-net" min="0" step="0.01" value="0"/></td>'
@@ -107,6 +119,10 @@ publicWidget.registry.InboundOrderForm = publicWidget.Widget.extend({
     },
 
     _onProjectChange: function (ev) {
+        this.$('.product-search-input').val('');
+        this.$('.product-id-input').val('');
+        this.$('.product-results').hide().empty();
+
         var projectId = $(ev.currentTarget).val();
         var url = new URL(window.location.href);
 
@@ -121,7 +137,16 @@ publicWidget.registry.InboundOrderForm = publicWidget.Widget.extend({
 
     _onRemoveProductLine: function (ev) {
         ev.preventDefault();
-        $(ev.currentTarget).closest('.product-line').remove();
+        var $prod = $(ev.currentTarget).closest('.product-line');
+        var prodId = $prod.attr('data-product-line-id');
+        var $pallet = $prod.closest('.pallet-line');
+        var lineId = $pallet.attr('data-line-id');
+        if (prodId && lineId) {
+            var deleted = ($pallet.data('deleted-product-ids') || []);
+            deleted.push(parseInt(prodId));
+            $pallet.data('deleted-product-ids', deleted);
+        }
+        $prod.remove();
         this._clearValidation();
     },
 
@@ -164,6 +189,12 @@ publicWidget.registry.InboundOrderForm = publicWidget.Widget.extend({
         if (!isEdit) {
             payload.project_id = $form.find('[name="project_id"]').val() || '';
         }
+        if (isEdit) {
+            var deletedLineIds = this.$el.data('deleted-line-ids') || [];
+            if (deletedLineIds.length) {
+                payload.deleted_line_ids = deletedLineIds;
+            }
+        }
 
         this.$('.pallet-line').each(function () {
             var $pallet = $(this);
@@ -175,13 +206,21 @@ publicWidget.registry.InboundOrderForm = publicWidget.Widget.extend({
                 remark: ($pallet.find('.line_remark').val() || '').trim(),
                 products: [],
             };
-            if (lineId) palletData.id = parseInt(lineId);
+//            if (lineId) palletData.id = parseInt(lineId);
+            if (lineId) {
+                palletData.id = parseInt(lineId);
+                var deletedProdIds = $pallet.data('deleted-product-ids') || [];
+                if (deletedProdIds.length) {
+                    palletData.deleted_product_ids = deletedProdIds;
+                }
+            }
+
 
             $pallet.find('.product-line').each(function () {
                 var $prod = $(this);
                 var prodId = $prod.attr('data-product-line-id');
                 var pd = {
-                    product_id: parseInt($prod.find('.product-select').val()) || 0,
+                    product_id: parseInt($prod.find('.product-id-input').val()) || 0,
                     quantity: parseFloat($prod.find('.product-qty').val()) || 1,
                     gross_weight: parseFloat($prod.find('.product-gross').val()) || 0,
                     net_weight: parseFloat($prod.find('.product-net').val()) || 0,
@@ -214,6 +253,9 @@ publicWidget.registry.InboundOrderForm = publicWidget.Widget.extend({
             if (line.products.length === 0) {
                 errors.push('Pallet #' + (i + 1) + ': must have at least one product.');
             }
+            if (!line.pallet_no) {
+                errors.push('Pallet #' + (i + 1) + ': Pallet No is required.');
+            }
             line.products.forEach(function (p, j) {
                 if (!p.product_id) {
                     errors.push('Pallet #' + (i + 1) + ', Product #' + (j + 1) + ': please select a product.');
@@ -240,9 +282,10 @@ publicWidget.registry.InboundOrderForm = publicWidget.Widget.extend({
             redirect: 'follow',
         }).then(function (resp) {
             if (resp.redirected) {
-                if (isEdit) {
-                    sessionStorage.setItem('inbound_order_updated', '1');
-                }
+                sessionStorage.setItem(
+                    'inbound_order_success',
+                    isEdit ? 'updated' : 'created'
+                );
                 window.location.href = resp.url;
                 return;
             }
@@ -256,19 +299,116 @@ publicWidget.registry.InboundOrderForm = publicWidget.Widget.extend({
             alert('An error occurred. Please try again.');
         });
     },
+
+    _onProductSearchInput: function (ev) {
+        var self = this;
+        var $input = $(ev.currentTarget);
+        var $cell = $input.closest('.product-lookup-cell');
+        var $results = $cell.find('.product-results');
+        var keyword = ($input.val() || '').trim();
+
+        $cell.find('.product-id-input').val('');   // 改动后清空已选 id
+
+        if (this._searchTimeout) {
+            clearTimeout(this._searchTimeout);
+        }
+        if (keyword.length < 1) {
+            $results.hide().empty();
+            return;
+        }
+        this._searchTimeout = setTimeout(function () {
+            self._searchProducts(keyword, $cell);
+        }, 300);
+    },
+
+    _searchProducts: function (keyword, $cell) {
+//        var $results = $cell.find('.product-results');
+//        this._rpc({
+//            route: '/my/operation/products',
+//            params: {
+//                project_id: this.$('[name="project_id"]').val() || '',
+//                keyword: keyword,
+//            },
+//        }).then(function (result) {
+//            var products = (result && result.products) || [];
+//            if (!products.length) {
+//                $results.hide().empty();
+//                return;
+//            }
+//            var html = '';
+//            products.forEach(function (p) {
+//                html += '<button type="button" class="list-group-item list-group-item-action product-item" '
+//                      + 'data-id="' + p.id + '" data-name="' + (p.default_name || '').replace(/"/g, '&quot;') + '">'
+//                      + (p.default_name || '') + '</button>';
+//            });
+//            $results.html(html).show();
+//        });
+
+        var self = this;
+        var $results = $cell.find(".product-results");
+        var projectId = this.$('[name="project_id"]').val() || "";
+        var url = "/my/operation/products?project_id=" + encodeURIComponent(projectId)
+                + "&keyword=" + encodeURIComponent(keyword);
+
+        fetch(url, { headers: { "Accept": "application/json" } })
+            .then(function (resp) { return resp.json(); })
+            .then(function (result) {
+                var products = (result && result.products) || [];
+                if (!products.length) {
+                    $results.hide().empty();
+                    return;
+                }
+                var fragment = document.createDocumentFragment();
+                products.forEach(function (p) {
+                    var productId = Number(p.id);
+                    if (!Number.isInteger(productId) || productId <= 0) {
+                        return;
+                    }
+
+                    var productName = typeof p.default_name === "string"
+                        ? p.default_name
+                        : String(p.default_name || "");
+                    var button = document.createElement("button");
+                    button.type = "button";
+                    button.className = "list-group-item list-group-item-action product-item";
+                    button.dataset.id = String(productId);
+                    button.dataset.name = productName;
+                    button.textContent = productName;
+                    fragment.appendChild(button);
+                });
+                $results.empty().append(fragment).show();
+            })
+            .catch(function () { $results.hide().empty(); });
+
+    },
+
+    _onProductItemClick: function (ev) {
+        ev.preventDefault();
+        var $item = $(ev.currentTarget);
+        var $cell = $item.closest('.product-lookup-cell');
+        $cell.find('.product-search-input').val($item.data('name'));
+        $cell.find('.product-id-input').val($item.data('id'));
+        $cell.find('.product-results').hide().empty();
+    },
 });
 
-publicWidget.registry.InboundOrderUpdateNotice = publicWidget.Widget.extend({
-    selector: '#inbound_order_update_success',
+publicWidget.registry.InboundOrderSuccessNotice = publicWidget.Widget.extend({
+    selector: '#inbound_order_success',
 
     start: function () {
         this._super.apply(this, arguments);
 
-        if (sessionStorage.getItem('inbound_order_updated') !== '1') {
+        var noticeType = sessionStorage.getItem('inbound_order_success');
+        if (!noticeType) {
             return;
         }
 
-        sessionStorage.removeItem('inbound_order_updated');
+        sessionStorage.removeItem('inbound_order_success');
+        var message = noticeType === 'created'
+            ? 'Inbound order created successfully.'
+            : 'Inbound order updated successfully.';
+        this.$('#inbound_order_success_message').text(message);
+
         var $notice = this.$el;
         $notice.removeClass('d-none');
 
