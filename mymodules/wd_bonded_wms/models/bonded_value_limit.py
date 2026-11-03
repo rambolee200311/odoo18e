@@ -9,8 +9,7 @@ class BondedValueLimit(models.Model):
     _rec_name = 'bonded_book_id'
     _order = 'bonded_book_id, effective_date desc'
 
-    bonded_book_id = fields.Many2one('bonded.book', string='Bonded Book', required=True,
-                                     ondelete='cascade', index=True)
+    bonded_book_id = fields.Many2one('bonded.book', string='Bonded Book', required=True, ondelete='cascade', index=True, domain=[('state', '=', 'active')])
     project_id = fields.Many2one('project.project', string='Project', ondelete='restrict', index=True)
     total_value = fields.Monetary(string='Total Value Limit', required=True)
     used_value = fields.Monetary(string='Used Value', compute='_compute_usage', store=True)

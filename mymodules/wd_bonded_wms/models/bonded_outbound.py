@@ -16,11 +16,10 @@ class BondedOutbound(models.Model):
 
     name = fields.Char(string='Outbound No.', required=True, copy=False,
                        default=lambda self: _('New'), readonly=True, index=True)
-    bonded_book_id = fields.Many2one('bonded.book', string='Bonded Book', required=True,
-                                     ondelete='restrict', index=True)
+    bonded_book_id = fields.Many2one('bonded.book', string='Bonded Book', required=True, ondelete='restrict', index=True, domain=[('state', '=', 'active')])
     project_id = fields.Many2one('project.project', string='Project', ondelete='restrict', index=True, tracking=True)
     customs_file_id = fields.Many2one('bonded.customs.file', string='Customs Declaration',
-                                      required=True, ondelete='restrict', index=True,
+                                      ondelete='restrict', index=True,
                                       domain=[('declaration_type', 'in', ('b3_out', 't1_out', 'ex', 'destruction'))])
     outbound_type = fields.Selection([
         ('l2f', 'L2F (Local Clearance)'),
@@ -130,7 +129,6 @@ class BondedOutbound(models.Model):
                     raise UserError(_('Only bonded stock in entrepot status can be outbound.'))
                 if line.bonded_stock_id.quantity < line.demand_qty:
                     raise UserError(_('Insufficient bonded stock for tracking no. %s.') % line.inbound_tracking_no)
-            rec.bonded_book_id.reserve_document_value(rec.total_value, project_id=rec.project_id.id, outbound_id=rec.id)
             rec.write({'state': 'confirmed'})
 
     def action_start(self):

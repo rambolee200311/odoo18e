@@ -2039,8 +2039,6 @@ msgid "MRN %s is already bound to another customs declaration."
 msgstr "MRN %s 已绑定到其他海关申报。"
 
 #. module: wd_bonded_wms
-#: model:ir.actions.act_window,name:wd_bonded_wms.action_bonded_mrn_ledger
-#: model:ir.ui.menu,name:wd_bonded_wms.menu_bonded_mrn_ledger
 msgid "MRN Control Ledger"
 msgstr "MRN监管台账"
 
@@ -2059,7 +2057,9 @@ msgid "MRN Number"
 msgstr "MRN编号"
 
 #. module: wd_bonded_wms
+#: model:ir.actions.act_window,name:wd_bonded_wms.action_bonded_mrn_ledger
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_customs_file__mrn_ids
+#: model:ir.ui.menu,name:wd_bonded_wms.menu_bonded_mrn_ledger
 msgid "MRN Numbers"
 msgstr "MRN编号"
 
@@ -3342,6 +3342,12 @@ msgstr "申报行商品必须与入库明细商品一致。"
 #. module: wd_bonded_wms
 #. odoo-python
 #: code:addons/wd_bonded_wms/models/bonded_customs_file.py:0
+msgid "The deducted value is insufficient for outbound release."
+msgstr "已扣货值不足，无法释放出库货值。"
+
+#. module: wd_bonded_wms
+#. odoo-python
+#: code:addons/wd_bonded_wms/models/bonded_customs_file.py:0
 msgid "The following T1 MRN(s) have not been closed: %s"
 msgstr "以下T1 MRN尚未结案：%s"
 
@@ -3553,8 +3559,8 @@ msgstr "货值台账"
 
 #. module: wd_bonded_wms
 #: model:ir.ui.menu,name:wd_bonded_wms.menu_bonded_value_ledger
-msgid "Value Limit Ledger"
-msgstr "货值额度台账"
+msgid "Project Value Limit Configuration"
+msgstr "项目货值额度配置"
 
 #. module: wd_bonded_wms
 #: model:ir.actions.act_window,name:wd_bonded_wms.action_bonded_value_limit
@@ -3587,10 +3593,6 @@ msgid "Verification Date"
 msgstr "核注日期"
 
 #. module: wd_bonded_wms
-#: model:ir.ui.menu,name:wd_bonded_wms.menu_bonded_verification_ledger
-msgid "Verification Disposal Ledger"
-msgstr "核注核销处置台账"
-
 #. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_verification__verification_type
 msgid "Verification Type"

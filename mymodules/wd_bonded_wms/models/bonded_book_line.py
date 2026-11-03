@@ -9,7 +9,7 @@ class BondedBookLine(models.Model):
     _rec_name = 'ref_doc_no'
     _order = 'id desc'
 
-    bonded_book_id = fields.Many2one('bonded.book', string='Bonded Book', required=True, ondelete='restrict', index=True)
+    bonded_book_id = fields.Many2one('bonded.book', string='Bonded Book', required=True, ondelete='restrict', index=True, domain=[('state', '=', 'active')])
     date = fields.Date(string='Date', required=True, default=fields.Date.today, index=True)
     operation_type = fields.Selection([
         ('bonded_inbound', 'Bonded Inbound'),

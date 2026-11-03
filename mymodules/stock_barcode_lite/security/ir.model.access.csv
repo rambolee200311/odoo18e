@@ -20,6 +20,8 @@ access_sunrise_inbound_pallet_summary_outbound_line,sunrise.inbound.pallet.summa
 access_sunrise_outbound_pallet_summary_report,sunrise.outbound.pallet.summary.report,model_sunrise_outbound_pallet_summary_report,,1,1,1,1
 access_sunrise_outbound_pallet_summary_report_line,sunrise.outbound.pallet.summary.report.line,model_sunrise_outbound_pallet_summary_report_line,,1,1,1,1
 access_sunrise_outbound_pallet_summary_report_pallet_line,sunrise.outbound.pallet.summary.report.pallet.line,model_sunrise_outbound_pallet_summary_report_pallet_line,,1,1,1,1
+access_sunrise_monthly_category_pallet_report,sunrise.monthly.category.pallet.report,model_sunrise_monthly_category_pallet_report,,1,1,1,1
+access_sunrise_monthly_category_pallet_report_line,sunrise.monthly.category.pallet.report.line,model_sunrise_monthly_category_pallet_report_line,,1,1,1,1
 #access_sunrise_location_occupancy_report,sunrise.location.occupancy.report,model_sunrise_location_occupancy_report,,1,1,1,1
 #access_sunrise_location_occupancy_report_line,sunrise.location.occupancy.report.line,model_sunrise_location_occupancy_report_line,,1,1,1,1
 access_stock_picking_package_scan,stock.picking.package.scan,model_stock_picking_package_scan,,1,1,1,1

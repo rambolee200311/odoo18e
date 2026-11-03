@@ -38,7 +38,7 @@
                             <field name="project_id" readonly="state != 'draft'" options="{'no_create': True, 'no_open': False}"/>
                             <field name="warehouse" readonly="state != 'draft'" options="{'no_create': True, 'no_open': False}"/>
                             <field name="pick_type" readonly="state != 'draft'" domain="[('code', 'in', ['outgoing', 'internal']), ('warehouse_id', '=', warehouse)]" options="{'no_create': True, 'no_open': False}"/>
-                            <field name="customs_file_id" domain="[('declaration_type', 'in', ('b3_out', 't1_out', 'ex', 'destruction'))]" options="{'no_create': True, 'no_open': False}"/>
+                            <field name="customs_file_id" required="state != 'draft'" domain="[('declaration_type', 'in', ('b3_out', 't1_out', 'ex', 'destruction'))]" options="{'no_create': False, 'no_open': False}"/>
                             <field name="outbound_type" readonly="1"/>
                         </group>
                         <group string="Schedule">

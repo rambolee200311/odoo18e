@@ -16,7 +16,7 @@ class BondedCustomsFile(models.Model):
     _rec_name = 'declaration_no'
     _order = 'declaration_date desc, id desc'
 
-    bonded_book_id = fields.Many2one('bonded.book', string='Bonded Book', required=True, ondelete='restrict', index=True)
+    bonded_book_id = fields.Many2one('bonded.book', string='Bonded Book', required=True, ondelete='restrict', index=True, domain=[('state', '=', 'active')])
     declaration_type = fields.Selection([
         ('t1_in', 'T1 Transit Inbound'),
         ('b3_in', 'B3 Bonded Inbound'),
@@ -161,9 +161,9 @@ class BondedCustomsFile(models.Model):
     @api.constrains('mrn')
     def check_mrn(self):
         pattern = re.compile(r'^\d{2}[A-Z]{2}[A-Z0-9]{14}$')
-        for rec in self:
-            if rec.mrn and not pattern.match(rec.mrn):
-                raise ValidationError(_('MRN must be 18 characters: 2 digits + 2 letters + 14 letters/digits.'))
+        # for rec in self:
+        #     if rec.mrn and not pattern.match(rec.mrn):
+        #         raise ValidationError(_('MRN must be 18 characters: 2 digits + 2 letters + 14 letters/digits.'))
 
     @api.constrains('mrn_id')
     def check_mrn_customs_file(self):
@@ -264,7 +264,10 @@ class BondedCustomsFile(models.Model):
                 outbound_records = self.env['bonded.outbound'].sudo().search([('customs_file_id', '=', rec.id)])
                 for outbound in outbound_records:
                     bonded_book = self.env['bonded.book'].browse(outbound.bonded_book_id.id)
-                    bonded_book.deduct_document_value(project_id=outbound.project_id.id, outbound_id=outbound.id, customs_file_id=rec.id)
+                    ledger_records = self.env['bonded.value.ledger'].sudo().search([('bonded_book_id', '=', bonded_book.id), ('project_id', '=', outbound.project_id.id)])
+                    if sum(ledger_records.mapped('deducted_change')) < outbound.total_value:
+                        raise UserError(_('The deducted value is insufficient for outbound release.'))
+                    bonded_book.create_value_ledger('release', outbound.total_value, project_id=outbound.project_id.id, outbound_id=outbound.id, customs_file_id=rec.id, release_from_deduction=True)
             rec.sync_instruction_state('released')
 
     def action_reject(self, reason=''):

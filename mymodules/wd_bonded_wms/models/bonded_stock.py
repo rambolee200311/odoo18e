@@ -8,8 +8,7 @@ class BondedStock(models.Model):
     _rec_name = 'product_id'
     _order = 'inbound_date desc, id'
 
-    bonded_book_id = fields.Many2one('bonded.book', string='Bonded Book', required=True,
-                                     ondelete='restrict', index=True)
+    bonded_book_id = fields.Many2one('bonded.book', string='Bonded Book', required=True, ondelete='restrict', index=True, domain=[('state', '=', 'active')])
     product_id = fields.Many2one('product.product', string='Product', required=True, index=True)
     stock_move_line_id = fields.Many2one('stock.move.line', string='Stock Move Line',
                                          ondelete='set null', index=True)

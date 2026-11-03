@@ -1,0 +1,15 @@
+<odoo>
+    <record id="view_outbound_order_hoymiles_result_sync_form" model="ir.ui.view">
+        <field name="name">world.depot.outbound.order.hoymiles.result.sync.form</field>
+        <field name="model">world.depot.outbound.order</field>
+        <field name="inherit_id" ref="worlddepot.view_outbound_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='picking_Out_date']" position="before">
+                <field name="blind_clearance_result_sync"/>
+            </xpath>
+            <xpath expr="//field[@name='picking_Out_date']" position="attributes">
+                <attribute name="readonly">not blind_clearance_result_sync</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

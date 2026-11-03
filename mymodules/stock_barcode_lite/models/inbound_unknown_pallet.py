@@ -673,7 +673,7 @@ class StockBarcodeLiteScanService(models.AbstractModel):
     @api.model
     def build_actual_pallet_binding_result(self, result_type, barcode_type, message, barcode="", inbound_order=False, actual_pallet_id=False, product_id=False, tracking_number=False, action_name=False, success=True, next_step="scan_inbound"):
         last_scan = {"barcode": barcode or "", "type": result_type, "barcode_type": barcode_type, "message": message}
-        scan_state = inbound_order.get_actual_pallet_binding_scan_state(actual_pallet_id, product_id) if inbound_order else {"inbound": {}, "current_pallet": {}, "current_product": {}, "summary": {"total_pallets": 0, "ready_pallets": 0, "pending_pallets": 0, "expected_quantity": 0.0, "actual_quantity": 0.0, "remaining_quantity": 0.0}, "pallets": [], "expected_products": []}
+        scan_state = inbound_order.sudo().get_actual_pallet_binding_scan_state(actual_pallet_id, product_id) if inbound_order else {"inbound": {}, "current_pallet": {}, "current_product": {}, "summary": {"total_pallets": 0, "ready_pallets": 0, "pending_pallets": 0, "expected_quantity": 0.0, "actual_quantity": 0.0, "remaining_quantity": 0.0}, "pallets": [], "expected_products": []}
         scan_state["last_scan"] = last_scan
         return {"success": success, "type": result_type, "barcode": barcode or "", "barcode_type": barcode_type, "message": message, "next_step": next_step, "current": {"inbound_order_id": inbound_order.id if inbound_order else False, "actual_pallet_id": actual_pallet_id, "product_id": product_id, "tracking_number": tracking_number or False}, "action": {"name": action_name or result_type}, "scan_state": scan_state}
 
