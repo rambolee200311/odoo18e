@@ -9,6 +9,8 @@
                 <field name="product_id"/>
                 <field name="hs_code"/>
                 <field name="goods_value" widget="monetary"/>
+                <field name="gross_weight"/>
+                <field name="net_weight"/>
                 <field name="customs_code"/>
                 <field name="article_number"/>
                 <field name="product_description"/>
@@ -40,6 +42,8 @@
                         </group>
                         <group string="Product Profile">
                             <field name="goods_value" widget="monetary"/>
+                            <field name="gross_weight"/>
+                            <field name="net_weight"/>
                             <field name="customs_code"/>
                             <field name="article_number"/>
                             <field name="product_description"/>

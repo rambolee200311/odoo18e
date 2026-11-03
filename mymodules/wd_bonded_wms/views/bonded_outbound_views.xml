@@ -6,10 +6,17 @@
         <field name="arch" type="xml">
             <list>
                 <field name="name"/>
+                <field name="order_type"/>
+                <field name="order_date"/>
+                <field name="reference"/>
                 <field name="customs_file_id"/>
                 <field name="bonded_book_id"/>
                 <field name="project_id"/>
-                <field name="outbound_type"/>
+                <field name="owner_id"/>
+                <field name="outbound_nature"/>
+                <field name="is_dangerous" widget="boolean_toggle"/>
+                <field name="t1_status"/>
+                <field name="mrn_status"/>
                 <field name="mrn"/>
                 <field name="expected_date"/>
                 <field name="total_value" widget="monetary"/>
@@ -26,6 +33,8 @@
             <form duplicate="false" class="bonded_required_highlight">
                 <header>
                     <button name="action_confirm" string="Confirm" type="object" invisible="state != 'draft'" class="btn-primary"/>
+                    <button name="action_create_outbound_customs_file" string="Create T1 Outbound" type="object" context="{'default_declaration_type': 't1_out'}" invisible="state != 'confirmed' or outbound_nature != 'bonded' or customs_file_id" class="btn-primary"/>
+                    <button name="action_create_outbound_customs_file" string="Create Clearance Outbound" type="object" context="{'default_declaration_type': 'clearance_out'}" invisible="state != 'confirmed' or outbound_nature != 'non_bonded' or customs_file_id" class="btn-primary"/>
                     <button name="action_create_picking" string="Create Stock Picking" type="object" invisible="state != 'released'" class="btn-primary"/>
                     <button name="action_cancel" string="Cancel" type="object" invisible="state not in ('draft', 'confirmed', 'declared', 'released')"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,declared,released,in_progress,done"/>
@@ -34,18 +43,33 @@
                     <group>
                         <group string="Outbound Info">
                             <field name="name" readonly="1"/>
+                            <field name="order_type" required="1" readonly="state != 'draft'"/>
+                            <field name="order_date" required="1" readonly="state != 'draft'"/>
+                            <field name="reference" required="1" readonly="state != 'draft'"/>
                             <field name="bonded_book_id" required="1" options="{'no_create': True, 'no_open': False}"/>
                             <field name="project_id" readonly="state != 'draft'" options="{'no_create': True, 'no_open': False}"/>
+                            <field name="owner_id" readonly="1" options="{'no_create': True, 'no_open': False}"/>
+                            <field name="outbound_nature" required="1" readonly="state != 'draft'"/>
+                            <field name="is_dangerous" readonly="state != 'draft'"/>
                             <field name="warehouse" readonly="state != 'draft'" options="{'no_create': True, 'no_open': False}"/>
+                            <field name="warehouse_address" readonly="1"/>
                             <field name="pick_type" readonly="state != 'draft'" domain="[('code', 'in', ['outgoing', 'internal']), ('warehouse_id', '=', warehouse)]" options="{'no_create': True, 'no_open': False}"/>
-                            <field name="customs_file_id" required="state != 'draft'" domain="[('declaration_type', 'in', ('b3_out', 't1_out', 'ex', 'destruction'))]" options="{'no_create': False, 'no_open': False}"/>
-                            <field name="outbound_type" readonly="1"/>
+                            <field name="customs_file_id" readonly="1" options="{'no_create': True, 'no_open': False}"/>
                         </group>
                         <group string="Schedule">
-                            <field name="expected_date"/>
+                            <field name="expected_date" string="Planned Date" required="1" readonly="state != 'draft'"/>
                             <field name="total_value" readonly="1" widget="monetary"/>
-                            <field name="mrn_id" readonly="state != 'draft'" context="{'default_customs_file_id': customs_file_id}" options="{'create_name_field': 'mrn'}"/>
+                            <field name="mrn_id" readonly="1" options="{'no_create': True, 'no_open': False}"/>
+                            <field name="t1_status" readonly="1"/>
+                            <field name="mrn_status" readonly="1"/>
                         </group>
+                    </group>
+                    <group string="Remarks and Confirmation">
+                        <field name="remark" readonly="state != 'draft'"/>
+                        <field name="remark1" readonly="state != 'draft'"/>
+                        <field name="confirm_user_id" readonly="1" options="{'no_create': True, 'no_open': False}"/>
+                        <field name="confirm_time_user_tz" readonly="1"/>
+                        <field name="confirm_time_server" readonly="1"/>
                     </group>
                     <notebook>
                         <page string="Products">

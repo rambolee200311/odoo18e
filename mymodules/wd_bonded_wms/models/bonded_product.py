@@ -14,6 +14,8 @@ class BondedProduct(models.Model):
     hs_code = fields.Char(string='HS Code', required=True)
     declared_unit_price = fields.Monetary(string='Declared Unit Price', required=True)
     goods_value = fields.Monetary(string='Goods Value')
+    gross_weight = fields.Float(string='Gross Weight (kg)')
+    net_weight = fields.Float(string='Net Weight (kg)')
     customs_code = fields.Char(string='Customs Code')
     article_number = fields.Char(string='Article Number')
     product_description = fields.Char(string='Product Description')
