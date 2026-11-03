@@ -1,7 +1,7 @@
-
-from odoo import models, _
+from odoo import _, models
 from odoo.exceptions import UserError
 from odoo.tools.float_utils import float_compare
+
 
 class OutboundOrder(models.Model):
     _inherit = 'world.depot.outbound.order'
@@ -73,6 +73,8 @@ class OutboundOrder(models.Model):
                 detach_pickings.write({'outbound_order_id': False})
 
             rec.write({
+                'whole_pallet_picking_id': False,
+                'partial_pallet_picking_id': False,
                 'picking_PICK': False,
                 'picking_PICK_date': False,
                 'picking_Out': False,
@@ -87,7 +89,6 @@ class OutboundOrder(models.Model):
                 'set_outbound_result_sync': False,
                 'set_outbound_result_sync_time': False,
                 'outbound_result_sync_error_msg': False,
-
                 'status_to_pick_finished_time_user': False,
                 'outbound_pack_sync_time_user': False,
                 'outbound_result_sync_time_user': False,

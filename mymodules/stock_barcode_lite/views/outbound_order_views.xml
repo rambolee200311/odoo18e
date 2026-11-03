@@ -21,6 +21,14 @@
             <xpath expr="//button[@name='action_create_picking_PICK']" position="attributes">
                 <attribute name="invisible">project_name == 'LINGLONG' or (barcode_scan_mode == 'custom' and project_package_generation_mode in ('inbound', 'picking'))</attribute>
             </xpath>
+            <xpath expr="//header/field[@name='state']" position="after">
+                <button name="action_prepare_recreate_picking"
+                        type="object"
+                        string="Prepare Recreate Picking"
+                        class="btn-secondary"
+                        invisible="project_name != 'HOYMILES' or state != 'confirm'"
+                        groups="search_product_change.group_hoymiles_stock_manager"/>
+            </xpath>
             <xpath expr="//field[@name='picking_PICK']" position="attributes">
                 <attribute name="invisible">project_name == 'SUNRISE'</attribute>
             </xpath>

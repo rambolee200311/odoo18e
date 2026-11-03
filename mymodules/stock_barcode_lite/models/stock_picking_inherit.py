@@ -200,7 +200,7 @@ class StockPicking(models.Model):
 
     def check_custom_barcode_serial_tracking(self):
         for rec in self:
-            if rec.barcode_scan_mode != "custom" or rec.picking_type_id.code not in ("incoming", "outgoing") or rec.state in ("done", "cancel"):
+            if rec.return_id or rec.barcode_scan_mode != "custom" or rec.picking_type_id.code not in ("incoming", "outgoing") or rec.state in ("done", "cancel"):
                 continue
             serial_moves = rec.move_ids.filtered(
                 lambda move: move.product_id.tracking == "serial" and move.state != "cancel" and move.product_uom_qty > 0
