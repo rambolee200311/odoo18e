@@ -21,6 +21,14 @@
             <xpath expr="//button[@name='action_create_picking_PICK']" position="attributes">
                 <attribute name="invisible">project_name == 'LINGLONG' or (barcode_scan_mode == 'custom' and project_package_generation_mode in ('inbound', 'picking'))</attribute>
             </xpath>
+            <xpath expr="//header/field[@name='state']" position="after">
+                <button name="action_prepare_recreate_picking"
+                        type="object"
+                        string="Prepare Recreate Picking"
+                        class="btn-secondary"
+                        invisible="project_name != 'HOYMILES' or state != 'confirm'"
+                        groups="search_product_change.group_hoymiles_stock_manager"/>
+            </xpath>
             <xpath expr="//field[@name='picking_PICK']" position="attributes">
                 <attribute name="invisible">project_name == 'SUNRISE'</attribute>
             </xpath>
@@ -279,6 +287,7 @@
                         domain="[('u8c_delivery_method', '=', 'wd')]"/>
                 <filter string="Organic" name="organic_true" domain="[('organic', '=', True)]"/>
                 <filter string="Non-organic" name="organic_false" domain="[('organic', '=', False)]"/>
+                <filter string="Missing Manual Time" name="missing_manual_outbound_date" domain="[('o_date', '=', False)]"/>
 
                 <group expand="0" string="Group By">
                     <filter string="Active Orders" name="state_not_cancel" domain="[('state', '!=', 'cancel')]"/>

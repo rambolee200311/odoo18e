@@ -253,6 +253,7 @@
                 <field name="organic"/>
                 <filter string="Organic" name="organic_true" domain="[('organic', '=', True)]"/>
                 <filter string="Non-organic" name="organic_false" domain="[('organic', '=', False)]"/>
+                <filter string="Missing Manual Time" name="missing_actual_inbound_date" domain="[('actual_inbound_date', '=', False)]"/>
                 <group expand="0" string="Group By">
                     <filter string="Active Orders" name="state_not_cancel" domain="[('state', '!=', 'cancel')]"/>
                     <filter string="State" name="group_state" context="{'group_by': 'state'}"/>
