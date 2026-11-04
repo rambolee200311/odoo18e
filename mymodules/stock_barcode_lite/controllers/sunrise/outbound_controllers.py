@@ -196,7 +196,8 @@ class SunriseOutboundController(http.Controller, SunriseControllerMixin):
         u8_aux_uom_name = self.get_required_text(line_data, "u8_aux_uom_name", row_number)
         box_type = (line_data.get("box_type") or "").strip().lower()
         u8_conversion_rate = line_data.get("u8_conversion_rate")
-        if box_type == "bulk" and (u8_conversion_rate is None or (isinstance(u8_conversion_rate, str) and not u8_conversion_rate.strip())):
+        is_missing_conversion_rate = u8_conversion_rate is None or (isinstance(u8_conversion_rate, str) and u8_conversion_rate.strip().lower() in ("", "null", "none"))
+        if box_type == "bulk" and is_missing_conversion_rate:
             line_data = dict(line_data)
             line_data["u8_conversion_rate"] = 1
         box_type, box_qty, box_in_qty, ninnum, u8_aux_qty, u8_conversion_rate = self.validate_box_values(line_data, row_number)
