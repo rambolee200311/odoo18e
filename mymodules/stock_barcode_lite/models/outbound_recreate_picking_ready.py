@@ -1,9 +1,29 @@
 from odoo import _, models
 from odoo.exceptions import UserError
+from odoo.tools.float_utils import float_compare
 
 
 class OutboundOrder(models.Model):
     _inherit = 'world.depot.outbound.order'
+
+    def picking_has_full_done_return(self, picking):
+        picking.ensure_one()
+
+        done_moves = picking.move_ids.filtered(lambda rec: rec.state == 'done' and not rec.scrapped)
+        for move in done_moves:
+            return_moves = move.move_dest_ids.filtered(
+                lambda rec: rec.origin_returned_move_id == move and rec.state == 'done'
+            )
+            returned_quantity = sum(return_moves.mapped('quantity'))
+
+            if float_compare(
+                    returned_quantity,
+                    move.quantity,
+                    precision_rounding=move.product_id.uom_id.rounding,
+            ) < 0:
+                return False
+
+        return True
 
     def action_prepare_recreate_picking(self):
         if not self.env.user.has_group('stock.group_stock_manager') and not self.env.user.has_group(

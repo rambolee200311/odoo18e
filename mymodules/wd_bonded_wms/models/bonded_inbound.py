@@ -18,20 +18,10 @@ class BondedInbound(models.Model):
                        default=lambda self: _('New'), readonly=True, index=True)
     bonded_book_id = fields.Many2one('bonded.book', string='Bonded Book', required=True, ondelete='restrict', index=True, domain=[('state', '=', 'active')])
     project_id = fields.Many2one('project.project', string='Project', ondelete='restrict', index=True, tracking=True)
-    customs_file_ids = fields.Many2many('bonded.customs.file', 'bonded_inbound_customs_file_rel', 'bonded_inbound_id', 'customs_file_id', string='Customs Declarations', copy=False)
-
-    t1_customs_file_id = fields.Many2one('bonded.customs.file', string='T1 Customs File')
-    b3_customs_file_id = fields.Many2one('bonded.customs.file', string='B3 Customs File')
-
-
-    # 到仓登记 (一个入库单支持多个T1，每条到仓登记只属于一个入库单)
-    gate_arrival_ids = fields.One2many('gate.arrival', 'bonded_inbound_id', string='Gate Arrivals',
-                                       help='T1 containers arriving at gate. One inbound can consolidate multiple T1 declarations.')
-    # 货物来源(F-06)
-    cargo_source = fields.Selection([('port_t1', 'Port T1 Import(First Entry)'),
-                                     ('eu_bonded_t1', 'EU Bonded T1 Transfer'),
-                                     ('direct', 'Direct Entry')], string='Cargo Source', required=True, default='port_t1')
-    inbound_tracking_no = fields.Char(string='Inbound Tracking No.', copy=False, index=True)
+    package_generation_mode = fields.Selection(related='project_id.package_generation_mode', string='Package Generation Mode', readonly=True)
+    t1_customs_file_id = fields.Many2one('bonded.customs.file', string='T1 Customs Declaration', ondelete='restrict', index=True, domain=[('declaration_type', '=', 't1_in')])
+    gate_arrival_ids = fields.One2many('gate.arrival', 'bonded_inbound_id', string='Gate Arrival', help='One T1 gate arrival is currently allowed for each inbound instruction.')
+    inbound_tracking_id = fields.Many2one('bonded.inbound.tracking', string='Inbound Tracking', readonly=True, copy=False, ondelete='restrict', index=True)
     expected_date = fields.Date(string='Expected Date', required=True, default=fields.Date.today)
     total_value = fields.Monetary(string='Total Value', compute='_compute_total_value', store=True, readonly=True)
     currency_id = fields.Many2one('res.currency', string='Currency', default=lambda self: self.env.ref('base.EUR').id)
@@ -51,12 +41,12 @@ class BondedInbound(models.Model):
     warehouse = fields.Many2one('stock.warehouse', string='Warehouse', required=True,
                                 default=lambda self: self.env.user.warehouse_id, tracking=True,
                                 index=True)
+    warehouse_address = fields.Char(related='warehouse.partner_id.contact_address', string='Warehouse Address', readonly=True)
     pick_type = fields.Many2one('stock.picking.type', string='Picking Type', required=True,
                                 default=lambda self: self.env.user.warehouse_id.in_type_id,
                                 tracking=True, domain=[('code', '=', 'incoming')], index=True)
     _sql_constraints = [
         ('name_uniq', 'unique(name)', 'Inbound number must be unique!'),
-        ('inbound_tracking_no_uniq', 'unique(inbound_tracking_no)', 'Inbound tracking number must be unique!'),
     ]
 
     @api.model_create_multi
@@ -84,30 +74,87 @@ class BondedInbound(models.Model):
                 raise UserError(_('Only draft inbound instructions can be confirmed.'))
             if not rec.line_ids:
                 raise UserError(_('Please add inbound lines before confirming.'))
+            rec.check_pallet_no()
             rec.bonded_book_id.reserve_document_value(rec.total_value, project_id=rec.project_id.id, inbound_id=rec.id)
             vals = {'state': 'confirmed'}
-            if not rec.inbound_tracking_no:
-                vals['inbound_tracking_no'] = self.env['ir.sequence'].next_by_code(
-                    'seq.bonded.inbound.tracking'
-                ) or _('New')
+            if not rec.inbound_tracking_id:
+                tracking = self.env['bonded.inbound.tracking'].create({'name': self.env['ir.sequence'].next_by_code('seq.bonded.inbound.tracking') or _('New'), 'bonded_inbound_id': rec.id, 'customs_file_id': rec.t1_customs_file_id.id})
+                vals['inbound_tracking_id'] = tracking.id
             rec.write(vals)
 
-    @api.constrains('cargo_source', 't1_customs_file_id', 'gate_arrival_ids')
-    def check_cargo_source(self):
+    def check_pallet_no(self):
         for rec in self:
-            if rec.cargo_source == 'direct' and (rec.t1_customs_file_id or rec.gate_arrival_ids):
-                raise ValidationError(_('Direct entry cannot have T1 customs file or gate arrivals.'))
+            if rec.package_generation_mode in ('inbound', 'picking') and rec.line_ids.filtered(lambda line: not line.pallet_no):
+                raise UserError(_('Pallet Number is required for each inbound line when Package Generation Mode is Inbound or Picking.'))
 
-    @api.constrains('customs_file_ids', 'line_ids.customs_file_line_id')
+    def action_create_t1_in_customs_file(self):
+        customs_file = self.env['bonded.customs.file']
+        for rec in self:
+            if rec.state != 'confirmed' or rec.t1_customs_file_id:
+                raise UserError(_('Only confirmed inbound instructions without a T1 customs declaration can create a T1 inbound declaration.'))
+            eori_entity = rec.bonded_book_id.eori_entity_id
+            line_vals = []
+            for item_no, line in enumerate(rec.line_ids, 1):
+                line_vals.append((0, 0, {
+                    'item_no': item_no,
+                    'bonded_product_id': line.bonded_product_id.id,
+                    'product_id': line.product_id.id,
+                    'origin_country_id': eori_entity.country_id.id,
+                    'quantity': line.planned_qty,
+                    'gross_weight': line.planned_qty * line.gross_weight,
+                    'net_weight': line.planned_qty * line.net_weight,
+                    'line_value': line.subtotal_value,
+                    'currency_id': rec.currency_id.id,
+                }))
+            customs_file = self.env['bonded.customs.file'].create({
+                'bonded_book_id': rec.bonded_book_id.id,
+                'declaration_type': 't1_in',
+                'customs_code': rec.bonded_book_id.customs_office_code,
+                'consignor_eori_entity_id': eori_entity.id,
+                'consignee_eori_entity_id': eori_entity.id,
+                'declarant_eori_entity_id': eori_entity.id,
+                'origin_country_id': eori_entity.country_id.id,
+                'destination_country_id': eori_entity.country_id.id,
+                'total_packages': sum(rec.line_ids.mapped('planned_qty')),
+                'total_gross_weight': sum(line.planned_qty * line.gross_weight for line in rec.line_ids),
+                'invoice_amount': rec.total_value,
+                'currency_id': rec.currency_id.id,
+                'line_ids': line_vals,
+            })
+            rec.write({'t1_customs_file_id': customs_file.id})
+        return {'type': 'ir.actions.act_window', 'res_model': 'bonded.customs.file', 'res_id': customs_file.id, 'view_mode': 'form', 'target': 'current'}
+
+    @api.constrains('t1_customs_file_id', 'gate_arrival_ids')
+    def check_t1_inbound_links(self):
+        for rec in self:
+            duplicate_inbound = self.env['bonded.inbound'].sudo().search([('t1_customs_file_id', '=', rec.t1_customs_file_id.id), ('id', '!=', rec.id)], limit=1) if rec.t1_customs_file_id else False
+            if duplicate_inbound:
+                raise ValidationError(_('A T1 customs declaration can only be linked to one inbound instruction.'))
+            if rec.t1_customs_file_id and rec.t1_customs_file_id.declaration_type != 't1_in':
+                raise ValidationError(_('Inbound instructions must be linked to a T1 customs declaration.'))
+            if len(rec.gate_arrival_ids) > 1:
+                raise ValidationError(_('Each inbound instruction can only have one gate arrival.'))
+            if rec.gate_arrival_ids and rec.gate_arrival_ids.customs_file_id != rec.t1_customs_file_id:
+                raise ValidationError(_('The gate arrival must use the inbound instruction T1 customs declaration.'))
+            if rec.t1_customs_file_id and rec.t1_customs_file_id.bonded_book_id != rec.bonded_book_id:
+                raise ValidationError(_('The T1 customs declaration and bonded inbound must use the same bonded book.'))
+
+    def write(self, vals):
+        result = super().write(vals)
+        if 't1_customs_file_id' in vals:
+            for rec in self:
+                if rec.inbound_tracking_id:
+                    rec.inbound_tracking_id.write({'customs_file_id': rec.t1_customs_file_id.id})
+        return result
+
+    @api.constrains('t1_customs_file_id', 'line_ids.customs_file_line_id')
     def check_customs_file_line_links(self):
         for rec in self:
             selected_lines = rec.line_ids.mapped('customs_file_line_id')
             if not selected_lines:
                 continue
-            if not rec.customs_file_ids:
-                raise ValidationError(_('Select a customs declaration before selecting a declaration line.'))
-            if selected_lines.filtered(lambda customs_line: customs_line.customs_file_id not in rec.customs_file_ids):
-                raise ValidationError(_('Each declaration line must belong to a customs declaration linked to this inbound instruction.'))
+            if selected_lines.filtered(lambda customs_line: customs_line.customs_file_id != rec.t1_customs_file_id):
+                raise ValidationError(_('Each declaration line must belong to the inbound instruction T1 customs declaration.'))
 
     def action_start(self):
         for rec in self:
@@ -130,8 +177,7 @@ class BondedInbound(models.Model):
                 if not inbound_line:
                     raise UserError(_('Cannot match stock move line to bonded inbound line.'))
                 unit_value = inbound_line.declared_unit_price
-                customs_file = inbound_line.customs_file_id
-                pre_mrn_ids = [(4, mrn.id) for mrn in customs_file.pre_mrn_ids] if customs_file and customs_file.pre_mrn_ids else False
+                customs_file = rec.t1_customs_file_id
                 bonded_stock = self.env['bonded.stock'].create({
                     'bonded_book_id': rec.bonded_book_id.id,
                     'product_id': move_line.product_id.id,
@@ -148,7 +194,6 @@ class BondedInbound(models.Model):
                     'currency_id': rec.currency_id.id,
                     'inbound_date': fields.Datetime.now(),
                     'gate_arrival_ids': [(4, gate.id) for gate in rec.gate_arrival_ids],
-                    'related_t1_in_mrn_ids': pre_mrn_ids,
                 })
                 self.env['bonded.verification'].create({
                     'bonded_book_id': rec.bonded_book_id.id,
@@ -177,9 +222,6 @@ class BondedInbound(models.Model):
                     'picking_id': rec.picking_id.id,
                 })
             rec.write({'state': 'done'})
-            for customs_file in rec.customs_file_ids.filtered(lambda customs_file: customs_file.declaration_type == 'b3_in' and customs_file.state == 'customs_approved'):
-                if all(inbound.state == 'done' for inbound in customs_file.inbound_ids):
-                    customs_file.write({'state': 'done'})
 
     def action_cancel(self):
         for rec in self:
@@ -187,43 +229,84 @@ class BondedInbound(models.Model):
                 raise UserError(_('Only draft/confirmed/declared inbound instructions can be cancelled.'))
             rec.write({'state': 'cancelled'})
 
+    def action_return_to_draft(self):
+        for rec in self:
+            if rec.state != 'confirmed' or rec.t1_customs_file_id:
+                raise UserError(_('Only confirmed inbound instructions without a T1 customs declaration can be returned to draft.'))
+            rec.bonded_book_id.release_document_value(project_id=rec.project_id.id, inbound_id=rec.id)
+            rec.write({'state': 'draft'})
+
     def unlink(self):
         for rec in self:
-            if rec.inbound_tracking_no or rec.customs_file_ids:
+            if rec.inbound_tracking_id or rec.t1_customs_file_id:
                 raise UserError(_('Inbound instruction with tracking no. or customs declaration cannot be deleted. Please cancel it instead.'))
         return super().unlink()
 
     def action_create_picking(self):
-        self.ensure_one()
-        if self.state != 'released':
-            raise UserError(_('Only released instructions can create pickings.'))
-        if self.picking_id:
-            raise UserError(_('Stock picking already exists.'))
-        if not self.warehouse or not self.pick_type:
-            raise UserError(_('Please set the warehouse and incoming operation type first.'))
-        if self.pick_type.warehouse_id != self.warehouse:
-            raise UserError(_('The incoming operation type must belong to the selected warehouse.'))
-        if not self.pick_type.default_location_src_id or not self.pick_type.default_location_dest_id:
-            raise UserError(_('Please configure source and destination locations on the incoming operation type.'))
-        picking = self.env['stock.picking'].create({
-            'picking_type_id': self.pick_type.id,
-            'location_id': self.pick_type.default_location_src_id.id,
-            'location_dest_id': self.pick_type.default_location_dest_id.id,
-            'origin': self.name,
-            'bonded_inbound_id': self.id,
-        })
-        for line in self.line_ids:
-            self.env['stock.move'].create({
-                'name': line.product_id.name,
-                'product_id': line.product_id.id,
-                'product_uom_qty': line.planned_qty,
-                'product_uom': line.uom_id.id or line.product_id.uom_id.id,
-                'picking_id': picking.id,
-                'location_id': picking.location_id.id,
-                'location_dest_id': picking.location_dest_id.id,
-                'bonded_inbound_line_id': line.id,
+        picking = self.env['stock.picking']
+        for rec in self:
+            if rec.state != 'released':
+                raise UserError(_('Only released instructions can create pickings.'))
+            if rec.picking_id:
+                raise UserError(_('Stock picking already exists.'))
+            if not rec.warehouse or not rec.pick_type:
+                raise UserError(_('Please set the warehouse and incoming operation type first.'))
+            if rec.pick_type.warehouse_id != rec.warehouse:
+                raise UserError(_('The incoming operation type must belong to the selected warehouse.'))
+            if not rec.pick_type.default_location_src_id or not rec.pick_type.default_location_dest_id:
+                raise UserError(_('Please configure source and destination locations on the incoming operation type.'))
+            rec.check_pallet_no()
+            pallet_packages = {}
+            if rec.package_generation_mode in ('inbound', 'picking'):
+                for line in rec.line_ids.filtered('package_id'):
+                    package = pallet_packages.get(line.pallet_no)
+                    if package and package != line.package_id:
+                        raise UserError(_('Lines with pallet number %s must use the same package.') % line.pallet_no)
+                    pallet_packages[line.pallet_no] = line.package_id
+                if rec.package_generation_mode == 'inbound':
+                    for line in rec.line_ids.filtered(lambda line: not line.package_id):
+                        package = pallet_packages.get(line.pallet_no)
+                        if not package:
+                            package = self.env['stock.quant.package'].create({'name': line.pallet_no, 'package_use': 'disposable'})
+                            pallet_packages[line.pallet_no] = package
+                        line.write({'package_id': package.id})
+            picking = self.env['stock.picking'].create({
+                'picking_type_id': rec.pick_type.id,
+                'location_id': rec.pick_type.default_location_src_id.id,
+                'location_dest_id': rec.pick_type.default_location_dest_id.id,
+                'origin': rec.name,
+                'bonded_inbound_id': rec.id,
             })
-        self.write({'picking_id': picking.id, 'state': 'in_progress'})
+            if rec.package_generation_mode == 'picking':
+                for line in rec.line_ids.filtered(lambda line: not line.package_id):
+                    package = pallet_packages.get(line.pallet_no)
+                    if not package:
+                        package = self.env['stock.quant.package'].create({'name': line.pallet_no, 'package_use': 'disposable'})
+                        pallet_packages[line.pallet_no] = package
+                    line.write({'package_id': package.id})
+            for line in rec.line_ids:
+                move = self.env['stock.move'].create({
+                    'name': line.product_id.name,
+                    'product_id': line.product_id.id,
+                    'product_uom_qty': line.planned_qty,
+                    'product_uom': line.uom_id.id or line.product_id.uom_id.id,
+                    'picking_id': picking.id,
+                    'location_id': picking.location_id.id,
+                    'location_dest_id': picking.location_dest_id.id,
+                    'bonded_inbound_line_id': line.id,
+                })
+                if line.package_id:
+                    self.env['stock.move.line'].create({
+                        'picking_id': picking.id,
+                        'move_id': move.id,
+                        'product_id': line.product_id.id,
+                        'product_uom_id': line.uom_id.id or line.product_id.uom_id.id,
+                        'quantity': line.planned_qty,
+                        'location_id': picking.location_id.id,
+                        'location_dest_id': picking.location_dest_id.id,
+                        'result_package_id': line.package_id.id,
+                    })
+            rec.write({'picking_id': picking.id, 'state': 'in_progress'})
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'stock.picking',
@@ -236,7 +319,7 @@ class BondedInbound(models.Model):
 class BondedInboundLine(models.Model):
     _name = 'bonded.inbound.line'
     _description = 'Bonded Inbound Line'
-    _order = 'bonded_inbound_id, id'
+    _order = 'bonded_inbound_id, pallet_no, id'
 
     bonded_inbound_id = fields.Many2one('bonded.inbound', string='Inbound Instruction',
                                         required=True, ondelete='cascade', index=True)
@@ -245,14 +328,18 @@ class BondedInboundLine(models.Model):
     customs_file_id = fields.Many2one('bonded.customs.file', related='customs_file_line_id.customs_file_id', string='Customs Declaration', store=True, readonly=True, index=True)
     bonded_product_id = fields.Many2one('bonded.product', string='Bonded Product Filing', ondelete='restrict', index=True)
     product_id = fields.Many2one('product.product', string='Product', required=True, index=True)
-    inbound_tracking_no = fields.Char(string='Inbound Tracking No.', related='bonded_inbound_id.inbound_tracking_no', store=True, readonly=True, index=True)
+    inbound_tracking_no = fields.Char(string='Inbound Tracking No.', related='bonded_inbound_id.inbound_tracking_id.name', store=True, readonly=True, index=True)
     customer_batch_no = fields.Char(string='Customer Batch No.', copy=False, index=True, required=True)
+    pallet_no = fields.Char(string='Pallet Number', index=True)
+    package_id = fields.Many2one('stock.quant.package', string='Package', ondelete='restrict', index=True)
     planned_qty = fields.Float(string='Planned Qty', required=True, default=1.0)
     declared_unit_price = fields.Monetary(string='Declared Unit Price', required=True, default=0.0)
+    gross_weight = fields.Float(string='Gross Weight (kg)')
+    net_weight = fields.Float(string='Net Weight (kg)')
     subtotal_value = fields.Monetary(string='Subtotal', compute='_compute_subtotal_value', store=True)
     currency_id = fields.Many2one('res.currency', related='bonded_inbound_id.currency_id', string='Currency', readonly=True)
     done_qty = fields.Float(string='Done Qty', compute='_compute_done_qty', store=True)
-    uom_id = fields.Many2one('uom.uom', string='UoM', related='product_id.uom_id', readonly=True)
+    uom_id = fields.Many2one('uom.uom', string='UoM', related='bonded_product_id.uom_id', readonly=True)
     eligible_product_ids = fields.Many2many('product.product', compute='_compute_eligible_product_ids')
     eligible_bonded_product_ids = fields.Many2many('bonded.product', compute='_compute_eligible_product_ids')
     available_customs_file_line_ids = fields.Many2many('bonded.customs.file.line', compute='_compute_available_customs_file_line_ids')
@@ -277,6 +364,8 @@ class BondedInboundLine(models.Model):
             if filing:
                 vals.setdefault('bonded_product_id', filing.id)
                 vals.setdefault('declared_unit_price', filing.declared_unit_price)
+                vals.setdefault('gross_weight', filing.gross_weight)
+                vals.setdefault('net_weight', filing.net_weight)
         return super().create(vals_list)
 
     @api.onchange('bonded_product_id')
@@ -285,12 +374,16 @@ class BondedInboundLine(models.Model):
             if rec.bonded_product_id:
                 rec.product_id = rec.bonded_product_id.product_id
                 rec.declared_unit_price = rec.bonded_product_id.declared_unit_price
+                rec.gross_weight = rec.bonded_product_id.gross_weight
+                rec.net_weight = rec.bonded_product_id.net_weight
 
     @api.onchange('product_id')
     def onchange_product_id(self):
         env_bonded_product = self.env['bonded.product'].sudo()
         for rec in self:
             rec.declared_unit_price = 0.0
+            rec.gross_weight = 0.0
+            rec.net_weight = 0.0
             if not rec.bonded_inbound_id or not rec.product_id:
                 continue
             filing = env_bonded_product.search([
@@ -301,6 +394,8 @@ class BondedInboundLine(models.Model):
             if filing:
                 rec.bonded_product_id = filing
                 rec.declared_unit_price = filing.declared_unit_price
+                rec.gross_weight = filing.gross_weight
+                rec.net_weight = filing.net_weight
 
     @api.depends('planned_qty', 'declared_unit_price')
     def _compute_subtotal_value(self):
@@ -318,11 +413,11 @@ class BondedInboundLine(models.Model):
             rec.eligible_product_ids = filings.mapped('product_id')
             rec.eligible_bonded_product_ids = filings
 
-    @api.depends('bonded_inbound_id.customs_file_ids', 'bonded_inbound_id.line_ids.customs_file_line_id', 'product_id')
+    @api.depends('bonded_inbound_id.t1_customs_file_id', 'bonded_inbound_id.line_ids.customs_file_line_id', 'product_id')
     def _compute_available_customs_file_line_ids(self):
         for rec in self:
             used_lines = (rec.bonded_inbound_id.line_ids - rec).mapped('customs_file_line_id')
-            rec.available_customs_file_line_ids = rec.bonded_inbound_id.customs_file_ids.line_ids.filtered(
+            rec.available_customs_file_line_ids = rec.bonded_inbound_id.t1_customs_file_id.line_ids.filtered(
                 lambda customs_line: customs_line.product_id == rec.product_id and customs_line not in used_lines
             )
 
@@ -333,11 +428,8 @@ class BondedInboundLine(models.Model):
                 raise ValidationError(_('The bonded product filing must be active and belong to the inbound instruction bonded book.'))
             if not rec.customs_file_line_id:
                 continue
-            customs_files = rec.bonded_inbound_id.customs_file_ids
-            if not customs_files:
-                raise ValidationError(_('Select a customs declaration before selecting a declaration line.'))
-            if rec.customs_file_line_id.customs_file_id not in customs_files:
-                raise ValidationError(_('The declaration line must belong to a customs declaration linked to this inbound instruction.'))
+            if rec.customs_file_line_id.customs_file_id != rec.bonded_inbound_id.t1_customs_file_id:
+                raise ValidationError(_('The declaration line must belong to the inbound instruction T1 customs declaration.'))
             if rec.customs_file_line_id.product_id != rec.product_id:
                 raise ValidationError(_('The declaration line product must match the inbound line product.'))
             duplicate_line = self.sudo().search([

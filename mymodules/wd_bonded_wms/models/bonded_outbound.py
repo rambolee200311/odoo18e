@@ -16,11 +16,17 @@ class BondedOutbound(models.Model):
 
     name = fields.Char(string='Outbound No.', required=True, copy=False,
                        default=lambda self: _('New'), readonly=True, index=True)
+    order_type = fields.Selection([('outbound', 'Outbound')], string='Order Type', required=True, default='outbound', tracking=True)
+    order_date = fields.Date(string='Order Date', required=True, default=fields.Date.today, tracking=True)
     bonded_book_id = fields.Many2one('bonded.book', string='Bonded Book', required=True, ondelete='restrict', index=True, domain=[('state', '=', 'active')])
     project_id = fields.Many2one('project.project', string='Project', ondelete='restrict', index=True, tracking=True)
+    owner_id = fields.Many2one('res.partner', related='project_id.owner', string='Owner', store=True, readonly=True, index=True)
+    reference = fields.Char(string='Reference', required=True, copy=False, index=True, tracking=True)
+    is_dangerous = fields.Boolean(string='Dangerous Goods', default=False, tracking=True)
     customs_file_id = fields.Many2one('bonded.customs.file', string='Customs Declaration',
                                       ondelete='restrict', index=True,
-                                      domain=[('declaration_type', 'in', ('b3_out', 't1_out', 'ex', 'destruction'))])
+                                      domain=[('declaration_type', 'in', ('t1_out', 'clearance_out'))])
+    outbound_nature = fields.Selection([('bonded', 'Bonded Outbound'), ('non_bonded', 'Non-Bonded Outbound')], string='Outbound Nature', required=True, default='bonded', index=True)
     outbound_type = fields.Selection([
         ('l2f', 'L2F (Local Clearance)'),
         ('eu_dispatch', 'EU Dispatch'),
@@ -30,10 +36,12 @@ class BondedOutbound(models.Model):
     ], string='Outbound Type', required=True, default='l2f')
     mrn_id = fields.Many2one('bonded.mrn', string='MRN Number', ondelete='restrict', index=True, copy=False)
     mrn = fields.Char(string='MRN Number', index=True, help='Outbound MRN (T1 transit only)')
-    expected_date = fields.Date(string='Expected Date', required=True, default=fields.Date.today)
+    expected_date = fields.Date(string='Planned Date', required=True, tracking=True)
     total_value = fields.Monetary(string='Total Value', compute='_compute_total_value', store=True, readonly=True)
     currency_id = fields.Many2one('res.currency', string='Currency',
                                   default=lambda self: self.env.ref('base.EUR').id)
+    t1_status = fields.Selection(related='customs_file_id.state', string='T1 File Status', store=True, readonly=True, index=True)
+    mrn_status = fields.Selection(related='mrn_id.state', string='MRN Status', store=True, readonly=True, index=True)
     picking_id = fields.Many2one('stock.picking', string='Stock Picking',
                                  readonly=True, ondelete='restrict')
     state = fields.Selection([
@@ -47,9 +55,14 @@ class BondedOutbound(models.Model):
     ], string='Status', default='draft', required=True, tracking=True, index=True)
     line_ids = fields.One2many('bonded.outbound.line', 'bonded_outbound_id', string='Products')
     remark = fields.Text(string='Remark')
+    remark1 = fields.Text(string='Remark 1')
+    confirm_user_id = fields.Many2one('res.users', string='Confirmed By', readonly=True, copy=False, index=True, tracking=True)
+    confirm_time_user_tz = fields.Datetime(string='Confirm Time (User Timezone)', readonly=True, copy=False, tracking=True)
+    confirm_time_server = fields.Datetime(string='Confirm Time (Server)', readonly=True, copy=False, tracking=True)
     company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.company)
     warehouse = fields.Many2one('stock.warehouse', string='Warehouse', tracking=True,
                                 stored=True)
+    warehouse_address = fields.Char(related='warehouse.partner_id.contact_address', string='Warehouse Address', readonly=True)
     pick_type = fields.Many2one('stock.picking.type', string='Picking Type', tracking=True,
                                 domain=[('code', 'in', ['outgoing', 'internal'])])
     _sql_constraints = [
@@ -62,10 +75,10 @@ class BondedOutbound(models.Model):
             if vals.get('customs_file_id'):
                 customs_file = self.env['bonded.customs.file'].sudo().browse(vals['customs_file_id'])
                 vals['outbound_type'] = {
-                    'b3_out': 'l2f', 't1_out': 't1_transit', 'ex': 'eu_dispatch', 'destruction': 'destruction',
+                    'clearance_out': 'l2f', 't1_out': 't1_transit',
                 }.get(customs_file.declaration_type)
                 if not vals['outbound_type']:
-                    raise ValidationError(_('Outbound instructions require a B3 Outbound, T1 Outbound, EU Dispatch, or Destruction customs declaration.'))
+                    raise ValidationError(_('Outbound instructions require a T1 Outbound or Customs Clearance Outbound declaration.'))
             if 'mrn_id' in vals:
                 vals['mrn'] = self.env['bonded.mrn'].sudo().browse(vals['mrn_id']).mrn if vals['mrn_id'] else False
             elif vals.get('customs_file_id'):
@@ -79,10 +92,10 @@ class BondedOutbound(models.Model):
         if 'customs_file_id' in vals:
             customs_file = self.env['bonded.customs.file'].sudo().browse(vals['customs_file_id'])
             vals['outbound_type'] = {
-                'b3_out': 'l2f', 't1_out': 't1_transit', 'ex': 'eu_dispatch', 'destruction': 'destruction',
+                'clearance_out': 'l2f', 't1_out': 't1_transit',
             }.get(customs_file.declaration_type)
             if not vals['outbound_type']:
-                raise ValidationError(_('Outbound instructions require a B3 Outbound, T1 Outbound, EU Dispatch, or Destruction customs declaration.'))
+                raise ValidationError(_('Outbound instructions require a T1 Outbound or Customs Clearance Outbound declaration.'))
             if 'mrn_id' not in vals:
                 vals['mrn_id'] = customs_file.mrn_id.id
                 vals['mrn'] = customs_file.mrn
@@ -101,15 +114,33 @@ class BondedOutbound(models.Model):
     def onchange_customs_file_id(self):
         for rec in self:
             rec.outbound_type = {
-                'b3_out': 'l2f', 't1_out': 't1_transit', 'ex': 'eu_dispatch', 'destruction': 'destruction',
+                'clearance_out': 'l2f', 't1_out': 't1_transit',
             }.get(rec.customs_file_id.declaration_type)
             rec.mrn_id = rec.customs_file_id.mrn_id
             rec.mrn = rec.customs_file_id.mrn
+
+    @api.onchange('outbound_nature')
+    def onchange_outbound_nature(self):
+        for rec in self:
+            rec.customs_file_id = False
+            rec.mrn_id = False
+            rec.mrn = False
 
     @api.onchange('mrn_id')
     def onchange_mrn_id(self):
         for rec in self:
             rec.mrn = rec.mrn_id.mrn
+
+    @api.constrains('outbound_nature', 'customs_file_id')
+    def check_outbound_customs_file(self):
+        for rec in self:
+            if not rec.customs_file_id:
+                continue
+            required_type = 't1_out' if rec.outbound_nature == 'bonded' else 'clearance_out'
+            if rec.customs_file_id.declaration_type != required_type:
+                raise ValidationError(_('The selected customs declaration does not match the outbound nature.'))
+            if rec.outbound_nature == 'bonded' and rec.customs_file_id.state not in ('draft', 'to_be_submitted') and (not rec.customs_file_id.mrn_id or rec.mrn_id != rec.customs_file_id.mrn_id):
+                raise ValidationError(_('Bonded outbound requires an MRN from the selected T1 customs declaration.'))
 
     @api.depends('line_ids.subtotal_value')
     def _compute_total_value(self):
@@ -129,7 +160,54 @@ class BondedOutbound(models.Model):
                     raise UserError(_('Only bonded stock in entrepot status can be outbound.'))
                 if line.bonded_stock_id.quantity < line.demand_qty:
                     raise UserError(_('Insufficient bonded stock for tracking no. %s.') % line.inbound_tracking_no)
-            rec.write({'state': 'confirmed'})
+            now = fields.Datetime.now()
+            rec.write({
+                'state': 'confirmed',
+                'confirm_user_id': self.env.user.id,
+                'confirm_time_user_tz': fields.Datetime.to_string(fields.Datetime.context_timestamp(rec, now)),
+                'confirm_time_server': now,
+            })
+
+    def action_create_outbound_customs_file(self):
+        declaration_type = self.env.context.get('default_declaration_type')
+        customs_file = self.env['bonded.customs.file']
+        for rec in self:
+            required_type = 't1_out' if rec.outbound_nature == 'bonded' else 'clearance_out'
+            if rec.state != 'confirmed' or rec.customs_file_id or declaration_type != required_type:
+                raise UserError(_('Only confirmed outbound instructions without a customs declaration can create the matching outbound customs declaration.'))
+            eori_entity = rec.bonded_book_id.eori_entity_id
+            line_vals = []
+            for item_no, line in enumerate(rec.line_ids, 1):
+                gross_weight = line.demand_qty * line.bonded_product_id.gross_weight
+                net_weight = line.demand_qty * line.bonded_product_id.net_weight
+                line_vals.append((0, 0, {
+                    'item_no': item_no,
+                    'bonded_product_id': line.bonded_product_id.id,
+                    'product_id': line.product_id.id,
+                    'origin_country_id': eori_entity.country_id.id,
+                    'quantity': line.demand_qty,
+                    'gross_weight': gross_weight,
+                    'net_weight': net_weight,
+                    'line_value': line.subtotal_value,
+                    'currency_id': rec.currency_id.id,
+                }))
+            customs_file = self.env['bonded.customs.file'].create({
+                'bonded_book_id': rec.bonded_book_id.id,
+                'declaration_type': declaration_type,
+                'customs_code': rec.bonded_book_id.customs_office_code,
+                'consignor_eori_entity_id': eori_entity.id,
+                'consignee_eori_entity_id': eori_entity.id,
+                'declarant_eori_entity_id': eori_entity.id,
+                'origin_country_id': eori_entity.country_id.id,
+                'destination_country_id': eori_entity.country_id.id,
+                'total_packages': sum(rec.line_ids.mapped('demand_qty')),
+                'total_gross_weight': sum(line.demand_qty * line.bonded_product_id.gross_weight for line in rec.line_ids),
+                'invoice_amount': rec.total_value,
+                'currency_id': rec.currency_id.id,
+                'line_ids': line_vals,
+            })
+            rec.write({'customs_file_id': customs_file.id})
+        return {'type': 'ir.actions.act_window', 'res_model': 'bonded.customs.file', 'res_id': customs_file.id, 'view_mode': 'form', 'target': 'current'}
 
     def action_start(self):
         for rec in self:
@@ -174,7 +252,6 @@ class BondedOutbound(models.Model):
                         'currency_id': source_stock.currency_id.id,
                         'inbound_date': source_stock.inbound_date,
                         'gate_arrival_ids': [(4, gate.id) for gate in source_stock.gate_arrival_ids],
-                        'related_t1_in_mrn_ids': [(4, mrn.id) for mrn in source_stock.related_t1_in_mrn_ids],
                         'related_t1_out_mrn': rec.mrn if rec.outbound_type == 't1_transit' else False,
                     })
                 else:
@@ -214,8 +291,6 @@ class BondedOutbound(models.Model):
                     'picking_id': rec.picking_id.id,
                 })
             rec.write({'state': 'done'})
-            if rec.customs_file_id and rec.customs_file_id.state == 'customs_approved':
-                rec.customs_file_id.write({'state': 'done'})
 
     def action_cancel(self):
         for rec in self:
