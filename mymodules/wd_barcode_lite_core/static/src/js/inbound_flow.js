@@ -283,7 +283,7 @@ export class InboundFlow extends BaseBarcodePage {
     }
 
     exit() {
-        this.action.doAction("stock_barcode_lite_homepage");
+        super.exit();
     }
 
     get hasPicking() {

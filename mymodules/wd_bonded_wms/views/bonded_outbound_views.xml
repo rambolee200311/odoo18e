@@ -9,14 +9,11 @@
                 <field name="order_type"/>
                 <field name="order_date"/>
                 <field name="reference"/>
-                <field name="customs_file_id"/>
                 <field name="bonded_book_id"/>
                 <field name="project_id"/>
                 <field name="owner_id"/>
                 <field name="outbound_nature"/>
                 <field name="is_dangerous" widget="boolean_toggle"/>
-                <field name="t1_status"/>
-                <field name="mrn_status"/>
                 <field name="mrn"/>
                 <field name="expected_date"/>
                 <field name="total_value" widget="monetary"/>
@@ -33,13 +30,15 @@
             <form duplicate="false" class="bonded_required_highlight">
                 <header>
                     <button name="action_confirm" string="Confirm" type="object" invisible="state != 'draft'" class="btn-primary"/>
-                    <button name="action_create_outbound_customs_file" string="Create T1 Outbound" type="object" context="{'default_declaration_type': 't1_out'}" invisible="state != 'confirmed' or outbound_nature != 'bonded' or customs_file_id" class="btn-primary"/>
-                    <button name="action_create_outbound_customs_file" string="Create Clearance Outbound" type="object" context="{'default_declaration_type': 'clearance_out'}" invisible="state != 'confirmed' or outbound_nature != 'non_bonded' or customs_file_id" class="btn-primary"/>
-                    <button name="action_create_picking" string="Create Stock Picking" type="object" invisible="state != 'released'" class="btn-primary"/>
-                    <button name="action_cancel" string="Cancel" type="object" invisible="state not in ('draft', 'confirmed', 'declared', 'released')"/>
+                    <button name="action_cancel" string="Cancel" type="object" invisible="state not in ('draft', 'confirmed', 'declared')"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,declared,released,in_progress,done"/>
                 </header>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_create_outbound_customs_file" string="Create T1 Outbound" type="object" context="{'default_declaration_type': 't1_out'}" invisible="state not in ('confirmed', 'declared') or outbound_nature != 'bonded'" class="btn-primary"/>
+                    <button name="action_create_outbound_customs_file" string="Create Clearance Outbound" type="object" context="{'default_declaration_type': 'clearance_out'}" invisible="state not in ('confirmed', 'declared') or outbound_nature != 'non_bonded'" class="btn-primary"/>
+                        <button name="action_create_picking" string="Create Stock Picking" type="object" invisible="state != 'released'" class="oe_stat_button" icon="fa-file-text"/>
+                    </div>
                     <group>
                         <group string="Outbound Info">
                             <field name="name" readonly="1"/>
@@ -54,13 +53,16 @@
                             <field name="warehouse" readonly="state != 'draft'" options="{'no_create': True, 'no_open': False}"/>
                             <field name="warehouse_address" readonly="1"/>
                             <field name="pick_type" readonly="state != 'draft'" domain="[('code', 'in', ['outgoing', 'internal']), ('warehouse_id', '=', warehouse)]" options="{'no_create': True, 'no_open': False}"/>
-                            <field name="customs_file_id" readonly="1" options="{'no_create': True, 'no_open': False}"/>
+<!--                            <field name="outbound_scan_mode" required="1" readonly="state != 'draft'" invisible="project_id == False"/>-->
                         </group>
                         <group string="Schedule">
                             <field name="expected_date" string="Planned Date" required="1" readonly="state != 'draft'"/>
                             <field name="total_value" readonly="1" widget="monetary"/>
+                        </group>
+                        <group string="Customs Status">
                             <field name="mrn_id" readonly="1" options="{'no_create': True, 'no_open': False}"/>
                             <field name="t1_status" readonly="1"/>
+                            <field name="t1_closed_date" readonly="1"/>
                             <field name="mrn_status" readonly="1"/>
                         </group>
                     </group>
@@ -79,7 +81,7 @@
                                     <field name="bonded_product_id" domain="[('id', 'in', eligible_bonded_product_ids)]" required="1" readonly="parent.state != 'draft'" options="{'no_create': True, 'no_open': False}"/>
                                     <field name="product_id" readonly="1" options="{'no_create': True, 'no_open': False}"/>
                                     <field name="bonded_stock_id"
-                                           string="Inbound Tracking No."
+                                           string="Unique Identifier No."
                                            required="1"
                                            readonly="parent.state != 'draft'"
                                            options="{'no_create': True, 'no_open': False}"
@@ -101,8 +103,19 @@
                                 </list>
                             </field>
                         </page>
-                        <page string="Stock Picking">
-                            <field name="picking_id" readonly="1"/>
+                        <page string="Customs Declarations">
+                            <field name="customs_file_ids" readonly="1">
+                                <list create="false" delete="false">
+                                    <field name="declaration_no"/>
+                                    <field name="declaration_type"/>
+                                    <field name="mrn_id"/>
+                                    <field name="declaration_date"/>
+                                    <field name="invoice_amount" widget="monetary"/>
+                                    <field name="state"/>
+                                    <field name="approval_no"/>
+                                    <field name="t1_closed_date"/>
+                                </list>
+                            </field>
                         </page>
                     </notebook>
                 </sheet>

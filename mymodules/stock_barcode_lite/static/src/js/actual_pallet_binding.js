@@ -5,7 +5,7 @@ import { _t } from "@web/core/l10n/translation";
 import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { useService } from "@web/core/utils/hooks";
 import { standardActionServiceProps } from "@web/webclient/actions/action_service";
-import { BaseBarcodePage } from "./base_barcode_page";
+import { BaseBarcodePage } from "@wd_barcode_lite_core/js/base_barcode_page";
 
 export class ActualPalletBinding extends BaseBarcodePage {
     static template = "stock_barcode_lite.ActualPalletBindingPage";

@@ -914,7 +914,7 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
             occupied_picking_names = []
             for occupied_picking in occupied_lines.mapped("picking_id"):
                 occupied_name = occupied_picking.name
-                if occupied_picking.outbound_order_id:
+                if 'outbound_order_id' in occupied_picking._fields and occupied_picking.outbound_order_id:
                     occupied_name = _("%s (Outbound: %s)") % (occupied_name, occupied_picking.outbound_order_id.billno)
                 occupied_picking_names.append(occupied_name)
             return self.build_outgoing_scan_result(
@@ -1335,7 +1335,7 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
             occupied_picking_names = []
             for occupied_picking in occupied_lines.mapped("picking_id"):
                 occupied_name = occupied_picking.name
-                if occupied_picking.outbound_order_id:
+                if 'outbound_order_id' in occupied_picking._fields and occupied_picking.outbound_order_id:
                     occupied_name = _("%s (Outbound: %s)") % (occupied_name, occupied_picking.outbound_order_id.billno)
                 occupied_picking_names.append(occupied_name)
             return self.build_outgoing_scan_result("error", _("Error"), _("Serial number(s) %s are already used by unfinished picking(s): %s") % (", ".join(occupied_lines.mapped("lot_id.name")), ", ".join(occupied_picking_names)), barcode=code, picking_id=picking.id, location_id=current_location_id, package_id=package.id, product_id=product.id, action_name="serial_used_by_unfinished_picking", success=False, next_step="scan_serial")
@@ -2047,7 +2047,7 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
             })
 
         related_pending_picking_names = []
-        if picking.outbound_order_id:
+        if 'outbound_order_id' in picking._fields and picking.outbound_order_id:
             related_picking_list = self.env["stock.picking"].sudo().search([
                 ("outbound_order_id", "=", picking.outbound_order_id.id),
                 ("picking_type_id.code", "=", "outgoing"),
@@ -2073,7 +2073,7 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
                 "id": picking.id,
                 "name": picking.name,
                 "origin": picking.origin or "",
-                "reference": picking.ref_1 or "",
+                "reference": picking.ref_1 or "" if "ref_1" in picking._fields else "",
                 "partner": picking.partner_id.display_name or "",
                 "state": picking.state,
                 "picking_type_code": picking.picking_type_code,

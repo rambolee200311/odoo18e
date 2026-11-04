@@ -18,10 +18,11 @@
     'author': "World Depot B.V.",
     'website': "https://www.worlddepot.eu",
     'category': 'Warehouse/Bonded',
-    'version': '1.0',
+    'version': '1.1',
     'depends': [
         'base',
         'stock',
+        'wd_barcode_lite_core',
         'product',
         'account',
         'mail',
@@ -56,15 +57,18 @@
         'views/bonded_stock_views.xml',
         'views/bonded_verification_views.xml',
         'views/bonded_log_views.xml',
-        'data/bonded_menu_cleanup.xml',
         'views/bonded_menus.xml',
+        'views/bonded_barcode_homepage.xml',
         'wizard/gate_arrival_create_views.xml',
         # Report
     ],
     'demo': [],
     'assets': {
         'web.assets_backend': [
+            'wd_bonded_wms/static/src/js/bonded_barcode_homepage.js',
+            'wd_bonded_wms/static/src/xml/bonded_barcode_homepage.xml',
             'wd_bonded_wms/static/src/scss/bonded_required_field_highlight.scss',
+            'wd_bonded_wms/static/src/scss/bonded_barcode_homepage.scss',
         ],
     },
     'installable': True,

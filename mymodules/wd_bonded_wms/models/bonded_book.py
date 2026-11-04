@@ -12,20 +12,20 @@ class BondedBook(models.Model):
 
     name = fields.Char(string='Book No.', required=True, copy=False,
                        default=lambda self: _('New'), readonly=True, index=True)
-    customs_office_code = fields.Char(string='Customs Office Code', required=True, index=True,
+    customs_office_code = fields.Char(string='Customs Office Code', required=True, index=True, tracking=True,
                                       help='e.g. NLRTM')
     operator_company = fields.Many2one('res.partner', string='Operator Company', required=True,
-                                       domain=[('company_type', '=', 'company')])
+                                       domain=[('company_type', '=', 'company')], tracking=True)
     eori_entity_id = fields.Many2one('bonded.eori.entity', string='EORI Entity', required=True,
-                                     ondelete='restrict', index=True)
-    consignor_company = fields.Many2one('res.partner', string='Consignor Company')
-    consignee_company = fields.Many2one('res.partner', string='Consignee Company')
-    valid_from = fields.Date(string='Valid From', required=True)
-    valid_until = fields.Date(string='Valid Until', required=True)
+                                     ondelete='restrict', index=True, tracking=True)
+    consignor_company = fields.Many2one('res.partner', string='Consignor Company', tracking=True)
+    consignee_company = fields.Many2one('res.partner', string='Consignee Company', tracking=True)
+    valid_from = fields.Date(string='Valid From', required=True, tracking=True)
+    valid_until = fields.Date(string='Valid Until', required=True, tracking=True)
     currency_id = fields.Many2one('res.currency', related='company_id.currency_id', string='Currency', readonly=True)
-    company_total_value_limit = fields.Monetary(string='Company Total Value Limit', required=True, default=0.0)
-    reserved_value = fields.Monetary(string='Reserved Value', compute='_compute_value_summary', store=True, readonly=True)
-    available_value = fields.Monetary(string='Available Value', compute='_compute_value_summary', store=True, readonly=True)
+    company_total_value_limit = fields.Monetary(string='Company Total Value Limit', required=True, default=0.0, tracking=True)
+    reserved_value = fields.Monetary(string='Reserved Value', compute='_compute_value_summary', store=True, readonly=True, tracking=True)
+    available_value = fields.Monetary(string='Available Value', compute='_compute_value_summary', store=True, readonly=True, tracking=True)
     state = fields.Selection([
         ('draft', 'Draft'),
         ('active', 'Active'),
@@ -34,8 +34,8 @@ class BondedBook(models.Model):
     ], string='Status', default='draft', required=True, tracking=True, index=True)
 
     # 关联
-    value_limit_ids = fields.One2many('bonded.value.limit', 'bonded_book_id', string='Value Limits')
-    bonded_product_ids = fields.One2many('bonded.product', 'bonded_book_id', string='Bonded Products')
+    value_limit_ids = fields.One2many('bonded.value.limit', 'bonded_book_id', string='Value Limits', tracking=True)
+    bonded_product_ids = fields.One2many('bonded.product', 'bonded_book_id', string='Bonded Products', tracking=True)
     customs_file_ids = fields.One2many('bonded.customs.file', 'bonded_book_id', string='Customs Declarations')
     ledger_lines = fields.One2many('bonded.book.line', 'bonded_book_id', string='Ledger Lines')
     value_ledger_ids = fields.One2many('bonded.value.ledger', 'bonded_book_id', string='Value Ledger')
@@ -46,7 +46,7 @@ class BondedBook(models.Model):
     shortage_threshold_amount = fields.Float(string='Shortage Threshold (EUR)', default=500.0,
                                              help='Override global shortage amount for this book')
 
-    description = fields.Text(string='Description')
+    description = fields.Text(string='Description', tracking=True)
     company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.company)
 
     _sql_constraints = [

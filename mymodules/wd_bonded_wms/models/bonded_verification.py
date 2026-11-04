@@ -9,19 +9,19 @@ class BondedVerification(models.Model):
     _rec_name = 'id'
     _order = 'verification_date desc, id desc'
 
-    bonded_book_id = fields.Many2one('bonded.book', string='Bonded Book', required=True, ondelete='restrict', index=True, domain=[('state', '=', 'active')])
+    bonded_book_id = fields.Many2one('bonded.book', string='Bonded Book', required=True, ondelete='restrict', index=True, domain=[('state', '=', 'active')], tracking=True)
     verification_type = fields.Selection([
         ('inbound', 'Inbound (核注)'),
         ('outbound', 'Outbound (核销)'),
         ('write_off', 'Write-off (处置核销)'),
         ('status_change', 'Status Change'),
-    ], string='Verification Type', required=True, index=True)
+    ], string='Verification Type', required=True, index=True, tracking=True)
 
     customs_file_id = fields.Many2one('bonded.customs.file', string='Customs Declaration',
-                                      ondelete='set null')
-    mrn = fields.Char(string='MRN Number')
+                                      ondelete='set null', tracking=True)
+    mrn = fields.Char(string='Corresponding MRN', tracking=True)
     bonded_stock_id = fields.Many2one('bonded.stock', string='Bonded Stock',
-                                      required=True, ondelete='restrict')
+                                      required=True, ondelete='restrict', tracking=True)
 
     from_status = fields.Selection([
         ('', 'None'),
@@ -30,32 +30,32 @@ class BondedVerification(models.Model):
         ('in_t1_transit', 'In T1 Transit'),
         ('rto', 'RTO'),
         ('destroyed', 'Destroyed'),
-    ], string='From Status', required=True)
+    ], string='From Status', required=True, tracking=True)
     to_status = fields.Selection([
         ('entrepot', 'Entrepot'),
         ('vrij', 'Vrij'),
         ('in_t1_transit', 'In T1 Transit'),
         ('rto', 'RTO'),
         ('destroyed', 'Destroyed'),
-    ], string='To Status', required=True)
+    ], string='To Status', required=True, tracking=True)
 
-    quantity = fields.Float(string='Quantity', required=True, default=0.0)
-    write_off_value = fields.Monetary(string='Write-off Value')
+    quantity = fields.Float(string='Quantity', required=True, default=0.0, tracking=True)
+    write_off_value = fields.Monetary(string='Write-off Value', tracking=True)
     currency_id = fields.Many2one('res.currency', string='Currency',
-                                  default=lambda self: self.env.ref('base.EUR').id)
+                                  default=lambda self: self.env.ref('base.EUR').id, tracking=True)
     verification_date = fields.Datetime(string='Verification Date', required=True,
-                                        default=fields.Datetime.now)
+                                        default=fields.Datetime.now, tracking=True)
     operator_id = fields.Many2one('res.users', string='Operator', required=True,
-                                  default=lambda self: self.env.user)
+                                  default=lambda self: self.env.user, tracking=True)
 
     # 复核
-    review_user_id = fields.Many2one('res.users', string='Reviewer')
-    review_date = fields.Datetime(string='Review Date')
+    review_user_id = fields.Many2one('res.users', string='Reviewer', tracking=True)
+    review_date = fields.Datetime(string='Review Date', tracking=True)
     review_status = fields.Selection([
         ('pending', 'Pending Review'),
         ('approved', 'Approved'),
         ('rejected', 'Rejected'),
-    ], string='Review Status', default='pending', required=True)
+    ], string='Review Status', default='pending', required=True, tracking=True)
 
     # 处置核销专用
     write_off_type = fields.Selection([
@@ -64,13 +64,13 @@ class BondedVerification(models.Model):
         ('re_export', 'Re-export'),
         ('shortage', 'Shortage'),
         ('rto', 'RTO'),
-    ], string='Write-off Type')
+    ], string='Write-off Type', tracking=True)
     customs_approval_no = fields.Char(string='Customs Approval No.',
-                                     help='Required for destruction/shortage')
+                                     tracking=True, help='Required for destruction/shortage')
     certificate_file = fields.Binary(string='Certificate File', attachment=True)
     certificate_filename = fields.Char(string='Certificate Filename')
 
-    remark = fields.Text(string='Remark')
+    remark = fields.Text(string='Remark', tracking=True)
 
     def action_approve(self):
         for rec in self:

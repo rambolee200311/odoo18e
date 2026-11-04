@@ -12,18 +12,18 @@ class BondedBookLine(models.Model):
     bonded_book_id = fields.Many2one('bonded.book', string='Bonded Book', required=True, ondelete='restrict', index=True, domain=[('state', '=', 'active')])
     date = fields.Date(string='Date', required=True, default=fields.Date.today, index=True)
     operation_type = fields.Selection([
-        ('bonded_inbound', 'Bonded Inbound'),
-        ('customs_outbound', 'Customs Outbound'),
-        ('t1_outbound', 'T1 Outbound'),
-        ('sample_check', 'Sample Check'),
-        ('shortage', 'Shortage Disposal'),
-        ('rto', 'RTO Return'),
-        ('destruction', 'Destruction'),
-        ('snapshot', 'Stock Snapshot'),
+        ('bonded_inbound', 'Inbound'),
+        ('customs_outbound', 'Outbound'),
+        ('t1_outbound', 'Outbound'),
+        ('sample_check', 'Finding'),
+        ('shortage', 'Missing'),
+        ('rto', 'Outbound'),
+        ('destruction', 'Correction'),
+        ('snapshot', 'Closing Balance'),
         ('status_change', 'Status Change'),
-    ], string='Operation Type', required=True, index=True)
+    ], string='Mutation Type', required=True, index=True)
     product_id = fields.Many2one('product.product', string='Product', required=True, ondelete='restrict', index=True)
-    qty_change = fields.Float(string='Qty Change', required=True, default=0.0)
+    qty_change = fields.Float(string='Mutation Qty(Pcs)', required=True, default=0.0)
     from_status = fields.Selection([
         ('entrepot', 'Entrepot'),
         ('vrij', 'Vrij'),
@@ -40,7 +40,7 @@ class BondedBookLine(models.Model):
     ], string='To Status', index=True)
     direction = fields.Selection([('in', 'In'), ('out', 'Out'), ('none', 'None')], string='Direction', default='none', required=True, index=True)
     ref_doc_no = fields.Char(string='Reference Document No.', index=True)
-    inbound_tracking_no = fields.Char(string='Inbound Tracking No.', required=True, index=True)
+    inbound_tracking_no = fields.Char(string='Unique Identifier No.', required=True, index=True)
     customer_batch_no = fields.Char(string='Customer Batch No.', index=True)
     running_balance_qty = fields.Float(string='Running Balance Qty', readonly=True)
     bonded_stock_id = fields.Many2one('bonded.stock', string='Bonded Stock', ondelete='set null', index=True)

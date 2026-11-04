@@ -632,11 +632,12 @@ class StockBarcodeLiteScanService(models.AbstractModel):
             "location_dest_id": source_line.location_dest_id.id,
             "result_package_id": source_line.result_package_id.id,
             "owner_id": source_line.owner_id.id,
-            "inbound_order_product_pallet_id": source_line.inbound_order_product_pallet_id.id,
             "is_location_updated": source_line.is_location_updated,
             "location_updated_by_id": source_line.location_updated_by_id.id,
             "location_updated_datetime": source_line.location_updated_datetime,
         })
+        if 'inbound_order_product_pallet_id' in source_line._fields:
+            serial_values['inbound_order_product_pallet_id'] = source_line.inbound_order_product_pallet_id.id
         return self.env["stock.move.line"].create(serial_values)
 
     @api.model
@@ -673,8 +674,8 @@ class StockBarcodeLiteScanService(models.AbstractModel):
             uoms = products.uom_id | move_lines.product_uom_id
             return {
                 "stock.picking": picking.sudo().read([
-                    "id", "name", "origin", "partner_id", "state", "picking_type_code", "location_id", "location_dest_id", "ref_1",
-                ], load=False),
+                    "id", "name", "origin", "partner_id", "state", "picking_type_code", "location_id", "location_dest_id",
+                ] + (["ref_1"] if "ref_1" in picking._fields else []), load=False),
                 "stock.move": picking.move_ids.sudo().read([
                     "id", "name", "product_id", "product_uom_qty", "quantity", "product_uom", "state", "picking_id",
                 ], load=False),
@@ -782,7 +783,7 @@ class StockBarcodeLiteScanService(models.AbstractModel):
                 "id": picking.id,
                 "name": picking.name,
                 "origin": picking.origin or "",
-                "reference": picking.ref_1 or "",
+                "reference": picking.ref_1 or "" if "ref_1" in picking._fields else "",
                 "partner": picking.partner_id.display_name or "",
                 "state": picking.state,
                 "picking_type_code": picking.picking_type_code,

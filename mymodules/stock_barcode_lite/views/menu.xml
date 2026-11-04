@@ -26,7 +26,7 @@
         <field name="view_mode">list,form</field>
         <field name="domain">[('is_pda_internal_transfer', '=', True)]</field>
         <field name="context">{'search_default_state_not_cancel': 1}</field>
-        <field name="search_view_id" ref="view_picking_internal_transfer_search"/>
+        <field name="search_view_id" ref="wd_barcode_lite_core.view_picking_internal_transfer_search"/>
     </record>
 
     <record id="action_api_log_sunrise_get_wms" model="ir.actions.act_window">
