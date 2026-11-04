@@ -19,8 +19,7 @@ class BondedCustomsFile(models.Model):
     bonded_book_id = fields.Many2one('bonded.book', string='Bonded Book', required=True, ondelete='restrict', index=True, domain=[('state', '=', 'active')])
     declaration_type = fields.Selection([
         ('t1_in', 'T1 Transit Inbound'),
-        ('b3_in', 'B3 Bonded Inbound'),
-        ('b3_out', 'B3 Customs Clearance(L2F)'),
+        ('clearance_out', 'Customs Clearance Outbound'),
         ('t1_out', 'T1 Transit Outbound'),
         ('ex', 'EU Dispatch'),
         ('destruction', 'Destruction'),
@@ -49,10 +48,6 @@ class BondedCustomsFile(models.Model):
     invoice_amount = fields.Monetary(string='Invoice Amount', required=True, default=0.0)
     currency_id = fields.Many2one('res.currency', string='Currency', required=True, default=lambda self: self.env.ref('base.EUR').id)
     declaration_date = fields.Datetime(string='Declaration Date', index=True)
-    pre_condition = fields.Selection([('none', 'No Pre-condition'), ('t1_closed', 'T1 Must Be Closed')], string='Pre-condition Type', default='none', required=True, help='Automatically set to T1 Must Be Closed when linked inbound records use T1.')
-    pre_satisfied_date = fields.Datetime(string='Pre-condition Satisfied Date', readonly=True)
-    pre_mrn_ids = fields.One2many('customs.file.pre.mrn', 'customs_file_id', string='Pre-condition MRNs', help='Automatically generated from linked inbound T1 gate arrivals.')
-    t1_precondition_file_ids = fields.Many2many('bonded.customs.file', compute='_compute_t1_precondition_file_ids', string='Related T1 Customs Declarations')
     t1_closed_date = fields.Datetime(string='T1 Closed Date', readonly=True)
     state = fields.Selection([
         ('draft', 'Draft'),
@@ -71,20 +66,13 @@ class BondedCustomsFile(models.Model):
     declaration_attachment_line_ids = fields.Many2many('ir.attachment', 'bonded_customs_file_declaration_attachment_rel', 'customs_file_id', 'attachment_id', string='Declaration Attachments', copy=False)
     response_attachment_line_ids = fields.Many2many('ir.attachment', 'bonded_customs_file_response_attachment_rel', 'customs_file_id', 'attachment_id', string='Customs Response Attachments', copy=False)
     line_ids = fields.One2many('bonded.customs.file.line', 'customs_file_id', string='Declaration Lines')
-    gate_arrival_ids = fields.One2many('gate.arrival', 'customs_file_id', string='Gate Arrivals',
-                                       help='T1 only: container arrival records linked to this T1')
-    inbound_ids = fields.Many2many('bonded.inbound', 'bonded_inbound_customs_file_rel', 'customs_file_id', 'bonded_inbound_id', string='Bonded Inbounds')
+    gate_arrival_ids = fields.One2many('gate.arrival', 'customs_file_id', string='Gate Arrival', help='The current process allows one T1 gate arrival for this declaration.')
+    inbound_ids = fields.One2many('bonded.inbound', 't1_customs_file_id', string='Bonded Inbound')
+    inbound_tracking_ids = fields.One2many('bonded.inbound.tracking', 'customs_file_id', string='Inbound Tracking')
     outbound_ids = fields.One2many('bonded.outbound', 'customs_file_id', string='Bonded Outbounds')
     mrn_ids = fields.One2many('bonded.mrn', 'customs_file_id', string='MRN Numbers')
     remark = fields.Text(string='Remark')
     company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.company)
-
-    @api.depends('inbound_ids.gate_arrival_ids.customs_file_id')
-    def _compute_t1_precondition_file_ids(self):
-        for rec in self:
-            rec.t1_precondition_file_ids = rec.inbound_ids.gate_arrival_ids.mapped('customs_file_id').filtered(
-                lambda customs_file: customs_file.declaration_type == 't1_in'
-            )
 
     _sql_constraints = [
         ('declaration_no_uniq', 'unique(declaration_no)', 'Declaration number must be unique!'),
@@ -111,8 +99,7 @@ class BondedCustomsFile(models.Model):
             if vals.get('declaration_no', _('New')) == _('New'):
                 seq_code = {
                     't1_in': 'seq.customs.file.t1_in',
-                    'b3_in': 'seq.customs.file.b3_in',
-                    'b3_out': 'seq.customs.file.b3_out',
+                    'clearance_out': 'seq.customs.file.clearance_out',
                     't1_out': 'seq.customs.file.t1_out',
                     'ex': 'seq.customs.file.ex',
                     'destruction': 'seq.customs.file.destruction',
@@ -150,6 +137,11 @@ class BondedCustomsFile(models.Model):
                     rec.mrn_id.write({'mrn': rec.mrn})
                 elif rec.mrn and not rec.mrn_id:
                     self.env['bonded.mrn'].create({'mrn': rec.mrn, 'customs_file_id': rec.id})
+        if 'mrn_id' in vals:
+            env_bonded_outbound = self.env['bonded.outbound'].sudo()
+            for rec in self:
+                outbound_ids = env_bonded_outbound.search([('customs_file_id', '=', rec.id)]).ids
+                self.env['bonded.outbound'].browse(outbound_ids).write({'mrn_id': rec.mrn_id.id})
         return result
 
     def unlink(self):
@@ -196,48 +188,6 @@ class BondedCustomsFile(models.Model):
             rec.validate_eori_parties()
             if rec.declaration_type in ('t1_in', 't1_out') and not rec.mrn:
                 raise UserError(_('T1 declarations require an MRN before submission.'))
-            if rec.declaration_type == 'b3_in':
-                inbound_records = self.env['bonded.inbound'].sudo().search([('customs_file_ids', 'in', rec.ids)])
-                inbound_t1_mrn_ids = set()
-                rec.pre_mrn_ids.ensure_mrn_id()
-                b3_pre_mrn_ids = set(rec.pre_mrn_ids.mapped('mrn_id').ids)
-                has_t1_source = False
-                for inbound in inbound_records:
-                    if inbound.cargo_source == 'direct':
-                        if inbound.t1_customs_file_id or inbound.gate_arrival_ids:
-                            raise UserError(_('Direct entry cannot have T1 customs file or gate arrivals.'))
-                        continue
-                    has_t1_source = True
-                    if not inbound.gate_arrival_ids:
-                        raise UserError(_('T1 cargo source requires at least one gate arrival record.'))
-                    for arrival in inbound.gate_arrival_ids:
-                        t1_file = arrival.customs_file_id
-                        if not t1_file or t1_file.declaration_type != 't1_in' or not arrival.mrn:
-                            raise UserError(_('Every gate arrival must be linked to a T1 declaration with an MRN.'))
-                        t1_file.ensure_mrn_record()
-                        inbound_t1_mrn_ids.add(t1_file.mrn_id.id)
-                if has_t1_source and rec.pre_condition != 't1_closed':
-                    rec.pre_condition = 't1_closed'
-                if has_t1_source:
-                    b3_pre_mrn_ids = set(rec.pre_mrn_ids.mapped('mrn_id').ids)
-                    missing_mrn_ids = inbound_t1_mrn_ids - b3_pre_mrn_ids
-                    if missing_mrn_ids:
-                        self.env['customs.file.pre.mrn'].create([
-                            {'customs_file_id': rec.id, 'mrn_id': mrn_id} for mrn_id in missing_mrn_ids
-                        ])
-                    b3_pre_mrn_ids |= missing_mrn_ids
-                if rec.pre_mrn_ids and not inbound_t1_mrn_ids:
-                    raise UserError(_('Direct entry B3 cannot have pre-condition MRNs.'))
-                if inbound_t1_mrn_ids - b3_pre_mrn_ids:
-                    raise UserError(_('B3 pre-condition MRNs must include every inbound T1 MRN.'))
-            if rec.declaration_type == 'b3_in' and rec.pre_condition == 't1_closed':
-                if not rec.pre_mrn_ids:
-                    raise UserError(_('T1 inbound scenario requires at least one pre-condition MRN.'))
-                open_mrns = rec.pre_mrn_ids.filtered(lambda mrn: mrn.status != 'closed')
-                if open_mrns:
-                    raise UserError(_('The following T1 MRN(s) have not been closed: %s') % ', '.join(open_mrns.mapped('mrn')))
-                rec.pre_satisfied_date = fields.Datetime.now()
-                # ---- 货值校验 ----
             if not rec.check_value_limit():
                 raise UserError(_('Value limit check failed. Please verify bonded.value.limit.'))
             # ---- 商品备案校验 ----
@@ -250,24 +200,17 @@ class BondedCustomsFile(models.Model):
         for rec in self:
             if rec.state != 'submitted':
                 raise UserError(_('Only submitted declarations can be approved.'))
+            if rec.declaration_type not in ('t1_in', 't1_out'):
+                raise UserError(_('Only T1 declarations have a customs approval step.'))
             rec.write({
                 'state': 'customs_approved',
                 'approval_date': fields.Datetime.now(),
                 'approval_no': self.env['ir.sequence'].next_by_code('seq.customs.approval') or 'APP-' + fields.Datetime.now().strftime('%Y%m%d%H%M%S'),
             })
-            if rec.declaration_type == 'b3_in':
-                inbound_records = self.env['bonded.inbound'].sudo().search([('customs_file_ids', 'in', rec.ids)])
-                for inbound in inbound_records:
+            if rec.declaration_type == 't1_in':
+                for inbound in rec.inbound_ids:
                     bonded_book = self.env['bonded.book'].browse(inbound.bonded_book_id.id)
                     bonded_book.deduct_document_value(project_id=inbound.project_id.id, inbound_id=inbound.id, customs_file_id=rec.id)
-            elif rec.declaration_type in ('b3_out', 't1_out', 'ex', 'destruction'):
-                outbound_records = self.env['bonded.outbound'].sudo().search([('customs_file_id', '=', rec.id)])
-                for outbound in outbound_records:
-                    bonded_book = self.env['bonded.book'].browse(outbound.bonded_book_id.id)
-                    ledger_records = self.env['bonded.value.ledger'].sudo().search([('bonded_book_id', '=', bonded_book.id), ('project_id', '=', outbound.project_id.id)])
-                    if sum(ledger_records.mapped('deducted_change')) < outbound.total_value:
-                        raise UserError(_('The deducted value is insufficient for outbound release.'))
-                    bonded_book.create_value_ledger('release', outbound.total_value, project_id=outbound.project_id.id, outbound_id=outbound.id, customs_file_id=rec.id, release_from_deduction=True)
             rec.sync_instruction_state('released')
 
     def action_reject(self, reason=''):
@@ -275,25 +218,21 @@ class BondedCustomsFile(models.Model):
             if rec.state != 'submitted':
                 raise UserError(_('Only submitted declarations can be rejected.'))
             rec.write({'state': 'customs_rejected', 'rejection_reason': reason or _('Rejected by customs authority.')})
-            inbound_records = self.env['bonded.inbound'].sudo().search([('customs_file_ids', 'in', rec.ids)])
-            for inbound in inbound_records:
+            for inbound in rec.inbound_ids:
                 bonded_book = self.env['bonded.book'].browse(inbound.bonded_book_id.id)
                 bonded_book.release_document_value(project_id=inbound.project_id.id, inbound_id=inbound.id, customs_file_id=rec.id)
-            outbound_records = self.env['bonded.outbound'].sudo().search([('customs_file_id', '=', rec.id)])
-            for outbound in outbound_records:
-                bonded_book = self.env['bonded.book'].browse(outbound.bonded_book_id.id)
-                bonded_book.release_document_value(project_id=outbound.project_id.id, outbound_id=outbound.id, customs_file_id=rec.id)
-            # T1出库驳回: 自动解锁库存(Fix-2)
-            if rec.declaration_type == 'b3_in':
+            if rec.declaration_type == 't1_in':
                 rec.reset_inbound_on_rejection()
-            elif rec.declaration_type in ('b3_out', 't1_out', 'ex', 'destruction'):
+            elif rec.declaration_type in ('clearance_out', 't1_out', 'ex', 'destruction'):
                 rec.unlock_stock_on_rejection()
 
     def action_done(self):
-        """T1核销闭环 / B3完成"""
+        """完成 T1 入库海关文件"""
         for rec in self:
             if rec.state != 'customs_approved':
                 raise UserError(_('Only approved declarations can be set to done.'))
+            if rec.declaration_type != 't1_in':
+                raise UserError(_('Use Close T1 to complete a T1 outbound declaration.'))
             if rec.declaration_type == 't1_in' and not rec.gate_arrival_ids:
                 raise UserError(_('T1 declaration requires at least one gate arrival before it can be completed.'))
             rec.write({'state': 'done'})
@@ -302,10 +241,34 @@ class BondedCustomsFile(models.Model):
                 rec.write({'t1_closed_date': closed_date})
                 rec.gate_arrival_ids.write({'state': 'closed', 't1_closed_date': closed_date})
                 rec.ensure_mrn_record()
-                pre_mrn_ids = self.env['customs.file.pre.mrn'].sudo().search([('mrn', '=', rec.mrn)]).ids
-                pre_mrn_records = self.env['customs.file.pre.mrn'].browse(pre_mrn_ids)
-                pre_mrn_records.ensure_mrn_id()
-                pre_mrn_records.filtered(lambda pre_mrn: pre_mrn.mrn_id == rec.mrn_id).write({'status': 'closed', 'satisfied_date': closed_date})
+
+    def release_outbound_value(self):
+        for rec in self:
+            outbound_records = self.env['bonded.outbound'].sudo().search([('customs_file_id', '=', rec.id)])
+            for outbound in outbound_records:
+                bonded_book = self.env['bonded.book'].browse(outbound.bonded_book_id.id)
+                ledger_records = self.env['bonded.value.ledger'].sudo().search([('bonded_book_id', '=', bonded_book.id), ('project_id', '=', outbound.project_id.id)])
+                if sum(ledger_records.mapped('deducted_change')) < outbound.total_value:
+                    raise UserError(_('The deducted value is insufficient for outbound release.'))
+                bonded_book.create_value_ledger('release', outbound.total_value, project_id=outbound.project_id.id, outbound_id=outbound.id, customs_file_id=rec.id, release_from_deduction=True)
+
+    def action_complete_clearance(self):
+        for rec in self:
+            if rec.declaration_type != 'clearance_out' or rec.state != 'submitted':
+                raise UserError(_('Only submitted customs clearance outbound declarations can be completed.'))
+            rec.release_outbound_value()
+            rec.write({'state': 'done'})
+            rec.sync_instruction_state('released')
+
+    def action_close_t1(self):
+        for rec in self:
+            if rec.declaration_type != 't1_out' or rec.state != 'customs_approved':
+                raise UserError(_('Only approved T1 outbound declarations can be closed.'))
+            outbound_records = self.env['bonded.outbound'].sudo().search([('customs_file_id', '=', rec.id)])
+            if not outbound_records or outbound_records.filtered(lambda outbound: outbound.state != 'done' or outbound.picking_id.state != 'done'):
+                raise UserError(_('Complete all related outbound pickings before closing the T1 declaration.'))
+            rec.release_outbound_value()
+            rec.write({'state': 'done'})
 
     def action_cancel(self):
         for rec in self:
@@ -355,24 +318,22 @@ class BondedCustomsFile(models.Model):
 
     def sync_instruction_state(self, target_state):
         for rec in self:
-            if rec.declaration_type == 'b3_in':
-                inbounds = self.env['bonded.inbound'].sudo().search([('customs_file_ids', 'in', rec.ids)])
-                if not inbounds:
+            if rec.declaration_type == 't1_in':
+                inbounds = rec.inbound_ids
+                if len(inbounds) != 1:
                     raise UserError(
-                        _('Please create and link a bonded inbound instruction before submitting this declaration.'))
+                        _('Please link exactly one bonded inbound instruction before submitting this T1 declaration.'))
                 invalid_inbounds = inbounds.filtered(
                     lambda inbound: inbound.state not in ('confirmed', 'declared', 'released'))
                 if invalid_inbounds:
                     raise UserError(
                         _('Please confirm linked inbound instructions before submitting customs declaration.'))
                 if target_state == 'declared':
-                    ready_inbounds = inbounds.filtered(lambda inbound: all(customs_file.state in ('submitted', 'customs_approved', 'done') for customs_file in inbound.customs_file_ids))
-                    ready_inbounds.filtered(lambda inbound: inbound.state == 'confirmed').write({'state': 'declared'})
+                    inbounds.filtered(lambda inbound: inbound.state == 'confirmed').write({'state': 'declared'})
                 elif target_state == 'released':
-                    ready_inbounds = inbounds.filtered(lambda inbound: all(customs_file.state in ('customs_approved', 'done') for customs_file in inbound.customs_file_ids))
-                    ready_inbounds.filtered(lambda inbound: inbound.state in ('confirmed', 'declared')).write({'state': 'released'})
+                    inbounds.filtered(lambda inbound: inbound.state in ('confirmed', 'declared')).write({'state': 'released'})
 
-            elif rec.declaration_type in ('b3_out', 't1_out', 'ex', 'destruction'):
+            elif rec.declaration_type in ('clearance_out', 't1_out', 'ex', 'destruction'):
                 outbound_ids = self.env['bonded.outbound'].sudo().search([('customs_file_id', '=', rec.id)]).ids
                 if not outbound_ids:
                     raise UserError(
@@ -388,16 +349,12 @@ class BondedCustomsFile(models.Model):
 #入库报关被拒绝
     def reset_inbound_on_rejection(self):
         for rec in self:
-            inbound_ids = self.env['bonded.inbound'].sudo().search([
-                ('customs_file_ids', 'in', rec.ids),
-                ('state', 'in', ('declared', 'released')),
-            ])
-            for inbound in inbound_ids:
+            for inbound in rec.inbound_ids.filtered(lambda inbound: inbound.state in ('declared', 'released')):
                 inbound.write({'state': 'confirmed'})
 
 
     def unlock_stock_on_rejection(self):
-        """T1和B3出库申报驳回时，一键解锁所有因该申报被锁定的保税库存(Fix-2)"""
+        """出库申报驳回时，解锁该申报已锁定的保税库存。"""
         self.ensure_one()
         outbound_ids = self.env['bonded.outbound'].sudo().search([('customs_file_id', '=', self.id)]).ids
         for outbound in self.env['bonded.outbound'].browse(outbound_ids):

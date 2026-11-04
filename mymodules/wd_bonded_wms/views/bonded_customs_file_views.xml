@@ -4,7 +4,7 @@
         <field name="name">bonded.customs.file.tree</field>
         <field name="model">bonded.customs.file</field>
         <field name="arch" type="xml">
-            <list>
+            <list create="false">
                 <field name="declaration_no"/>
                 <field name="declaration_type"/>
                 <field name="mrn"/>
@@ -23,19 +23,18 @@
         <field name="name">bonded.customs.file.form</field>
         <field name="model">bonded.customs.file</field>
         <field name="arch" type="xml">
-            <form duplicate="false" class="bonded_required_highlight">
+            <form create="false" duplicate="false" class="bonded_required_highlight">
                 <header>
                     <button name="action_submit" string="Submit" type="object" invisible="state not in ('draft', 'to_be_submitted')" class="btn-primary"/>
-                    <button name="action_approve" string="Approve (Simulate)" type="object" invisible="state != 'submitted'" class="btn-success"/>
+                    <button name="action_approve" string="Approve (Simulate)" type="object" invisible="state != 'submitted' or declaration_type not in ('t1_in', 't1_out')" class="btn-success"/>
+                    <button name="action_complete_clearance" string="Complete Clearance" type="object" invisible="state != 'submitted' or declaration_type != 'clearance_out'" class="btn-success"/>
+                    <button name="action_close_t1" string="Close T1" type="object" invisible="state != 'customs_approved' or declaration_type != 't1_out'" class="btn-success"/>
                     <button name="action_reject" string="Reject" type="object" invisible="state != 'submitted'" class="btn-danger"/>
-                    <button name="action_done" string="Set to Done" type="object" invisible="state != 'customs_approved'"/>
+                    <button name="action_done" string="Close T1" type="object" invisible="state != 'customs_approved' or declaration_type != 't1_in'"/>
                     <button name="action_cancel" string="Cancel" type="object" invisible="state not in ('draft', 'to_be_submitted', 'submitted')"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,submitted,customs_approved,done" readonly="1"/>
                 </header>
                 <sheet>
-                    <div class="alert alert-warning" role="alert" invisible="pre_condition != 't1_closed'">
-                        <i class="fa fa-exclamation-triangle"/> Related T1 declarations are generated from linked inbound gate arrivals.
-                    </div>
                     <div class="alert alert-danger" role="alert" invisible="state != 'customs_rejected'">
                         <i class="fa fa-times-circle"/> Rejected: <field name="rejection_reason"/>
                     </div>
@@ -92,29 +91,36 @@
                                 </list>
                             </field>
                         </page>
-                        <page string="Pre-conditions (F-02)" invisible="declaration_type != 'b3_in'" readonly="state != 'draft'">
-                            <field name="t1_precondition_file_ids" readonly="1" options="{'no_create': True, 'no_open': False}">
-                                <list create="false" delete="false">
-                                    <field name="declaration_no"/>
+                        <page string="Gate Arrivals" invisible="declaration_type not in ('t1_in')">
+                            <field name="gate_arrival_ids" mode="list,form" context="{'default_customs_file_id': id, 'from_t1_customs_file': True}" readonly="state == 'done'">
+                                <list create="true" delete="false">
+                                    <field name="name"/>
+                                    <field name="bonded_inbound_id"/>
+                                    <field name="container_no"/>
                                     <field name="mrn"/>
+                                    <field name="arrival_datetime"/>
                                     <field name="state"/>
-                                    <field name="t1_closed_date"/>
                                 </list>
                             </field>
                         </page>
-                        <page string="Gate Arrivals" invisible="declaration_type not in ('t1_in')">
-                            <field name="gate_arrival_ids" readonly="state == 'done'"/>
-                        </page>
-                        <page string="Bonded Inbounds" invisible="declaration_type != 'b3_in'">
+                        <page string="Bonded Inbound" invisible="declaration_type != 't1_in'">
                             <field name="inbound_ids" readonly="1">
                                 <list create="false" delete="false">
                                     <field name="name"/>
-                                    <field name="inbound_tracking_no"/>
-                                    <field name="cargo_source"/>
+                                    <field name="inbound_tracking_id"/>
                                     <field name="expected_date"/>
                                     <field name="total_value" widget="monetary"/>
                                     <field name="state"/>
                                     <field name="picking_id"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Inbound Tracking" invisible="declaration_type != 't1_in'">
+                            <field name="inbound_tracking_ids" readonly="1">
+                                <list create="false" delete="false">
+                                    <field name="name"/>
+                                    <field name="bonded_inbound_id"/>
+                                    <field name="mrn"/>
                                 </list>
                             </field>
                         </page>
@@ -144,8 +150,7 @@
                 <field name="consignor_eori"/>
                 <field name="consignee_eori"/>
                 <filter name="t1_in" string="T1 In" domain="[('declaration_type','=','t1_in')]"/>
-                <filter name="b3_in" string="B3 In" domain="[('declaration_type','=','b3_in')]"/>
-                <filter name="b3_out" string="B3 Out" domain="[('declaration_type','=','b3_out')]"/>
+                <filter name="clearance_out" string="Customs Clearance Out" domain="[('declaration_type','=','clearance_out')]"/>
                 <filter name="t1_out" string="T1 Out" domain="[('declaration_type','=','t1_out')]"/>
                 <separator/>
                 <filter name="approved" string="Approved" domain="[('state','=','customs_approved')]"/>

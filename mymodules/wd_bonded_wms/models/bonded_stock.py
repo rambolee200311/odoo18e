@@ -40,8 +40,6 @@ class BondedStock(models.Model):
                                               readonly=True)
     gate_arrival_ids = fields.Many2many('gate.arrival', string='Gate Arrivals',
                                         help='T1 source gate arrivals for traceability')
-    related_t1_in_mrn_ids = fields.Many2many('customs.file.pre.mrn', string='Related T1 In MRNs',
-                                             help='Inbound T1 MRNs for consolidation traceability')
     related_t1_out_mrn = fields.Char(string='T1 Out MRN',
                                      help='Outbound T1 MRN (T1 transit only)')
     locked = fields.Boolean(string='Locked', default=False,
