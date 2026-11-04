@@ -30,26 +30,26 @@
                 <sheet>
                     <group>
                         <group string="Verification">
-                            <field name="bonded_book_id" options="{'no_create': True, 'no_open': True}" readonly="review_status != 'pending'"/>
+                            <field name="bonded_book_id" options="{'no_create': True, 'no_open': False}" readonly="review_status != 'pending'"/>
                             <field name="verification_type" readonly="review_status != 'pending'"/>
-                            <field name="bonded_stock_id" options="{'no_create': True, 'no_open': True}" readonly="review_status != 'pending'"/>
-                            <field name="customs_file_id" options="{'no_create': True, 'no_open': True}" readonly="review_status != 'pending'"/>
+                            <field name="bonded_stock_id" options="{'no_create': True, 'no_open': False}" readonly="review_status != 'pending'"/>
+                            <field name="customs_file_id" options="{'no_create': True, 'no_open': False}" readonly="review_status != 'pending'"/>
                             <field name="mrn" readonly="review_status != 'pending'"/>
                             <field name="verification_date" readonly="review_status != 'pending'"/>
-                            <field name="operator_id" options="{'no_create': True, 'no_open': True}" readonly="review_status != 'pending'"/>
+                            <field name="operator_id" options="{'no_create': True, 'no_open': False}" readonly="review_status != 'pending'"/>
                         </group>
                         <group string="Status And Quantity">
                             <field name="from_status" readonly="review_status != 'pending'"/>
                             <field name="to_status" readonly="review_status != 'pending'"/>
                             <field name="quantity" readonly="review_status != 'pending'"/>
                             <field name="write_off_value" widget="monetary" readonly="review_status != 'pending'"/>
-                            <field name="currency_id" options="{'no_create': True, 'no_open': True}" readonly="review_status != 'pending'"/>
+                            <field name="currency_id" options="{'no_create': True, 'no_open': False}" readonly="review_status != 'pending'"/>
                             <field name="write_off_type" readonly="review_status != 'pending'"/>
                             <field name="customs_approval_no" readonly="review_status != 'pending'"/>
                         </group>
                     </group>
                     <group string="Review">
-                        <field name="review_user_id" options="{'no_create': True, 'no_open': True}" readonly="1"/>
+                        <field name="review_user_id" options="{'no_create': True, 'no_open': False}" readonly="1"/>
                         <field name="review_date" readonly="1"/>
                     </group>
                     <group string="Supporting Documents">

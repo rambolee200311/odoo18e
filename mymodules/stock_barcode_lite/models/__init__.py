@@ -14,6 +14,7 @@ from . import sunrise_stock_report
 from . import sunrise_inbound_pallet_summary_report
 from . import sunrise_outbound_pallet_summary_report
 from . import sunrise_location_occupancy_report
+from . import sunrise_monthly_category_pallet_report
 from . import stock_quant_package
 from . import stock_barcode_lite_scan_service
 from . import inbound_unknown_pallet
@@ -22,8 +23,8 @@ from . import stock_move_line_inherit
 from . import move_line_location_import
 from . import stock_picking_inherit
 from . import stock_return_picking_inherit
-from . import project_project_inherit
 from . import outbound_order_recreate
+from . import outbound_recreate_picking_ready
 from . import inbound_order_recreate
 from . import pda_internal_transfer
 from . import stock_move_line_history_summary

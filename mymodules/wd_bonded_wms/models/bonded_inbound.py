@@ -16,10 +16,9 @@ class BondedInbound(models.Model):
 
     name = fields.Char(string='Inbound No.', required=True, copy=False,
                        default=lambda self: _('New'), readonly=True, index=True)
-    bonded_book_id = fields.Many2one('bonded.book', string='Bonded Book', required=True,
-                                     ondelete='restrict', index=True)
-    customs_file_id = fields.Many2one('bonded.customs.file', string='Customs Declaration', copy=False,
-                                      ondelete='restrict', index=True, domain=[('declaration_type', '=', 'b3_in')], context={'default_declaration_type': 'b3_in'})
+    bonded_book_id = fields.Many2one('bonded.book', string='Bonded Book', required=True, ondelete='restrict', index=True, domain=[('state', '=', 'active')])
+    project_id = fields.Many2one('project.project', string='Project', ondelete='restrict', index=True, tracking=True)
+    customs_file_ids = fields.Many2many('bonded.customs.file', 'bonded_inbound_customs_file_rel', 'bonded_inbound_id', 'customs_file_id', string='Customs Declarations', copy=False)
 
     t1_customs_file_id = fields.Many2one('bonded.customs.file', string='T1 Customs File')
     b3_customs_file_id = fields.Many2one('bonded.customs.file', string='B3 Customs File')
@@ -34,7 +33,7 @@ class BondedInbound(models.Model):
                                      ('direct', 'Direct Entry')], string='Cargo Source', required=True, default='port_t1')
     inbound_tracking_no = fields.Char(string='Inbound Tracking No.', copy=False, index=True)
     expected_date = fields.Date(string='Expected Date', required=True, default=fields.Date.today)
-    total_value = fields.Monetary(string='Total Value', required=True, default=0.0)
+    total_value = fields.Monetary(string='Total Value', compute='_compute_total_value', store=True, readonly=True)
     currency_id = fields.Many2one('res.currency', string='Currency', default=lambda self: self.env.ref('base.EUR').id)
     picking_id = fields.Many2one('stock.picking', string='Stock Picking', readonly=True, ondelete='restrict',help='Related warehouse receiving order')
     state = fields.Selection([
@@ -67,10 +66,25 @@ class BondedInbound(models.Model):
                 vals['name'] = self.env['ir.sequence'].next_by_code('seq.bonded.inbound') or _('New')
         return super().create(vals_list)
 
+    @api.onchange('project_id')
+    def onchange_project_id(self):
+        for rec in self:
+            if rec.project_id:
+                rec.warehouse = rec.project_id.warehouse
+                rec.pick_type = rec.project_id.inbound_pick_type
+
+    @api.depends('line_ids.subtotal_value')
+    def _compute_total_value(self):
+        for rec in self:
+            rec.total_value = sum(rec.line_ids.mapped('subtotal_value'))
+
     def action_confirm(self):
         for rec in self:
+            if rec.state != 'draft':
+                raise UserError(_('Only draft inbound instructions can be confirmed.'))
             if not rec.line_ids:
                 raise UserError(_('Please add inbound lines before confirming.'))
+            rec.bonded_book_id.reserve_document_value(rec.total_value, project_id=rec.project_id.id, inbound_id=rec.id)
             vals = {'state': 'confirmed'}
             if not rec.inbound_tracking_no:
                 vals['inbound_tracking_no'] = self.env['ir.sequence'].next_by_code(
@@ -84,16 +98,16 @@ class BondedInbound(models.Model):
             if rec.cargo_source == 'direct' and (rec.t1_customs_file_id or rec.gate_arrival_ids):
                 raise ValidationError(_('Direct entry cannot have T1 customs file or gate arrivals.'))
 
-    @api.constrains('customs_file_id')
+    @api.constrains('customs_file_ids', 'line_ids.customs_file_line_id')
     def check_customs_file_line_links(self):
         for rec in self:
             selected_lines = rec.line_ids.mapped('customs_file_line_id')
             if not selected_lines:
                 continue
-            if not rec.customs_file_id or rec.customs_file_id.declaration_type != 'b3_in':
-                raise ValidationError(_('Select a B3 customs declaration before selecting a declaration line.'))
-            if selected_lines.filtered(lambda customs_line: customs_line.customs_file_id != rec.customs_file_id):
-                raise ValidationError(_('The declaration line must belong to the inbound instruction B3 customs declaration.'))
+            if not rec.customs_file_ids:
+                raise ValidationError(_('Select a customs declaration before selecting a declaration line.'))
+            if selected_lines.filtered(lambda customs_line: customs_line.customs_file_id not in rec.customs_file_ids):
+                raise ValidationError(_('Each declaration line must belong to a customs declaration linked to this inbound instruction.'))
 
     def action_start(self):
         for rec in self:
@@ -110,14 +124,14 @@ class BondedInbound(models.Model):
                 raise UserError(_('Only in-progress instructions can be set to done.'))
             if not rec.picking_id:
                 raise UserError(_('Please create and validate a stock picking first.'))
-            total_qty = sum(rec.line_ids.mapped('planned_qty')) or 1.0
-            unit_value = rec.total_value / total_qty
             for move_line in rec.picking_id.move_line_ids:
                 inbound_line = move_line.move_id.bonded_inbound_line_id
 
                 if not inbound_line:
                     raise UserError(_('Cannot match stock move line to bonded inbound line.'))
-                pre_mrn_ids = [(4, mrn.id) for mrn in rec.customs_file_id.pre_mrn_ids] if rec.customs_file_id and rec.customs_file_id.pre_mrn_ids else False
+                unit_value = inbound_line.declared_unit_price
+                customs_file = inbound_line.customs_file_id
+                pre_mrn_ids = [(4, mrn.id) for mrn in customs_file.pre_mrn_ids] if customs_file and customs_file.pre_mrn_ids else False
                 bonded_stock = self.env['bonded.stock'].create({
                     'bonded_book_id': rec.bonded_book_id.id,
                     'product_id': move_line.product_id.id,
@@ -139,7 +153,7 @@ class BondedInbound(models.Model):
                 self.env['bonded.verification'].create({
                     'bonded_book_id': rec.bonded_book_id.id,
                     'verification_type': 'inbound',
-                    'customs_file_id': rec.customs_file_id.id if rec.customs_file_id else False,
+                    'customs_file_id': customs_file.id if customs_file else False,
                     'bonded_stock_id': bonded_stock.id,
                     'from_status': '',
                     'to_status': 'entrepot',
@@ -159,12 +173,13 @@ class BondedInbound(models.Model):
                     'inbound_tracking_no': inbound_line.inbound_tracking_no,
                     'customer_batch_no': inbound_line.customer_batch_no,
                     'bonded_stock_id': bonded_stock.id,
-                    'customs_file_id': rec.customs_file_id.id if rec.customs_file_id else False,
+                    'customs_file_id': customs_file.id if customs_file else False,
                     'picking_id': rec.picking_id.id,
                 })
             rec.write({'state': 'done'})
-            if rec.customs_file_id and rec.customs_file_id.state == 'customs_approved':
-                rec.customs_file_id.write({'state': 'done'})
+            for customs_file in rec.customs_file_ids.filtered(lambda customs_file: customs_file.declaration_type == 'b3_in' and customs_file.state == 'customs_approved'):
+                if all(inbound.state == 'done' for inbound in customs_file.inbound_ids):
+                    customs_file.write({'state': 'done'})
 
     def action_cancel(self):
         for rec in self:
@@ -174,7 +189,7 @@ class BondedInbound(models.Model):
 
     def unlink(self):
         for rec in self:
-            if rec.inbound_tracking_no or rec.customs_file_id:
+            if rec.inbound_tracking_no or rec.customs_file_ids:
                 raise UserError(_('Inbound instruction with tracking no. or customs declaration cannot be deleted. Please cancel it instead.'))
         return super().unlink()
 
@@ -227,15 +242,70 @@ class BondedInboundLine(models.Model):
                                         required=True, ondelete='cascade', index=True)
     customs_file_line_id = fields.Many2one('bonded.customs.file.line', string='Declaration Line',
                                            ondelete='set null', index=True)
-    customs_file_id = fields.Many2one('bonded.customs.file', related='bonded_inbound_id.customs_file_id', string='B3 Customs Declaration', store=True, readonly=True, index=True)
+    customs_file_id = fields.Many2one('bonded.customs.file', related='customs_file_line_id.customs_file_id', string='Customs Declaration', store=True, readonly=True, index=True)
+    bonded_product_id = fields.Many2one('bonded.product', string='Bonded Product Filing', ondelete='restrict', index=True)
     product_id = fields.Many2one('product.product', string='Product', required=True, index=True)
     inbound_tracking_no = fields.Char(string='Inbound Tracking No.', related='bonded_inbound_id.inbound_tracking_no', store=True, readonly=True, index=True)
     customer_batch_no = fields.Char(string='Customer Batch No.', copy=False, index=True, required=True)
     planned_qty = fields.Float(string='Planned Qty', required=True, default=1.0)
+    declared_unit_price = fields.Monetary(string='Declared Unit Price', required=True, default=0.0)
+    subtotal_value = fields.Monetary(string='Subtotal', compute='_compute_subtotal_value', store=True)
+    currency_id = fields.Many2one('res.currency', related='bonded_inbound_id.currency_id', string='Currency', readonly=True)
     done_qty = fields.Float(string='Done Qty', compute='_compute_done_qty', store=True)
     uom_id = fields.Many2one('uom.uom', string='UoM', related='product_id.uom_id', readonly=True)
     eligible_product_ids = fields.Many2many('product.product', compute='_compute_eligible_product_ids')
+    eligible_bonded_product_ids = fields.Many2many('bonded.product', compute='_compute_eligible_product_ids')
     available_customs_file_line_ids = fields.Many2many('bonded.customs.file.line', compute='_compute_available_customs_file_line_ids')
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        env_bonded_inbound = self.env['bonded.inbound'].sudo()
+        env_bonded_product = self.env['bonded.product'].sudo()
+        for vals in vals_list:
+            inbound = env_bonded_inbound.browse(vals.get('bonded_inbound_id')).exists()
+            if not inbound:
+                continue
+            filing = env_bonded_product.browse(vals.get('bonded_product_id')).exists()
+            if filing:
+                vals['product_id'] = filing.product_id.id
+            elif vals.get('product_id'):
+                filing = env_bonded_product.search([
+                    ('bonded_book_id', '=', inbound.bonded_book_id.id),
+                    ('product_id', '=', vals['product_id']),
+                    ('state', '=', 'active'),
+                ], limit=1)
+            if filing:
+                vals.setdefault('bonded_product_id', filing.id)
+                vals.setdefault('declared_unit_price', filing.declared_unit_price)
+        return super().create(vals_list)
+
+    @api.onchange('bonded_product_id')
+    def onchange_bonded_product_id(self):
+        for rec in self:
+            if rec.bonded_product_id:
+                rec.product_id = rec.bonded_product_id.product_id
+                rec.declared_unit_price = rec.bonded_product_id.declared_unit_price
+
+    @api.onchange('product_id')
+    def onchange_product_id(self):
+        env_bonded_product = self.env['bonded.product'].sudo()
+        for rec in self:
+            rec.declared_unit_price = 0.0
+            if not rec.bonded_inbound_id or not rec.product_id:
+                continue
+            filing = env_bonded_product.search([
+                ('bonded_book_id', '=', rec.bonded_inbound_id.bonded_book_id.id),
+                ('product_id', '=', rec.product_id.id),
+                ('state', '=', 'active'),
+            ], limit=1)
+            if filing:
+                rec.bonded_product_id = filing
+                rec.declared_unit_price = filing.declared_unit_price
+
+    @api.depends('planned_qty', 'declared_unit_price')
+    def _compute_subtotal_value(self):
+        for rec in self:
+            rec.subtotal_value = rec.planned_qty * rec.declared_unit_price
 
     @api.depends('bonded_inbound_id.bonded_book_id')
     def _compute_eligible_product_ids(self):
@@ -246,26 +316,28 @@ class BondedInboundLine(models.Model):
                 ('state', '=', 'active'),
             ]) if book else self.env['bonded.product']
             rec.eligible_product_ids = filings.mapped('product_id')
+            rec.eligible_bonded_product_ids = filings
 
-    @api.depends('bonded_inbound_id.customs_file_id', 'bonded_inbound_id.line_ids.customs_file_line_id', 'product_id')
+    @api.depends('bonded_inbound_id.customs_file_ids', 'bonded_inbound_id.line_ids.customs_file_line_id', 'product_id')
     def _compute_available_customs_file_line_ids(self):
         for rec in self:
-            customs_file = rec.bonded_inbound_id.customs_file_id
             used_lines = (rec.bonded_inbound_id.line_ids - rec).mapped('customs_file_line_id')
-            rec.available_customs_file_line_ids = customs_file.line_ids.filtered(
+            rec.available_customs_file_line_ids = rec.bonded_inbound_id.customs_file_ids.line_ids.filtered(
                 lambda customs_line: customs_line.product_id == rec.product_id and customs_line not in used_lines
             )
 
-    @api.constrains('bonded_inbound_id', 'customs_file_line_id', 'product_id')
+    @api.constrains('bonded_inbound_id', 'bonded_product_id', 'customs_file_line_id', 'product_id')
     def check_customs_file_line(self):
         for rec in self:
+            if rec.bonded_product_id and (rec.bonded_product_id.bonded_book_id != rec.bonded_inbound_id.bonded_book_id or rec.bonded_product_id.product_id != rec.product_id or rec.bonded_product_id.state != 'active'):
+                raise ValidationError(_('The bonded product filing must be active and belong to the inbound instruction bonded book.'))
             if not rec.customs_file_line_id:
                 continue
-            customs_file = rec.bonded_inbound_id.customs_file_id
-            if not customs_file or customs_file.declaration_type != 'b3_in':
-                raise ValidationError(_('Select a B3 customs declaration before selecting a declaration line.'))
-            if rec.customs_file_line_id.customs_file_id != customs_file:
-                raise ValidationError(_('The declaration line must belong to the inbound instruction B3 customs declaration.'))
+            customs_files = rec.bonded_inbound_id.customs_file_ids
+            if not customs_files:
+                raise ValidationError(_('Select a customs declaration before selecting a declaration line.'))
+            if rec.customs_file_line_id.customs_file_id not in customs_files:
+                raise ValidationError(_('The declaration line must belong to a customs declaration linked to this inbound instruction.'))
             if rec.customs_file_line_id.product_id != rec.product_id:
                 raise ValidationError(_('The declaration line product must match the inbound line product.'))
             duplicate_line = self.sudo().search([

@@ -17,17 +17,17 @@ class StatementPeriod(models.Model):
     inbound_order_lines = fields.One2many("world.depot.inbound.order", "statement_period_id", string="Inbound Orders")
     inbound_total_amount = fields.Monetary(string="Total Inbound Amount", currency_field="currency_id", compute="_compute_inbound_total_amount", store=True)
 
-    @api.depends("outbound_order_lines.total_amount", "outbound_order_lines.manual_amount_total")
+    @api.depends("outbound_order_lines.manual_amount_total", "outbound_order_lines.outbound_order_charge_ids.amount")
     def _compute_outbound_total_amount(self):
         for rec in self:
             rec.outbound_total_amount = sum(
-                outbound_order.manual_amount_total if outbound_order.manual_amount_total > 0 else outbound_order.total_amount
+                outbound_order.manual_amount_total if outbound_order.manual_amount_total > 0 else sum(outbound_order.outbound_order_charge_ids.mapped("amount"))
                 for outbound_order in rec.outbound_order_lines)
 
-    @api.depends("inbound_order_lines.total_amount")
+    @api.depends("inbound_order_lines.inbound_order_charge_ids.amount")
     def _compute_inbound_total_amount(self):
         for rec in self:
-            rec.inbound_total_amount = sum(rec.inbound_order_lines.mapped("total_amount"))
+            rec.inbound_total_amount = sum(sum(inbound_order.inbound_order_charge_ids.mapped("amount")) for inbound_order in rec.inbound_order_lines)
 
     def get_periodic_statement(self):
         for rec in self:
@@ -117,7 +117,7 @@ class StatementPeriod(models.Model):
                 charge_lines = outbound_order.outbound_order_charge_ids.filtered(
                     lambda charge_line: charge_line.charge_item_id and charge_line.charge_item_id.item_name == fee_name)
                 ws.write_number(row, fee_start + index, float(sum(charge_lines.mapped("amount"))), fmt["money"])
-            line_total = outbound_order.manual_amount_total if outbound_order.manual_amount_total > 0 else outbound_order.total_amount
+            line_total = outbound_order.manual_amount_total if outbound_order.manual_amount_total > 0 else sum(outbound_order.outbound_order_charge_ids.mapped("amount"))
             ws.write_number(row, amount_col, float(line_total or 0.0), fmt["money"])
             row += 1
         ws.merge_range(row, 0, row, amount_col - 1, "Total amount", fmt["total_label"])
@@ -154,7 +154,7 @@ class StatementPeriod(models.Model):
                 charge_lines = inbound_order.inbound_order_charge_ids.filtered(
                     lambda charge_line: charge_line.charge_item_id and charge_line.charge_item_id.item_name == fee_name)
                 ws.write_number(row, fee_start + index, float(sum(charge_lines.mapped("amount"))), fmt["money"])
-            ws.write_number(row, amount_col, float(inbound_order.total_amount or 0.0), fmt["money"])
+            ws.write_number(row, amount_col, float(sum(inbound_order.inbound_order_charge_ids.mapped("amount"))), fmt["money"])
             row += 1
         ws.merge_range(row, 0, row, amount_col - 1, "Total amount", fmt["total_label"])
         ws.write_number(row, amount_col, float(rec.inbound_total_amount or 0.0), fmt["total_money"])

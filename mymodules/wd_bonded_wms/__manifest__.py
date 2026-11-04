@@ -26,6 +26,9 @@
         'account',
         'mail',
         'wd_attachment_preview',
+        'wd_charge_pricing',
+        'wd_project_profile',
+        'wd_product_profile',
     ],
     'data': [
         'security/bonded_security_groups.xml',
@@ -40,8 +43,10 @@
         'views/bonded_book_line_views.xml',
         'views/bonded_book_views.xml',
         'views/bonded_value_limit_views.xml',
+        'views/bonded_value_ledger_views.xml',
         'views/bonded_charge_views.xml',
         'views/bonded_customs_file_views.xml',
+        'views/bonded_mrn_views.xml',
         'views/bonded_customs_file_line_views.xml',
         'views/bonded_product_views.xml',
         'views/gate_arrival_views.xml',
@@ -51,8 +56,6 @@
         'views/bonded_verification_views.xml',
         'views/bonded_log_views.xml',
         'views/bonded_menus.xml',
-        # Wizard
-        'wizard/customs_file_create_from_handover_views.xml',
         'wizard/gate_arrival_create_views.xml',
         # Report
     ],

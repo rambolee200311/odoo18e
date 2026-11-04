@@ -168,6 +168,11 @@
               parent="menu_stock_barcode_lite_report"
               action="action_sunrise_location_occupancy_report"
               sequence="10"/>
+    <menuitem id="menu_sunrise_monthly_category_pallet_report"
+              name="Sunrise Monthly Category Pallet Report"
+              parent="menu_stock_barcode_lite_report"
+              action="action_sunrise_monthly_category_pallet_report"
+              sequence="11"/>
     <menuitem id="menu_get_wms_sunrise_api_config"
               name="Get WMS API Log"
               parent="menu_stock_barcode_lite_configuration"

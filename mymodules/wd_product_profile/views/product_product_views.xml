@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="product_product_form_view_profile" model="ir.ui.view">
+        <field name="name">product.product.form.profile</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_normal_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page name="product_trade_compliance" string="Trade And Compliance">
+                    <group string="Trade Reference">
+                        <group>
+                            <field name="country_of_origin" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="hs_code"/>
+                            <field name="customs_code"/>
+                            <field name="article_number"/>
+                            <field name="goods_value"/>
+                            <field name="currency_id" options="{'no_create': True, 'no_open': True}"/>
+                        </group>
+                        <group>
+                            <field name="product_description"/>
+                            <field name="technical_description"/>
+                            <field name="brand"/>
+                            <field name="duty_rate"/>
+                        </group>
+                    </group>
+                    <group string="Dangerous Goods">
+                        <group>
+                            <field name="is_dg"/>
+                            <field name="un_code"/>
+                        </group>
+                        <group>
+                            <field name="adr_class"/>
+                            <field name="adr_class_name"/>
+                            <field name="adr_packing_group"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -15,6 +15,7 @@ class OutboundOrder(models.Model):
     receivable_state = fields.Selection([("draft", "Charge Unconfirmed"), ("confirmed", "Charge Confirmed")], string="Receivable Status", default="draft", required=True, tracking=True, index=True, copy=False)
     receivable_confirm_user_id = fields.Many2one("res.users", string="Receivable Confirmed By", readonly=True, index=True, copy=False)
     receivable_confirm_time = fields.Datetime(string="Receivable Confirmed On", readonly=True, index=True, copy=False)
+    currency_id = fields.Many2one("res.currency", string="Currency", default=lambda self: self.env.company.currency_id.id, copy=False, index=True)
     manual_amount_total = fields.Monetary(string="Manual Total Amount", currency_field="currency_id", default=0.0)
     charge_calculation_remark = fields.Text(string="Charge Calculation Remark", copy=False)
     project_stock_report_date_mode = fields.Selection([("validation", "Picking Validation Time"), ("business", "Order Business Date")], string="Stock Report Date Mode", compute="_compute_project_stock_report_date_mode", store=True, readonly=True)
@@ -55,7 +56,8 @@ class OutboundOrder(models.Model):
             charge_values = []
             remarks = []
             if not quotation:
-                raise ValidationError(_("The outbound order project must have a quotation before confirmation."))
+                charge_data_by_order_id[rec.id] = {"charge_values": charge_values, "currency_id": False, "remark": False}
+                continue
             if rec.outbound_order_charge_ids.filtered(lambda line: line.is_import_quotation_charge):
                 charge_data_by_order_id[rec.id] = {"charge_values": charge_values, "currency_id": False, "remark": False}
                 continue

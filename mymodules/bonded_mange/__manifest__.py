@@ -18,7 +18,7 @@ Long description of module's purpose
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base','worlddepot'],
+    'depends': ['base','worlddepot','wd_product_profile'],
 
     'assets': {
         'web.assets_backend': [
@@ -39,7 +39,6 @@ Long description of module's purpose
         'bonded_views/stock_quant_inherit_views.xml',
         'bonded_views/inbound_order_inherit_views.xml',
         'bonded_views/outbound_order_inherit_views.xml',
-        'bonded_views/product_product_inherit_views.xml',
         'bonded_views/product_packaging_inherit_views.xml',
 
         'bonded_views/customs_document_core_views.xml',

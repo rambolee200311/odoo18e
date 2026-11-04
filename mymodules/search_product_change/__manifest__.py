@@ -18,7 +18,7 @@ Long description of module's purpose
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base','product','stock','worlddepot'],
+    'depends': ['base','product','stock','worlddepot','blind_stock_count'],
 
     # always loaded
     'data': [
@@ -27,6 +27,7 @@ Long description of module's purpose
         'views/views.xml',
         'views/modify_lot_name_views.xml',
         'views/project_action_views.xml',
+        'views/outbound_order_hoymiles_result_sync_views.xml',
 
     ],
     'license': 'LGPL-3',

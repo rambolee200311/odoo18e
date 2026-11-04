@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="bonded_value_ledger_view_list" model="ir.ui.view">
+        <field name="name">bonded.value.ledger.list</field>
+        <field name="model">bonded.value.ledger</field>
+        <field name="arch" type="xml">
+            <list create="false" edit="false" delete="false">
+                <field name="operation_datetime"/>
+                <field name="operation_type"/>
+                <field name="bonded_book_id"/>
+                <field name="project_id"/>
+                <field name="currency_id" column_invisible="1"/>
+                <field name="value_amount" widget="monetary"/>
+                <field name="reserved_change" widget="monetary"/>
+                <field name="deducted_change" widget="monetary"/>
+                <field name="reserved_value_after" widget="monetary"/>
+                <field name="available_value_after" widget="monetary"/>
+                <field name="inbound_id"/>
+                <field name="outbound_id"/>
+                <field name="customs_file_id"/>
+                <field name="operator_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="bonded_value_ledger_view_form" model="ir.ui.view">
+        <field name="name">bonded.value.ledger.form</field>
+        <field name="model">bonded.value.ledger</field>
+        <field name="arch" type="xml">
+            <form duplicate="false" create="false" edit="false" delete="false">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="operation_datetime" readonly="1"/>
+                            <field name="operation_type" readonly="1"/>
+                            <field name="bonded_book_id" readonly="1"/>
+                            <field name="project_id" readonly="1"/>
+                            <field name="operator_id" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="currency_id" readonly="1"/>
+                            <field name="value_amount" readonly="1" widget="monetary"/>
+                            <field name="reserved_change" readonly="1" widget="monetary"/>
+                            <field name="deducted_change" readonly="1" widget="monetary"/>
+                            <field name="reserved_value_after" readonly="1" widget="monetary"/>
+                            <field name="available_value_after" readonly="1" widget="monetary"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="inbound_id" readonly="1"/>
+                        <field name="outbound_id" readonly="1"/>
+                        <field name="customs_file_id" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="bonded_value_ledger_view_search" model="ir.ui.view">
+        <field name="name">bonded.value.ledger.search</field>
+        <field name="model">bonded.value.ledger</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="bonded_book_id"/>
+                <field name="project_id"/>
+                <field name="inbound_id"/>
+                <field name="outbound_id"/>
+                <field name="customs_file_id"/>
+                <filter name="reserve" string="Reservations" domain="[('operation_type', '=', 'reserve')]"/>
+                <filter name="deduct" string="Deductions" domain="[('operation_type', '=', 'deduct')]"/>
+                <filter name="release" string="Releases" domain="[('operation_type', '=', 'release')]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_bonded_value_ledger" model="ir.actions.act_window">
+        <field name="name">Value Ledger</field>
+        <field name="res_model">bonded.value.ledger</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="bonded_value_ledger_view_search"/>
+    </record>
+</odoo>

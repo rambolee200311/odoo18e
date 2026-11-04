@@ -12,7 +12,6 @@ from . import my_stock_reverse_validate
 from . import my_stock_force_validate
 #from . import my_stock_move_validate
 #from . import my_stock_move_line_validate
-from . import my_project
 from . import my_product
 #from . import my_report
 #from . import my_user
@@ -30,14 +29,12 @@ from . import linglong_inbound_temp
 from . import product_duplicate
 from . import inbound_order_status
 from . import outbound_order_status
-from . import charge_item
 from . import inbound_order_charge
 from . import outbound_order_pack_info
 from . import outbound_order_charge
 from . import my_dashboard
 #from . import my_stock_report
 from . import my_stock_report_linglong
-from . import outbound_recreate_picking_ready
 from . import transfer_order
 from . import transfer_order_status
 from . import transfer_order_create_picking
