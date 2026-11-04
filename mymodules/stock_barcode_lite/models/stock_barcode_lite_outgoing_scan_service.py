@@ -1300,22 +1300,34 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
             return self.build_outgoing_scan_result("error", _("Error"), _("Serial number must be scanned from location %s.") % stock_location.display_name, barcode=code, picking_id=picking.id, location_id=current_location_id, package_id=package.id, product_id=product.id, action_name="serial_location_mismatch", success=False, next_step="scan_serial")
 
         _moves, _remaining_by_move, remaining_qty = self.get_unspecified_pallet_outgoing_demand(picking, product)
-        if float_compare(remaining_qty, 1.0, precision_rounding=product.uom_id.rounding) < 0:
-            return self.build_outgoing_scan_result("error", _("Error"), _("Product %s has no remaining demand on this outgoing picking.") % product.display_name, barcode=code, picking_id=picking.id, location_id=current_location_id, package_id=package.id, product_id=product.id, action_name="serial_product_completed", success=False, next_step="scan_product")
+        serial_name_list = [serial_name.strip() for serial_name in (code or "").replace("，", ",").split(",") if serial_name.strip()]
+        if not serial_name_list:
+            return self.build_outgoing_scan_result("error", _("Error"), _("Serial number is required."), barcode=code, picking_id=picking.id, location_id=current_location_id, package_id=package.id, product_id=product.id, action_name="serial_empty", success=False, next_step="scan_serial")
+        if len(set(serial_name_list)) != len(serial_name_list):
+            return self.build_outgoing_scan_result("error", _("Error"), _("Duplicate serial numbers were found in the scanned barcode."), barcode=code, picking_id=picking.id, location_id=current_location_id, package_id=package.id, product_id=product.id, action_name="serial_duplicate_in_barcode", success=False, next_step="scan_serial")
+        if float_compare(remaining_qty, len(serial_name_list), precision_rounding=product.uom_id.rounding) < 0:
+            return self.build_outgoing_scan_result("error", _("Error"), _("Scanned serial quantity exceeds remaining demand for product %s.") % product.display_name, barcode=code, picking_id=picking.id, location_id=current_location_id, package_id=package.id, product_id=product.id, action_name="serial_product_completed", success=False, next_step="scan_product")
 
         lot_model = self.env["stock.lot"]
         move_line_model = self.env["stock.move.line"]
-        lots = lot_model.sudo().search([("name", "=", code), ("product_id", "=", product.id)], limit=2)
-        if len(lots) > 1:
-            return self.build_outgoing_scan_result("error", _("Error"), _("Serial number matched multiple records for product %s: %s") % (product.display_name, code), barcode=code, picking_id=picking.id, location_id=current_location_id, package_id=package.id, product_id=product.id, action_name="serial_multiple_matches", success=False, next_step="scan_serial")
-        if not lots:
-            return self.build_outgoing_scan_result("error", _("Error"), _("Serial number not found for product %s: %s") % (product.display_name, code), barcode=code, picking_id=picking.id, location_id=current_location_id, package_id=package.id, product_id=product.id, action_name="serial_not_found", success=False, next_step="scan_serial")
-        lot = lots[:1]
+        lots = lot_model.sudo().search([("name", "in", serial_name_list), ("product_id", "=", product.id)], order="id")
+        lot_by_name = {}
+        duplicate_lot_name_list = []
+        for lot in lots:
+            if lot.name in lot_by_name:
+                duplicate_lot_name_list.append(lot.name)
+            lot_by_name[lot.name] = lot
+        if duplicate_lot_name_list:
+            return self.build_outgoing_scan_result("error", _("Error"), _("Serial number matched multiple records for product %s: %s") % (product.display_name, ", ".join(duplicate_lot_name_list)), barcode=code, picking_id=picking.id, location_id=current_location_id, package_id=package.id, product_id=product.id, action_name="serial_multiple_matches", success=False, next_step="scan_serial")
+        missing_serial_name_list = [serial_name for serial_name in serial_name_list if serial_name not in lot_by_name]
+        if missing_serial_name_list:
+            return self.build_outgoing_scan_result("error", _("Error"), _("Serial number not found for product %s: %s") % (product.display_name, ", ".join(missing_serial_name_list)), barcode=code, picking_id=picking.id, location_id=current_location_id, package_id=package.id, product_id=product.id, action_name="serial_not_found", success=False, next_step="scan_serial")
+        lot_id_list = [lot_by_name[serial_name].id for serial_name in serial_name_list]
         occupied_lines = move_line_model.sudo().search([
             ("picking_id", "!=", picking.id),
             ("picking_id.state", "not in", ("done", "cancel")),
             ("product_id", "=", product.id),
-            ("lot_id", "=", lot.id),
+            ("lot_id", "in", lot_id_list),
             ("quantity", ">", 0),
             ("state", "!=", "cancel"),
         ], order="picking_id")
@@ -1326,14 +1338,22 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
                 if occupied_picking.outbound_order_id:
                     occupied_name = _("%s (Outbound: %s)") % (occupied_name, occupied_picking.outbound_order_id.billno)
                 occupied_picking_names.append(occupied_name)
-            return self.build_outgoing_scan_result("error", _("Error"), _("Serial number %s is already used by unfinished picking(s): %s") % (code, ", ".join(occupied_picking_names)), barcode=code, picking_id=picking.id, location_id=current_location_id, package_id=package.id, product_id=product.id, action_name="serial_used_by_unfinished_picking", success=False, next_step="scan_serial")
-        duplicate_line = move_line_model.sudo().search([("picking_id", "=", picking.id), ("product_id", "=", product.id), ("lot_id", "=", lot.id), ("outbound_scanned_quantity", ">", 0)], limit=1)
-        if duplicate_line:
-            return self.build_outgoing_scan_result("error", _("Error"), _("Serial number %s is already scanned on this outgoing picking.") % code, barcode=code, picking_id=picking.id, location_id=current_location_id, package_id=package.id, product_id=product.id, action_name="serial_duplicate_in_picking", success=False, next_step="scan_serial")
+            return self.build_outgoing_scan_result("error", _("Error"), _("Serial number(s) %s are already used by unfinished picking(s): %s") % (", ".join(occupied_lines.mapped("lot_id.name")), ", ".join(occupied_picking_names)), barcode=code, picking_id=picking.id, location_id=current_location_id, package_id=package.id, product_id=product.id, action_name="serial_used_by_unfinished_picking", success=False, next_step="scan_serial")
+        duplicate_lines = move_line_model.sudo().search([("picking_id", "=", picking.id), ("product_id", "=", product.id), ("lot_id", "in", lot_id_list), ("outbound_scanned_quantity", ">", 0)])
+        if duplicate_lines:
+            return self.build_outgoing_scan_result("error", _("Error"), _("Serial number(s) %s are already scanned on this outgoing picking.") % ", ".join(duplicate_lines.mapped("lot_id.name")), barcode=code, picking_id=picking.id, location_id=current_location_id, package_id=package.id, product_id=product.id, action_name="serial_duplicate_in_picking", success=False, next_step="scan_serial")
+        unavailable_serial_name_list = [serial_name for serial_name in serial_name_list if not stock_data["lines"].get((product.id, lot_by_name[serial_name].id)) or float_compare(stock_data["lines"][(product.id, lot_by_name[serial_name].id)]["available_quantity"], 1.0, precision_rounding=product.uom_id.rounding) < 0]
+        if unavailable_serial_name_list:
+            return self.build_outgoing_scan_result("error", _("Error"), _("Serial number(s) %s are not available on pallet %s.") % (", ".join(unavailable_serial_name_list), package.name or package.barcode), barcode=code, picking_id=picking.id, location_id=current_location_id, package_id=package.id, product_id=product.id, action_name="serial_not_available", success=False, next_step="scan_serial")
 
-        updated_lines, error_message = self.create_unspecified_pallet_outgoing_move_lines(picking, package, stock_location, product, 1.0, lot)
-        if error_message:
-            return self.build_outgoing_scan_result("error", _("Error"), error_message, barcode=code, picking_id=picking.id, location_id=current_location_id, package_id=package.id, product_id=product.id, action_name="serial_not_available", success=False, next_step="scan_serial")
+        updated_lines = move_line_model
+        for serial_name in serial_name_list:
+            created_lines, error_message = self.create_unspecified_pallet_outgoing_move_lines(picking, package, stock_location, product, 1.0, lot_by_name[serial_name])
+            if error_message:
+                if updated_lines:
+                    updated_lines.unlink()
+                return self.build_outgoing_scan_result("error", _("Error"), error_message, barcode=code, picking_id=picking.id, location_id=current_location_id, package_id=package.id, product_id=product.id, action_name="serial_not_available", success=False, next_step="scan_serial")
+            updated_lines |= created_lines
 
         if self.is_unspecified_pallet_outgoing_complete(picking):
             next_step = "validate"
@@ -1344,7 +1364,7 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
         else:
             next_step, next_location_id, package_id, product_id, message = self.get_unspecified_pallet_outgoing_next_scan_context(picking, package, stock_location, product)
             if next_step == "scan_serial":
-                message = _("Serial number %s scanned. Please scan next serial number.") % code
+                message = _("Serial number(s) %s scanned. Please scan next serial number.") % ", ".join(serial_name_list)
         return self.build_outgoing_scan_result("serial", _("Serial Number"), message, barcode=code, picking_id=picking.id, location_id=next_location_id, package_id=package_id, product_id=product_id, lot_id=False, pending_operation=False, next_step=next_step, action_name="scan_unspecified_partial_serial", updated_move_line_ids=updated_lines.ids, success=True)
 
     @api.model
