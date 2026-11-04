@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_stock_picking_form_inherit_barcode_lite_core" model="ir.ui.view">
+        <field name="name">stock.picking.form.inherit.barcode.lite.core</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='location_id']" position="after">
+                <field name="picking_type_code" invisible="1"/>
+                <field name="outbound_scan_mode" readonly="1" invisible="picking_type_code != 'outgoing'"/>
+                <field name="is_unspecified_pallet_outgoing" readonly="1" invisible="picking_type_code != 'outgoing'"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_stock_move_line_detailed_operation_list_inherit_barcode_lite_core" model="ir.ui.view">
+        <field name="name">stock.move.line.detailed.operation.list.inherit.barcode.lite.core</field>
+        <field name="model">stock.move.line</field>
+        <field name="inherit_id" ref="stock.view_stock_move_line_detailed_operation_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list/field[@name='quantity']" position="after">
+                <field name="outbound_scanned_quantity" string="Outbound Scanned Quantity" readonly="0" column_invisible="context.get('picking_code') != 'outgoing'"/>
+                <field name="is_outbound_scanned" string="Outbound Scanned" readonly="0" column_invisible="context.get('picking_code') != 'outgoing'"/>
+                <field name="is_location_updated" string="Location Updated" readonly="0" column_invisible="context.get('picking_code') != 'incoming'"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_picking_internal_transfer_search" model="ir.ui.view">
+        <field name="name">stock.picking.internal.transfer.search</field>
+        <field name="model">stock.picking</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="package_level_ids" string="Package" filter_domain="['|', ('package_level_ids.package_id.barcode', '=', self), ('package_level_ids.package_id.name', 'ilike', self)]"/>
+                <field name="pda_destination_location_id" string="Destination Location"/>
+                <filter string="Active" name="state_not_cancel" domain="[('state', '!=', 'cancel')]"/>
+                <filter name="is_pda_internal_transfer" domain="[('is_pda_internal_transfer', '=', True)]"/>
+            </search>
+        </field>
+    </record>
+</odoo>

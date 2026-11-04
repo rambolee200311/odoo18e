@@ -1,0 +1,33 @@
+.o_bonded_barcode_homepage {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 24px 24px 80px;
+    min-height: calc(100vh - 50px);
+
+    .section-header {
+        margin: 24px 0 16px;
+    }
+
+    .section-title {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+
+        &::before {
+            width: 4px;
+            height: 16px;
+            border-radius: 999px;
+            background: var(--bs-primary, #714B67);
+            content: "";
+        }
+    }
+
+    .o_bonded_barcode_card {
+        border-top: 3px solid var(--bs-primary, #714B67);
+    }
+}

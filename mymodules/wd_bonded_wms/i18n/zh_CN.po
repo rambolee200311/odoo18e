@@ -273,6 +273,7 @@ msgid "Batch No."
 msgstr "批次号"
 
 #. module: wd_bonded_wms
+#: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_stock__current_customs_status__entrepot
 #: model_terms:ir.ui.view,arch_db:wd_bonded_wms.bonded_stock_view_search
 msgid "Bonded"
 msgstr "保税"
@@ -372,7 +373,6 @@ msgstr "保税货物台账"
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_gate_arrival__bonded_inbound_id
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_gate_arrival_create__bonded_inbound_id
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_stock_picking__bonded_inbound_id
-#: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_book_line__operation_type__bonded_inbound
 #: model:ir.ui.menu,name:wd_bonded_wms.menu_bonded_inbound
 msgid "Bonded Inbound"
 msgstr "保税入库"
@@ -703,8 +703,9 @@ msgid "Charges"
 msgstr "费用"
 
 #. module: wd_bonded_wms
+#: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_customs_file__state__done
 msgid "Closed"
-msgstr "已关闭"
+msgstr "关闭"
 
 #. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_monthly_report__closing_qty
@@ -854,6 +855,10 @@ msgid "Create Stock Picking"
 msgstr "创建库存作业单"
 
 #. module: wd_bonded_wms
+msgid "Create Packages"
+msgstr "创建包裹"
+
+#. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_book__create_uid
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_book_line__create_uid
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_charge_line__create_uid
@@ -920,11 +925,6 @@ msgstr "创建时间"
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_verification__currency_id
 msgid "Currency"
 msgstr "币种"
-
-#. module: wd_bonded_wms
-#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_stock__current_customs_status
-msgid "Current Customs Status"
-msgstr "当前海关状态"
 
 #. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_book_line__customer_batch_no
@@ -1017,11 +1017,6 @@ msgid "Customs Office Code"
 msgstr "海关代码"
 
 #. module: wd_bonded_wms
-#: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_book_line__operation_type__customs_outbound
-msgid "Customs Outbound"
-msgstr "海关出库"
-
-#. module: wd_bonded_wms
 #: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_customs_file__state__customs_rejected
 msgid "Customs Rejected"
 msgstr "海关已拒绝"
@@ -1039,6 +1034,7 @@ msgstr "回复附件"
 #. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_mrn__state
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_stock_snapshot__current_customs_status
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_stock__current_customs_status
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_stock_lot__current_customs_status
 #: model_terms:ir.ui.view,arch_db:wd_bonded_wms.bonded_stock_view_search
 msgid "Customs Status"
@@ -1197,7 +1193,6 @@ msgid "Destroyed"
 msgstr "已销毁"
 
 #. module: wd_bonded_wms
-#: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_book_line__operation_type__destruction
 #: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_customs_file__declaration_type__destruction
 #: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_outbound__outbound_type__destruction
 #: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_verification__write_off_type__destruction
@@ -1264,7 +1259,6 @@ msgid "Document Reservation"
 msgstr "单据预扣"
 
 #. module: wd_bonded_wms
-#: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_customs_file__state__done
 #: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_inbound__state__done
 #: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_outbound__state__done
 msgid "Done"
@@ -1357,12 +1351,6 @@ msgstr "同一公司内EORI号码必须唯一！"
 #: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_inbound__cargo_source__eu_bonded_t1
 msgid "EU Bonded T1 Transfer"
 msgstr "欧盟保税T1转关"
-
-#. module: wd_bonded_wms
-#: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_customs_file__declaration_type__ex
-#: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_outbound__outbound_type__eu_dispatch
-msgid "EU Dispatch"
-msgstr "欧盟发运"
 
 #. module: wd_bonded_wms
 msgid "Each container belongs to exactly one T1 MRN"
@@ -1707,6 +1695,7 @@ msgstr "未启用"
 
 #. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_stock__inbound_id
+#: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_book_line__operation_type__bonded_inbound
 #: model_terms:ir.ui.view,arch_db:wd_bonded_wms.bonded_book_line_view_search
 msgid "Inbound"
 msgstr "入库"
@@ -1758,8 +1747,13 @@ msgstr "用于合并入库追溯的入库T1 MRN"
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_stock__inbound_tracking_no
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_gate_arrival__inbound_tracking_no
 #: model_terms:ir.ui.view,arch_db:wd_bonded_wms.bonded_outbound_view_form
-msgid "Inbound Tracking No."
-msgstr "入库跟踪号"
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound_tracking__name
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound__inbound_tracking_id
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_customs_file__inbound_tracking_ids
+#: model_terms:ir.ui.view,arch_db:wd_bonded_wms.bonded_customs_file_view_form
+#: model_terms:ir.ui.view,arch_db:wd_bonded_wms.bonded_book_line_view_search
+msgid "Unique Identifier No."
+msgstr "唯一追踪号"
 
 #. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_stock__inbound_verification_id
@@ -1948,6 +1942,7 @@ msgstr "批次/序列号"
 #. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_log__mrn
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_stock_snapshot__mrn
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound__mrn
 msgid "MRN"
 msgstr "MRN"
 
@@ -1963,13 +1958,7 @@ msgstr "MRN监管台账"
 
 #. module: wd_bonded_wms
 #: model:ir.model,name:wd_bonded_wms.model_bonded_mrn
-#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_customs_file__mrn
-#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_customs_file__mrn_id
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_mrn__mrn
-#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_outbound__mrn
-#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_outbound__mrn_id
-#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_verification__mrn
-#: model:ir.model.fields,field_description:wd_bonded_wms.field_gate_arrival__mrn
 msgid "MRN Number"
 msgstr "MRN编号"
 
@@ -2262,7 +2251,6 @@ msgid "Operation Time"
 msgstr "操作时间"
 
 #. module: wd_bonded_wms
-#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_book_line__operation_type
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_log__operation_type
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_value_ledger__operation_type
 msgid "Operation Type"
@@ -2298,6 +2286,9 @@ msgstr "出"
 #. module: wd_bonded_wms
 #: model_terms:ir.ui.view,arch_db:wd_bonded_wms.bonded_book_line_view_search
 #: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_outbound__order_type__outbound
+#: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_book_line__operation_type__customs_outbound
+#: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_book_line__operation_type__t1_outbound
+#: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_book_line__operation_type__rto
 msgid "Outbound"
 msgstr "出库"
 
@@ -2573,8 +2564,50 @@ msgstr "数量"
 
 #. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_book_line__qty_change
-msgid "Qty Change"
-msgstr "数量变动"
+msgid "Mutation Qty(Pcs)"
+msgstr "变动数量（件）"
+
+#. module: wd_bonded_wms
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_book_line__operation_type
+msgid "Mutation Type"
+msgstr "变动类型"
+
+#. module: wd_bonded_wms
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_customs_file__mrn
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_customs_file__mrn_id
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound_tracking__mrn
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound_tracking__mrn_id
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_outbound__mrn
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_outbound__mrn_id
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_verification__mrn
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_gate_arrival__mrn
+msgid "Corresponding MRN"
+msgstr "对应MRN"
+
+#. module: wd_bonded_wms
+#: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_stock__current_customs_status__vrij
+msgid "Free"
+msgstr "非保税"
+
+#. module: wd_bonded_wms
+#: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_book_line__operation_type__destruction
+msgid "Correction"
+msgstr "更正"
+
+#. module: wd_bonded_wms
+#: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_book_line__operation_type__sample_check
+msgid "Finding"
+msgstr "盘点发现"
+
+#. module: wd_bonded_wms
+#: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_book_line__operation_type__shortage
+msgid "Missing"
+msgstr "盘点短少"
+
+#. module: wd_bonded_wms
+#: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_book_line__operation_type__snapshot
+msgid "Closing Balance"
+msgstr "期末结存"
 
 #. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_charge_line__quantity
@@ -2598,11 +2631,6 @@ msgstr "退运（RTO）"
 #: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_stock__current_customs_status__rto
 msgid "RTO (Return to Origin)"
 msgstr "RTO（退运原产地）"
-
-#. module: wd_bonded_wms
-#: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_book_line__operation_type__rto
-msgid "RTO Return"
-msgstr "RTO退运"
 
 #. module: wd_bonded_wms
 #: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_customs_file__transport_mode__rail
@@ -2795,11 +2823,6 @@ msgid "SMS Delivery error"
 msgstr "短信传送错误"
 
 #. module: wd_bonded_wms
-#: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_book_line__operation_type__sample_check
-msgid "Sample Check"
-msgstr "抽样检查"
-
-#. module: wd_bonded_wms
 msgid "Satisfied Date"
 msgstr "满足日期"
 
@@ -2870,11 +2893,6 @@ msgstr "设为完成"
 #: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_verification__write_off_type__shortage
 msgid "Shortage"
 msgstr "短少"
-
-#. module: wd_bonded_wms
-#: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_book_line__operation_type__shortage
-msgid "Shortage Disposal"
-msgstr "短少处置"
 
 #. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_book__shortage_threshold_percent
@@ -2972,11 +2990,6 @@ msgid "Stock Picking"
 msgstr "仓库收货单"
 
 #. module: wd_bonded_wms
-#: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_book_line__operation_type__snapshot
-msgid "Stock Snapshot"
-msgstr "库存快照"
-
-#. module: wd_bonded_wms
 #: model:ir.model.constraint,message:wd_bonded_wms.constraint_bonded_stock_stock_move_line_uniq
 msgid "Stock move line already has a bonded stock record!"
 msgstr "库存移动明细已有保税库存记录！"
@@ -3018,12 +3031,15 @@ msgstr "证明文件"
 
 #. module: wd_bonded_wms
 #: model:ir.model.fields.selection,name:wd_bonded_wms.selection__gate_arrival__state__closed
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound__t1_is_closed
 msgid "T1 Closed"
 msgstr "T1已结案"
 
 #. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_customs_file__t1_closed_date
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_gate_arrival__t1_closed_date
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound__t1_closed_date
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_outbound__t1_closed_date
 msgid "T1 Closed Date"
 msgstr "T1关闭日期"
 
@@ -3067,7 +3083,6 @@ msgstr "关联T1出境MRN"
 
 #. module: wd_bonded_wms
 #: model:ir.actions.act_window,name:wd_bonded_wms.action_bonded_customs_file_t1_out
-#: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_book_line__operation_type__t1_outbound
 #: model:ir.ui.menu,name:wd_bonded_wms.menu_bonded_customs_file_t1_out
 msgid "T1 Outbound"
 msgstr "T1出境"
@@ -3286,11 +3301,6 @@ msgid "Traceability"
 msgstr "追溯"
 
 #. module: wd_bonded_wms
-#: model_terms:ir.ui.view,arch_db:wd_bonded_wms.bonded_book_line_view_search
-msgid "Tracking No."
-msgstr "跟踪号"
-
-#. module: wd_bonded_wms
 #: model:ir.model,name:wd_bonded_wms.model_stock_picking
 msgid "Transfer"
 msgstr "调拨"
@@ -3455,7 +3465,6 @@ msgstr "核注核销"
 msgid "Verification Date"
 msgstr "核注日期"
 
-#. module: wd_bonded_wms
 #. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_verification__verification_type
 msgid "Verification Type"
@@ -3664,11 +3673,13 @@ msgstr "关闭T1海关文件前，必须完成全部关联出库Picking。"
 
 #. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_outbound__order_type
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound__order_type
 msgid "Order Type"
 msgstr "订单类型"
 
 #. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_outbound__order_date
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound__order_date
 msgid "Order Date"
 msgstr "订单日期"
 
@@ -3680,26 +3691,30 @@ msgstr "计划日期"
 
 #. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_outbound__owner_id
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound__owner_id
 msgid "Owner"
 msgstr "货主"
 
 #. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_outbound__reference
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound__reference
 msgid "Reference"
 msgstr "参考号"
 
 #. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_outbound__is_dangerous
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound__is_dangerous
 msgid "Dangerous Goods"
 msgstr "是否危险品"
 
 #. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_outbound__t1_status
-msgid "T1 File Status"
-msgstr "T1文件状态"
+msgid "T1 Status"
+msgstr "T1状态"
 
 #. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_outbound__mrn_status
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound__mrn_status
 msgid "MRN Status"
 msgstr "MRN状态"
 
@@ -3710,21 +3725,25 @@ msgstr "备注1"
 
 #. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_outbound__confirm_time_user_tz
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound__confirm_time_user_tz
 msgid "Confirm Time (User Timezone)"
 msgstr "确认时间（用户时区）"
 
 #. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_outbound__confirm_time_server
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound__confirm_time_server
 msgid "Confirm Time (Server)"
 msgstr "确认时间（服务器）"
 
 #. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_outbound__confirm_user_id
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound__confirm_user_id
 msgid "Confirmed By"
 msgstr "确认人"
 
 #. module: wd_bonded_wms
 #: model_terms:ir.ui.view,arch_db:wd_bonded_wms.bonded_outbound_view_form
+#: model_terms:ir.ui.view,arch_db:wd_bonded_wms.bonded_inbound_view_form
 msgid "Remarks and Confirmation"
 msgstr "备注与确认"
 
@@ -3734,11 +3753,45 @@ msgid "Bonded Inbound Tracking"
 msgstr "保税入库唯一追踪号"
 
 #. module: wd_bonded_wms
-#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound__inbound_tracking_id
-#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_customs_file__inbound_tracking_ids
-#: model_terms:ir.ui.view,arch_db:wd_bonded_wms.bonded_customs_file_view_form
-msgid "Inbound Tracking"
-msgstr "唯一追踪号"
+#. module: wd_bonded_wms
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound__bl_no
+msgid "Bill of Lading No."
+msgstr "提单号"
+
+#. module: wd_bonded_wms
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound__cntr_no
+msgid "Container No."
+msgstr "集装箱号"
+
+#. module: wd_bonded_wms
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound__customs_file_status
+msgid "Customs File Status"
+msgstr "海关文件状态"
+
+#. module: wd_bonded_wms
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound__picking_status
+msgid "Inbound Picking Status"
+msgstr "入库Pick状态"
+
+#. module: wd_bonded_wms
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound__picking_validation_time
+msgid "Inbound Picking Validation Time"
+msgstr "入库Pick验证时间"
+
+#. module: wd_bonded_wms
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound__actual_inbound_date
+msgid "Actual Inbound Date (Manual)"
+msgstr "实际入库日期（手动填写）"
+
+#. module: wd_bonded_wms
+#: model_terms:ir.ui.view,arch_db:wd_bonded_wms.bonded_inbound_view_form
+msgid "Expected Arrival Date"
+msgstr "预计到货日期"
+
+#. module: wd_bonded_wms
+#: model_terms:ir.ui.view,arch_db:wd_bonded_wms.bonded_inbound_view_form
+msgid "Warehouse and Receipt"
+msgstr "仓库与收货"
 
 #. module: wd_bonded_wms
 #: model_terms:ir.ui.view,arch_db:wd_bonded_wms.bonded_inbound_view_form
@@ -3804,3 +3857,64 @@ msgstr "项目的包裹生成模式为入库或拣货时，每条入库产品明
 #: code:addons/wd_bonded_wms/models/bonded_inbound.py:0
 msgid "Lines with pallet number %s must use the same package."
 msgstr "托盘号 %s 的产品明细必须使用同一个包裹。"
+
+#. module: wd_bonded_wms
+#: code:addons/wd_bonded_wms/models/bonded_inbound.py:0
+msgid "Only confirmed or declared inbound instructions can create a T1 inbound declaration."
+msgstr "只有已确认或已申报的入库单可以创建 T1 入库文件。"
+
+#. module: wd_bonded_wms
+#: code:addons/wd_bonded_wms/models/bonded_inbound.py:0
+msgid "This inbound instruction already has an active T1 declaration. Return a rejected file to draft and edit it, or cancel the existing file before creating another."
+msgstr "该入库单已有未取消的 T1 文件。被拒文件请退回草稿后直接修改；如需新建文件，请先取消现有文件。"
+
+#. module: wd_bonded_wms
+#: code:addons/wd_bonded_wms/models/bonded_outbound.py:0
+msgid "Only confirmed or declared outbound instructions can create the matching outbound customs declaration."
+msgstr "只有已确认或已申报的出库单可以创建对应的出库海关文件。"
+
+#. module: wd_bonded_wms
+#: code:addons/wd_bonded_wms/models/bonded_outbound.py:0
+msgid "This outbound instruction already has an active customs declaration. Return a rejected file to draft and edit it, or cancel the existing file before creating another."
+msgstr "该出库单已有未取消的海关文件。被拒文件请退回草稿后直接修改；如需新建文件，请先取消现有文件。"
+
+#. module: wd_bonded_wms
+#: code:addons/wd_bonded_wms/models/bonded_customs_file.py:0
+msgid "An inbound instruction can only have one active customs declaration. Cancel the existing declaration before creating another."
+msgstr "一张入库单只能关联一份未取消的海关文件。请先取消现有文件再创建。"
+
+#. module: wd_bonded_wms
+#: code:addons/wd_bonded_wms/models/bonded_customs_file.py:0
+msgid "An outbound instruction can only have one active customs declaration. Cancel the existing declaration before creating another."
+msgstr "一张出库单只能关联一份未取消的海关文件。请先取消现有文件再创建。"
+
+#. module: wd_bonded_wms
+#: code:addons/wd_bonded_wms/models/bonded_customs_file.py:0
+msgid "Only draft customs declarations can be submitted."
+msgstr "只有草稿状态的海关文件可以提交。"
+
+#. module: wd_bonded_wms
+#: code:addons/wd_bonded_wms/models/bonded_customs_file.py:0
+msgid "Only customs-rejected declarations can be returned to draft."
+msgstr "只有被海关拒绝的文件可以退回草稿。"
+
+#. module: wd_bonded_wms/models/bonded_inbound.py:0
+msgid "Cancel the active T1 declaration before cancelling this inbound instruction."
+msgstr "请先取消未取消的 T1 文件，再取消该入库单。"
+
+#. module: wd_bonded_wms/models/bonded_outbound.py:0
+msgid "Only draft, confirmed, or declared outbound instructions without a picking can be cancelled."
+msgstr "只有未创建 Picking 的草稿、已确认或已申报出库单可以取消。"
+
+#. module: wd_bonded_wms/models/bonded_outbound.py:0
+msgid "Cancel the active customs declaration before cancelling this outbound instruction."
+msgstr "请先取消未取消的海关文件，再取消该出库单。"
+
+#. module: wd_bonded_wms/models/bonded_outbound.py:0
+msgid "Outbound stock must remain locked from confirmation until the picking is completed."
+msgstr "出库单确认后至 Picking 完成前，相关库存必须保持锁定。"
+
+#. module: wd_bonded_wms
+#: code:addons/wd_bonded_wms/models/bonded_inbound.py:0
+msgid "Please use Create Packages before creating the picking."
+msgstr "请先点击“创建包裹”，再创建 Picking。"

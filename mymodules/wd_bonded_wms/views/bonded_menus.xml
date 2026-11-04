@@ -140,10 +140,11 @@
     <menuitem id="menu_bonded_customs_file_t1_in" name="T1 Inbound" parent="menu_bonded_customs" action="action_bonded_customs_file_t1_in" sequence="10"/>
     <menuitem id="menu_bonded_customs_file_clearance_out" name="Customs Clearance Outbound" parent="menu_bonded_customs" action="action_bonded_customs_file_clearance_out" sequence="30"/>
     <menuitem id="menu_bonded_customs_file_t1_out" name="T1 Outbound" parent="menu_bonded_customs" action="action_bonded_customs_file_t1_out" sequence="40"/>
+    <menuitem id="menu_bonded_customs_mrn" name="MRN Numbers" parent="menu_bonded_customs" action="action_bonded_mrn_ledger" sequence="50"/>
     <menuitem id="menu_bonded_operations" name="Warehouse Operations" parent="menu_bonded_root" sequence="10"/>
     <menuitem id="menu_bonded_inbound" name="Bonded Inbound" parent="menu_bonded_operations" action="action_bonded_inbound" sequence="10"/>
     <menuitem id="menu_bonded_outbound" name="Bonded Outbound" parent="menu_bonded_operations" action="action_bonded_outbound" sequence="20"/>
-    <menuitem id="menu_gate_arrival" name="Gate Arrivals" parent="menu_bonded_operations" action="action_gate_arrival" sequence="30"/>
+    <menuitem id="menu_gate_arrival" name="Gate Arrivals" parent="menu_bonded_operations" action="action_gate_arrival" sequence="30" active="False"/>
     <menuitem id="menu_bonded_stock" name="Bonded Stock" parent="menu_bonded_root" sequence="40"/>
     <menuitem id="menu_bonded_stock_all" name="All Bonded Stock" parent="menu_bonded_stock" action="action_bonded_stock" sequence="10"/>
     <menuitem id="menu_bonded_verification" name="Verifications" parent="menu_bonded_stock" action="action_bonded_verification" sequence="20"/>

@@ -36,7 +36,7 @@
                         <group string="Arrival Info">
                             <field name="name" readonly="1"/>
                             <field name="customs_file_id" required="1" readonly="context.get('from_t1_customs_file')" options="{'no_create': True, 'no_open': False}"/>
-                            <field name="bonded_inbound_id" required="1" domain="[('t1_customs_file_id', '=', customs_file_id)]" readonly="context.get('from_t1_customs_file')" options="{'no_create': True, 'no_open': False}"/>
+                            <field name="bonded_inbound_id" required="1" domain="[('t1_customs_file_ids', 'in', customs_file_id)]" readonly="context.get('from_t1_customs_file')" options="{'no_create': True, 'no_open': False}"/>
                             <field name="inbound_tracking_no" readonly="1"/>
                             <field name="mrn" readonly="1"/>
                             <field name="arrival_datetime"/>
