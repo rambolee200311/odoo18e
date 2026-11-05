@@ -46,7 +46,7 @@ class BlindStockCount(models.Model):
         active_recounted_ids = set(self.env["blind.stock.count"].sudo().search([("recounted_from_id", "in", self.ids), ("state", "!=", "cancel")]).mapped("recounted_from_id").ids) if self else set()
         can_manage = self.env.user.has_group("blind_stock_count.group_blind_stock_count_administrator") or self.env.user.has_group("base.group_system")
         for rec in self:
-            rec.can_return_to_counting = can_manage and rec.state == "done" and rec.work_package_id.state == "in_progress" and not rec.is_replaced and rec.id not in active_recounted_ids
+            rec.can_return_to_counting = can_manage and rec.state == "done" and not rec.is_replaced and rec.id not in active_recounted_ids
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -185,8 +185,6 @@ class BlindStockCount(models.Model):
             if is_return_to_counting:
                 if not (self.env.user.has_group("blind_stock_count.group_blind_stock_count_administrator") or self.env.user.has_group("base.group_system")):
                     raise UserError(_("Only a warehouse manager or system administrator can return a completed blind stock count to counting."))
-                if rec.work_package_id.state != "in_progress":
-                    raise UserError(_("The work package must be in progress before returning a blind stock count to counting."))
                 if rec.is_replaced or self.sudo().search_count([("recounted_from_id", "=", rec.id), ("state", "!=", "cancel")]):
                     raise UserError(_("A blind stock count with an active recount cannot be returned to counting."))
             if rec.state in ("done", "cancel") and not (is_replacement_update or is_return_to_counting or is_receipt_queue_update):
