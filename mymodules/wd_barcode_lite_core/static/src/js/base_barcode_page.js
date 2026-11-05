@@ -226,6 +226,6 @@ export class BaseBarcodePage extends Component {
     }
 
     exit() {
-        this.action.doAction("stock_barcode_lite_homepage");
+        this.action.doAction(this.props?.action?.context?.barcode_home_action || "stock_barcode_lite_homepage");
     }
 }

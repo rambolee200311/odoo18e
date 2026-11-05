@@ -2,6 +2,7 @@
 import logging
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+from odoo.tools.float_utils import float_compare
 
 _logger = logging.getLogger(__name__)
 
@@ -15,9 +16,28 @@ class StockPicking(models.Model):
     bonded_outbound_id = fields.Many2one('bonded.outbound', string='Bonded Outbound',
                                          readonly=True, copy=False)
 
+    @api.model
+    def action_create_bonded_pda_internal_transfer(self):
+        warehouse = self.env.user.warehouse_id
+        if not warehouse:
+            raise UserError(_('Set a default warehouse on your user before starting an internal transfer.'))
+        return self.action_create_pda_internal_transfer(warehouse.id)
+
     def button_validate(self):
         """V3修正(F-05): 前置校验 + 后置钩子"""
         for picking in self:
+            if picking.state not in ('done', 'cancel'):
+                if picking.picking_type_code == 'incoming' and picking.bonded_inbound_id and picking.bonded_inbound_id.project_id.barcode_scan_mode == 'custom':
+                    package_lines = picking.move_line_ids.filtered(lambda line: line.result_package_id and line.quantity > 0)
+                    if picking.bonded_inbound_id.package_generation_mode != 'none' and not package_lines:
+                        raise UserError(_('Bonded inbound picking has no pallet lines to scan.'))
+                    missing = package_lines.filtered(lambda line: not line.is_location_updated or not line.location_dest_id)
+                    if missing:
+                        raise UserError(_('Please scan locations for all bonded inbound pallets: %s') % ', '.join(sorted(set(missing.mapped('result_package_id.name')))))
+                if picking.picking_type_code == 'outgoing' and picking.bonded_outbound_id and picking.bonded_outbound_id.project_id.barcode_scan_mode == 'custom':
+                    lines = picking.move_line_ids.filtered(lambda line: line.quantity > 0 and line.state != 'cancel')
+                    if not lines or lines.filtered(lambda line: not line.package_id or not line.is_outbound_scanned or float_compare(line.outbound_scanned_quantity, line.quantity, precision_rounding=line.product_uom_id.rounding) != 0):
+                        raise UserError(_('Please complete bonded outbound pallet and product scanning before validating.'))
             # ---- 入库: bonded.inbound必须是done ----
             if picking.picking_type_code == 'incoming' and picking.bonded_inbound_id:
                 if picking.bonded_inbound_id.state != 'in_progress':
@@ -37,13 +57,13 @@ class StockPicking(models.Model):
         result = super(StockPicking, self).button_validate()
         # 后处理: 触发指令完成
         for picking in self:
-            try:
-                if picking.picking_type_code == 'incoming' and picking.bonded_inbound_id:
-                    picking.bonded_inbound_id.action_done()
-                if picking.picking_type_code == 'outgoing' and picking.bonded_outbound_id:
+            if picking.picking_type_code == 'incoming' and picking.bonded_inbound_id and picking.state == 'done' and picking.bonded_inbound_id.state == 'in_progress':
+                picking.bonded_inbound_id.action_done()
+            if picking.picking_type_code == 'outgoing' and picking.bonded_outbound_id:
+                try:
                     picking.bonded_outbound_id.action_done()
-            except Exception as e:
-                _logger.error("Error in bonded post-validation for picking %s: %s", picking.name, str(e))
+                except Exception as e:
+                    _logger.error("Error in bonded post-validation for picking %s: %s", picking.name, str(e))
         return result
 
 

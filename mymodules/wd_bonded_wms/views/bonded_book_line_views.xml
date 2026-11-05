@@ -71,7 +71,7 @@
                 <filter name="snapshot" string="Snapshot" domain="[('operation_type','=','snapshot')]"/>
                 <group expand="0" string="Group By">
                     <filter name="by_book" string="Bonded Book" context="{'group_by':'bonded_book_id'}"/>
-                    <filter name="by_tracking" string="Tracking No." context="{'group_by':'inbound_tracking_no'}"/>
+                    <filter name="by_tracking" string="Unique Identifier No." context="{'group_by':'inbound_tracking_no'}"/>
                     <filter name="by_operation" string="Operation" context="{'group_by':'operation_type'}"/>
                 </group>
             </search>

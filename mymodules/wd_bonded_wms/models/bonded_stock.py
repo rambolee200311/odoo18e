@@ -14,16 +14,16 @@ class BondedStock(models.Model):
                                          ondelete='set null', index=True)
     lot_id = fields.Many2one('stock.lot', string='Lot/SN', index=True)
     location_id = fields.Many2one('stock.location', string='Location', required=True, index=True)
-    inbound_tracking_no = fields.Char(string='Inbound Tracking No.', required=True, copy=False, index=True)
+    inbound_tracking_no = fields.Char(string='Unique Identifier No.', required=True, copy=False, index=True)
     customer_batch_no = fields.Char(string='Customer Batch No.', copy=False, index=True)
 
     current_customs_status = fields.Selection([
-        ('entrepot', 'Entrepot (Bonded)'),
-        ('vrij', 'Vrij (Free Circulation)'),
+        ('entrepot', 'Bonded'),
+        ('vrij', 'Free'),
         ('in_t1_transit', 'In T1 Transit'),
         ('rto', 'RTO (Return to Origin)'),
         ('destroyed', 'Destroyed'),
-    ], string='Current Customs Status', required=True, default='entrepot', index=True)
+    ], string='Customs Status', required=True, default='entrepot', index=True)
 
     quantity = fields.Float(string='Quantity', required=True, default=0.0)
     unit_value = fields.Monetary(string='Unit Value', required=True, default=0.0)
@@ -40,8 +40,6 @@ class BondedStock(models.Model):
                                               readonly=True)
     gate_arrival_ids = fields.Many2many('gate.arrival', string='Gate Arrivals',
                                         help='T1 source gate arrivals for traceability')
-    related_t1_in_mrn_ids = fields.Many2many('customs.file.pre.mrn', string='Related T1 In MRNs',
-                                             help='Inbound T1 MRNs for consolidation traceability')
     related_t1_out_mrn = fields.Char(string='T1 Out MRN',
                                      help='Outbound T1 MRN (T1 transit only)')
     locked = fields.Boolean(string='Locked', default=False,

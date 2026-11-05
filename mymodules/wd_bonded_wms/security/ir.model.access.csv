@@ -27,8 +27,6 @@ access_bonded_mrn_warehouse,bonded.mrn.warehouse,model_bonded_mrn,group_bonded_w
 access_bonded_mrn,bonded.mrn,model_bonded_mrn,group_bonded_customs_declaration,1,1,1,1
 access_bonded_mrn_review,bonded.mrn.review,model_bonded_mrn,group_bonded_customs_review,1,0,0,0
 access_bonded_mrn_audit,bonded.mrn.audit,model_bonded_mrn,group_bonded_customs_audit,1,0,0,0
-access_customs_file_pre_mrn,customs.file.pre.mrn,model_customs_file_pre_mrn,group_bonded_customs_declaration,1,1,1,1
-access_customs_file_pre_mrn_audit,customs.file.pre.mrn.audit,model_customs_file_pre_mrn,group_bonded_customs_audit,1,0,0,0
 access_bonded_customs_file_line,bonded.customs.file.line,model_bonded_customs_file_line,group_bonded_customs_declaration,1,1,1,1
 access_bonded_product,bonded.product,model_bonded_product,group_bonded_admin,1,1,1,1
 access_bonded_product_user,bonded.product.user,model_bonded_product,group_bonded_customs_declaration,1,0,0,0
@@ -39,6 +37,9 @@ access_bonded_inbound,bonded.inbound,model_bonded_inbound,group_bonded_warehouse
 access_bonded_inbound_customs,bonded.inbound.customs,model_bonded_inbound,group_bonded_customs_declaration,1,1,0,0
 access_bonded_inbound_audit,bonded.inbound.audit,model_bonded_inbound,group_bonded_customs_audit,1,0,0,0
 access_bonded_inbound_line,bonded.inbound.line,model_bonded_inbound_line,group_bonded_warehouse,1,1,1,1
+access_bonded_inbound_tracking,bonded.inbound.tracking,model_bonded_inbound_tracking,group_bonded_warehouse,1,1,1,0
+access_bonded_inbound_tracking_customs,bonded.inbound.tracking.customs,model_bonded_inbound_tracking,group_bonded_customs_declaration,1,1,0,0
+access_bonded_inbound_tracking_audit,bonded.inbound.tracking.audit,model_bonded_inbound_tracking,group_bonded_customs_audit,1,0,0,0
 access_bonded_outbound,bonded.outbound,model_bonded_outbound,group_bonded_warehouse,1,1,1,1
 access_bonded_outbound_customs,bonded.outbound.customs,model_bonded_outbound,group_bonded_customs_declaration,1,1,0,0
 access_bonded_outbound_audit,bonded.outbound.audit,model_bonded_outbound,group_bonded_customs_audit,1,0,0,0
@@ -60,12 +61,12 @@ access_bonded_value_limit_system,bonded.value.limit,model_bonded_value_limit,bas
 access_bonded_value_ledger_system,bonded.value.ledger,model_bonded_value_ledger,base.group_system,1,1,1,1
 access_bonded_customs_file_system,bonded.customs.file,model_bonded_customs_file,base.group_system,1,1,1,1
 access_bonded_mrn_system,bonded.mrn,model_bonded_mrn,base.group_system,1,1,1,1
-access_customs_file_pre_mrn_system,customs.file.pre.mrn,model_customs_file_pre_mrn,base.group_system,1,1,1,1
 access_bonded_customs_file_line_system,bonded.customs.file.line,model_bonded_customs_file_line,base.group_system,1,1,1,1
 access_bonded_product_system,bonded.product,model_bonded_product,base.group_system,1,1,1,1
 access_gate_arrival_system,gate.arrival,model_gate_arrival,base.group_system,1,1,1,1
 access_bonded_inbound_system,bonded.inbound,model_bonded_inbound,base.group_system,1,1,1,1
 access_bonded_inbound_line_system,bonded.inbound.line,model_bonded_inbound_line,base.group_system,1,1,1,1
+access_bonded_inbound_tracking_system,bonded.inbound.tracking,model_bonded_inbound_tracking,base.group_system,1,1,1,1
 access_bonded_outbound_system,bonded.outbound,model_bonded_outbound,base.group_system,1,1,1,1
 access_bonded_outbound_line_system,bonded.outbound.line,model_bonded_outbound_line,base.group_system,1,1,1,1
 access_bonded_stock_system,bonded.stock,model_bonded_stock,base.group_system,1,1,1,1

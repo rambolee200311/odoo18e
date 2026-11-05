@@ -47,7 +47,6 @@
                         </group>
                         <group string="Traceability">
                             <field name="inbound_date"/>
-                            <field name="related_t1_in_mrn_ids"/>
                             <field name="related_t1_out_mrn"/>
                         </group>
                     </group>

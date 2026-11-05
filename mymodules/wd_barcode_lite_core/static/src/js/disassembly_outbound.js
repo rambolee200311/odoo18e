@@ -590,7 +590,7 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
     }
 
     exit() {
-        this.action.doAction("stock_barcode_lite_homepage");
+        super.exit();
     }
 
     // ═══════════════════════════════════════════════════════════════

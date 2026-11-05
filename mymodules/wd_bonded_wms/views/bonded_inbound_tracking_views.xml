@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="bonded_inbound_tracking_view_list" model="ir.ui.view">
+        <field name="name">bonded.inbound.tracking.list</field>
+        <field name="model">bonded.inbound.tracking</field>
+        <field name="arch" type="xml">
+            <list create="false" delete="false">
+                <field name="name"/>
+                <field name="bonded_inbound_id"/>
+                <field name="customs_file_id"/>
+                <field name="mrn"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="bonded_inbound_tracking_view_form" model="ir.ui.view">
+        <field name="name">bonded.inbound.tracking.form</field>
+        <field name="model">bonded.inbound.tracking</field>
+        <field name="arch" type="xml">
+            <form duplicate="false" create="false" delete="false">
+                <sheet>
+                    <group>
+                        <field name="name" readonly="1"/>
+                        <field name="bonded_inbound_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="customs_file_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="mrn_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

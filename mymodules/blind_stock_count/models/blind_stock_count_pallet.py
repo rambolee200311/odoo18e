@@ -16,6 +16,24 @@ class BlindStockCountPallet(models.Model):
     package_id = fields.Many2one("stock.quant.package", string="Pallet Number", required=True, copy=False, index=True)
     product_lines = fields.One2many("blind.stock.count.line", "blind_stock_count_pallet_id", string="Product Lines", copy=False)
 
+    @api.constrains("blind_stock_count_id", "package_id")
+    def check_package_available_for_blind_stock_count(self):
+        pallet_model = self.env["blind.stock.count.pallet"]
+        quant_model = self.env["stock.quant"]
+        move_line_model = self.env["stock.move.line"]
+        for rec in self:
+            if not rec.blind_stock_count_id or not rec.package_id:
+                continue
+            used_pallet = pallet_model.sudo().search([("package_id", "=", rec.package_id.id), ("blind_stock_count_id", "!=", rec.blind_stock_count_id.id), ("blind_stock_count_id.state", "!=", "cancel")], limit=1)
+            if used_pallet:
+                raise UserError(_("Pallet %s is already recorded on blind stock count %s.") % (rec.package_id.display_name, used_pallet.blind_stock_count_id.display_name))
+            stock_quant = quant_model.sudo().search([("package_id", "=", rec.package_id.id), ("quantity", ">", 0)], limit=1)
+            if stock_quant:
+                raise UserError(_("Pallet %s already has stock in %s.") % (rec.package_id.display_name, stock_quant.location_id.display_name))
+            inbound_move_line = move_line_model.sudo().search([("result_package_id", "=", rec.package_id.id), ("picking_id.picking_type_id.code", "=", "incoming"), ("picking_id.state", "!=", "cancel")], limit=1)
+            if inbound_move_line:
+                raise UserError(_("Pallet %s was already used by inbound picking %s.") % (rec.package_id.display_name, inbound_move_line.picking_id.display_name))
+
     def get_scan_data(self):
         line_model = self.env["blind.stock.count.line"]
         result = []

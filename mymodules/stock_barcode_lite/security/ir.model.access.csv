@@ -24,7 +24,6 @@ access_sunrise_monthly_category_pallet_report,sunrise.monthly.category.pallet.re
 access_sunrise_monthly_category_pallet_report_line,sunrise.monthly.category.pallet.report.line,model_sunrise_monthly_category_pallet_report_line,,1,1,1,1
 #access_sunrise_location_occupancy_report,sunrise.location.occupancy.report,model_sunrise_location_occupancy_report,,1,1,1,1
 #access_sunrise_location_occupancy_report_line,sunrise.location.occupancy.report.line,model_sunrise_location_occupancy_report_line,,1,1,1,1
-access_stock_picking_package_scan,stock.picking.package.scan,model_stock_picking_package_scan,,1,1,1,1
 access_inbound_actual_pallet,inbound.actual.pallet,model_world_depot_inbound_order_actual_pallet,,1,1,1,1
 access_inbound_actual_pallet_product,inbound.actual.pallet.product,model_world_depot_inbound_order_actual_pallet_product,,1,1,1,1
 access_inbound_actual_pallet_serial,inbound.actual.pallet.product.serial,model_world_depot_inbound_order_actual_pallet_product_serial,,1,1,1,1

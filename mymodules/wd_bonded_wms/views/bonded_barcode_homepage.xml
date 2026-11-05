@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_bonded_barcode_homepage" model="ir.actions.client">
+        <field name="name">Bonded Barcode Scanning</field>
+        <field name="tag">wd_bonded_wms_barcode_homepage</field>
+        <field name="target">main</field>
+    </record>
+    <record id="menu_bonded_root" model="ir.ui.menu">
+        <field name="action" eval="False"/>
+    </record>
+    <record id="action_bonded_barcode_inbound_scan" model="ir.actions.client">
+        <field name="name">Inbound Picking Scan</field>
+        <field name="tag">wd_barcode_lite_core_inbound</field>
+        <field name="context">{'barcode_home_action': 'wd_bonded_wms.action_bonded_barcode_homepage'}</field>
+        <field name="target">main</field>
+    </record>
+    <record id="action_bonded_barcode_outbound_whole" model="ir.actions.client">
+        <field name="name">Full Pallet Pick</field>
+        <field name="tag">wd_barcode_lite_core_outbound_whole</field>
+        <field name="context">{'barcode_home_action': 'wd_bonded_wms.action_bonded_barcode_homepage'}</field>
+        <field name="target">main</field>
+    </record>
+    <record id="action_bonded_barcode_outbound_break" model="ir.actions.client">
+        <field name="name">Break Bulk Pick</field>
+        <field name="tag">wd_barcode_lite_core_outbound_disassembly</field>
+        <field name="context">{'barcode_home_action': 'wd_bonded_wms.action_bonded_barcode_homepage'}</field>
+        <field name="target">main</field>
+    </record>
+    <menuitem id="menu_bonded_barcode_homepage" name="Barcode Scanning" parent="menu_bonded_operations" action="action_bonded_barcode_homepage" sequence="40" groups="wd_bonded_wms.group_bonded_warehouse" active="False"/>
+</odoo>

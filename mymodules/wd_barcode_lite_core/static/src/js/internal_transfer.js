@@ -1,6 +1,6 @@
 /** @odoo-module **/
 
-import { BaseBarcodePage } from "./base_barcode_page";
+import { BaseBarcodePage } from "@wd_barcode_lite_core/js/base_barcode_page";
 import { _t } from "@web/core/l10n/translation";
 import { standardActionServiceProps } from "@web/webclient/actions/action_service";
 

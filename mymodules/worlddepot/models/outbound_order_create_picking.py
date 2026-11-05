@@ -338,9 +338,9 @@ class OutboundOrder(models.Model):
                     
                     # Add prefix filter if specified
                     if prefix:
-                        quant_domain.append(('package_id.name', '=ilike', f'%{prefix}%'))
+                        quant_domain.extend(['|', ('package_id.name', '=ilike', f'%{prefix}%'), ('package_id.cntr_no', '=ilike', f'%{prefix}%')])
                     
-                    quants = self.env['stock.quant'].search(quant_domain)
+                    quants = self.env['stock.quant'].sudo().search(quant_domain)
                     
                     # Filter quants with available quantity
                     available_quants = []
@@ -468,7 +468,7 @@ class OutboundOrder(models.Model):
                 prefix = product_line.pallet_prefix_code or ''
                 
                 # Get all relevant stock records
-                quants = self.env['stock.quant'].search([
+                quants = self.env['stock.quant'].sudo().search([
                     ('product_id', '=', product_id),
                     ('quantity', '>', 0),
                     ('location_id.usage', '=', 'internal'),
@@ -492,8 +492,8 @@ class OutboundOrder(models.Model):
                 # If pallet prefix is specified, check matching pallet stock
                 if prefix:
                     # Get all pallets matching the prefix
-                    matching_packages = self.env['stock.quant.package'].search([
-                        ('name', 'ilike', f'%{prefix}%')
+                    matching_packages = self.env['stock.quant.package'].sudo().search([
+                        '|', ('name', 'ilike', f'%{prefix}%'), ('cntr_no', 'ilike', f'%{prefix}%')
                     ])
                     
                     if matching_packages:

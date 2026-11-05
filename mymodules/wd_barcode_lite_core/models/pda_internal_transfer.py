@@ -1,14 +1,10 @@
 # -*- coding: utf-8 -*-
 
-import logging
 from datetime import timedelta
 
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 from odoo.tools.float_utils import float_compare, float_is_zero
-
-
-_logger = logging.getLogger(__name__)
 
 
 class StockPicking(models.Model):
@@ -19,45 +15,27 @@ class StockPicking(models.Model):
     package_scan_lines = fields.One2many("stock.picking.package.scan", "picking_id", string="Package Scan Lines", copy=False)
 
     @api.model
-    def ensure_pda_internal_transfer_picking_type(self):
-        company_records = self.env["res.company"].sudo().search([])
-        picking_type_model = self.env["stock.picking.type"]
-        warehouse_model = self.env["stock.warehouse"]
-        for company in company_records:
-            picking_types = picking_type_model.sudo().search([
+    def action_create_pda_internal_transfer(self, warehouse_id=False):
+        if warehouse_id:
+            warehouse = self.env["stock.warehouse"].sudo().browse(warehouse_id).exists()
+            if not warehouse or warehouse.company_id != self.env.company:
+                raise UserError(_("Select a valid warehouse for the current company."))
+            picking_type = warehouse.int_type_id
+            if not picking_type:
+                raise UserError(_("The selected warehouse has no internal transfer operation type."))
+        else:
+            picking_types = self.env["stock.picking.type"].sudo().search([
                 ("name", "=", "Pallet Internal Transfers"),
                 ("code", "=", "internal"),
-                ("company_id", "=", company.id),
+                ("company_id", "=", self.env.company.id),
             ], limit=2)
-            if picking_types:
-                if len(picking_types) > 1:
-                    _logger.warning("PDA internal transfer picking type was not created for company %s because multiple matching operation types exist.", company.display_name)
-                continue
-            warehouse_records = warehouse_model.sudo().search([("company_id", "=", company.id), ("name", "=", "SPN-Malledijk 3h")], order="id", limit=1)
-            if len(warehouse_records) != 1:
-                _logger.warning("PDA internal transfer picking type was not created for company %s because warehouse SPN-Malledijk 3h was not found.", company.display_name)
-                continue
-            picking_type_model.with_company(company).create({
-                "name": "Pallet Internal Transfers",
-                "code": "internal",
-                "sequence_code": "PDAINT",
-                "warehouse_id": warehouse_records.id,
-                "company_id": company.id,
-                "show_entire_packs": True,
-            })
-
-    @api.model
-    def action_create_pda_internal_transfer(self):
-        picking_types = self.env["stock.picking.type"].sudo().search([
-            ("name", "=", "Pallet Internal Transfers"),
-            ("code", "=", "internal"),
-            ("company_id", "=", self.env.company.id),
-        ], limit=2)
-        if not picking_types:
-            raise UserError(_("PDA internal transfer operation type 'Pallet Internal Transfers' is not configured for the current company."))
-        if len(picking_types) > 1:
-            raise UserError(_("More than one PDA internal transfer operation type named 'Pallet Internal Transfers' exists for the current company."))
-        picking_type = picking_types
+            if not picking_types:
+                raise UserError(_("PDA internal transfer operation type 'Pallet Internal Transfers' is not configured for the current company."))
+            if len(picking_types) > 1:
+                raise UserError(_("More than one PDA internal transfer operation type named 'Pallet Internal Transfers' exists for the current company."))
+            picking_type = picking_types
+        if picking_type.code != "internal":
+            raise UserError(_("PDA internal transfer operation type must be an internal transfer."))
         if not picking_type.default_location_src_id or not picking_type.default_location_dest_id:
             raise UserError(_("PDA internal transfer operation type must have default source and destination locations."))
 

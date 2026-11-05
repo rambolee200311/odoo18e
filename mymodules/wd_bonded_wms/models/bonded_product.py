@@ -14,6 +14,8 @@ class BondedProduct(models.Model):
     hs_code = fields.Char(string='HS Code', required=True)
     declared_unit_price = fields.Monetary(string='Declared Unit Price', required=True)
     goods_value = fields.Monetary(string='Goods Value')
+    gross_weight = fields.Float(string='Gross Weight (kg)')
+    net_weight = fields.Float(string='Net Weight (kg)')
     customs_code = fields.Char(string='Customs Code')
     article_number = fields.Char(string='Article Number')
     product_description = fields.Char(string='Product Description')
@@ -21,7 +23,7 @@ class BondedProduct(models.Model):
     currency_id = fields.Many2one('res.currency', string='Currency',
                                   default=lambda self: self.env.ref('base.EUR').id,
                                   required=True)
-    uom_id = fields.Many2one('uom.uom', string='UoM', required=True)
+    uom_id = fields.Many2one(related='product_id.uom_id', string='UoM', store=True, readonly=True)
     supervision_conditions = fields.Char(string='Supervision Conditions',
                                          help='e.g. License required, quota restrictions')
     state = fields.Selection([
