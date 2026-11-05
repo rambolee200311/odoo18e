@@ -904,6 +904,7 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
         move_line_model = self.env["stock.move.line"]
         occupied_lines = move_line_model.sudo().search([
             ("picking_id", "!=", picking.id),
+            ("picking_id", "!=", False),
             ("picking_id.state", "not in", ("done", "cancel")),
             ("product_id", "=", product.id),
             ("lot_id", "=", lot.id),
@@ -1327,6 +1328,7 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
         lot_id_list = [lot_by_name[serial_name].id for serial_name in serial_name_list]
         occupied_lines = move_line_model.sudo().search([
             ("picking_id", "!=", picking.id),
+            ("picking_id", "!=", False),
             ("picking_id.state", "not in", ("done", "cancel")),
             ("product_id", "=", product.id),
             ("lot_id", "in", lot_id_list),
