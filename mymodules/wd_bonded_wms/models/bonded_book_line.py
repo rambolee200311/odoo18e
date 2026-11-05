@@ -41,7 +41,6 @@ class BondedBookLine(models.Model):
     direction = fields.Selection([('in', 'In'), ('out', 'Out'), ('none', 'None')], string='Direction', default='none', required=True, index=True)
     ref_doc_no = fields.Char(string='Reference Document No.', index=True)
     inbound_tracking_no = fields.Char(string='Unique Identifier No.', required=True, index=True)
-    customer_batch_no = fields.Char(string='Customer Batch No.', index=True)
     running_balance_qty = fields.Float(string='Running Balance Qty', readonly=True)
     bonded_stock_id = fields.Many2one('bonded.stock', string='Bonded Stock', ondelete='set null', index=True)
     customs_file_id = fields.Many2one('bonded.customs.file', string='Customs Declaration', ondelete='set null', index=True)

@@ -102,7 +102,6 @@ class BondedVerification(models.Model):
                 'direction': 'none' if qty_change == 0.0 else 'out',
                 'ref_doc_no': rec.customs_file_id.declaration_no if rec.customs_file_id else 'VER-%s' % rec.id,
                 'inbound_tracking_no': rec.bonded_stock_id.inbound_tracking_no or 'STOCK-%s' % rec.bonded_stock_id.id,
-                'customer_batch_no': rec.bonded_stock_id.customer_batch_no,
                 'bonded_stock_id': rec.bonded_stock_id.id,
                 'customs_file_id': rec.customs_file_id.id if rec.customs_file_id else False,
                 'verification_id': rec.id,

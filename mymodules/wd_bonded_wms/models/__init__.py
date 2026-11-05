@@ -3,6 +3,7 @@ from . import bonded_book
 from . import bonded_eori_entity
 from . import bonded_customs_authorization
 from . import bonded_book_line
+from . import bonded_inventory_movement_report
 from . import bonded_value_limit
 from . import bonded_value_ledger
 from . import bonded_charge
@@ -13,6 +14,7 @@ from . import bonded_product
 from . import gate_arrival
 from . import bonded_inbound_tracking
 from . import bonded_inbound
+from . import bonded_inbound_traceability_line
 from . import bonded_outbound
 from . import bonded_stock
 from . import bonded_verification
