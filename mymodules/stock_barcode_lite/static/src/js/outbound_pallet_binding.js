@@ -3,7 +3,7 @@
 import { onPatched, useRef } from "@odoo/owl";
 import { _t } from "@web/core/l10n/translation";
 import { standardActionServiceProps } from "@web/webclient/actions/action_service";
-import { BaseBarcodePage } from "./base_barcode_page";
+import { BaseBarcodePage } from "@wd_barcode_lite_core/js/base_barcode_page";
 
 export class OutboundPalletBinding extends BaseBarcodePage {
     static template = "stock_barcode_lite.OutboundPalletBindingPage";
