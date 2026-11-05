@@ -904,6 +904,7 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
         move_line_model = self.env["stock.move.line"]
         occupied_lines = move_line_model.sudo().search([
             ("picking_id", "!=", picking.id),
+            ("picking_id", "!=", False),
             ("picking_id.state", "not in", ("done", "cancel")),
             ("product_id", "=", product.id),
             ("lot_id", "=", lot.id),
@@ -913,9 +914,11 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
         if occupied_lines:
             occupied_picking_names = []
             for occupied_picking in occupied_lines.mapped("picking_id"):
-                occupied_name = occupied_picking.name
-                if 'outbound_order_id' in occupied_picking._fields and occupied_picking.outbound_order_id:
-                    occupied_name = _("%s (Outbound: %s)") % (occupied_name, occupied_picking.outbound_order_id.billno)
+                occupied_name = occupied_picking.name or occupied_picking.display_name or _("Picking ID %s") % occupied_picking.id
+                if "outbound_order_id" in occupied_picking._fields and occupied_picking.outbound_order_id:
+                    outbound_order = occupied_picking.outbound_order_id
+                    outbound_name = outbound_order.billno or outbound_order.display_name or _("Outbound ID %s") % outbound_order.id
+                    occupied_name = _("%s (Outbound: %s)") % (occupied_name, outbound_name)
                 occupied_picking_names.append(occupied_name)
             return self.build_outgoing_scan_result(
                 "error",
@@ -1325,6 +1328,7 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
         lot_id_list = [lot_by_name[serial_name].id for serial_name in serial_name_list]
         occupied_lines = move_line_model.sudo().search([
             ("picking_id", "!=", picking.id),
+            ("picking_id", "!=", False),
             ("picking_id.state", "not in", ("done", "cancel")),
             ("product_id", "=", product.id),
             ("lot_id", "in", lot_id_list),
@@ -1334,9 +1338,11 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
         if occupied_lines:
             occupied_picking_names = []
             for occupied_picking in occupied_lines.mapped("picking_id"):
-                occupied_name = occupied_picking.name
-                if 'outbound_order_id' in occupied_picking._fields and occupied_picking.outbound_order_id:
-                    occupied_name = _("%s (Outbound: %s)") % (occupied_name, occupied_picking.outbound_order_id.billno)
+                occupied_name = occupied_picking.name or occupied_picking.display_name or _("Picking ID %s") % occupied_picking.id
+                if "outbound_order_id" in occupied_picking._fields and occupied_picking.outbound_order_id:
+                    outbound_order = occupied_picking.outbound_order_id
+                    outbound_name = outbound_order.billno or outbound_order.display_name or _("Outbound ID %s") % outbound_order.id
+                    occupied_name = _("%s (Outbound: %s)") % (occupied_name, outbound_name)
                 occupied_picking_names.append(occupied_name)
             return self.build_outgoing_scan_result("error", _("Error"), _("Serial number(s) %s are already used by unfinished picking(s): %s") % (", ".join(occupied_lines.mapped("lot_id.name")), ", ".join(occupied_picking_names)), barcode=code, picking_id=picking.id, location_id=current_location_id, package_id=package.id, product_id=product.id, action_name="serial_used_by_unfinished_picking", success=False, next_step="scan_serial")
         duplicate_lines = move_line_model.sudo().search([("picking_id", "=", picking.id), ("product_id", "=", product.id), ("lot_id", "in", lot_id_list), ("outbound_scanned_quantity", ">", 0)])
