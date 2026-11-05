@@ -36,76 +36,66 @@
                 <sheet>
                     <div class="oe_button_box" name="button_box">
                         <button name="action_create_outbound_customs_file" string="Create T1 Outbound" type="object" context="{'default_declaration_type': 't1_out'}" invisible="state not in ('confirmed', 'declared') or outbound_nature != 'bonded'" class="btn-primary"/>
-                    <button name="action_create_outbound_customs_file" string="Create Clearance Outbound" type="object" context="{'default_declaration_type': 'clearance_out'}" invisible="state not in ('confirmed', 'declared') or outbound_nature != 'non_bonded'" class="btn-primary"/>
+                        <button name="action_create_outbound_customs_file" string="Create Clearance Outbound" type="object" context="{'default_declaration_type': 'clearance_out'}" invisible="state not in ('confirmed', 'declared') or outbound_nature != 'non_bonded'" class="btn-primary"/>
                         <button name="action_create_picking" string="Create Stock Picking" type="object" invisible="state != 'released'" class="oe_stat_button" icon="fa-file-text"/>
                     </div>
                     <group>
                         <group string="Outbound Info">
                             <field name="name" readonly="1"/>
                             <field name="order_type" required="1" readonly="state != 'draft'"/>
+                            <field name="reference" readonly="state != 'draft'"/>
                             <field name="order_date" required="1" readonly="state != 'draft'"/>
-                            <field name="reference" required="1" readonly="state != 'draft'"/>
-                            <field name="bonded_book_id" required="1" options="{'no_create': True, 'no_open': False}"/>
-                            <field name="project_id" readonly="state != 'draft'" options="{'no_create': True, 'no_open': False}"/>
-                            <field name="owner_id" readonly="1" options="{'no_create': True, 'no_open': False}"/>
-                            <field name="outbound_nature" required="1" readonly="state != 'draft'"/>
-                            <field name="is_dangerous" readonly="state != 'draft'"/>
-                            <field name="warehouse" readonly="state != 'draft'" options="{'no_create': True, 'no_open': False}"/>
-                            <field name="warehouse_address" readonly="1"/>
-                            <field name="pick_type" readonly="state != 'draft'" domain="[('code', 'in', ['outgoing', 'internal']), ('warehouse_id', '=', warehouse)]" options="{'no_create': True, 'no_open': False}"/>
-<!--                            <field name="outbound_scan_mode" required="1" readonly="state != 'draft'" invisible="project_id == False"/>-->
-                        </group>
-                        <group string="Schedule">
                             <field name="expected_date" string="Planned Date" required="1" readonly="state != 'draft'"/>
-                            <field name="total_value" readonly="1" widget="monetary"/>
+                            <field name="bonded_book_id" required="1" readonly="state != 'draft'" options="{'no_create': True, 'no_open': False}"/>
+                            <field name="project_id" required="1" readonly="state != 'draft'" options="{'no_create': True, 'no_open': False}"/>
+                            <field name="owner_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="outbound_nature" required="1" readonly="state != 'draft'"/>
+                            <field name="outbound_type" required="1" readonly="state != 'draft'"/>
+                            <field name="is_dangerous" readonly="state != 'draft'"/>
                         </group>
-                        <group string="Customs Status">
+                        <group string="Warehouse and Shipment">
+                            <field name="warehouse" required="1" readonly="state != 'draft'" options="{'no_create': True, 'no_open': False}"/>
+                            <field name="warehouse_address" readonly="1"/>
+                            <field name="pick_type" required="1" readonly="state != 'draft'" domain="[('code', 'in', ['outgoing', 'internal']), ('warehouse_id', '=', warehouse)]" options="{'no_create': True, 'no_open': False}"/>
                             <field name="mrn_id" readonly="1" options="{'no_create': True, 'no_open': False}"/>
+                            <field name="mrn" readonly="1"/>
+                            <field name="mrn_status" readonly="1"/>
                             <field name="t1_status" readonly="1"/>
                             <field name="t1_closed_date" readonly="1"/>
-                            <field name="mrn_status" readonly="1"/>
+                            <field name="picking_id" readonly="1" options="{'no_create': True, 'no_open': False}"/>
+                            <field name="total_value" readonly="1" widget="monetary"/>
+                            <field name="currency_id" readonly="state != 'draft'" options="{'no_create': True, 'no_open': True}"/>
                         </group>
                     </group>
                     <group string="Remarks and Confirmation">
                         <field name="remark" readonly="state != 'draft'"/>
                         <field name="remark1" readonly="state != 'draft'"/>
-                        <field name="confirm_user_id" readonly="1" options="{'no_create': True, 'no_open': False}"/>
+                        <field name="confirm_user_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                         <field name="confirm_time_user_tz" readonly="1"/>
                         <field name="confirm_time_server" readonly="1"/>
                     </group>
                     <notebook>
                         <page string="Products">
-                            <field name="line_ids">
+                            <field name="line_ids" readonly="state != 'draft'">
                                 <list editable="bottom">
                                     <field name="eligible_bonded_product_ids" column_invisible="1"/>
                                     <field name="bonded_product_id" domain="[('id', 'in', eligible_bonded_product_ids)]" required="1" readonly="parent.state != 'draft'" options="{'no_create': True, 'no_open': False}"/>
-                                    <field name="product_id" readonly="1" options="{'no_create': True, 'no_open': False}"/>
-                                    <field name="bonded_stock_id"
-                                           string="Unique Identifier No."
-                                           required="1"
-                                           readonly="parent.state != 'draft'"
-                                           options="{'no_create': True, 'no_open': False}"
-                                           context="{'outbound_show_tracking_only': 1, 'list_view_ref': 'wd_bonded_wms.view_bonded_stock_m2o_tracking_list'}"
-                                           domain="[('bonded_book_id', '=', parent.bonded_book_id), ('product_id', '=', product_id),
-                                                    ('quantity', '>', 0),
-                                                    ('locked', '=', False),
-                                                    ('current_customs_status', '=', 'entrepot'),
-                                                    ('inbound_id.state', '=', 'done'),
-                                                    ('inbound_id.picking_id.state', '=', 'done')]"/>
+                                    <field name="uom_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="product_id" column_invisible="1"/>
+                                    <field name="bonded_stock_id" string="Unique Identifier No." required="1" readonly="parent.state != 'draft'" options="{'no_create': True, 'no_open': True}" context="{'outbound_show_tracking_only': 1, 'list_view_ref': 'wd_bonded_wms.view_bonded_stock_m2o_tracking_list'}" domain="[('bonded_book_id', '=', parent.bonded_book_id), ('product_id', '=', product_id), ('quantity', '>', 0), ('locked', '=', False), ('current_customs_status', '=', 'entrepot'), ('inbound_id.state', '=', 'done'), ('inbound_id.picking_id.state', '=', 'done')]"/>
+                                    <button name="action_open_stock_selection" string="Select Stock" type="object" class="btn-secondary" invisible="parent.state != 'draft'"/>
                                     <field name="inbound_tracking_no" column_invisible="1"/>
-                                    <field name="customer_batch_no" readonly="1"/>
-                                    <field name="demand_qty"/>
+                                    <field name="demand_qty" readonly="parent.state != 'draft'"/>
                                     <field name="currency_id" column_invisible="1"/>
-                                    <field name="declared_unit_price" required="1" widget="monetary"/>
+                                    <field name="declared_unit_price" required="1" readonly="parent.state != 'draft'" widget="monetary"/>
                                     <field name="subtotal_value" readonly="1" widget="monetary"/>
-                                    <field name="done_qty"/>
-                                    <field name="uom_id"/>
+                                    <field name="done_qty" readonly="1"/>
                                 </list>
                             </field>
                         </page>
                         <page string="Customs Declarations">
                             <field name="customs_file_ids" readonly="1">
-                                <list create="false" delete="false">
+                                <list create="false" edit="false" delete="false">
                                     <field name="declaration_no"/>
                                     <field name="declaration_type"/>
                                     <field name="mrn_id"/>

@@ -53,7 +53,7 @@
 | direction | Selection | In/Out/无 |
 | ref_doc_no | Char | 关联单号 |
 | inbound_tracking_no | Char | 入库跟踪号（贯穿全局的关键字段） |
-| customer_batch_no | Char | 客户批次号 |
+| lot_id | Many2one(stock.lot) | 批次 / SN |
 | running_balance_qty | Float | 当前结存数量（按跟踪号） |
 | bonded_stock_id | Many2one | 关联 bonded.stock |
 | customs_file_id | Many2one | 关联海关申报单 |
@@ -65,8 +65,8 @@
 
 文档里这两个字段是台账的命脉。入库必录跟踪号，出库必选对应跟踪号。
 
-- `bonded.stock` → 加 `inbound_tracking_no` (char, required), `customer_batch_no` (char)
-- `bonded.inbound.line` → 加 `inbound_tracking_no`, `customer_batch_no`
+- `bonded.stock` → 加 `inbound_tracking_no` (char, required), `lot_id` (Many2one)
+- `bonded.inbound.line` → 加 `inbound_tracking_no`, `traceability_line_ids`
 - `bonded.outbound.line` → 加 `inbound_tracking_no`（选择要扣减的库存跟踪号）
 
 ### 4. EORI 与海关资质管控
@@ -125,7 +125,7 @@
 | **新增模型** | `models/bonded_book_line.py` | 台账明细行 + 实时结存逻辑 |
 | **新增模型** | `models/bonded_customs_authorization.py` | 海关授权码管理 |
 | **修改** | `models/bonded_book.py` | 加 line_ids、额度合计 |
-| **修改** | `models/bonded_stock.py` | 加 inbound_tracking_no、customer_batch_no |
+| **修改** | `models/bonded_stock.py` | 加 inbound_tracking_no、lot_id |
 | **修改** | `models/bonded_customs_file.py` | EORI 校验 + 状态联动调整 |
 | **修改** | `models/bonded_verification.py` | 复核通过后自动写台账行 |
 | **修改** | `models/inherited_models.py` | res.partner EORI 扩展 |

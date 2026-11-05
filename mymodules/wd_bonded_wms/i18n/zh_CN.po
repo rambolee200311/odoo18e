@@ -927,14 +927,6 @@ msgid "Currency"
 msgstr "币种"
 
 #. module: wd_bonded_wms
-#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_book_line__customer_batch_no
-#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound_line__customer_batch_no
-#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_outbound_line__customer_batch_no
-#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_stock__customer_batch_no
-msgid "Customer Batch No."
-msgstr "客户批次号"
-
-#. module: wd_bonded_wms
 #: model_terms:ir.ui.view,arch_db:wd_bonded_wms.bonded_stock_view_form
 msgid "Customs"
 msgstr "海关"
@@ -1931,8 +1923,20 @@ msgstr "已被出库指令锁定"
 #. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_stock__lot_id
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_stock_snapshot__lot_id
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound_traceability_line__lot_name
 msgid "Lot/SN"
 msgstr "批次/序列号"
+
+#. module: wd_bonded_wms
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound_line__traceability_line_ids
+#: model_terms:ir.ui.view,arch_db:wd_bonded_wms.bonded_inbound_view_form
+msgid "Lot/SN Details"
+msgstr "批次/序列号明细"
+
+#. module: wd_bonded_wms
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound_traceability_line__inbound_line_id
+msgid "Inbound Product Line"
+msgstr "入库产品行"
 
 #. module: wd_bonded_wms
 #: model:ir.model,name:wd_bonded_wms.model_stock_lot
@@ -1964,6 +1968,7 @@ msgstr "MRN编号"
 
 #. module: wd_bonded_wms
 #: model:ir.actions.act_window,name:wd_bonded_wms.action_bonded_mrn_ledger
+#: model:ir.actions.act_window,name:wd_bonded_wms.action_bonded_mrn_list
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_customs_file__mrn_ids
 #: model:ir.ui.menu,name:wd_bonded_wms.menu_bonded_mrn_ledger
 msgid "MRN Numbers"
@@ -2395,6 +2400,7 @@ msgstr "作业类型"
 
 #. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound_line__planned_qty
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound_traceability_line__planned_qty
 msgid "Planned Qty"
 msgstr "计划数量"
 
@@ -2505,9 +2511,51 @@ msgstr "流程代码"
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_product__product_id
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_stock__product_id
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_stock_snapshot__product_id
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound_traceability_line__product_id
 #: model_terms:ir.ui.view,arch_db:wd_bonded_wms.bonded_stock_view_search
 msgid "Product"
 msgstr "产品"
+
+#. module: wd_bonded_wms
+#: code:addons/wd_bonded_wms/models/bonded_inbound.py:0
+#, python-format
+msgid "The total lot/SN planned quantity must equal the inbound product line quantity."
+msgstr "批次/序列号明细计划数量合计必须等于入库产品行数量。"
+
+#. module: wd_bonded_wms
+#: code:addons/wd_bonded_wms/models/bonded_inbound_traceability_line.py:0
+#, python-format
+msgid "The traceability line product must match the inbound product line."
+msgstr "追溯明细产品必须与入库产品行一致。"
+
+#. module: wd_bonded_wms
+#: code:addons/wd_bonded_wms/models/bonded_inbound_traceability_line.py:0
+#, python-format
+msgid "The lot/SN planned quantity must be greater than zero."
+msgstr "批次/序列号计划数量必须大于零。"
+
+#. module: wd_bonded_wms
+#: code:addons/wd_bonded_wms/models/bonded_inbound_traceability_line.py:0
+#, python-format
+msgid "Lot/SN details are only allowed for products with lot or serial tracking."
+msgstr "只有启用批次或序列号追溯的产品才能填写批次/序列号明细。"
+
+#. module: wd_bonded_wms
+#: code:addons/wd_bonded_wms/models/bonded_inbound_traceability_line.py:0
+#, python-format
+msgid "The planned quantity of a serial number must be 1."
+msgstr "每个序列号的计划数量必须为 1。"
+
+#. module: wd_bonded_wms
+#: code:addons/wd_bonded_wms/models/bonded_inbound_traceability_line.py:0
+#, python-format
+msgid "The total lot/SN planned quantity cannot exceed the inbound product line quantity."
+msgstr "批次/序列号明细计划数量合计不能超过入库产品行数量。"
+
+#. module: wd_bonded_wms
+#: sql_constraint:bonded.inbound.traceability.line:0
+msgid "The same lot or serial number cannot be repeated on one inbound product line."
+msgstr "同一入库产品行不能重复填写相同批次或序列号。"
 
 #. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_product__product_description
@@ -3842,6 +3890,56 @@ msgstr "只有未关联海关文件的已确认出库单可以创建匹配的出
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound_line__pallet_no
 msgid "Pallet Number"
 msgstr "托盘号"
+
+#. module: wd_bonded_wms
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_stock__inbound_customs_file_id
+msgid "Inbound Customs Declaration"
+msgstr "入库海关文件"
+
+#. module: wd_bonded_wms
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_stock__outbound_customs_file_id
+msgid "Outbound Customs Declaration"
+msgstr "出库海关文件"
+
+#. module: wd_bonded_wms
+#: model_terms:ir.ui.view,arch_db:wd_bonded_wms.view_bonded_stock_m2o_tracking_list
+msgid "Available Quantity"
+msgstr "可用数量"
+
+#. module: wd_bonded_wms
+#: code:addons/wd_bonded_wms/models/bonded_outbound.py:0
+msgid "Select Bonded Stock"
+msgstr "选择保税库存"
+
+#. module: wd_bonded_wms
+#: code:addons/wd_bonded_wms/models/bonded_outbound.py:0
+msgid "Bonded stock can only be selected on a draft outbound instruction."
+msgstr "只有草稿出库单可以选择保税库存。"
+
+#. module: wd_bonded_wms
+#: code:addons/wd_bonded_wms/models/bonded_outbound.py:0
+msgid "Please select a product before selecting bonded stock."
+msgstr "请选择产品后再选择保税库存。"
+
+#. module: wd_bonded_wms
+#: code:addons/wd_bonded_wms/models/bonded_stock.py:0
+msgid "Please select one bonded stock record."
+msgstr "请选择一条保税库存记录。"
+
+#. module: wd_bonded_wms
+#: code:addons/wd_bonded_wms/models/bonded_stock.py:0
+msgid "The selected bonded stock is no longer available."
+msgstr "所选保税库存已不可用。"
+
+#. module: wd_bonded_wms
+#: model_terms:ir.ui.view,arch_db:wd_bonded_wms.bonded_outbound_view_form
+msgid "Select Stock"
+msgstr "选择库存"
+
+#. module: wd_bonded_wms
+#: model_terms:ir.ui.view,arch_db:wd_bonded_wms.view_bonded_stock_m2o_tracking_list
+msgid "Select"
+msgstr "选择"
 
 #. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound_line__package_id

@@ -52,7 +52,7 @@
                             <field name="order_date" required="1" readonly="state != 'draft'"/>
                             <field name="expected_date" string="Expected Arrival Date" required="1" readonly="state != 'draft'"/>
                             <field name="bonded_book_id" required="1" readonly="state != 'draft'" options="{'no_create': True, 'no_open': False}"/>
-                            <field name="project_id" readonly="state != 'draft'" options="{'no_create': True, 'no_open': False}"/>
+                            <field name="project_id" required="1" readonly="state != 'draft'" options="{'no_create': True, 'no_open': False}"/>
                             <field name="owner_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                             <field name="package_generation_mode" invisible="1"/>
                             <field name="inbound_tracking_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
@@ -87,12 +87,11 @@
                         <page string="Products">
                             <button name="action_generate_packages" string="Create Packages" type="object" invisible="package_generation_mode != 'inbound' or state not in ('confirmed', 'declared', 'released') or picking_id"/>
                             <field name="line_ids" readonly="state != 'draft'">
-                                <list editable="bottom" default_order="pallet_no,id">
+                                <list default_order="pallet_no,id">
                                     <field name="eligible_bonded_product_ids" column_invisible="1"/>
                                     <field name="bonded_product_id" domain="[('id', 'in', eligible_bonded_product_ids)]" required="1" options="{'no_create': True, 'no_open': False}"/>
 <!--                                    <field name="product_id" readonly="1" options="{'no_create': True, 'no_open': False}"/>-->
                                     <field name="uom_id" readonly="1"/>
-                                    <field name="customer_batch_no"/>
                                     <field name="pallet_no" required="parent.package_generation_mode in ('inbound', 'picking')"/>
                                     <field name="package_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                                     <field name="planned_qty"/>
@@ -106,6 +105,33 @@
 
                                     <field name="available_customs_file_line_ids" column_invisible="1"/>
                                 </list>
+                                <form>
+                                    <group>
+                                        <field name="bonded_product_id" required="1" options="{'no_create': True, 'no_open': False}"/>
+                                        <field name="product_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                                        <field name="uom_id" readonly="1"/>
+                                        <field name="pallet_no" required="parent.package_generation_mode in ('inbound', 'picking')"/>
+                                        <field name="package_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                                        <field name="planned_qty" required="1"/>
+                                        <field name="currency_id" invisible="1"/>
+                                        <field name="declared_unit_price" required="1" widget="monetary"/>
+                                        <field name="subtotal_value" readonly="1" widget="monetary"/>
+                                        <field name="gross_weight"/>
+                                        <field name="net_weight"/>
+                                        <field name="done_qty" readonly="1"/>
+                                    </group>
+                                    <notebook>
+                                        <page string="Lot/SN Details">
+                                            <field name="traceability_line_ids" context="{'default_product_id': product_id}">
+                                                <list editable="bottom">
+                                                    <field name="product_id" domain="[('id', '=', parent.product_id)]" required="1" options="{'no_create': True, 'no_open': True}"/>
+                                                    <field name="lot_name" required="1"/>
+                                                    <field name="planned_qty" required="1"/>
+                                                </list>
+                                            </field>
+                                        </page>
+                                    </notebook>
+                                </form>
                             </field>
                         </page>
                         <page string="T1 Customs Declarations">

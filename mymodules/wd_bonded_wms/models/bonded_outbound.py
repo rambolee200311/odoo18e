@@ -20,9 +20,9 @@ class BondedOutbound(models.Model):
     order_type = fields.Selection([('outbound', 'Outbound')], string='Order Type', required=True, default='outbound', tracking=True)
     order_date = fields.Date(string='Order Date', required=True, default=fields.Date.today, tracking=True)
     bonded_book_id = fields.Many2one('bonded.book', string='Bonded Book', required=True, ondelete='restrict', index=True, domain=[('state', '=', 'active')], tracking=True)
-    project_id = fields.Many2one('project.project', string='Project', ondelete='restrict', index=True, tracking=True)
+    project_id = fields.Many2one('project.project', string='Project', required=True, ondelete='restrict', index=True, tracking=True)
     owner_id = fields.Many2one('res.partner', related='project_id.owner', string='Owner', store=True, readonly=True, index=True)
-    reference = fields.Char(string='Reference', required=True, copy=False, index=True, tracking=True)
+    reference = fields.Char(string='Reference', copy=False, index=True, tracking=True)
     is_dangerous = fields.Boolean(string='Dangerous Goods', default=False, tracking=True)
     customs_file_ids = fields.One2many('bonded.customs.file', 'bonded_outbound_id', string='Customs Declarations', tracking=True)
     t1_status = fields.Selection([('draft', 'Draft'), ('to_be_submitted', 'To Be Submitted'), ('submitted', 'Submitted'), ('customs_approved', 'Customs Approved'), ('customs_rejected', 'Customs Rejected'), ('done', 'Closed'), ('cancelled', 'Cancelled')], string='T1 Status', compute='_compute_t1_status', store=True, readonly=True, index=True)
@@ -227,13 +227,15 @@ class BondedOutbound(models.Model):
                         'stock_move_line_id': move_line.id,
                         'lot_id': source_stock.lot_id.id if source_stock.lot_id else False,
                         'location_id': move_line.location_dest_id.id,
+                        'inbound_id': source_stock.inbound_id.id,
+                        'inbound_line_id': source_stock.inbound_line_id.id,
                         'inbound_tracking_no': source_stock.inbound_tracking_no,
-                        'customer_batch_no': source_stock.customer_batch_no,
                         'current_customs_status': to_status,
                         'quantity': done_qty,
                         'unit_value': source_stock.unit_value,
                         'currency_id': source_stock.currency_id.id,
                         'inbound_date': source_stock.inbound_date,
+                        'outbound_customs_file_id': customs_file.id,
                         'related_t1_out_mrn': rec.mrn if rec.outbound_type == 't1_transit' else False,
                     })
                 else:
@@ -241,6 +243,7 @@ class BondedOutbound(models.Model):
                         'current_customs_status': to_status,
                         'locked': False,
                         'location_id': move_line.location_dest_id.id,
+                        'outbound_customs_file_id': customs_file.id,
                         'related_t1_out_mrn': rec.mrn if rec.outbound_type == 't1_transit' else False,
                     })
                     moved_stock = source_stock
@@ -267,7 +270,6 @@ class BondedOutbound(models.Model):
                     'direction': 'out',
                     'ref_doc_no': rec.name,
                     'inbound_tracking_no': source_stock.inbound_tracking_no,
-                    'customer_batch_no': source_stock.customer_batch_no,
                     'bonded_stock_id': source_stock.id,
                     'customs_file_id': customs_file.id,
                     'picking_id': rec.picking_id.id,
@@ -347,13 +349,7 @@ class BondedOutbound(models.Model):
                 package = line.bonded_stock_id.stock_move_line_id.result_package_id
                 self.env['stock.move.line'].create({'picking_id': picking.id, 'move_id': move.id, 'product_id': line.product_id.id, 'product_uom_id': line.uom_id.id, 'quantity': line.demand_qty, 'location_id': line.bonded_stock_id.location_id.id, 'location_dest_id': picking.location_dest_id.id, 'package_id': package.id, 'lot_id': line.bonded_stock_id.lot_id.id})
         self.write({'picking_id': picking.id, 'state': 'in_progress'})
-        return {
-            'type': 'ir.actions.act_window',
-            'res_model': 'stock.picking',
-            'res_id': picking.id,
-            'view_mode': 'form',
-            'target': 'current',
-        }
+        return {'type': 'ir.actions.client', 'tag': 'reload'}
 
 
 class BondedOutboundLine(models.Model):
@@ -366,7 +362,6 @@ class BondedOutboundLine(models.Model):
     bonded_product_id = fields.Many2one('bonded.product', string='Bonded Product Filing', ondelete='restrict', index=True)
     product_id = fields.Many2one('product.product', string='Product', index=True)
     inbound_tracking_no = fields.Char(string='Unique Identifier No.', related='bonded_stock_id.inbound_tracking_no', store=True, index=True)
-    customer_batch_no = fields.Char(string='Customer Batch No.', related='bonded_stock_id.customer_batch_no', store=True, index=True)
     demand_qty = fields.Float(string='Demand Qty', required=True, default=1.0)
     declared_unit_price = fields.Monetary(string='Declared Unit Price', required=True, default=0.0)
     subtotal_value = fields.Monetary(string='Subtotal', compute='_compute_subtotal_value', store=True)
@@ -422,6 +417,24 @@ class BondedOutboundLine(models.Model):
                 rec.product_id = rec.bonded_stock_id.product_id
                 rec.uom_id = rec.bonded_stock_id.product_id.uom_id
                 rec.declared_unit_price = rec.bonded_stock_id.unit_value
+
+    def action_open_stock_selection(self):
+        for rec in self:
+            if rec.bonded_outbound_id.state != 'draft':
+                raise UserError(_('Bonded stock can only be selected on a draft outbound instruction.'))
+            if not rec.product_id:
+                raise UserError(_('Please select a product before selecting bonded stock.'))
+            return {
+                'name': _('Select Bonded Stock'),
+                'type': 'ir.actions.act_window',
+                'res_model': 'bonded.stock',
+                'view_mode': 'list',
+                'views': [(self.env.ref('wd_bonded_wms.view_bonded_stock_m2o_tracking_list').id, 'list')],
+                'target': 'new',
+                'domain': [('bonded_book_id', '=', rec.bonded_outbound_id.bonded_book_id.id), ('product_id', '=', rec.product_id.id), ('quantity', '>', 0), ('locked', '=', False), ('current_customs_status', '=', 'entrepot'), ('inbound_id.state', '=', 'done'), ('inbound_id.picking_id.state', '=', 'done')],
+                'context': {'bonded_outbound_line_id': rec.id},
+            }
+        return False
 
     @api.depends('demand_qty', 'declared_unit_price')
     def _compute_subtotal_value(self):
