@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_bonded_inventory_movement_report_list" model="ir.ui.view">
+        <field name="name">bonded.inventory.movement.report.list</field>
+        <field name="model">bonded.inventory.movement.report</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="period_begin"/>
+                <field name="period_end"/>
+                <field name="warehouse_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="customs_status_filter"/>
+                <field name="closing_total_qty"/>
+                <field name="total_gross_weight" optional="hide"/>
+                <field name="total_net_weight" optional="hide"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_bonded_inventory_movement_report_form" model="ir.ui.view">
+        <field name="name">bonded.inventory.movement.report.form</field>
+        <field name="model">bonded.inventory.movement.report</field>
+        <field name="arch" type="xml">
+            <form duplicate="false">
+                <header>
+                    <button name="action_generate" type="object" string="Query" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_export_xlsx" type="object" string="Export Excel" class="btn-secondary" invisible="state != 'done'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,done"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group string="Query Conditions">
+                            <field name="name" required="1" readonly="state == 'done'"/>
+                            <field name="period_begin" required="1" readonly="state == 'done'"/>
+                            <field name="period_end" required="1" readonly="state == 'done'"/>
+                            <field name="warehouse_id" required="1" readonly="state == 'done'" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="customs_status_filter" required="1" readonly="state == 'done'"/>
+                        </group>
+                        <group string="Summary">
+                            <field name="generated_at" readonly="1"/>
+                            <field name="generated_by_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="opening_total_qty" readonly="1"/>
+                            <field name="inbound_total_qty" readonly="1"/>
+                            <field name="outbound_total_qty" readonly="1"/>
+                            <field name="finding_total_qty" readonly="1"/>
+                            <field name="missing_total_qty" readonly="1"/>
+                            <field name="correction_total_qty" readonly="1"/>
+                            <field name="closing_total_qty" readonly="1"/>
+                            <field name="total_gross_weight" readonly="1"/>
+                            <field name="total_net_weight" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Movement Lines">
+                            <field name="movement_lines" readonly="1" nolabel="1" options="{'no_create': True, 'no_open': True}">
+                                <list create="0" edit="0" delete="0" default_order="sequence asc, id asc">
+                                    <field name="sequence" column_invisible="1"/>
+                                    <field name="product_name_sku"/>
+                                    <field name="product_description"/>
+                                    <field name="marks_article_technical_description"/>
+                                    <field name="commodity_code"/>
+                                    <field name="date"/>
+                                    <field name="unique_identifier_no"/>
+                                    <field name="mutation_qty"/>
+                                    <field name="mutation_type"/>
+                                    <field name="inbound_no"/>
+                                    <field name="outbound_no"/>
+                                    <field name="corresponding_mrn"/>
+                                    <field name="customs_status"/>
+                                    <field name="qty_of_colli"/>
+                                    <field name="kind_of_colli"/>
+                                    <field name="value_euro"/>
+                                    <field name="gross_weight"/>
+                                    <field name="net_weight"/>
+                                    <field name="container_no"/>
+                                    <field name="reference"/>
+                                    <field name="country_of_origin"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_bonded_inventory_movement_report_line_list" model="ir.ui.view">
+        <field name="name">bonded.inventory.movement.report.line.list</field>
+        <field name="model">bonded.inventory.movement.report.line</field>
+        <field name="arch" type="xml">
+            <list create="0" edit="0" delete="0" default_order="sequence asc, id asc">
+                <field name="sequence" column_invisible="1"/>
+                <field name="product_name_sku"/>
+                <field name="product_description"/>
+                <field name="marks_article_technical_description"/>
+                <field name="commodity_code"/>
+                <field name="date"/>
+                <field name="unique_identifier_no"/>
+                <field name="mutation_qty"/>
+                <field name="mutation_type"/>
+                <field name="inbound_no"/>
+                <field name="outbound_no"/>
+                <field name="corresponding_mrn"/>
+                <field name="customs_status"/>
+                <field name="qty_of_colli"/>
+                <field name="kind_of_colli"/>
+                <field name="value_euro"/>
+                <field name="gross_weight"/>
+                <field name="net_weight"/>
+                <field name="container_no"/>
+                <field name="reference"/>
+                <field name="country_of_origin"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_bonded_inventory_movement_report_line_form" model="ir.ui.view">
+        <field name="name">bonded.inventory.movement.report.line.form</field>
+        <field name="model">bonded.inventory.movement.report.line</field>
+        <field name="arch" type="xml">
+            <form duplicate="false" create="0" edit="0" delete="0">
+                <sheet>
+                    <group>
+                        <field name="report_id" required="1" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="sequence" required="1" readonly="1"/>
+                        <field name="source_book_line_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="bonded_stock_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                    </group>
+                    <group>
+                        <group>
+                            <field name="product_name_sku" readonly="1"/>
+                            <field name="product_description" readonly="1"/>
+                            <field name="marks_article_technical_description" readonly="1"/>
+                            <field name="commodity_code" readonly="1"/>
+                            <field name="date" required="1" readonly="1"/>
+                            <field name="unique_identifier_no" required="1" readonly="1"/>
+                            <field name="mutation_qty" readonly="1"/>
+                            <field name="mutation_type" required="1" readonly="1"/>
+                            <field name="inbound_no" readonly="1"/>
+                            <field name="outbound_no" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="corresponding_mrn" readonly="1"/>
+                            <field name="customs_status" required="1" readonly="1"/>
+                            <field name="qty_of_colli" readonly="1"/>
+                            <field name="kind_of_colli" readonly="1"/>
+                            <field name="value_euro" readonly="1"/>
+                            <field name="gross_weight" readonly="1"/>
+                            <field name="net_weight" readonly="1"/>
+                            <field name="container_no" readonly="1"/>
+                            <field name="reference" readonly="1"/>
+                            <field name="country_of_origin" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_bonded_inventory_movement_report_search" model="ir.ui.view">
+        <field name="name">bonded.inventory.movement.report.search</field>
+        <field name="model">bonded.inventory.movement.report</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="warehouse_id"/>
+                <field name="customs_status_filter"/>
+                <field name="period_begin"/>
+                <field name="period_end"/>
+                <field name="state"/>
+            </search>
+        </field>
+    </record>
+
+</odoo>

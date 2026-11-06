@@ -4,6 +4,7 @@ import logging
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 from odoo.exceptions import ValidationError
+from odoo.tools.float_utils import float_compare
 _logger = logging.getLogger(__name__)
 
 
@@ -20,7 +21,7 @@ class BondedInbound(models.Model):
     reference = fields.Char(string='Reference', copy=False, index=True, tracking=True)
     order_date = fields.Date(string='Order Date', required=True, default=fields.Date.today, tracking=True, index=True)
     bonded_book_id = fields.Many2one('bonded.book', string='Bonded Book', required=True, ondelete='restrict', index=True, domain=[('state', '=', 'active')], tracking=True)
-    project_id = fields.Many2one('project.project', string='Project', ondelete='restrict', index=True, tracking=True)
+    project_id = fields.Many2one('project.project', string='Project', required=True, ondelete='restrict', index=True, tracking=True)
     owner_id = fields.Many2one('res.partner', related='project_id.owner', string='Owner', store=True, readonly=True, index=True)
     bl_no = fields.Char(string='Bill of Lading No.', index=True, tracking=True)
     cntr_no = fields.Char(string='Container No.', index=True, tracking=True)
@@ -227,7 +228,6 @@ class BondedInbound(models.Model):
                     'inbound_id': rec.id,
                     'inbound_line_id': inbound_line.id,
                     'inbound_tracking_no': inbound_line.inbound_tracking_no,
-                    'customer_batch_no': inbound_line.customer_batch_no,
                     'current_customs_status': 'entrepot',
                     'quantity': move_line.quantity,
                     'unit_value': unit_value,
@@ -255,7 +255,6 @@ class BondedInbound(models.Model):
                     'direction': 'in',
                     'ref_doc_no': rec.name,
                     'inbound_tracking_no': inbound_line.inbound_tracking_no,
-                    'customer_batch_no': inbound_line.customer_batch_no,
                     'bonded_stock_id': bonded_stock.id,
                     'customs_file_id': customs_file.id if customs_file else False,
                     'picking_id': rec.picking_id.id,
@@ -287,6 +286,9 @@ class BondedInbound(models.Model):
 
     def action_create_picking(self):
         picking = self.env['stock.picking']
+        env_stock_lot = self.env['stock.lot'].sudo()
+        env_stock_move_line = self.env['stock.move.line']
+        env_traceability_line = self.env['bonded.inbound.traceability.line'].sudo()
         for rec in self:
             if rec.state != 'released':
                 raise UserError(_('Only released instructions can create pickings.'))
@@ -335,8 +337,33 @@ class BondedInbound(models.Model):
                     'location_dest_id': picking.location_dest_id.id,
                     'bonded_inbound_line_id': line.id,
                 })
-                if line.package_id:
-                    self.env['stock.move.line'].create({
+                traceability_lines = env_traceability_line.search([('inbound_line_id', '=', line.id)])
+                if traceability_lines:
+                    total_qty = sum(traceability_lines.mapped('planned_qty'))
+                    if float_compare(total_qty, line.planned_qty, precision_rounding=(line.uom_id or line.product_id.uom_id).rounding) != 0:
+                        raise UserError(_('The total lot/SN planned quantity must equal the inbound product line quantity.'))
+                    for traceability_line in traceability_lines:
+                        lot = env_stock_lot.search([
+                            ('name', '=', traceability_line.lot_name),
+                            ('product_id', '=', traceability_line.product_id.id),
+                        ], limit=1)
+                        if not lot:
+                            lot = self.env['stock.lot'].create({'name': traceability_line.lot_name, 'product_id': traceability_line.product_id.id})
+                        move_line_vals = {
+                            'picking_id': picking.id,
+                            'move_id': move.id,
+                            'product_id': line.product_id.id,
+                            'product_uom_id': line.uom_id.id or line.product_id.uom_id.id,
+                            'quantity': traceability_line.planned_qty,
+                            'location_id': picking.location_id.id,
+                            'location_dest_id': picking.location_dest_id.id,
+                            'lot_id': lot.id,
+                        }
+                        if line.package_id:
+                            move_line_vals['result_package_id'] = line.package_id.id
+                        env_stock_move_line.create(move_line_vals)
+                elif line.package_id:
+                    env_stock_move_line.create({
                         'picking_id': picking.id,
                         'move_id': move.id,
                         'product_id': line.product_id.id,
@@ -363,7 +390,7 @@ class BondedInboundLine(models.Model):
     bonded_product_id = fields.Many2one('bonded.product', string='Bonded Product Filing', ondelete='restrict', index=True)
     product_id = fields.Many2one('product.product', string='Product', required=True, index=True)
     inbound_tracking_no = fields.Char(string='Unique Identifier No.', related='bonded_inbound_id.inbound_tracking_id.name', store=True, readonly=True, index=True)
-    customer_batch_no = fields.Char(string='Customer Batch No.', copy=False, index=True, required=True)
+    traceability_line_ids = fields.One2many('bonded.inbound.traceability.line', 'inbound_line_id', string='Lot/SN Details', copy=False)
     pallet_no = fields.Char(string='Pallet Number', index=True)
     package_id = fields.Many2one('stock.quant.package', string='Package', ondelete='restrict', index=True)
     planned_qty = fields.Float(string='Planned Qty', required=True, default=1.0)
@@ -475,19 +502,13 @@ class BondedInboundLine(models.Model):
             if duplicate_line:
                 raise ValidationError(_('A declaration line can only be selected once in an inbound instruction.'))
 
-    @api.constrains('bonded_inbound_id', 'product_id', 'customer_batch_no')
-    def check_unique_product_batch(self):
+    @api.constrains('product_id')
+    def check_traceability_line_product(self):
+        env_traceability_line = self.env['bonded.inbound.traceability.line'].sudo()
         for rec in self:
-            if not rec.bonded_inbound_id or not rec.product_id:
-                continue
-            domain = [
-                ('bonded_inbound_id', '=', rec.bonded_inbound_id.id),
-                ('product_id', '=', rec.product_id.id),
-                ('customer_batch_no', '=', rec.customer_batch_no or False),
-                ('id', '!=', rec.id),
-            ]
-            if self.sudo().search(domain, limit=1):
-                raise ValidationError(_('The same product and customer batch cannot be repeated in one inbound instruction.'))
+            traceability_lines = env_traceability_line.search([('inbound_line_id', '=', rec.id)])
+            if traceability_lines.filtered(lambda line: line.product_id != rec.product_id):
+                raise ValidationError(_('The traceability line product must match the inbound product line.'))
 
     @api.depends('bonded_inbound_id.picking_id.move_ids.state', 'bonded_inbound_id.picking_id.move_ids.product_uom_qty')
     def _compute_done_qty(self):

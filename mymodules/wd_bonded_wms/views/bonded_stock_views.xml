@@ -4,11 +4,11 @@
         <field name="name">bonded.stock.tree</field>
         <field name="model">bonded.stock</field>
         <field name="arch" type="xml">
-            <list>
+            <list create="false" edit="false" delete="false">
                 <field name="bonded_book_id"/>
+                <field name="inbound_id"/>
                 <field name="product_id"/>
                 <field name="inbound_tracking_no"/>
-                <field name="customer_batch_no"/>
                 <field name="lot_id"/>
                 <field name="location_id"/>
                 <field name="current_customs_status"/>
@@ -25,14 +25,14 @@
         <field name="name">bonded.stock.form</field>
         <field name="model">bonded.stock</field>
         <field name="arch" type="xml">
-            <form duplicate="false" class="bonded_required_highlight">
+            <form create="false" edit="false" delete="false" duplicate="false" class="bonded_required_highlight">
                 <sheet>
                     <group>
                         <group string="Stock Info">
                             <field name="bonded_book_id" required="1" options="{'no_create': True, 'no_open': False}"/>
-                            <field name="product_id" required="1" options="{'no_create': True, 'no_open': False}"/>
+                            <field name="bonded_product_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="product_id" required="1" invisible="1"/>
                             <field name="inbound_tracking_no" required="1"/>
-                            <field name="customer_batch_no"/>
                             <field name="lot_id" options="{'no_create': True, 'no_open': False}"/>
                             <field name="location_id" required="1" options="{'no_create': True, 'no_open': False}"/>
                         </group>
@@ -46,6 +46,9 @@
                             <field name="total_value" widget="monetary"/>
                         </group>
                         <group string="Traceability">
+                            <field name="inbound_id" readonly="1" options="{'no_create': True, 'no_open': False}"/>
+                            <field name="inbound_customs_file_id" readonly="1" options="{'no_create': True, 'no_open': False}"/>
+                            <field name="outbound_customs_file_id" readonly="1" options="{'no_create': True, 'no_open': False}"/>
                             <field name="inbound_date"/>
                             <field name="related_t1_out_mrn"/>
                         </group>
@@ -62,9 +65,12 @@
             <list string="Bonded Stock" create="false" edit="false" delete="false">
                 <field name="inbound_tracking_no"/>
                 <field name="product_id"/>
-                <field name="customer_batch_no"/>
-                <field name="quantity"/>
+                <field name="lot_id"/>
+                <field name="package_id"/>
+                <field name="location_id"/>
+                <field name="quantity" string="Available Quantity"/>
                 <field name="current_customs_status"/>
+                <button name="action_select_bonded_stock" string="Select" type="object" class="btn-primary" invisible="not context.get('bonded_outbound_line_id')"/>
             </list>
         </field>
     </record>
@@ -77,7 +83,6 @@
             <search>
                 <field name="product_id"/>
                 <field name="inbound_tracking_no"/>
-                <field name="customer_batch_no"/>
                 <field name="lot_id"/>
                 <field name="location_id"/>
                 <filter name="entrepot" string="Bonded" domain="[('current_customs_status','=','entrepot')]"/>

@@ -38,10 +38,13 @@
         'data/bonded_sequence.xml',
         'data/bonded_charge_seed_data.xml',
         'data/bonded_cron.xml',
+        'report/bonded_operation_reports.xml',
+        'report/bonded_operation_report_inherit.xml',
         # Views
         'views/bonded_eori_entity_views.xml',
         'views/bonded_customs_authorization_views.xml',
         'views/bonded_book_line_views.xml',
+        'views/bonded_inventory_movement_report_views.xml',
         'views/bonded_book_views.xml',
         'views/bonded_value_limit_views.xml',
         'views/bonded_value_ledger_views.xml',

@@ -10,7 +10,6 @@
                 <field name="operation_type"/>
                 <field name="product_id"/>
                 <field name="inbound_tracking_no"/>
-                <field name="customer_batch_no"/>
                 <field name="qty_change"/>
                 <field name="running_balance_qty"/>
                 <field name="from_status"/>
@@ -35,7 +34,6 @@
                         </group>
                         <group>
                             <field name="inbound_tracking_no" required="1"/>
-                            <field name="customer_batch_no"/>
                             <field name="qty_change" required="1"/>
                             <field name="running_balance_qty" readonly="1"/>
                         </group>
@@ -63,7 +61,6 @@
         <field name="arch" type="xml">
             <search>
                 <field name="inbound_tracking_no"/>
-                <field name="customer_batch_no"/>
                 <field name="product_id"/>
                 <field name="bonded_book_id"/>
                 <filter name="inbound" string="Inbound" domain="[('direction','=','in')]"/>

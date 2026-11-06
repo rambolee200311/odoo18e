@@ -70,7 +70,6 @@ class BondedStockSnapshot(models.Model):
                 'direction': 'none',
                 'ref_doc_no': 'SNAP-%s' % today,
                 'inbound_tracking_no': stock.inbound_tracking_no or 'STOCK-%s' % stock.id,
-                'customer_batch_no': stock.customer_batch_no,
                 'bonded_stock_id': stock.id,
             })
             self.env['bonded.stock'].browse(stock.id).write({'last_snapshot_date': today})

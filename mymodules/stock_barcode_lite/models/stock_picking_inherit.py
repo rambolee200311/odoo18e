@@ -171,7 +171,7 @@ class StockPicking(models.Model):
 
     def check_custom_barcode_serial_tracking(self):
         for rec in self:
-            if rec.return_id or rec.barcode_scan_mode != "custom" or rec.picking_type_id.code not in ("incoming", "outgoing") or rec.state in ("done", "cancel"):
+            if rec.barcode_scan_mode != "custom" or rec.picking_type_id.code not in ("incoming", "outgoing") or rec.state in ("done", "cancel"):
                 continue
             serial_moves = rec.move_ids.filtered(
                 lambda move: move.product_id.tracking == "serial" and move.state != "cancel" and move.product_uom_qty > 0
@@ -204,7 +204,7 @@ class StockPicking(models.Model):
                 elif not line.lot_id:
                     invalid_lines.append(_("%s has no serial number") % line.product_id.display_name)
                     continue
-                elif not line.is_outbound_scanned or float_compare(line.outbound_scanned_quantity, line.quantity, precision_rounding=rounding) != 0:
+                elif not rec.return_id and (not line.is_outbound_scanned or float_compare(line.outbound_scanned_quantity, line.quantity, precision_rounding=rounding) != 0):
                     invalid_lines.append(_("%s serial number %s has not been scanned") % (line.product_id.display_name, serial_name))
                     continue
                 serial_key = (line.product_id.id, serial_name)

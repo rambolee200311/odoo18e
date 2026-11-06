@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_bonded_inbound_pallet_label_style" inherit_id="wd_bonded_wms.report_bonded_inbound_pallet">
+        <xpath expr="//div[@class='page']" position="replace">
+            <div class="page bonded-inbound-pallet-label-page" t-att-style="'page-break-after:%s;' % ('auto' if pallet_last else 'always')">
+                <style>
+                    .bonded-inbound-pallet-label-page { font-family: "Microsoft YaHei", SimSun, Arial, sans-serif; color: #111827; font-size: 12px; }
+                    .bonded-inbound-pallet-title { font-size: 22px; font-weight: bold; margin: 0 0 3mm; }
+                    .bonded-inbound-pallet-header, .bonded-inbound-pallet-product, .bonded-inbound-pallet-total { width: 100%; border-collapse: collapse; table-layout: fixed; }
+                    .bonded-inbound-pallet-header td { border: 1px solid #111827; }
+                    .bonded-inbound-pallet-main { vertical-align: top; }
+                    .bonded-inbound-pallet-number { font-size: 18px; font-weight: bold; padding: 4px 3px; word-break: break-word; }
+                    .bonded-inbound-pallet-info td { border: 1px solid #111827; padding: 3px 6px; }
+                    .bonded-inbound-pallet-info .label { width: 18%; font-weight: bold; white-space: nowrap; }
+                    .bonded-inbound-pallet-qr { width: 34%; text-align: center; vertical-align: middle; font-size: 9px; font-weight: bold; }
+                    .bonded-inbound-pallet-qr img { width: 52mm !important; height: 52mm !important; }
+                    .bonded-inbound-product-block { margin-top: 4mm; page-break-inside: avoid; break-inside: avoid; }
+                    .bonded-inbound-pallet-product { border: 1px solid #111827; }
+                    .bonded-inbound-pallet-product td { border: 1px solid #111827; }
+                    .bonded-inbound-product-qr { width: 25%; text-align: center; vertical-align: middle; padding: 2mm; font-size: 9px; font-weight: bold; }
+                    .bonded-inbound-product-qr img { width: 38mm !important; height: 38mm !important; }
+                    .bonded-inbound-product-name { padding: 3mm 5mm; text-align: right; vertical-align: middle; font-size: 20px; font-weight: bold; word-break: break-word; }
+                    .bonded-inbound-pallet-total { margin-top: 4mm; border: 2px solid #111827; font-size: 16px; }
+                    .bonded-inbound-pallet-total td { padding: 3mm 5mm; border: 1px solid #111827; font-weight: bold; }
+                </style>
+                <p class="bonded-inbound-pallet-title"><t t-esc="o.env.company.name"/></p>
+                <table class="bonded-inbound-pallet-header"><tr>
+                    <td class="bonded-inbound-pallet-main"><div class="bonded-inbound-pallet-number">Pallet No: <t t-esc="pallet['package'].name"/></div><table class="bonded-inbound-pallet-info" style="width:100%;border-collapse:collapse;"><tr><td class="label">Reference:</td><td><span t-field="o.reference"/></td><td class="label">Owner:</td><td><span t-field="o.owner_id"/></td></tr><tr><td class="label">Arrival Date:</td><td colspan="3"><span t-field="o.expected_date"/></td></tr><tr><td class="label">BL No:</td><td><span t-field="o.bl_no"/></td><td class="label">Container No:</td><td><span t-field="o.cntr_no"/></td></tr></table></td>
+                    <td class="bonded-inbound-pallet-qr"><div t-field="pallet['package'].barcode" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 380, 'height': 380, 'img_style': 'width:52mm;height:52mm;'}"/><div>Pallet QR Code</div></td>
+                </tr></table>
+                <t t-foreach="pallet['lines']" t-as="line"><div class="bonded-inbound-product-block"><table class="bonded-inbound-pallet-product"><tr><td class="bonded-inbound-product-qr"><t t-if="line.product_id.barcode"><div t-field="line.product_id.barcode" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 320, 'height': 320, 'img_style': 'width:38mm;height:38mm;'}"/></t><t t-elif="line.product_id.default_code"><div t-field="line.product_id.default_code" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 320, 'height': 320, 'img_style': 'width:38mm;height:38mm;'}"/></t><t t-else=""><div t-field="line.product_id.id" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 320, 'height': 320, 'img_style': 'width:38mm;height:38mm;'}"/></t><div>Product QR Code</div></td><td class="bonded-inbound-product-name"><span t-field="line.product_id.display_name"/></td></tr></table></div></t>
+                <table class="bonded-inbound-pallet-total"><tr><td>Total Products</td><td style="width:30%;text-align:right;"><t t-esc="len(pallet['lines'])"/></td></tr></table>
+            </div>
+        </xpath>
+    </template>
+    <template id="report_bonded_inbound_picking_products_style" inherit_id="wd_bonded_wms.report_bonded_inbound_picking">
+        <xpath expr="//div[@class='page']" position="replace">
+            <div class="page bonded-picking-products-page">
+                <style>
+                    .bonded-picking-products-page { font-family: Arial, sans-serif; color: #111827; font-size: 12px; }
+                    .bonded-picking-header { position: relative; min-height: 124px; padding-right: 125px; border-bottom: 2px solid #111827; padding-bottom: 8px; margin-bottom: 12px; box-sizing: border-box; }
+                    .bonded-picking-qr { position: absolute; top: 0; right: 0; width: 112px; text-align: center; font-size: 9px; font-weight: bold; line-height: 1.05; }
+                    .bonded-picking-qr img { width: 100px !important; height: 100px !important; }
+                    .bonded-picking-title { font-size: 24px; font-weight: bold; margin: 0 0 3px 0; }
+                    .bonded-picking-subtitle { font-size: 18px; font-weight: bold; margin: 0 0 6px 0; }
+                    .bonded-picking-info, .bonded-picking-products-table { width: 100%; border-collapse: collapse; }
+                    .bonded-picking-info td { border: 1px solid #111827; padding: 3px 6px; vertical-align: top; }
+                    .bonded-picking-info .label { width: 105px; font-weight: bold; white-space: nowrap; }
+                    .bonded-picking-section { margin-bottom: 12px; page-break-inside: avoid; break-inside: avoid; }
+                    .bonded-picking-section-title { background: #6f797f; color: #ffffff; font-weight: bold; padding: 7px 9px; border: 1px solid #111827; border-bottom: 0; }
+                    .bonded-picking-products-table th, .bonded-picking-products-table td { border: 1px solid #d1d5db; padding: 7px; vertical-align: top; }
+                    .bonded-picking-products-table th { background: #f3f4f6; font-weight: bold; text-align: left; }
+                    .bonded-picking-products-table .qty { width: 80px; text-align: right; white-space: nowrap; }
+                    .bonded-picking-products-table .uom { width: 90px; white-space: nowrap; }
+                    .bonded-picking-products-table .barcode { width: 115px; word-break: break-word; }
+                    .bonded-picking-products-table .lot { width: 130px; word-break: break-word; }
+                    .bonded-picking-products-table .destination { width: 150px; word-break: break-word; }
+                </style>
+                <div class="bonded-picking-header">
+                    <div class="bonded-picking-qr">
+                        <div t-field="o.picking_id.name" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 180, 'height': 180, 'img_style': 'width:100px;height:100px;'}"/>
+                        <div>Incoming Picking</div>
+                        <div><span t-field="o.picking_id.name"/></div>
+                    </div>
+                    <p class="bonded-picking-title"><t t-esc="o.env.company.name"/></p>
+                    <p class="bonded-picking-subtitle">Inbound Picking Products</p>
+                    <table class="bonded-picking-info">
+                        <tr><td class="label">Inbound No:</td><td><span t-field="o.name"/></td><td class="label">Reference:</td><td><span t-field="o.reference"/></td></tr>
+                        <tr><td class="label">Owner:</td><td><span t-field="o.owner_id"/></td><td class="label">Picking:</td><td><span t-field="o.picking_id.name"/></td></tr>
+                        <tr><td class="label">Arrival Date:</td><td><span t-field="o.expected_date"/></td><td class="label">Container No:</td><td><span t-field="o.cntr_no"/></td></tr>
+                    </table>
+                </div>
+                <t t-if="pallet_groups_by_order.get(o.id, [])">
+                    <t t-foreach="pallet_groups_by_order.get(o.id, [])" t-as="pallet">
+                        <div class="bonded-picking-section">
+                            <div class="bonded-picking-section-title">Pallet No: <t t-esc="pallet['name']"/></div>
+                            <table class="bonded-picking-products-table">
+                                <thead><tr><th>Product Name</th><th class="lot">Lot No</th><th class="barcode">Barcode</th><th class="qty">Quantity</th><th class="uom">Unit</th><th class="destination">Destination</th></tr></thead>
+                                <tbody>
+                                    <tr t-foreach="pallet['move_lines']" t-as="move_line">
+                                        <td><span t-esc="move_line.product_id.display_name"/></td><td class="lot"><span t-esc="move_line.lot_id.name or ''"/></td><td class="barcode"><span t-esc="move_line.product_id.barcode or ''"/></td><td class="qty"><span t-field="move_line.quantity"/></td><td class="uom"><span t-field="move_line.product_uom_id.name"/></td><td class="destination"><span t-field="move_line.location_dest_id.complete_name"/></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </t>
+                </t>
+                <t t-else=""><div class="bonded-picking-section">No pallet lines.</div></t>
+            </div>
+        </xpath>
+    </template>
+    <template id="report_bonded_outbound_order_style" inherit_id="wd_bonded_wms.report_bonded_outbound_order">
+        <xpath expr="//div[@class='page']" position="replace">
+            <div class="page" style="font-family:Microsoft YaHei,SimSun,Helvetica,Arial,sans-serif;color:#111827;padding-bottom:12px;">
+                <table style="width:100%;border-collapse:collapse;table-layout:fixed;margin-bottom:12px;"><colgroup><col/><col style="width:220px;"/></colgroup><tr>
+                    <td style="padding:0;vertical-align:top;"><div style="font-size:30px;color:#333;font-weight:700;margin-bottom:6px;"><t t-esc="o.env.company.name"/></div><h2 style="margin:0 0 6px;font-size:24px;">Outbound Order</h2><div style="font-size:18px;color:#555;"><div><strong>Outbound No:</strong> <span t-field="o.name"/></div><div><strong>Reference:</strong> <span t-field="o.reference"/></div><div><strong>Order Date:</strong> <span t-field="o.order_date"/></div><div><strong>Planned Date:</strong> <span t-field="o.expected_date"/></div></div></td>
+                    <td style="padding:0;text-align:center;vertical-align:top;"><div style="border:1px solid #e6e6e6;padding:8px;border-radius:6px;background:#fafafa;display:inline-block;"><div style="font-size:11px;color:#666;margin-bottom:6px;"><strong>Outbound Order QR</strong></div><div t-field="o.name" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 200, 'height': 200, 'img_style': 'width:160px;height:160px;'}"/><div style="margin-top:6px;font-weight:600;word-break:break-word;"><span t-field="o.name"/></div></div></td>
+                </tr></table>
+                <div t-if="o.picking_id" style="margin:0 0 12px;text-align:left;page-break-inside:avoid;"><div style="border:1px solid #e6e6e6;padding:8px;border-radius:6px;background:#fafafa;display:inline-block;"><div style="font-size:11px;color:#666;margin-bottom:6px;"><strong>Picking QR</strong></div><div t-field="o.picking_id.name" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 200, 'height': 200, 'img_style': 'width:160px;height:160px;'}"/><div style="margin-top:6px;font-weight:600;"><span t-field="o.picking_id.name"/></div></div></div>
+                <div style="background:#eef0f2;padding:10px;border-radius:6px;margin-bottom:12px;"><table style="width:100%;border-collapse:collapse;table-layout:fixed;"><tr><td style="width:50%;padding:0 6px 0 0;vertical-align:top;"><strong>Outbound Information</strong><div style="font-size:16px;color:#444;margin-top:6px;"><div><strong>Project:</strong> <span t-field="o.project_id"/></div><div><strong>Owner:</strong> <span t-field="o.owner_id"/></div><div><strong>Warehouse:</strong> <span t-field="o.warehouse"/></div><div><strong>Warehouse Address:</strong> <span t-field="o.warehouse_address"/></div></div></td><td style="width:50%;padding:0 0 0 6px;vertical-align:top;"><strong>Customs Information</strong><div style="font-size:16px;color:#444;margin-top:6px;"><div><strong>Outbound Nature:</strong> <span t-field="o.outbound_nature"/></div><div><strong>Outbound Type:</strong> <span t-field="o.outbound_type"/></div><div><strong>MRN:</strong> <span t-field="o.mrn"/></div><div><strong>MRN Status:</strong> <span t-field="o.mrn_status"/></div></div></td></tr></table></div>
+                <table style="width:100%;border-collapse:collapse;font-size:14px;table-layout:fixed;border:2px solid #343a40;"><colgroup><col style="width:18%;"/><col style="width:27%;"/><col style="width:15%;"/><col style="width:12%;"/><col style="width:14%;"/><col style="width:14%;"/></colgroup><thead style="background:#343a40;color:#fff;display:table-header-group;"><tr><th style="padding:9px;border:1px solid #ddd;text-align:left;">Unique Identifier No.</th><th style="padding:9px;border:1px solid #ddd;text-align:left;">Product</th><th style="padding:9px;border:1px solid #ddd;text-align:center;">QR Code</th><th style="padding:9px;border:1px solid #ddd;text-align:right;">Quantity</th><th style="padding:9px;border:1px solid #ddd;text-align:right;">Unit Price</th><th style="padding:9px;border:1px solid #ddd;text-align:right;">Subtotal</th></tr></thead><tbody>
+                    <tr t-foreach="o.line_ids" t-as="line"><td style="padding:9px;border:1px solid #eee;vertical-align:middle;word-break:break-word;"><span t-field="line.inbound_tracking_no"/></td><td style="padding:9px;border:1px solid #eee;vertical-align:top;"><div style="font-weight:bold;color:#2c3e50;"><span t-field="line.product_id.display_name"/></div><div style="color:#666;font-size:12px;margin-top:4px;">Code: <span t-field="line.product_id.default_code"/></div></td><td style="padding:9px;border:1px solid #eee;text-align:center;vertical-align:middle;"><t t-if="line.product_id.barcode"><div t-field="line.product_id.barcode" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 120, 'height': 120, 'img_style': 'width:92px;height:92px;'}"/></t><t t-elif="line.product_id.default_code"><div t-field="line.product_id.default_code" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 120, 'height': 120, 'img_style': 'width:92px;height:92px;'}"/></t><t t-else=""><div t-field="line.product_id.id" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 120, 'height': 120, 'img_style': 'width:92px;height:92px;'}"/></t></td><td style="padding:9px;border:1px solid #eee;text-align:right;vertical-align:middle;font-weight:bold;"><span t-field="line.demand_qty"/> <span t-field="line.uom_id.name"/></td><td style="padding:9px;border:1px solid #eee;text-align:right;vertical-align:middle;"><span t-field="line.declared_unit_price"/></td><td style="padding:9px;border:1px solid #eee;text-align:right;vertical-align:middle;"><span t-field="line.subtotal_value"/></td></tr>
+                </tbody></table>
+                <table style="width:100%;border-collapse:collapse;font-size:16px;table-layout:fixed;margin-top:14px;border:2px solid #28a745;"><tr style="background:#d4edda;"><td style="width:70%;padding:12px;border:1px solid #28a745;font-weight:bold;">Total Value</td><td style="padding:12px;border:1px solid #28a745;text-align:right;font-weight:bold;"><span t-field="o.total_value"/></td></tr></table>
+                <div t-if="o.remark" style="margin-top:12px;padding:12px;background:#fff3cd;border:1px solid #ffeaa7;border-radius:6px;"><strong>Remarks:</strong><div t-field="o.remark"/></div>
+                <div style="border-top:1px solid #dee2e6;padding:10px 0;text-align:center;font-size:12px;color:#6c757d;margin-top:10px;"><span><t t-esc="o.env.company.name"/> - Outbound Order</span><span style="float:right;">Outbound No: <t t-esc="o.name"/></span></div>
+            </div>
+        </xpath>
+    </template>
+    <template id="report_bonded_outbound_picking_lot_label_style" inherit_id="wd_bonded_wms.report_bonded_outbound_picking">
+        <xpath expr="//div[@class='page']" position="replace">
+            <div class="page bonded-outbound-picking-page">
+                <style>
+                    .bonded-outbound-picking-page { font-family: "Microsoft YaHei", SimSun, Arial, sans-serif; color: #111827; font-size: 12px; }
+                    .bonded-outbound-header { min-height: 38mm; margin-bottom: 4mm; border-bottom: 2px solid #111827; page-break-inside: avoid; break-inside: avoid; }
+                    .bonded-outbound-header-table, .bonded-outbound-info, .bonded-outbound-products-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+                    .bonded-outbound-header-main { vertical-align: top; padding: 0 4mm 2mm 0; }
+                    .bonded-outbound-qr { width: 42mm; text-align: center; vertical-align: middle; padding: 0 0 2mm 3mm; font-size: 9px; font-weight: bold; line-height: 1.1; }
+                    .bonded-outbound-qr img { width: 30mm !important; height: 30mm !important; }
+                    .bonded-outbound-title { font-size: 22px; font-weight: bold; margin: 0 0 2px; }
+                    .bonded-outbound-subtitle { font-size: 16px; font-weight: bold; margin: 0 0 3mm; }
+                    .bonded-outbound-info td { border: 1px solid #111827; padding: 2px 5px; vertical-align: top; }
+                    .bonded-outbound-info .label { width: 28mm; font-weight: bold; white-space: nowrap; }
+                    .bonded-outbound-pallet { margin-bottom: 5mm; page-break-inside: avoid; break-inside: avoid; }
+                    .bonded-outbound-pallet-title { background: #6f797f; color: #ffffff; font-weight: bold; padding: 7px 9px; border: 1px solid #111827; border-bottom: 0; }
+                    .bonded-outbound-products-table th, .bonded-outbound-products-table td { border: 1px solid #d1d5db; padding: 7px; vertical-align: top; }
+                    .bonded-outbound-products-table th { background: #f3f4f6; font-weight: bold; text-align: left; }
+                    .bonded-outbound-products-table .product { width: 25%; word-break: break-word; }
+                    .bonded-outbound-products-table .lot { width: 12%; word-break: break-word; }
+                    .bonded-outbound-products-table .barcode { width: 12%; word-break: break-word; }
+                    .bonded-outbound-products-table .tracking { width: 16%; word-break: break-word; }
+                    .bonded-outbound-products-table .qty { width: 9%; text-align: right; white-space: nowrap; }
+                    .bonded-outbound-products-table .uom { width: 8%; white-space: nowrap; }
+                    .bonded-outbound-products-table .location { width: 18%; word-break: break-word; }
+                </style>
+                <div class="bonded-outbound-header">
+                    <table class="bonded-outbound-header-table"><tr>
+                        <td class="bonded-outbound-qr"><div t-field="o.name" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 260, 'height': 260, 'img_style': 'width:30mm;height:30mm;'}"/><div>Outbound Order</div><div><span t-field="o.name"/></div></td>
+                        <td class="bonded-outbound-header-main"><p class="bonded-outbound-title"><t t-esc="o.env.company.name"/></p><p class="bonded-outbound-subtitle">Outbound Picking Products</p><table class="bonded-outbound-info"><tr><td class="label">Reference:</td><td><span t-field="o.reference"/></td></tr><tr><td class="label">Owner:</td><td><span t-field="o.owner_id"/></td></tr><tr><td class="label">Picking:</td><td><span t-field="o.picking_id.name"/></td></tr><tr><td class="label">Outbound Type:</td><td><span t-field="o.outbound_type"/></td></tr></table></td>
+                        <td class="bonded-outbound-qr" t-if="o.picking_id"><div t-field="o.picking_id.name" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 260, 'height': 260, 'img_style': 'width:30mm;height:30mm;'}"/><div>Outbound Picking</div><div><span t-field="o.picking_id.name"/></div></td>
+                    </tr></table>
+                </div>
+                <t t-if="pallet_groups_by_order.get(o.id, [])">
+                    <t t-foreach="pallet_groups_by_order.get(o.id, [])" t-as="pallet">
+                        <div class="bonded-outbound-pallet"><div class="bonded-outbound-pallet-title">Pallet No: <span t-esc="pallet['name']"/></div><table class="bonded-outbound-products-table"><thead><tr><th class="product">Product Name</th><th class="lot">Lot No</th><th class="barcode">Barcode</th><th class="tracking">Unique Identifier No.</th><th class="qty">Quantity</th><th class="uom">Unit</th><th class="location">Source Location</th></tr></thead><tbody>
+                            <tr t-foreach="pallet['move_lines']" t-as="move_line"><td class="product"><span t-esc="move_line.product_id.display_name"/></td><td class="lot"><span t-esc="move_line.lot_id.name or ''"/></td><td class="barcode"><span t-esc="move_line.product_id.barcode or ''"/></td><td class="tracking"><span t-field="move_line.move_id.bonded_outbound_line_id.inbound_tracking_no"/></td><td class="qty"><span t-field="move_line.quantity"/></td><td class="uom"><span t-field="move_line.product_uom_id.name"/></td><td class="location"><span t-field="move_line.location_id.complete_name"/></td></tr>
+                        </tbody></table></div>
+                    </t>
+                </t>
+                <t t-else=""><div class="bonded-outbound-pallet">No pallet move lines.</div></t>
+            </div>
+        </xpath>
+    </template>
+</odoo>

@@ -9,6 +9,8 @@ access_bonded_customs_authorization_audit,bonded.customs.authorization.audit,mod
 access_bonded_book_line,bonded.book.line,model_bonded_book_line,group_bonded_warehouse,1,0,0,0
 access_bonded_book_line_review,bonded.book.line.review,model_bonded_book_line,group_bonded_customs_review,1,0,0,0
 access_bonded_book_line_audit,bonded.book.line.audit,model_bonded_book_line,group_bonded_customs_audit,1,0,0,0
+access_bonded_inventory_movement_report,bonded.inventory.movement.report,model_bonded_inventory_movement_report,,1,1,1,1
+access_bonded_inventory_movement_report_line,bonded.inventory.movement.report.line,model_bonded_inventory_movement_report_line,,1,0,1,0
 access_bonded_book,bonded.book,model_bonded_book,group_bonded_admin,1,1,1,1
 access_bonded_book_user,bonded.book.user,model_bonded_book,group_bonded_customs_declaration,1,0,0,0
 access_bonded_book_audit,bonded.book.audit,model_bonded_book,group_bonded_customs_audit,1,0,0,0
@@ -37,6 +39,7 @@ access_bonded_inbound,bonded.inbound,model_bonded_inbound,group_bonded_warehouse
 access_bonded_inbound_customs,bonded.inbound.customs,model_bonded_inbound,group_bonded_customs_declaration,1,1,0,0
 access_bonded_inbound_audit,bonded.inbound.audit,model_bonded_inbound,group_bonded_customs_audit,1,0,0,0
 access_bonded_inbound_line,bonded.inbound.line,model_bonded_inbound_line,group_bonded_warehouse,1,1,1,1
+access_bonded_inbound_traceability_line,bonded.inbound.traceability.line,model_bonded_inbound_traceability_line,group_bonded_warehouse,1,1,1,1
 access_bonded_inbound_tracking,bonded.inbound.tracking,model_bonded_inbound_tracking,group_bonded_warehouse,1,1,1,0
 access_bonded_inbound_tracking_customs,bonded.inbound.tracking.customs,model_bonded_inbound_tracking,group_bonded_customs_declaration,1,1,0,0
 access_bonded_inbound_tracking_audit,bonded.inbound.tracking.audit,model_bonded_inbound_tracking,group_bonded_customs_audit,1,0,0,0
@@ -66,6 +69,7 @@ access_bonded_product_system,bonded.product,model_bonded_product,base.group_syst
 access_gate_arrival_system,gate.arrival,model_gate_arrival,base.group_system,1,1,1,1
 access_bonded_inbound_system,bonded.inbound,model_bonded_inbound,base.group_system,1,1,1,1
 access_bonded_inbound_line_system,bonded.inbound.line,model_bonded_inbound_line,base.group_system,1,1,1,1
+access_bonded_inbound_traceability_line_system,bonded.inbound.traceability.line,model_bonded_inbound_traceability_line,base.group_system,1,1,1,1
 access_bonded_inbound_tracking_system,bonded.inbound.tracking,model_bonded_inbound_tracking,base.group_system,1,1,1,1
 access_bonded_outbound_system,bonded.outbound,model_bonded_outbound,base.group_system,1,1,1,1
 access_bonded_outbound_line_system,bonded.outbound.line,model_bonded_outbound_line,base.group_system,1,1,1,1
