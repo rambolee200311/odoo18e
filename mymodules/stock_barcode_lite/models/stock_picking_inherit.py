@@ -216,10 +216,3 @@ class StockPicking(models.Model):
                 raise UserError(
                     _("Please complete serial number scanning before validating: %s") % "; ".join(invalid_lines)
                 )
-
-
-class StockLotInherit(models.Model):
-    _inherit = "stock.lot"
-
-    gross_weight = fields.Float(string="Gross Weight (kg)", copy=False)
-    product_dimensions = fields.Char(string="Product Dimensions (m)", copy=False)
