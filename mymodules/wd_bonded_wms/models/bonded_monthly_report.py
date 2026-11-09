@@ -11,21 +11,21 @@ class BondedMonthlyReport(models.Model):
     _rec_name = 'report_month'
     _order = 'report_month desc, product_id'
 
-    report_month = fields.Date(string='Report Month', required=True, index=True)
-    bonded_book_id = fields.Many2one('bonded.book', string='Bonded Book', required=True, index=True, domain=[('state', '=', 'active')])
-    product_id = fields.Many2one('product.product', string='Product', required=True)
-    batch_no = fields.Char(string='Batch No.')
-    hs_code = fields.Char(string='HS Code')
-    opening_qty = fields.Float(string='Opening Qty', default=0.0)
-    inbound_qty = fields.Float(string='Inbound Qty', default=0.0)
-    outbound_qty = fields.Float(string='Outbound Qty', default=0.0)
-    write_off_qty = fields.Float(string='Write-off Qty', default=0.0)
-    closing_qty = fields.Float(string='Closing Qty', compute='_compute_closing', store=True)
+    report_month = fields.Date(string='Report Month', required=True, readonly=True, index=True)
+    bonded_book_id = fields.Many2one('bonded.book', string='Bonded Book', required=True, readonly=True, index=True, domain=[('state', '=', 'active')])
+    product_id = fields.Many2one('product.product', string='Product', required=True, readonly=True, index=True)
+    batch_no = fields.Char(string='Batch No.', readonly=True)
+    hs_code = fields.Char(string='HS Code', readonly=True)
+    opening_qty = fields.Float(string='Opening Qty', default=0.0, readonly=True)
+    inbound_qty = fields.Float(string='Inbound Qty', default=0.0, readonly=True)
+    outbound_qty = fields.Float(string='Outbound Qty', default=0.0, readonly=True)
+    write_off_qty = fields.Float(string='Write-off Qty', default=0.0, readonly=True)
+    closing_qty = fields.Float(string='Closing Qty', compute='_compute_closing', store=True, readonly=True)
     state = fields.Selection([
         ('draft', 'Draft'),
         ('submitted', 'Submitted'),
         ('confirmed', 'Confirmed'),
-    ], string='Status', default='draft', required=True)
+    ], string='Status', default='draft', required=True, readonly=True)
 
     @api.depends('opening_qty', 'inbound_qty', 'outbound_qty', 'write_off_qty')
     def _compute_closing(self):

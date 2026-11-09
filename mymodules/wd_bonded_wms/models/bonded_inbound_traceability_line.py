@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
-from odoo.exceptions import ValidationError
+from odoo.exceptions import UserError, ValidationError
 from odoo.tools.float_utils import float_compare
 
 
 class BondedInboundTraceabilityLine(models.Model):
     _name = 'bonded.inbound.traceability.line'
     _description = 'Bonded Inbound Traceability Line'
+    _rec_name = 'lot_name'
     _order = 'inbound_line_id, id'
 
     inbound_line_id = fields.Many2one('bonded.inbound.line', string='Inbound Product Line', required=True, ondelete='cascade', index=True)
@@ -22,9 +23,12 @@ class BondedInboundTraceabilityLine(models.Model):
     def create(self, vals_list):
         env_inbound_line = self.env['bonded.inbound.line'].sudo()
         for vals in vals_list:
+            vals.setdefault('inbound_line_id', self.env.context.get('default_inbound_line_id'))
             inbound_line = env_inbound_line.browse(vals.get('inbound_line_id')).exists()
             if inbound_line:
                 vals.setdefault('product_id', inbound_line.product_id.id)
+                if inbound_line.product_id.tracking == 'lot':
+                    vals.setdefault('planned_qty', inbound_line.planned_qty)
         return super().create(vals_list)
 
     @api.constrains('inbound_line_id', 'product_id', 'lot_name', 'planned_qty')
@@ -43,6 +47,8 @@ class BondedInboundTraceabilityLine(models.Model):
             if rec.product_id.tracking == 'serial' and float_compare(rec.planned_qty, 1.0, precision_rounding=rounding) != 0:
                 raise ValidationError(_('The planned quantity of a serial number must be 1.'))
             traceability_lines = env_traceability_line.search([('inbound_line_id', '=', rec.inbound_line_id.id)])
+            if rec.product_id.tracking == 'lot' and len(traceability_lines) > 1:
+                raise ValidationError(_('Only one lot is allowed for each inbound product line.'))
             total_qty = sum(traceability_lines.mapped('planned_qty'))
             if float_compare(total_qty, rec.inbound_line_id.planned_qty, precision_rounding=rounding) > 0:
-                raise ValidationError(_('The total lot/SN planned quantity cannot exceed the inbound product line quantity.'))
+                raise UserError(_('The total lot/SN planned quantity cannot exceed the inbound product line quantity.'))

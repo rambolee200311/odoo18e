@@ -4,7 +4,7 @@
         <field name="name">bonded.verification.list</field>
         <field name="model">bonded.verification</field>
         <field name="arch" type="xml">
-            <list>
+            <list create="false">
                 <field name="verification_date"/>
                 <field name="bonded_book_id"/>
                 <field name="verification_type"/>
@@ -21,7 +21,7 @@
         <field name="name">bonded.verification.form</field>
         <field name="model">bonded.verification</field>
         <field name="arch" type="xml">
-            <form duplicate="false" class="bonded_required_highlight">
+            <form create="false" duplicate="false" class="bonded_required_highlight">
                 <header>
                     <button name="action_approve" string="Approve" type="object" class="btn-primary" invisible="review_status != 'pending'"/>
                     <button name="action_reject" string="Reject" type="object" invisible="review_status != 'pending'"/>

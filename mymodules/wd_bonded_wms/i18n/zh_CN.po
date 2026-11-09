@@ -30,8 +30,8 @@ msgstr "%s实体为必填项。"
 #. module: wd_bonded_wms
 #. odoo-python
 #: code:addons/wd_bonded_wms/models/bonded_customs_file.py:0
-msgid "%s is required and must be a valid EORI number."
-msgstr "%s为必填项，且必须是有效的EORI号码。"
+msgid "%s is required and must follow the formal EORI format: 2 uppercase letters for the country code followed by 2 to 15 uppercase letters or digits, with a total length of 4 to 17 characters, for example NL123456789."
+msgstr "%s为必填项，且必须符合正式EORI格式：2位大写国家代码后跟2至15位大写字母或数字，总长度为4至17位，例如NL123456789。"
 
 #. module: wd_bonded_wms
 #: model_terms:ir.ui.view,arch_db:wd_bonded_wms.bonded_customs_file_view_form
@@ -419,7 +419,7 @@ msgstr "保税监管日志"
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_charge_line__bonded_outbound_id
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_value_ledger__outbound_id
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_stock_picking__bonded_outbound_id
-#: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_outbound__outbound_nature__bonded
+#: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_outbound__outbound_type__t1_transit
 #: model:ir.ui.menu,name:wd_bonded_wms.menu_bonded_outbound
 msgid "Bonded Outbound"
 msgstr "保税出库"
@@ -1331,8 +1331,8 @@ msgstr "EORI主体%s未启用。"
 #. module: wd_bonded_wms
 #. odoo-python
 #: code:addons/wd_bonded_wms/models/bonded_eori_entity.py:0
-msgid "EORI number format is invalid."
-msgstr "EORI号码格式无效。"
+msgid "EORI number format is invalid. The formal format is 2 uppercase letters for the country code followed by 2 to 15 uppercase letters or digits, with a total length of 4 to 17 characters, for example NL123456789."
+msgstr "EORI号码格式无效。正式格式为：2位大写国家代码后跟2至15位大写字母或数字，总长度为4至17位，例如NL123456789。"
 
 #. module: wd_bonded_wms
 #: model:ir.model.constraint,message:wd_bonded_wms.constraint_bonded_eori_entity_eori_no_company_uniq
@@ -1825,8 +1825,8 @@ msgstr "包含变更前后值的JSON格式"
 
 #. module: wd_bonded_wms
 #: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_outbound__outbound_type__l2f
-msgid "L2F (Local Clearance)"
-msgstr "L2F（本地清关）"
+msgid "Clearance Outbound"
+msgstr "清关出库"
 
 #. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_stock__last_snapshot_date
@@ -2547,6 +2547,16 @@ msgid "The planned quantity of a serial number must be 1."
 msgstr "每个序列号的计划数量必须为 1。"
 
 #. module: wd_bonded_wms
+#: code:addons/wd_bonded_wms/models/bonded_inbound.py:0
+msgid "The planned quantity of a serial-tracked product must be an integer."
+msgstr "按序列号追踪的产品计划数量必须为整数。"
+
+#. module: wd_bonded_wms
+#: code:addons/wd_bonded_wms/models/bonded_inbound_traceability_line.py:0
+msgid "Only one lot is allowed for each inbound product line."
+msgstr "每个入库产品明细只能填写一个批次。"
+
+#. module: wd_bonded_wms
 #: code:addons/wd_bonded_wms/models/bonded_inbound_traceability_line.py:0
 #, python-format
 msgid "The total lot/SN planned quantity cannot exceed the inbound product line quantity."
@@ -2694,16 +2704,6 @@ msgstr "铁路运输"
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_gate_arrival__rating_ids
 msgid "Ratings"
 msgstr "评分"
-
-#. module: wd_bonded_wms
-#: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_verification__write_off_type__re_export
-msgid "Re-export"
-msgstr "再出口"
-
-#. module: wd_bonded_wms
-#: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_outbound__outbound_type__re_export
-msgid "Re-export (RTO)"
-msgstr "再出口（RTO）"
 
 #. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_log__res_id
@@ -3136,9 +3136,6 @@ msgid "T1 Outbound"
 msgstr "T1出境"
 
 #. module: wd_bonded_wms
-#: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_outbound__outbound_type__t1_transit
-msgid "T1 Transit"
-msgstr "T1转运"
 
 #. module: wd_bonded_wms
 #: model:ir.actions.server,name:wd_bonded_wms.cron_bonded_t1_monitor_ir_actions_server
@@ -3658,16 +3655,6 @@ msgstr "申报明细必须属于该入库单关联的T1海关文件。"
 #: code:addons/wd_bonded_wms/models/bonded_customs_file.py:0
 msgid "Please link exactly one bonded inbound instruction before submitting this T1 declaration."
 msgstr "提交该T1海关文件前，必须且只能关联一张入库单。"
-
-#. module: wd_bonded_wms
-#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_outbound__outbound_nature
-msgid "Outbound Nature"
-msgstr "出库属性"
-
-#. module: wd_bonded_wms
-#: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_outbound__outbound_nature__non_bonded
-msgid "Non-Bonded Outbound"
-msgstr "非保税出库"
 
 #. module: wd_bonded_wms
 #: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_customs_file__declaration_type__clearance_out

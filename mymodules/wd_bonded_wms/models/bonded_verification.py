@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
+from odoo.exceptions import ValidationError
 
 
 class BondedVerification(models.Model):
@@ -61,7 +62,6 @@ class BondedVerification(models.Model):
     write_off_type = fields.Selection([
         ('normal_outbound', 'Normal Outbound'),
         ('destruction', 'Destruction'),
-        ('re_export', 'Re-export'),
         ('shortage', 'Shortage'),
         ('rto', 'RTO'),
     ], string='Write-off Type', tracking=True)
@@ -71,6 +71,16 @@ class BondedVerification(models.Model):
     certificate_filename = fields.Char(string='Certificate Filename')
 
     remark = fields.Text(string='Remark', tracking=True)
+
+    @api.model
+    def fields_get(self, allfields=None, attributes=None):
+        result = super().fields_get(allfields=allfields, attributes=attributes)
+        if result.get('verification_type', {}).get('selection'):
+            result['verification_type']['selection'] = [
+                selection for selection in result['verification_type']['selection'] if selection[0] != 'status_change'
+            ]
+        return result
+
 
     def action_approve(self):
         for rec in self:
@@ -88,7 +98,7 @@ class BondedVerification(models.Model):
                 operation_type = 'destruction'
             elif rec.write_off_type in ('shortage',):
                 operation_type = 'shortage'
-            elif rec.write_off_type in ('re_export', 'rto'):
+            elif rec.write_off_type == 'rto':
                 operation_type = 'rto'
             qty_change = 0.0 if rec.verification_type == 'status_change' else -abs(rec.quantity)
             self.env['bonded.book.line'].create({

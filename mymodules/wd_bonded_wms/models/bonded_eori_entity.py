@@ -42,7 +42,7 @@ class BondedEoriEntity(models.Model):
         pattern = re.compile(r'^[A-Z]{2}[A-Z0-9]{2,15}$')
         for rec in self:
             if rec.eori_no and not pattern.match(rec.eori_no):
-                raise ValidationError(_('EORI number format is invalid.'))
+                raise ValidationError(_('EORI number format is invalid. The formal format is 2 uppercase letters for the country code followed by 2 to 15 uppercase letters or digits, with a total length of 4 to 17 characters, for example NL123456789.'))
 
     def validate_active_on_date(self, check_date=None):
         check_date = check_date or fields.Date.today()
