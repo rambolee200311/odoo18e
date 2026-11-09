@@ -11,21 +11,21 @@ class BondedStockSnapshot(models.Model):
     _order = 'snapshot_date desc, product_id'
     _rec_name = 'snapshot_date'
 
-    snapshot_date = fields.Date(string='Snapshot Date', required=True, index=True)
-    bonded_book_id = fields.Many2one('bonded.book', string='Bonded Book', required=True, index=True, domain=[('state', '=', 'active')])
-    product_id = fields.Many2one('product.product', string='Product', required=True)
-    lot_id = fields.Many2one('stock.lot', string='Lot/SN')
-    location_id = fields.Many2one('stock.location', string='Location')
+    snapshot_date = fields.Date(string='Snapshot Date', required=True, readonly=True, index=True)
+    bonded_book_id = fields.Many2one('bonded.book', string='Bonded Book', required=True, readonly=True, index=True, domain=[('state', '=', 'active')])
+    product_id = fields.Many2one('product.product', string='Product', required=True, readonly=True, index=True)
+    lot_id = fields.Many2one('stock.lot', string='Lot/SN', readonly=True)
+    location_id = fields.Many2one('stock.location', string='Location', readonly=True)
     current_customs_status = fields.Selection([
         ('entrepot', 'Entrepot'),
         ('vrij', 'Vrij'),
         ('in_t1_transit', 'In T1 Transit'),
-    ], string='Customs Status', required=True)
-    quantity = fields.Float(string='Qty', required=True, default=0.0)
-    unit_value = fields.Monetary(string='Unit Value', default=0.0)
-    total_value = fields.Monetary(string='Total Value', compute='_compute_total', store=True)
-    currency_id = fields.Many2one('res.currency', string='Currency')
-    mrn = fields.Char(string='MRN')
+    ], string='Customs Status', required=True, readonly=True)
+    quantity = fields.Float(string='Qty', required=True, default=0.0, readonly=True)
+    unit_value = fields.Monetary(string='Unit Value', default=0.0, readonly=True)
+    total_value = fields.Monetary(string='Total Value', compute='_compute_total', store=True, readonly=True)
+    currency_id = fields.Many2one('res.currency', string='Currency', readonly=True)
+    mrn = fields.Char(string='MRN', readonly=True)
 
     @api.depends('quantity', 'unit_value')
     def _compute_total(self):

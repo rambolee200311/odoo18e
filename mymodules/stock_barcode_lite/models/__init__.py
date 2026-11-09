@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from . import product_template_inherit
 from . import inbound_order
+from . import stock_barcode_lite_scan_service_inherit
 from . import inbound_order_generic_picking
 from . import inbound_order_sunrise_status
 from . import outbound_order_inherit

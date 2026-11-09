@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="bonded_stock_snapshot_view_list" model="ir.ui.view">
+        <field name="name">bonded.stock.snapshot.list</field>
+        <field name="model">bonded.stock.snapshot</field>
+        <field name="arch" type="xml">
+            <list create="false" edit="false" delete="false">
+                <field name="snapshot_date"/>
+                <field name="bonded_book_id"/>
+                <field name="product_id"/>
+                <field name="lot_id"/>
+                <field name="location_id"/>
+                <field name="current_customs_status"/>
+                <field name="quantity"/>
+                <field name="unit_value" widget="monetary"/>
+                <field name="total_value" widget="monetary"/>
+                <field name="currency_id"/>
+                <field name="mrn"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="bonded_stock_snapshot_view_form" model="ir.ui.view">
+        <field name="name">bonded.stock.snapshot.form</field>
+        <field name="model">bonded.stock.snapshot</field>
+        <field name="arch" type="xml">
+            <form create="false" edit="false" delete="false" duplicate="false">
+                <sheet>
+                    <group>
+                        <field name="snapshot_date"/>
+                        <field name="bonded_book_id"/>
+                        <field name="product_id"/>
+                        <field name="lot_id"/>
+                        <field name="location_id"/>
+                        <field name="current_customs_status"/>
+                        <field name="quantity"/>
+                        <field name="unit_value" widget="monetary"/>
+                        <field name="total_value" widget="monetary"/>
+                        <field name="currency_id"/>
+                        <field name="mrn"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="bonded_monthly_report_view_list" model="ir.ui.view">
+        <field name="name">bonded.monthly.report.list</field>
+        <field name="model">bonded.monthly.report</field>
+        <field name="arch" type="xml">
+            <list create="false" edit="false" delete="false">
+                <field name="report_month"/>
+                <field name="bonded_book_id"/>
+                <field name="product_id"/>
+                <field name="batch_no"/>
+                <field name="hs_code"/>
+                <field name="opening_qty"/>
+                <field name="inbound_qty"/>
+                <field name="outbound_qty"/>
+                <field name="write_off_qty"/>
+                <field name="closing_qty"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="bonded_monthly_report_view_form" model="ir.ui.view">
+        <field name="name">bonded.monthly.report.form</field>
+        <field name="model">bonded.monthly.report</field>
+        <field name="arch" type="xml">
+            <form create="false" edit="false" delete="false" duplicate="false">
+                <sheet>
+                    <group>
+                        <field name="report_month"/>
+                        <field name="bonded_book_id"/>
+                        <field name="product_id"/>
+                        <field name="batch_no"/>
+                        <field name="hs_code"/>
+                        <field name="opening_qty"/>
+                        <field name="inbound_qty"/>
+                        <field name="outbound_qty"/>
+                        <field name="write_off_qty"/>
+                        <field name="closing_qty"/>
+                        <field name="state"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

@@ -15,7 +15,34 @@ class StockPicking(models.Model):
                                         readonly=True, copy=False)
     bonded_outbound_id = fields.Many2one('bonded.outbound', string='Bonded Outbound',
                                          readonly=True, copy=False)
+    unique_identifier_no = fields.Char(string='Unique Identifier No.', readonly=True, copy=False, index=True)
+    bonded_customs_file_id = fields.Many2one('bonded.customs.file', string='Customs / Clearance File', readonly=True, copy=False, ondelete='restrict', index=True)
+    customs_file_status = fields.Selection(related='bonded_customs_file_id.state', string='Customs File Status', store=True, readonly=True, index=True)
+    bonded_flag = fields.Selection([('bonded', 'Bonded'), ('non_bonded', 'Non-bonded')], string='Bonded Flag', compute='_compute_bonded_flag', store=True, readonly=True, index=True)
+    t1_is_closed = fields.Boolean(string='T1 Closed', compute='_compute_t1_is_closed', store=True, readonly=True, index=True)
+    t1_closed_date = fields.Datetime(related='bonded_customs_file_id.t1_closed_date', string='T1 Closed Date', store=True, readonly=True, index=True)
+    mrn = fields.Char(related='bonded_customs_file_id.mrn', string='MRN', store=True, readonly=True, index=True)
+    mrn_status = fields.Selection(related='bonded_customs_file_id.mrn_id.state', string='MRN Status', store=True, readonly=True, index=True)
 
+    @api.depends('bonded_customs_file_id.declaration_type', 'bonded_customs_file_id.state')
+    def _compute_t1_is_closed(self):
+        for rec in self:
+            rec.t1_is_closed = rec.bonded_customs_file_id.declaration_type in ('t1_in', 't1_out') and rec.bonded_customs_file_id.state == 'done'
+
+    @api.depends('bonded_customs_file_id.declaration_type')
+    def _compute_bonded_flag(self):
+        for rec in self:
+            rec.bonded_flag = 'non_bonded' if rec.bonded_customs_file_id.declaration_type == 'clearance_out' else 'bonded' if rec.bonded_customs_file_id else False
+
+    def unlink(self):
+        for rec in self:
+            inbound = rec.bonded_inbound_id
+            if inbound and rec.state != 'done' and inbound.picking_id == rec:
+                vals = {'picking_id': False}
+                if inbound.state == 'in_progress':
+                    vals['state'] = 'released'
+                inbound.write(vals)
+        return super().unlink()
     @api.model
     def action_create_bonded_pda_internal_transfer(self):
         warehouse = self.env.user.warehouse_id

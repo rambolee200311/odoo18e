@@ -91,9 +91,9 @@ class BondedCustomsFile(models.Model):
             if rec.bonded_inbound_id and rec.declaration_type != 't1_in':
                 raise ValidationError(_('Inbound instructions can only link to T1 inbound declarations.'))
             if rec.bonded_outbound_id:
-                expected_type = 't1_out' if rec.bonded_outbound_id.outbound_nature == 'bonded' else 'clearance_out'
+                expected_type = 't1_out' if rec.bonded_outbound_id.outbound_type == 't1_transit' else 'clearance_out'
                 if rec.declaration_type != expected_type:
-                    raise ValidationError(_('The customs declaration type must match the outbound nature.'))
+                    raise ValidationError(_('The customs declaration type must match the outbound type.'))
             instruction = rec.bonded_inbound_id or rec.bonded_outbound_id
             if instruction and instruction.bonded_book_id != rec.bonded_book_id:
                 raise ValidationError(_('The customs declaration and linked instruction must use the same bonded book.'))
@@ -242,7 +242,8 @@ class BondedCustomsFile(models.Model):
                 if inbound and active_files and all(customs_file.state in ('customs_approved', 'done') for customs_file in active_files):
                     bonded_book = self.env['bonded.book'].browse(inbound.bonded_book_id.id)
                     bonded_book.deduct_document_value(project_id=inbound.project_id.id, inbound_id=inbound.id, customs_file_id=rec.id)
-            rec.sync_instruction_state('released')
+            if rec.declaration_type == 't1_out':
+                rec.sync_instruction_state('released')
 
     def action_reject(self, reason=''):
         for rec in self:
@@ -276,6 +277,7 @@ class BondedCustomsFile(models.Model):
                 closed_date = fields.Datetime.now()
                 rec.write({'t1_closed_date': closed_date})
                 rec.ensure_mrn_record()
+                rec.sync_instruction_state('released')
 
     def release_outbound_value(self):
         for rec in self:
@@ -305,7 +307,7 @@ class BondedCustomsFile(models.Model):
             outbound = rec.bonded_outbound_id
             if not outbound or outbound.state != 'done' or not outbound.picking_id or outbound.picking_id.state != 'done':
                 raise UserError(_('Complete all related outbound pickings before closing the T1 declaration.'))
-            rec.write({'state': 'done'})
+            rec.write({'state': 'done', 't1_closed_date': fields.Datetime.now()})
             active_files = outbound.customs_file_ids.filtered(lambda customs_file: customs_file.state not in ('customs_rejected', 'cancelled'))
             if active_files and all(customs_file.state == 'done' for customs_file in active_files):
                 rec.release_outbound_value()
@@ -341,7 +343,7 @@ class BondedCustomsFile(models.Model):
                 if entity.eori_no != eori_no:
                     raise UserError(_('%s does not match the selected EORI entity.') % label)
                 if not eori_no or not pattern.match(eori_no.strip().upper()):
-                    raise UserError(_('%s is required and must be a valid EORI number.') % label)
+                    raise UserError(_('%s is required and must follow the formal EORI format: 2 uppercase letters for the country code followed by 2 to 15 uppercase letters or digits, with a total length of 4 to 17 characters, for example NL123456789.') % label)
         return True
 
     def check_value_limit(self):
@@ -380,7 +382,7 @@ class BondedCustomsFile(models.Model):
                         inbound.write({'state': 'declared'})
                 elif target_state == 'released':
                     active_files = inbound.t1_customs_file_ids.filtered(lambda customs_file: customs_file.state not in ('customs_rejected', 'cancelled'))
-                    if active_files and all(customs_file.state in ('customs_approved', 'done') for customs_file in active_files) and inbound.state in ('confirmed', 'declared'):
+                    if active_files and all(customs_file.state == 'done' for customs_file in active_files) and inbound.state in ('confirmed', 'declared'):
                         inbound.write({'state': 'released'})
 
             elif rec.declaration_type in ('clearance_out', 't1_out', 'destruction'):

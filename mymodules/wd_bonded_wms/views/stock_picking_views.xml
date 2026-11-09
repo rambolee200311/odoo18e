@@ -1,0 +1,25 @@
+<odoo>
+    <record id="view_stock_picking_form_inherit_bonded_customs" model="ir.ui.view">
+        <field name="name">stock.picking.form.inherit.bonded.customs</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='origin']" position="after">
+                <field name="unique_identifier_no" readonly="1" invisible="not bonded_inbound_id and not bonded_outbound_id"/>
+                <field name="bonded_customs_file_id" readonly="1" invisible="not bonded_inbound_id and not bonded_outbound_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="customs_file_status" readonly="1" invisible="not bonded_inbound_id and not bonded_outbound_id"/>
+                <field name="bonded_flag" readonly="1" invisible="not bonded_inbound_id and not bonded_outbound_id"/>
+                <field name="t1_is_closed" readonly="1" invisible="not bonded_inbound_id and not bonded_outbound_id"/>
+                <field name="t1_closed_date" readonly="1" invisible="not bonded_inbound_id and not bonded_outbound_id"/>
+                <field name="mrn" readonly="1" invisible="not bonded_inbound_id and not bonded_outbound_id"/>
+                <field name="mrn_status" readonly="1" invisible="not bonded_inbound_id and not bonded_outbound_id"/>
+            </xpath>
+            <xpath expr="//page[@name='operations']" position="inside">
+                <group>
+                    <field name="bonded_inbound_id" readonly="1" invisible="not bonded_inbound_id" options="{'no_create': True, 'no_open': False}"/>
+                    <field name="bonded_outbound_id" readonly="1" invisible="not bonded_outbound_id" options="{'no_create': True, 'no_open': False}"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>
