@@ -227,8 +227,8 @@ class OutboundOrderStatusHoymilesLimit(models.Model):
         for order in self:
             if order.set_outbound_result_sync:
                 raise UserError('Outbound Result has already been synced.')
-            if not order.picking_Out_date:
-                raise UserError('Enter the Outbound Date before syncing the blind clearance result.')
+            if not order.actual_outbound_datetime:
+                raise UserError('Enter the Actual Outbound Datetime before syncing the blind clearance result.')
             source_pickings = picking_model.search([('outbound_order_id', '=', order.id)])
             linked_outbound_pickings = picking_model.search([('picking_type_code', '=', 'outgoing'), ('state', '=', 'cancel'), '|', '|', ('outbound_order_id', '=', order.id), ('origin', 'in', source_pickings.mapped('name')), ('move_ids.move_orig_ids.picking_id', 'in', source_pickings.ids)])
             cancelled_outbound_pickings = cancelled_log_model.search([('picking_id', 'in', linked_outbound_pickings.ids)]).mapped('picking_id').filtered(lambda picking: picking.state == 'cancel')
@@ -253,7 +253,8 @@ class OutboundOrderStatusHoymilesLimit(models.Model):
                 group['shipQuantity'] += line.quantity or 0.0
             if not groups:
                 raise UserError('The outbound order has no product lines to sync.')
-            payload = {'thirdPartyWsCode': 'WD', 'thirdPartyWsName': 'WD warehouse', 'wsOpOrderNo': ws_op_order_no, 'reference': order.reference, 'operationTime': order.picking_Out_date.strftime('%Y-%m-%d %H:%M:%S'), 'attribute1': '', 'attribute2': '', 'attribute3': '', 'attribute4': '', 'attribute5': '', 'attribute6': '', 'attribute7': '', 'attribute8': '', 'attribute9': '', 'attribute10': '', 'lines': [{'itemNum': group['itemNum'], 'shipQuantity': int(group['shipQuantity'] or 0), 'shipTime': order.picking_Out_date.strftime('%Y-%m-%d %H:%M:%S')} for group in groups.values()], 'serials': []}
+            local_time = order.get_local_time('NL', order.actual_outbound_datetime)
+            payload = {'thirdPartyWsCode': 'WD', 'thirdPartyWsName': 'WD warehouse', 'wsOpOrderNo': ws_op_order_no, 'reference': order.reference, 'operationTime': local_time.strftime('%Y-%m-%d %H:%M:%S'), 'attribute1': '', 'attribute2': '', 'attribute3': '', 'attribute4': '', 'attribute5': '', 'attribute6': '', 'attribute7': '', 'attribute8': '', 'attribute9': '', 'attribute10': '', 'lines': [{'itemNum': group['itemNum'], 'shipQuantity': int(group['shipQuantity'] or 0), 'shipTime': local_time.strftime('%Y-%m-%d %H:%M:%S')} for group in groups.values()], 'serials': []}
             token = self.env['hoymiles.token.utils'].get_oauth_token()
             api_url = api_url_model.search([('name', '=', 'outbound-result-sync')], limit=1)
             if not token:
@@ -265,7 +266,7 @@ class OutboundOrderStatusHoymilesLimit(models.Model):
                 response_data = response.json()
                 api_log_model.create({'request_source': 'Outbound Result', 'request_time': fields.Datetime.now(), 'request_path': api_url.url, 'request_data': json.dumps(payload), 'response_data': response.text})
                 if response.status_code == 200 and response_data.get('failed') is False:
-                    order.write({'set_outbound_result_sync': True, 'set_outbound_result_sync_time': order.picking_Out_date, 'outbound_result_sync_error_msg': False})
+                    order.write({'set_outbound_result_sync': True, 'set_outbound_result_sync_time': order.actual_outbound_datetime, 'outbound_result_sync_error_msg': False})
                 else:
                     order.write({'set_outbound_result_sync': False, 'set_outbound_result_sync_time': False, 'outbound_result_sync_error_msg': response.text})
             except (requests.exceptions.RequestException, ValueError) as error:
