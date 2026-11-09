@@ -1026,6 +1026,26 @@ class InboundOrderProductsPallet(models.Model):
             if is_sunrise:
                 rec.pallet_dimensions = (lot.product_dimensions if lot and lot.product_dimensions else template.product_dimensions) or False
 
+    @api.constrains("product_id", "box_type", "box_in_qty")
+    def check_sunrise_manual_partial_variant(self):
+        for rec in self:
+            inbound_order = rec.inbound_order_product_id.inbound_order_id
+            if (
+                rec.creation_source != "manual" or inbound_order.project.name != "SUNRISE"
+                or rec.box_type != "partial" or not rec.product_id or not rec.box_in_qty
+            ):
+                continue
+            product = self.env["product.product"].sudo().browse(rec.product_id.id)
+            expected_value_name = "Non standard package%s" % rec.box_in_qty
+            packaging_value_names = product.product_template_attribute_value_ids.filtered(
+                lambda value: value.attribute_id.name == "Packaging Specifications"
+            ).mapped("name")
+            if expected_value_name not in packaging_value_names:
+                raise ValidationError(
+                    _('Product "%s" must use the partial variant with package value "%s".')
+                    % (product.barcode or product.default_code or product.display_name, expected_value_name)
+                )
+
     def get_sunrise_product_specification(self, allow_missing=False):
         if not self:
             raise UserError(_("No inbound product detail was found for the Sunrise product specification."))
