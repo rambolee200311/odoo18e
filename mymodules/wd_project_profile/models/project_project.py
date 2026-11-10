@@ -29,3 +29,10 @@ class ProjectProject(models.Model):
         for rec in self:
             if rec.pallet_structure_mode == "unknown" and rec.package_generation_mode != "inbound":
                 raise ValidationError(_("Unknown Pallet Structure requires Package Generation Mode to be Inbound."))
+
+    @api.constrains("name", "active")
+    def check_active_name_unique(self):
+        project_model = self.env["project.project"]
+        for rec in self:
+            if rec.active and rec.name and project_model.sudo().search([("id", "!=", rec.id), ("active", "=", True), ("name", "=ilike", rec.name)], limit=1):
+                raise ValidationError(_("Active project name must be unique: %s") % rec.name)
