@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_vas_order_form_bonded" model="ir.ui.view">
+        <field name="name">wd.vas.order.form.bonded</field>
+        <field name="model">wd.vas.order</field>
+        <field name="inherit_id" ref="wd_warehouse_value_add.view_vas_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='source_picking_id']" position="after">
+                <field name="bonded_inbound_id" readonly="1" invisible="source_type != 'bonded_inbound'" options="{'no_create': True, 'no_open': True}"/>
+                <field name="bonded_outbound_id" readonly="1" invisible="source_type != 'bonded_outbound'" options="{'no_create': True, 'no_open': True}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="bonded_inbound_view_form_vas" model="ir.ui.view">
+        <field name="name">bonded.inbound.form.vas</field>
+        <field name="model">bonded.inbound</field>
+        <field name="inherit_id" ref="wd_bonded_wms.bonded_inbound_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_create_vas_order" string="Create VAS Order" type="object" class="oe_stat_button" icon="fa-wrench" invisible="state == 'cancelled'" groups="wd_warehouse_value_add.group_vas_user"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="bonded_outbound_view_form_vas" model="ir.ui.view">
+        <field name="name">bonded.outbound.form.vas</field>
+        <field name="model">bonded.outbound</field>
+        <field name="inherit_id" ref="wd_bonded_wms.bonded_outbound_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_create_vas_order" string="Create VAS Order" type="object" class="oe_stat_button" icon="fa-wrench" invisible="state == 'cancelled'" groups="wd_warehouse_value_add.group_vas_user"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

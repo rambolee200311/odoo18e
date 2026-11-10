@@ -57,7 +57,7 @@
                             <field name="package_generation_mode" invisible="1"/>
 
                             <field name="bl_no" readonly="state != 'draft'"/>
-                            <field name="cntr_no" readonly="state != 'draft'"/>
+                            <field name="cntr_no" readonly="state != 'draft'" required="1"/>
                             <field name="is_dangerous" readonly="state != 'draft'"/>
                             <field name="total_value" readonly="1" widget="monetary"/>
                             <field name="currency_id" readonly="state != 'draft'" options="{'no_create': True, 'no_open': True}"/>
@@ -87,8 +87,9 @@
                     </group>
                     <notebook>
                         <page string="Products">
+                            <button name="action_open_pallet_group_wizard" string="Generate Identical Pallets" type="object" invisible="state != 'draft'" class="btn-secondary"/>
                             <button name="action_generate_packages" string="Create Packages" type="object" invisible="package_generation_mode != 'inbound' or state not in ('confirmed', 'declared', 'released') or picking_id"/>
-                            <field name="line_ids" readonly="state != 'draft'">
+                            <field name="line_ids" widget="bonded_pallet_grouped_one2many" readonly="state != 'draft'">
                                 <list editable="bottom" default_order="pallet_no,id">
                                     <field name="eligible_bonded_product_ids" column_invisible="1"/>
                                     <field name="bonded_product_id" domain="[('id', 'in', eligible_bonded_product_ids)]" required="1" options="{'no_create': True, 'no_open': False}"/>

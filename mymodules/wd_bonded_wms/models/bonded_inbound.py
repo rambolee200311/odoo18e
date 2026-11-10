@@ -131,9 +131,16 @@ class BondedInbound(models.Model):
             for line in rec.line_ids.filtered(lambda item: not item.package_id):
                 package = pallet_packages.get(line.pallet_no)
                 if not package:
-                    package = self.env['stock.quant.package'].create({'name': '%s-%s' % (package_name_prefix, line.pallet_no), 'package_use': 'disposable'})
+                    package = self.env['stock.quant.package'].create({'name': '%s-%s' % (package_name_prefix, line.pallet_no), 'package_use': 'disposable', 'billno': rec.bl_no, 'reference': rec.reference, 'cntr_no': rec.cntr_no, 'original_pallet_no': line.pallet_no})
                     pallet_packages[line.pallet_no] = package
                 line.write({'package_id': package.id})
+
+    def action_open_pallet_group_wizard(self):
+        for rec in self:
+            if rec.state != 'draft':
+                raise UserError(_('Identical pallet groups can only be maintained while the bonded inbound instruction is in draft.'))
+            return {'type': 'ir.actions.act_window', 'name': _('Generate Identical Pallets'), 'res_model': 'bonded.inbound.pallet.group.wizard', 'view_mode': 'form', 'target': 'new', 'context': {'default_bonded_inbound_id': rec.id}}
+        return False
 
     def action_create_t1_in_customs_file(self):
         customs_file = self.env['bonded.customs.file']
@@ -214,7 +221,7 @@ class BondedInbound(models.Model):
             if not rec.picking_id or rec.picking_id.state != 'done':
                 raise UserError(_('Please validate the linked stock picking before completing the inbound instruction.'))
             for move_line in rec.picking_id.move_line_ids:
-                inbound_line = move_line.move_id.bonded_inbound_line_id
+                inbound_line = move_line.bonded_inbound_line_id or move_line.move_id.bonded_inbound_line_id
 
                 if not inbound_line:
                     raise UserError(_('Cannot match stock move line to bonded inbound line.'))
@@ -281,6 +288,8 @@ class BondedInbound(models.Model):
 
     def unlink(self):
         for rec in self:
+            if rec.state != 'draft':
+                raise UserError(_('Only draft inbound instructions can be deleted. Please cancel the inbound instruction instead.'))
             if rec.inbound_tracking_id or rec.t1_customs_file_ids:
                 raise UserError(_('Inbound instruction with tracking no. or customs declaration cannot be deleted. Please cancel it instead.'))
         return super().unlink()
@@ -288,6 +297,7 @@ class BondedInbound(models.Model):
     def action_create_picking(self):
         picking = self.env['stock.picking']
         env_stock_lot = self.env['stock.lot'].sudo()
+        env_stock_move = self.env['stock.move']
         env_stock_move_line = self.env['stock.move.line']
         env_traceability_line = self.env['bonded.inbound.traceability.line'].sudo()
         for rec in self:
@@ -329,20 +339,23 @@ class BondedInbound(models.Model):
                 for line in rec.line_ids.filtered(lambda line: not line.package_id):
                     package = pallet_packages.get(line.pallet_no)
                     if not package:
-                        package = self.env['stock.quant.package'].create({'name': '%s-%s' % (package_name_prefix, line.pallet_no), 'package_use': 'disposable'})
+                        package = self.env['stock.quant.package'].create({'name': '%s-%s' % (package_name_prefix, line.pallet_no), 'package_use': 'disposable', 'billno': rec.bl_no, 'reference': rec.reference, 'cntr_no': rec.cntr_no, 'original_pallet_no': line.pallet_no})
                         pallet_packages[line.pallet_no] = package
                     line.write({'package_id': package.id})
+            move_vals_by_key = {}
             for line in rec.line_ids:
-                move = self.env['stock.move'].create({
-                    'name': line.product_id.name,
-                    'product_id': line.product_id.id,
-                    'product_uom_qty': line.planned_qty,
-                    'product_uom': line.uom_id.id or line.product_id.uom_id.id,
-                    'picking_id': picking.id,
-                    'location_id': picking.location_id.id,
-                    'location_dest_id': picking.location_dest_id.id,
-                    'bonded_inbound_line_id': line.id,
-                })
+                uom_id = line.uom_id.id or line.product_id.uom_id.id
+                move_key = (line.product_id.id, uom_id, picking.location_id.id, picking.location_dest_id.id)
+                if move_key not in move_vals_by_key:
+                    move_vals_by_key[move_key] = {'name': line.product_id.name, 'product_id': line.product_id.id, 'product_uom_qty': line.planned_qty, 'product_uom': uom_id, 'picking_id': picking.id, 'location_id': picking.location_id.id, 'location_dest_id': picking.location_dest_id.id}
+                else:
+                    move_vals_by_key[move_key]['product_uom_qty'] += line.planned_qty
+            moves = env_stock_move.create(list(move_vals_by_key.values()))
+            moves_by_key = dict(zip(move_vals_by_key, moves))
+            for line in rec.line_ids:
+                uom_id = line.uom_id.id or line.product_id.uom_id.id
+                move_key = (line.product_id.id, uom_id, picking.location_id.id, picking.location_dest_id.id)
+                move = moves_by_key[move_key]
                 traceability_lines = env_traceability_line.search([('inbound_line_id', '=', line.id)])
                 if traceability_lines:
                     total_qty = sum(traceability_lines.mapped('planned_qty'))
@@ -364,6 +377,7 @@ class BondedInbound(models.Model):
                             'location_id': picking.location_id.id,
                             'location_dest_id': picking.location_dest_id.id,
                             'lot_id': lot.id,
+                            'bonded_inbound_line_id': line.id,
                         }
                         if line.package_id:
                             move_line_vals['result_package_id'] = line.package_id.id
@@ -377,6 +391,7 @@ class BondedInbound(models.Model):
                         'quantity': line.planned_qty,
                         'location_id': picking.location_id.id,
                         'location_dest_id': picking.location_dest_id.id,
+                        'bonded_inbound_line_id': line.id,
                     }
                     if line.package_id:
                         move_line_vals['result_package_id'] = line.package_id.id
@@ -402,6 +417,7 @@ class BondedInboundLine(models.Model):
     bonded_product_id = fields.Many2one('bonded.product', string='Bonded Product Filing', ondelete='restrict', index=True)
     product_id = fields.Many2one('product.product', string='Product', required=True, index=True)
     inbound_tracking_no = fields.Char(string='Unique Identifier No.', related='bonded_inbound_id.inbound_tracking_id.name', store=True, readonly=True, index=True)
+    pallet_group_id = fields.Many2one('bonded.inbound.pallet.group', string='Pallet Group', readonly=True, copy=False, ondelete='cascade', index=True)
     traceability_line_ids = fields.One2many('bonded.inbound.traceability.line', 'inbound_line_id', string='Lot/SN Details', copy=False)
     traceability_tag_line_ids = fields.Many2many('bonded.inbound.traceability.line', string='Lot/SN', compute='_compute_traceability_tag_line_ids', inverse='_inverse_traceability_tag_line_ids', readonly=False)
     pallet_no = fields.Char(string='Pallet Number', index=True)
@@ -545,13 +561,13 @@ class BondedInboundLine(models.Model):
             if traceability_lines.filtered(lambda line: line.product_id != rec.product_id):
                 raise ValidationError(_('The traceability line product must match the inbound product line.'))
 
-    @api.depends('bonded_inbound_id.picking_id.move_ids.state', 'bonded_inbound_id.picking_id.move_ids.product_uom_qty')
+    @api.depends('bonded_inbound_id.picking_id.move_line_ids.quantity', 'bonded_inbound_id.picking_id.move_line_ids.move_id.state', 'bonded_inbound_id.picking_id.move_line_ids.bonded_inbound_line_id', 'bonded_inbound_id.picking_id.move_ids.bonded_inbound_line_id')
     def _compute_done_qty(self):
         for rec in self:
             if rec.bonded_inbound_id.picking_id:
-                moves = rec.bonded_inbound_id.picking_id.move_ids.filtered(
-                    lambda move: move.bonded_inbound_line_id == rec and move.state == 'done'
+                move_lines = rec.bonded_inbound_id.picking_id.move_line_ids.filtered(
+                    lambda line: (line.bonded_inbound_line_id == rec or line.move_id.bonded_inbound_line_id == rec) and line.move_id.state == 'done'
                 )
-                rec.done_qty = sum(moves.mapped('product_uom_qty'))
+                rec.done_qty = sum(move_lines.mapped('quantity'))
             else:
                 rec.done_qty = 0.0
