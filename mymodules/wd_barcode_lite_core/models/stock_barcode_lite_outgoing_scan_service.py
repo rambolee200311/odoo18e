@@ -1614,6 +1614,7 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
                     updated_lines.unlink()
                 return self.build_outgoing_scan_result("error", _("Error"), error_message, picking_id=picking.id, location_id=location.id, package_id=package.id, action_name="auto_whole_pallet_create_failed", success=False, next_step="scan_product")
             updated_lines |= created_lines
+        updated_lines.write({"result_package_id": package.id})
         if self.is_unspecified_pallet_outgoing_complete(picking):
             next_step = "validate"
             next_location_id = location.id
