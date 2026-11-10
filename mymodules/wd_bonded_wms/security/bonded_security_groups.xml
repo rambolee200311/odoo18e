@@ -24,7 +24,7 @@
         <record id="group_bonded_warehouse" model="res.groups">
             <field name="name">Bonded Warehouse - Operations</field>
             <field name="category_id" ref="module_category_bonded"/>
-            <field name="implied_ids" eval="[(4, ref('stock.group_stock_user'))]"/>
+            <field name="implied_ids" eval="[(4, ref('stock.group_stock_user')), (4, ref('wd_warehouse_value_add.group_vas_user'))]"/>
         </record>
 
         <!-- 财务人员 -->

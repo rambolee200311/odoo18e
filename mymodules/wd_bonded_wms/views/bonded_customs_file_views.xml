@@ -43,7 +43,7 @@
                         <group string="Declaration Header (SAD/C88)">
                             <field name="declaration_no" readonly="1"/>
                             <field name="declaration_type" readonly="1"/>
-                            <field name="bonded_book_id" required="1" readonly="state != 'draft'" options="{'no_create': True, 'no_open': False}"/>
+                            <field name="bonded_book_id" required="1" readonly="state != 'draft' or bonded_inbound_id or bonded_outbound_id" options="{'no_create': True, 'no_open': False}"/>
                             <field name="bonded_inbound_id" required="declaration_type == 't1_in'" readonly="1" invisible="declaration_type != 't1_in'" options="{'no_create': True, 'no_open': False}"/>
                             <field name="bonded_outbound_id" required="declaration_type in ('t1_out', 'clearance_out')" readonly="1" invisible="declaration_type not in ('t1_out', 'clearance_out')" options="{'no_create': True, 'no_open': False}"/>
                             <field name="mrn" invisible="id" readonly="state != 'draft'"/>

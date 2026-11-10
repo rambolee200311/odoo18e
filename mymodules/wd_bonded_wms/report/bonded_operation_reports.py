@@ -27,7 +27,8 @@ class BondedInboundPalletReport(models.AbstractModel):
     _description = 'Bonded Inbound Pallet Report'
 
     def _get_report_values(self, docids, data=None):
-        docs = self.env['bonded.inbound'].sudo().browse(docids).exists()
+        report_lang = self.env.user.lang
+        docs = self.env['bonded.inbound'].with_context(lang=report_lang).sudo().browse(docids).exists()
         pallet_groups_by_order = {}
         for rec in docs:
             if not rec.line_ids or rec.line_ids.filtered(lambda line: not line.package_id):
@@ -37,7 +38,7 @@ class BondedInboundPalletReport(models.AbstractModel):
                 pallet_group = pallet_map.setdefault(line.package_id.id, {'package': line.package_id, 'lines': rec.env['bonded.inbound.line']})
                 pallet_group['lines'] |= line
             pallet_groups_by_order[rec.id] = list(pallet_map.values())
-        return {'doc_ids': docs.ids, 'doc_model': 'bonded.inbound', 'docs': docs, 'pallet_groups_by_order': pallet_groups_by_order}
+        return {'doc_ids': docs.ids, 'doc_model': 'bonded.inbound', 'docs': docs, 'pallet_groups_by_order': pallet_groups_by_order, 'report_lang': report_lang}
 
 
 class BondedOutboundPickingReport(models.AbstractModel):

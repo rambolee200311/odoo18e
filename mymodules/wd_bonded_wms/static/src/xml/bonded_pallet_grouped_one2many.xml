@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="wd_bonded_wms.BondedPalletGroupedListRenderer.Rows" owl="1">
+        <t t-if="!list.isGrouped">
+            <t t-foreach="pallet_groups" t-as="pallet_group" t-key="pallet_group.key">
+                <tr class="o_group_header o_bonded_pallet_group_header cursor-pointer" t-on-click="() => this.toggle_pallet_group(pallet_group.key)">
+                    <th class="o_group_name fs-6 fw-bold" t-att-colspan="nbCols">
+                        <span t-attf-class="o_group_caret fa fa-fw {{this.is_pallet_group_folded(pallet_group.key) ? 'fa-caret-right' : 'fa-caret-down'}} me-1"/>
+                        <t t-esc="pallet_group.label"/> (<t t-esc="pallet_group.records.length"/>)
+                    </th>
+                </tr>
+                <t t-if="!this.is_pallet_group_folded(pallet_group.key)">
+                    <t t-foreach="pallet_group.records" t-as="record" t-key="record.id">
+                        <t t-call="{{ constructor.recordRowTemplate }}"/>
+                    </t>
+                </t>
+            </t>
+            <tr t-if="displayRowCreates">
+                <td t-if="withHandleColumn"/>
+                <td t-att-colspan="withHandleColumn ? nbCols - 1 : nbCols" class="o_field_x2many_list_row_add" t-on-keydown="(ev) => this.onCellKeydown(ev, null)">
+                    <t t-foreach="creates" t-as="create" t-key="create_index">
+                        <a t-if="create.type === 'create'" href="#" role="button" t-att-class="create_index !== 0 ? 'ml16' : ''" t-att-tabindex="editedRecord ? '-1' : '0'" t-on-click.stop.prevent="() => this.add({ context: create.context })">
+                            <t t-esc="create.string"/>
+                        </a>
+                        <ViewButton t-if="create.type === 'button'" className="`${create.className} ${create_index !== 0 ? 'ml16' : ''}`" clickParams="create.clickParams" icon="create.icon" record="props.list" string="create.string" title="create.title" tabindex="editedRecord ? '-1' : '0'"/>
+                    </t>
+                </td>
+            </tr>
+        </t>
+        <t t-else="">
+            <t t-call="web.ListRenderer.Rows"/>
+        </t>
+    </t>
+</templates>

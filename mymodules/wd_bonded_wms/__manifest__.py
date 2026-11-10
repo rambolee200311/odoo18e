@@ -30,6 +30,7 @@
         'wd_charge_pricing',
         'wd_project_profile',
         'wd_product_profile',
+        'wd_warehouse_value_add',
     ],
     'data': [
         'security/bonded_security_groups.xml',
@@ -57,19 +58,25 @@
         'views/bonded_inbound_tracking_views.xml',
         'views/bonded_inbound_views.xml',
         'views/bonded_outbound_views.xml',
+        'views/vas_order_views.xml',
+        'views/stock_picking_views.xml',
         'views/bonded_stock_views.xml',
+        'views/bonded_snapshot_report_views.xml',
         'views/bonded_verification_views.xml',
         'views/bonded_log_views.xml',
         'views/bonded_menus.xml',
         'views/bonded_barcode_homepage.xml',
         'wizard/gate_arrival_create_views.xml',
+        'wizard/bonded_inbound_pallet_group_wizard_views.xml',
         # Report
     ],
     'demo': [],
     'assets': {
         'web.assets_backend': [
             'wd_bonded_wms/static/src/js/bonded_barcode_homepage.js',
+            'wd_bonded_wms/static/src/js/bonded_pallet_grouped_one2many.js',
             'wd_bonded_wms/static/src/xml/bonded_barcode_homepage.xml',
+            'wd_bonded_wms/static/src/xml/bonded_pallet_grouped_one2many.xml',
             'wd_bonded_wms/static/src/scss/bonded_required_field_highlight.scss',
             'wd_bonded_wms/static/src/scss/bonded_barcode_homepage.scss',
         ],

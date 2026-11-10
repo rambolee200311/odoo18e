@@ -23,6 +23,7 @@ class BondedProduct(models.Model):
     currency_id = fields.Many2one('res.currency', string='Currency',
                                   default=lambda self: self.env.ref('base.EUR').id,
                                   required=True)
+    categ_id = fields.Many2one(related='product_id.categ_id', string='Product Category', store=True, readonly=True, index=True)
     uom_id = fields.Many2one(related='product_id.uom_id', string='UoM', store=True, readonly=True)
     supervision_conditions = fields.Char(string='Supervision Conditions',
                                          help='e.g. License required, quota restrictions')

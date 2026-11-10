@@ -27,13 +27,11 @@ class BondedOutbound(models.Model):
     customs_file_ids = fields.One2many('bonded.customs.file', 'bonded_outbound_id', string='Customs Declarations', tracking=True)
     t1_status = fields.Selection([('draft', 'Draft'), ('to_be_submitted', 'To Be Submitted'), ('submitted', 'Submitted'), ('customs_approved', 'Customs Approved'), ('customs_rejected', 'Customs Rejected'), ('done', 'Closed'), ('cancelled', 'Cancelled')], string='T1 Status', compute='_compute_t1_status', store=True, readonly=True, index=True)
     t1_closed_date = fields.Datetime(string='T1 Closed Date', compute='_compute_t1_status', store=True, readonly=True, index=True)
-    outbound_nature = fields.Selection([('bonded', 'Bonded Outbound'), ('non_bonded', 'Non-Bonded Outbound')], string='Outbound Nature', required=True, default='bonded', index=True, tracking=True)
     outbound_type = fields.Selection([
-        ('l2f', 'L2F (Local Clearance)'),
-        ('t1_transit', 'T1 Transit'),
+        ('l2f', 'Clearance Outbound'),
+        ('t1_transit', 'Bonded Outbound'),
         ('destruction', 'Destruction'),
-        ('re_export', 'Re-export (RTO)'),
-    ], string='Outbound Type', required=True, default='l2f', tracking=True)
+    ], string='Outbound Type', required=True, tracking=True)
     mrn_id = fields.Many2one('bonded.mrn', string='Corresponding MRN', ondelete='restrict', index=True, copy=False, tracking=True)
     mrn = fields.Char(string='Corresponding MRN', index=True, help='Outbound MRN (T1 transit only)', tracking=True)
     mrn_status = fields.Selection(related='mrn_id.state', string='MRN Status', store=True, readonly=True, index=True)
@@ -72,12 +70,18 @@ class BondedOutbound(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
-            vals.setdefault('outbound_type', 't1_transit' if vals.get('outbound_nature', 'bonded') == 'bonded' else 'l2f')
             if 'mrn_id' in vals:
                 vals['mrn'] = self.env['bonded.mrn'].sudo().browse(vals['mrn_id']).mrn if vals['mrn_id'] else False
             if vals.get('name', _('New')) == _('New'):
                 vals['name'] = self.env['ir.sequence'].next_by_code('seq.bonded.outbound') or _('New')
         return super().create(vals_list)
+
+    @api.model
+    def fields_get(self, allfields=None, attributes=None):
+        result = super().fields_get(allfields=allfields, attributes=attributes)
+        if result.get('outbound_type', {}).get('selection'):
+            result['outbound_type']['selection'] = [selection for selection in result['outbound_type']['selection'] if selection[0] != 'destruction']
+        return result
 
     def write(self, vals):
         if 'mrn_id' in vals:
@@ -90,11 +94,6 @@ class BondedOutbound(models.Model):
             if rec.project_id:
                 rec.warehouse = rec.project_id.warehouse
                 rec.pick_type = rec.project_id.outbound_pick_type
-
-    @api.onchange('outbound_nature')
-    def onchange_outbound_nature(self):
-        for rec in self:
-            rec.outbound_type = 't1_transit' if rec.outbound_nature == 'bonded' else 'l2f'
 
     @api.depends('customs_file_ids.declaration_type', 'customs_file_ids.state', 'customs_file_ids.t1_closed_date')
     def _compute_t1_status(self):
@@ -111,12 +110,12 @@ class BondedOutbound(models.Model):
         for rec in self:
             rec.mrn = rec.mrn_id.mrn
 
-    @api.constrains('outbound_nature', 'customs_file_ids')
+    @api.constrains('outbound_type', 'customs_file_ids')
     def check_outbound_customs_file(self):
         for rec in self:
-            required_type = 't1_out' if rec.outbound_nature == 'bonded' else 'clearance_out'
+            required_type = 't1_out' if rec.outbound_type == 't1_transit' else 'clearance_out'
             if rec.customs_file_ids.filtered(lambda customs_file: customs_file.declaration_type != required_type):
-                raise ValidationError(_('The selected customs declaration does not match the outbound nature.'))
+                raise ValidationError(_('The selected customs declaration does not match the outbound type.'))
             if rec.customs_file_ids.filtered(lambda customs_file: customs_file.bonded_book_id != rec.bonded_book_id):
                 raise ValidationError(_('The customs declarations and outbound instruction must use the same bonded book.'))
 
@@ -148,11 +147,10 @@ class BondedOutbound(models.Model):
             })
 
     def action_create_outbound_customs_file(self):
-        declaration_type = self.env.context.get('default_declaration_type')
         customs_file = self.env['bonded.customs.file']
         for rec in self:
-            required_type = 't1_out' if rec.outbound_nature == 'bonded' else 'clearance_out'
-            if rec.state not in ('confirmed', 'declared') or declaration_type != required_type:
+            declaration_type = 't1_out' if rec.outbound_type == 't1_transit' else 'clearance_out'
+            if rec.state not in ('confirmed', 'declared'):
                 raise UserError(_('Only confirmed or declared outbound instructions can create the matching outbound customs declaration.'))
             active_customs_files = rec.customs_file_ids.filtered(lambda item: item.state != 'cancelled')
             if active_customs_files:
@@ -205,10 +203,10 @@ class BondedOutbound(models.Model):
                 raise UserError(_('Please create and validate a stock picking first.'))
             customs_file = rec.customs_file_ids[:1]
             for move_line in rec.picking_id.move_line_ids:
-                outbound_line = move_line.move_id.bonded_outbound_line_id
-                if not outbound_line or not outbound_line.bonded_stock_id:
+                outbound_line = move_line.bonded_outbound_line_id or move_line.move_id.bonded_outbound_line_id
+                source_stock = move_line.bonded_stock_id or move_line.move_id.bonded_stock_id or outbound_line.bonded_stock_id
+                if not outbound_line or not source_stock:
                     continue
-                source_stock = outbound_line.bonded_stock_id
                 done_qty = move_line.quantity
                 if done_qty <= 0:
                     continue
@@ -217,7 +215,6 @@ class BondedOutbound(models.Model):
                 to_status = {
                     't1_transit': 'in_t1_transit',
                     'destruction': 'destroyed',
-                    're_export': 'rto',
                 }.get(rec.outbound_type, 'vrij')
                 if done_qty < source_stock.quantity:
                     source_stock.write({'quantity': source_stock.quantity - done_qty, 'locked': False})
@@ -262,7 +259,7 @@ class BondedOutbound(models.Model):
                 self.env['bonded.book.line'].create({
                     'bonded_book_id': rec.bonded_book_id.id,
                     'date': fields.Date.today(),
-                    'operation_type': 't1_outbound' if rec.outbound_type == 't1_transit' else 'customs_outbound',
+                    'operation_type': {'t1_transit': 't1_outbound', 'destruction': 'destruction'}.get(rec.outbound_type, 'customs_outbound'),
                     'product_id': source_stock.product_id.id,
                     'qty_change': -done_qty,
                     'from_status': 'entrepot',
@@ -314,7 +311,7 @@ class BondedOutbound(models.Model):
         if scan_enabled:
             quant_model = self.env['stock.quant'].sudo()
             for line in self.line_ids:
-                package = line.bonded_stock_id.stock_move_line_id.result_package_id
+                package = line.bonded_stock_id.package_id
                 if not package:
                     raise UserError(_('Bonded stock %s has no pallet for outbound scanning.') % line.bonded_stock_id.display_name)
                 quants = quant_model.search([('package_id', '=', package.id), ('product_id', '=', line.product_id.id), ('location_id', '=', line.bonded_stock_id.location_id.id), ('lot_id', '=', line.bonded_stock_id.lot_id.id or False)])
@@ -323,31 +320,36 @@ class BondedOutbound(models.Model):
                     raise UserError(_('Pallet %s does not contain enough available stock for %s.') % (package.display_name, line.product_id.display_name))
         if any(not line.bonded_stock_id.locked for line in self.line_ids):
             self.lock_stock()
+        customs_file = self.customs_file_ids[:1]
         picking = self.env['stock.picking'].create({
             'picking_type_id': self.pick_type.id,
             'location_id': self.pick_type.default_location_src_id.id,
             'location_dest_id': self.pick_type.default_location_dest_id.id,
             'origin': self.name,
             'bonded_outbound_id': self.id,
+            'unique_identifier_no': ', '.join(sorted(set(filter(None, self.line_ids.mapped('inbound_tracking_no'))))),
+            'bonded_customs_file_id': customs_file.id,
         })
+        env_stock_move = self.env['stock.move']
+        env_stock_move_line = self.env['stock.move.line']
+        move_vals_by_key = {}
         for line in self.line_ids:
-            self.env['stock.move'].create({
-                'name': line.product_id.name,
-                'product_id': line.product_id.id,
-                'product_uom_qty': line.demand_qty,
-                'product_uom': line.uom_id.id or line.product_id.uom_id.id,
-                'picking_id': picking.id,
-                'location_id': picking.location_id.id,
-                'location_dest_id': picking.location_dest_id.id,
-                'bonded_stock_id': line.bonded_stock_id.id,
-                'bonded_outbound_line_id': line.id,
-            })
+            uom_id = line.uom_id.id or line.product_id.uom_id.id
+            move_key = (line.product_id.id, uom_id, line.bonded_stock_id.location_id.id, picking.location_dest_id.id)
+            if move_key not in move_vals_by_key:
+                move_vals_by_key[move_key] = {'name': line.product_id.name, 'product_id': line.product_id.id, 'product_uom_qty': line.demand_qty, 'product_uom': uom_id, 'picking_id': picking.id, 'location_id': line.bonded_stock_id.location_id.id, 'location_dest_id': picking.location_dest_id.id}
+            else:
+                move_vals_by_key[move_key]['product_uom_qty'] += line.demand_qty
+        moves = env_stock_move.create(list(move_vals_by_key.values()))
+        moves_by_key = dict(zip(move_vals_by_key, moves))
+        move_line_vals = []
+        for line in self.line_ids:
+            uom_id = line.uom_id.id or line.product_id.uom_id.id
+            move_key = (line.product_id.id, uom_id, line.bonded_stock_id.location_id.id, picking.location_dest_id.id)
+            move_line_vals.append({'picking_id': picking.id, 'move_id': moves_by_key[move_key].id, 'product_id': line.product_id.id, 'product_uom_id': uom_id, 'quantity': line.demand_qty, 'location_id': line.bonded_stock_id.location_id.id, 'location_dest_id': picking.location_dest_id.id, 'package_id': line.bonded_stock_id.package_id.id, 'lot_id': line.bonded_stock_id.lot_id.id, 'bonded_stock_id': line.bonded_stock_id.id, 'bonded_outbound_line_id': line.id})
+        env_stock_move_line.create(move_line_vals)
         if scan_enabled:
             picking.write({'outbound_scan_mode': self.outbound_scan_mode})
-            for move in picking.move_ids:
-                line = move.bonded_outbound_line_id
-                package = line.bonded_stock_id.stock_move_line_id.result_package_id
-                self.env['stock.move.line'].create({'picking_id': picking.id, 'move_id': move.id, 'product_id': line.product_id.id, 'product_uom_id': line.uom_id.id, 'quantity': line.demand_qty, 'location_id': line.bonded_stock_id.location_id.id, 'location_dest_id': picking.location_dest_id.id, 'package_id': package.id, 'lot_id': line.bonded_stock_id.lot_id.id})
         self.write({'picking_id': picking.id, 'state': 'in_progress'})
         return {'type': 'ir.actions.client', 'tag': 'reload'}
 
@@ -382,6 +384,7 @@ class BondedOutboundLine(models.Model):
             filing = env_bonded_product.browse(vals.get('bonded_product_id')).exists()
             if filing:
                 vals['product_id'] = filing.product_id.id
+                vals.setdefault('uom_id', filing.product_id.uom_id.id)
             elif vals.get('product_id'):
                 filing = env_bonded_product.search([
                     ('bonded_book_id', '=', outbound.bonded_book_id.id),
@@ -393,6 +396,7 @@ class BondedOutboundLine(models.Model):
             bonded_stock = env_bonded_stock.browse(vals.get('bonded_stock_id')).exists()
             if bonded_stock:
                 vals.setdefault('declared_unit_price', bonded_stock.unit_value)
+                vals.setdefault('uom_id', bonded_stock.product_id.uom_id.id)
         return super().create(vals_list)
 
     @api.constrains('bonded_outbound_id', 'bonded_stock_id', 'bonded_product_id', 'product_id')
@@ -450,13 +454,13 @@ class BondedOutboundLine(models.Model):
                 ('state', '=', 'active'),
             ]) if book else self.env['bonded.product']
 
-    @api.depends('bonded_outbound_id.picking_id.move_ids.state', 'bonded_outbound_id.picking_id.move_ids.product_uom_qty')
+    @api.depends('bonded_outbound_id.picking_id.move_line_ids.quantity', 'bonded_outbound_id.picking_id.move_line_ids.move_id.state', 'bonded_outbound_id.picking_id.move_line_ids.bonded_outbound_line_id', 'bonded_outbound_id.picking_id.move_ids.bonded_outbound_line_id')
     def _compute_done_qty(self):
         for rec in self:
             if rec.bonded_outbound_id.picking_id:
-                moves = rec.bonded_outbound_id.picking_id.move_ids.filtered(
-                    lambda move: move.bonded_outbound_line_id == rec and move.state == 'done'
+                move_lines = rec.bonded_outbound_id.picking_id.move_line_ids.filtered(
+                    lambda line: (line.bonded_outbound_line_id == rec or line.move_id.bonded_outbound_line_id == rec) and line.move_id.state == 'done'
                 )
-                rec.done_qty = sum(moves.mapped('product_uom_qty'))
+                rec.done_qty = sum(move_lines.mapped('quantity'))
             else:
                 rec.done_qty = 0.0

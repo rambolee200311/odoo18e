@@ -80,7 +80,7 @@ class BondedStock(models.Model):
         for rec in self:
             if outbound_line.bonded_outbound_id.state != 'draft' or rec.bonded_book_id != outbound_line.bonded_outbound_id.bonded_book_id or rec.product_id != outbound_line.product_id or rec.quantity <= 0 or rec.locked or rec.current_customs_status != 'entrepot':
                 raise UserError(_('The selected bonded stock is no longer available.'))
-            outbound_line.write({'bonded_stock_id': rec.id, 'declared_unit_price': rec.unit_value})
+            outbound_line.write({'bonded_stock_id': rec.id, 'declared_unit_price': rec.unit_value, 'uom_id': rec.product_id.uom_id.id})
         return {'type': 'ir.actions.client', 'tag': 'reload'}
 
     @api.depends('quantity', 'unit_value')
