@@ -22,7 +22,6 @@ class BondedInboundPalletGroup(models.Model):
         super().init()
         self.env.cr.execute('ALTER TABLE bonded_inbound_pallet_group DROP COLUMN IF EXISTS pallet_number_prefix, DROP COLUMN IF EXISTS pallet_start_number, DROP COLUMN IF EXISTS pallet_number_digits')
         self.env.cr.execute('ALTER TABLE bonded_inbound_pallet_group DROP CONSTRAINT IF EXISTS bonded_inbound_pallet_group_bonded_inbound_id_fkey, ADD CONSTRAINT bonded_inbound_pallet_group_bonded_inbound_id_fkey FOREIGN KEY (bonded_inbound_id) REFERENCES bonded_inbound (id) ON DELETE CASCADE')
-        self.env.cr.execute('ALTER TABLE bonded_inbound_line DROP CONSTRAINT IF EXISTS bonded_inbound_line_pallet_group_id_fkey, ADD CONSTRAINT bonded_inbound_line_pallet_group_id_fkey FOREIGN KEY (pallet_group_id) REFERENCES bonded_inbound_pallet_group (id) ON DELETE CASCADE')
 
     @api.depends('inbound_lines.pallet_no')
     def _compute_name(self):
