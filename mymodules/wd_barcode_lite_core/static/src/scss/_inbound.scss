@@ -61,6 +61,11 @@
 // Actual pallet binding uses the shared outbound card language while keeping
 // its inbound context compact on handheld screens.
 .o_sbl_actual_pallet_binding {
+    .o_sbl_actual_binding_sticky_top {
+        flex: 0 0 auto;
+        background: #fff;
+    }
+
     .o_sbl_binding_info {
         .o_picking_info_row {
             gap: 4px 8px;
@@ -188,6 +193,13 @@
     }
 
     .o_sbl_actual_pallet_binding {
+        .o_sbl_actual_binding_sticky_top {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background: #fff;
+        }
+
         .o_sbl_binding_info {
             padding: 4px 10px;
 
