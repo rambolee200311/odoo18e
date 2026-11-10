@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <templates>
-    <!-- 拆托出库页面 - 货位 -> 托盘 -> [整托自动完成 | 拆托扫产品] (Backend-driven) -->
+    <!-- 拆托出库页面 - Order -> [Location ->] Pallet -> [整托自动完成 | 拆托扫产品] (Backend-driven) -->
     <t t-name="stock_barcode_lite.DisassemblyOutboundPage">
         <input
             t-ref="barcodeInput"
@@ -127,7 +127,7 @@
                 </div>
             </div>
 
-            <!-- ═══ 扫描提示步骤条：Order -> Location -> Pallet -> [Product] [Lot] [Quantity] ═══ -->
+            <!-- ═══ 扫描提示步骤条：普通流程 Order -> Location -> Pallet；后端免货位流程跳过 Location ═══ -->
             <div class="o_sbl_step_indicator">
                 <div class="o_step_item" t-att-class="{ 'active': isScanOrderStep, 'done': hasOrder }">
                     <div class="o_step_circle">
@@ -137,18 +137,18 @@
                     <div class="o_step_label">Order</div>
                 </div>
                 <div class="o_step_line" t-att-class="{ 'active': hasOrder }"/>
-                <div class="o_step_item" t-att-class="{ 'active': isScanLocationStep, 'done': hasLocation }">
+                <div t-if="needsLocationStep" class="o_step_item" t-att-class="{ 'active': isScanLocationStep, 'done': hasLocation }">
                     <div class="o_step_circle">
                         <t t-if="hasLocation"><i class="fa fa-check"/></t>
                         <t t-else="">2</t>
                     </div>
                     <div class="o_step_label">Location</div>
                 </div>
-                <div class="o_step_line" t-att-class="{ 'active': hasLocation }"/>
+                <div t-if="needsLocationStep" class="o_step_line" t-att-class="{ 'active': hasLocation }"/>
                 <div class="o_step_item" t-att-class="{ 'active': isScanPalletStep, 'done': state.stepProgress.palletDone }">
                     <div class="o_step_circle">
                         <t t-if="state.stepProgress.palletDone"><i class="fa fa-check"/></t>
-                        <t t-else="">3</t>
+                        <t t-else=""><t t-esc="needsLocationStep ? 3 : 2"/></t>
                     </div>
                     <div class="o_step_label">Pallet</div>
                 </div>
@@ -156,7 +156,7 @@
                 <div class="o_step_item" t-att-class="{ 'active': isScanProductStep, 'done': state.stepProgress.productDone }">
                     <div class="o_step_circle">
                         <t t-if="state.stepProgress.productDone"><i class="fa fa-check"/></t>
-                        <t t-else="">4</t>
+                        <t t-else=""><t t-esc="needsLocationStep ? 4 : 3"/></t>
                     </div>
                     <div class="o_step_label">Product</div>
                 </div>
@@ -164,7 +164,7 @@
                 <div class="o_step_item" t-att-class="{ 'active': isScanLotStep, 'done': state.stepProgress.lotDone }">
                     <div class="o_step_circle">
                         <t t-if="state.stepProgress.lotDone"><i class="fa fa-check"/></t>
-                        <t t-else="">5</t>
+                        <t t-else=""><t t-esc="needsLocationStep ? 5 : 4"/></t>
                     </div>
                     <div class="o_step_label">Lot/SN</div>
                 </div>
@@ -249,8 +249,9 @@
                         <i class="fa fa-inbox fa-4x mb-3 d-block opacity-25"/>
                         <p class="mb-1 fw-bold">No Pallets Loaded</p>
                         <p class="small">
-                            <t t-if="isScanLocationStep">Scan location barcode to start</t>
-                            <t t-else="">Scan pallets to update</t>
+                            <t t-if="isScanOrderStep">Scan an outbound order to start</t>
+                            <t t-elif="isScanLocationStep">Scan location barcode to start</t>
+                            <t t-else="">Scan a pallet to begin or continue</t>
                         </p>
                     </div>
                 </t>
@@ -360,7 +361,7 @@
                                         </span>
                                     </div>
                                     <t t-if="group.is_serial">
-                                        <button type="button" class="btn btn-sm btn-link px-0 mt-2 text-decoration-none"
+                                        <button type="button" class="btn btn-sm btn-link px-0 text-decoration-none o_serial_group_toggle"
                                                 t-on-click.stop="() => this.toggleSerialGroup(pallet.package_id, group.product_id)"
                                                 t-att-aria-expanded="this.isSerialGroupExpanded(pallet.package_id, group.product_id) ? 'true' : 'false'">
                                             <i t-attf-class="fa {{ this.isSerialGroupExpanded(pallet.package_id, group.product_id) ? 'fa-chevron-up' : 'fa-chevron-down' }} me-1"/>

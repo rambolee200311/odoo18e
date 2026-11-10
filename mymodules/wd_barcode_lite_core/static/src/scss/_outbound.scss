@@ -116,6 +116,12 @@
     animation: pulse_badge 1.5s ease-in-out infinite;
 }
 
+.o_sbl_inbound.o_sbl_disassembly_outbound .o_serial_group_toggle {
+    padding-top: 0;
+    padding-bottom: 0;
+    line-height: 1.2;
+}
+
 .o_sbl_outbound_binding {
     .o_sbl_outbound_sticky_top {
         flex: 0 0 auto;

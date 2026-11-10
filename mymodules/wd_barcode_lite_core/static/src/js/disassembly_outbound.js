@@ -11,7 +11,7 @@ import { standardActionServiceProps } from "@web/webclient/actions/action_servic
  * 扫码流程：
  *  ─────────────────────────────────────────────────────────────────────
  *  1. Order   : 扫出库单 picking name
- *  2. Location: 扫货位条码
+ *  2. Location: 普通拆托单扫描货位；后端允许免扫货位的单据跳过
  *  3. Pallet  : 扫托盘条码 → 判断是整托还是拆托
  *     - 整托: 系统自动填充 → 完成
  *     - 拆托: 继续扫产品条码 → 扫SN/批次 → 完成
@@ -27,6 +27,7 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
 
     setup() {
         super.setup();
+        this.state.skipLocationStep = false;
         this.state.expandedPalletIds = [];
         this.state.expandedSerialGroupKeys = [];
         this.state.collapsedSerialGroupKeys = [];
@@ -129,6 +130,7 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
 
                 // 保留错误提示，仅清空扫描数据
                 this.state.order = null;
+                this.state.skipLocationStep = false;
                 this.state.pallets = [];
                 this.state.currentLocation = {};
                 this.state.currentPallet = {};
@@ -196,6 +198,14 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
 
         const scanState = result.scan_state || {};
 
+        // 后端选择出库单时：scan_pallet 表示该单据本身允许免扫货位，
+        // scan_location 表示仍需按常规流程先扫货位。
+        if (result.type === "picking") {
+            this.state.skipLocationStep = result.next_step === "scan_pallet";
+        } else if (!current.picking_id) {
+            this.state.skipLocationStep = false;
+        }
+
         // 更新出库单信息
         this.state.order = scanState.picking ? { ...scanState.picking } : null;
 
@@ -228,7 +238,8 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
         // 更新 lastScan
         this.state.lastScan = scanState.last_scan ? { ...scanState.last_scan } : {};
 
-        // 更新下一步
+        // 后端负责返回下一扫码步骤；托盘识别出的货位通过 current.location_id
+        // 延续到后续产品、批次和数量请求，不在前端猜测或合成货位。
         this.state.nextStep = result.next_step || "scan_picking";
 
         // 步骤条对号表示当前轮的条码已被系统接受；不代表该托盘/产品的
@@ -569,6 +580,7 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
 
     resetScan() {
         this.state.order = null;
+        this.state.skipLocationStep = false;
         this.state.pallets = [];
         this.state.currentLocation = {};
         this.state.currentPallet = {};
@@ -671,6 +683,10 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
 
     get isScanOrderStep() {
         return this.state.nextStep === "scan_picking";
+    }
+
+    get needsLocationStep() {
+        return !this.state.skipLocationStep;
     }
 
     get isScanLocationStep() {
