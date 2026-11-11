@@ -1977,8 +1977,8 @@ msgstr "MRN编号"
 #. module: wd_bonded_wms
 #. odoo-python
 #: code:addons/wd_bonded_wms/models/bonded_customs_file.py:0
-msgid "MRN must be 18 characters: 2 digits + 2 letters + 14 letters/digits."
-msgstr "MRN必须为18位：2位数字+2位字母+14位字母或数字。"
+msgid "MRN must be 18 characters in YYCCXXXXXXXXXXXXXX format: 2-digit year + 2-letter country code + 14 uppercase letters/digits (for example, 24NL1234567890ABCD)."
+msgstr "MRN必须为18位，格式为YYCCXXXXXXXXXXXXXX：2位年份数字+2位国家大写字母+14位大写字母或数字（例如：24NL1234567890ABCD）。"
 
 #. module: wd_bonded_wms
 #: model:ir.model.constraint,message:wd_bonded_wms.constraint_bonded_mrn_mrn_uniq
