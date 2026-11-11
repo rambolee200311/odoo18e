@@ -14,57 +14,59 @@
             touch-action="none"
         />
 
-        <div class="o_sbl_inbound">
-            <div class="o_sbl_header">
-                <button type="button" class="btn btn-link text-dark p-1" t-on-click="exit" title="Home">
-                    <i class="fa fa-arrow-left"/>
-                </button>
-                <div class="o_sbl_header_title">
-                    <i class="fa fa-truck text-primary me-1"/>
-                    <t t-if="hasPicking">
-                        <t t-esc="pickingLabel"/>
-                    </t>
-                    <t t-else="">Inbound</t>
-                </div>
-                <div class="o_sbl_scan_mode" t-attf-class="o_mode_{{ state.nextStep }}">
-                    <t t-esc="scanModeLabel"/>
-                </div>
-            </div>
-
-            <div t-if="state.message" t-attf-class="o_sbl_alert alert alert-{{ state.messageType }}">
-                <t t-esc="state.message"/>
-            </div>
-
-            <!-- ═══ 入库单信息卡片 ═══ -->
-            <div t-if="hasPicking" class="o_sbl_picking_card">
-                <div class="o_sbl_picking_info">
-                    <div class="o_picking_row">
-                        <span class="o_picking_label">Origin:</span>
-                        <span class="o_picking_value"><t t-esc="pickingOrigin"/></span>
+        <div class="o_sbl_inbound o_sbl_inbound_flow">
+            <div class="o_sbl_inbound_flow_sticky_top">
+                <div class="o_sbl_header">
+                    <button type="button" class="btn btn-link text-dark p-1" t-on-click="exit" title="Home">
+                        <i class="fa fa-arrow-left"/>
+                    </button>
+                    <div class="o_sbl_header_title">
+                        <i class="fa fa-truck text-primary me-1"/>
+                        <t t-if="hasPicking">
+                            <t t-esc="pickingLabel"/>
+                        </t>
+                        <t t-else="">Inbound</t>
                     </div>
-                    <div class="o_picking_row">
-                        <span class="o_picking_label">Ref:</span>
-                        <span class="o_picking_value"><t t-esc="pickingReference"/></span>
-                    </div>
-                    <div class="o_picking_row">
-                        <span class="o_picking_label">Partner:</span>
-                        <span class="o_picking_value"><t t-esc="pickingPartner"/></span>
-                    </div>
-                    <div class="o_picking_row">
-                        <span class="o_picking_label">Status:</span>
-                        <span class="badge" t-attf-class="{{ getStateBadgeClass(pickingState) }}">
-                            <t t-esc="getStateLabel(pickingState)"/>
-                        </span>
+                    <div class="o_sbl_scan_mode" t-attf-class="o_mode_{{ state.nextStep }}">
+                        <t t-esc="scanModeLabel"/>
                     </div>
                 </div>
-            </div>
 
-            <!-- ═══ 当前货位信息 ═══ -->
-            <div t-if="hasLocation" class="o_sbl_location_bar">
-                <i class="fa fa-map-marker text-danger me-1"/>
-                <span class="me-1">Current Location:</span>
-                <strong class="text-primary"><t t-esc="currentLocationName"/></strong>
-                <span class="text-muted ms-1" t-if="currentLocationBarcode">(<t t-esc="currentLocationBarcode"/>)</span>
+                <div t-if="state.message" t-attf-class="o_sbl_alert alert alert-{{ state.messageType }}">
+                    <t t-esc="state.message"/>
+                </div>
+
+                <!-- ═══ 入库单信息卡片 ═══ -->
+                <div t-if="hasPicking" class="o_sbl_picking_card">
+                    <div class="o_sbl_picking_info">
+                        <div class="o_picking_row">
+                            <span class="o_picking_label">Origin:</span>
+                            <span class="o_picking_value"><t t-esc="pickingOrigin"/></span>
+                        </div>
+                        <div class="o_picking_row">
+                            <span class="o_picking_label">Ref:</span>
+                            <span class="o_picking_value"><t t-esc="pickingReference"/></span>
+                        </div>
+                        <div class="o_picking_row">
+                            <span class="o_picking_label">Partner:</span>
+                            <span class="o_picking_value"><t t-esc="pickingPartner"/></span>
+                        </div>
+                        <div class="o_picking_row">
+                            <span class="o_picking_label">Status:</span>
+                            <span class="badge" t-attf-class="{{ getStateBadgeClass(pickingState) }}">
+                                <t t-esc="getStateLabel(pickingState)"/>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═══ 当前货位信息 ═══ -->
+                <div t-if="hasLocation" class="o_sbl_location_bar">
+                    <i class="fa fa-map-marker text-danger me-1"/>
+                    <span class="me-1">Current Location:</span>
+                    <strong class="text-primary"><t t-esc="currentLocationName"/></strong>
+                    <span class="text-muted ms-1" t-if="currentLocationBarcode">(<t t-esc="currentLocationBarcode"/>)</span>
+                </div>
             </div>
 
             <!-- ═══ 扫描提示步骤条 ═══ -->

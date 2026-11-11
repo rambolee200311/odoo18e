@@ -2,6 +2,8 @@
 
 import { BaseBarcodePage } from "./base_barcode_page";
 import { _t } from "@web/core/l10n/translation";
+import { AutoWholePalletDialog } from "../components/auto_whole_pallet_dialog/auto_whole_pallet_dialog";
+import { useService } from "@web/core/utils/hooks";
 import { standardActionServiceProps } from "@web/webclient/actions/action_service";
 
 /**
@@ -11,7 +13,7 @@ import { standardActionServiceProps } from "@web/webclient/actions/action_servic
  * 扫码流程：
  *  ─────────────────────────────────────────────────────────────────────
  *  1. Order   : 扫出库单 picking name
- *  2. Location: 扫货位条码
+ *  2. Location: 普通拆托单扫描货位；后端允许免扫货位的单据跳过
  *  3. Pallet  : 扫托盘条码 → 判断是整托还是拆托
  *     - 整托: 系统自动填充 → 完成
  *     - 拆托: 继续扫产品条码 → 扫SN/批次 → 完成
@@ -27,6 +29,10 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
 
     setup() {
         super.setup();
+        this.dialogService = useService("dialog");
+        this._autoWholePalletDialogOpen = false;
+        this._autoWholePalletDialogAction = null;
+        this.state.skipLocationStep = false;
         this.state.expandedPalletIds = [];
         this.state.expandedSerialGroupKeys = [];
         this.state.collapsedSerialGroupKeys = [];
@@ -42,7 +48,7 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
     }
 
     _reconcileFocus() {
-        if (this._isDestroyed) return;
+        if (this._isDestroyed || this._autoWholePalletDialogOpen) return;
 
         requestAnimationFrame(() => {
             if (this._isDestroyed) return;
@@ -64,7 +70,7 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
     // ═══════════════════════════════════════════════════════════════
 
     async onBarcodeScanned(barcode) {
-        if (!barcode || this._isProcessing) {
+        if (!barcode || this._isProcessing || this._autoWholePalletDialogOpen) {
 //            console.log("[DisassemblyOutbound] Skipped - no barcode or still processing");
             return;
         }
@@ -129,6 +135,7 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
 
                 // 保留错误提示，仅清空扫描数据
                 this.state.order = null;
+                this.state.skipLocationStep = false;
                 this.state.pallets = [];
                 this.state.currentLocation = {};
                 this.state.currentPallet = {};
@@ -145,7 +152,12 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
                 return;
             }
 
-            this._applyScanResult(result, true);
+            if (result.success !== false && nextStep === "confirm_whole_pallet") {
+                this._applyScanResult(result, false);
+                this._showAutoWholePalletConfirmation(result);
+            } else {
+                this._applyScanResult(result, true);
+            }
         } catch (error) {
             if (progressBeforeScan) {
                 this.state.stepProgress = progressBeforeScan;
@@ -161,6 +173,83 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
             }
        }
    }
+
+    _showAutoWholePalletConfirmation(result) {
+        const candidate = result.auto_whole_pallet_candidate || {};
+        const lines = Array.isArray(candidate.lines) ? candidate.lines : [];
+        const palletName = candidate.package_name || result.barcode || "";
+
+        this._autoWholePalletDialogOpen = true;
+        this.dialogService.add(
+            AutoWholePalletDialog,
+            {
+                palletName,
+                lines,
+                onConfirm: () => {
+                    this._autoWholePalletDialogAction = "confirm";
+                    return this._confirmAutoWholePallet(result.current || {});
+                },
+                onCancel: () => {
+                    this._autoWholePalletDialogAction = "cancel";
+                    this._continuePartialPalletScan();
+                },
+            },
+            {
+                onClose: () => {
+                    if (!this._autoWholePalletDialogAction && !this._isDestroyed) {
+                        this._continuePartialPalletScan();
+                    }
+                    this._autoWholePalletDialogAction = null;
+                    this._autoWholePalletDialogOpen = false;
+                    if (!this._isDestroyed) {
+                        this._reconcileFocus();
+                    }
+                },
+            }
+        );
+    }
+
+    async _confirmAutoWholePallet(current) {
+        if (!current.picking_id || !current.location_id || !current.package_id) {
+            this._continuePartialPalletScan();
+            this.showMessage(_t("Pallet context is incomplete. Continue with partial picking."), "danger");
+            return;
+        }
+
+        this._isProcessing = true;
+        this.state.loading = true;
+        try {
+            const confirmResult = await this.orm.call(
+                "stock.barcode.lite.scan.service",
+                "process_unspecified_pallet_auto_whole_pallet_scan",
+                [current.picking_id, current.location_id, current.package_id]
+            );
+            if (this._isDestroyed) return;
+
+            if (confirmResult) {
+                this._applyScanResult(confirmResult, true);
+            } else {
+                this._continuePartialPalletScan();
+                this.showMessage(_t("Unable to confirm whole-pallet outbound."), "danger");
+            }
+        } catch (error) {
+            if (!this._isDestroyed) {
+                this._continuePartialPalletScan();
+                this.showMessage(this.formatError(error), "danger");
+                this._flashScreen([200, 100, 100], true);
+            }
+        } finally {
+            this._isProcessing = false;
+            if (!this._isDestroyed) {
+                this.state.loading = false;
+            }
+        }
+    }
+
+    _continuePartialPalletScan() {
+        this.state.nextStep = "scan_product";
+        this.showMessage(_t("Please scan a product from this pallet for partial picking."), "info");
+    }
 
     /**
      * 应用后端返回：current 更新请求上下文，scan_state 更新页面展示
@@ -196,6 +285,14 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
 
         const scanState = result.scan_state || {};
 
+        // 后端选择出库单时：scan_pallet 表示该单据本身允许免扫货位，
+        // scan_location 表示仍需按常规流程先扫货位。
+        if (result.type === "picking") {
+            this.state.skipLocationStep = result.next_step === "scan_pallet";
+        } else if (!current.picking_id) {
+            this.state.skipLocationStep = false;
+        }
+
         // 更新出库单信息
         this.state.order = scanState.picking ? { ...scanState.picking } : null;
 
@@ -228,7 +325,8 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
         // 更新 lastScan
         this.state.lastScan = scanState.last_scan ? { ...scanState.last_scan } : {};
 
-        // 更新下一步
+        // 后端负责返回下一扫码步骤；托盘识别出的货位通过 current.location_id
+        // 延续到后续产品、批次和数量请求，不在前端猜测或合成货位。
         this.state.nextStep = result.next_step || "scan_picking";
 
         // 步骤条对号表示当前轮的条码已被系统接受；不代表该托盘/产品的
@@ -569,6 +667,7 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
 
     resetScan() {
         this.state.order = null;
+        this.state.skipLocationStep = false;
         this.state.pallets = [];
         this.state.currentLocation = {};
         this.state.currentPallet = {};
@@ -673,6 +772,10 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
         return this.state.nextStep === "scan_picking";
     }
 
+    get needsLocationStep() {
+        return !this.state.skipLocationStep;
+    }
+
     get isScanLocationStep() {
         return this.state.nextStep === "scan_location";
     }
@@ -730,8 +833,7 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
     }
 
     get isAllComplete() {
-        const s = this.state.summary || {};
-        return (s.pending_pallets || 0) === 0 && (s.total_pallets || 0) > 0;
+        return this.state.nextStep === "validate";
     }
 
     /**

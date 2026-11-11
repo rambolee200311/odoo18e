@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="stock_barcode_lite.AutoWholePalletDialog">
+        <Dialog
+            size="'xl'"
+            header="false"
+            footer="true"
+            withBodyPadding="false"
+            contentClass="'o_sbl_auto_whole_pallet_dialog'">
+            <div class="o_sbl_auto_whole_pallet">
+                <div class="o_sbl_auto_whole_pallet_header">
+                    <div class="o_sbl_auto_whole_pallet_icon">
+                        <i class="fa fa-cubes"/>
+                    </div>
+                    <div class="o_sbl_auto_whole_pallet_heading">
+                        <div class="o_sbl_auto_whole_pallet_eyebrow">Whole pallet candidate</div>
+                        <h4>Confirm whole-pallet outbound?</h4>
+                    </div>
+                    <button type="button" class="o_sbl_auto_whole_pallet_close"
+                            aria-label="Close" t-on-click="cancel" t-att-disabled="state.confirming">
+                        <i class="fa fa-times"/>
+                    </button>
+                </div>
+
+                <div class="o_sbl_auto_whole_pallet_body">
+                    <div class="o_sbl_auto_whole_pallet_name">
+                        <span><i class="fa fa-barcode me-2"/>Pallet</span>
+                        <strong><t t-esc="props.palletName"/></strong>
+                    </div>
+
+                    <div class="o_sbl_auto_whole_pallet_lines_heading">
+                        <strong><i class="fa fa-cubes me-2"/>Products in this pallet</strong>
+                        <span class="o_sbl_auto_whole_pallet_count">
+                            <t t-esc="props.lines.length"/> items
+                        </span>
+                    </div>
+
+                    <div class="o_sbl_auto_whole_pallet_lines">
+                        <t t-foreach="props.lines" t-as="line" t-key="line_index">
+                            <div class="o_sbl_auto_whole_pallet_line">
+                                <div class="o_sbl_auto_whole_pallet_product">
+                                    <strong><t t-esc="line.product_name || line.product_id"/></strong>
+                                    <div class="o_sbl_auto_whole_pallet_meta">
+                                        <span t-if="line.tracking" class="o_sbl_auto_whole_pallet_tracking">
+                                            <t t-esc="line.tracking"/>
+                                        </span>
+                                        <span t-if="line.lot_name">
+                                            <i class="fa fa-tag me-1"/><t t-esc="line.lot_name"/>
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="o_sbl_auto_whole_pallet_quantity">
+                                    <strong><t t-esc="line.quantity"/></strong>
+                                    <span><t t-esc="line.uom_name"/></span>
+                                </div>
+                            </div>
+                        </t>
+                    </div>
+
+                    <div class="o_sbl_auto_whole_pallet_note">
+                        <i class="fa fa-info-circle me-2"/>
+                        Confirming will automatically add all listed stock to this picking.
+                    </div>
+                </div>
+            </div>
+
+            <t t-set-slot="footer">
+                <div class="o_sbl_auto_whole_pallet_footer">
+                    <button type="button" class="btn btn-outline-secondary"
+                            t-on-click="cancel" t-att-disabled="state.confirming">
+                        Continue partial picking
+                    </button>
+                    <button type="button" class="btn btn-primary"
+                            t-on-click="confirm" t-att-disabled="state.confirming">
+                        <i t-if="state.confirming" class="fa fa-spinner fa-spin me-2"/>
+                        <i t-else="" class="fa fa-check-circle me-2"/>
+                        <t t-if="state.confirming">Processing…</t>
+                        <t t-else="">Whole-pallet outbound</t>
+                    </button>
+                </div>
+            </t>
+        </Dialog>
+    </t>
+</templates>
