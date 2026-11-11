@@ -32,14 +32,12 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
             return self.build_outgoing_scan_result("error", _("Error"), _("The scanned line cannot be deleted."), picking_id=picking_id, action_name="delete_outgoing_scanned_line", success=False)
         location_id = line.location_id.id
         package_id = line.package_id.id
-        product_id = line.product_id.id
-        lot_id = line.lot_id.id
         editable_line = move_line_model.browse(line.id)
         if picking.is_unspecified_pallet_outgoing:
             editable_line.unlink()
         else:
             editable_line.write({"is_outbound_scanned": False, "outbound_scanned_quantity": 0.0, "outbound_scanned_by_id": False, "outbound_scanned_datetime": False})
-        return self.build_outgoing_scan_result("delete", _("Delete"), _("Scanned line deleted."), picking_id=picking.id, location_id=location_id, package_id=package_id, product_id=product_id, lot_id=lot_id, action_name="delete_outgoing_scanned_line", updated_move_line_ids=[move_line_id], success=True)
+        return self.build_outgoing_scan_result("delete", _("Delete"), _("Scanned line deleted."), picking_id=picking.id, location_id=location_id, package_id=package_id, action_name="delete_outgoing_scanned_line", updated_move_line_ids=[move_line_id], success=True)
 
     @api.model
     def process_outgoing_scan_barcode(
@@ -111,6 +109,14 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
                     current_product_id = False
                     current_lot_id = False
                     pending_operation = False
+
+        if not pending_operation and picking_id:
+            package = self.get_outgoing_package_from_barcode(code)
+            if package:
+                return self.process_outgoing_pallet_scan(code, picking_id=picking_id, current_location_id=current_location_id)
+            product = self.get_outgoing_product_from_barcode(code)
+            if current_package_id and len(product) == 1:
+                return self.process_outgoing_product_scan(code, picking_id=picking_id, current_location_id=current_location_id, current_package_id=current_package_id)
 
         operation = pending_operation or self.infer_outgoing_operation(
             picking_id=picking_id,
