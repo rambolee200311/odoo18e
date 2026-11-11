@@ -94,22 +94,7 @@
                         </div>
                     </div>
                     <div class="col-12 col-md-6 col-lg-3">
-                        <div class="card h-100 shadow-sm o_homepage_card o_outbound_pallet_binding_card">
-                            <div class="card-header bg-light text-dark o_homepage_card_header">
-                                <h3 class="mb-0">
-                                    <i class="fa fa-cubes me-2"/>Pallet Consolidation / Re-palletizing
-                                </h3>
-                            </div>
-                            <div class="card-body d-flex flex-column">
-                                <p class="text-muted mb-auto">Group picked products onto an existing or newly generated pallet.</p>
-                                <button class="btn btn-success mt-3" t-on-click="">
-                                    <i class="fa fa-arrow-right me-2"/>Go
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12 col-md-6 col-lg-3">
-                        <div class="card h-100 shadow-sm o_homepage_card o_outbound_pallet_binding_card">
+                        <div class="card h-100 shadow-sm o_homepage_card o_outbound_pallet_confirm_card">
                             <div class="card-header bg-light text-dark o_homepage_card_header">
                                 <h3 class="mb-0">
                                     <i class="fa fa-check-circle me-2"/>Actual Outbound Confirm
