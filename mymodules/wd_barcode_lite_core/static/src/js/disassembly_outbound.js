@@ -2,6 +2,8 @@
 
 import { BaseBarcodePage } from "./base_barcode_page";
 import { _t } from "@web/core/l10n/translation";
+import { AutoWholePalletDialog } from "../components/auto_whole_pallet_dialog/auto_whole_pallet_dialog";
+import { useService } from "@web/core/utils/hooks";
 import { standardActionServiceProps } from "@web/webclient/actions/action_service";
 
 /**
@@ -27,6 +29,9 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
 
     setup() {
         super.setup();
+        this.dialogService = useService("dialog");
+        this._autoWholePalletDialogOpen = false;
+        this._autoWholePalletDialogAction = null;
         this.state.skipLocationStep = false;
         this.state.expandedPalletIds = [];
         this.state.expandedSerialGroupKeys = [];
@@ -43,7 +48,7 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
     }
 
     _reconcileFocus() {
-        if (this._isDestroyed) return;
+        if (this._isDestroyed || this._autoWholePalletDialogOpen) return;
 
         requestAnimationFrame(() => {
             if (this._isDestroyed) return;
@@ -65,7 +70,7 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
     // ═══════════════════════════════════════════════════════════════
 
     async onBarcodeScanned(barcode) {
-        if (!barcode || this._isProcessing) {
+        if (!barcode || this._isProcessing || this._autoWholePalletDialogOpen) {
 //            console.log("[DisassemblyOutbound] Skipped - no barcode or still processing");
             return;
         }
@@ -147,7 +152,12 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
                 return;
             }
 
-            this._applyScanResult(result, true);
+            if (result.success !== false && nextStep === "confirm_whole_pallet") {
+                this._applyScanResult(result, false);
+                this._showAutoWholePalletConfirmation(result);
+            } else {
+                this._applyScanResult(result, true);
+            }
         } catch (error) {
             if (progressBeforeScan) {
                 this.state.stepProgress = progressBeforeScan;
@@ -163,6 +173,83 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
             }
        }
    }
+
+    _showAutoWholePalletConfirmation(result) {
+        const candidate = result.auto_whole_pallet_candidate || {};
+        const lines = Array.isArray(candidate.lines) ? candidate.lines : [];
+        const palletName = candidate.package_name || result.barcode || "";
+
+        this._autoWholePalletDialogOpen = true;
+        this.dialogService.add(
+            AutoWholePalletDialog,
+            {
+                palletName,
+                lines,
+                onConfirm: () => {
+                    this._autoWholePalletDialogAction = "confirm";
+                    return this._confirmAutoWholePallet(result.current || {});
+                },
+                onCancel: () => {
+                    this._autoWholePalletDialogAction = "cancel";
+                    this._continuePartialPalletScan();
+                },
+            },
+            {
+                onClose: () => {
+                    if (!this._autoWholePalletDialogAction && !this._isDestroyed) {
+                        this._continuePartialPalletScan();
+                    }
+                    this._autoWholePalletDialogAction = null;
+                    this._autoWholePalletDialogOpen = false;
+                    if (!this._isDestroyed) {
+                        this._reconcileFocus();
+                    }
+                },
+            }
+        );
+    }
+
+    async _confirmAutoWholePallet(current) {
+        if (!current.picking_id || !current.location_id || !current.package_id) {
+            this._continuePartialPalletScan();
+            this.showMessage(_t("Pallet context is incomplete. Continue with partial picking."), "danger");
+            return;
+        }
+
+        this._isProcessing = true;
+        this.state.loading = true;
+        try {
+            const confirmResult = await this.orm.call(
+                "stock.barcode.lite.scan.service",
+                "process_unspecified_pallet_auto_whole_pallet_scan",
+                [current.picking_id, current.location_id, current.package_id]
+            );
+            if (this._isDestroyed) return;
+
+            if (confirmResult) {
+                this._applyScanResult(confirmResult, true);
+            } else {
+                this._continuePartialPalletScan();
+                this.showMessage(_t("Unable to confirm whole-pallet outbound."), "danger");
+            }
+        } catch (error) {
+            if (!this._isDestroyed) {
+                this._continuePartialPalletScan();
+                this.showMessage(this.formatError(error), "danger");
+                this._flashScreen([200, 100, 100], true);
+            }
+        } finally {
+            this._isProcessing = false;
+            if (!this._isDestroyed) {
+                this.state.loading = false;
+            }
+        }
+    }
+
+    _continuePartialPalletScan() {
+        this.state.nextStep = "scan_product";
+        this.showMessage(_t("Please scan a product from this pallet for partial picking."), "info");
+    }
 
     /**
      * 应用后端返回：current 更新请求上下文，scan_state 更新页面展示
@@ -746,8 +833,7 @@ export class DisassemblyOutboundPage extends BaseBarcodePage {
     }
 
     get isAllComplete() {
-        const s = this.state.summary || {};
-        return (s.pending_pallets || 0) === 0 && (s.total_pallets || 0) > 0;
+        return this.state.nextStep === "validate";
     }
 
     /**

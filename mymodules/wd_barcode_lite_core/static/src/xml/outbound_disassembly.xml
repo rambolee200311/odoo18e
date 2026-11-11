@@ -236,7 +236,10 @@
                             <i class="fa fa-check-circle me-1"/>All Done
                         </t>
                         <t t-else="">
-                            <t t-esc="state.summary.pending_pallets || 0"/> pallets pending
+                            <t t-if="(state.summary.pending_pallets || 0) > 0">
+                                <t t-esc="state.summary.pending_pallets || 0"/> pallets pending
+                            </t>
+                            <t t-else="">Picking in progress</t>
                         </t>
                     </span>
                 </span>
