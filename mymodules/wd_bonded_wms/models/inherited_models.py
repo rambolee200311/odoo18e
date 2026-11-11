@@ -74,7 +74,7 @@ class StockPicking(models.Model):
                         % (picking.bonded_inbound_id.name, picking.bonded_inbound_id.state)
                     ))
             # ---- 出库: bonded.outbound必须是done ----
-            if picking.picking_type_code == 'outgoing' and picking.bonded_outbound_id:
+            if picking.picking_type_code == 'outgoing' and picking.bonded_outbound_id and picking.state == 'done':
                 if picking.bonded_outbound_id.state != 'in_progress':
                     raise UserError(_(
                         'Cannot validate stock picking: bonded outbound instruction (%s) '
@@ -86,7 +86,7 @@ class StockPicking(models.Model):
         for picking in self:
             if picking.picking_type_code == 'incoming' and picking.bonded_inbound_id and picking.state == 'done' and picking.bonded_inbound_id.state == 'in_progress':
                 picking.bonded_inbound_id.action_done()
-            if picking.picking_type_code == 'outgoing' and picking.bonded_outbound_id:
+            if picking.picking_type_code == 'outgoing' and picking.bonded_outbound_id and picking.state == 'done':
                 try:
                     picking.bonded_outbound_id.action_done()
                 except Exception as e:
@@ -101,6 +101,14 @@ class StockMove(models.Model):
     bonded_stock_id = fields.Many2one('bonded.stock', string='Bonded Stock', readonly=True, copy=False)
     bonded_inbound_line_id = fields.Many2one('bonded.inbound.line', string='Bonded Inbound Line', readonly=True, copy=False)
     bonded_outbound_line_id = fields.Many2one('bonded.outbound.line', string='Bonded Outbound Line', readonly=True, copy=False)
+
+
+class StockMoveLine(models.Model):
+    _inherit = 'stock.move.line'
+
+    bonded_stock_id = fields.Many2one('bonded.stock', string='Bonded Stock', readonly=True, copy=False, ondelete='restrict', index=True)
+    bonded_inbound_line_id = fields.Many2one('bonded.inbound.line', string='Bonded Inbound Line', readonly=True, copy=False, ondelete='restrict', index=True)
+    bonded_outbound_line_id = fields.Many2one('bonded.outbound.line', string='Bonded Outbound Line', readonly=True, copy=False, ondelete='restrict', index=True)
 
 
 # ===== Stock Location 扩展 =====

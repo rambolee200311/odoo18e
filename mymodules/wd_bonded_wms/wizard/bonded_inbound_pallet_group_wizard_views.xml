@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_bonded_inbound_pallet_group_wizard_form" model="ir.ui.view">
+        <field name="name">bonded.inbound.pallet.group.wizard.form</field>
+        <field name="model">bonded.inbound.pallet.group.wizard</field>
+        <field name="arch" type="xml">
+            <form duplicate="false">
+                <group>
+                    <field name="bonded_inbound_id" required="1" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                    <field name="pallet_group_id" domain="[('bonded_inbound_id', '=', bonded_inbound_id)]" options="{'no_create': True, 'no_open': True}"/>
+                    <field name="pallet_quantity" required="1"/>
+                    <field name="bonded_book_id" invisible="1"/>
+                    <field name="project_category_id" invisible="1"/>
+                </group>
+                <group string="Pallet Structure">
+                    <field name="template_lines">
+                        <list editable="bottom">
+                            <field name="bonded_product_id" required="1" domain="[('bonded_book_id', '=', parent.bonded_book_id), ('categ_id', '=', parent.project_category_id), ('state', '=', 'active')]" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="uom_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="planned_qty" required="1"/>
+                        </list>
+                    </field>
+                </group>
+                <footer>
+                    <button name="action_generate" string="Generate" type="object" class="btn-primary" invisible="pallet_group_id"/>
+                    <button name="action_update_and_regenerate" string="Update and Regenerate" type="object" class="btn-primary" invisible="not pallet_group_id"/>
+                    <button name="action_delete_pallet_group" string="Delete Pallet Group" type="object" class="btn-secondary" invisible="not pallet_group_id"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

@@ -203,10 +203,10 @@ class BondedOutbound(models.Model):
                 raise UserError(_('Please create and validate a stock picking first.'))
             customs_file = rec.customs_file_ids[:1]
             for move_line in rec.picking_id.move_line_ids:
-                outbound_line = move_line.move_id.bonded_outbound_line_id
-                if not outbound_line or not outbound_line.bonded_stock_id:
+                outbound_line = move_line.bonded_outbound_line_id or move_line.move_id.bonded_outbound_line_id
+                source_stock = move_line.bonded_stock_id or move_line.move_id.bonded_stock_id or outbound_line.bonded_stock_id
+                if not outbound_line or not source_stock:
                     continue
-                source_stock = outbound_line.bonded_stock_id
                 done_qty = move_line.quantity
                 if done_qty <= 0:
                     continue
@@ -330,24 +330,26 @@ class BondedOutbound(models.Model):
             'unique_identifier_no': ', '.join(sorted(set(filter(None, self.line_ids.mapped('inbound_tracking_no'))))),
             'bonded_customs_file_id': customs_file.id,
         })
+        env_stock_move = self.env['stock.move']
+        env_stock_move_line = self.env['stock.move.line']
+        move_vals_by_key = {}
         for line in self.line_ids:
-            self.env['stock.move'].create({
-                'name': line.product_id.name,
-                'product_id': line.product_id.id,
-                'product_uom_qty': line.demand_qty,
-                'product_uom': line.uom_id.id or line.product_id.uom_id.id,
-                'picking_id': picking.id,
-                'location_id': picking.location_id.id,
-                'location_dest_id': picking.location_dest_id.id,
-                'bonded_stock_id': line.bonded_stock_id.id,
-                'bonded_outbound_line_id': line.id,
-            })
+            uom_id = line.uom_id.id or line.product_id.uom_id.id
+            move_key = (line.product_id.id, uom_id, line.bonded_stock_id.location_id.id, picking.location_dest_id.id)
+            if move_key not in move_vals_by_key:
+                move_vals_by_key[move_key] = {'name': line.product_id.name, 'product_id': line.product_id.id, 'product_uom_qty': line.demand_qty, 'product_uom': uom_id, 'picking_id': picking.id, 'location_id': line.bonded_stock_id.location_id.id, 'location_dest_id': picking.location_dest_id.id}
+            else:
+                move_vals_by_key[move_key]['product_uom_qty'] += line.demand_qty
+        moves = env_stock_move.create(list(move_vals_by_key.values()))
+        moves_by_key = dict(zip(move_vals_by_key, moves))
+        move_line_vals = []
+        for line in self.line_ids:
+            uom_id = line.uom_id.id or line.product_id.uom_id.id
+            move_key = (line.product_id.id, uom_id, line.bonded_stock_id.location_id.id, picking.location_dest_id.id)
+            move_line_vals.append({'picking_id': picking.id, 'move_id': moves_by_key[move_key].id, 'product_id': line.product_id.id, 'product_uom_id': uom_id, 'quantity': line.demand_qty, 'location_id': line.bonded_stock_id.location_id.id, 'location_dest_id': picking.location_dest_id.id, 'package_id': line.bonded_stock_id.package_id.id, 'lot_id': line.bonded_stock_id.lot_id.id, 'bonded_stock_id': line.bonded_stock_id.id, 'bonded_outbound_line_id': line.id})
+        env_stock_move_line.create(move_line_vals)
         if scan_enabled:
             picking.write({'outbound_scan_mode': self.outbound_scan_mode})
-        for move in picking.move_ids:
-            line = move.bonded_outbound_line_id
-            package = line.bonded_stock_id.package_id
-            self.env['stock.move.line'].create({'picking_id': picking.id, 'move_id': move.id, 'product_id': line.product_id.id, 'product_uom_id': line.uom_id.id, 'quantity': line.demand_qty, 'location_id': line.bonded_stock_id.location_id.id, 'location_dest_id': picking.location_dest_id.id, 'package_id': package.id, 'lot_id': line.bonded_stock_id.lot_id.id})
         self.write({'picking_id': picking.id, 'state': 'in_progress'})
         return {'type': 'ir.actions.client', 'tag': 'reload'}
 
@@ -452,13 +454,13 @@ class BondedOutboundLine(models.Model):
                 ('state', '=', 'active'),
             ]) if book else self.env['bonded.product']
 
-    @api.depends('bonded_outbound_id.picking_id.move_ids.state', 'bonded_outbound_id.picking_id.move_ids.product_uom_qty')
+    @api.depends('bonded_outbound_id.picking_id.move_line_ids.quantity', 'bonded_outbound_id.picking_id.move_line_ids.move_id.state', 'bonded_outbound_id.picking_id.move_line_ids.bonded_outbound_line_id', 'bonded_outbound_id.picking_id.move_ids.bonded_outbound_line_id')
     def _compute_done_qty(self):
         for rec in self:
             if rec.bonded_outbound_id.picking_id:
-                moves = rec.bonded_outbound_id.picking_id.move_ids.filtered(
-                    lambda move: move.bonded_outbound_line_id == rec and move.state == 'done'
+                move_lines = rec.bonded_outbound_id.picking_id.move_line_ids.filtered(
+                    lambda line: (line.bonded_outbound_line_id == rec or line.move_id.bonded_outbound_line_id == rec) and line.move_id.state == 'done'
                 )
-                rec.done_qty = sum(moves.mapped('product_uom_qty'))
+                rec.done_qty = sum(move_lines.mapped('quantity'))
             else:
                 rec.done_qty = 0.0

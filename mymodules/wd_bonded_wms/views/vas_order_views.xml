@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_vas_order_form_bonded" model="ir.ui.view">
+        <field name="name">wd.vas.order.form.bonded</field>
+        <field name="model">wd.vas.order</field>
+        <field name="inherit_id" ref="wd_warehouse_value_add.view_vas_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='source_picking_id']" position="after">
+                <field name="bonded_inbound_id" readonly="1" invisible="source_type != 'bonded_inbound'" options="{'no_create': True, 'no_open': True}"/>
+                <field name="bonded_outbound_id" readonly="1" invisible="source_type != 'bonded_outbound'" options="{'no_create': True, 'no_open': True}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <delete id="bonded_inbound_view_form_vas" model="ir.ui.view"/>
+    <delete id="bonded_outbound_view_form_vas" model="ir.ui.view"/>
+</odoo>

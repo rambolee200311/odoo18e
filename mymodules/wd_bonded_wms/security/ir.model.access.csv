@@ -43,6 +43,10 @@ access_bonded_inbound_traceability_line,bonded.inbound.traceability.line,model_b
 access_bonded_inbound_tracking,bonded.inbound.tracking,model_bonded_inbound_tracking,group_bonded_warehouse,1,1,1,0
 access_bonded_inbound_tracking_customs,bonded.inbound.tracking.customs,model_bonded_inbound_tracking,group_bonded_customs_declaration,1,1,0,0
 access_bonded_inbound_tracking_audit,bonded.inbound.tracking.audit,model_bonded_inbound_tracking,group_bonded_customs_audit,1,0,0,0
+access_bonded_inbound_pallet_group,bonded.inbound.pallet.group,model_bonded_inbound_pallet_group,group_bonded_warehouse,1,1,1,1
+access_bonded_inbound_pallet_group_line,bonded.inbound.pallet.group.line,model_bonded_inbound_pallet_group_line,group_bonded_warehouse,1,1,1,1
+access_bonded_inbound_pallet_group_wizard,bonded.inbound.pallet.group.wizard,model_bonded_inbound_pallet_group_wizard,,1,1,1,1
+access_bonded_inbound_pallet_group_wizard_line,bonded.inbound.pallet.group.wizard.line,model_bonded_inbound_pallet_group_wizard_line,,1,1,1,1
 access_bonded_outbound,bonded.outbound,model_bonded_outbound,group_bonded_warehouse,1,1,1,1
 access_bonded_outbound_customs,bonded.outbound.customs,model_bonded_outbound,group_bonded_customs_declaration,1,1,0,0
 access_bonded_outbound_audit,bonded.outbound.audit,model_bonded_outbound,group_bonded_customs_audit,1,0,0,0
@@ -71,6 +75,8 @@ access_bonded_inbound_system,bonded.inbound,model_bonded_inbound,base.group_syst
 access_bonded_inbound_line_system,bonded.inbound.line,model_bonded_inbound_line,base.group_system,1,1,1,1
 access_bonded_inbound_traceability_line_system,bonded.inbound.traceability.line,model_bonded_inbound_traceability_line,base.group_system,1,1,1,1
 access_bonded_inbound_tracking_system,bonded.inbound.tracking,model_bonded_inbound_tracking,base.group_system,1,1,1,1
+access_bonded_inbound_pallet_group_system,bonded.inbound.pallet.group,model_bonded_inbound_pallet_group,base.group_system,1,1,1,1
+access_bonded_inbound_pallet_group_line_system,bonded.inbound.pallet.group.line,model_bonded_inbound_pallet_group_line,base.group_system,1,1,1,1
 access_bonded_outbound_system,bonded.outbound,model_bonded_outbound,base.group_system,1,1,1,1
 access_bonded_outbound_line_system,bonded.outbound.line,model_bonded_outbound_line,base.group_system,1,1,1,1
 access_bonded_stock_system,bonded.stock,model_bonded_stock,base.group_system,1,1,1,1

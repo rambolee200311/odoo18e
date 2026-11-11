@@ -13,6 +13,7 @@ from . import bonded_customs_file_line
 from . import bonded_product
 from . import gate_arrival
 from . import bonded_inbound_tracking
+from . import bonded_inbound_pallet_group
 from . import bonded_inbound
 from . import bonded_inbound_traceability_line
 from . import bonded_outbound
@@ -22,3 +23,4 @@ from . import bonded_log
 from . import bonded_monthly_report
 from . import bonded_stock_snapshot
 from . import inherited_models
+from . import vas_order
