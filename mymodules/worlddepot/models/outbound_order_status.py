@@ -835,8 +835,8 @@ class OutboundOrderStatus(models.Model):
                     raise UserError("No completed outgoing picking was found for this outbound order.")
 
                 latest_done_datetime = max(outbound_picking_list.mapped('date_done'))
-                local_time = self.get_local_time('NL', latest_done_datetime)
-                if order.outbound_result_sync_time_user:
+                local_time = self.get_local_time('NL', order.actual_outbound_datetime or latest_done_datetime)
+                if not order.actual_outbound_datetime and order.outbound_result_sync_time_user:
                     local_time = order.outbound_result_sync_time_user
 
                 payload = {

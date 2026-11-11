@@ -38,6 +38,7 @@ class OutboundOrder(models.Model):
     date = fields.Date(string='Order Date', required=True, tracking=True, default=fields.Date.today)
     p_date = fields.Date(string='Planning Date', required=False, tracking=True)
     o_date = fields.Date(string='Outbound Date', required=False, tracking=True)
+    actual_outbound_datetime = fields.Datetime(string='Actual Outbound Datetime', copy=False, tracking=True)
     project = fields.Many2one('project.project', string='Project', required=True)
     project_name = fields.Char(string='Project Name', related='project.name', stored=True, tracking=True)
     owner = fields.Many2one('res.partner', string='Owner', related='project.owner', stored=True, tracking=True)
@@ -236,9 +237,20 @@ class OutboundOrder(models.Model):
         """
         generate bill number
         """
+        values = dict(values)
+        if values.get("actual_outbound_datetime"):
+            actual_datetime = fields.Datetime.to_datetime(values["actual_outbound_datetime"])
+            values["o_date"] = fields.Datetime.context_timestamp(self.with_context(tz="Europe/Amsterdam"), actual_datetime).date()
         times = fields.Date.today()
         values['billno'] = self.env['ir.sequence'].next_by_code('seq.outbound.order', times)
         return super(OutboundOrder, self).create(values)
+
+    def write(self, values):
+        values = dict(values)
+        if values.get("actual_outbound_datetime"):
+            actual_datetime = fields.Datetime.to_datetime(values["actual_outbound_datetime"])
+            values["o_date"] = fields.Datetime.context_timestamp(self.with_context(tz="Europe/Amsterdam"), actual_datetime).date()
+        return super().write(values)
 
     def action_confirm(self):
         """

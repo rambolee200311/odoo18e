@@ -113,6 +113,7 @@
                             <field name="picking_PICK" readonly="1"/>
                             <field name="picking_PICK_date" readonly="1"/>
                             <field name="picking_Out" readonly="1"/>
+                            <field name="actual_outbound_datetime" readonly="0"/>
                             <field name="picking_Out_date" readonly="1"/>
                             <field name="status" readonly="1"/>
                         </group>
