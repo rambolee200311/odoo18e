@@ -175,9 +175,9 @@ class BondedCustomsFile(models.Model):
     @api.constrains('mrn')
     def check_mrn(self):
         pattern = re.compile(r'^\d{2}[A-Z]{2}[A-Z0-9]{14}$')
-        # for rec in self:
-        #     if rec.mrn and not pattern.match(rec.mrn):
-        #         raise ValidationError(_('MRN must be 18 characters: 2 digits + 2 letters + 14 letters/digits.'))
+        for rec in self:
+            if rec.mrn and not pattern.fullmatch(rec.mrn):
+                raise ValidationError(_('MRN must be 18 characters in YYCCXXXXXXXXXXXXXX format: 2-digit year + 2-letter country code + 14 uppercase letters/digits (for example, 24NL1234567890ABCD).'))
 
     @api.constrains('mrn_id')
     def check_mrn_customs_file(self):
