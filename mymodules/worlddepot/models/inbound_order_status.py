@@ -1,4 +1,4 @@
-from odoo import models, api, fields
+from odoo import _, models, api, fields
 import requests
 import json
 from datetime import datetime, timedelta
@@ -196,9 +196,10 @@ class InboundOrderStatus(models.Model):
     def action_set_inbound_result_sync(self):
         for order in self:
             if order.project and order.project.name.lower() == 'hoymiles':
-
+                if not order.actual_inbound_datetime:
+                    raise UserError(_("Actual inbound time is required before syncing the inbound result."))
                 country_code = 'NL'
-                local_time = self.get_local_time(country_code, order.stock_picking_id.date_done)
+                local_time = self.get_local_time(country_code, order.actual_inbound_datetime)
                 payload = {
                     "thirdPartyWsCode": "WD",
                     "thirdPartyWsName": "WD warehouse",
@@ -273,14 +274,14 @@ class InboundOrderStatus(models.Model):
                         if not failed:
                             order.write({
                                 'set_inbound_result_sync': True,    
-                                'set_inbound_result_sync_time': datetime.now(),
+                                'set_inbound_result_sync_time': order.actual_inbound_datetime,
                                 'inbound_result_sync_error_msg': False,
                             })
                         else:
                             if not order.set_inbound_result_sync:
                                 order.write({
                                     'set_inbound_result_sync': False,    
-                                    'set_inbound_result_sync_time': datetime.now(),
+                                    'set_inbound_result_sync_time': order.actual_inbound_datetime,
                                     'inbound_result_sync_error_msg': response.text
                             })
                         return failed
@@ -312,7 +313,7 @@ class InboundOrderStatus(models.Model):
                     if not order.set_inbound_result_sync:
                                 order.write({
                                     'set_inbound_result_sync': False,    
-                                    'set_inbound_result_sync_time': datetime.now(),
+                                    'set_inbound_result_sync_time': order.actual_inbound_datetime,
                                     'inbound_result_sync_error_msg': str(e)
                             })
                     return False
@@ -330,7 +331,7 @@ class InboundOrderStatus(models.Model):
                     if not order.set_inbound_result_sync:
                                 order.write({
                                     'set_inbound_result_sync': False,    
-                                    'set_inbound_result_sync_time': datetime.now(),
+                                    'set_inbound_result_sync_time': order.actual_inbound_datetime,
                                     'inbound_result_sync_error_msg': str(e)
                             })
                     return False
