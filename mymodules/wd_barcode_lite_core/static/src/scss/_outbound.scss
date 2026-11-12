@@ -1,0 +1,282 @@
+// Stock Barcode Lite - Outbound Flow Styles
+// ═══ 出库流程：整托出库 + 拆托出库 ═══
+
+// ── 出库单信息条 ──
+.o_sbl_picking_bar {
+    background: #e8f4fc;
+    border-bottom: 1px solid #b6d4e9;
+    padding: 8px 16px;
+    flex-shrink: 0;
+
+    .o_picking_info_row {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 6px;
+        font-size: 13px;
+    }
+
+    .o_picking_label {
+        color: #495057;
+        font-weight: 500;
+    }
+
+    .o_picking_name {
+        font-size: 14px;
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .o_picking_extra {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 4px;
+        font-size: 11px;
+        color: #6c757d;
+    }
+
+    .o_picking_products_toggle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        margin-top: 6px;
+        padding: 4px 0 0;
+        border: 0;
+        border-top: 1px solid rgba(13, 110, 253, 0.15);
+        background: transparent;
+        color: #495057;
+        font-size: 11px;
+        font-weight: 600;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    .o_picking_products_list {
+        max-height: 180px;
+        margin-top: 2px;
+        padding-right: 4px;
+        overflow-y: auto;
+    }
+
+    .o_picking_product_line {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 5px 0;
+        border-bottom: 1px solid rgba(108, 117, 125, 0.15);
+        font-size: 11px;
+    }
+
+    .o_picking_product_info {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
+
+    .o_picking_product_name {
+        overflow: hidden;
+        color: #495057;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .o_picking_product_meta {
+        color: #6c757d;
+        font-size: 10px;
+    }
+
+    .o_picking_product_qty {
+        flex-shrink: 0;
+        color: #0d6efd;
+        text-align: right;
+        white-space: nowrap;
+    }
+}
+
+// ── 拆托出库 - 托盘高亮样式 ──
+.o_pallet_highlighted {
+    border: 2px solid #0d6efd !important;
+    background: linear-gradient(135deg, #e7f1ff 0%, #ffffff 100%) !important;
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.25);
+}
+
+.o_pallet_icon_highlighted {
+    color: #0d6efd !important;
+    animation: pulse_icon 1.5s ease-in-out infinite;
+}
+
+.o_pallet_current_badge {
+    background-color: #0d6efd !important;
+    color: white !important;
+    animation: pulse_badge 1.5s ease-in-out infinite;
+}
+
+.o_sbl_inbound.o_sbl_disassembly_outbound .o_serial_group_toggle {
+    padding-top: 0;
+    padding-bottom: 0;
+    line-height: 1.2;
+}
+
+.o_sbl_outbound_binding {
+    .o_sbl_outbound_sticky_top {
+        flex: 0 0 auto;
+        background: #fff;
+    }
+
+    .o_sbl_binding_content {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        padding: 12px 16px 24px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .o_sbl_binding_order_stats {
+        justify-content: flex-start;
+        gap: 6px 24px;
+    }
+
+    .o_sbl_binding_section_heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 14px 0 8px;
+        color: #495057;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .o_sbl_binding_target_pallet {
+        border-color: #0d6efd;
+        background: linear-gradient(135deg, #e7f1ff 0%, #fff 100%);
+        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.18);
+
+        .o_pallet_header {
+            cursor: default;
+            background: transparent;
+        }
+    }
+
+    .o_sbl_binding_pallet_header {
+        cursor: default;
+    }
+
+    .o_sbl_binding_product_line {
+        align-items: center;
+    }
+
+    .o_sbl_binding_product_info {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
+    .o_sbl_binding_product_qtys {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 4px 12px;
+        color: #6c757d;
+        font-size: 11px;
+        white-space: nowrap;
+    }
+
+    .o_sbl_binding_scanned_product {
+        margin-top: 8px;
+        background: #e7f1ff;
+        border-color: #cfe2ff;
+    }
+
+    .o_sbl_quantity_entry {
+        border-color: #0d6efd;
+    }
+
+    .o_sbl_step_indicator {
+        .o_step_label {
+            text-align: center;
+        }
+    }
+}
+
+.o_sbl_picking_summary {
+    padding-bottom: 0;
+    border-bottom: 0;
+}
+
+.o_sbl_picking_details {
+    padding-top: 4px;
+    border-top: 0;
+
+    .o_picking_extra {
+        margin-top: 0;
+    }
+}
+
+// PDA 上固定出库页步骤条以上的信息，托盘列表继续由整个页面滚动。
+@media (max-width: 768px), (pointer: coarse) {
+    .o_sbl_inbound.o_sbl_disassembly_outbound,
+    .o_sbl_inbound.o_sbl_whole_pallet_outbound,
+    .o_sbl_inbound.o_sbl_outbound_binding {
+        .o_sbl_outbound_sticky_top {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            flex: 0 0 auto;
+            background: #fff;
+        }
+
+        .o_sbl_binding_content {
+            flex: 0 0 auto;
+            min-height: auto;
+            overflow: visible;
+            padding: 10px 12px calc(24px + env(safe-area-inset-bottom));
+        }
+
+        .o_sbl_pallets {
+            flex: 0 0 auto;
+            min-height: 0;
+            overflow: visible;
+            margin-bottom: 0;
+            // Keep the fixed footer clear of the last pallet at the page scroll limit.
+            padding-bottom: calc(120px + env(safe-area-inset-bottom)) !important;
+        }
+    }
+
+    .o_sbl_inbound.o_sbl_outbound_binding {
+        .o_sbl_binding_product_line {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .o_sbl_binding_product_qtys {
+            justify-content: flex-start;
+            gap: 4px 12px;
+        }
+    }
+}
+
+// 桌面端保留拆托出库原有的列表布局；PDA 由页面容器承接纵向滚动。
+@media (min-width: 769px) and (pointer: fine),
+       (min-width: 769px) and (pointer: none) {
+    .o_sbl_inbound.o_sbl_disassembly_outbound {
+        .o_sbl_pallets {
+            min-height: 0;
+            margin-bottom: 0;
+        }
+    }
+}
+
+@keyframes pulse_icon {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+}
+
+@keyframes pulse_badge {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}

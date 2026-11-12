@@ -666,7 +666,7 @@ class OutboundOrderInherit(models.Model):
                                 "location_id": bucket["location_id"].id,
                                 "location_dest_id": picking.location_dest_id.id,
                                 "package_id": package.id,
-                                "result_package_id": False,
+                                "result_package_id": package.id if scan_mode == "whole_pallet" else False,
                                 "lot_id": lot.id if lot else (bucket["lot_id"].id if bucket["lot_id"] else False),
                                 "owner_id": bucket["owner_id"].id if bucket["owner_id"] else False,
                             })

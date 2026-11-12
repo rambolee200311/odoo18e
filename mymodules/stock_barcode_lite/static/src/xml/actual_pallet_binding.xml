@@ -15,63 +15,65 @@
         />
 
         <div class="o_sbl_inbound o_sbl_actual_pallet_binding">
-            <div class="o_sbl_header">
-                <button type="button" class="btn btn-link text-dark p-1" t-on-click="exit" title="Home">
-                    <i class="fa fa-arrow-left"/>
-                </button>
-                <div class="o_sbl_header_title">
-                    <i class="fa fa-link text-primary me-1"/>
-                    Inbound Actual Pallet Binding
+            <div class="o_sbl_actual_binding_sticky_top">
+                <div class="o_sbl_header">
+                    <button type="button" class="btn btn-link text-dark p-1" t-on-click="exit" title="Home">
+                        <i class="fa fa-arrow-left"/>
+                    </button>
+                    <div class="o_sbl_header_title">
+                        <i class="fa fa-link text-primary me-1"/>
+                        Inbound Actual Pallet Binding
+                    </div>
+                    <div class="o_sbl_scan_mode" t-attf-class="o_mode_{{ state.nextStep }}">
+                        <t t-esc="state.nextStep.replaceAll('_', ' ')"/>
+                    </div>
                 </div>
-                <div class="o_sbl_scan_mode" t-attf-class="o_mode_{{ state.nextStep }}">
-                    <t t-esc="state.nextStep.replaceAll('_', ' ')"/>
-                </div>
-            </div>
 
-            <div t-if="state.message" t-attf-class="o_sbl_alert alert alert-{{ state.messageType }}">
-                <t t-esc="state.message"/>
-            </div>
-
-            <div class="o_sbl_step_hint">
-                <i class="fa fa-qrcode me-2"/>
-                <t t-esc="stepHint"/>
-            </div>
-
-            <div t-if="state.inbound.id" class="o_sbl_picking_bar o_sbl_binding_info">
-                <div class="o_picking_info_row">
-                    <span class="o_picking_label">
-                        <i class="fa fa-clipboard-list text-primary me-1"/>Inbound:
-                    </span>
-                    <strong class="o_picking_name text-primary">
-                        <t t-esc="state.inbound.billno || '-'"/>
-                    </strong>
-                    <span class="o_binding_status badge bg-secondary">
-                        <t t-esc="state.inbound.state || '-'"/>
-                    </span>
+                <div t-if="state.message" t-attf-class="o_sbl_alert alert alert-{{ state.messageType }}">
+                    <t t-esc="state.message"/>
                 </div>
-                <div t-if="state.inbound.reference" class="o_picking_extra">
-                    <span>
-                        <i class="fa fa-link text-muted me-1"/>
-                        Reference: <strong><t t-esc="state.inbound.reference"/></strong>
-                    </span>
-                </div>
-            </div>
 
-            <div t-if="state.currentPallet.id" class="o_sbl_binding_context">
-                <div class="o_binding_context_row">
-                    <span class="o_binding_context_label">
-                        <i class="fa fa-cube text-primary me-1"/>Current Pallet
-                    </span>
-                    <strong class="o_binding_context_pallet"><t t-esc="state.currentPallet.pallet_no"/></strong>
+                <div class="o_sbl_step_hint">
+                    <i class="fa fa-qrcode me-2"/>
+                    <t t-esc="stepHint"/>
                 </div>
-                <div class="o_binding_context_row o_binding_product_row">
-                    <span class="o_binding_context_label">Product</span>
-                    <span class="o_binding_context_product">
-                        <t t-esc="state.currentProduct.display_name || 'Scan a product'"/>
-                    </span>
-                    <span t-if="state.currentTrackingNumber" class="o_binding_context_lot">
-                        <i class="fa fa-tag me-1"/>Lot: <strong><t t-esc="state.currentTrackingNumber"/></strong>
-                    </span>
+
+                <div t-if="state.inbound.id" class="o_sbl_picking_bar o_sbl_binding_info">
+                    <div class="o_picking_info_row">
+                        <span class="o_picking_label">
+                            <i class="fa fa-clipboard-list text-primary me-1"/>Inbound:
+                        </span>
+                        <strong class="o_picking_name text-primary">
+                            <t t-esc="state.inbound.billno || '-'"/>
+                        </strong>
+                        <span class="o_binding_status badge bg-secondary">
+                            <t t-esc="state.inbound.state || '-'"/>
+                        </span>
+                    </div>
+                    <div t-if="state.inbound.reference" class="o_picking_extra">
+                        <span>
+                            <i class="fa fa-link text-muted me-1"/>
+                            Reference: <strong><t t-esc="state.inbound.reference"/></strong>
+                        </span>
+                    </div>
+                </div>
+
+                <div t-if="state.currentPallet.id" class="o_sbl_binding_context">
+                    <div class="o_binding_context_row">
+                        <span class="o_binding_context_label">
+                            <i class="fa fa-cube text-primary me-1"/>Current Pallet
+                        </span>
+                        <strong class="o_binding_context_pallet"><t t-esc="state.currentPallet.pallet_no"/></strong>
+                    </div>
+                    <div class="o_binding_context_row o_binding_product_row">
+                        <span class="o_binding_context_label">Product</span>
+                        <span class="o_binding_context_product">
+                            <t t-esc="state.currentProduct.display_name || 'Scan a product'"/>
+                        </span>
+                        <span t-if="state.currentTrackingNumber" class="o_binding_context_lot">
+                            <i class="fa fa-tag me-1"/>Lot: <strong><t t-esc="state.currentTrackingNumber"/></strong>
+                        </span>
+                    </div>
                 </div>
             </div>
 

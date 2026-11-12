@@ -9,9 +9,6 @@ class StockPicking(models.Model):
     _inherit = "stock.picking"
     _order = "id desc"
 
-    outbound_scan_mode = fields.Selection([("whole_pallet", "Whole Pallet"), ("partial_pallet", "Partial Pallet")],
-                                          string="Outbound Scan Mode", copy=False, index=True)
-    is_unspecified_pallet_outgoing = fields.Boolean(string="Unspecified Pallet Outgoing", copy=False, index=True)
     new_pallet_count = fields.Integer(string="New Pallet Count", default=0, copy=False)
     project_name = fields.Char(string='Project Name', related='project_id.name',stored=True)
     barcode_scan_mode = fields.Selection(related='project_id.barcode_scan_mode', store=True)
@@ -75,32 +72,6 @@ class StockPicking(models.Model):
                 raise UserError(_("New pallet count must be greater than or equal to zero."))
         result = super().button_validate()
         self.update_sunrise_inbound_pallet_locations()
-        quant_model = self.env["stock.quant"].sudo()
-        for rec in self:
-            if rec.picking_type_id.code not in ("incoming", "outgoing") or rec.state != "done":
-                continue
-            package_records = rec.move_line_ids.mapped("package_id") | rec.move_line_ids.mapped("result_package_id")
-            for package in package_records:
-                if package.lifecycle_state == "closed":
-                    continue
-                package_quant = quant_model.search([
-                    ("package_id", "=", package.id),
-                    ("location_id.usage", "=", "internal"),
-                    ("quantity", ">", 0),
-                ], limit=1)
-                values = {}
-                if package_quant:
-                    if package.lifecycle_state != "active":
-                        values["lifecycle_state"] = "active"
-                    if rec.picking_type_id.code == "incoming" and not package.lifecycle_start_datetime:
-                        values["lifecycle_start_datetime"] = rec.date_done or fields.Datetime.now()
-                elif package.lifecycle_state == "active":
-                    values.update({
-                        "lifecycle_state": "consumed",
-                        "consumed_datetime": rec.date_done or fields.Datetime.now(),
-                    })
-                if values:
-                    package.write(values)
         return result
 
     def update_sunrise_inbound_pallet_locations(self):
@@ -233,7 +204,7 @@ class StockPicking(models.Model):
                 elif not line.lot_id:
                     invalid_lines.append(_("%s has no serial number") % line.product_id.display_name)
                     continue
-                elif not line.is_outbound_scanned or float_compare(line.outbound_scanned_quantity, line.quantity, precision_rounding=rounding) != 0:
+                elif not rec.return_id and (not line.is_outbound_scanned or float_compare(line.outbound_scanned_quantity, line.quantity, precision_rounding=rounding) != 0):
                     invalid_lines.append(_("%s serial number %s has not been scanned") % (line.product_id.display_name, serial_name))
                     continue
                 serial_key = (line.product_id.id, serial_name)
@@ -245,10 +216,3 @@ class StockPicking(models.Model):
                 raise UserError(
                     _("Please complete serial number scanning before validating: %s") % "; ".join(invalid_lines)
                 )
-
-
-class StockLotInherit(models.Model):
-    _inherit = "stock.lot"
-
-    gross_weight = fields.Float(string="Gross Weight (kg)", copy=False)
-    product_dimensions = fields.Char(string="Product Dimensions (m)", copy=False)

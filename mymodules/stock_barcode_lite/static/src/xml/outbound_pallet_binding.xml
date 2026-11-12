@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates>
+    <t t-name="stock_barcode_lite.OutboundPalletBindingPage">
+        <input
+            t-ref="barcodeInput"
+            type="text"
+            class="o_hidden_barcode_input"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+            inputmode="none"
+            touch-action="none"
+        />
+
+        <div class="o_stock_barcode_lite_outbound o_sbl_inbound o_sbl_outbound_binding">
+            <div class="o_sbl_outbound_sticky_top">
+                <div class="o_sbl_header">
+                    <button type="button" class="btn btn-link text-dark p-1" t-on-click="exit" title="Home">
+                        <i class="fa fa-arrow-left"/>
+                    </button>
+                    <div class="o_sbl_header_title">
+                        <i class="fa fa-truck text-primary me-1"/>
+                        <t t-if="hasOutboundOrder"><t t-esc="state.outboundOrder.name"/></t>
+                        <t t-else="">Pallet Consolidation / Re-palletizing</t>
+                    </div>
+                    <div class="o_sbl_scan_mode" t-attf-class="o_mode_{{ state.nextStep }}">
+                        <t t-esc="stepLabel"/>
+                    </div>
+                </div>
+
+                <div t-if="state.message" t-attf-class="o_sbl_alert alert alert-{{ state.messageType }}">
+                    <t t-esc="state.message"/>
+                </div>
+
+                <div t-if="hasOutboundOrder" class="o_sbl_picking_bar o_sbl_picking_summary o_sbl_binding_order">
+                    <div class="o_picking_info_row">
+                        <span class="o_picking_label">
+                            <i class="fa fa-clipboard-list text-primary me-1"/>
+                            Current Outbound Order:
+                        </span>
+                        <span class="o_picking_name text-primary fw-bold">
+                            <t t-esc="state.outboundOrder.name"/>
+                        </span>
+                        <span t-if="state.outboundOrder.reference" class="text-muted">
+                            (<t t-esc="state.outboundOrder.reference"/>)
+                        </span>
+                    </div>
+                    <div class="o_picking_extra o_sbl_binding_order_stats">
+                        <span><i class="fa fa-cubes me-1"/>Picked: <strong><t t-esc="state.summary.picked_quantity || 0"/></strong></span>
+                        <span><i class="fa fa-cube me-1"/>Palletized: <strong><t t-esc="state.summary.packed_quantity || 0"/></strong></span>
+                        <span><i class="fa fa-hourglass-half me-1"/>Remaining: <strong><t t-esc="state.summary.remaining_quantity || 0"/></strong></span>
+                    </div>
+                    <div t-if="state.outboundOrder.picking_names?.length" class="small text-muted mt-1">
+                        Picking: <t t-esc="state.outboundOrder.picking_names.join(', ')"/>
+                    </div>
+                </div>
+
+                <div t-if="hasOutboundOrder &amp;&amp; expectedProductList.length" class="o_sbl_picking_bar o_sbl_picking_details o_sbl_binding_product_progress">
+                    <button type="button"
+                            class="o_picking_products_toggle"
+                            t-on-click="toggleProductProgress"
+                            t-att-aria-expanded="state.productProgressExpanded ? 'true' : 'false'">
+                        <span>
+                            <i class="fa fa-cubes text-muted me-1"/>
+                            Product Progress (<t t-esc="expectedProductList.length"/>)
+                        </span>
+                        <i t-if="state.productProgressExpanded" class="fa fa-chevron-up"/>
+                        <i t-else="" class="fa fa-chevron-down"/>
+                    </button>
+                    <div t-if="state.productProgressExpanded" class="o_picking_products_list">
+                        <t t-foreach="expectedProductList" t-as="product" t-key="product.product_id">
+                            <div class="o_picking_product_line o_sbl_binding_product_line">
+                                <div class="o_picking_product_info o_sbl_binding_product_info">
+                                    <span class="o_picking_product_name"><t t-esc="product.product_name"/></span>
+                                </div>
+                                <div class="o_sbl_binding_product_qtys">
+                                    <span>Scanned <strong><t t-esc="product.picked_quantity"/> / <t t-esc="product.expected_quantity"/></strong></span>
+                                    <span>Palletized <strong><t t-esc="product.packed_quantity"/></strong></span>
+                                    <span t-attf-class="{{ product.remaining_quantity > 0 ? 'text-warning' : 'text-success' }}">
+                                        Remaining <strong><t t-esc="product.remaining_quantity"/></strong>
+                                    </span>
+                                </div>
+                            </div>
+                        </t>
+                    </div>
+                </div>
+            </div>
+
+            <div class="o_sbl_step_indicator">
+                <div class="o_step_item" t-att-class="{ 'active': isScanOrderStep, 'done': hasOutboundOrder }">
+                    <div class="o_step_circle">
+                        <t t-if="hasOutboundOrder"><i class="fa fa-check"/></t>
+                        <t t-else="">1</t>
+                    </div>
+                    <div class="o_step_label">Order</div>
+                </div>
+                <div class="o_step_line" t-att-class="{ 'active': hasOutboundOrder }"/>
+                <div class="o_step_item" t-att-class="{ 'active': isScanPalletStep, 'done': hasCurrentPallet }">
+                    <div class="o_step_circle">
+                        <t t-if="hasCurrentPallet"><i class="fa fa-check"/></t>
+                        <t t-else="">2</t>
+                    </div>
+                    <div class="o_step_label">Pallet</div>
+                </div>
+                <div class="o_step_line" t-att-class="{ 'active': isScanProductStep }"/>
+                <div class="o_step_item" t-att-class="{ 'active': isScanProductStep, 'done': hasCurrentProduct }">
+                    <div class="o_step_circle">
+                        <t t-if="hasCurrentProduct"><i class="fa fa-check"/></t>
+                        <t t-else="">3</t>
+                    </div>
+                    <div class="o_step_label">Product</div>
+                </div>
+            </div>
+
+            <div class="o_sbl_step_hint">
+                <i class="fa fa-keyboard-o me-2" t-if="state.quantityEntry"/>
+                <i class="fa fa-qrcode me-2" t-else=""/>
+                <t t-esc="state.quantityEntry ? 'Enter the quantity of picked stock to put on the target pallet.' : stepHint"/>
+            </div>
+
+            <div class="o_sbl_binding_content">
+                <div t-if="state.quantityEntry" class="o_sbl_quantity_panel card mb-3 o_sbl_quantity_entry">
+                    <div class="card-body">
+                        <div class="o_quantity_context mb-2">
+                            <span class="badge bg-info me-1">Product</span>
+                            <strong><t t-esc="state.currentProduct.display_name"/></strong>
+                            <span t-if="state.currentTrackingNumber" class="badge bg-secondary ms-2">
+                                Lot / Serial: <t t-esc="state.currentTrackingNumber"/>
+                            </span>
+                        </div>
+                        <div class="input-group">
+                            <input
+                                t-ref="quantityInput"
+                                type="number"
+                                min="0"
+                                step="any"
+                                class="form-control"
+                                t-att-value="state.quantityValue"
+                                t-on-input="(ev) => this.state.quantityValue = ev.target.value"
+                                t-on-keydown="_onQuantityKeydown"
+                                placeholder="Quantity"
+                            />
+                            <button class="btn btn-primary" t-on-click="submitQuantity" t-att-disabled="state.loading">
+                                <i class="fa fa-check me-1"/>Add
+                            </button>
+                            <button class="btn btn-outline-secondary" t-on-click="cancelQuantityEntry" t-att-disabled="state.loading">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div t-if="hasCurrentPallet" class="o_sbl_pallet o_pallet_highlighted o_sbl_binding_target_pallet">
+                    <div class="o_pallet_header">
+                        <div class="o_pallet_row1">
+                            <div class="o_pallet_info">
+                                <i class="fa fa-cube o_pallet_icon_highlighted me-2"/>
+                                <strong class="o_pallet_name"><t t-esc="state.currentPallet.name"/></strong>
+                            </div>
+                            <div class="o_pallet_right">
+                                <span class="badge o_pallet_current_badge"><i class="fa fa-bullseye me-1"/>Current</span>
+                                <button type="button" class="btn btn-sm btn-outline-primary" t-on-click="switchPallet" t-att-disabled="state.loading">
+                                    <i class="fa fa-exchange me-1"/>Switch Pallet
+                                </button>
+                            </div>
+                        </div>
+                        <div class="o_pallet_row2">
+                            <span class="o_meta_barcode" t-if="state.currentPallet.barcode">
+                                <i class="fa fa-barcode me-1"/><t t-esc="state.currentPallet.barcode"/>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div t-if="hasOutboundOrder &amp;&amp; !hasCurrentPallet" class="o_sbl_empty_state text-center text-muted py-4">
+                    <i class="fa fa-cube mb-2 d-block"/>
+                    <p class="mb-1 fw-bold">Scan Target Pallet</p>
+                    <p class="small">Use a pallet barcode generated and printed from the backend.</p>
+                </div>
+
+                <div t-if="hasCurrentPallet &amp;&amp; hasCurrentProduct" class="o_product_subcard o_item_active o_sbl_binding_scanned_product">
+                    <div class="o_product_row_top">
+                        <div class="o_product_icon"><i class="fa fa-box-open"/></div>
+                        <div class="o_product_name"><t t-esc="state.currentProduct.display_name"/></div>
+                        <span class="badge bg-info" t-if="state.currentProduct.tracking === 'serial'">Serial tracked</span>
+                        <span class="badge bg-secondary" t-elif="state.currentProduct.tracking === 'lot'">Lot tracked</span>
+                        <span class="badge bg-light text-dark" t-else="">Quantity</span>
+                    </div>
+                    <div class="o_product_row_bottom">
+                        <span t-if="state.currentProduct.default_code" class="o_meta_code"><t t-esc="state.currentProduct.default_code"/></span>
+                        <span t-if="state.currentProduct.barcode" class="o_meta_barcode"><i class="fa fa-barcode me-1"/><t t-esc="state.currentProduct.barcode"/></span>
+                        <span t-if="state.currentTrackingNumber" class="o_meta_lot"><i class="fa fa-tag me-1"/><t t-esc="state.currentTrackingNumber"/></span>
+                        <button t-if="state.currentProduct.tracking !== 'none'" type="button" class="btn btn-sm btn-link p-0" t-on-click="scanAnotherProduct">
+                            Scan Another Product
+                        </button>
+                    </div>
+                </div>
+
+                <div class="o_sbl_binding_section_heading" t-if="palletList.length">
+                    <span><i class="fa fa-cubes text-primary me-1"/>Pallets in this order</span>
+                    <span class="badge bg-secondary"><t t-esc="palletList.length"/></span>
+                </div>
+                <div t-foreach="palletList" t-as="pallet" t-key="pallet.package_id"
+                     t-attf-class="o_sbl_pallet o_sbl_bound_pallet {{ pallet.package_id === state.currentPallet.id ? 'o_pallet_highlighted' : '' }}">
+                    <div class="o_pallet_header o_sbl_binding_pallet_header">
+                        <div class="o_pallet_row1">
+                            <div class="o_pallet_info">
+                                <i class="fa fa-cube text-secondary me-2" t-attf-class="{{ pallet.package_id === state.currentPallet.id ? 'o_pallet_icon_highlighted' : '' }}"/>
+                                <strong class="o_pallet_name"><t t-esc="pallet.package_name || pallet.package_barcode"/></strong>
+                            </div>
+                            <div class="o_pallet_right">
+                                <span class="badge o_pallet_current_badge" t-if="pallet.package_id === state.currentPallet.id">Current</span>
+                                <span class="badge bg-info text-dark"><t t-esc="pallet.total_quantity"/> items</span>
+                            </div>
+                        </div>
+                        <div class="o_pallet_row2">
+                            <span class="o_meta_barcode" t-if="pallet.package_barcode">
+                                <i class="fa fa-barcode me-1"/><t t-esc="pallet.package_barcode"/>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="o_pallet_products">
+                        <div t-if="!pallet.products?.length" class="o_sbl_empty_state text-center text-muted py-3">
+                            <p class="mb-0 small">No products on this pallet</p>
+                        </div>
+                        <div t-foreach="pallet.products" t-as="product" t-key="product.product_id + '_' + product.lot" class="o_product_subcard">
+                            <div class="o_product_row_top">
+                                <div class="o_product_icon"><i class="fa fa-box-open"/></div>
+                                <div class="o_product_name"><t t-esc="product.product_name"/></div>
+                                <div class="o_product_qty">
+                                    <span class="o_qty_value"><t t-esc="product.quantity"/></span>
+                                    <span class="o_qty_label"><t t-esc="product.uom"/></span>
+                                </div>
+                            </div>
+                            <div class="o_product_row_bottom">
+                                <span t-if="product.default_code" class="o_meta_code"><t t-esc="product.default_code"/></span>
+                                <span t-if="product.product_barcode" class="o_meta_barcode"><i class="fa fa-barcode me-1"/><t t-esc="product.product_barcode"/></span>
+                                <span t-if="product.lot" class="o_meta_lot"><i class="fa fa-tag me-1"/><t t-esc="product.lot"/></span>
+                                <span t-if="product.serials?.length" class="o_meta_barcode">SN: <t t-esc="product.serials.join(', ')"/></span>
+                                <button type="button" class="btn btn-sm btn-link text-danger p-0 ms-auto"
+                                        t-on-click="() => this.removeProduct(pallet, product)"
+                                        t-att-disabled="state.loading"
+                                        title="Remove product from this pallet"
+                                        aria-label="Remove product from this pallet">
+                                    <i class="fa fa-trash"/>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div t-if="!hasOutboundOrder &amp;&amp; !state.loading" class="o_sbl_empty_state text-center text-muted py-5">
+                    <i class="fa fa-qrcode mb-3 d-block"/>
+                    <p class="mb-1 fw-bold">Ready to palletize</p>
+                    <p class="small">Scan an outbound order to start.</p>
+                </div>
+
+                <div t-if="state.loading" class="text-center text-muted py-3">
+                    <i class="fa fa-spinner fa-spin me-2"/>Processing…
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

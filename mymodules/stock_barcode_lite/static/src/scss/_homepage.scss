@@ -10,6 +10,40 @@
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
 
+    @media (min-width: 992px) and (pointer: fine) {
+        width: 100%;
+        max-width: none;
+        margin: 0;
+        padding: 0;
+        height: calc(100vh - 50px);
+    }
+
+    .o_stock_barcode_lite_homepage_content {
+        @media (min-width: 992px) and (pointer: fine) {
+            width: auto;
+            max-width: none;
+            margin-left: 8vh;
+            margin-right: 8vh;
+            padding-top: 24px;
+            padding-bottom: 80px;
+        }
+    }
+
+    @media (min-width: 992px) and (pointer: fine) {
+        .o_homepage_card_grid {
+            gap: 24px;
+            margin: 0;
+            justify-content: flex-start;
+
+            > div {
+                flex: 1 1 280px;
+                width: auto;
+                max-width: none;
+                padding: 0;
+            }
+        }
+    }
+
     /* PDA设备全屏显示，顶部间距更小，底部 padding 压缩确保首屏能显示完 */
     @media (max-width: 768px), (pointer: coarse) {
         min-height: 100vh;
@@ -79,6 +113,10 @@
     }
 
     .o_outbound_break_card {
+        --o-sbl-home-card-accent: var(--bs-success, #198754);
+    }
+
+    .o_outbound_pallet_binding_card {
         --o-sbl-home-card-accent: var(--bs-success, #198754);
     }
 
