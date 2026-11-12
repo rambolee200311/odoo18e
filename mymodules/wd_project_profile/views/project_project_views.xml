@@ -32,6 +32,7 @@
                             <field name="pallet_structure_mode" required="1"/>
                             <field name="stock_report_date_mode" required="1"/>
                             <field name="barcode_scan_mode" required="1"/>
+                            <field name="outbound_palletization_enabled"/>
                         </group>
                     </group>
                 </page>

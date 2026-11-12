@@ -1,4 +1,5 @@
-from odoo import fields, models
+from odoo import _, fields, models
+from odoo.exceptions import UserError
 
 
 class StockPicking(models.Model):
@@ -6,8 +7,19 @@ class StockPicking(models.Model):
 
     outbound_scan_mode = fields.Selection([('whole_pallet', 'Whole Pallet'), ('partial_pallet', 'Partial Pallet')], string='Outbound Scan Mode', copy=False, index=True)
     is_unspecified_pallet_outgoing = fields.Boolean(string='Unspecified Pallet Outgoing', copy=False, index=True)
+    project_pallet_structure_mode = fields.Selection(related='project_id.pallet_structure_mode', string='Pallet Structure Mode', readonly=True)
+    outbound_preparation_state = fields.Selection([('not_required', 'Not Required'), ('prepared', 'Prepared')], string='Outbound Preparation Status', required=True, default='not_required', readonly=True, copy=False, index=True)
+    outbound_prepared_by_id = fields.Many2one('res.users', string='Outbound Prepared By', readonly=True, copy=False, ondelete='restrict')
+    outbound_prepared_at = fields.Datetime(string='Outbound Prepared At', readonly=True, copy=False)
 
     def button_validate(self):
+        preparation_pickings = self.filtered(lambda rec: not self.env.context.get('skip_outbound_palletization_preparation') and rec.picking_type_code == 'outgoing' and rec.project_id.outbound_palletization_enabled and rec.state not in ('done', 'cancel'))
+        if preparation_pickings:
+            if preparation_pickings != self:
+                raise UserError(_('Pickings with different outbound completion workflows must be validated separately.'))
+            for rec in preparation_pickings:
+                rec.write({'outbound_preparation_state': 'prepared', 'outbound_prepared_by_id': self.env.user.id, 'outbound_prepared_at': fields.Datetime.now()})
+            return True
         result = super().button_validate()
         quant_model = self.env['stock.quant'].sudo()
         for rec in self:

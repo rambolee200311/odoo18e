@@ -3,7 +3,7 @@
     'version': '18.0.1.0.0',
     'category': 'Warehouse',
     'summary': 'Shared picking barcode scanning',
-    'depends': ['stock', 'stock_barcode'],
+    'depends': ['stock', 'stock_barcode', 'wd_project_profile'],
     'data': [
         'security/ir.model.access.csv',
         'views/stock_picking_views.xml',

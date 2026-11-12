@@ -14,11 +14,11 @@
               action="action_vas_order"
               groups="wd_warehouse_value_add.group_vas_user"
               sequence="10"/>
-    <menuitem id="menu_vas_pda" name="PDA Work Entry"
+    <menuitem id="menu_vas_outbound_palletization" name="Outbound Palletization"
               parent="menu_vas_root"
-              action="action_vas_pda"
+              action="action_vas_outbound_palletization"
               groups="wd_warehouse_value_add.group_vas_user"
-              sequence="5"/>
+              sequence="15"/>
     <menuitem id="menu_vas_configuration" name="Configuration"
               parent="menu_vas_root"
               groups="wd_warehouse_value_add.group_vas_manager"/>

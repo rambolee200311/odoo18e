@@ -45,7 +45,7 @@ class VasOrderLine(models.Model):
         for vals in vals_list:
             order = self.env['wd.vas.order'].browse(vals.get('order_id'))
             if order:
-                order._lock_for_update()
+                order.lock_for_update()
                 if order.state in ('submitted', 'cancelled'):
                     raise ValidationError(
                         'Lines cannot be added to a Submitted or Cancelled VAS Order.'
@@ -59,7 +59,7 @@ class VasOrderLine(models.Model):
 
     def write(self, vals):
         for line in self:
-            line.order_id._lock_for_update()
+            line.order_id.lock_for_update()
             if line.order_id.state in ('submitted', 'cancelled'):
                 raise ValidationError(
                     'Submitted or Cancelled VAS Order lines cannot be modified.'
@@ -73,7 +73,7 @@ class VasOrderLine(models.Model):
 
     def unlink(self):
         for line in self:
-            line.order_id._lock_for_update()
+            line.order_id.lock_for_update()
             if line.order_id.state in ('submitted', 'cancelled'):
                 raise ValidationError(
                     'Lines cannot be removed from a Submitted or Cancelled VAS Order.'

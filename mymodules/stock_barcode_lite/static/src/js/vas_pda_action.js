@@ -50,9 +50,13 @@ export class VasPdaAction extends Component {
             this.state.operationTypes = await this.orm.searchRead(
                 "wd.vas.operation.type",
                 [["active", "=", true]],
-                ["id", "name", "unit"],
+                ["id", "name", "unit", "is_outbound_palletization"],
                 { order: "sequence, name" }
             );
+            const vasOrderId = this.props.action.context?.vas_order_id;
+            if (vasOrderId) {
+                await this.reloadOrder(vasOrderId);
+            }
         });
     }
 
@@ -70,6 +74,14 @@ export class VasPdaAction extends Component {
 
     get automaticLabel() {
         return _t("Automatic");
+    }
+
+    get hasOutboundPalletization() {
+        return this.state.lines.some((line) => line.isOutboundPalletization);
+    }
+
+    get isOutboundOrder() {
+        return this.state.order?.order_type === "outbound";
     }
 
     async resolveWarehouseOrder(showWarning = true) {
@@ -125,10 +137,11 @@ export class VasPdaAction extends Component {
         const [order] = await this.orm.read(
             "wd.vas.order",
             [orderId],
-            ["name", "create_date", "state", "operator_id", "warehouse_order_billno", "warehouse_id",
+            ["name", "create_date", "state", "order_type", "operator_id", "warehouse_order_billno", "warehouse_id",
                 "inbound_order_id", "outbound_order_id", "transfer_order_id", "attachment_ids"]
         );
         this.state.order = order;
+        this.state.orderType = order.order_type || this.state.orderType;
         this.state.billno = order.warehouse_order_billno || this.state.billno;
         const lines = await this.orm.searchRead(
             "wd.vas.order.line",
@@ -148,6 +161,7 @@ export class VasPdaAction extends Component {
             return {
                 ...line,
                 operationTypeId: operationTypeId?.toString() || "",
+                isOutboundPalletization: operationTypes.some((item) => item.id === operationTypeId && item.is_outbound_palletization),
                 operationTypes,
                 quantityTime: line.quantity_time,
             };
@@ -313,6 +327,53 @@ export class VasPdaAction extends Component {
                     : (error.data?.arguments?.[0] || error.message || _t("Submit failed.")),
                 { type: this.state.order?.state === "submitted" ? "success" : "danger" }
             );
+        } finally {
+            this.state.busy = false;
+        }
+    }
+
+    async startOutboundPalletization() {
+        if (!this.state.order || !this.hasOutboundPalletization || !this.isOutboundOrder || this.state.busy) {
+            return;
+        }
+        this.state.busy = true;
+        try {
+            const result = await this.orm.call("wd.vas.order", "action_start_outbound_palletization", [[this.state.order.id]]);
+            this.notification.add(_t("Palletization is ready: ") + result.palletization_id, { type: "success" });
+            await this.reloadOrder();
+        } catch (error) {
+            this.notification.add(error.data?.arguments?.[0] || error.message || _t("Palletization could not be started."), { type: "danger" });
+        } finally {
+            this.state.busy = false;
+        }
+    }
+
+    async openTransportPalletCreateWizard() {
+        if (!this.state.order || !this.hasOutboundPalletization || !this.isOutboundOrder || this.state.busy) {
+            return;
+        }
+        this.state.busy = true;
+        try {
+            const action = await this.orm.call("wd.vas.order", "action_open_transport_pallet_create_wizard", [[this.state.order.id]]);
+            await this.action.doAction(action);
+            await this.reloadOrder();
+        } catch (error) {
+            this.notification.add(error.data?.arguments?.[0] || error.message || _t("Transport pallets could not be created."), { type: "danger" });
+        } finally {
+            this.state.busy = false;
+        }
+    }
+
+    async printTransportPalletLabels() {
+        if (!this.state.order || !this.hasOutboundPalletization || !this.isOutboundOrder || this.state.busy) {
+            return;
+        }
+        this.state.busy = true;
+        try {
+            const action = await this.orm.call("wd.vas.order", "action_print_transport_pallet_labels", [[this.state.order.id]]);
+            await this.action.doAction(action);
+        } catch (error) {
+            this.notification.add(error.data?.arguments?.[0] || error.message || _t("Transport pallet labels could not be printed."), { type: "danger" });
         } finally {
             this.state.busy = false;
         }

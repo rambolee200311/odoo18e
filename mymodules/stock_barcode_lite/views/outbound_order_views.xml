@@ -61,7 +61,7 @@
                 <field name="barcode_scan_mode" invisible="1"/>
                 <field name="project_package_generation_mode" readonly="1" invisible="1"/>
                 <field name="project_pallet_structure_mode" readonly="1" invisible="1"/>
-                <field name="whole_pallet_picking_id" readonly="1" invisible="barcode_scan_mode != 'custom'" options="{'no_create': True, 'no_open': False}"/>
+                <field name="whole_pallet_picking_id" readonly="1" invisible="barcode_scan_mode != 'custom' or project_pallet_structure_mode == 'unknown'" options="{'no_create': True, 'no_open': False}"/>
                 <field name="partial_pallet_picking_id" readonly="1" invisible="barcode_scan_mode != 'custom'" options="{'no_create': True, 'no_open': False}"/>
                 <field name="outgoing_picking_lines" readonly="1" invisible="project_name != 'SUNRISE'"
                        widget="many2many_tags"/>

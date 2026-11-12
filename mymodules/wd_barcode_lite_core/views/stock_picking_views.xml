@@ -7,8 +7,18 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='location_id']" position="after">
                 <field name="picking_type_code" invisible="1"/>
+                <field name="project_pallet_structure_mode" readonly="1" invisible="1"/>
                 <field name="outbound_scan_mode" readonly="1" invisible="picking_type_code != 'outgoing'"/>
                 <field name="is_unspecified_pallet_outgoing" readonly="1" invisible="picking_type_code != 'outgoing'"/>
+                <field name="outbound_preparation_state" readonly="1" invisible="picking_type_code != 'outgoing'"/>
+                <field name="outbound_prepared_by_id" readonly="1" invisible="picking_type_code != 'outgoing'" options="{'no_create': True, 'no_open': True}"/>
+                <field name="outbound_prepared_at" readonly="1" invisible="picking_type_code != 'outgoing'"/>
+            </xpath>
+            <xpath expr="//header/button[@name='action_assign']" position="attributes">
+                <attribute name="invisible">not show_check_availability or project_pallet_structure_mode == 'unknown'</attribute>
+            </xpath>
+            <xpath expr="//header/button[@name='action_assign']" position="after">
+                <button name="action_assign" string="Check Availability" invisible="not show_check_availability or project_pallet_structure_mode != 'unknown'" type="object" class="oe_highlight" groups="base.group_system" data-hotkey="w"/>
             </xpath>
         </field>
     </record>
