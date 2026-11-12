@@ -469,6 +469,9 @@ class OutboundOrderInherit(models.Model):
 
 
     def action_sunrise_create_outgoing_stock_picking(self):
+        for rec in self:
+            if rec.barcode_scan_mode != "custom":
+                raise UserError(_("This picking can only be created for custom barcode scanning."))
         self.validate_sunrise_outgoing_stock_picking()
 
         picking_model = self.env["stock.picking"]

@@ -9,6 +9,9 @@ class AutomaticPalletOutboundPicking(models.Model):
     _inherit = "world.depot.outbound.order"
 
     def action_create_automatic_pallet_outgoing_picking(self):
+        for rec in self:
+            if rec.barcode_scan_mode != "custom":
+                raise UserError(_("This picking can only be created for custom barcode scanning."))
         picking_model = self.env["stock.picking"]
         group_model = self.env["procurement.group"]
         move_model = self.env["stock.move"]
