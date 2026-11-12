@@ -285,6 +285,7 @@ export class VasPdaAction extends Component {
             const [projectId] = this.state.warehouseOrder?.project || [];
             const [warehouseId] = this.state.warehouseOrder?.warehouse || [];
             await this.orm.write("wd.vas.order", [this.state.order.id], {
+                order_type: this.state.orderType,
                 warehouse_order_billno: billno,
                 project_id: projectId || false,
                 warehouse_id: warehouseId || false,
@@ -312,6 +313,7 @@ export class VasPdaAction extends Component {
             const [projectId] = this.state.warehouseOrder?.project || [];
             const [warehouseId] = this.state.warehouseOrder?.warehouse || [];
             await this.orm.write("wd.vas.order", [this.state.order.id], {
+                order_type: this.state.orderType,
                 warehouse_order_billno: billno,
                 project_id: projectId || false,
                 warehouse_id: warehouseId || false,
