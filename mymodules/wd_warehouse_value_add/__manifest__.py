@@ -47,30 +47,30 @@ Business Rules
         'base',
         'mail',
         'web',
-        'worlddepot',
+        'stock',
+        'wd_barcode_lite_core',
+        'wd_project_profile',
         'wd_charge_pricing',
-        'wd_web_advanced_record_picker','wd_attachment_preview'
+        'wd_attachment_preview'
     ],
 
     'data': [
         'security/security.xml',
         'security/ir.model.access.csv',
         'data/ir_sequence_data.xml',
+        'data/vas_outbound_palletization_sequence.xml',
         'views/vas_operation_type_views.xml',
         'views/vas_order_views.xml',
+        'views/vas_outbound_palletization_views.xml',
+        'wizard/vas_transport_pallet_create_wizard_views.xml',
         'views/vas_frontend_actions.xml',
         'views/vas_menus.xml',
+        'reports/vas_transport_pallet_label_report.xml',
     ],
     'assets': {
         'web.assets_backend': [
             'wd_warehouse_value_add/static/src/js/vas_dashboard.js',
-            'wd_warehouse_value_add/static/src/js/vas_pda_action.js',
             'wd_warehouse_value_add/static/src/xml/vas_dashboard.xml',
-            'wd_warehouse_value_add/static/src/xml/vas_pda_action.xml',
-            'wd_warehouse_value_add/static/src/scss/vas_pda_action.scss',
-        ],
-        'web.assets_tests': [
-            'wd_warehouse_value_add/static/tests/vas_pda_action_tests.js',
         ],
     },
 

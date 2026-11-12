@@ -10,6 +10,7 @@
                 <field name="code"/>
                 <field name="unit"/>
                 <field name="charge_item_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="is_outbound_palletization"/>
                 <field name="currency_id" options="{'no_create': True, 'no_open': True}"/>
                 <field name="note"/>
                 <field name="active"/>
@@ -21,13 +22,14 @@
         <field name="name">wd.vas.operation.type.form</field>
         <field name="model">wd.vas.operation.type</field>
         <field name="arch" type="xml">
-            <form>
+            <form duplicate="false">
                 <sheet>
                     <group>
                         <field name="name"/>
                         <field name="code"/>
                         <field name="unit"/>
                         <field name="charge_item_id" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="is_outbound_palletization"/>
                         <field name="currency_id" options="{'no_create': True, 'no_open': True}"/>
                         <field name="note"/>
                         <field name="sequence"/>

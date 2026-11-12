@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="paperformat_vas_transport_pallet_label" model="report.paperformat">
+        <field name="name">VAS Transport Pallet Label A4</field>
+        <field name="default" eval="False"/>
+        <field name="format">A4</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">8</field>
+        <field name="margin_bottom">8</field>
+        <field name="margin_left">8</field>
+        <field name="margin_right">8</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">0</field>
+        <field name="dpi">90</field>
+    </record>
+    <record id="action_report_vas_transport_pallet_label" model="ir.actions.report">
+        <field name="name">VAS Transport Pallet Labels</field>
+        <field name="model">stock.quant.package</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">wd_warehouse_value_add.report_vas_transport_pallet_label</field>
+        <field name="report_file">wd_warehouse_value_add.report_vas_transport_pallet_label</field>
+        <field name="print_report_name">'Transport Pallet - %s' % (object.name)</field>
+        <field name="paperformat_id" ref="paperformat_vas_transport_pallet_label"/>
+    </record>
+    <template id="report_vas_transport_pallet_label">
+        <t t-call="web.html_container">
+            <style>
+                .vas-transport-pallet-label { font-family: Arial, sans-serif; color: #111827; border: 2px solid #111827; padding: 16px; min-height: 250mm; }
+                .vas-transport-pallet-label-break { page-break-before: always; }
+                .vas-transport-pallet-label-title { font-size: 30px; font-weight: bold; margin: 0 0 22px 0; }
+                .vas-transport-pallet-label-name { font-size: 28px; font-weight: bold; margin: 18px 0; word-break: break-all; }
+                .vas-transport-pallet-label-info { width: 100%; border-collapse: collapse; font-size: 16px; }
+                .vas-transport-pallet-label-info td { border: 1px solid #111827; padding: 10px; }
+                .vas-transport-pallet-label-info .label { width: 35%; font-weight: bold; }
+                .vas-transport-pallet-label-barcode { text-align: center; margin: 28px 0 0 0; }
+            </style>
+            <t t-foreach="docs" t-as="package">
+                <div t-attf-class="page vas-transport-pallet-label {{ 'vas-transport-pallet-label-break' if package_index else '' }}">
+                    <div class="vas-transport-pallet-label-title">Transport Pallet</div>
+                    <div class="vas-transport-pallet-label-name" t-esc="package.name"/>
+                    <table class="vas-transport-pallet-label-info">
+                        <tr><td class="label">Palletization No.</td><td t-esc="package.vas_outbound_palletization_id.name or ''"/></tr>
+                        <tr><td class="label">Work Order</td><td t-esc="package.vas_outbound_palletization_id.vas_order_id.name or ''"/></tr>
+                        <tr><td class="label">Order No.</td><td t-esc="package.vas_outbound_palletization_id.vas_order_id.source_document_number or package.reference or ''"/></tr>
+                        <tr><td class="label">Project</td><td t-esc="package.vas_outbound_palletization_id.vas_order_id.project_id.display_name or ''"/></tr>
+                    </table>
+                    <div class="vas-transport-pallet-label-barcode" t-if="package.barcode">
+                        <div t-field="package.barcode" t-options="{'widget': 'barcode', 'symbology': 'QR', 'width': 320, 'height': 320, 'img_style': 'width:220px;height:220px;'}"/>
+                        <div t-esc="package.barcode"/>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </template>
+</odoo>

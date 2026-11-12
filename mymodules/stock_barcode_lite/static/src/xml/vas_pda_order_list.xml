@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="wd_warehouse_value_add.VasPdaOrderList">
+        <main class="o_wd_vas_pda_order_list o_action_delegate_scroll d-flex flex-column h-100">
+            <header class="o_wd_vas_pda_header">
+                <button class="btn btn-link o_wd_vas_back" type="button" t-on-click="goBack">
+                    <span aria-hidden="true">←</span>
+                    <span>Warehouse Value-Added Work Orders</span>
+                </button>
+                <button class="btn btn-sm o_wd_vas_outline-btn" type="button" t-att-disabled="state.busy" t-on-click="loadOrders">Refresh</button>
+            </header>
+            <section class="flex-grow-1 overflow-auto p-3">
+                <div t-if="state.busy" class="text-center text-muted py-4">Loading...</div>
+                <div t-elif="!state.orders.length" class="o_wd_vas_empty">No work orders found.</div>
+                <button t-else="" t-foreach="state.orders" t-as="order" t-key="order.id" class="o_wd_vas_pda_order-card" type="button" t-on-click="openOrder.bind(this, order)">
+                    <div class="o_wd_vas_pda_order-card-header"><strong><t t-esc="order.name"/></strong><span t-att-class="'o_wd_vas_status o_wd_vas_status-' + order.state"><t t-esc="order.state"/></span></div>
+                    <div><span>Order Type</span><strong><t t-esc="order.source_type || '-'"/></strong></div>
+                    <div><span>Order Number</span><strong><t t-esc="order.source_document_number || '-'"/></strong></div>
+                    <div><span>Project</span><strong><t t-esc="order.project_id?.[1] || '-'"/></strong></div>
+                </button>
+            </section>
+        </main>
+    </t>
+</templates>

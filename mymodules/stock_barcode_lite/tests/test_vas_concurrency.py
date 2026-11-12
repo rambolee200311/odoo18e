@@ -35,16 +35,16 @@ class TestVasConcurrency(TransactionCase):
         second_cursor = db.cursor()
         try:
             first_env = api.Environment(first_cursor, SUPERUSER_ID, {})
-            first_env['wd.vas.order'].browse(self.order.id)._lock_for_update()
+            first_env['wd.vas.order'].browse(self.order.id).lock_for_update()
 
             second_cursor.execute("SET LOCAL lock_timeout = '200ms'")
             second_env = api.Environment(second_cursor, SUPERUSER_ID, {})
             with self.assertRaises(LockNotAvailable):
-                second_env['wd.vas.order'].browse(self.order.id)._lock_for_update()
+                second_env['wd.vas.order'].browse(self.order.id).lock_for_update()
 
             first_cursor.close()
             second_cursor.rollback()
-            second_env['wd.vas.order'].browse(self.order.id)._lock_for_update()
+            second_env['wd.vas.order'].browse(self.order.id).lock_for_update()
         finally:
             if not first_cursor.closed:
                 first_cursor.close()

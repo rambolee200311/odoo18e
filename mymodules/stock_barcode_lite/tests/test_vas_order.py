@@ -118,7 +118,7 @@ class TestVasOrder(TransactionCase):
                 inbound_order_id=1,
             ))
         with self.assertRaises(ValidationError):
-            order._check_order_relation_consistency()
+            order.check_order_relation_consistency()
 
     def test_unique_constraints(self):
         with self.assertRaises(ValidationError):

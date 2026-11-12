@@ -22,6 +22,7 @@ class ProjectProject(models.Model):
     pallet_structure_mode = fields.Selection([("known", "Known Pallet Structure"), ("unknown", "Unknown Pallet Structure")], string="Pallet Structure Mode", default="known", required=True, copy=False, index=True)
     stock_report_date_mode = fields.Selection([("validation", "Picking Validation Time"), ("business", "Order Business Date")], string="Inbound Date Management Mode", default="business", required=True, copy=False, index=True)
     barcode_scan_mode = fields.Selection([("native", "Native Barcode"), ("custom", "Custom Barcode Lite")], string="Barcode Scan Mode", default="native", required=True, copy=False, index=True, tracking=True)
+    outbound_palletization_enabled = fields.Boolean(string="Outbound Palletization and Secondary Confirmation", default=False, tracking=True, copy=False, index=True)
     allowed_user_ids = fields.Many2many("res.users", "project_allowed_user_rel", "project_id", "user_id", string="Allowed Users")
 
     @api.constrains("pallet_structure_mode", "package_generation_mode")

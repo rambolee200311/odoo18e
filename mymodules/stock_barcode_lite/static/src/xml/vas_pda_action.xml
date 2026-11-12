@@ -57,6 +57,14 @@
                         <t t-esc="state.order?.operator_id?.[1] || user.name"/>
                     </div>
                 </div>
+                <div t-if="hasOutboundPalletization &amp;&amp; isOutboundOrder" class="o_wd_vas_palletization-actions mt-2">
+                    <button class="btn o_wd_vas_outline-btn" type="button"
+                            t-att-disabled="state.busy || !state.order" t-on-click="openTransportPalletCreateWizard">Create Transport Pallets</button>
+                    <button class="btn o_wd_vas_outline-btn" type="button"
+                            t-att-disabled="state.busy || !state.order" t-on-click="printTransportPalletLabels">Print Transport Pallet Labels</button>
+                    <button class="btn o_wd_vas_primary-btn" type="button"
+                            t-att-disabled="state.busy || !state.order" t-on-click="startOutboundPalletization">Enter Palletization</button>
+                </div>
                 <div t-if="state.warehouseOrder" class="o_wd_vas_resolved">
                     <span>✓</span> Resolved: <t t-esc="state.warehouseOrder.billno"/>
                 </div>
