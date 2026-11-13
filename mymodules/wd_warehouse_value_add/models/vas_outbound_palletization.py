@@ -129,6 +129,15 @@ class VasOutboundPalletization(models.Model):
                     values = move_line.copy_data()[0]
                     values.update({'picking_id': move_line.picking_id.id, 'move_id': move_line.move_id.id, 'product_id': move_line.product_id.id, 'product_uom_id': move_line.product_uom_id.id, 'location_id': move_line.location_id.id, 'location_dest_id': move_line.location_dest_id.id, 'package_id': move_line.package_id.id, 'lot_id': move_line.lot_id.id, 'lot_name': move_line.lot_name, 'owner_id': move_line.owner_id.id, 'quantity': row.quantity, 'result_package_id': row.destination_package_id.id, 'outbound_palletization_id': rec.id, 'outbound_palletization_type': row.handling_type})
                     self.env['stock.move.line'].create(values)
+            unused_packages = rec.transport_pallet_ids - target_packages
+            if unused_packages:
+                unused_package_ids = unused_packages.ids
+                has_quants = self.env['stock.quant'].sudo().search([('package_id', 'in', unused_package_ids)], limit=1)
+                has_move_lines = self.env['stock.move.line'].sudo().search(['|', ('package_id', 'in', unused_package_ids), ('result_package_id', 'in', unused_package_ids)], limit=1)
+                has_package_levels = self.env['stock.package_level'].sudo().search([('package_id', 'in', unused_package_ids)], limit=1)
+                if has_quants or has_move_lines or has_package_levels:
+                    raise UserError('Unused transport pallets have stock or picking references and cannot be deleted.')
+                unused_packages.unlink()
             rec.write({'state': 'validated', 'validated_by_id': self.env.user.id, 'validated_at': fields.Datetime.now()})
         return True
 
