@@ -653,6 +653,28 @@ class StockBarcodeLiteScanService(models.AbstractModel):
         return len(normal_move_lines)
 
     @api.model
+    def update_pending_incoming_pallet_locations(self, picking_id, location_id):
+        picking = self.env["stock.picking"].sudo().search([
+            ("id", "=", picking_id),
+            ("picking_type_id.code", "=", "incoming"),
+            ("state", "not in", ("done", "cancel")),
+        ], limit=1)
+        if not picking:
+            raise UserError(_("Only an active incoming picking can update pallet locations."))
+        location = self.env["stock.location"].sudo().search([
+            ("id", "=", location_id),
+            ("usage", "=", "internal"),
+        ], limit=1)
+        if not location:
+            raise UserError(_("Please scan a valid internal location first."))
+        move_lines = self.env["stock.move.line"].sudo().search([
+            ("picking_id", "=", picking.id),
+            ("result_package_id", "!=", False),
+            ("is_location_updated", "=", False),
+        ])
+        return self.apply_location_to_package(move_lines, location)
+
+    @api.model
     def get_incoming_scan_records(self, picking):
         for rec in self:
             if not picking:
