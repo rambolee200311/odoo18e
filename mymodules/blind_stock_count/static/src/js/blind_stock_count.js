@@ -13,12 +13,23 @@ export class BlindStockCountScan extends Component {
     setup() {
         this.orm = useService("orm");
         this.barcodeInputRef = useRef("barcodeInput");
+        this.locationSearchInputRef = useRef("locationSearchInput");
+        this.locationSearchRequest = 0;
         this.processing = false;
         const action = this.env.config.action || {};
         this.continueCountId = this.props?.action?.params?.blind_stock_count_id || action.params?.blind_stock_count_id || action.context?.blind_stock_count_id || false;
         this.newWorkPackageId = this.props?.action?.params?.work_package_id || action.params?.work_package_id || action.context?.work_package_id || false;
-        this.onPageInteraction = () => {
-            if (!this.processing && this.state.count?.state !== "done" && !["select_work_package", "input_quantity", "input_lot_quantity"].includes(this.state.nextStep)) {
+        this.onPageInteraction = (event) => {
+            const target = event?.target;
+            const activeElement = document.activeElement;
+            if (event && this.state.locationSelectorOpen && !target?.closest(".o_location_selector")) {
+                this.state.locationSelectorOpen = false;
+                this.state.locationSearchTerm = this.state.selectedLocation?.name || "";
+                this.focusBarcodeInput();
+                return;
+            }
+            const isEditingField = target?.closest("input:not(.o_hidden_barcode_input), textarea, select") || activeElement?.matches("input:not(.o_hidden_barcode_input), textarea, select");
+            if (!this.processing && this.state.count?.state !== "done" && !this.state.locationSelectorOpen && !isEditingField && !["select_work_package", "input_quantity", "input_lot_quantity"].includes(this.state.nextStep)) {
                 this.focusBarcodeInput();
             }
         };
@@ -39,6 +50,11 @@ export class BlindStockCountScan extends Component {
             lastScannedLineIds: [],
             lotName: "",
             quantity: "",
+            locationOptions: [],
+            locationSearchTerm: "",
+            locationSearchLoading: false,
+            locationSelectorOpen: false,
+            selectedLocation: false,
             nextStep: "select_work_package",
         });
         onMounted(async () => {
@@ -84,7 +100,7 @@ export class BlindStockCountScan extends Component {
         }
     }
 
-    async call(method, args, scannedBarcode = "") {
+    async call(method, args, scannedBarcode = "", preserveInputFocus = false) {
         this.processing = true;
         this.state.loading = true;
         try {
@@ -96,7 +112,9 @@ export class BlindStockCountScan extends Component {
         } finally {
             this.processing = false;
             this.state.loading = false;
-            this.focusBarcodeInput();
+            if (!preserveInputFocus) {
+                this.focusBarcodeInput();
+            }
         }
     }
 
@@ -186,6 +204,55 @@ export class BlindStockCountScan extends Component {
         this.focusBarcodeInput();
     }
 
+    async toggleLocationSelector(event) {
+        const isLocationField = event?.target?.id === "blind_stock_count_selected_location";
+        const wasOpen = this.state.locationSelectorOpen;
+        this.state.locationSelectorOpen = isLocationField || !wasOpen;
+        if (this.state.locationSelectorOpen) {
+            if (!wasOpen) {
+                this.state.locationSearchTerm = this.state.selectedLocation?.name || "";
+            }
+            await this.searchLocations();
+            this.locationSearchInputRef.el?.focus();
+        } else {
+            this.state.locationSearchTerm = this.state.selectedLocation?.name || "";
+            this.focusBarcodeInput();
+        }
+    }
+
+    async onLocationSearchInput(event) {
+        this.state.locationSearchTerm = event.target.value;
+        this.state.locationSelectorOpen = true;
+        await this.searchLocations();
+    }
+
+    async searchLocations() {
+        const searchTerm = this.state.locationSearchTerm;
+        const requestId = ++this.locationSearchRequest;
+        this.state.locationOptions = [];
+        this.state.locationSearchLoading = true;
+        try {
+            const locations = await this.orm.call("blind.stock.count", "search_pda_locations", [this.state.workPackageId, searchTerm]);
+            if (requestId === this.locationSearchRequest && this.state.locationSearchTerm === searchTerm) {
+                this.state.locationOptions = locations;
+            }
+        } catch (error) {
+            const message = error?.data?.message || error?.message || _t("Operation failed.");
+            this.showMessage(message, "danger");
+        } finally {
+            if (requestId === this.locationSearchRequest) {
+                this.state.locationSearchLoading = false;
+            }
+        }
+    }
+
+    selectLocation(location) {
+        this.state.selectedLocation = location;
+        this.state.locationSearchTerm = location.name;
+        this.state.locationSelectorOpen = false;
+        this.showMessage(_t("Location selected. Scan a pallet to continue, or scan another location to change it."));
+    }
+
     onBarcodeKeydown(event) {
         if (event.key !== "Enter") {
             return;
@@ -222,13 +289,48 @@ export class BlindStockCountScan extends Component {
             return;
         }
         if (this.state.nextStep === "scan_location") {
-            const result = await this.call(this.state.count ? "action_verify_count_location" : "action_scan_location", this.state.count ? [this.state.count.id, barcode] : [this.state.workPackageId, barcode], barcode);
+            if (this.state.count) {
+                const result = await this.call("action_verify_count_location", [this.state.count.id, barcode], barcode);
+                if (result) {
+                    this.state.locationVerified = true;
+                    this.state.nextStep = "scan_pallet";
+                    this.showMessage(result.message, "success");
+                }
+                return;
+            }
+            const locations = await this.call("search_pda_locations", [this.state.workPackageId, barcode, true], barcode);
+            if (!locations) {
+                return;
+            }
+            if (locations.length === 1) {
+                this.selectLocation(locations[0]);
+                this.showMessage(_t("Location scanned and selected. Scan a pallet to continue, or scan another location to change it."));
+                return;
+            }
+            if (locations.length > 1) {
+                this.showMessage(_t("More than one internal location matches this barcode."), "danger");
+                return;
+            }
+            if (!this.state.selectedLocation) {
+                this.showMessage(_t("Scan or select an internal location first."), "danger");
+                return;
+            }
+            const result = await this.call("action_scan_location", [this.state.workPackageId, "", this.state.selectedLocation.id]);
             if (result) {
                 this.state.count = result.count;
                 this.state.locationVerified = true;
                 this.state.nextStep = "scan_pallet";
-                this.showMessage(result.message, "success");
-                this.focusBarcodeInput();
+                const palletResult = await this.call("action_scan_package", [result.count.id, barcode], barcode);
+                if (palletResult) {
+                    this.setPallet(palletResult.pallet, !this.state.pallets.some((item) => item.id === palletResult.pallet.id));
+                    this.state.expandedPalletId = palletResult.pallet.id;
+                    this.state.product = null;
+                    this.state.editingLineId = false;
+                    this.state.lastScannedLineIds = [];
+                    this.state.lotName = "";
+                    this.state.nextStep = "scan_product";
+                    this.showMessage(palletResult.message, "success");
+                }
             }
             return;
         }
