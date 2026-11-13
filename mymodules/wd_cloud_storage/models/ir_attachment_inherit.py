@@ -34,8 +34,22 @@ class IrAttachmentInherit(models.Model):
         prefix = (config.attachment_prefix or 'odoo-attachments/').strip('/')
         return f"{prefix}/{self.env.cr.dbname}/{checksum_value[:2]}/{checksum_value}"
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        is_asset_batch = bool(vals_list) and all(
+            (values.get('url') or '').startswith('/web/assets/')
+            and values.get('res_model') == 'ir.ui.view'
+            and not values.get('res_id')
+            for values in vals_list
+        )
+        if is_asset_batch:
+            self = self.with_context(wd_cloud_storage_local_attachment=True)
+        return super().create(vals_list)
+
     @api.model
     def _file_write(self, bin_value, checksum):
+        if self.env.context.get('wd_cloud_storage_local_attachment'):
+            return super()._file_write(bin_value, checksum)
         config = self.get_attachment_cloud_config()
         if not config or not config.global_attachment_to_cloud:
             return super()._file_write(bin_value, checksum)
