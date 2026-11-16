@@ -18,7 +18,7 @@
         <field name="arch" type="xml">
             <form string="Actual Pallet" duplicate="false">
                 <header>
-                    <button name="action_void_actual_pallet" type="object" string="Void Empty Pallet" class="btn-secondary" confirm="Void this empty pallet? Its system barcode cannot be reused." invisible="state == 'void' or actual_pallet_structure_locked"/>
+                    <button name="action_void_actual_pallet" type="object" string="Void Empty Pallet" class="btn-secondary" confirm="Void this empty pallet? For IBS orders, its system package and barcode will be deleted and may be reused." invisible="state == 'void' or actual_pallet_structure_locked"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,binding,ready,void" readonly="1"/>
                 </header>
                 <sheet>
@@ -39,7 +39,7 @@
                                 <form string="Actual Pallet Product" duplicate="false">
                                     <sheet>
                                         <group>
-                                            <field name="actual_pallet_id" readonly="1" column_invisible="1" options="{'no_create': True, 'no_open': True}"/>
+                                            <field name="actual_pallet_id" readonly="1" invisible="1" options="{'no_create': True, 'no_open': True}"/>
                                             <field name="available_product_line_ids" invisible="1"/>
                                             <field name="product_id" domain="[('id', 'in', available_product_line_ids)]" options="{'no_create': True, 'no_open': True}"/>
                                             <field name="product_tracking" invisible="1"/>
