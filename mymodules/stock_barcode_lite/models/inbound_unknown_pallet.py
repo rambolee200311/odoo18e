@@ -454,7 +454,7 @@ class InboundActualPallet(models.Model):
 
     inbound_order_id = fields.Many2one("world.depot.inbound.order", string="Inbound Order", required=True, copy=False, index=True, ondelete="cascade")
     actual_pallet_structure_locked = fields.Boolean(related="inbound_order_id.actual_pallet_structure_locked", string="Actual Pallet Structure Locked", readonly=True)
-    package_id = fields.Many2one("stock.quant.package", string="Package", required=True, readonly=True, copy=False, index=True, ondelete="restrict")
+    package_id = fields.Many2one("stock.quant.package", string="Package", readonly=True, copy=False, index=True, ondelete="set null")
     pallet_no = fields.Char(string="Pallet No", required=True, readonly=True, copy=False, index=True)
     state = fields.Selection([("draft", "Draft"), ("binding", "Binding"), ("ready", "Ready"), ("void", "Void")], string="State", default="draft", required=True, copy=False, index=True)
     product_lines = fields.One2many("world.depot.inbound.order.actual.pallet.product", "actual_pallet_id", string="Products", copy=False)
@@ -462,6 +462,7 @@ class InboundActualPallet(models.Model):
 
     def action_void_actual_pallet(self):
         picking_model = self.env["stock.picking"]
+        quant_model = self.env["stock.quant"]
         for rec in self:
             if rec.state == "void":
                 continue
@@ -472,7 +473,16 @@ class InboundActualPallet(models.Model):
                 raise UserError(_("Actual pallets cannot be voided after a receipt exists."))
             if rec.product_lines or rec.product_lines.mapped("serial_lines"):
                 raise UserError(_("Only empty actual pallets can be voided."))
-            rec.write({"state": "void"})
+            package = rec.package_id
+            is_ibs = rec.inbound_order_id.project.name == "IBS"
+            if is_ibs and package and quant_model.sudo().search([("package_id", "=", package.id)], limit=1):
+                raise UserError(_("An actual pallet package with stock quants cannot be voided."))
+            if is_ibs and package:
+                package.write({"actual_inbound_pallet_id": False})
+                rec.write({"state": "void", "package_id": False})
+                package.unlink()
+            else:
+                rec.write({"state": "void"})
             rec.inbound_order_id.clear_actual_pallet_structure_validation()
             rec.inbound_order_id.refresh_actual_pallet_difference_lines()
         return {"type": "ir.actions.client", "tag": "reload"}
@@ -732,18 +742,66 @@ class StockBarcodeLiteScanService(models.AbstractModel):
                 return self.build_actual_pallet_binding_result("error", _("Error"), _("This inbound order does not use actual pallet binding."), barcode=code, action_name="scan_inbound", success=False)
             if inbound_order.state != "new":
                 return self.build_actual_pallet_binding_result("error", _("Error"), _("Actual pallet binding is only available before the inbound order is confirmed."), barcode=code, action_name="scan_inbound", success=False)
-            return self.build_actual_pallet_binding_result("inbound", _("Inbound"), _("Inbound order %s selected.") % inbound_order.billno, barcode=code, inbound_order=inbound_order, action_name="select_inbound", next_step="scan_package")
+            next_step = "scan_ibs_pallet" if inbound_order.project.name == "IBS" else "scan_package"
+            return self.build_actual_pallet_binding_result("inbound", _("Inbound"), _("Inbound order %s selected.") % inbound_order.billno, barcode=code, inbound_order=inbound_order, action_name="select_inbound", next_step=next_step)
         inbound_order = inbound_order_model.sudo().search([("id", "=", inbound_order_id)], limit=1)
         if not inbound_order:
             return self.build_actual_pallet_binding_result("error", _("Error"), _("Inbound order was not found."), barcode=code, action_name="scan_inbound", success=False)
         if inbound_order.project.pallet_structure_mode != "unknown":
             return self.build_actual_pallet_binding_result("error", _("Error"), _("This inbound order does not use actual pallet binding."), barcode=code, action_name="scan_inbound", success=False)
+        is_ibs = inbound_order.project.name == "IBS"
         is_quantity_input = bool(current_actual_pallet_id and current_product_id and quantity is not False and quantity is not None)
         if not code and not is_quantity_input:
-            return self.build_actual_pallet_binding_result("error", _("Error"), _("Please scan a barcode."), inbound_order=inbound_order, actual_pallet_id=current_actual_pallet_id, product_id=current_product_id, tracking_number=current_tracking_number, action_name="scan_error", success=False, next_step="scan_package")
+            next_step = "scan_ibs_pallet" if is_ibs and not current_actual_pallet_id else "scan_ibs_product_sn" if is_ibs else "scan_package"
+            return self.build_actual_pallet_binding_result("error", _("Error"), _("Please scan a barcode."), inbound_order=inbound_order, actual_pallet_id=current_actual_pallet_id, product_id=current_product_id, tracking_number=current_tracking_number, action_name="scan_error", success=False, next_step=next_step)
         actual_pallet_result = actual_pallet_model.sudo().search([("id", "=", current_actual_pallet_id), ("inbound_order_id", "=", inbound_order.id), ("state", "!=", "void")], limit=1) if current_actual_pallet_id else actual_pallet_model
         actual_pallet = actual_pallet_model.browse(actual_pallet_result.id) if actual_pallet_result else actual_pallet_model
-        package = self.env["stock.quant.package"].sudo().search([("barcode", "=", code)], limit=1) if code and not is_quantity_input else self.env["stock.quant.package"]
+        expected_quantity_by_product = inbound_order.get_unknown_expected_quantity_by_product()
+        ibs_product = product_model
+        if is_ibs and code and not is_quantity_input:
+            serial_number, separator, product_barcode = code.rpartition("-")
+            if not code.startswith("LC-"):
+                if not actual_pallet:
+                    return self.build_actual_pallet_binding_result("error", _("Pallet"), _("Please scan an IBS pallet barcode first."), barcode=code, inbound_order=inbound_order, action_name="scan_ibs_pallet", success=False, next_step="scan_ibs_pallet")
+                if not separator or not serial_number or not product_barcode:
+                    return self.build_actual_pallet_binding_result("error", _("Product"), _("IBS product SN barcode must include a product barcode after the last hyphen."), barcode=code, inbound_order=inbound_order, actual_pallet_id=actual_pallet.id, action_name="scan_ibs_product_sn", success=False, next_step="scan_ibs_product_sn")
+                ibs_product = product_model.sudo().search(["|", ("barcode", "=", product_barcode), ("default_code", "=", product_barcode)], limit=1)
+                if not ibs_product:
+                    return self.build_actual_pallet_binding_result("error", _("Product"), _("No product matches IBS barcode %s.") % product_barcode, barcode=code, inbound_order=inbound_order, actual_pallet_id=actual_pallet.id, action_name="scan_ibs_product_sn", success=False, next_step="scan_ibs_product_sn")
+                if ibs_product.id not in expected_quantity_by_product:
+                    return self.build_actual_pallet_binding_result("error", _("Product"), _("Product %s is not expected on this inbound order.") % ibs_product.display_name, barcode=code, inbound_order=inbound_order, actual_pallet_id=actual_pallet.id, product_id=ibs_product.id, action_name="scan_ibs_product_sn", success=False, next_step="scan_ibs_product_sn")
+                if ibs_product.tracking != "serial":
+                    return self.build_actual_pallet_binding_result("error", _("Product"), _("IBS product %s must use serial number tracking.") % ibs_product.display_name, barcode=code, inbound_order=inbound_order, actual_pallet_id=actual_pallet.id, product_id=ibs_product.id, action_name="scan_ibs_product_sn", success=False, next_step="scan_ibs_product_sn")
+                current_product_id = ibs_product.id
+            else:
+                package_model = self.env["stock.quant.package"]
+                existing_package = package_model.sudo().search([("barcode", "=", code)], limit=1)
+                if existing_package:
+                    existing_actual_pallet = actual_pallet_model.sudo().search([("package_id", "=", existing_package.id), ("inbound_order_id", "=", inbound_order.id), ("state", "!=", "void")], limit=1)
+                    if existing_actual_pallet:
+                        actual_pallet = actual_pallet_model.browse(existing_actual_pallet.id)
+                        if actual_pallet.state == "draft":
+                            actual_pallet.write({"state": "binding"})
+                        return self.build_actual_pallet_binding_result("pallet", _("Pallet"), _("IBS actual pallet %s selected.") % actual_pallet.pallet_no, barcode=code, inbound_order=inbound_order, actual_pallet_id=actual_pallet.id, action_name="select_ibs_pallet", next_step="scan_ibs_product_sn")
+                    void_actual_pallet = actual_pallet_model.sudo().search([("package_id", "=", existing_package.id), ("inbound_order_id", "=", inbound_order.id), ("state", "=", "void")], limit=1)
+                    if void_actual_pallet:
+                        actual_pallet = actual_pallet_model.browse(void_actual_pallet.id)
+                        actual_pallet.write({"state": "binding"})
+                        return self.build_actual_pallet_binding_result("pallet", _("Pallet"), _("IBS actual pallet %s selected again.") % actual_pallet.pallet_no, barcode=code, inbound_order=inbound_order, actual_pallet_id=actual_pallet.id, action_name="select_ibs_pallet", next_step="scan_ibs_product_sn")
+                    return self.build_actual_pallet_binding_result("error", _("Pallet"), _("IBS pallet barcode %s already exists.") % code, barcode=code, inbound_order=inbound_order, action_name="scan_ibs_pallet", success=False, next_step="scan_ibs_pallet")
+                inbound_order.check_unknown_pallet_structure_available()
+                inbound_order.clear_actual_pallet_structure_validation()
+                package = package_model.create({"name": code, "barcode": code, "original_pallet_no": code, "package_use": "disposable", "billno": inbound_order.billno, "reference": inbound_order.reference, "cntr_no": inbound_order.cntr_no, "inbound_order_id": inbound_order.id})
+                void_actual_pallet = actual_pallet_model.sudo().search([("inbound_order_id", "=", inbound_order.id), ("pallet_no", "=", code), ("state", "=", "void")], limit=1)
+                if void_actual_pallet:
+                    actual_pallet = actual_pallet_model.browse(void_actual_pallet.id)
+                    actual_pallet.write({"package_id": package.id, "state": "binding"})
+                else:
+                    actual_pallet = actual_pallet_model.create({"inbound_order_id": inbound_order.id, "package_id": package.id, "pallet_no": code, "state": "binding"})
+                package.write({"actual_inbound_pallet_id": actual_pallet.id})
+                inbound_order.refresh_actual_pallet_difference_lines()
+                return self.build_actual_pallet_binding_result("pallet", _("Pallet"), _("IBS actual pallet %s created.") % actual_pallet.pallet_no, barcode=code, inbound_order=inbound_order, actual_pallet_id=actual_pallet.id, action_name="create_ibs_pallet", next_step="scan_ibs_product_sn")
+        package = self.env["stock.quant.package"].sudo().search([("barcode", "=", code)], limit=1) if code and not is_quantity_input and not is_ibs else self.env["stock.quant.package"]
         if package:
             scanned_pallet = actual_pallet_model.sudo().search([("package_id", "=", package.id), ("inbound_order_id", "=", inbound_order.id), ("state", "!=", "void")], limit=1)
             if not scanned_pallet:
@@ -754,8 +812,7 @@ class StockBarcodeLiteScanService(models.AbstractModel):
             return self.build_actual_pallet_binding_result("pallet", _("Pallet"), _("Actual pallet %s selected.") % scanned_pallet.pallet_no, barcode=code, inbound_order=inbound_order, actual_pallet_id=scanned_pallet.id, action_name="select_pallet", next_step="scan_product")
         if not actual_pallet:
             return self.build_actual_pallet_binding_result("error", _("Error"), _("Please scan an active actual pallet first."), barcode=code, inbound_order=inbound_order, action_name="missing_pallet", success=False, next_step="scan_package")
-        expected_quantity_by_product = inbound_order.get_unknown_expected_quantity_by_product()
-        scanned_product = product_model.sudo().search([("id", "in", list(expected_quantity_by_product)), "|", ("barcode", "=", code), ("default_code", "=", code)], limit=1) if code and not is_quantity_input else product_model
+        scanned_product = product_model.sudo().search([("id", "in", list(expected_quantity_by_product)), "|", ("barcode", "=", code), ("default_code", "=", code)], limit=1) if code and not is_quantity_input and not is_ibs else product_model
         if not current_product_id or scanned_product:
             if not scanned_product:
                 return self.build_actual_pallet_binding_result("error", _("Product"), _("Scanned product is not expected on this inbound order."), barcode=code, inbound_order=inbound_order, actual_pallet_id=actual_pallet.id, action_name="scan_product", success=False, next_step="scan_product")
@@ -770,20 +827,21 @@ class StockBarcodeLiteScanService(models.AbstractModel):
             return self.build_actual_pallet_binding_result("error", _("Product"), _("Current product is not expected on this inbound order."), barcode=code, inbound_order=inbound_order, actual_pallet_id=actual_pallet.id, action_name="scan_product", success=False, next_step="scan_product")
         actual_quantity_by_product = inbound_order.get_unknown_actual_quantity_by_product()
         if product.tracking == "serial":
+            serial_next_step = "scan_ibs_product_sn" if is_ibs else "scan_serial"
             serial_numbers = [serial_number.strip() for serial_number in re.split(r"[,，\r\n]+", code) if serial_number.strip()]
             if not serial_numbers:
-                return self.build_actual_pallet_binding_result("error", _("Serial Number"), _("Please scan a serial number."), barcode=code, inbound_order=inbound_order, actual_pallet_id=actual_pallet.id, product_id=product.id, action_name="scan_serial", success=False, next_step="scan_serial")
+                return self.build_actual_pallet_binding_result("error", _("Serial Number"), _("Please scan a serial number."), barcode=code, inbound_order=inbound_order, actual_pallet_id=actual_pallet.id, product_id=product.id, action_name="scan_serial", success=False, next_step=serial_next_step)
             if len(serial_numbers) != len(set(serial_numbers)):
-                return self.build_actual_pallet_binding_result("error", _("Serial Number"), _("The scanned serial number list contains duplicates."), barcode=code, inbound_order=inbound_order, actual_pallet_id=actual_pallet.id, product_id=product.id, action_name="scan_serial", success=False, next_step="scan_serial")
+                return self.build_actual_pallet_binding_result("error", _("Serial Number"), _("The scanned serial number list contains duplicates."), barcode=code, inbound_order=inbound_order, actual_pallet_id=actual_pallet.id, product_id=product.id, action_name="scan_serial", success=False, next_step=serial_next_step)
             existing_serial = actual_serial_model.sudo().search([("inbound_order_id", "=", inbound_order.id), ("product_id", "=", product.id), ("serial_number", "in", serial_numbers)], limit=1)
             if existing_serial:
-                return self.build_actual_pallet_binding_result("error", _("Serial Number"), _("Serial number %s was already scanned.") % existing_serial.serial_number, barcode=code, inbound_order=inbound_order, actual_pallet_id=actual_pallet.id, product_id=product.id, action_name="scan_serial", success=False, next_step="scan_serial")
+                return self.build_actual_pallet_binding_result("error", _("Serial Number"), _("Serial number %s was already scanned.") % existing_serial.serial_number, barcode=code, inbound_order=inbound_order, actual_pallet_id=actual_pallet.id, product_id=product.id, action_name="scan_serial", success=False, next_step=serial_next_step)
             lot_ids = lot_model.sudo().search([("name", "in", serial_numbers), ("product_id", "=", product.id)])
             existing_quant = quant_model.sudo().search([("lot_id", "in", lot_ids.ids), ("quantity", ">", 0)], limit=1)
             if existing_quant:
-                return self.build_actual_pallet_binding_result("error", _("Serial Number"), _("Serial number %s already has stock in this company.") % existing_quant.lot_id.name, barcode=code, inbound_order=inbound_order, actual_pallet_id=actual_pallet.id, product_id=product.id, action_name="scan_serial", success=False, next_step="scan_serial")
+                return self.build_actual_pallet_binding_result("error", _("Serial Number"), _("Serial number %s already has stock in this company.") % existing_quant.lot_id.name, barcode=code, inbound_order=inbound_order, actual_pallet_id=actual_pallet.id, product_id=product.id, action_name="scan_serial", success=False, next_step=serial_next_step)
             if float_compare(actual_quantity_by_product.get(product.id, 0.0) + len(serial_numbers), expected_quantity_by_product[product.id], precision_rounding=product.uom_id.rounding) > 0:
-                return self.build_actual_pallet_binding_result("error", _("Serial Number"), _("Scanned quantity exceeds the expected inbound quantity for %s.") % product.display_name, barcode=code, inbound_order=inbound_order, actual_pallet_id=actual_pallet.id, product_id=product.id, action_name="scan_serial", success=False, next_step="scan_serial")
+                return self.build_actual_pallet_binding_result("error", _("Serial Number"), _("Scanned quantity exceeds the expected inbound quantity for %s.") % product.display_name, barcode=code, inbound_order=inbound_order, actual_pallet_id=actual_pallet.id, product_id=product.id, action_name="scan_serial", success=False, next_step=serial_next_step)
             product_line = actual_product_model.sudo().search([("actual_pallet_id", "=", actual_pallet.id), ("product_id", "=", product.id)], limit=1)
             if product_line:
                 product_line = actual_product_model.browse(product_line.id)
@@ -795,7 +853,9 @@ class StockBarcodeLiteScanService(models.AbstractModel):
                     actual_pallet.write({"state": "binding"})
                 product_line = actual_product_model.create({"actual_pallet_id": actual_pallet.id, "product_id": product.id, "quantity": len(serial_numbers)})
             actual_serial_model.create([{"actual_pallet_id": actual_pallet.id, "actual_pallet_product_id": product_line.id, "serial_number": serial_number, "quantity": 1.0} for serial_number in serial_numbers])
-            next_step = self.get_actual_pallet_binding_completion_step(inbound_order) if float_compare(actual_quantity_by_product.get(product.id, 0.0) + len(serial_numbers), expected_quantity_by_product[product.id], precision_rounding=product.uom_id.rounding) == 0 else "scan_serial"
+            next_step = self.get_actual_pallet_binding_completion_step(inbound_order) if float_compare(actual_quantity_by_product.get(product.id, 0.0) + len(serial_numbers), expected_quantity_by_product[product.id], precision_rounding=product.uom_id.rounding) == 0 else serial_next_step
+            if is_ibs and next_step != "validate":
+                next_step = "scan_ibs_product_sn"
             return self.build_actual_pallet_binding_result("serial", _("Serial Number"), _("Added %s serial number(s).") % len(serial_numbers), barcode=code, inbound_order=inbound_order, actual_pallet_id=actual_pallet.id, product_id=product.id, action_name="add_serial", next_step=next_step)
         if product.tracking == "lot" and not current_tracking_number and quantity is False:
             return self.build_actual_pallet_binding_result("lot", _("Lot"), _("Lot %s selected.") % code, barcode=code, inbound_order=inbound_order, actual_pallet_id=actual_pallet.id, product_id=product.id, tracking_number=code, action_name="select_lot", next_step="input_quantity")
@@ -882,7 +942,8 @@ class StockBarcodeLiteScanService(models.AbstractModel):
         else:
             tracking_line_result = actual_serial_model.sudo().search([("id", "=", actual_pallet_tracking_id), ("actual_pallet_product_id", "=", product_line.id)], limit=1)
             if operation == "delete_tracking" and not tracking_line_result:
-                return self.build_actual_pallet_binding_result("error", _("Edit"), _("Lot or serial number was not found on the selected product."), inbound_order=inbound_order, actual_pallet_id=actual_pallet.id, product_id=product.id, action_name="delete_tracking", success=False, next_step="scan_product")
+                next_step = "scan_ibs_product_sn" if inbound_order.project.name == "IBS" else "scan_product"
+                return self.build_actual_pallet_binding_result("error", _("Edit"), _("Lot or serial number was not found on the selected product."), inbound_order=inbound_order, actual_pallet_id=actual_pallet.id, product_id=product.id, action_name="delete_tracking", success=False, next_step=next_step)
             if operation == "update_quantity" and product.tracking == "serial":
                 return self.build_actual_pallet_binding_result("error", _("Edit"), _("Serial number quantities cannot be changed. Delete the serial number and scan it again."), inbound_order=inbound_order, actual_pallet_id=actual_pallet.id, product_id=product.id, action_name="update_quantity", success=False, next_step="scan_product")
             if operation == "update_quantity" and product.tracking == "lot" and not tracking_line_result:
@@ -920,4 +981,5 @@ class StockBarcodeLiteScanService(models.AbstractModel):
                 else:
                     product_line.write({"quantity": quantity})
                 message = _("Quantity for %s was updated.") % product.display_name
-        return self.build_actual_pallet_binding_result("edit", _("Edit"), message, inbound_order=inbound_order, actual_pallet_id=actual_pallet.id, product_id=product.id, action_name=operation, next_step=self.get_actual_pallet_binding_completion_step(inbound_order))
+        next_step = "scan_ibs_product_sn" if inbound_order.project.name == "IBS" and operation in ("delete_product", "delete_tracking") else self.get_actual_pallet_binding_completion_step(inbound_order)
+        return self.build_actual_pallet_binding_result("edit", _("Edit"), message, inbound_order=inbound_order, actual_pallet_id=actual_pallet.id, product_id=product.id, action_name=operation, next_step=next_step)
