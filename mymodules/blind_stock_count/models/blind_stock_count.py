@@ -273,16 +273,33 @@ class BlindStockCount(models.Model):
         return [{"id": rec.id, "name": rec.name, "date": rec.date, "work_package_name": rec.work_package_id.display_name, "location_id": rec.location_id.id, "location_name": rec.location_id.display_name, "recount_round": rec.recount_round, "recounted_from_name": rec.recounted_from_id.name or "", "is_replaced": rec.is_replaced, "state": rec.state} for rec in counts]
 
     @api.model
-    def action_scan_location(self, work_package_id, barcode):
+    def search_pda_locations(self, work_package_id, search_term="", exact_match=False):
+        work_package = self.env["blind.stock.count.work.package"].sudo().search([("id", "=", work_package_id)], limit=1)
+        if not work_package or not work_package.category_id:
+            raise UserError(_("Please select a work package with a product category."))
+        if work_package.state != "in_progress":
+            raise UserError(_("The work package is not active."))
+        search_term = (search_term or "").strip()
+        domain = [("usage", "=", "internal")]
+        if work_package.location_line_ids:
+            domain.append(("id", "in", work_package.location_line_ids.ids))
+        if search_term:
+            operator = "=" if exact_match else "ilike"
+            domain.extend(["|", "|", ("barcode", operator, search_term), ("complete_name", operator, search_term), ("name", operator, search_term)])
+        locations = self.env["stock.location"].sudo().search(domain, order="complete_name, id", limit=2 if exact_match else 20)
+        return [{"id": rec.id, "name": rec.display_name, "barcode": rec.barcode or ""} for rec in locations]
+
+    @api.model
+    def action_scan_location(self, work_package_id, barcode, location_id=False):
         work_package = self.env["blind.stock.count.work.package"].sudo().search([("id", "=", work_package_id)], limit=1)
         if not work_package or not work_package.category_id:
             raise UserError(_("Please select a work package with a product category."))
         if work_package.state != "in_progress":
             raise UserError(_("The work package is not active."))
         barcode = (barcode or "").strip()
-        if not barcode:
+        locations = self.env["stock.location"].sudo().search([("usage", "=", "internal"), ("id", "=", location_id)], limit=1) if location_id else self.env["stock.location"].sudo().search([("usage", "=", "internal"), "|", "|", ("barcode", "=", barcode), ("complete_name", "=", barcode), ("name", "=", barcode)], limit=2)
+        if not location_id and not barcode:
             raise UserError(_("Please scan an internal location."))
-        locations = self.env["stock.location"].sudo().search([("usage", "=", "internal"), "|", "|", ("barcode", "=", barcode), ("complete_name", "=", barcode), ("name", "=", barcode)], limit=2)
         if not locations:
             raise UserError(_("No internal location matches this barcode."))
         if len(locations) > 1:
