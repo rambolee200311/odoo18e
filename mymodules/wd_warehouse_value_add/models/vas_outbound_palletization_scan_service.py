@@ -64,12 +64,12 @@ class WarehouseValueAddScanService(models.AbstractModel):
         transport_pallets = {}
         assigned_quantity = 0.0
         for package in palletization.transport_pallet_ids.sorted('id'):
-            transport_pallets[package.id] = {'id': package.id, 'name': package.display_name, 'barcode': package.barcode, 'product_lines': {}}
+            transport_pallets[package.id] = {'id': package.id, 'name': package.display_name, 'barcode': package.barcode, 'is_transport_pallet': True, 'product_lines': {}}
         for allocation in palletization.palletization_lines.sorted('id'):
             destination = allocation.destination_package_id
-            pallet_data = transport_pallets.setdefault(destination.id, {'id': destination.id, 'name': destination.display_name, 'barcode': destination.barcode, 'product_lines': {}})
+            pallet_data = transport_pallets.setdefault(destination.id, {'id': destination.id, 'name': destination.display_name, 'barcode': destination.barcode, 'is_transport_pallet': destination.vas_outbound_palletization_id == palletization, 'product_lines': {}})
             product_data = pallet_data['product_lines'].setdefault(allocation.product_id.id, {'product_id': allocation.product_id.id, 'product_name': allocation.product_id.display_name, 'product_barcode': allocation.product_id.barcode, 'tracking': allocation.product_id.tracking, 'quantity': 0.0, 'source_allocation_lines': [], 'tracking_lines': []})
-            allocation_data = {'id': allocation.id, 'source_package_id': allocation.source_package_id.id, 'source_pallet_name': allocation.source_package_id.display_name, 'source_barcode': allocation.source_package_id.barcode, 'lot_id': allocation.lot_id.id, 'lot_name': allocation.lot_id.name or '', 'quantity': allocation.quantity}
+            allocation_data = {'id': allocation.id, 'source_package_id': allocation.source_package_id.id, 'source_pallet_name': allocation.source_package_id.display_name, 'source_barcode': allocation.source_package_id.barcode, 'lot_id': allocation.lot_id.id, 'lot_name': allocation.lot_id.name or '', 'quantity': allocation.quantity, 'handling_type': allocation.handling_type}
             product_data['quantity'] += allocation.quantity
             product_data['source_allocation_lines'].append(allocation_data)
             if allocation.product_id.tracking in ('lot', 'serial'):

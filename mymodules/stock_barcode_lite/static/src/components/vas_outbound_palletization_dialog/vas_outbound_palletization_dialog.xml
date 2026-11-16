@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="wd_warehouse_value_add.VasOutboundPalletizationDialog">
+        <div class="o_wd_vas_palletization-dialog-host">
+            <input t-ref="palletizationBarcodeInput" type="text" class="o_hidden_barcode_input"
+                   autocomplete="off" autocorrect="off" autocapitalize="off"
+                   spellcheck="false" inputmode="none"
+                   t-att-disabled="state.busy || !state.palletizationModalOpen || !isPalletizationBarcodeStep"/>
+            <div t-if="state.createPalletModalOpen" class="o_wd_vas_modal-backdrop">
+                <div class="o_wd_vas_line-modal" role="dialog" aria-modal="true">
+                    <div class="o_wd_vas_modal-header">
+                        <strong>Create Transport Pallets</strong>
+                        <button class="btn btn-link" type="button"
+                                t-att-disabled="state.busy" t-on-click="closeDialog">×</button>
+                    </div>
+                    <div class="o_wd_vas_modal-body">
+                        <label for="vas-transport-pallet-count">Transport Pallet Quantity</label>
+                        <input id="vas-transport-pallet-count" class="form-control" type="number"
+                               min="1" step="1" t-model.number="state.palletCount"
+                               t-att-disabled="state.busy"/>
+                        <small>After creation, the palletization state and destination pallet list will be refreshed.</small>
+                    </div>
+                    <div class="o_wd_vas_modal-actions">
+                        <button class="btn o_wd_vas_outline-btn" type="button"
+                                t-att-disabled="state.busy" t-on-click="closeDialog">Cancel</button>
+                        <button class="btn o_wd_vas_primary-btn" type="button"
+                                t-att-disabled="state.busy" t-on-click="confirmCreateTransportPallets">Create</button>
+                    </div>
+                </div>
+            </div>
+            <div t-if="state.palletizationModalOpen" class="o_wd_vas_modal-backdrop">
+                <div class="o_wd_vas_palletization-modal" role="dialog" aria-modal="true">
+                    <div class="o_wd_vas_modal-header">
+                        <div>
+                            <strong>Outbound Palletization</strong>
+                            <small t-if="palletizationScanState.palletization">
+                                <t t-esc="palletizationScanState.palletization.name"/>
+                                · <t t-esc="palletizationScanState.palletization.state"/>
+                            </small>
+                        </div>
+                        <button class="btn btn-link" type="button"
+                                t-att-disabled="state.busy" t-on-click="closeDialog">×</button>
+                    </div>
+                    <div class="o_wd_vas_palletization-modal-body">
+                        <div t-if="state.loading" class="o_wd_vas_palletization-status-message">
+                            Loading palletization data…
+                        </div>
+                        <div t-elif="state.errorMessage" class="o_wd_vas_palletization-status-message is-error">
+                            <t t-esc="state.errorMessage"/>
+                        </div>
+                        <div t-else="" class="o_wd_vas_palletization-content">
+                            <div t-if="state.palletizationResult?.message" class="o_wd_vas_palletization-message">
+                                <t t-esc="state.palletizationResult.message"/>
+                            </div>
+                            <div class="o_wd_vas_palletization-stepper" aria-label="Palletization progress">
+                                <div class="o_wd_vas_palletization-step"
+                                     t-att-class="palletizationStepIndex === 1 ? 'is-current' : palletizationStepIndex &gt; 1 ? 'is-done' : ''">
+                                    <span class="o_wd_vas_palletization-step-marker">
+                                        <t t-if="palletizationStepIndex &gt; 1">✓</t><t t-else="">1</t>
+                                    </span>
+                                    <span>Destination</span>
+                                </div>
+                                <div class="o_wd_vas_palletization-step-line"
+                                     t-att-class="palletizationStepIndex &gt; 1 ? 'is-done' : ''"/>
+                                <div class="o_wd_vas_palletization-step"
+                                     t-att-class="palletizationStepIndex === 2 ? 'is-current' : palletizationStepIndex &gt; 2 ? 'is-done' : ''">
+                                    <span class="o_wd_vas_palletization-step-marker">
+                                        <t t-if="palletizationStepIndex &gt; 2">✓</t><t t-else="">2</t>
+                                    </span>
+                                    <span>Assign</span>
+                                </div>
+                                <div class="o_wd_vas_palletization-step-line"
+                                     t-att-class="palletizationStepIndex &gt; 2 ? 'is-done' : ''"/>
+                                <div class="o_wd_vas_palletization-step"
+                                     t-att-class="palletizationStepIndex === 3 ? 'is-current' : palletizationStepIndex &gt; 3 ? 'is-done' : ''">
+                                    <span class="o_wd_vas_palletization-step-marker">
+                                        <t t-if="palletizationStepIndex &gt; 3">✓</t><t t-else="">3</t>
+                                    </span>
+                                    <span>Review</span>
+                                </div>
+                                <div class="o_wd_vas_palletization-step-line"
+                                     t-att-class="palletizationStepIndex &gt; 3 ? 'is-done' : ''"/>
+                                <div class="o_wd_vas_palletization-step"
+                                     t-att-class="palletizationStepIndex === 4 ? 'is-current' : ''">
+                                    <span class="o_wd_vas_palletization-step-marker">4</span>
+                                    <span>Done</span>
+                                </div>
+                            </div>
+                            <div class="o_wd_vas_palletization-summary">
+                                <div><span>Total</span><strong t-esc="palletizationScanState.summary?.total_quantity || 0"/></div>
+                                <div><span>Assigned</span><strong t-esc="palletizationScanState.summary?.assigned_quantity || 0"/></div>
+                                <div><span>Unassigned</span><strong t-esc="palletizationScanState.summary?.unassigned_quantity || 0"/></div>
+                            </div>
+                            <div class="o_wd_vas_palletization-panels">
+                                <section class="o_wd_vas_palletization-panel">
+                                    <div class="o_wd_vas_palletization-panel-header">
+                                        <h3>Destination Transport Pallets</h3>
+                                        <button t-if="destinationTransportPallets.length"
+                                                class="btn o_wd_vas_unassigned-toggle" type="button"
+                                                t-att-disabled="state.busy"
+                                                t-att-aria-expanded="state.destinationPalletsExpanded"
+                                                aria-controls="vas-pda-destination-pallets"
+                                                t-on-click="toggleDestinationPallets">
+                                            <span t-if="state.destinationPalletsExpanded">Collapse</span>
+                                            <span t-else="">Expand</span>
+                                        </button>
+                                    </div>
+                                    <div t-if="!destinationTransportPallets.length" class="o_wd_vas_palletization-empty">
+                                        Create transport pallets before assigning picked goods.
+                                    </div>
+                                    <div t-else="" id="vas-pda-destination-pallets"
+                                         t-att-class="state.destinationPalletsExpanded ? '' : 'd-none'">
+                                        <button t-foreach="destinationTransportPallets" t-as="pallet"
+                                                t-key="pallet.id" type="button"
+                                                t-att-class="'o_wd_vas_palletization-pallet ' + (palletizationCurrent.destination_package_id === pallet.id ? 'is-current' : '')"
+                                                t-att-disabled="state.busy || palletizationIsValidated || !pallet.barcode"
+                                                t-on-click="selectDestinationPallet.bind(this, pallet)">
+                                            <strong t-esc="pallet.name"/>
+                                            <span>Barcode: <t t-esc="pallet.barcode || '-'"/></span>
+                                        </button>
+                                    </div>
+                                </section>
+                                <section class="o_wd_vas_palletization-panel">
+                                    <div class="o_wd_vas_palletization-unassigned-header">
+                                        <div>
+                                            <h3>Unassigned Picked Goods</h3>
+                                            <div class="o_wd_vas_palletization-unassigned-progress">
+                                                Unassigned quantity:
+                                                <strong t-esc="palletizationScanState.summary?.unassigned_quantity || 0"/>
+                                                /
+                                                <strong t-esc="palletizationScanState.summary?.total_quantity || 0"/>
+                                            </div>
+                                        </div>
+                                        <button t-if="(palletizationScanState.unassigned_lines || []).length"
+                                                class="btn o_wd_vas_unassigned-toggle" type="button"
+                                                t-att-disabled="state.busy"
+                                                t-att-aria-expanded="state.unassignedExpanded"
+                                                aria-controls="vas-pda-unassigned-details"
+                                                t-on-click="toggleUnassignedGoods">
+                                            <span t-if="state.unassignedExpanded">Collapse</span>
+                                            <span t-else="">Expand</span>
+                                        </button>
+                                    </div>
+                                    <div t-if="!(palletizationScanState.unassigned_lines || []).length" class="o_wd_vas_palletization-empty">
+                                        All picked quantities are assigned.
+                                    </div>
+                                    <div t-if="(palletizationScanState.unassigned_lines || []).length"
+                                         id="vas-pda-unassigned-details"
+                                         t-att-class="state.unassignedExpanded ? '' : 'd-none'">
+                                        <div t-foreach="palletizationScanState.unassigned_lines || []" t-as="unassigned"
+                                             t-key="unassigned.id" class="o_wd_vas_palletization-unassigned">
+                                            <strong t-esc="unassigned.product_name"/>
+                                            <span>Source: <t t-esc="unassigned.source_barcode || '-'"/></span>
+                                            <span>Lot/SN: <t t-esc="unassigned.lot || '-'"/></span>
+                                            <span>Remaining: <t t-esc="unassigned.quantity"/></span>
+                                        </div>
+                                    </div>
+                                </section>
+                            </div>
+                            <section class="o_wd_vas_palletization-scan">
+                                <strong t-esc="palletizationPrompt"/>
+                                <div t-if="palletizationCurrent.destination_package_id" class="text-muted">
+                                    Current destination:
+                                    <t t-esc="palletizationScanState.current_destination_pallet?.name || palletizationCurrent.destination_package_id"/>
+                                </div>
+                                <div t-if="palletizationCurrent.source_package_id" class="text-muted">
+                                    Current source:
+                                    <t t-esc="palletizationScanState.current_source_pallet?.name || palletizationCurrent.source_package_id"/>
+                                </div>
+                                <div t-if="palletizationNextStep === 'choose_whole_handling'" class="o_wd_vas_palletization-whole-actions">
+                                    <button class="btn o_wd_vas_outline-btn" type="button"
+                                            t-att-disabled="state.busy" t-on-click="handleWholePallet.bind(this, 'direct_outbound')">
+                                        Whole Pallet Direct Outbound
+                                    </button>
+                                    <button class="btn o_wd_vas_primary-btn" type="button"
+                                            t-att-disabled="state.busy" t-on-click="handleWholePallet.bind(this, 'palletize')">
+                                        Assign Whole Pallet to Destination
+                                    </button>
+                                </div>
+                                <div t-elif="isPalletizationQuantityStep" class="input-group">
+                                    <input class="form-control o_wd_vas_palletization-quantity-input" type="number"
+                                           min="0.000001" step="any" t-model="state.palletizationInput"
+                                           t-att-disabled="state.busy"
+                                           t-att-placeholder="palletizationPrompt"
+                                           t-on-keydown="onPalletizationInputKeydown"/>
+                                    <button class="btn o_wd_vas_primary-btn" type="button"
+                                            t-att-disabled="state.busy"
+                                            t-on-click="submitPalletizationInput">Scan / Confirm</button>
+                                </div>
+                                <div t-elif="isPalletizationBarcodeStep" class="o_wd_vas_palletization-scanner-ready">
+                                    <i class="fa fa-qrcode" aria-hidden="true"/>
+                                    <span>Ready for PDA scanner. Scan the barcode with the device trigger.</span>
+                                </div>
+                                <div t-else="" class="o_wd_vas_palletization-scanner-ready">
+                                    <i class="fa fa-check-circle" aria-hidden="true"/>
+                                    <span t-esc="palletizationPrompt"/>
+                                </div>
+                            </section>
+                            <section class="o_wd_vas_palletization-allocations">
+                                <h3>Current Allocations</h3>
+                                <div t-if="!hasPalletizationAllocations" class="o_wd_vas_palletization-empty">
+                                    No goods have been assigned yet.
+                                </div>
+                                <article t-foreach="allocatedTransportPallets" t-as="pallet"
+                                         t-key="'alloc-' + pallet.id" class="o_wd_vas_pallet-card">
+                                    <div class="o_wd_vas_pallet-card-heading">
+                                        <strong t-esc="pallet.name"/>
+                                        <span t-if="pallet.is_transport_pallet" class="o_wd_vas_pallet-type-badge">New destination pallet</span>
+                                        <span t-else="" class="o_wd_vas_pallet-type-badge is-direct-outbound">Whole pallet direct outbound</span>
+                                    </div>
+                                    <div t-foreach="pallet.product_lines || []" t-as="productLine"
+                                         t-key="pallet.id + '-' + productLine.product_id" class="o_wd_vas_pallet-product">
+                                        <div class="o_wd_vas_pallet-product-heading">
+                                            <strong t-esc="productLine.product_name"/>
+                                            <span>Qty: <t t-esc="productLine.quantity"/></span>
+                                        </div>
+                                        <div t-foreach="productLine.source_allocation_lines || []" t-as="allocation"
+                                             t-key="allocation.id" class="o_wd_vas_pallet-allocation">
+                                            <div>
+                                                <span>Source: <t t-esc="allocation.source_pallet_name || allocation.source_barcode || '-'"/></span>
+                                                <span>Lot/SN: <t t-esc="allocation.lot_name || '-'"/></span>
+                                                <span>Qty: <t t-esc="allocation.quantity"/></span>
+                                            </div>
+                                            <div t-if="allocation.handling_type !== 'direct_outbound' &amp;&amp; state.palletizationEditLineId === allocation.id" class="o_wd_vas_pallet-allocation-edit">
+                                                <input class="form-control" type="number" min="0.000001" step="any"
+                                                       t-model.number="state.palletizationEditQuantity"
+                                                       t-att-disabled="state.busy"/>
+                                                <button class="btn btn-sm o_wd_vas_primary-btn" type="button"
+                                                        t-att-disabled="state.busy"
+                                                        t-on-click="saveAllocationEdit.bind(this, pallet, allocation)">Save</button>
+                                                <button class="btn btn-sm o_wd_vas_outline-btn" type="button"
+                                                        t-att-disabled="state.busy" t-on-click="cancelAllocationEdit">Cancel</button>
+                                            </div>
+                                            <div t-elif="allocation.handling_type !== 'direct_outbound'" class="o_wd_vas_pallet-allocation-actions">
+                                                <button class="btn btn-sm o_wd_vas_outline-btn" type="button"
+                                                        t-att-disabled="state.busy || palletizationIsValidated"
+                                                        t-on-click="startAllocationEdit.bind(this, allocation)">Edit Quantity</button>
+                                                <button class="btn btn-sm o_wd_vas_delete" type="button"
+                                                        t-att-disabled="state.busy || palletizationIsValidated"
+                                                        t-on-click="removeAllocation.bind(this, pallet, allocation)">Remove</button>
+                                            </div>
+                                            <small t-if="allocation.handling_type === 'direct_outbound'" class="text-muted">
+                                                Direct outbound pallets are kept whole; quantity changes and removal are not available here.
+                                            </small>
+                                        </div>
+                                    </div>
+                                </article>
+                            </section>
+                        </div>
+                    </div>
+                    <div class="o_wd_vas_modal-actions">
+                        <button class="btn o_wd_vas_outline-btn" type="button"
+                                t-att-disabled="state.busy" t-on-click="closeDialog">Close</button>
+                        <button t-if="palletizationScanState.palletization &amp;&amp; !palletizationIsValidated"
+                                class="btn o_wd_vas_primary-btn" type="button"
+                                t-att-disabled="state.busy" t-on-click="validatePalletization">Validate Palletization</button>
+                        <span t-elif="palletizationIsValidated" class="text-success fw-bold">Validated</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

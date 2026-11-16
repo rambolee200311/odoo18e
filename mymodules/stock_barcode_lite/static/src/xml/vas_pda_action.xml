@@ -59,11 +59,11 @@
                 </div>
                 <div t-if="hasOutboundPalletization &amp;&amp; isOutboundOrder" class="o_wd_vas_palletization-actions mt-2">
                     <button class="btn o_wd_vas_outline-btn" type="button"
-                            t-att-disabled="state.busy || !state.order" t-on-click="openTransportPalletCreateWizard">Create Transport Pallets</button>
+                            t-att-disabled="state.busy || !state.order" t-on-click="openPalletizationDialog.bind(this, 'create')">Create Transport Pallets</button>
                     <button class="btn o_wd_vas_outline-btn" type="button"
                             t-att-disabled="state.busy || !state.order" t-on-click="printTransportPalletLabels">Print Transport Pallet Labels</button>
                     <button class="btn o_wd_vas_primary-btn" type="button"
-                            t-att-disabled="state.busy || !state.order" t-on-click="startOutboundPalletization">Enter Palletization</button>
+                            t-att-disabled="state.busy || !state.order" t-on-click="openPalletizationDialog.bind(this, 'manage')">Enter Palletization</button>
                 </div>
                 <div t-if="state.warehouseOrder" class="o_wd_vas_resolved">
                     <span>✓</span> Resolved: <t t-esc="state.warehouseOrder.billno"/>
@@ -179,6 +179,13 @@
                         type="button" t-att-disabled="state.busy" t-on-click="openCancelModal">Cancel</button>
                 <span t-if="!isDraft" class="text-muted">Read-Only</span>
             </footer>
+            <VasOutboundPalletizationDialog
+                t-if="state.palletizationDialogMode"
+                mode="state.palletizationDialogMode"
+                orderId="state.order.id"
+                onClose.bind="closePalletizationDialog"
+                onOrderUpdated.bind="reloadOrder"
+            />
             <div t-if="state.lineModalOpen" class="o_wd_vas_modal-backdrop">
                 <div class="o_wd_vas_line-modal" role="dialog" aria-modal="true">
                     <div class="o_wd_vas_modal-header">

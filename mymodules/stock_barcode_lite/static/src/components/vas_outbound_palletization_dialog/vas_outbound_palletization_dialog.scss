@@ -1,0 +1,364 @@
+.o_wd_vas_palletization-dialog-host {
+    display: contents;
+
+    .o_wd_vas_palletization-modal {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        max-width: 1040px;
+        max-height: calc(100vh - 40px);
+        background: #fff;
+        border-radius: 6px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+
+        .o_wd_vas_modal-header small {
+            display: block;
+            margin-top: 3px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 11px;
+        }
+
+        .o_wd_vas_modal-actions {
+            flex-shrink: 0;
+        }
+    }
+
+    .o_wd_vas_palletization-modal-body {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .o_wd_vas_palletization-message {
+        padding: 8px 10px;
+        color: #444;
+        background: #f4f2f8;
+        border-left: 3px solid #71639e;
+        font-size: 12px;
+    }
+
+    .o_wd_vas_palletization-stepper {
+        display: flex;
+        align-items: flex-start;
+        gap: 4px;
+        padding: 2px 0;
+    }
+
+    .o_wd_vas_palletization-step {
+        display: flex;
+        flex: 1 1 0;
+        min-width: 0;
+        flex-direction: column;
+        align-items: center;
+        gap: 3px;
+        color: #888;
+        font-size: 9px;
+        line-height: 1.1;
+        text-align: center;
+
+        &.is-current {
+            color: #514678;
+            font-weight: 700;
+        }
+
+        &.is-done {
+            color: #477c50;
+        }
+    }
+
+    .o_wd_vas_palletization-step-marker {
+        display: flex;
+        width: 22px;
+        height: 22px;
+        flex: 0 0 22px;
+        align-items: center;
+        justify-content: center;
+        color: #777;
+        background: #f2f2f2;
+        border: 1px solid #ccc;
+        border-radius: 50%;
+        font-size: 10px;
+        line-height: 1;
+
+        .is-current & {
+            color: #fff;
+            background: #71639e;
+            border-color: #71639e;
+        }
+
+        .is-done & {
+            color: #fff;
+            background: #5b9665;
+            border-color: #5b9665;
+        }
+    }
+
+    .o_wd_vas_palletization-step-line {
+        width: 100%;
+        height: 2px;
+        flex: 0.55 1 0;
+        margin-top: 10px;
+        background: #ddd;
+
+        &.is-done {
+            background: #78a981;
+        }
+    }
+
+    .o_wd_vas_palletization-summary {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+
+        > div {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 8px 10px;
+            background: #f7f7f7;
+            border: 1px solid #e2e2e2;
+            font-size: 12px;
+        }
+    }
+
+    .o_wd_vas_palletization-panels {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .o_wd_vas_palletization-panel,
+    .o_wd_vas_palletization-allocations {
+        min-width: 0;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+
+        h3 {
+            margin: 0 0 8px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+    }
+
+    .o_wd_vas_palletization-panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 8px;
+
+        h3 {
+            margin: 0;
+        }
+    }
+
+    .o_wd_vas_palletization-pallet,
+    .o_wd_vas_palletization-unassigned {
+        display: grid;
+        width: 100%;
+        gap: 3px;
+        padding: 8px;
+        margin-top: 6px;
+        color: #444;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 11px;
+        text-align: left;
+
+        span,
+        small {
+            color: #777;
+            font-size: 10px;
+        }
+
+        &.is-current {
+            border-color: #71639e;
+            box-shadow: inset 3px 0 #71639e;
+        }
+    }
+
+    .o_wd_vas_palletization-empty {
+        padding: 12px 6px;
+        color: #888;
+        font-size: 11px;
+        text-align: center;
+    }
+
+    .o_wd_vas_palletization-unassigned-header {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 4px 8px;
+        margin-bottom: 6px;
+
+        h3 {
+            margin: 0;
+        }
+    }
+
+    .o_wd_vas_palletization-unassigned-progress {
+        margin-top: 4px;
+        color: #777;
+        font-size: 11px;
+
+        strong {
+            color: #333;
+        }
+    }
+
+    .o_wd_vas_unassigned-toggle {
+        min-height: 32px;
+        padding: 4px 8px;
+        color: #71639e;
+        border: 1px solid #cfc8e2;
+        white-space: nowrap;
+    }
+
+    .o_wd_vas_palletization-scan {
+        display: grid;
+        gap: 8px;
+        padding: 10px;
+        background: #faf9fc;
+        border: 1px solid #ddd;
+
+        strong {
+            font-size: 13px;
+        }
+    }
+
+    .o_wd_vas_palletization-scanner-ready {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 40px;
+        padding: 8px 10px;
+        color: #5f5a6d;
+        background: #fff;
+        border: 1px dashed #bdb6d2;
+        font-size: 12px;
+
+        .fa {
+            flex: 0 0 auto;
+            color: #71639e;
+            font-size: 18px;
+        }
+    }
+
+    .o_wd_vas_palletization-whole-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+
+        .btn {
+            flex: 1;
+            min-height: 40px;
+        }
+    }
+
+    .o_wd_vas_pallet-card {
+        padding: 8px;
+        margin-top: 8px;
+        background: #fafafa;
+        border: 1px solid #e2e2e2;
+        border-radius: 4px;
+        font-size: 11px;
+    }
+
+    .o_wd_vas_pallet-card-heading {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+    }
+
+    .o_wd_vas_pallet-type-badge {
+        padding: 2px 6px;
+        color: #514678;
+        background: #f0edf7;
+        border-radius: 3px;
+        font-size: 10px;
+        font-weight: 600;
+
+        &.is-direct-outbound {
+            color: #76551c;
+            background: #fff4dc;
+        }
+    }
+
+    .o_wd_vas_pallet-product {
+        padding: 7px 0 0 8px;
+        margin-top: 6px;
+        border-top: 1px solid #e8e8e8;
+    }
+
+    .o_wd_vas_pallet-product-heading,
+    .o_wd_vas_pallet-allocation > div:first-child,
+    .o_wd_vas_pallet-allocation-actions,
+    .o_wd_vas_pallet-allocation-edit {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .o_wd_vas_pallet-product-heading {
+        justify-content: space-between;
+    }
+
+    .o_wd_vas_pallet-allocation {
+        display: grid;
+        gap: 5px;
+        padding: 6px 0 0;
+        color: #666;
+        font-size: 10px;
+
+        .btn {
+            min-height: 28px;
+            padding: 2px 7px;
+            font-size: 10px;
+        }
+    }
+
+    .o_wd_vas_pallet-allocation-edit {
+        input {
+            flex: 1;
+            min-width: 90px;
+            max-width: 150px;
+        }
+    }
+
+
+    .o_wd_vas_palletization-status-message {
+        padding: 16px 10px;
+        color: #666;
+        font-size: 13px;
+        text-align: center;
+
+        &.is-error {
+            color: #b42318;
+        }
+    }
+}
+
+@media (max-width: 720px) {
+    .o_wd_vas_palletization-dialog-host {
+        .o_wd_vas_palletization-modal {
+            max-height: calc(100dvh - 16px);
+            min-height: 0;
+        }
+
+        .o_wd_vas_palletization-panels {
+            grid-template-columns: 1fr;
+        }
+
+        .o_wd_vas_palletization-summary > div {
+            display: grid;
+            gap: 2px;
+            padding: 6px;
+        }
+    }
+}

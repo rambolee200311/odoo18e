@@ -7,6 +7,7 @@ import { useService } from "@web/core/utils/hooks";
 import { user } from "@web/core/user";
 import { standardActionServiceProps } from "@web/webclient/actions/action_service";
 import { ImagePreviewComponent } from "@wd_attachment_preview/components/image_preview_component";
+import { VasOutboundPalletizationDialog } from "@stock_barcode_lite/components/vas_outbound_palletization_dialog/vas_outbound_palletization_dialog";
 
 const WAREHOUSE_MODELS = {
     inbound: "world.depot.inbound.order",
@@ -17,7 +18,7 @@ const WAREHOUSE_MODELS = {
 export class VasPdaAction extends Component {
     static props = { ...standardActionServiceProps };
     static template = "wd_warehouse_value_add.VasPdaAction";
-    static components = { ImagePreviewComponent };
+    static components = { ImagePreviewComponent, VasOutboundPalletizationDialog };
 
     setup() {
         this.orm = useService("orm");
@@ -44,6 +45,7 @@ export class VasPdaAction extends Component {
                 quantityTime: 1,
                 note: "",
             },
+            palletizationDialogMode: null,
             busy: false,
         });
         onWillStart(async () => {
@@ -334,36 +336,15 @@ export class VasPdaAction extends Component {
         }
     }
 
-    async startOutboundPalletization() {
+    openPalletizationDialog(mode) {
         if (!this.state.order || !this.hasOutboundPalletization || !this.isOutboundOrder || this.state.busy) {
             return;
         }
-        this.state.busy = true;
-        try {
-            const result = await this.orm.call("wd.vas.order", "action_start_outbound_palletization", [[this.state.order.id]]);
-            this.notification.add(_t("Palletization is ready: ") + result.palletization_id, { type: "success" });
-            await this.reloadOrder();
-        } catch (error) {
-            this.notification.add(error.data?.arguments?.[0] || error.message || _t("Palletization could not be started."), { type: "danger" });
-        } finally {
-            this.state.busy = false;
-        }
+        this.state.palletizationDialogMode = mode;
     }
 
-    async openTransportPalletCreateWizard() {
-        if (!this.state.order || !this.hasOutboundPalletization || !this.isOutboundOrder || this.state.busy) {
-            return;
-        }
-        this.state.busy = true;
-        try {
-            const action = await this.orm.call("wd.vas.order", "action_open_transport_pallet_create_wizard", [[this.state.order.id]]);
-            await this.action.doAction(action);
-            await this.reloadOrder();
-        } catch (error) {
-            this.notification.add(error.data?.arguments?.[0] || error.message || _t("Transport pallets could not be created."), { type: "danger" });
-        } finally {
-            this.state.busy = false;
-        }
+    closePalletizationDialog() {
+        this.state.palletizationDialogMode = null;
     }
 
     async printTransportPalletLabels() {
@@ -441,6 +422,7 @@ export class VasPdaAction extends Component {
         this.state.attachmentName = "";
         this.state.cancelModalOpen = false;
         this.state.cancelReason = "";
+        this.state.palletizationDialogMode = null;
     }
 
     openCancelModal() {

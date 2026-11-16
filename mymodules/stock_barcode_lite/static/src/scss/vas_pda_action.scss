@@ -430,6 +430,12 @@
         border-bottom: 1px solid #ddd;
     }
 
+    @media (max-width: 720px) {
+        .o_wd_vas_modal-backdrop {
+            padding: 8px;
+        }
+    }
+
     .o_wd_vas_modal-header {
         color: #fff;
         background: #71639e;
