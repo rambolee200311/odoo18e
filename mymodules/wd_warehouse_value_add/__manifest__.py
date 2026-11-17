@@ -71,6 +71,9 @@ Business Rules
         'web.assets_backend': [
             'wd_warehouse_value_add/static/src/js/vas_dashboard.js',
             'wd_warehouse_value_add/static/src/xml/vas_dashboard.xml',
+            'wd_warehouse_value_add/static/src/components/vas_outbound_palletization_dialog/vas_outbound_palletization_dialog.js',
+            'wd_warehouse_value_add/static/src/components/vas_outbound_palletization_dialog/vas_outbound_palletization_dialog.xml',
+            'wd_warehouse_value_add/static/src/components/vas_outbound_palletization_dialog/vas_outbound_palletization_dialog.scss',
         ],
     },
 

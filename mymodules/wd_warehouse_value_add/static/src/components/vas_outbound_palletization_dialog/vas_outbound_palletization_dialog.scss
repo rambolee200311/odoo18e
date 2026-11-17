@@ -18,6 +18,16 @@
             font-size: 11px;
         }
 
+        .o_wd_vas_palletization-header-copy {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+
+        .o_wd_vas_palletization-current-context {
+            overflow-wrap: anywhere;
+            line-height: 1.2;
+        }
+
         .o_wd_vas_modal-actions {
             flex-shrink: 0;
         }
@@ -36,6 +46,24 @@
         background: #f4f2f8;
         border-left: 3px solid #71639e;
         font-size: 12px;
+
+        &.is-error {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 8px;
+            color: #842029;
+            background: #f8d7da;
+            border-left-color: #dc3545;
+
+            .btn {
+                flex: 0 0 auto;
+                padding: 0 4px;
+                color: inherit;
+                line-height: 1;
+                text-decoration: none;
+            }
+        }
     }
 
     .o_wd_vas_palletization-stepper {
@@ -320,6 +348,25 @@
             min-height: 28px;
             padding: 2px 7px;
             font-size: 10px;
+        }
+
+        .o_wd_vas_delete {
+            padding: 2px 8px;
+            color: #c0392b;
+            background: #fff;
+            border: 1px solid #c0392b;
+            border-radius: 4px;
+
+            &:hover:not(:disabled) {
+                color: #fff;
+                background: #c0392b;
+                border-color: #c0392b;
+            }
+
+            &:focus-visible {
+                outline: 2px solid rgba(192, 57, 43, 0.3);
+                outline-offset: 2px;
+            }
         }
     }
 

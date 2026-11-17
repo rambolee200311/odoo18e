@@ -5,7 +5,7 @@
             <input t-ref="palletizationBarcodeInput" type="text" class="o_hidden_barcode_input"
                    autocomplete="off" autocorrect="off" autocapitalize="off"
                    spellcheck="false" inputmode="none"
-                   t-att-disabled="state.busy || !state.palletizationModalOpen || !isPalletizationBarcodeStep"/>
+                   t-att-disabled="!state.palletizationModalOpen || !isPalletizationBarcodeStep"/>
             <div t-if="state.createPalletModalOpen" class="o_wd_vas_modal-backdrop">
                 <div class="o_wd_vas_line-modal" role="dialog" aria-modal="true">
                     <div class="o_wd_vas_modal-header">
@@ -31,11 +31,21 @@
             <div t-if="state.palletizationModalOpen" class="o_wd_vas_modal-backdrop">
                 <div class="o_wd_vas_palletization-modal" role="dialog" aria-modal="true">
                     <div class="o_wd_vas_modal-header">
-                        <div>
+                        <div class="o_wd_vas_palletization-header-copy">
                             <strong>Outbound Palletization</strong>
                             <small t-if="palletizationScanState.palletization">
                                 <t t-esc="palletizationScanState.palletization.name"/>
                                 · <t t-esc="palletizationScanState.palletization.state"/>
+                            </small>
+                            <small t-if="palletizationCurrent.destination_package_id || palletizationCurrent.source_package_id"
+                                   class="o_wd_vas_palletization-current-context">
+                                <span t-if="palletizationCurrent.destination_package_id">
+                                    Destination: <t t-esc="palletizationScanState.current_destination_pallet?.name || palletizationCurrent.destination_package_id"/>
+                                </span>
+                                <span t-if="palletizationCurrent.destination_package_id &amp;&amp; palletizationCurrent.source_package_id"> · </span>
+                                <span t-if="palletizationCurrent.source_package_id">
+                                    Source: <t t-esc="palletizationScanState.current_source_pallet?.name || palletizationCurrent.source_package_id"/>
+                                </span>
                             </small>
                         </div>
                         <button class="btn btn-link" type="button"
@@ -49,7 +59,12 @@
                             <t t-esc="state.errorMessage"/>
                         </div>
                         <div t-else="" class="o_wd_vas_palletization-content">
-                            <div t-if="state.palletizationResult?.message" class="o_wd_vas_palletization-message">
+                            <div t-if="state.scanErrorMessage" class="o_wd_vas_palletization-message is-error" role="alert">
+                                <span t-esc="state.scanErrorMessage"/>
+                                <button class="btn btn-link" type="button" aria-label="Dismiss warning"
+                                        t-on-click="dismissScanError">×</button>
+                            </div>
+                            <div t-elif="state.palletizationResult?.success &amp;&amp; state.palletizationResult?.message" class="o_wd_vas_palletization-message">
                                 <t t-esc="state.palletizationResult.message"/>
                             </div>
                             <div class="o_wd_vas_palletization-stepper" aria-label="Palletization progress">
@@ -91,6 +106,35 @@
                                 <div><span>Assigned</span><strong t-esc="palletizationScanState.summary?.assigned_quantity || 0"/></div>
                                 <div><span>Unassigned</span><strong t-esc="palletizationScanState.summary?.unassigned_quantity || 0"/></div>
                             </div>
+
+                            <section class="o_wd_vas_palletization-scan">
+                                <strong t-esc="palletizationPrompt"/>
+                                <div t-if="palletizationNextStep === 'choose_whole_handling'" class="o_wd_vas_palletization-whole-actions">
+                                    <button class="btn o_wd_vas_outline-btn" type="button"
+                                            t-att-disabled="state.busy" t-on-click="handleWholePallet.bind(this, 'direct_outbound')">
+                                        Whole Pallet Direct Outbound
+                                    </button>
+                                    <button class="btn o_wd_vas_primary-btn" type="button"
+                                            t-att-disabled="state.busy" t-on-click="handleWholePallet.bind(this, 'palletize')">
+                                        Assign Whole Pallet to Destination
+                                    </button>
+                                </div>
+                                <div t-elif="isPalletizationQuantityStep" class="input-group">
+                                    <input class="form-control o_wd_vas_palletization-quantity-input" type="number"
+                                           min="0.000001" step="any" t-model="state.palletizationInput"
+                                           t-att-disabled="state.busy"
+                                           t-att-placeholder="palletizationPrompt"
+                                           t-on-keydown="onPalletizationInputKeydown"/>
+                                    <button class="btn o_wd_vas_primary-btn" type="button"
+                                            t-att-disabled="state.busy"
+                                            t-on-click="submitPalletizationInput">Scan / Confirm</button>
+                                </div>
+                                <div t-elif="isPalletizationBarcodeStep &amp;&amp; state.busy"
+                                     class="o_wd_vas_palletization-scanner-ready" role="status">
+                                    <i class="fa fa-spinner fa-spin" aria-hidden="true"/>
+                                    <span>Processing the previous action. Completed scans will be queued.</span>
+                                </div>
+                            </section>
                             <div class="o_wd_vas_palletization-panels">
                                 <section class="o_wd_vas_palletization-panel">
                                     <div class="o_wd_vas_palletization-panel-header">
@@ -157,45 +201,6 @@
                                     </div>
                                 </section>
                             </div>
-                            <section class="o_wd_vas_palletization-scan">
-                                <strong t-esc="palletizationPrompt"/>
-                                <div t-if="palletizationCurrent.destination_package_id" class="text-muted">
-                                    Current destination:
-                                    <t t-esc="palletizationScanState.current_destination_pallet?.name || palletizationCurrent.destination_package_id"/>
-                                </div>
-                                <div t-if="palletizationCurrent.source_package_id" class="text-muted">
-                                    Current source:
-                                    <t t-esc="palletizationScanState.current_source_pallet?.name || palletizationCurrent.source_package_id"/>
-                                </div>
-                                <div t-if="palletizationNextStep === 'choose_whole_handling'" class="o_wd_vas_palletization-whole-actions">
-                                    <button class="btn o_wd_vas_outline-btn" type="button"
-                                            t-att-disabled="state.busy" t-on-click="handleWholePallet.bind(this, 'direct_outbound')">
-                                        Whole Pallet Direct Outbound
-                                    </button>
-                                    <button class="btn o_wd_vas_primary-btn" type="button"
-                                            t-att-disabled="state.busy" t-on-click="handleWholePallet.bind(this, 'palletize')">
-                                        Assign Whole Pallet to Destination
-                                    </button>
-                                </div>
-                                <div t-elif="isPalletizationQuantityStep" class="input-group">
-                                    <input class="form-control o_wd_vas_palletization-quantity-input" type="number"
-                                           min="0.000001" step="any" t-model="state.palletizationInput"
-                                           t-att-disabled="state.busy"
-                                           t-att-placeholder="palletizationPrompt"
-                                           t-on-keydown="onPalletizationInputKeydown"/>
-                                    <button class="btn o_wd_vas_primary-btn" type="button"
-                                            t-att-disabled="state.busy"
-                                            t-on-click="submitPalletizationInput">Scan / Confirm</button>
-                                </div>
-                                <div t-elif="isPalletizationBarcodeStep" class="o_wd_vas_palletization-scanner-ready">
-                                    <i class="fa fa-qrcode" aria-hidden="true"/>
-                                    <span>Ready for PDA scanner. Scan the barcode with the device trigger.</span>
-                                </div>
-                                <div t-else="" class="o_wd_vas_palletization-scanner-ready">
-                                    <i class="fa fa-check-circle" aria-hidden="true"/>
-                                    <span t-esc="palletizationPrompt"/>
-                                </div>
-                            </section>
                             <section class="o_wd_vas_palletization-allocations">
                                 <h3>Current Allocations</h3>
                                 <div t-if="!hasPalletizationAllocations" class="o_wd_vas_palletization-empty">
@@ -221,20 +226,20 @@
                                                 <span>Lot/SN: <t t-esc="allocation.lot_name || '-'"/></span>
                                                 <span>Qty: <t t-esc="allocation.quantity"/></span>
                                             </div>
-                                            <div t-if="allocation.handling_type !== 'direct_outbound' &amp;&amp; state.palletizationEditLineId === allocation.id" class="o_wd_vas_pallet-allocation-edit">
-                                                <input class="form-control" type="number" min="0.000001" step="any"
+                                            <div t-if="allocation.handling_type !== 'direct_outbound' &amp;&amp; productLine.tracking !== 'serial' &amp;&amp; state.palletizationEditLineId === allocation.id" class="o_wd_vas_pallet-allocation-edit">
+                                                <input class="form-control o_wd_vas_pallet-allocation-edit-input" type="number" min="0.000001" step="any"
                                                        t-model.number="state.palletizationEditQuantity"
                                                        t-att-disabled="state.busy"/>
                                                 <button class="btn btn-sm o_wd_vas_primary-btn" type="button"
                                                         t-att-disabled="state.busy"
-                                                        t-on-click="saveAllocationEdit.bind(this, pallet, allocation)">Save</button>
+                                                        t-on-click="saveAllocationEdit.bind(this, pallet, allocation, productLine.tracking)">Save</button>
                                                 <button class="btn btn-sm o_wd_vas_outline-btn" type="button"
                                                         t-att-disabled="state.busy" t-on-click="cancelAllocationEdit">Cancel</button>
                                             </div>
                                             <div t-elif="allocation.handling_type !== 'direct_outbound'" class="o_wd_vas_pallet-allocation-actions">
-                                                <button class="btn btn-sm o_wd_vas_outline-btn" type="button"
+                                                <button t-if="productLine.tracking !== 'serial'" class="btn btn-sm o_wd_vas_outline-btn" type="button"
                                                         t-att-disabled="state.busy || palletizationIsValidated"
-                                                        t-on-click="startAllocationEdit.bind(this, allocation)">Edit Quantity</button>
+                                                        t-on-click="startAllocationEdit.bind(this, allocation, productLine.tracking)">Edit Quantity</button>
                                                 <button class="btn btn-sm o_wd_vas_delete" type="button"
                                                         t-att-disabled="state.busy || palletizationIsValidated"
                                                         t-on-click="removeAllocation.bind(this, pallet, allocation)">Remove</button>

@@ -7,7 +7,7 @@ import { useService } from "@web/core/utils/hooks";
 import { user } from "@web/core/user";
 import { standardActionServiceProps } from "@web/webclient/actions/action_service";
 import { ImagePreviewComponent } from "@wd_attachment_preview/components/image_preview_component";
-import { VasOutboundPalletizationDialog } from "@stock_barcode_lite/components/vas_outbound_palletization_dialog/vas_outbound_palletization_dialog";
+import { VasOutboundPalletizationDialog } from "@wd_warehouse_value_add/components/vas_outbound_palletization_dialog/vas_outbound_palletization_dialog";
 
 const WAREHOUSE_MODELS = {
     inbound: "world.depot.inbound.order",
