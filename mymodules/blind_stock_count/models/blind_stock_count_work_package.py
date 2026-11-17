@@ -16,6 +16,7 @@ class BlindStockCountWorkPackage(models.Model):
     date = fields.Datetime(string="Work Package Date", required=True, default=fields.Datetime.now, copy=False, tracking=True)
     category_id = fields.Many2one("product.category", string="Product Category", required=True, copy=False, index=True,tracking=True)
     owner_id = fields.Many2one("res.partner", string="Owner", compute="compute_owner_id", readonly=True)
+    is_supplementary_count = fields.Boolean(string="Supplementary Count", default=False, copy=False, tracking=True)
     state = fields.Selection([("draft", "Draft"), ("in_progress", "In Progress"), ("done", "Done"), ("cancel", "Cancelled")], string="Status", required=True, default="draft", copy=False, index=True, tracking=True)
     location_line_ids = fields.Many2many("stock.location", "blind_stock_count_work_package_location_rel", "work_package_id", "location_id",tracking=True, string="Location Scope", copy=False)
     count_lines = fields.One2many("blind.stock.count", "work_package_id", string="Blind Stock Counts", copy=False)
@@ -68,15 +69,27 @@ class BlindStockCountWorkPackage(models.Model):
         for rec in self:
             if rec.state != "in_progress":
                 raise UserError(_("Only in-progress work packages can be completed."))
-            if not rec.clearance_picking_type_id or rec.clearance_picking_type_id.code != "outgoing":
+            if not rec.is_supplementary_count and (not rec.clearance_picking_type_id or rec.clearance_picking_type_id.code != "outgoing"):
                 raise UserError(_("Select a clearance outbound operation type before completing the work package."))
-            if not rec.clearance_destination_location_id:
+            if not rec.is_supplementary_count and not rec.clearance_destination_location_id:
                 raise UserError(_("Select a clearance destination location before completing the work package."))
             if not rec.receipt_picking_type_id or rec.receipt_picking_type_id.code != "incoming":
                 raise UserError(_("Select a receipt inbound operation type before completing the work package."))
             if not rec.receipt_source_location_id:
                 raise UserError(_("Select a receipt source location before completing the work package."))
             rec.with_context(blind_stock_count_work_package_action=True).write({"state": "done"})
+        return True
+
+    def action_mark_supplementary_count(self):
+        picking_model = self.env["stock.picking"]
+        for rec in self:
+            if rec.state not in ("in_progress", "done"):
+                raise UserError(_("Only in-progress or completed work packages can be marked as supplementary."))
+            if picking_model.sudo().search_count([("blind_stock_count_work_package_id", "=", rec.id), ("is_blind_stock_count_clearance", "=", True), ("state", "!=", "cancel")]):
+                raise UserError(_("A work package with active clearance pickings cannot be marked as supplementary."))
+            if picking_model.sudo().search_count([("blind_stock_count_work_package_id", "=", rec.id), ("is_blind_stock_count_receipt", "=", True), ("state", "!=", "cancel")]):
+                raise UserError(_("A work package with active inbound pickings cannot be marked as supplementary."))
+            rec.with_context(blind_stock_count_supplementary_action=True).write({"is_supplementary_count": True})
         return True
 
     def action_cancel(self):
@@ -91,12 +104,13 @@ class BlindStockCountWorkPackage(models.Model):
 
     def write(self, vals):
         for rec in self:
-            if rec.state in ("done", "cancel"):
+            is_supplementary_action = self.env.context.get("blind_stock_count_supplementary_action") and set(vals) == {"is_supplementary_count"} and vals.get("is_supplementary_count")
+            if rec.state in ("done", "cancel") and not is_supplementary_action:
                 raise UserError(_("Completed or cancelled work packages cannot be changed."))
             if "state" in vals and vals["state"] != rec.state and not self.env.context.get("blind_stock_count_work_package_action"):
                 raise UserError(_("The work package status cannot be changed directly."))
             if rec.state != "draft" and "task_name" in vals:
                 raise UserError(_("The work package name cannot be changed after the work package starts."))
-            if rec.state != "draft" and {"category_id", "location_line_ids"}.intersection(vals):
-                raise UserError(_("Product category and location scope cannot be changed after the work package starts."))
+            if rec.state != "draft" and {"category_id", "location_line_ids", "is_supplementary_count"}.intersection(vals) and not is_supplementary_action:
+                raise UserError(_("Product category, location scope, and supplementary count setting cannot be changed after the work package starts."))
         return super().write(vals)
