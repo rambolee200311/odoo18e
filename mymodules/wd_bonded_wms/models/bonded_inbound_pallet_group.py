@@ -18,11 +18,6 @@ class BondedInboundPalletGroup(models.Model):
         ('pallet_quantity_positive', 'check(pallet_quantity > 0)', 'Pallet quantity must be greater than zero.'),
     ]
 
-    def init(self):
-        super().init()
-        self.env.cr.execute('ALTER TABLE bonded_inbound_pallet_group DROP COLUMN IF EXISTS pallet_number_prefix, DROP COLUMN IF EXISTS pallet_start_number, DROP COLUMN IF EXISTS pallet_number_digits')
-        self.env.cr.execute('ALTER TABLE bonded_inbound_pallet_group DROP CONSTRAINT IF EXISTS bonded_inbound_pallet_group_bonded_inbound_id_fkey, ADD CONSTRAINT bonded_inbound_pallet_group_bonded_inbound_id_fkey FOREIGN KEY (bonded_inbound_id) REFERENCES bonded_inbound (id) ON DELETE CASCADE')
-
     @api.depends('inbound_lines.pallet_no')
     def _compute_name(self):
         for rec in self:
