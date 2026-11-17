@@ -242,6 +242,13 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
                 success=True,
                 next_step="completed",
             )
+        if picking.is_unspecified_pallet_outgoing:
+            picking_completed = self.is_unspecified_pallet_outgoing_complete(picking)
+        else:
+            picking_lines = self.env["stock.move.line"].sudo().search([("picking_id", "=", picking.id), ("package_id", "!=", False), ("quantity", ">", 0)], order="id")
+            picking_completed = self.are_outgoing_lines_completed(picking_lines)
+        if picking_completed:
+            return self.build_outgoing_scan_result("picking", _("Outgoing Picking"), _("All products scanned. Please validate outgoing picking."), barcode=code, picking_id=picking.id, pending_operation=False, action_name="select_completed_outgoing_picking", success=True, next_step="validate")
         return self.build_outgoing_scan_result(
             "picking",
             _("Outgoing Picking"),
