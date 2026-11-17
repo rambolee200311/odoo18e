@@ -26,3 +26,5 @@ from . import outbound_recreate_picking_ready
 from . import inbound_order_recreate
 from . import pda_internal_transfer_setup
 from . import stock_move_line_history_summary
+from . import vas_order
+from . import vas_outbound_palletization
