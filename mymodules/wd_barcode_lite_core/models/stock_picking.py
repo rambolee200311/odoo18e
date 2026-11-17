@@ -12,14 +12,29 @@ class StockPicking(models.Model):
     outbound_prepared_by_id = fields.Many2one('res.users', string='Outbound Prepared By', readonly=True, copy=False, tracking=True,ondelete='restrict')
     outbound_prepared_at = fields.Datetime(string='Outbound Prepared At', readonly=True,tracking=True, copy=False)
 
+    def action_validate_secondary_outbound(self):
+        for rec in self:
+            if rec.picking_type_code != 'outgoing' or rec.state in ('done', 'cancel'):
+                raise UserError(_('Only pending outgoing pickings can be confirmed for secondary outbound.'))
+        self.with_context(skip_secondary_outbound_validation=True, skip_backorder=True).button_validate()
+        if any(rec.state != 'done' for rec in self):
+            raise UserError(_('Secondary outbound confirmation could not complete all outgoing pickings.'))
+        return True
+
     def button_validate(self):
-        preparation_pickings = self.filtered(lambda rec: not self.env.context.get('skip_outbound_palletization_preparation') and rec.picking_type_code == 'outgoing' and rec.project_id.outbound_palletization_enabled and rec.state not in ('done', 'cancel'))
-        if preparation_pickings:
-            if preparation_pickings != self:
+        secondary_outbound_pickings = self.filtered(lambda rec: not self.env.context.get('skip_secondary_outbound_validation') and rec.picking_type_code == 'outgoing' and rec.project_id.outbound_palletization_enabled and rec.state not in ('done', 'cancel'))
+        if secondary_outbound_pickings:
+            if secondary_outbound_pickings != self:
                 raise UserError(_('Pickings with different outbound completion workflows must be validated separately.'))
-            for rec in preparation_pickings:
-                rec.write({'outbound_preparation_state': 'prepared', 'outbound_prepared_by_id': self.env.user.id, 'outbound_prepared_at': fields.Datetime.now()})
-            return True
+            preparation_pickings = secondary_outbound_pickings.filtered(lambda rec: rec.outbound_preparation_state != 'prepared')
+            if preparation_pickings:
+                for rec in preparation_pickings:
+                    rec.write({'outbound_preparation_state': 'prepared', 'outbound_prepared_by_id': self.env.user.id, 'outbound_prepared_at': fields.Datetime.now()})
+                return True
+            for rec in secondary_outbound_pickings:
+                unconfirmed_move_lines = rec.move_line_ids.filtered(lambda line: line.state != 'cancel' and line.quantity > 0 and not line.secondary_outbound_confirmed)
+                if unconfirmed_move_lines:
+                    raise UserError(_('Complete secondary outbound confirmation before validating outgoing picking %s.') % rec.name)
         result = super().button_validate()
         quant_model = self.env['stock.quant'].sudo()
         for rec in self:

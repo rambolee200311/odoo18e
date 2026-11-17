@@ -191,6 +191,49 @@
                         <field name="sunrise_pickup_delivery_sync_error_msg" readonly="1"/>
 
                     </group></page>
+                <page string="Secondary Outbound Confirmations">
+                    <field name="secondary_outbound_confirmation_lines" context="{'default_picking_line_ids': outgoing_picking_lines}" mode="list,form">
+                        <list>
+                            <field name="confirmation_mode" readonly="state in ('done', 'cancelled')"/>
+                            <field name="state" readonly="1"/>
+                            <field name="confirmed_by_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="confirmed_datetime" readonly="1"/>
+                        </list>
+                        <form duplicate="false">
+                            <header>
+                                <button name="action_add_all_unpackaged_move_lines" string="Add All Unpackaged Move Lines" type="object" class="btn-primary" invisible="state in ('done', 'cancelled') or confirmation_mode == 'package'"/>
+                            </header>
+                            <sheet>
+                                <group>
+                                    <field name="outbound_order_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="picking_line_ids" widget="many2many_tags" readonly="state in ('done', 'cancelled')"/>
+                                    <field name="confirmation_mode" readonly="state in ('done', 'cancelled')"/>
+                                    <field name="state" readonly="1"/>
+                                    <field name="confirmed_by_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="confirmed_datetime" readonly="1"/>
+                                    <field name="available_destination_package_line_ids" invisible="1"/>
+                                    <field name="available_unpackaged_move_line_ids" invisible="1"/>
+                                </group>
+                                <notebook>
+                                    <page string="Destination Pallets">
+                                        <field name="confirmation_lines" readonly="state in ('done', 'cancelled')">
+                                            <list editable="bottom">
+                                                <field name="destination_package_id" domain="[('id', 'in', parent.available_destination_package_line_ids)]" options="{'no_create': True, 'no_open': True}"/>
+                                                <field name="move_line_ids" widget="many2many_tags" readonly="1"/>
+                                                <field name="state" readonly="1"/>
+                                                <field name="scanned_by_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                                                <field name="scanned_datetime" readonly="1"/>
+                                            </list>
+                                        </field>
+                                    </page>
+                                    <page string="Unpackaged Move Lines">
+                                        <field name="unpackaged_move_line_ids" widget="many2many_tags" domain="[('id', 'in', available_unpackaged_move_line_ids)]" readonly="state in ('done', 'cancelled')"/>
+                                    </page>
+                                </notebook>
+                            </sheet>
+                        </form>
+                    </field>
+                </page>
             </xpath>
         </field>
     </record>

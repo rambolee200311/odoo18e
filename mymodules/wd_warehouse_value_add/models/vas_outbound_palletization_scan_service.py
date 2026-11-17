@@ -236,7 +236,11 @@ class WarehouseValueAddScanService(models.AbstractModel):
         return destination_package
 
     @api.model
-    def get_vas_outbound_palletization_next_step_after_allocation(self, palletization, source_package_id, destination_package_id):
+    def get_vas_outbound_palletization_next_step_after_allocation(self, palletization, source_package_id, destination_package_id, product_id=False):
+        product = self.env['product.product'].browse(product_id)
+        if source_package_id and product.tracking in ('lot', 'serial') and self.get_vas_outbound_palletization_available_move_lines(palletization, source_package_id, product.id):
+            next_step = 'scan_serial' if product.tracking == 'serial' else 'scan_lot'
+            return next_step, {'destination_package_id': destination_package_id, 'source_package_id': source_package_id, 'product_id': product.id}
         if source_package_id and self.get_vas_outbound_palletization_available_move_lines(palletization, source_package_id):
             return 'scan_product', {'destination_package_id': destination_package_id, 'source_package_id': source_package_id}
         return 'scan_source', {'destination_package_id': destination_package_id}
@@ -248,6 +252,13 @@ class WarehouseValueAddScanService(models.AbstractModel):
         lot_model = self.env['stock.lot']
         product = self.env['product.product'].browse(product_id)
         next_step = 'scan_serial' if product.tracking == 'serial' else 'scan_lot'
+        scanned_products = self.get_outgoing_product_from_barcode(code)
+        if len(scanned_products) == 1:
+            scanned_product = scanned_products
+            if not self.get_vas_outbound_palletization_available_move_lines(palletization, source_package_id, scanned_product.id):
+                return self.build_vas_outbound_palletization_result(False, _('The scanned product was not found on the current source pallet or has no remaining picked quantity.'), next_step, {'destination_package_id': destination_package_id, 'source_package_id': source_package_id, 'product_id': product_id})
+            scanned_next_step = 'scan_serial' if scanned_product.tracking == 'serial' else 'scan_lot' if scanned_product.tracking == 'lot' else 'input_quantity'
+            return self.build_vas_outbound_palletization_result(True, _('Product %s selected.') % scanned_product.display_name, scanned_next_step, {'destination_package_id': destination_package_id, 'source_package_id': source_package_id, 'product_id': scanned_product.id})
         lot_ids = lot_model.sudo().search([('name', '=', code), ('product_id', '=', product_id)], limit=1).ids
         lot = lot_model.browse(lot_ids)
         if not lot or not self.get_vas_outbound_palletization_available_move_lines(palletization, source_package_id, product_id, lot.id):
@@ -257,7 +268,7 @@ class WarehouseValueAddScanService(models.AbstractModel):
                 destination_package = self.create_vas_outbound_palletization_allocations(palletization, source_package_id, product_id, lot.id, 1.0, destination_package_id)
             except UserError as error:
                 return self.build_vas_outbound_palletization_result(False, str(error), next_step, {'destination_package_id': destination_package_id, 'source_package_id': source_package_id, 'product_id': product_id, 'lot_id': lot.id, 'lot_name': lot.name, 'tracking_number': lot.name})
-            next_step, current = self.get_vas_outbound_palletization_next_step_after_allocation(palletization, source_package_id, destination_package.id)
+            next_step, current = self.get_vas_outbound_palletization_next_step_after_allocation(palletization, source_package_id, destination_package.id, product_id)
             return self.build_vas_outbound_palletization_result(True, _('Serial number %s assigned to destination pallet %s.') % (lot.name, destination_package.display_name), next_step, current)
         return self.build_vas_outbound_palletization_result(True, _('Lot or serial number %s selected.') % lot.name, 'input_quantity', {'destination_package_id': destination_package_id, 'source_package_id': source_package_id, 'product_id': product_id, 'lot_id': lot.id, 'lot_name': lot.name})
 
@@ -279,7 +290,7 @@ class WarehouseValueAddScanService(models.AbstractModel):
             destination_package = self.create_vas_outbound_palletization_allocations(palletization, source_package_id, product_id, lot_id, scan_quantity, destination_package_id)
         except UserError as error:
             return self.build_vas_outbound_palletization_result(False, str(error), 'input_quantity', {'destination_package_id': destination_package_id, 'source_package_id': source_package_id, 'product_id': product_id, 'lot_id': lot_id})
-        next_step, current = self.get_vas_outbound_palletization_next_step_after_allocation(palletization, source_package_id, destination_package.id)
+        next_step, current = self.get_vas_outbound_palletization_next_step_after_allocation(palletization, source_package_id, destination_package.id, product_id)
         return self.build_vas_outbound_palletization_result(True, _('Palletization allocation recorded.'), next_step, current)
 
     @api.model
