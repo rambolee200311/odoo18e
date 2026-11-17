@@ -5,3 +5,4 @@ from . import vas_order
 from . import vas_order_line
 from . import vas_outbound_palletization
 from . import vas_outbound_palletization_scan_service
+from . import stock_outbound_confirmation

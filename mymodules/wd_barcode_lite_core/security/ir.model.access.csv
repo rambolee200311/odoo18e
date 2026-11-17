@@ -1,2 +1,4 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_stock_picking_package_scan,stock.picking.package.scan,model_stock_picking_package_scan,,1,1,1,1
+access_stock_outbound_confirmation,stock.outbound.confirmation,model_stock_outbound_confirmation,,1,1,1,1
+access_stock_outbound_confirmation_line,stock.outbound.confirmation.line,model_stock_outbound_confirmation_line,,1,1,1,1
