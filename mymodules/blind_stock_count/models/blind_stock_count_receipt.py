@@ -48,11 +48,12 @@ class BlindStockCount(models.Model):
                 raise UserError(_("Cancel the active recount before generating an inbound picking."))
             if picking_model.sudo().search_count([("blind_stock_count_id", "=", rec.id), ("is_blind_stock_count_receipt", "=", True), ("state", "!=", "cancel")]):
                 raise UserError(_("An active inbound picking already exists for this blind stock count."))
-            clearance_pickings = picking_model.sudo().search([("blind_stock_count_work_package_id", "=", rec.work_package_id.id), ("is_blind_stock_count_clearance", "=", True), ("state", "!=", "cancel")], order="id desc")
-            if not clearance_pickings:
-                raise UserError(_("Generate clearance pickings for this work package before generating an inbound picking."))
-            if clearance_pickings.filtered(lambda picking: picking.state != "done"):
-                raise UserError(_("Complete every clearance outbound picking before generating an inbound picking."))
+            if not rec.work_package_id.is_supplementary_count:
+                clearance_pickings = picking_model.sudo().search([("blind_stock_count_work_package_id", "=", rec.work_package_id.id), ("is_blind_stock_count_clearance", "=", True), ("state", "!=", "cancel")], order="id desc")
+                if not clearance_pickings:
+                    raise UserError(_("Generate clearance pickings for this work package before generating an inbound picking."))
+                if clearance_pickings.filtered(lambda picking: picking.state != "done"):
+                    raise UserError(_("Complete every clearance outbound picking before generating an inbound picking."))
             if rec.receipt_generation_state in ("queued", "running"):
                 raise UserError(_("An inbound picking generation task is already queued or running for %s.") % rec.name)
         if os.getenv("QUEUE_JOB__NO_DELAY") or self.env.context.get("queue_job__no_delay"):
@@ -99,9 +100,10 @@ class BlindStockCount(models.Model):
                         raise UserError(_("The work package is missing a valid inbound operation type or source location."))
                     if picking_model.sudo().search_count([("blind_stock_count_id", "=", rec.id), ("is_blind_stock_count_receipt", "=", True), ("state", "!=", "cancel")]):
                         raise UserError(_("An active inbound picking already exists for this blind stock count."))
-                    clearance_pickings = picking_model.sudo().search([("blind_stock_count_work_package_id", "=", work_package.id), ("is_blind_stock_count_clearance", "=", True), ("state", "!=", "cancel")])
-                    if not clearance_pickings or clearance_pickings.filtered(lambda picking: picking.state != "done"):
-                        raise UserError(_("Complete every clearance outbound picking before generating an inbound picking."))
+                    if not work_package.is_supplementary_count:
+                        clearance_pickings = picking_model.sudo().search([("blind_stock_count_work_package_id", "=", work_package.id), ("is_blind_stock_count_clearance", "=", True), ("state", "!=", "cancel")])
+                        if not clearance_pickings or clearance_pickings.filtered(lambda picking: picking.state != "done"):
+                            raise UserError(_("Complete every clearance outbound picking before generating an inbound picking."))
                     count_lines = count_line_model.sudo().search([("blind_stock_count_id", "=", rec.id)], order="blind_stock_count_pallet_id, product_id, id")
                     if not count_lines:
                         raise UserError(_("The blind stock count has no product lines."))

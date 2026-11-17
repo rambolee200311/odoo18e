@@ -37,6 +37,8 @@ class BlindStockCountWorkPackage(models.Model):
         picking_model = self.env["stock.picking"]
         pending_picking_list_view = self.env.ref("blind_stock_count.view_blind_stock_count_pending_picking_list")
         for rec in self:
+            if rec.is_supplementary_count:
+                raise UserError(_("Supplementary work packages do not cancel pending pickings."))
             if not (self.env.user.has_group("blind_stock_count.group_blind_stock_count_administrator") or self.env.user.has_group("base.group_system")):
                 raise UserError(_("Only a warehouse manager or system administrator can cancel pending pickings."))
             if rec.state != "done":
@@ -56,6 +58,8 @@ class BlindStockCountWorkPackage(models.Model):
         if not (self.env.user.has_group("blind_stock_count.group_blind_stock_count_administrator") or self.env.user.has_group("base.group_system")):
             raise UserError(_("Only a warehouse manager or system administrator can generate a clearance order."))
         for rec in self:
+            if rec.is_supplementary_count:
+                raise UserError(_("Supplementary work packages do not generate clearance pickings."))
             if rec.state != "done":
                 raise UserError(_("A clearance order can only be generated from a completed work package."))
             if not rec.clearance_picking_type_id or rec.clearance_picking_type_id.code != "outgoing":
