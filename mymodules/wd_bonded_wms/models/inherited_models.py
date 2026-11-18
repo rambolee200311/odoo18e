@@ -6,11 +6,14 @@ from odoo.tools.float_utils import float_compare
 
 _logger = logging.getLogger(__name__)
 
+CUSTOMS_MUTATION_TYPE_SELECTION = [('inbound', 'Inbound'), ('outbound', 'Outbound'), ('finding', 'Finding'), ('missing', 'Missing'), ('correction', 'Correction')]
+
 
 # ===== Stock Picking 扩展 + F-05状态联动锁 =====
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
+    load_ref = fields.Char(string='Loading Reference', required=False, help='Reference for the Delivery')
     bonded_inbound_id = fields.Many2one('bonded.inbound', string='Bonded Inbound',
                                         readonly=True, copy=False)
     bonded_outbound_id = fields.Many2one('bonded.outbound', string='Bonded Outbound',
@@ -101,6 +104,7 @@ class StockMove(models.Model):
     bonded_stock_id = fields.Many2one('bonded.stock', string='Bonded Stock', readonly=True, copy=False)
     bonded_inbound_line_id = fields.Many2one('bonded.inbound.line', string='Bonded Inbound Line', readonly=True, copy=False)
     bonded_outbound_line_id = fields.Many2one('bonded.outbound.line', string='Bonded Outbound Line', readonly=True, copy=False)
+    customs_mutation_type = fields.Selection(CUSTOMS_MUTATION_TYPE_SELECTION, string='Customs Mutation Type', readonly=True, copy=False, index=True)
 
 
 class StockMoveLine(models.Model):
@@ -109,6 +113,19 @@ class StockMoveLine(models.Model):
     bonded_stock_id = fields.Many2one('bonded.stock', string='Bonded Stock', readonly=True, copy=False, ondelete='restrict', index=True)
     bonded_inbound_line_id = fields.Many2one('bonded.inbound.line', string='Bonded Inbound Line', readonly=True, copy=False, ondelete='restrict', index=True)
     bonded_outbound_line_id = fields.Many2one('bonded.outbound.line', string='Bonded Outbound Line', readonly=True, copy=False, ondelete='restrict', index=True)
+    bonded_unique_identifier_no = fields.Char(related='picking_id.unique_identifier_no', string='Unique Identifier', store=True, readonly=True, copy=False, index=True)
+    bonded_flag = fields.Selection(related='picking_id.bonded_flag', string='Bonded Flag', store=True, readonly=True, copy=False, index=True)
+    bonded_inbound_id = fields.Many2one(related='picking_id.bonded_inbound_id', string='Inbound Order', store=True, readonly=True, copy=False, index=True)
+    bonded_outbound_id = fields.Many2one(related='picking_id.bonded_outbound_id', string='Outbound Order', store=True, readonly=True, copy=False, index=True)
+    bonded_mrn = fields.Char(related='picking_id.mrn', string='MRN', store=True, readonly=True, copy=False, index=True)
+    bonded_mrn_status = fields.Selection(related='picking_id.mrn_status', string='MRN Status', store=True, readonly=True, copy=False, index=True)
+    bonded_customs_status = fields.Selection(related='picking_id.customs_file_status', string='Customs Status', store=True, readonly=True, copy=False, index=True)
+    origin_country_id = fields.Many2one('res.country', string='Country of Origin', readonly=True, copy=False, index=True)
+    goods_value = fields.Monetary(string='Goods Value', currency_field='currency_id', readonly=True, copy=False)
+    hs_code = fields.Char(string='HS Code', readonly=True, copy=False, index=True)
+    net_weight = fields.Float(string='Net Weight (kg)', readonly=True, copy=False)
+    customs_code = fields.Char(string='Customs Code', readonly=True, copy=False, index=True)
+    currency_id = fields.Many2one('res.currency', string='Currency', readonly=True, copy=False)
 
 
 # ===== Stock Location 扩展 =====

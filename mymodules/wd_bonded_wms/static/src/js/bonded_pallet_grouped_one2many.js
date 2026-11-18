@@ -34,6 +34,14 @@ export class BondedPalletGroupedListRenderer extends ListRenderer {
     toggle_pallet_group(key) {
         this.pallet_group_state.folded[key] = !this.is_pallet_group_folded(key);
     }
+
+    async onCellClicked(record, column, ev) {
+        if (ev.target.closest(".o-autocomplete--dropdown-item")) {
+            ev.stopPropagation();
+            return;
+        }
+        return super.onCellClicked(record, column, ev);
+    }
 }
 
 export class BondedPalletGroupedX2ManyField extends X2ManyField {
