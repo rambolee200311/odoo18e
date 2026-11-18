@@ -174,6 +174,12 @@ class InboundOrder(models.Model):
                     _('The reference "%s" already exists for this project.') % rec.reference
                 )
 
+    @api.constrains('pallets', 'scanning_quantity')
+    def check_order_quantities_integer(self):
+        for rec in self:
+            if not rec.pallets.is_integer() or not rec.scanning_quantity.is_integer():
+                raise ValidationError(_('Pallet and scanning quantities must be integers.'))
+
     # Compute adr dgd charge
     @api.depends('is_adr')
     def _compute_is_adr(self):
@@ -635,6 +641,12 @@ class InboundOrderProduct(models.Model):
     product_description = fields.Text('Product Description', readonly=True, compute='_compute_product_description',
                                       help='Description of the product for sale')
 
+    @api.constrains('pallets')
+    def check_pallets_integer(self):
+        for rec in self:
+            if not rec.pallets.is_integer():
+                raise ValidationError(_('The pallet count must be an integer.'))
+
     @api.onchange('pallets')
     def _onchange_pallets(self):
         self.project = self.inbound_order_id.project
@@ -763,6 +775,12 @@ class InboundOrderProductsOfPallet(models.Model):
     weight_subtotal = fields.Float(string='Subtotal Net Weight (kg)', compute='_compute_weight_subtotal', store=True)
     is_serial_tracked = fields.Boolean(string='Tracked by Serial', compute='_compute_is_serial_tracked', store=True)
     remark = fields.Text(string='Remark')
+
+    @api.constrains('quantity')
+    def check_quantity_integer(self):
+        for rec in self:
+            if not rec.quantity.is_integer():
+                raise ValidationError(_('The quantity per pallet must be an integer.'))
 
     '''
     @api.onchange('project_category_id')

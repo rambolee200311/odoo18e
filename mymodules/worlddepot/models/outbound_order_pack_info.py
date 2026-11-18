@@ -1,5 +1,5 @@
 from odoo import api, fields, models, _
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 
 
 class OutboundOrderPack(models.Model):
@@ -30,6 +30,12 @@ class OutboundOrderPack(models.Model):
         string='Pallet Type',
         default='standard'
     )
+
+    @api.constrains('pallets_of_pick', 'pallets_of_packed')
+    def check_pack_pallet_quantities_integer(self):
+        for rec in self:
+            if not rec.pallets_of_pick.is_integer() or not rec.pallets_of_packed.is_integer():
+                raise ValidationError(_('Picked and packed pallet counts must be integers.'))
 
 
 class OutboundOrderPackInfo(models.Model):
@@ -181,6 +187,12 @@ class OutboundOrderPackProduct(models.Model):
     uom_id = fields.Many2one('uom.uom', string='Unit of Measure', related='product_id.uom_id', store=True)
     weight = fields.Float(string='Unit Weight', related='product_id.weight', store=True)
     total_weight = fields.Float(string='Total Weight', compute='_compute_total_weight', store=True)
+
+    @api.constrains('quantity')
+    def check_pack_product_quantity_integer(self):
+        for rec in self:
+            if not rec.quantity.is_integer():
+                raise ValidationError(_('The packed product quantity must be an integer.'))
 
     @api.depends('quantity', 'weight')
     def _compute_total_weight(self):
