@@ -42,7 +42,7 @@
                         <input class="form-control" t-model="state.billno" t-att-disabled="!isDraft"
                                placeholder="Enter or scan a document number"/>
                         <button class="btn o_wd_vas_primary-btn" type="button"
-                                t-on-click="resolveWarehouseOrder" t-att-disabled="!isDraft">Scan</button>
+                                t-on-click="resolve_and_bind_warehouse_order" t-att-disabled="!isDraft">Scan</button>
                     </div>
                 </div>
                 <div class="o_wd_vas_form-row">

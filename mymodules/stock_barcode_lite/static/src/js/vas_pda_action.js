@@ -104,6 +104,17 @@ export class VasPdaAction extends Component {
         }
     }
 
+    async resolve_and_bind_warehouse_order() {
+        if (!this.state.billno.trim()) {
+            this.notification.add(_t("Please enter or scan a document number."), { type: "warning" });
+            return;
+        }
+        if (!this.state.order && !(await this.createDraft())) {
+            return;
+        }
+        await this.saveDraft();
+    }
+
     async createDraft(allowUnresolvedDocument = false) {
         const billno = this.state.billno.trim();
         if (billno) {
@@ -271,29 +282,26 @@ export class VasPdaAction extends Component {
         }
     }
 
-    async saveDraft() {
+    async saveDraft(showNotification = true) {
         if (!this.state.order || !this.isDraft) {
-            return;
+            return false;
         }
         this.state.busy = true;
         try {
             const billno = this.state.billno.trim();
-            if (billno) {
-                await this.resolveWarehouseOrder();
-                if (!this.state.warehouseOrder) {
-                    return;
-                }
+            await this.resolveWarehouseOrder();
+            if (billno && !this.state.warehouseOrder) {
+                return false;
             }
-            const [projectId] = this.state.warehouseOrder?.project || [];
-            const [warehouseId] = this.state.warehouseOrder?.warehouse || [];
-            await this.orm.write("wd.vas.order", [this.state.order.id], {
-                order_type: this.state.orderType,
-                warehouse_order_billno: billno,
-                project_id: projectId || false,
-                warehouse_id: warehouseId || false,
-            });
+            await this.orm.call("wd.vas.order", "action_bind_warehouse_order", [[this.state.order.id], this.state.orderType, billno]);
             await this.reloadOrder();
-            this.notification.add(_t("Draft saved."), { type: "success" });
+            if (showNotification) {
+                this.notification.add(_t("Draft saved."), { type: "success" });
+            }
+            return true;
+        } catch (error) {
+            this.notification.add(error.data?.arguments?.[0] || error.message || _t("Draft save failed."), { type: "danger" });
+            return false;
         } finally {
             this.state.busy = false;
         }
@@ -303,23 +311,11 @@ export class VasPdaAction extends Component {
         if (!this.state.order || !this.isDraft || this.state.busy) {
             return;
         }
+        if (!await this.saveDraft(false)) {
+            return;
+        }
         this.state.busy = true;
         try {
-            const billno = this.state.billno.trim();
-            if (billno) {
-                await this.resolveWarehouseOrder();
-                if (!this.state.warehouseOrder) {
-                    return;
-                }
-            }
-            const [projectId] = this.state.warehouseOrder?.project || [];
-            const [warehouseId] = this.state.warehouseOrder?.warehouse || [];
-            await this.orm.write("wd.vas.order", [this.state.order.id], {
-                order_type: this.state.orderType,
-                warehouse_order_billno: billno,
-                project_id: projectId || false,
-                warehouse_id: warehouseId || false,
-            });
             await this.orm.call("wd.vas.order", "action_submit", [[this.state.order.id]]);
             await this.reloadOrder();
             this.notification.add(_t("Submitted."), { type: "success" });
@@ -347,8 +343,49 @@ export class VasPdaAction extends Component {
         this.state.palletizationDialogMode = null;
     }
 
+    async startOutboundPalletization() {
+        if (!this.state.order || !this.hasOutboundPalletization || !this.isOutboundOrder || this.state.busy) {
+            return;
+        }
+        if (this.isDraft && !await this.saveDraft(false)) {
+            return;
+        }
+        this.state.busy = true;
+        try {
+            const result = await this.orm.call("wd.vas.order", "action_start_outbound_palletization", [[this.state.order.id]]);
+            this.notification.add(_t("Palletization is ready: ") + result.palletization_id, { type: "success" });
+            await this.reloadOrder();
+        } catch (error) {
+            this.notification.add(error.data?.arguments?.[0] || error.message || _t("Palletization could not be started."), { type: "danger" });
+        } finally {
+            this.state.busy = false;
+        }
+    }
+
+    async openTransportPalletCreateWizard() {
+        if (!this.state.order || !this.hasOutboundPalletization || !this.isOutboundOrder || this.state.busy) {
+            return;
+        }
+        if (this.isDraft && !await this.saveDraft(false)) {
+            return;
+        }
+        this.state.busy = true;
+        try {
+            const action = await this.orm.call("wd.vas.order", "action_open_transport_pallet_create_wizard", [[this.state.order.id]]);
+            await this.action.doAction(action);
+            await this.reloadOrder();
+        } catch (error) {
+            this.notification.add(error.data?.arguments?.[0] || error.message || _t("Transport pallets could not be created."), { type: "danger" });
+        } finally {
+            this.state.busy = false;
+        }
+    }
+
     async printTransportPalletLabels() {
         if (!this.state.order || !this.hasOutboundPalletization || !this.isOutboundOrder || this.state.busy) {
+            return;
+        }
+        if (this.isDraft && !await this.saveDraft(false)) {
             return;
         }
         this.state.busy = true;

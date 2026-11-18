@@ -99,6 +99,28 @@ class VasOrder(models.Model):
                 raise ValidationError('More than one Warehouse Order matches the specified type and bill number.')
             return rec.lock_warehouse_order(warehouse_orders)
 
+    def action_bind_warehouse_order(self, order_type=False, warehouse_order_billno=False):
+        relation_fields = tuple(item[0] for item in self._RELATION_BY_ORDER_TYPE.values())
+        for rec in self:
+            if rec.state != 'draft':
+                raise UserError(_('Only draft VAS Orders can bind a Warehouse Order.'))
+            selected_order_type = order_type or rec.order_type
+            relation = rec._RELATION_BY_ORDER_TYPE.get(selected_order_type)
+            if not relation:
+                raise ValidationError('Warehouse Order type is invalid.')
+            billno = ((warehouse_order_billno if warehouse_order_billno is not False else rec.warehouse_order_billno) or '').strip()
+            values = {'order_type': selected_order_type, 'warehouse_order_billno': billno or False, 'source_type': selected_order_type, 'source_model': False, 'source_record_id': False, 'source_document_number': billno or False, 'source_document_name': False, 'source_picking_id': False, 'project_id': False, 'warehouse_id': False, **{field_name: False for field_name in relation_fields}}
+            if billno:
+                warehouse_orders = self.env[relation[1]].sudo().search([('billno', '=', billno)], order='id')
+                if not warehouse_orders:
+                    raise ValidationError('No Warehouse Order was found for the specified type and bill number.')
+                if len(warehouse_orders) > 1:
+                    raise ValidationError('More than one Warehouse Order matches the specified type and bill number.')
+                warehouse_order = rec.lock_warehouse_order(warehouse_orders)
+                values.update({'source_model': warehouse_order._name, 'source_record_id': warehouse_order.id, 'source_document_number': warehouse_order.billno, 'source_document_name': warehouse_order.display_name, 'source_picking_id': rec.get_source_picking(warehouse_order).id, 'warehouse_order_billno': warehouse_order.billno, 'project_id': warehouse_order.project.id, 'warehouse_id': warehouse_order.warehouse.id, relation[0]: warehouse_order.id})
+            rec.write(values)
+        return True
+
     def get_source_picking(self, warehouse_order):
         picking = self.env['stock.picking']
         if 'stock_picking_id' in warehouse_order._fields:
@@ -131,6 +153,8 @@ class VasOrder(models.Model):
         for rec in self:
             if rec.order_type != 'outbound':
                 raise UserError(_('Outbound palletization requires this VAS Order to be bound to an outbound order.'))
+            if rec.state == 'draft':
+                rec.action_bind_warehouse_order()
             outbound_order = rec.outbound_order_id
             if not outbound_order:
                 billno = (rec.warehouse_order_billno or '').strip()
@@ -140,18 +164,6 @@ class VasOrder(models.Model):
                 outbound_order = outbound_order_model.browse(outbound_order_ids)
             if rec.project_id and rec.project_id != outbound_order.project:
                 raise UserError(_('VAS Order Project must match the outbound order Project.'))
-            if rec.state == 'draft':
-                rec.write({
-                    'outbound_order_id': outbound_order.id,
-                    'source_type': 'outbound',
-                    'source_model': outbound_order._name,
-                    'source_record_id': outbound_order.id,
-                    'source_document_number': outbound_order.billno,
-                    'source_document_name': outbound_order.display_name,
-                    'source_picking_id': rec.get_source_picking(outbound_order).id,
-                    'project_id': outbound_order.project.id,
-                    'warehouse_id': outbound_order.warehouse.id,
-                })
             picking_ids = picking_model.sudo().search([('outbound_order_id', '=', outbound_order.id), ('picking_type_id.code', '=', 'outgoing'), ('state', 'not in', ('done', 'cancel'))], order='id').ids
             pickings |= picking_model.browse(picking_ids)
         return pickings

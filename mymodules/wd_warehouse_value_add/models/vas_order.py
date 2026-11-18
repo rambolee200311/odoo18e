@@ -83,6 +83,11 @@ class VasOrder(models.Model):
             picking_ids = rec.get_outbound_palletization_pickings()
             if not picking_ids:
                 raise UserError(_('The VAS Order has no active outbound picking.'))
+            self.env.cr.execute('SELECT id FROM stock_picking WHERE id IN %s FOR UPDATE', [tuple(sorted(picking_ids.ids))])
+            picking_ids.invalidate_recordset(['state', 'outbound_preparation_state'])
+            conflicting_palletizations = self.env['wd.vas.outbound.palletization'].sudo().search([('picking_ids', 'in', picking_ids.ids), ('state', 'in', ('pending', 'in_progress', 'validated')), ('vas_order_id', '!=', rec.id)], order='id desc')
+            if conflicting_palletizations:
+                raise UserError(_('Outbound pickings %(pickings)s are already assigned to palletization %(palletizations)s from VAS Order %(orders)s.') % {'pickings': ', '.join(picking_ids.mapped('name')), 'palletizations': ', '.join(conflicting_palletizations.mapped('name')), 'orders': ', '.join(conflicting_palletizations.mapped('vas_order_id.name'))})
             if not rec.project_id.outbound_palletization_enabled:
                 raise UserError(_('Enable Outbound Palletization and Secondary Confirmation on the project first.'))
             unprepared_pickings = picking_ids.filtered(lambda picking: picking.outbound_preparation_state != 'prepared')
