@@ -206,6 +206,12 @@ msgid "Article 23 VAT Deferment"
 msgstr "第23条增值税递延"
 
 #. module: wd_bonded_wms
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound_line__adr
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_product__adr
+msgid "ADR"
+msgstr "ADR"
+
+#. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_product__article_number
 msgid "Article Number"
 msgstr "料号"
@@ -835,6 +841,8 @@ msgstr "目的国"
 
 #. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_customs_file__origin_country_id
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound_line__origin_country_id
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_stock_move_line__origin_country_id
 msgid "Country of Origin"
 msgstr "原产国"
 
@@ -957,6 +965,8 @@ msgstr "海关授权"
 
 #. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_product__customs_code
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound_line__customs_code
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_stock_move_line__customs_code
 msgid "Customs Code"
 msgstr "海关编码"
 
@@ -1028,6 +1038,7 @@ msgstr "回复附件"
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_stock_snapshot__current_customs_status
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_stock__current_customs_status
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_stock_lot__current_customs_status
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_stock_move_line__bonded_customs_status
 #: model_terms:ir.ui.view,arch_db:wd_bonded_wms.bonded_stock_view_search
 msgid "Customs Status"
 msgstr "海关状态"
@@ -1127,9 +1138,7 @@ msgid "Declared"
 msgstr "已申报"
 
 #. module: wd_bonded_wms
-#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound_line__declared_unit_price
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_outbound_line__declared_unit_price
-#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_product__declared_unit_price
 msgid "Declared Unit Price"
 msgstr "申报单价"
 
@@ -1200,6 +1209,11 @@ msgstr "设备信息"
 #: model:ir.model.fields.selection,name:wd_bonded_wms.selection__bonded_inbound__cargo_source__direct
 msgid "Direct Entry"
 msgstr "直接入库"
+
+#. module: wd_bonded_wms
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound_traceability_line__planned_qty
+msgid "Planned Qty"
+msgstr "计划数量"
 
 #. module: wd_bonded_wms
 #. odoo-python
@@ -1529,6 +1543,8 @@ msgstr "到仓登记编号必须唯一！"
 
 #. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_product__goods_value
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound_line__declared_unit_price
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_stock_move_line__goods_value
 msgid "Goods Value"
 msgstr "货值"
 
@@ -1556,6 +1572,8 @@ msgstr "分组"
 #. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_monthly_report__hs_code
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_product__hs_code
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound_line__hs_code
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_stock_move_line__hs_code
 msgid "HS Code"
 msgstr "HS编码"
 
@@ -1699,6 +1717,7 @@ msgstr "入库（核注）"
 
 #. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_stock__inbound_date
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound__picking_validation_time
 msgid "Inbound Date"
 msgstr "入库日期"
 
@@ -1947,6 +1966,7 @@ msgstr "批次/序列号"
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_log__mrn
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_stock_snapshot__mrn
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound__mrn
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_stock_move_line__bonded_mrn
 msgid "MRN"
 msgstr "MRN"
 
@@ -2055,6 +2075,7 @@ msgstr "净重"
 #. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound_line__net_weight
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_product__net_weight
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_stock_move_line__net_weight
 msgid "Net Weight (kg)"
 msgstr "净重（千克）"
 
@@ -2399,11 +2420,6 @@ msgid "Picking Type"
 msgstr "作业类型"
 
 #. module: wd_bonded_wms
-#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound_line__planned_qty
-#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound_traceability_line__planned_qty
-msgid "Planned Qty"
-msgstr "计划数量"
-
 #. module: wd_bonded_wms
 #. odoo-python
 #: code:addons/wd_bonded_wms/models/bonded_customs_file.py:0
@@ -2672,6 +2688,7 @@ msgstr "期末结存"
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_customs_file_line__quantity
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_stock__quantity
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_verification__quantity
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound_line__planned_qty
 msgid "Quantity"
 msgstr "数量"
 
@@ -2779,6 +2796,7 @@ msgstr "释放"
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_customs_file__remark
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_customs_file_line__remark
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound__remark
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound_line__remark
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_outbound__remark
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_verification__remark
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_gate_arrival__remark
@@ -2978,6 +2996,7 @@ msgstr "开始"
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_product__state
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_value_limit__state
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_gate_arrival__state
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound__picking_status
 #: model_terms:ir.ui.view,arch_db:wd_bonded_wms.bonded_book_view_search
 #: model_terms:ir.ui.view,arch_db:wd_bonded_wms.bonded_customs_file_view_search
 #: model_terms:ir.ui.view,arch_db:wd_bonded_wms.bonded_mrn_view_search
@@ -3024,6 +3043,11 @@ msgid "Stock Move"
 msgstr "库存移动"
 
 #. module: wd_bonded_wms
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_stock_move__customs_mutation_type
+msgid "Customs Mutation Type"
+msgstr "海关变更类型"
+
+#. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_stock__stock_move_line_id
 msgid "Stock Move Line"
 msgstr "库存移动行"
@@ -3031,11 +3055,9 @@ msgstr "库存移动行"
 #. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_book_line__picking_id
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound__picking_id
-#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_outbound__picking_id
 #: model_terms:ir.ui.view,arch_db:wd_bonded_wms.bonded_inbound_view_form
-#: model_terms:ir.ui.view,arch_db:wd_bonded_wms.bonded_outbound_view_form
 msgid "Stock Picking"
-msgstr "仓库收货单"
+msgstr "库存调拨"
 
 #. module: wd_bonded_wms
 #: model:ir.model.constraint,message:wd_bonded_wms.constraint_bonded_stock_stock_move_line_uniq
@@ -3063,9 +3085,19 @@ msgstr "已提交"
 
 #. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound_line__subtotal_value
+msgid "Total Goods Value"
+msgstr "货值合计"
+
+#. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_outbound_line__subtotal_value
 msgid "Subtotal"
 msgstr "小计"
+
+#. module: wd_bonded_wms
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound_line__un_code
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_product__un_number
+msgid "UN Number"
+msgstr "UN编码"
 
 #. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_product__supervision_conditions
@@ -3319,8 +3351,14 @@ msgstr "目标状态"
 
 #. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_customs_file__total_gross_weight
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound__total_gross_weight
 msgid "Total Gross Weight (kg)"
 msgstr "总毛重"
+
+#. module: wd_bonded_wms
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound__total_net_weight
+msgid "Total Net Weight (kg)"
+msgstr "总净重"
 
 #. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_customs_file__total_packages
@@ -3750,6 +3788,7 @@ msgstr "T1状态"
 #. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_outbound__mrn_status
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound__mrn_status
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_stock_move_line__bonded_mrn_status
 msgid "MRN Status"
 msgstr "MRN状态"
 
@@ -3802,16 +3841,6 @@ msgstr "集装箱号"
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound__customs_file_status
 msgid "Customs File Status"
 msgstr "海关文件状态"
-
-#. module: wd_bonded_wms
-#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound__picking_status
-msgid "Inbound Picking Status"
-msgstr "入库Pick状态"
-
-#. module: wd_bonded_wms
-#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound__picking_validation_time
-msgid "Inbound Picking Validation Time"
-msgstr "入库Pick验证时间"
 
 #. module: wd_bonded_wms
 #: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_inbound__actual_inbound_date
@@ -4003,3 +4032,24 @@ msgstr "出库单确认后至 Picking 完成前，相关库存必须保持锁定
 #: code:addons/wd_bonded_wms/models/bonded_inbound.py:0
 msgid "Please use Create Packages before creating the picking."
 msgstr "请先点击“创建包裹”，再创建 Picking。"
+
+#. module: wd_bonded_wms
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_stock_move_line__bonded_flag
+msgid "Bonded Flag"
+msgstr "保税标识"
+
+#. module: wd_bonded_wms
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_stock_move_line__bonded_inbound_id
+msgid "Inbound Order"
+msgstr "入库单"
+
+#. module: wd_bonded_wms
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_bonded_outbound__picking_id
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_stock_move_line__bonded_outbound_id
+msgid "Outbound Order"
+msgstr "出库单"
+
+#. module: wd_bonded_wms
+#: model:ir.model.fields,field_description:wd_bonded_wms.field_stock_move_line__bonded_unique_identifier_no
+msgid "Unique Identifier"
+msgstr "唯一追踪号"

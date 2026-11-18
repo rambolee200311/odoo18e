@@ -135,6 +135,11 @@ class BondedCustomsFile(models.Model):
         for rec in customs_files:
             if rec.mrn and not rec.mrn_id:
                 self.env['bonded.mrn'].create({'mrn': rec.mrn, 'customs_file_id': rec.id})
+            if rec.mrn_id:
+                if rec.bonded_outbound_id:
+                    rec.bonded_outbound_id.write({'mrn_id': rec.mrn_id.id})
+                if rec.bonded_inbound_id:
+                    rec.bonded_inbound_id.write({'mrn_id': rec.mrn_id.id})
         return customs_files
 
     def write(self, vals):
@@ -164,6 +169,8 @@ class BondedCustomsFile(models.Model):
             for rec in self:
                 if rec.bonded_outbound_id:
                     rec.bonded_outbound_id.write({'mrn_id': rec.mrn_id.id})
+                if rec.bonded_inbound_id:
+                    rec.bonded_inbound_id.write({'mrn_id': rec.mrn_id.id})
         return result
 
     def unlink(self):

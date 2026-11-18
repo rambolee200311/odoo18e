@@ -13,6 +13,8 @@
                 <field name="gross_weight"/>
                 <field name="net_weight"/>
                 <field name="customs_code"/>
+                <field name="adr"/>
+                <field name="un_number"/>
                 <field name="article_number"/>
                 <field name="product_description"/>
                 <field name="state" readonly="1"/>
@@ -37,7 +39,6 @@
                             <field name="product_id" required="1" options="{'no_create': True, 'no_open': False}"/>
                             <field name="categ_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                             <field name="hs_code" required="1"/>
-                            <field name="declared_unit_price" required="1" widget="monetary"/>
                             <field name="currency_id" required="1" options="{'no_create': True, 'no_open': False}"/>
                             <field name="uom_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                             <field name="supervision_conditions"/>
@@ -47,6 +48,8 @@
                             <field name="gross_weight"/>
                             <field name="net_weight"/>
                             <field name="customs_code"/>
+                            <field name="adr"/>
+                            <field name="un_number"/>
                             <field name="article_number"/>
                             <field name="product_description"/>
                             <field name="technical_description"/>

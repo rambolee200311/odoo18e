@@ -18,6 +18,7 @@ class BondedInbound(models.Model):
     name = fields.Char(string='Inbound No.', required=True, copy=False,
                        default=lambda self: _('New'), readonly=True, index=True)
     order_type = fields.Selection([('inbound', 'Inbound')], string='Order Type', required=True, default='inbound', tracking=True, index=True)
+    customs_file_id = fields.Many2one('bonded.customs.file', related='inbound_tracking_id.customs_file_id', string='Customs File', readonly=True, store=True, index=True)
     customs_file_state = fields.Selection(related='inbound_tracking_id.customs_file_id.state', string='Customs File Status', readonly=True, store=True, index=True)
     reference = fields.Char(string='Reference', copy=False, index=True, tracking=True)
     order_date = fields.Date(string='Order Date', required=True, default=fields.Date.today, tracking=True, index=True)
@@ -31,17 +32,19 @@ class BondedInbound(models.Model):
     t1_customs_file_ids = fields.One2many('bonded.customs.file', 'bonded_inbound_id', string='T1 Customs Declarations', tracking=True)
     t1_is_closed = fields.Boolean(string='T1 Closed', compute='_compute_t1_is_closed', store=True)
     t1_closed_date = fields.Datetime(related='inbound_tracking_id.customs_file_id.t1_closed_date', string='T1 Closed Date', store=True, readonly=True, index=True)
-    mrn = fields.Char(related='inbound_tracking_id.mrn', string='MRN', store=True, readonly=True, index=True)
-    mrn_status = fields.Selection(related='inbound_tracking_id.mrn_id.state', string='MRN Status', store=True, readonly=True, index=True)
+    mrn_id = fields.Many2one('bonded.mrn', string='MRN', ondelete='restrict', index=True, copy=False, tracking=True)
+    mrn_status = fields.Selection(related='mrn_id.state', string='MRN Status', store=True, readonly=True, index=True)
     gate_arrival_ids = fields.One2many('gate.arrival', 'bonded_inbound_id', string='Gate Arrival', help='One T1 gate arrival is currently allowed for each inbound instruction.', tracking=True)
     inbound_tracking_id = fields.Many2one('bonded.inbound.tracking', string='Unique Identifier No.', readonly=True, copy=False, ondelete='restrict', index=True, tracking=True)
     expected_date = fields.Date(string='Expected Date', required=True, default=fields.Date.today, tracking=True)
     actual_inbound_date = fields.Date(string='Actual Inbound Date (Manual)', copy=False, index=True, tracking=True)
     total_value = fields.Monetary(string='Total Value', compute='_compute_total_value', store=True, readonly=True, tracking=True)
     currency_id = fields.Many2one('res.currency', string='Currency', default=lambda self: self.env.ref('base.EUR').id, tracking=True)
+    total_net_weight = fields.Float(string='Total Net Weight (kg)', compute='_compute_total_weights', store=True, readonly=True, tracking=True)
+    total_gross_weight = fields.Float(string='Total Gross Weight (kg)', compute='_compute_total_weights', store=True, readonly=True, tracking=True)
     picking_id = fields.Many2one('stock.picking', string='Stock Picking', readonly=True, ondelete='restrict',help='Related warehouse receiving order', tracking=True)
-    picking_status = fields.Selection(related='picking_id.state', string='Inbound Picking Status', store=True, readonly=True, index=True)
-    picking_validation_time = fields.Datetime(related='picking_id.date_done', string='Inbound Picking Validation Time', readonly=True)
+    picking_status = fields.Selection(related='picking_id.state', string='Status', store=True, readonly=True, index=True)
+    picking_validation_time = fields.Datetime(related='picking_id.date_done', string='Inbound Date', readonly=True)
     state = fields.Selection([
         ('draft', 'Draft'),
         ('confirmed', 'Confirmed'),
@@ -87,6 +90,12 @@ class BondedInbound(models.Model):
         for rec in self:
             rec.total_value = sum(rec.line_ids.mapped('subtotal_value'))
 
+    @api.depends('line_ids.planned_qty', 'line_ids.net_weight', 'line_ids.gross_weight')
+    def _compute_total_weights(self):
+        for rec in self:
+            rec.total_net_weight = sum(line.planned_qty * line.net_weight for line in rec.line_ids)
+            rec.total_gross_weight = sum(line.planned_qty * line.gross_weight for line in rec.line_ids)
+
     @api.depends('t1_customs_file_ids.state')
     def _compute_t1_is_closed(self):
         for rec in self:
@@ -102,8 +111,11 @@ class BondedInbound(models.Model):
             rec.bonded_book_id.reserve_document_value(rec.total_value, project_id=rec.project_id.id, inbound_id=rec.id)
             now = fields.Datetime.now()
             vals = {'state': 'confirmed', 'confirm_user_id': self.env.user.id, 'confirm_time_user_tz': fields.Datetime.to_string(fields.Datetime.context_timestamp(rec, now)), 'confirm_time_server': now}
+            customs_file = rec.t1_customs_file_ids[:1]
+            if customs_file.mrn_id and not rec.mrn_id:
+                vals['mrn_id'] = customs_file.mrn_id.id
             if not rec.inbound_tracking_id:
-                tracking = self.env['bonded.inbound.tracking'].create({'name': self.env['ir.sequence'].next_by_code('seq.bonded.inbound.tracking') or _('New'), 'bonded_inbound_id': rec.id, 'customs_file_id': rec.t1_customs_file_ids[:1].id})
+                tracking = self.env['bonded.inbound.tracking'].create({'name': self.env['ir.sequence'].next_by_code('seq.bonded.inbound.tracking') or _('New'), 'bonded_inbound_id': rec.id, 'customs_file_id': customs_file.id})
                 vals['inbound_tracking_id'] = tracking.id
             rec.write(vals)
 
@@ -161,7 +173,7 @@ class BondedInbound(models.Model):
                     'item_no': item_no,
                     'bonded_product_id': line.bonded_product_id.id,
                     'product_id': line.product_id.id,
-                    'origin_country_id': eori_entity.country_id.id,
+                    'origin_country_id': line.origin_country_id.id or eori_entity.country_id.id,
                     'quantity': line.planned_qty,
                     'gross_weight': line.planned_qty * line.gross_weight,
                     'net_weight': line.planned_qty * line.net_weight,
@@ -331,6 +343,10 @@ class BondedInbound(models.Model):
                 'location_id': rec.pick_type.default_location_src_id.id,
                 'location_dest_id': rec.pick_type.default_location_dest_id.id,
                 'origin': rec.name,
+                'bill_of_lading': rec.bl_no,
+                'cntrno': rec.cntr_no,
+                'ref_1': rec.reference,
+                'planning_date': fields.Datetime.to_datetime(rec.expected_date) if rec.expected_date else False,
                 'bonded_inbound_id': rec.id,
                 'unique_identifier_no': rec.inbound_tracking_id.name,
                 'bonded_customs_file_id': (rec.inbound_tracking_id.customs_file_id or rec.t1_customs_file_ids[:1]).id,
@@ -347,7 +363,7 @@ class BondedInbound(models.Model):
                 uom_id = line.uom_id.id or line.product_id.uom_id.id
                 move_key = (line.product_id.id, uom_id, picking.location_id.id, picking.location_dest_id.id)
                 if move_key not in move_vals_by_key:
-                    move_vals_by_key[move_key] = {'name': line.product_id.name, 'product_id': line.product_id.id, 'product_uom_qty': line.planned_qty, 'product_uom': uom_id, 'picking_id': picking.id, 'location_id': picking.location_id.id, 'location_dest_id': picking.location_dest_id.id}
+                    move_vals_by_key[move_key] = {'name': line.product_id.name, 'product_id': line.product_id.id, 'product_uom_qty': line.planned_qty, 'product_uom': uom_id, 'picking_id': picking.id, 'location_id': picking.location_id.id, 'location_dest_id': picking.location_dest_id.id, 'customs_mutation_type': 'inbound'}
                 else:
                     move_vals_by_key[move_key]['product_uom_qty'] += line.planned_qty
             moves = env_stock_move.create(list(move_vals_by_key.values()))
@@ -378,6 +394,12 @@ class BondedInbound(models.Model):
                             'location_dest_id': picking.location_dest_id.id,
                             'lot_id': lot.id,
                             'bonded_inbound_line_id': line.id,
+                            'origin_country_id': line.origin_country_id.id,
+                            'goods_value': line.declared_unit_price,
+                            'hs_code': line.hs_code,
+                            'net_weight': line.net_weight,
+                            'customs_code': line.customs_code,
+                            'currency_id': line.currency_id.id,
                         }
                         if line.package_id:
                             move_line_vals['result_package_id'] = line.package_id.id
@@ -392,6 +414,12 @@ class BondedInbound(models.Model):
                         'location_id': picking.location_id.id,
                         'location_dest_id': picking.location_dest_id.id,
                         'bonded_inbound_line_id': line.id,
+                        'origin_country_id': line.origin_country_id.id,
+                        'goods_value': line.declared_unit_price,
+                        'hs_code': line.hs_code,
+                        'net_weight': line.net_weight,
+                        'customs_code': line.customs_code,
+                        'currency_id': line.currency_id.id,
                     }
                     if line.package_id:
                         move_line_vals['result_package_id'] = line.package_id.id
@@ -417,20 +445,26 @@ class BondedInboundLine(models.Model):
     bonded_product_id = fields.Many2one('bonded.product', string='Bonded Product Filing', ondelete='restrict', index=True)
     product_id = fields.Many2one('product.product', string='Product', required=True, index=True)
     inbound_tracking_no = fields.Char(string='Unique Identifier No.', related='bonded_inbound_id.inbound_tracking_id.name', store=True, readonly=True, index=True)
+    origin_country_id = fields.Many2one('res.country', string='Country of Origin', ondelete='restrict', index=True)
+    hs_code = fields.Char(related='bonded_product_id.hs_code', string='HS Code', store=True, readonly=True, index=True)
+    customs_code = fields.Char(related='bonded_product_id.customs_code', string='Customs Code', store=True, readonly=True, index=True)
+    adr = fields.Boolean(string='ADR')
+    un_code = fields.Char(string='UN Number', index=True)
     pallet_group_id = fields.Many2one('bonded.inbound.pallet.group', string='Pallet Group', readonly=True, copy=False, ondelete='cascade', index=True)
     traceability_line_ids = fields.One2many('bonded.inbound.traceability.line', 'inbound_line_id', string='Lot/SN Details', copy=False)
     traceability_tag_line_ids = fields.Many2many('bonded.inbound.traceability.line', string='Lot/SN', compute='_compute_traceability_tag_line_ids', inverse='_inverse_traceability_tag_line_ids', readonly=False)
     pallet_no = fields.Char(string='Pallet Number', index=True)
     package_id = fields.Many2one('stock.quant.package', string='Package', ondelete='restrict', index=True)
-    planned_qty = fields.Float(string='Planned Qty', required=True, default=1.0)
-    declared_unit_price = fields.Monetary(string='Declared Unit Price', required=True, default=0.0)
+    planned_qty = fields.Float(string='Quantity', required=True, default=1.0)
+    declared_unit_price = fields.Monetary(string='Goods Value', required=True, default=0.0)
     gross_weight = fields.Float(string='Gross Weight (kg)')
     net_weight = fields.Float(string='Net Weight (kg)')
     product_tracking = fields.Selection(related='product_id.tracking', string='Tracking', readonly=True)
-    subtotal_value = fields.Monetary(string='Subtotal', compute='_compute_subtotal_value', store=True)
+    subtotal_value = fields.Monetary(string='Total Goods Value', compute='_compute_subtotal_value', store=True)
     currency_id = fields.Many2one('res.currency', related='bonded_inbound_id.currency_id', string='Currency', readonly=True)
     done_qty = fields.Float(string='Done Qty', compute='_compute_done_qty', store=True)
     uom_id = fields.Many2one('uom.uom', string='UoM', related='bonded_product_id.uom_id', readonly=True)
+    remark = fields.Text(string='Remark')
     eligible_product_ids = fields.Many2many('product.product', compute='_compute_eligible_product_ids')
     eligible_bonded_product_ids = fields.Many2many('bonded.product', compute='_compute_eligible_product_ids')
     available_customs_file_line_ids = fields.Many2many('bonded.customs.file.line', compute='_compute_available_customs_file_line_ids')
@@ -455,9 +489,11 @@ class BondedInboundLine(models.Model):
                 ], limit=1)
             if filing:
                 vals.setdefault('bonded_product_id', filing.id)
-                vals.setdefault('declared_unit_price', filing.declared_unit_price)
+                vals.setdefault('declared_unit_price', filing.goods_value)
                 vals.setdefault('gross_weight', filing.gross_weight)
                 vals.setdefault('net_weight', filing.net_weight)
+                vals.setdefault('adr', filing.adr)
+                vals.setdefault('un_code', filing.un_number)
         return super().create(vals_list)
 
     @api.onchange('bonded_product_id')
@@ -465,9 +501,11 @@ class BondedInboundLine(models.Model):
         for rec in self:
             if rec.bonded_product_id:
                 rec.product_id = rec.bonded_product_id.product_id
-                rec.declared_unit_price = rec.bonded_product_id.declared_unit_price
+                rec.declared_unit_price = rec.bonded_product_id.goods_value
                 rec.gross_weight = rec.bonded_product_id.gross_weight
                 rec.net_weight = rec.bonded_product_id.net_weight
+                rec.adr = rec.bonded_product_id.adr
+                rec.un_code = rec.bonded_product_id.un_number
 
     @api.onchange('product_id')
     def onchange_product_id(self):
@@ -476,6 +514,7 @@ class BondedInboundLine(models.Model):
             rec.declared_unit_price = 0.0
             rec.gross_weight = 0.0
             rec.net_weight = 0.0
+            rec.adr = False
             if not rec.bonded_inbound_id or not rec.product_id:
                 continue
             filing = env_bonded_product.search([
@@ -486,9 +525,11 @@ class BondedInboundLine(models.Model):
             ], limit=1)
             if filing:
                 rec.bonded_product_id = filing
-                rec.declared_unit_price = filing.declared_unit_price
+                rec.declared_unit_price = filing.goods_value
                 rec.gross_weight = filing.gross_weight
                 rec.net_weight = filing.net_weight
+                rec.adr = filing.adr
+                rec.un_code = filing.un_number
 
     @api.constrains('product_id', 'planned_qty')
     def check_serial_planned_qty(self):

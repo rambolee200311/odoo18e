@@ -22,6 +22,7 @@
     'depends': [
         'base',
         'stock',
+        'worlddepot',
         'wd_barcode_lite_core',
         'product',
         'account',

@@ -23,8 +23,20 @@ class BondedOutbound(models.Model):
     project_id = fields.Many2one('project.project', string='Project', required=True, ondelete='restrict', index=True, tracking=True)
     owner_id = fields.Many2one('res.partner', related='project_id.owner', string='Owner', store=True, readonly=True, index=True)
     reference = fields.Char(string='Reference', copy=False, index=True, tracking=True)
+    unload_company = fields.Many2one('res.partner', string='Unload Company/Recipient', tracking=True)
+    load_ref = fields.Char(string='Loading / Pickup / Courier Reference No.', tracking=True)
+    load_date = fields.Datetime(string='Loading/Delivery Date', tracking=True)
+    delivery_method = fields.Selection([('truck', 'Truck Delivery'), ('pickup', 'Customer Pickup'), ('parcel', 'Parcel Delivery')], string='Delivery Method', default='truck', tracking=True)
+    delivery_company = fields.Many2one('res.partner', string='Delivery Company', tracking=True)
+    delivery_number = fields.Char(string='Delivery Number', tracking=True)
+    plate_number = fields.Char(string='Plate Number', tracking=True)
+    receiver_sign_back_date = fields.Datetime(string='Receiver Sign Back Date', tracking=True)
+    delivery_remark = fields.Text(string='Delivery Remark')
+    pod_attachment_line_ids = fields.Many2many('ir.attachment', 'bonded_outbound_pod_attachment_rel', 'bonded_outbound_id', 'attachment_id', string='POD Attachments', copy=False, tracking=True)
     is_dangerous = fields.Boolean(string='Dangerous Goods', default=False, tracking=True)
     customs_file_ids = fields.One2many('bonded.customs.file', 'bonded_outbound_id', string='Customs Declarations', tracking=True)
+    customs_file_id = fields.Many2one('bonded.customs.file', string='Customs File', compute='_compute_customs_file_id', store=True, readonly=True, copy=False, index=True)
+    customs_file_state = fields.Selection(related='customs_file_id.state', string='Customs File Status', store=True, readonly=True, index=True)
     t1_status = fields.Selection([('draft', 'Draft'), ('to_be_submitted', 'To Be Submitted'), ('submitted', 'Submitted'), ('customs_approved', 'Customs Approved'), ('customs_rejected', 'Customs Rejected'), ('done', 'Closed'), ('cancelled', 'Cancelled')], string='T1 Status', compute='_compute_t1_status', store=True, readonly=True, index=True)
     t1_closed_date = fields.Datetime(string='T1 Closed Date', compute='_compute_t1_status', store=True, readonly=True, index=True)
     outbound_type = fields.Selection([
@@ -33,15 +45,15 @@ class BondedOutbound(models.Model):
         ('destruction', 'Destruction'),
     ], string='Outbound Type', required=True, tracking=True)
     mrn_id = fields.Many2one('bonded.mrn', string='Corresponding MRN', ondelete='restrict', index=True, copy=False, tracking=True)
-    mrn_override = fields.Char(string='Manual MRN Override', copy=False)
-    mrn = fields.Char(string='Corresponding MRN', compute='_compute_mrn', inverse='inverse_mrn', store=True, index=True, help='Outbound MRN (T1 transit only)', tracking=True)
     mrn_status = fields.Selection(related='mrn_id.state', string='MRN Status', store=True, readonly=True, index=True)
     expected_date = fields.Date(string='Planned Date', required=True, tracking=True)
     total_value = fields.Monetary(string='Total Value', compute='_compute_total_value', store=True, readonly=True, tracking=True)
     currency_id = fields.Many2one('res.currency', string='Currency',
                                   default=lambda self: self.env.ref('base.EUR').id, tracking=True)
-    picking_id = fields.Many2one('stock.picking', string='Stock Picking',
+    picking_id = fields.Many2one('stock.picking', string='Outbound Order',
                                  readonly=True, ondelete='restrict', tracking=True)
+    picking_status = fields.Selection(related='picking_id.state', string='Outbound Picking Status', store=True, readonly=True, index=True)
+    picking_validation_time = fields.Datetime(related='picking_id.date_done', string='Outbound Picking Validation Time', readonly=True)
     state = fields.Selection([
         ('draft', 'Draft'),
         ('confirmed', 'Confirmed'),
@@ -82,6 +94,12 @@ class BondedOutbound(models.Model):
             result['outbound_type']['selection'] = [selection for selection in result['outbound_type']['selection'] if selection[0] != 'destruction']
         return result
 
+    @api.depends('customs_file_ids.state')
+    def _compute_customs_file_id(self):
+        for rec in self:
+            active_files = rec.customs_file_ids.filtered(lambda item: item.state != 'cancelled')
+            rec.customs_file_id = active_files.sorted(key=lambda item: item.id, reverse=True)[:1]
+
     @api.onchange('project_id')
     def onchange_project_id(self):
         for rec in self:
@@ -96,20 +114,6 @@ class BondedOutbound(models.Model):
             t1_file = t1_files.sorted(key=lambda item: item.id, reverse=True)[:1]
             rec.t1_status = t1_file.state if t1_file else False
             rec.t1_closed_date = t1_file.t1_closed_date if t1_file else False
-
-    @api.depends('outbound_type', 'customs_file_ids.declaration_type', 'customs_file_ids.state', 'customs_file_ids.mrn', 'mrn_override')
-    def _compute_mrn(self):
-        for rec in self:
-            if rec.mrn_override:
-                rec.mrn = rec.mrn_override
-                continue
-            declaration_type = 't1_out' if rec.outbound_type == 't1_transit' else 'clearance_out'
-            customs_file = rec.customs_file_ids.filtered(lambda item: item.declaration_type == declaration_type and item.state != 'cancelled').sorted(key=lambda item: item.id, reverse=True)[:1]
-            rec.mrn = customs_file.mrn if customs_file else False
-
-    def inverse_mrn(self):
-        for rec in self:
-            rec.mrn_override = rec.mrn
 
     @api.constrains('outbound_type', 'customs_file_ids')
     def check_outbound_customs_file(self):
@@ -234,7 +238,7 @@ class BondedOutbound(models.Model):
                         'currency_id': source_stock.currency_id.id,
                         'inbound_date': source_stock.inbound_date,
                         'outbound_customs_file_id': customs_file.id,
-                        'related_t1_out_mrn': rec.mrn if rec.outbound_type == 't1_transit' else False,
+                        'related_t1_out_mrn': rec.mrn_id.mrn if rec.outbound_type == 't1_transit' and rec.mrn_id else False,
                     })
                 else:
                     source_stock.write({
@@ -242,7 +246,7 @@ class BondedOutbound(models.Model):
                         'locked': False,
                         'location_id': move_line.location_dest_id.id,
                         'outbound_customs_file_id': customs_file.id,
-                        'related_t1_out_mrn': rec.mrn if rec.outbound_type == 't1_transit' else False,
+                        'related_t1_out_mrn': rec.mrn_id.mrn if rec.outbound_type == 't1_transit' and rec.mrn_id else False,
                     })
                     moved_stock = source_stock
                 self.env['bonded.verification'].create({
@@ -255,7 +259,7 @@ class BondedOutbound(models.Model):
                     'quantity': done_qty,
                     'write_off_value': source_stock.unit_value * done_qty,
                     'operator_id': self.env.user.id,
-                    'mrn': rec.mrn or False,
+                    'mrn': rec.mrn_id.mrn if rec.mrn_id else False,
                 })
                 self.env['bonded.book.line'].create({
                     'bonded_book_id': rec.bonded_book_id.id,
@@ -328,6 +332,7 @@ class BondedOutbound(models.Model):
             'location_dest_id': self.pick_type.default_location_dest_id.id,
             'origin': self.name,
             'bonded_outbound_id': self.id,
+            'load_ref': self.load_ref,
             'unique_identifier_no': ', '.join(sorted(set(filter(None, self.line_ids.mapped('inbound_tracking_no'))))),
             'bonded_customs_file_id': customs_file.id,
         })
@@ -338,7 +343,7 @@ class BondedOutbound(models.Model):
             uom_id = line.uom_id.id or line.product_id.uom_id.id
             move_key = (line.product_id.id, uom_id, line.bonded_stock_id.location_id.id, picking.location_dest_id.id)
             if move_key not in move_vals_by_key:
-                move_vals_by_key[move_key] = {'name': line.product_id.name, 'product_id': line.product_id.id, 'product_uom_qty': line.demand_qty, 'product_uom': uom_id, 'picking_id': picking.id, 'location_id': line.bonded_stock_id.location_id.id, 'location_dest_id': picking.location_dest_id.id}
+                move_vals_by_key[move_key] = {'name': line.product_id.name, 'product_id': line.product_id.id, 'product_uom_qty': line.demand_qty, 'product_uom': uom_id, 'picking_id': picking.id, 'location_id': line.bonded_stock_id.location_id.id, 'location_dest_id': picking.location_dest_id.id, 'customs_mutation_type': 'outbound'}
             else:
                 move_vals_by_key[move_key]['product_uom_qty'] += line.demand_qty
         moves = env_stock_move.create(list(move_vals_by_key.values()))
@@ -347,7 +352,8 @@ class BondedOutbound(models.Model):
         for line in self.line_ids:
             uom_id = line.uom_id.id or line.product_id.uom_id.id
             move_key = (line.product_id.id, uom_id, line.bonded_stock_id.location_id.id, picking.location_dest_id.id)
-            move_line_vals.append({'picking_id': picking.id, 'move_id': moves_by_key[move_key].id, 'product_id': line.product_id.id, 'product_uom_id': uom_id, 'quantity': line.demand_qty, 'location_id': line.bonded_stock_id.location_id.id, 'location_dest_id': picking.location_dest_id.id, 'package_id': line.bonded_stock_id.package_id.id, 'lot_id': line.bonded_stock_id.lot_id.id, 'bonded_stock_id': line.bonded_stock_id.id, 'bonded_outbound_line_id': line.id})
+            inbound_line = line.bonded_stock_id.inbound_line_id
+            move_line_vals.append({'picking_id': picking.id, 'move_id': moves_by_key[move_key].id, 'product_id': line.product_id.id, 'product_uom_id': uom_id, 'quantity': line.demand_qty, 'location_id': line.bonded_stock_id.location_id.id, 'location_dest_id': picking.location_dest_id.id, 'package_id': line.bonded_stock_id.package_id.id, 'lot_id': line.bonded_stock_id.lot_id.id, 'bonded_stock_id': line.bonded_stock_id.id, 'bonded_outbound_line_id': line.id, 'origin_country_id': inbound_line.origin_country_id.id, 'goods_value': inbound_line.declared_unit_price, 'hs_code': inbound_line.hs_code, 'net_weight': inbound_line.net_weight, 'customs_code': inbound_line.customs_code, 'currency_id': inbound_line.currency_id.id})
         env_stock_move_line.create(move_line_vals)
         if scan_enabled:
             picking.write({'outbound_scan_mode': self.outbound_scan_mode})

@@ -5,8 +5,8 @@ from odoo import fields, models
 class ProductProduct(models.Model):
     _inherit = 'product.product'
 
-    is_dg = fields.Boolean(string='Dangerous Goods', readonly=True)
-    un_code = fields.Char(string='UN Code', readonly=True)
+    is_dg = fields.Boolean(string='Dangerous Goods')
+    un_code = fields.Char(string='UN Code')
     pcs_per_pallet = fields.Integer(string='Pcs/Pallet', store=True, readonly=True)
     duty_rate = fields.Float(string='Duty Rate (%)', default=0.0)
     brand = fields.Char(string='Brand')
