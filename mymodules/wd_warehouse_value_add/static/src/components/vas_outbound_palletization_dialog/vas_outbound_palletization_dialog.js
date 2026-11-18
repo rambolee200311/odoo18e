@@ -22,18 +22,17 @@ export class VasOutboundPalletizationDialog extends Component {
         this._isDestroyed = false;
         this._pendingBarcodes = [];
         this._isDrainingBarcodeQueue = false;
-        this._scanInputStarted = false;
-        this._scanInputIdleTimer = null;
         this.state = useState({
             palletizationId: null,
             palletizationResult: null,
+            palletizationLastActionMethod: "",
             palletizationModalOpen: this.props.mode === "manage",
             createPalletModalOpen: this.props.mode === "create",
             palletCount: 1,
             palletizationInput: "",
             palletizationEditLineId: null,
             palletizationEditQuantity: 0,
-            destinationPalletsExpanded: true,
+            allocationPalletsExpanded: {},
             unassignedExpanded: false,
             busy: false,
             loading: this.props.mode === "manage",
@@ -44,7 +43,6 @@ export class VasOutboundPalletizationDialog extends Component {
         this._boundBarcodeInput = this._onBarcodeInput.bind(this);
         this._boundBarcodeKeydown = this._onBarcodeKeydown.bind(this);
         this._boundBarcodeBlur = this._onBarcodeBlur.bind(this);
-        this._boundDocumentKeydown = this._onDocumentKeydown.bind(this);
         this._boundWindowFocus = this._onWindowFocus.bind(this);
         this._boundVisibilityChange = this._onDocumentVisibilityChange.bind(this);
 
@@ -55,11 +53,9 @@ export class VasOutboundPalletizationDialog extends Component {
                 input.addEventListener("keydown", this._boundBarcodeKeydown);
                 input.addEventListener("blur", this._boundBarcodeBlur);
             }
-            document.addEventListener("keydown", this._boundDocumentKeydown, true);
             window.addEventListener("focus", this._boundWindowFocus);
             document.addEventListener("visibilitychange", this._boundVisibilityChange);
-            this._scannerLog("component-mounted");
-            this._reconcileFocus("component-mounted");
+            this._reconcileFocus();
             if (this.props.mode === "manage") {
                 this.startOutboundPalletization();
             }
@@ -73,11 +69,8 @@ export class VasOutboundPalletizationDialog extends Component {
                 input.removeEventListener("keydown", this._boundBarcodeKeydown);
                 input.removeEventListener("blur", this._boundBarcodeBlur);
             }
-            document.removeEventListener("keydown", this._boundDocumentKeydown, true);
             window.removeEventListener("focus", this._boundWindowFocus);
             document.removeEventListener("visibilitychange", this._boundVisibilityChange);
-            clearTimeout(this._scanInputIdleTimer);
-            this._scannerLog("component-unmounted");
         });
     }
 
@@ -103,25 +96,9 @@ export class VasOutboundPalletizationDialog extends Component {
         return this.palletizationNextStep === "input_quantity";
     }
 
-    get palletizationStepIndex() {
-        if (this.palletizationIsValidated) {
-            return 4;
-        }
-        if (this.palletizationNextStep === "scan_destination") {
-            return 1;
-        }
-        if (
-            Number(this.palletizationScanState.summary?.unassigned_quantity || 0) <= 0 &&
-            this.hasPalletizationAllocations
-        ) {
-            return 3;
-        }
-        return 2;
-    }
-
     get palletizationPrompt() {
         return {
-            scan_destination: _t("Select a destination transport pallet or scan its barcode with the PDA trigger."),
+            scan_destination: _t("Scan a destination transport pallet with the PDA trigger."),
             scan_source: _t("Scan a source pallet or loose product with the PDA trigger."),
             scan_product: _t("Scan a product from the selected source with the PDA trigger."),
             scan_lot: _t("Scan a lot number with the PDA trigger."),
@@ -132,8 +109,20 @@ export class VasOutboundPalletizationDialog extends Component {
         }[this.palletizationNextStep] || _t("Continue palletization.");
     }
 
+    get showPalletizationResultMessage() {
+        return Boolean(
+            this.state.palletizationLastActionMethod &&
+            this.state.palletizationResult?.success &&
+            this.state.palletizationResult?.message
+        );
+    }
+
     get palletizationIsValidated() {
         return this.palletizationScanState.palletization?.state === "validated";
+    }
+
+    get hasPalletizationAllocations() {
+        return this.allocatedTransportPallets.length > 0;
     }
 
     get destinationTransportPallets() {
@@ -142,34 +131,10 @@ export class VasOutboundPalletizationDialog extends Component {
         );
     }
 
-    get hasPalletizationAllocations() {
-        return this.allocatedTransportPallets.length > 0;
-    }
-
     get allocatedTransportPallets() {
         return (this.palletizationScanState.transport_pallets || []).filter(
             (pallet) => (pallet.product_lines || []).length > 0
         );
-    }
-
-    _scannerLog(event, details = {}) {
-        const input = this.barcodeInputRef.el;
-        const activeElement = document.activeElement;
-        const activeElementName = activeElement
-            ? `${activeElement.tagName?.toLowerCase() || "unknown"}${activeElement.id ? `#${activeElement.id}` : ""}`
-            : null;
-        console.info("[VAS palletization scanner]", event, {
-            step: this.palletizationNextStep,
-            busy: this.state.busy,
-            modalOpen: this.state.palletizationModalOpen,
-            inputExists: Boolean(input),
-            inputDisabled: input?.disabled ?? null,
-            inputFocused: Boolean(input && activeElement === input),
-            activeElement: activeElementName,
-            visibility: document.visibilityState,
-            queuedScans: this._pendingBarcodes.length,
-            ...details,
-        });
     }
 
     _onBarcodeInput(event) {
@@ -178,22 +143,6 @@ export class VasOutboundPalletizationDialog extends Component {
             return;
         }
         const value = input.value || "";
-        if (value && !this._scanInputStarted) {
-            this._scanInputStarted = true;
-            this._scannerLog("input-started", {
-                inputType: event.inputType || "unknown",
-                inputLength: value.length,
-            });
-        }
-        if (value) {
-            clearTimeout(this._scanInputIdleTimer);
-            this._scanInputIdleTimer = setTimeout(() => {
-                this._scanInputStarted = false;
-                this._scannerLog("input-idle-without-terminator", {
-                    inputLength: input.value?.length || 0,
-                });
-            }, 1000);
-        }
         if (event.inputType === "insertLineFeed" || value.includes("\n") || value.includes("\r")) {
             this._consumeBarcode(input);
         }
@@ -205,7 +154,6 @@ export class VasOutboundPalletizationDialog extends Component {
         }
         event.preventDefault();
         const input = event.target;
-        this._scannerLog("enter-key", { inputLength: input?.value?.length || 0 });
         if (this.state.palletizationModalOpen && this.isPalletizationBarcodeStep) {
             this._consumeBarcode(input);
         } else if (input) {
@@ -215,75 +163,48 @@ export class VasOutboundPalletizationDialog extends Component {
 
     _onBarcodeBlur() {
         if (this.state.palletizationModalOpen && this.isPalletizationBarcodeStep) {
-            this._scannerLog("scanner-input-blurred");
             if (this.state.palletizationEditLineId) {
-                this._scannerLog("scanner-focus-yielded-to-allocation-editor");
                 return;
             }
-            this._reconcileFocus("scanner-input-blurred");
+            this._reconcileFocus();
         }
     }
 
     _onWindowFocus() {
-        this._scannerLog("window-focused");
-        this._reconcileFocus("window-focused");
-    }
-
-    _onDocumentKeydown(event) {
-        if (
-            !this.state.palletizationModalOpen ||
-            !this.isPalletizationBarcodeStep ||
-            event.target === this.barcodeInputRef.el
-        ) {
-            return;
-        }
-        this._scannerLog("keydown-outside-scanner-input", {
-            key: event.key === "Enter" ? "Enter" : "character",
-            targetTag: event.target?.tagName?.toLowerCase() || "unknown",
-            targetId: event.target?.id || null,
-        });
+        this._reconcileFocus();
     }
 
     _onDocumentVisibilityChange() {
-        this._scannerLog("document-visibility-changed");
         if (document.visibilityState === "visible") {
-            this._reconcileFocus("document-visible");
+            this._reconcileFocus();
         }
     }
 
     _consumeBarcode(input) {
         const barcode = (input?.value || "").replace(/[\r\n]/g, "").trim();
-        clearTimeout(this._scanInputIdleTimer);
-        this._scanInputStarted = false;
         if (input) {
             input.value = "";
         }
         if (!barcode) {
-            this._scannerLog("empty-scan-terminator");
             return;
         }
-        this._scannerLog("barcode-captured", { barcodeLength: barcode.length });
         if (this.state.busy || this._isDrainingBarcodeQueue) {
             if (this._pendingBarcodes.length >= MAX_QUEUED_BARCODES) {
-                this._scannerLog("barcode-queue-full", { barcodeLength: barcode.length });
                 this.notification.add(_t("Too many scans are queued. Wait for processing to finish before scanning again."), { type: "warning" });
                 return;
             }
             this._pendingBarcodes.push(barcode);
-            this._scannerLog("barcode-queued", { barcodeLength: barcode.length });
             return;
         }
         this.submitPalletizationInput(barcode);
     }
 
-    _reconcileFocus(reason = "state-change") {
+    _reconcileFocus() {
         if (this._isDestroyed) {
             return;
         }
-        this._scannerLog("focus-reconcile-scheduled", { reason });
         requestAnimationFrame(() => {
             if (this._isDestroyed || !this.state.palletizationModalOpen) {
-                this._scannerLog("focus-reconcile-skipped", { reason, skipReason: "modal-closed-or-destroyed" });
                 return;
             }
             if (this.state.palletizationEditLineId) {
@@ -291,43 +212,29 @@ export class VasOutboundPalletizationDialog extends Component {
                 if (!this.state.busy) {
                     allocationInput?.focus();
                 }
-                this._scannerLog("allocation-editor-focus-reconciled", {
-                    reason,
-                    allocationInputExists: Boolean(allocationInput),
-                    allocationInputDisabled: allocationInput?.disabled ?? null,
-                });
             } else if (this.isPalletizationQuantityStep) {
                 const quantityInput = this.el?.querySelector(".o_wd_vas_palletization-quantity-input");
                 if (!this.state.busy) {
                     quantityInput?.focus();
                 }
-                this._scannerLog("quantity-focus-reconciled", {
-                    reason,
-                    quantityInputExists: Boolean(quantityInput),
-                    quantityInputDisabled: quantityInput?.disabled ?? null,
-                });
             } else if (this.isPalletizationBarcodeStep) {
                 const input = this.barcodeInputRef.el;
                 if (input) {
                     if (document.activeElement !== input) {
                         input.focus();
                     }
-                    this._scannerLog("barcode-focus-reconciled", { reason });
-                } else {
-                    this._scannerLog("barcode-focus-failed", { reason, failure: "input-not-found" });
                 }
             } else {
                 if (document.activeElement === this.barcodeInputRef.el) {
                     this.barcodeInputRef.el?.blur();
                 }
-                this._scannerLog("barcode-focus-not-required", { reason });
             }
         });
     }
 
-    _finishBusyAction(reason) {
+    _finishBusyAction() {
         this.state.busy = false;
-        this._reconcileFocus(reason);
+        this._reconcileFocus();
         void this._drainQueuedBarcodes();
     }
 
@@ -345,13 +252,10 @@ export class VasOutboundPalletizationDialog extends Component {
             return;
         }
         if (this.palletizationNextStep === "choose_whole_handling") {
-            this._scannerLog("barcode-queue-waiting-for-whole-pallet-choice");
             return;
         }
         if (!this.isPalletizationBarcodeStep) {
-            const count = this._pendingBarcodes.length;
             this._pendingBarcodes = [];
-            this._scannerLog("barcode-queue-cleared-for-non-scan-step", { clearedScans: count });
             this.notification.add(
                 _t("Queued scans were cleared because the current step requires a manual action. Please scan again after completing it."),
                 { type: "warning" }
@@ -369,14 +273,10 @@ export class VasOutboundPalletizationDialog extends Component {
                 this.isPalletizationBarcodeStep
             ) {
                 const barcode = this._pendingBarcodes.shift();
-                this._scannerLog("queued-barcode-processing", { barcodeLength: barcode.length });
                 await this.submitPalletizationInput(barcode);
             }
         } catch (error) {
-            this._scannerLog("queued-barcode-processing-failed", {
-                error: error.data?.arguments?.[0] || error.message || "unknown error",
-            });
-            this._clearQueuedBarcodes("queued-scan-error");
+            this._clearQueuedBarcodes();
             this.notification.add(error.data?.arguments?.[0] || error.message || _t("Queued scans could not be processed."), { type: "danger" });
         } finally {
             this._isDrainingBarcodeQueue = false;
@@ -386,12 +286,8 @@ export class VasOutboundPalletizationDialog extends Component {
         }
     }
 
-    _clearQueuedBarcodes(reason) {
+    _clearQueuedBarcodes() {
         if (this._pendingBarcodes.length) {
-            this._scannerLog("barcode-queue-cleared", {
-                reason,
-                clearedScans: this._pendingBarcodes.length,
-            });
             this._pendingBarcodes = [];
         }
     }
@@ -414,10 +310,10 @@ export class VasOutboundPalletizationDialog extends Component {
         } catch (error) {
             this.state.errorMessage = error.data?.arguments?.[0] || error.message || _t("Palletization could not be started.");
             this.notification.add(this.state.errorMessage, { type: "danger" });
-            this._clearQueuedBarcodes("palletization-start-failed");
+            this._clearQueuedBarcodes();
         } finally {
             this.state.loading = false;
-            this._finishBusyAction("palletization-start-finished");
+            this._finishBusyAction();
         }
     }
 
@@ -481,7 +377,7 @@ export class VasOutboundPalletizationDialog extends Component {
         } finally {
             this.state.busy = false;
             if (closeAfterCreate) {
-                this._clearQueuedBarcodes("create-dialog-closed");
+                this._clearQueuedBarcodes();
                 this.props.onClose();
             }
         }
@@ -495,6 +391,7 @@ export class VasOutboundPalletizationDialog extends Component {
         );
         this.state.palletizationId = palletizationId;
         this.state.palletizationResult = result;
+        this.state.palletizationLastActionMethod = "";
         this.state.palletizationInput = "";
         this.state.palletizationEditLineId = null;
         return result;
@@ -503,6 +400,7 @@ export class VasOutboundPalletizationDialog extends Component {
     async callPalletizationService(method, args) {
         const result = await this.orm.call("stock.barcode.lite.scan.service", method, args);
         this.state.palletizationResult = result;
+        this.state.palletizationLastActionMethod = method;
         this.state.palletizationInput = "";
         if (!result.success) {
             this.state.scanErrorMessage = result.message || _t("Palletization action failed.");
@@ -527,23 +425,9 @@ export class VasOutboundPalletizationDialog extends Component {
         const palletizationId = this.state.palletizationId;
         const current = this.palletizationCurrent;
         if (!code || !palletizationId || this.state.busy || this.palletizationIsValidated) {
-            this._scannerLog("scan-not-submitted", {
-                barcodeLength: code.length,
-                reason: !code
-                    ? "empty-code"
-                    : !palletizationId
-                      ? "palletization-not-ready"
-                      : this.state.busy
-                        ? "busy"
-                        : "already-validated",
-            });
             return;
         }
         if (this.palletizationNextStep === "choose_whole_handling" || this.palletizationNextStep === "validated") {
-            this._scannerLog("scan-not-submitted", {
-                barcodeLength: code.length,
-                reason: this.palletizationNextStep,
-            });
             return;
         }
 
@@ -582,40 +466,13 @@ export class VasOutboundPalletizationDialog extends Component {
         }
 
         this.state.busy = true;
-        this._scannerLog("scan-request-started", {
-            method,
-            barcodeLength: code.length,
-        });
         try {
-            const result = await this.callPalletizationService(method, args);
-            this._scannerLog("scan-request-finished", {
-                method,
-                success: Boolean(result.success),
-                nextStep: result.next_step || this.palletizationNextStep,
-            });
+            await this.callPalletizationService(method, args);
         } catch (error) {
             const message = error.data?.arguments?.[0] || error.message || _t("Palletization scan failed.");
-            this._scannerLog("scan-request-failed", { method, error: message });
             this.state.scanErrorMessage = message;
         } finally {
-            this._finishBusyAction("scan-request-finished");
-        }
-    }
-
-    async selectDestinationPallet(pallet) {
-        if (!pallet?.barcode || !this.state.palletizationId || this.state.busy || this.palletizationIsValidated) {
-            return;
-        }
-        this.state.busy = true;
-        try {
-            await this.callPalletizationService(
-                "process_vas_outbound_palletization_destination_scan",
-                [pallet.barcode, this.state.palletizationId]
-            );
-        } catch (error) {
-            this.notification.add(error.data?.arguments?.[0] || error.message || _t("Destination pallet could not be selected."), { type: "danger" });
-        } finally {
-            this._finishBusyAction("destination-pallet-selection-finished");
+            this._finishBusyAction();
         }
     }
 
@@ -637,7 +494,7 @@ export class VasOutboundPalletizationDialog extends Component {
         } catch (error) {
             this.notification.add(error.data?.arguments?.[0] || error.message || _t("Whole pallet could not be assigned."), { type: "danger" });
         } finally {
-            this._finishBusyAction("whole-pallet-action-finished");
+            this._finishBusyAction();
         }
     }
 
@@ -647,12 +504,12 @@ export class VasOutboundPalletizationDialog extends Component {
         }
         this.state.palletizationEditLineId = allocation.id;
         this.state.palletizationEditQuantity = allocation.quantity;
-        this._reconcileFocus("allocation-edit-started");
+        this._reconcileFocus();
     }
 
     cancelAllocationEdit() {
         this.state.palletizationEditLineId = null;
-        this._reconcileFocus("allocation-edit-cancelled");
+        this._reconcileFocus();
     }
 
     async saveAllocationEdit(pallet, allocation, productTracking) {
@@ -677,7 +534,7 @@ export class VasOutboundPalletizationDialog extends Component {
         } catch (error) {
             this.notification.add(error.data?.arguments?.[0] || error.message || _t("Allocation could not be updated."), { type: "danger" });
         } finally {
-            this._finishBusyAction("allocation-update-finished");
+            this._finishBusyAction();
         }
     }
 
@@ -694,7 +551,7 @@ export class VasOutboundPalletizationDialog extends Component {
         } catch (error) {
             this.notification.add(error.data?.arguments?.[0] || error.message || _t("Allocation could not be removed."), { type: "danger" });
         } finally {
-            this._finishBusyAction("allocation-removal-finished");
+            this._finishBusyAction();
         }
     }
 
@@ -711,13 +568,13 @@ export class VasOutboundPalletizationDialog extends Component {
         } catch (error) {
             this.notification.add(error.data?.arguments?.[0] || error.message || _t("Palletization could not be validated."), { type: "danger" });
         } finally {
-            this._finishBusyAction("palletization-validation-finished");
+            this._finishBusyAction();
         }
     }
 
     closeDialog() {
         if (!this.state.busy) {
-            this._clearQueuedBarcodes("dialog-closed");
+            this._clearQueuedBarcodes();
             this.props.onClose();
         }
     }
@@ -726,8 +583,12 @@ export class VasOutboundPalletizationDialog extends Component {
         this.state.unassignedExpanded = !this.state.unassignedExpanded;
     }
 
-    toggleDestinationPallets() {
-        this.state.destinationPalletsExpanded = !this.state.destinationPalletsExpanded;
+    isAllocationPalletExpanded(palletId) {
+        return Boolean(this.state.allocationPalletsExpanded[palletId]);
+    }
+
+    toggleAllocationPallet(palletId) {
+        this.state.allocationPalletsExpanded[palletId] = !this.isAllocationPalletExpanded(palletId);
     }
 
     dismissScanError() {

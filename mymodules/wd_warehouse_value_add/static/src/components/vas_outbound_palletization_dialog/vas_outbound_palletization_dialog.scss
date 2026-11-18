@@ -66,93 +66,9 @@
         }
     }
 
-    .o_wd_vas_palletization-stepper {
-        display: flex;
-        align-items: flex-start;
-        gap: 4px;
-        padding: 2px 0;
-    }
-
-    .o_wd_vas_palletization-step {
-        display: flex;
-        flex: 1 1 0;
-        min-width: 0;
-        flex-direction: column;
-        align-items: center;
-        gap: 3px;
-        color: #888;
-        font-size: 9px;
-        line-height: 1.1;
-        text-align: center;
-
-        &.is-current {
-            color: #514678;
-            font-weight: 700;
-        }
-
-        &.is-done {
-            color: #477c50;
-        }
-    }
-
-    .o_wd_vas_palletization-step-marker {
-        display: flex;
-        width: 22px;
-        height: 22px;
-        flex: 0 0 22px;
-        align-items: center;
-        justify-content: center;
-        color: #777;
-        background: #f2f2f2;
-        border: 1px solid #ccc;
-        border-radius: 50%;
-        font-size: 10px;
-        line-height: 1;
-
-        .is-current & {
-            color: #fff;
-            background: #71639e;
-            border-color: #71639e;
-        }
-
-        .is-done & {
-            color: #fff;
-            background: #5b9665;
-            border-color: #5b9665;
-        }
-    }
-
-    .o_wd_vas_palletization-step-line {
-        width: 100%;
-        height: 2px;
-        flex: 0.55 1 0;
-        margin-top: 10px;
-        background: #ddd;
-
-        &.is-done {
-            background: #78a981;
-        }
-    }
-
-    .o_wd_vas_palletization-summary {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 8px;
-
-        > div {
-            display: flex;
-            justify-content: space-between;
-            gap: 8px;
-            padding: 8px 10px;
-            background: #f7f7f7;
-            border: 1px solid #e2e2e2;
-            font-size: 12px;
-        }
-    }
-
     .o_wd_vas_palletization-panels {
         display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: minmax(0, 1fr);
         gap: 12px;
     }
 
@@ -170,19 +86,52 @@
         }
     }
 
-    .o_wd_vas_palletization-panel-header {
+    .o_wd_vas_destination-pallet-reference {
+        padding: 8px;
+        margin-bottom: 8px;
+        background: #f8f7fa;
+        border: 1px solid #e4e1ea;
+        border-radius: 4px;
+    }
+
+    .o_wd_vas_destination-pallet-reference-heading {
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 8px;
-        margin-bottom: 8px;
+        color: #716b7d;
+        font-size: 11px;
 
-        h3 {
-            margin: 0;
+        span {
+            color: #777;
+            font-size: 10px;
         }
     }
 
-    .o_wd_vas_palletization-pallet,
+    .o_wd_vas_destination-pallet-reference-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 6px;
+        margin-top: 6px;
+    }
+
+    .o_wd_vas_destination-pallet-reference-item {
+        display: grid;
+        min-width: 0;
+        gap: 2px;
+        padding: 6px;
+        background: #fff;
+        border: 1px solid #e4e1ea;
+        border-radius: 3px;
+        font-size: 11px;
+        overflow-wrap: anywhere;
+
+        span {
+            color: #777;
+            font-size: 10px;
+        }
+    }
+
     .o_wd_vas_palletization-unassigned {
         display: grid;
         width: 100%;
@@ -200,11 +149,6 @@
         small {
             color: #777;
             font-size: 10px;
-        }
-
-        &.is-current {
-            border-color: #71639e;
-            box-shadow: inset 3px 0 #71639e;
         }
     }
 
@@ -252,8 +196,15 @@
         background: #faf9fc;
         border: 1px solid #ddd;
 
-        strong {
-            font-size: 13px;
+        .o_wd_vas_palletization-step-prompt {
+            display: block;
+            padding: 6px 8px;
+            color: #716b7d;
+            background: #f4f2f7;
+            border-left: 2px solid #c9c3d8;
+            font-size: 12px;
+            font-weight: 500;
+            line-height: 1.35;
         }
     }
 
@@ -303,6 +254,30 @@
         gap: 6px;
     }
 
+    .o_wd_vas_pallet-card-heading-main {
+        display: flex;
+        flex: 1 1 auto;
+        min-width: 0;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .o_wd_vas_pallet-details-toggle {
+        flex: 0 0 auto;
+        min-height: 28px;
+        padding: 2px 7px;
+        color: #71639e;
+        border: 1px solid #cfc8e2;
+        font-size: 10px;
+        white-space: nowrap;
+    }
+
+    .o_wd_vas_pallet-details-count {
+        margin-left: 3px;
+        color: #777;
+    }
+
     .o_wd_vas_pallet-type-badge {
         padding: 2px 6px;
         color: #514678;
@@ -324,7 +299,8 @@
     }
 
     .o_wd_vas_pallet-product-heading,
-    .o_wd_vas_pallet-allocation > div:first-child,
+    .o_wd_vas_pallet-allocation-row,
+    .o_wd_vas_pallet-allocation-details,
     .o_wd_vas_pallet-allocation-actions,
     .o_wd_vas_pallet-allocation-edit {
         display: flex;
@@ -337,12 +313,33 @@
         justify-content: space-between;
     }
 
+    .o_wd_vas_pallet-allocation-row {
+        flex-wrap: nowrap;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    .o_wd_vas_pallet-allocation-details {
+        flex: 1 1 auto;
+        min-width: 0;
+
+        > span {
+            min-width: 0;
+            overflow-wrap: anywhere;
+        }
+    }
+
     .o_wd_vas_pallet-allocation {
         display: grid;
         gap: 5px;
         padding: 6px 0 0;
         color: #666;
         font-size: 10px;
+
+        &.is-serial {
+            padding-bottom: 6px;
+            border-bottom: 1px solid #d8d8d8;
+        }
 
         .btn {
             min-height: 28px;
@@ -351,11 +348,13 @@
         }
 
         .o_wd_vas_delete {
+            flex: 0 0 auto;
             padding: 2px 8px;
             color: #c0392b;
             background: #fff;
             border: 1px solid #c0392b;
             border-radius: 4px;
+            white-space: nowrap;
 
             &:hover:not(:disabled) {
                 color: #fff;
@@ -398,14 +397,5 @@
             min-height: 0;
         }
 
-        .o_wd_vas_palletization-panels {
-            grid-template-columns: 1fr;
-        }
-
-        .o_wd_vas_palletization-summary > div {
-            display: grid;
-            gap: 2px;
-            padding: 6px;
-        }
     }
 }
