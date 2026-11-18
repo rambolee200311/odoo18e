@@ -4,7 +4,11 @@
         <field name="model">stock.picking</field>
         <field name="inherit_id" ref="stock.view_picking_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//field[@name='origin']" position="attributes">
+                <attribute name="invisible">bonded_inbound_id or bonded_outbound_id</attribute>
+            </xpath>
             <xpath expr="//field[@name='origin']" position="after">
+                <field name="date_done" string="Effective Date" readonly="1" invisible="(not bonded_inbound_id and not bonded_outbound_id) or state != 'done'"/>
                 <field name="unique_identifier_no" readonly="1" invisible="not bonded_inbound_id and not bonded_outbound_id"/>
                 <field name="bonded_customs_file_id" readonly="1" invisible="not bonded_inbound_id and not bonded_outbound_id" options="{'no_create': True, 'no_open': True}"/>
                 <field name="customs_file_status" readonly="1" invisible="not bonded_inbound_id and not bonded_outbound_id"/>
@@ -14,11 +18,39 @@
                 <field name="mrn" readonly="1" invisible="not bonded_inbound_id and not bonded_outbound_id"/>
                 <field name="mrn_status" readonly="1" invisible="not bonded_inbound_id and not bonded_outbound_id"/>
             </xpath>
+            <xpath expr="//field[@name='product_uom']" position="attributes">
+                <attribute name="groups"/>
+            </xpath>
+            <xpath expr="//field[@name='product_uom']" position="after">
+                <field name="customs_mutation_type" string="Customs Mutation Type" optional="show" readonly="1" invisible="not parent.bonded_inbound_id and not parent.bonded_outbound_id"/>
+            </xpath>
             <xpath expr="//page[@name='operations']" position="inside">
                 <group>
                     <field name="bonded_inbound_id" readonly="1" invisible="not bonded_inbound_id" options="{'no_create': True, 'no_open': False}"/>
                     <field name="bonded_outbound_id" readonly="1" invisible="not bonded_outbound_id" options="{'no_create': True, 'no_open': False}"/>
                 </group>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_stock_move_line_detailed_operation_tree_inherit_bonded_customs" model="ir.ui.view">
+        <field name="name">stock.move.line.detailed.operation.list.inherit.bonded.customs</field>
+        <field name="model">stock.move.line</field>
+        <field name="inherit_id" ref="stock.view_stock_move_line_detailed_operation_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//list/field[@name='product_uom_id']" position="after">
+                <field name="bonded_unique_identifier_no" optional="show" readonly="1"/>
+                <field name="bonded_flag" optional="show" readonly="1" widget="badge"/>
+                <field name="bonded_inbound_id" optional="show" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                <field name="bonded_outbound_id" optional="show" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                <field name="bonded_mrn" optional="show" readonly="1"/>
+                <field name="bonded_mrn_status" optional="show" readonly="1" widget="badge"/>
+                <field name="bonded_customs_status" optional="show" readonly="1" widget="badge"/>
+                <field name="origin_country_id" optional="show" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                <field name="goods_value" optional="show" readonly="1"/>
+                <field name="hs_code" optional="show" readonly="1"/>
+                <field name="net_weight" optional="show" readonly="1"/>
+                <field name="customs_code" optional="show" readonly="1"/>
             </xpath>
         </field>
     </record>

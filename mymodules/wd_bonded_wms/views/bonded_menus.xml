@@ -83,11 +83,17 @@
         <field name="name">Bonded Inbound</field>
         <field name="res_model">bonded.inbound</field>
         <field name="view_mode">list,form</field>
+        <field name="view_id" ref="bonded_inbound_view_tree"/>
+        <field name="search_view_id" ref="bonded_inbound_view_search"/>
+        <field name="context">{'search_default_state_not_cancelled': 1}</field>
     </record>
     <record id="action_bonded_outbound" model="ir.actions.act_window">
         <field name="name">Bonded Outbound</field>
         <field name="res_model">bonded.outbound</field>
         <field name="view_mode">list,form</field>
+        <field name="view_id" ref="bonded_outbound_view_tree"/>
+        <field name="search_view_id" ref="bonded_outbound_view_search"/>
+        <field name="context">{'search_default_state_not_cancelled': 1}</field>
     </record>
     <record id="action_bonded_stock" model="ir.actions.act_window">
         <field name="name">Bonded Stock</field>

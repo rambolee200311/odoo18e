@@ -12,11 +12,12 @@ class BondedProduct(models.Model):
     product_id = fields.Many2one('product.product', string='Product', required=True,
                                  ondelete='restrict', index=True)
     hs_code = fields.Char(string='HS Code', required=True)
-    declared_unit_price = fields.Monetary(string='Declared Unit Price', required=True)
     goods_value = fields.Monetary(string='Goods Value')
     gross_weight = fields.Float(string='Gross Weight (kg)')
     net_weight = fields.Float(string='Net Weight (kg)')
     customs_code = fields.Char(string='Customs Code')
+    adr = fields.Boolean(string='ADR')
+    un_number = fields.Char(string='UN Number')
     article_number = fields.Char(string='Article Number')
     product_description = fields.Char(string='Product Description')
     technical_description = fields.Text(string='Technical Description')
@@ -47,6 +48,8 @@ class BondedProduct(models.Model):
                 continue
             vals.setdefault('goods_value', product.goods_value)
             vals.setdefault('customs_code', product.customs_code)
+            vals.setdefault('adr', product.is_dg)
+            vals.setdefault('un_number', product.un_code)
             vals.setdefault('article_number', product.article_number)
             vals.setdefault('product_description', product.product_description)
             vals.setdefault('technical_description', product.technical_description)
@@ -58,6 +61,8 @@ class BondedProduct(models.Model):
             product = rec.product_id.sudo()
             rec.goods_value = product.goods_value
             rec.customs_code = product.customs_code
+            rec.adr = product.is_dg
+            rec.un_number = product.un_code
             rec.article_number = product.article_number
             rec.product_description = product.product_description
             rec.technical_description = product.technical_description
