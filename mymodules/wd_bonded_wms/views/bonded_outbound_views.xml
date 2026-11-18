@@ -136,6 +136,13 @@
                                 <group col="2">
                                     <field name="delivery_method"/>
                                     <field name="unload_company" required="1" readonly="state == 'cancelled'" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="delivery_street" invisible="delivery_method == 'pickup'" readonly="state == 'cancelled'"/>
+                                    <field name="delivery_city" invisible="delivery_method == 'pickup'" readonly="state == 'cancelled'"/>
+                                    <field name="delivery_zip" invisible="delivery_method == 'pickup'" readonly="state == 'cancelled'"/>
+                                    <field name="delivery_country_id" invisible="delivery_method == 'pickup'" readonly="state == 'cancelled'" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="delivery_phone" invisible="delivery_method == 'pickup'" readonly="state == 'cancelled'"/>
+                                    <field name="delivery_mobile" invisible="delivery_method == 'pickup'" readonly="state == 'cancelled'"/>
+                                    <field name="delivery_email" invisible="delivery_method == 'pickup'" readonly="state == 'cancelled'"/>
                                     <field name="delivery_remark" readonly="state == 'cancelled'"/>
                                 </group>
                                 <group col="2">
