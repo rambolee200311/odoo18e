@@ -33,7 +33,8 @@ class BondedOutbound(models.Model):
         ('destruction', 'Destruction'),
     ], string='Outbound Type', required=True, tracking=True)
     mrn_id = fields.Many2one('bonded.mrn', string='Corresponding MRN', ondelete='restrict', index=True, copy=False, tracking=True)
-    mrn = fields.Char(string='Corresponding MRN', index=True, help='Outbound MRN (T1 transit only)', tracking=True)
+    mrn_override = fields.Char(string='Manual MRN Override', copy=False)
+    mrn = fields.Char(string='Corresponding MRN', compute='_compute_mrn', inverse='inverse_mrn', store=True, index=True, help='Outbound MRN (T1 transit only)', tracking=True)
     mrn_status = fields.Selection(related='mrn_id.state', string='MRN Status', store=True, readonly=True, index=True)
     expected_date = fields.Date(string='Planned Date', required=True, tracking=True)
     total_value = fields.Monetary(string='Total Value', compute='_compute_total_value', store=True, readonly=True, tracking=True)
@@ -70,8 +71,6 @@ class BondedOutbound(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
-            if 'mrn_id' in vals:
-                vals['mrn'] = self.env['bonded.mrn'].sudo().browse(vals['mrn_id']).mrn if vals['mrn_id'] else False
             if vals.get('name', _('New')) == _('New'):
                 vals['name'] = self.env['ir.sequence'].next_by_code('seq.bonded.outbound') or _('New')
         return super().create(vals_list)
@@ -82,11 +81,6 @@ class BondedOutbound(models.Model):
         if result.get('outbound_type', {}).get('selection'):
             result['outbound_type']['selection'] = [selection for selection in result['outbound_type']['selection'] if selection[0] != 'destruction']
         return result
-
-    def write(self, vals):
-        if 'mrn_id' in vals:
-            vals['mrn'] = self.env['bonded.mrn'].sudo().browse(vals['mrn_id']).mrn if vals['mrn_id'] else False
-        return super().write(vals)
 
     @api.onchange('project_id')
     def onchange_project_id(self):
@@ -102,13 +96,20 @@ class BondedOutbound(models.Model):
             t1_file = t1_files.sorted(key=lambda item: item.id, reverse=True)[:1]
             rec.t1_status = t1_file.state if t1_file else False
             rec.t1_closed_date = t1_file.t1_closed_date if t1_file else False
-            rec.mrn_id = False
-            rec.mrn = False
 
-    @api.onchange('mrn_id')
-    def onchange_mrn_id(self):
+    @api.depends('outbound_type', 'customs_file_ids.declaration_type', 'customs_file_ids.state', 'customs_file_ids.mrn', 'mrn_override')
+    def _compute_mrn(self):
         for rec in self:
-            rec.mrn = rec.mrn_id.mrn
+            if rec.mrn_override:
+                rec.mrn = rec.mrn_override
+                continue
+            declaration_type = 't1_out' if rec.outbound_type == 't1_transit' else 'clearance_out'
+            customs_file = rec.customs_file_ids.filtered(lambda item: item.declaration_type == declaration_type and item.state != 'cancelled').sorted(key=lambda item: item.id, reverse=True)[:1]
+            rec.mrn = customs_file.mrn if customs_file else False
+
+    def inverse_mrn(self):
+        for rec in self:
+            rec.mrn_override = rec.mrn
 
     @api.constrains('outbound_type', 'customs_file_ids')
     def check_outbound_customs_file(self):

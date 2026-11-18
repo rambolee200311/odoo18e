@@ -162,7 +162,7 @@ class BondedCustomsFile(models.Model):
                     self.env['bonded.mrn'].create({'mrn': rec.mrn, 'customs_file_id': rec.id})
         if 'mrn_id' in vals:
             for rec in self:
-                if rec.bonded_outbound_id and not rec.bonded_outbound_id.mrn_id:
+                if rec.bonded_outbound_id:
                     rec.bonded_outbound_id.write({'mrn_id': rec.mrn_id.id})
         return result
 
