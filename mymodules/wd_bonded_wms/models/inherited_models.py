@@ -13,6 +13,7 @@ CUSTOMS_MUTATION_TYPE_SELECTION = [('inbound', 'Inbound'), ('outbound', 'Outboun
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
+    load_ref = fields.Char(string='Loading Reference', required=False, help='Reference for the Delivery')
     bonded_inbound_id = fields.Many2one('bonded.inbound', string='Bonded Inbound',
                                         readonly=True, copy=False)
     bonded_outbound_id = fields.Many2one('bonded.outbound', string='Bonded Outbound',
