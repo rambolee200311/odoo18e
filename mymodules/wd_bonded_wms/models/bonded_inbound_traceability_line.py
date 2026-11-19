@@ -39,6 +39,8 @@ class BondedInboundTraceabilityLine(models.Model):
                 continue
             if rec.product_id != rec.inbound_line_id.product_id:
                 raise ValidationError(_('The traceability line product must match the inbound product line.'))
+            if not rec.planned_qty.is_integer():
+                raise ValidationError(_('The lot/SN planned quantity must be an integer.'))
             rounding = rec.product_id.uom_id.rounding
             if float_compare(rec.planned_qty, 0.0, precision_rounding=rounding) <= 0:
                 raise ValidationError(_('The lot/SN planned quantity must be greater than zero.'))
