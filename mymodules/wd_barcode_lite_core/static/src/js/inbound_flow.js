@@ -262,6 +262,82 @@ export class InboundFlow extends BaseBarcodePage {
         }
     }
 
+    async bindPendingPalletLocations() {
+        if (this.state.loading || this._isProcessing) {
+            return;
+        }
+
+        const pickingId = this.state.picking?.id;
+        const locationId = this.state.currentLocation?.id;
+        if (!pickingId || !locationId || !this.canBindPendingPalletLocations) {
+            return;
+        }
+
+        this._isProcessing = true;
+        this.state.loading = true;
+
+        try {
+            const updatedLineCount = await this.orm.call(
+                "stock.barcode.lite.scan.service",
+                "update_pending_incoming_pallet_locations",
+                [pickingId, locationId]
+            );
+
+            if (this._isDestroyed) {
+                return;
+            }
+
+            try {
+                const scanState = await this.orm.call(
+                    "stock.barcode.lite.scan.service",
+                    "get_incoming_scan_state",
+                    [pickingId, locationId, this.state.lastScan || {}]
+                );
+
+                if (this._isDestroyed) {
+                    return;
+                }
+
+                await this._applyScanResult({ scan_state: scanState }, false);
+            } catch (refreshError) {
+                if (!this._isDestroyed) {
+                    this.showMessage(
+                        _t("Location binding succeeded, but the pallet list could not be refreshed: ") +
+                            this.formatError(refreshError),
+                        "warning"
+                    );
+                }
+                return;
+            }
+
+            const count = Number(updatedLineCount) || 0;
+            if (count) {
+                this.showMessage(
+                    _t("Current location bound for ") +
+                        count +
+                        _t(" pallet detail(s)."),
+                    "success"
+                );
+                this._flashScreen([100, 200, 100], false);
+            } else {
+                this.showMessage(
+                    _t("There are no pending pallet details to bind."),
+                    "info"
+                );
+            }
+        } catch (error) {
+            if (!this._isDestroyed) {
+                this.showMessage(this.formatError(error), "danger");
+            }
+        } finally {
+            if (!this._isDestroyed) {
+                this.state.loading = false;
+                this._focusBarcodeInput();
+            }
+            this._isProcessing = false;
+        }
+    }
+
     resetScan() {
         this._clearSafeTimeout(this._confirmResetTimer);
         this._confirmResetTimer = null;
@@ -423,6 +499,15 @@ export class InboundFlow extends BaseBarcodePage {
         return (
             (this.state.summary?.pending_pallets || 0) === 0 &&
             (this.state.summary?.total_pallets || 0) > 0
+        );
+    }
+
+    get canBindPendingPalletLocations() {
+        return (
+            this.hasPicking &&
+            this.hasLocation &&
+            (this.state.summary?.pending_pallets || 0) > 0 &&
+            !["done", "cancel"].includes(this.state.picking?.state)
         );
     }
 
