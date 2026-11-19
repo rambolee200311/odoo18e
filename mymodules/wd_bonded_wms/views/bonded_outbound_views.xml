@@ -5,29 +5,32 @@
         <field name="model">bonded.outbound</field>
         <field name="arch" type="xml">
             <list string="Bonded Outbound">
-                <field name="name"/>
+                <field name="name" optional="show"/>
+                <field name="inbound_tracking_no" string="Unique Identifier No." optional="show"/>
                 <field name="customs_file_id" optional="show"/>
                 <field name="customs_file_state" optional="show"/>
-                <field name="order_type" optional="hide"/>
+                <field name="mrn_id" optional="show" options="{'no_create': True, 'no_open': True}"/>
+                <field name="mrn_status" optional="show"/>
+                <field name="t1_status" optional="show"/>
+                <field name="t1_closed_date" optional="show"/>
+                <field name="picking_id" optional="show"/>
+                <field name="picking_status" optional="show"/>
+                <field name="picking_validation_time" optional="show"/>
+                <field name="bonded_book_id" optional="show"/>
+                <field name="outbound_type" optional="show"/>
+                <field name="warehouse" optional="show"/>
+                <field name="is_dangerous" optional="hide" widget="boolean_toggle"/>
+                <field name="total_value" widget="monetary" optional="show"/>
+                <field name="remark" optional="show"/>
+                <field name="order_type" optional="show"/>
                 <field name="reference" optional="show"/>
                 <field name="order_date" optional="show"/>
                 <field name="expected_date" optional="show"/>
                 <field name="owner_id" optional="show"/>
                 <field name="project_id" optional="show"/>
-                <field name="warehouse" optional="show"/>
-                <field name="bonded_book_id" optional="show"/>
-                <field name="outbound_type" optional="show"/>
-                <field name="is_dangerous" optional="hide" widget="boolean_toggle"/>
-                <field name="mrn_id" optional="show" options="{'no_create': True, 'no_open': True}"/>
-                <field name="mrn_status" optional="show"/>
-                <field name="t1_status" optional="show"/>
-                <field name="t1_closed_date" optional="show"/>
-                <field name="total_value" widget="monetary" optional="show"/>
-                <field name="picking_status" optional="show"/>
-                <field name="picking_validation_time" optional="show"/>
-                <field name="state"/>
-                <field name="picking_id" optional="show"/>
-                <field name="remark" optional="show"/>
+                <field name="unload_company" optional="show"/>
+                <field name="load_ref" optional="show"/>
+                <field name="state" optional="show"/>
             </list>
         </field>
     </record>
@@ -160,17 +163,21 @@
                             <field name="line_ids" readonly="state != 'draft'">
                                 <list editable="bottom">
                                     <field name="eligible_bonded_product_ids" column_invisible="1"/>
-                                    <field name="bonded_product_id" domain="[('id', 'in', eligible_bonded_product_ids)]" required="1" readonly="parent.state != 'draft'" options="{'no_create': True, 'no_open': False}"/>
-                                    <field name="uom_id" readonly="1" force_save="1" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="bonded_product_id" string="Product" domain="[('id', 'in', eligible_bonded_product_ids)]" required="1" readonly="parent.state != 'draft'" options="{'no_create': True, 'no_open': True}"/>
                                     <field name="product_id" column_invisible="1"/>
+                                    <field name="uom_id" column_invisible="1" readonly="1" force_save="1" options="{'no_create': True, 'no_open': True}"/>
                                     <field name="bonded_stock_id" string="Unique Identifier No." required="1" readonly="parent.state != 'draft'" options="{'no_create': True, 'no_open': True}" context="{'outbound_show_tracking_only': 1, 'list_view_ref': 'wd_bonded_wms.view_bonded_stock_m2o_tracking_list'}" domain="[('bonded_book_id', '=', parent.bonded_book_id), ('product_id', '=', product_id), ('quantity', '>', 0), ('locked', '=', False), ('current_customs_status', '=', 'entrepot'), ('inbound_id.state', '=', 'done'), ('inbound_id.picking_id.state', '=', 'done')]"/>
                                     <button name="action_open_stock_selection" string="Select Stock" type="object" class="btn-secondary" invisible="parent.state != 'draft'"/>
                                     <field name="inbound_tracking_no" column_invisible="1"/>
-                                    <field name="demand_qty" readonly="parent.state != 'draft'"/>
+                                    <field name="origin_country_id" string="Country of Origin" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                                     <field name="currency_id" column_invisible="1"/>
-                                    <field name="declared_unit_price" required="1" readonly="parent.state != 'draft'" widget="monetary"/>
-                                    <field name="subtotal_value" readonly="1" widget="monetary"/>
-                                    <field name="done_qty" readonly="1"/>
+                                    <field name="declared_unit_price" string="Goods Value" required="1" readonly="parent.state != 'draft'" widget="monetary"/>
+                                    <field name="hs_code" string="HS Code" readonly="1"/>
+                                    <field name="net_weight" string="Net Weight (kg)" readonly="1"/>
+                                    <field name="gross_weight" string="Gross Weight (kg)" readonly="1"/>
+                                    <field name="un_code" string="UN Number" readonly="1"/>
+                                    <field name="demand_qty" string="Planned Quantity" required="1" readonly="parent.state != 'draft'"/>
+                                    <field name="remark" string="Remark" readonly="parent.state != 'draft'"/>
                                 </list>
                             </field>
                         </page>

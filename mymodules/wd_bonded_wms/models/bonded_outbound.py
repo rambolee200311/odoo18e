@@ -71,6 +71,7 @@ class BondedOutbound(models.Model):
         ('cancelled', 'Cancelled'),
     ], string='Status', default='draft', required=True, tracking=True, index=True)
     line_ids = fields.One2many('bonded.outbound.line', 'bonded_outbound_id', string='Products', tracking=True)
+    inbound_tracking_no = fields.Char(string='Unique Identifier No.', compute='_compute_inbound_tracking_no', store=True, readonly=True)
     remark = fields.Text(string='Remark', tracking=True)
     remark1 = fields.Text(string='Remark 1', tracking=True)
     confirm_user_id = fields.Many2one('res.users', string='Confirmed By', readonly=True, copy=False, index=True, tracking=True)
@@ -136,6 +137,12 @@ class BondedOutbound(models.Model):
         for rec in self:
             rec.total_value = sum(rec.line_ids.mapped('subtotal_value'))
 
+    @api.depends('line_ids.inbound_tracking_no')
+    def _compute_inbound_tracking_no(self):
+        for rec in self:
+            tracking_numbers = rec.line_ids.mapped('inbound_tracking_no')
+            rec.inbound_tracking_no = ', '.join(dict.fromkeys(number for number in tracking_numbers if number))
+
     def action_confirm(self):
         for rec in self:
             if rec.state != 'draft':
@@ -168,6 +175,7 @@ class BondedOutbound(models.Model):
             if active_customs_files:
                 raise UserError(_('This outbound instruction already has an active customs declaration. Return a rejected file to draft and edit it, or cancel the existing file before creating another.'))
             eori_entity = rec.bonded_book_id.eori_entity_id
+            destination_country = rec.delivery_country_id or rec.unload_company.country_id
             line_vals = []
             for item_no, line in enumerate(rec.line_ids, 1):
                 gross_weight = line.demand_qty * line.bonded_product_id.gross_weight
@@ -192,7 +200,7 @@ class BondedOutbound(models.Model):
                 'consignee_eori_entity_id': eori_entity.id,
                 'declarant_eori_entity_id': eori_entity.id,
                 'origin_country_id': eori_entity.country_id.id,
-                'destination_country_id': eori_entity.country_id.id,
+                'destination_country_id': destination_country.id,
                 'total_packages': sum(rec.line_ids.mapped('demand_qty')),
                 'total_gross_weight': sum(line.demand_qty * line.bonded_product_id.gross_weight for line in rec.line_ids),
                 'invoice_amount': rec.total_value,
@@ -378,13 +386,25 @@ class BondedOutboundLine(models.Model):
     bonded_product_id = fields.Many2one('bonded.product', string='Bonded Product Filing', ondelete='restrict', index=True)
     product_id = fields.Many2one('product.product', string='Product', index=True)
     inbound_tracking_no = fields.Char(string='Unique Identifier No.', related='bonded_stock_id.inbound_tracking_no', store=True, index=True)
+    origin_country_id = fields.Many2one('res.country', string='Country of Origin', related='bonded_stock_id.inbound_line_id.origin_country_id', store=True, readonly=True)
+    hs_code = fields.Char(string='HS Code', related='bonded_stock_id.inbound_line_id.hs_code', store=True, readonly=True)
+    net_weight = fields.Float(string='Net Weight (kg)', related='bonded_stock_id.inbound_line_id.net_weight', store=True, readonly=True)
+    gross_weight = fields.Float(string='Gross Weight (kg)', related='bonded_stock_id.inbound_line_id.gross_weight', store=True, readonly=True)
+    un_code = fields.Char(string='UN Number', related='bonded_stock_id.inbound_line_id.un_code', store=True, readonly=True)
     demand_qty = fields.Float(string='Demand Qty', required=True, default=1.0)
     declared_unit_price = fields.Monetary(string='Declared Unit Price', required=True, default=0.0)
     subtotal_value = fields.Monetary(string='Subtotal', compute='_compute_subtotal_value', store=True)
     currency_id = fields.Many2one('res.currency', related='bonded_outbound_id.currency_id', string='Currency', readonly=True)
     done_qty = fields.Float(string='Done Qty', compute='_compute_done_qty', store=True)
     uom_id = fields.Many2one('uom.uom', string='UoM', required=True)
+    remark = fields.Text(string='Remark')
     eligible_bonded_product_ids = fields.Many2many('bonded.product', compute='_compute_eligible_bonded_product_ids')
+
+    @api.constrains('demand_qty')
+    def check_demand_qty_integer(self):
+        for rec in self:
+            if not rec.demand_qty.is_integer():
+                raise ValidationError(_('The outbound quantity must be an integer.'))
 
     @api.model_create_multi
     def create(self, vals_list):
