@@ -214,16 +214,23 @@
 
             <div class="o_sbl_footer">
                 <button class="btn btn-outline-secondary" t-on-click="resetScan" t-att-disabled="state.loading">
-                    <i class="fa fa-refresh me-1"/>Reset
+                    Reset
+                </button>
+                <button class="btn btn-outline-primary"
+                        style="flex: 1.6; font-size: 12px;"
+                        title="将当前入库单中未绑定货位的托盘绑定到当前货位"
+                        t-on-click="bindPendingPalletLocations"
+                        t-att-disabled="state.loading || !canBindPendingPalletLocations">
+                    1-Click
                 </button>
                 <button class="btn btn-primary"
                         style="display: block !important; visibility: visible !important; flex: 1.5;"
                         t-on-click="confirmInbound"
                         t-att-disabled="state.loading">
-                    <i class="fa fa-check-circle me-1"/>Confirm
+                    Confirm
                 </button>
                 <button class="btn btn-secondary" t-on-click="exit">
-                    <i class="fa fa-home me-1"/>Home
+                    Home
                 </button>
             </div>
         </div>
