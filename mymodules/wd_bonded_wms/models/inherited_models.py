@@ -13,6 +13,10 @@ CUSTOMS_MUTATION_TYPE_SELECTION = [('inbound', 'Inbound'), ('outbound', 'Outboun
 class StockPicking(models.Model):
     _inherit = 'stock.picking'
 
+    bill_of_lading = fields.Char('Bill of Lading')
+    cntrno = fields.Char('Container Number')
+    ref_1 = fields.Char('Reference 1', help='Additional reference field for custom use')
+    planning_date = fields.Datetime('Planning Date', help='Date when the picking is planned to be processed')
     load_ref = fields.Char(string='Loading Reference', required=False, help='Reference for the Delivery')
     bonded_inbound_id = fields.Many2one('bonded.inbound', string='Bonded Inbound',
                                         readonly=True, copy=False)
