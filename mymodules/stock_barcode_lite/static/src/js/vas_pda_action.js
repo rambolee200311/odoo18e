@@ -7,6 +7,7 @@ import { useService } from "@web/core/utils/hooks";
 import { user } from "@web/core/user";
 import { standardActionServiceProps } from "@web/webclient/actions/action_service";
 import { ImagePreviewComponent } from "@wd_attachment_preview/components/image_preview_component";
+import { VasOutboundPalletizationDialog } from "@wd_warehouse_value_add/components/vas_outbound_palletization_dialog/vas_outbound_palletization_dialog";
 
 const WAREHOUSE_MODELS = {
     inbound: "world.depot.inbound.order",
@@ -17,7 +18,7 @@ const WAREHOUSE_MODELS = {
 export class VasPdaAction extends Component {
     static props = { ...standardActionServiceProps };
     static template = "wd_warehouse_value_add.VasPdaAction";
-    static components = { ImagePreviewComponent };
+    static components = { ImagePreviewComponent, VasOutboundPalletizationDialog };
 
     setup() {
         this.orm = useService("orm");
@@ -44,6 +45,7 @@ export class VasPdaAction extends Component {
                 quantityTime: 1,
                 note: "",
             },
+            palletizationDialogMode: null,
             busy: false,
         });
         onWillStart(async () => {
@@ -330,6 +332,17 @@ export class VasPdaAction extends Component {
         }
     }
 
+    openPalletizationDialog(mode) {
+        if (!this.state.order || !this.hasOutboundPalletization || !this.isOutboundOrder || this.state.busy) {
+            return;
+        }
+        this.state.palletizationDialogMode = mode;
+    }
+
+    closePalletizationDialog() {
+        this.state.palletizationDialogMode = null;
+    }
+
     async startOutboundPalletization() {
         if (!this.state.order || !this.hasOutboundPalletization || !this.isOutboundOrder || this.state.busy) {
             return;
@@ -446,6 +459,7 @@ export class VasPdaAction extends Component {
         this.state.attachmentName = "";
         this.state.cancelModalOpen = false;
         this.state.cancelReason = "";
+        this.state.palletizationDialogMode = null;
     }
 
     openCancelModal() {

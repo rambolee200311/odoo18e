@@ -310,14 +310,18 @@
             </div>
 
             <div class="o_sbl_footer">
-                <button class="btn btn-secondary" t-on-click="exit">
-                    <i class="fa fa-home me-1"/>Home
+                <button class="btn btn-secondary o_sbl_footer_home" t-on-click="exit">
+                    Home
+                </button>
+                <button t-if="state.inbound.id and state.currentPallet.id" type="button" class="btn btn-outline-primary"
+                        t-on-click="startCustomerPalletScan"
+                        t-att-disabled="state.loading || state.quantityEntry || state.editingQuantityId || state.editingTrackingId || state.nextStep === 'create_receipt'">
+                    Cust. Pallet
                 </button>
                 <button t-if="state.inbound.id" class="btn btn-primary" t-on-click="validateBinding"
                         t-att-disabled="state.loading || state.quantityEntry || state.nextStep === 'create_receipt'">
-                    <i class="fa fa-check me-1"/>
                     <t t-if="state.nextStep === 'create_receipt'">Validated</t>
-                    <t t-else="">Validate Binding</t>
+                    <t t-else="">Validate</t>
                 </button>
             </div>
         </div>
