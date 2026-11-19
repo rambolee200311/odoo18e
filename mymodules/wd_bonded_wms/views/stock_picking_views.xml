@@ -8,6 +8,10 @@
                 <attribute name="invisible">bonded_inbound_id or bonded_outbound_id</attribute>
             </xpath>
             <xpath expr="//field[@name='origin']" position="after">
+                <field name="bill_of_lading" invisible="not bonded_inbound_id"/>
+                <field name="cntrno" invisible="not bonded_inbound_id"/>
+                <field name="ref_1" invisible="not bonded_inbound_id"/>
+                <field name="planning_date" invisible="not bonded_inbound_id"/>
                 <field name="date_done" string="Effective Date" readonly="1" invisible="(not bonded_inbound_id and not bonded_outbound_id) or state != 'done'"/>
                 <field name="unique_identifier_no" readonly="1" invisible="not bonded_inbound_id and not bonded_outbound_id"/>
                 <field name="bonded_customs_file_id" readonly="1" invisible="not bonded_inbound_id and not bonded_outbound_id" options="{'no_create': True, 'no_open': True}"/>

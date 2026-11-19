@@ -97,7 +97,7 @@ class BondedInventoryMovementReport(models.Model):
                     'gross_weight': 0.0,
                     'net_weight': 0.0,
                     'container_no': inbound.cntr_no or '',
-                    'country_of_origin': customs_line.origin_country_id.name or '',
+                    'country_of_origin': inbound_line.origin_country_id.name or '',
                 }
                 def build_line_values(book_line, mutation_type, mutation_qty, status, date_of_mutation, outbound_no='', corresponding_mrn='', reference=''):
                     line_vals = dict(base_vals)
