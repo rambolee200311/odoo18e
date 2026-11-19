@@ -167,6 +167,7 @@ class BondedInbound(models.Model):
             if not sum(value_ledger.mapped('reserved_change')) and not sum(value_ledger.mapped('deducted_change')):
                 rec.bonded_book_id.reserve_document_value(rec.total_value, project_id=rec.project_id.id, inbound_id=rec.id)
             eori_entity = rec.bonded_book_id.eori_entity_id
+            origin_countries = rec.line_ids.mapped('origin_country_id')
             line_vals = []
             for item_no, line in enumerate(rec.line_ids, 1):
                 line_vals.append((0, 0, {
@@ -188,7 +189,7 @@ class BondedInbound(models.Model):
                 'consignor_eori_entity_id': eori_entity.id,
                 'consignee_eori_entity_id': eori_entity.id,
                 'declarant_eori_entity_id': eori_entity.id,
-                'origin_country_id': eori_entity.country_id.id,
+                'origin_country_id': origin_countries.id if len(origin_countries) == 1 else False,
                 'destination_country_id': eori_entity.country_id.id,
                 'total_packages': sum(rec.line_ids.mapped('planned_qty')),
                 'total_gross_weight': sum(line.planned_qty * line.gross_weight for line in rec.line_ids),
@@ -532,10 +533,10 @@ class BondedInboundLine(models.Model):
                 rec.un_code = filing.un_number
 
     @api.constrains('product_id', 'planned_qty')
-    def check_serial_planned_qty(self):
+    def check_planned_qty_integer(self):
         for rec in self:
-            if rec.product_id.tracking == 'serial' and rec.planned_qty != int(rec.planned_qty):
-                raise ValidationError(_('The planned quantity of a serial-tracked product must be an integer.'))
+            if not rec.planned_qty.is_integer():
+                raise ValidationError(_('The inbound quantity must be an integer.'))
 
     @api.depends('traceability_line_ids')
     def _compute_traceability_tag_line_ids(self):

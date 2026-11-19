@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-from odoo import api, fields, models
+from odoo import api, fields, models, _
+from odoo.exceptions import ValidationError
 
 
 class BondedInboundPalletGroup(models.Model):
@@ -38,3 +39,9 @@ class BondedInboundPalletGroupLine(models.Model):
     product_id = fields.Many2one(related='bonded_product_id.product_id', string='Product', store=True, readonly=True, index=True)
     uom_id = fields.Many2one(related='bonded_product_id.uom_id', string='UoM', store=True, readonly=True)
     planned_qty = fields.Float(string='Quantity per Pallet', required=True, default=1.0)
+
+    @api.constrains('planned_qty')
+    def check_planned_qty_integer(self):
+        for rec in self:
+            if not rec.planned_qty.is_integer():
+                raise ValidationError(_('The quantity per pallet must be an integer.'))

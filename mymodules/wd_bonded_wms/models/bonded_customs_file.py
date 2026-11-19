@@ -39,8 +39,8 @@ class BondedCustomsFile(models.Model):
     procedure_code = fields.Char(string='Procedure Code(Box37)', required=True, default='4000C51', index=True, tracking=True, help='e.g. 4000C51 for bonded warehouse')
     previous_doc_no = fields.Char(string='Previous Document No.(Box40)', index=True, tracking=True, help='T1 inbound: fill with handover DO number')
     bonded_warehouse_no = fields.Char(string='Bonded Warehouse No. (Box49)', index=True, tracking=True)
-    origin_country_id = fields.Many2one('res.country', string='Country of Origin', required=True, tracking=True)
-    destination_country_id = fields.Many2one('res.country', string='Country of Destination', required=True, tracking=True)
+    origin_country_id = fields.Many2one('res.country', string='Country of Origin', tracking=True)
+    destination_country_id = fields.Many2one('res.country', string='Country of Destination', tracking=True)
     transport_mode = fields.Selection([('sea', 'Sea'), ('road', 'Road'), ('air', 'Air'), ('rail', 'Rail')], string='Transport Mode', required=True, default='sea', tracking=True)
     estimated_distance_km = fields.Float(string='Estimated Distance (km)', tracking=True, help='Used for transit_deadline calculation. Road: +1 day per 500km')
     transit_deadline = fields.Datetime(string='Transit Deadline', tracking=True, help='Auto-calculated from transport_mode + distance, manually adjustable')
@@ -216,6 +216,8 @@ class BondedCustomsFile(models.Model):
                 raise UserError(_('Only draft customs declarations can be submitted.'))
             if not rec.line_ids:
                 raise UserError(_('Please add declaration lines before submitting.'))
+            if not rec.origin_country_id or not rec.destination_country_id:
+                raise UserError(_('Please set both the country of origin and country of destination before submitting.'))
             rec.validate_eori_parties()
             if rec.declaration_type in ('t1_in', 't1_out') and not rec.mrn:
                 raise UserError(_('T1 declarations require an MRN before submission.'))
