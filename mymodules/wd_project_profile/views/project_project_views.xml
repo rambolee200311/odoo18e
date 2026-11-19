@@ -30,6 +30,7 @@
                         <group>
                             <field name="package_generation_mode" required="1"/>
                             <field name="pallet_structure_mode" required="1"/>
+                            <field name="pallet_code_source" required="1"/>
                             <field name="stock_report_date_mode" required="1"/>
                             <field name="barcode_scan_mode" required="1"/>
                             <field name="outbound_palletization_enabled"/>

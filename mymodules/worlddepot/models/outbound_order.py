@@ -3,7 +3,7 @@ from markupsafe import Markup
 from openpyxl.utils import get_column_letter
 
 from odoo import api, fields, models
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 import base64
 from io import BytesIO
 import openpyxl
@@ -225,6 +225,12 @@ class OutboundOrder(models.Model):
                                            help='Description of the delivery instruction')
     
     outbound_order_product_serial_numbers = fields.One2many('world.depot.outbound.order.product.serial.number','outbound_order_id')
+
+    @api.constrains('pallets', 'scanning_quantity')
+    def check_order_quantities_integer(self):
+        for rec in self:
+            if not rec.pallets.is_integer() or not rec.scanning_quantity.is_integer():
+                raise ValidationError(_('Pallet and scanning quantities must be integers.'))
 
     '''
     @api.model
@@ -1637,6 +1643,12 @@ class OutboundOrderProduct(models.Model):
     outbound_order_product_serial_numbers = fields.One2many('world.depot.outbound.order.product.serial.number','outbound_order_product_id', tracking=True)
     outbound_order_state = fields.Selection(related="outbound_order_id.state", string="Outbound State", store=True,
                                             index=True, readonly=True)
+
+    @api.constrains('pallets', 'quantity')
+    def check_outbound_line_quantities_integer(self):
+        for rec in self:
+            if not rec.pallets.is_integer() or not rec.quantity.is_integer():
+                raise ValidationError(_('Pallet and product quantities must be integers.'))
 
     def action_open_line_form(self):
         for rec in self:
