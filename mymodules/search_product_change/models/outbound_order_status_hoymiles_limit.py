@@ -315,6 +315,9 @@ class OutboundOrderStatusHoymilesLimit(models.Model):
                     order.write({'set_outbound_result_sync': True, 'set_outbound_result_sync_time': success_log.request_time or fields.Datetime.now(), 'outbound_result_sync_error_msg': False})
                     return {'type': 'ir.actions.client', 'tag': 'display_notification', 'params': {'title': '提示', 'message': '已根据成功日志修正 Outbound Result 状态，请勿重复回传。', 'type': 'success', 'sticky': False,'next': {'type': 'ir.actions.client', 'tag': 'soft_reload'},}}
 
+                if not order.actual_outbound_datetime:
+                    raise UserError('请先填写实际出库时间，再回传出库结果。')
+
                 order.check_hoymiles_outbound_result_quantity()
 
                 order.check_hoymiles_click_time('outbound_result_sync_click_time', 180105)
