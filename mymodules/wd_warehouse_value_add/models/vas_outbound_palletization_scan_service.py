@@ -237,6 +237,9 @@ class WarehouseValueAddScanService(models.AbstractModel):
 
     @api.model
     def get_vas_outbound_palletization_next_step_after_allocation(self, palletization, source_package_id, destination_package_id, product_id=False):
+        move_lines = palletization.get_picking_move_lines()
+        if move_lines and not any(self.get_vas_outbound_palletization_remaining_quantity(palletization, line) > 0 for line in move_lines):
+            return 'validate', {'destination_package_id': destination_package_id}
         product = self.env['product.product'].browse(product_id)
         if source_package_id and product.tracking in ('lot', 'serial') and self.get_vas_outbound_palletization_available_move_lines(palletization, source_package_id, product.id):
             next_step = 'scan_serial' if product.tracking == 'serial' else 'scan_lot'
@@ -316,7 +319,8 @@ class WarehouseValueAddScanService(models.AbstractModel):
             return self.build_vas_outbound_palletization_result(False, message, 'scan_source', {'destination_package_id': destination_package_id})
         move_lines = self.get_vas_outbound_palletization_move_lines(palletization, package.id)
         self.env['wd.vas.outbound.palletization.line'].create([{'palletization_id': palletization.id, 'source_move_line_id': move_line.id, 'quantity': move_line.quantity, 'destination_package_id': package.id, 'handling_type': 'direct_outbound'} for move_line in move_lines])
-        return self.build_vas_outbound_palletization_result(True, _('Whole pallet marked for direct outbound.'), 'scan_source', {'destination_package_id': destination_package_id})
+        next_step, current = self.get_vas_outbound_palletization_next_step_after_allocation(palletization, package.id, destination_package_id)
+        return self.build_vas_outbound_palletization_result(True, _('Whole pallet marked for direct outbound.'), next_step, current)
 
     @api.model
     def action_vas_outbound_palletization_group_whole(self, palletization_id, source_package_id, destination_code=False, destination_package_id=False):
@@ -333,4 +337,5 @@ class WarehouseValueAddScanService(models.AbstractModel):
             return self.build_vas_outbound_palletization_result(False, _('Scan a different existing destination pallet.'), 'scan_destination', {'source_package_id': source_package_id})
         move_lines = self.get_vas_outbound_palletization_move_lines(palletization, source_package.id)
         self.env['wd.vas.outbound.palletization.line'].create([{'palletization_id': palletization.id, 'source_move_line_id': move_line.id, 'quantity': move_line.quantity, 'destination_package_id': destination_package.id, 'handling_type': 'palletize'} for move_line in move_lines])
-        return self.build_vas_outbound_palletization_result(True, _('Whole pallet assigned to destination pallet %s.') % destination_package.display_name, 'scan_source', {'destination_package_id': destination_package.id})
+        next_step, current = self.get_vas_outbound_palletization_next_step_after_allocation(palletization, source_package.id, destination_package.id)
+        return self.build_vas_outbound_palletization_result(True, _('Whole pallet assigned to destination pallet %s.') % destination_package.display_name, next_step, current)
