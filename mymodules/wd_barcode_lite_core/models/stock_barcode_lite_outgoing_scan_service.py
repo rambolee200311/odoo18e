@@ -242,6 +242,13 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
                 success=True,
                 next_step="completed",
             )
+        if picking.is_unspecified_pallet_outgoing:
+            picking_completed = self.is_unspecified_pallet_outgoing_complete(picking)
+        else:
+            picking_lines = self.env["stock.move.line"].sudo().search([("picking_id", "=", picking.id), ("package_id", "!=", False), ("quantity", ">", 0)], order="id")
+            picking_completed = self.are_outgoing_lines_completed(picking_lines)
+        if picking_completed:
+            return self.build_outgoing_scan_result("picking", _("Outgoing Picking"), _("All products scanned. Please validate outgoing picking."), barcode=code, picking_id=picking.id, pending_operation=False, action_name="select_completed_outgoing_picking", success=True, next_step="validate")
         return self.build_outgoing_scan_result(
             "picking",
             _("Outgoing Picking"),
@@ -1647,19 +1654,11 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
         if not source_quants:
             return move_line_model, _("Product %s is not available on pallet %s.") % (product.display_name, package.name or package.barcode)
 
-        scanned_domain = [("picking_id", "=", picking.id), ("package_id", "=", package.id), ("product_id", "=", product.id), ("location_id", "=", location.id), ("state", "!=", "cancel"), ("is_outbound_scanned", "=", True)]
-        scanned_domain.append(("lot_id", "=", lot.id if lot else False))
-        scanned_lines = move_line_model.sudo().search(scanned_domain)
-        scanned_qty_by_owner = {}
-        for line in scanned_lines:
-            owner_id = line.owner_id.id or False
-            scanned_qty_by_owner[owner_id] = scanned_qty_by_owner.get(owner_id, 0.0) + (line.outbound_scanned_quantity or 0.0)
-
         available_qty_by_owner = {}
         for quant in source_quants:
             owner_id = quant.owner_id.id or False
             available_qty_by_owner[owner_id] = available_qty_by_owner.get(owner_id, 0.0) + max((quant.quantity or 0.0) - (quant.reserved_quantity or 0.0), 0.0)
-        available_qty = sum(max(available_qty - scanned_qty_by_owner.get(owner_id, 0.0), 0.0) for owner_id, available_qty in available_qty_by_owner.items())
+        available_qty = sum(available_qty_by_owner.values())
         if float_compare(quantity, available_qty, precision_rounding=rounding) > 0:
             return move_line_model, _("Scanned quantity %s exceeds available pallet stock %s.") % (quantity, available_qty)
 
@@ -1667,7 +1666,7 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
         remaining_qty = quantity
         created_lines = move_line_model
         for owner_id, owner_available_qty in available_qty_by_owner.items():
-            owner_remaining_qty = max(owner_available_qty - scanned_qty_by_owner.get(owner_id, 0.0), 0.0)
+            owner_remaining_qty = owner_available_qty
             if float_compare(owner_remaining_qty, 0.0, precision_rounding=rounding) <= 0:
                 continue
             for move in moves:
