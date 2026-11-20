@@ -43,6 +43,20 @@ class InboundOrder(models.Model):
             }
         return False
 
+    def action_cancel(self):
+        result = super().action_cancel()
+        actual_pallet_model = self.env["world.depot.inbound.order.actual.pallet"]
+        package_model = self.env["stock.quant.package"]
+        for rec in self:
+            if rec.project.pallet_structure_mode != "unknown":
+                continue
+            actual_pallet_ids = actual_pallet_model.sudo().search([("inbound_order_id", "=", rec.id), ("state", "!=", "void")]).ids
+            package_ids = actual_pallet_model.sudo().browse(actual_pallet_ids).mapped("package_id").ids
+            actual_pallet_model.browse(actual_pallet_ids).write({"state": "void", "package_id": False})
+            package_model.browse(package_ids).write({"actual_inbound_pallet_id": False})
+            package_model.browse(package_ids).unlink()
+        return result
+
     def check_unknown_pallet_structure_available(self):
         picking_model = self.env["stock.picking"]
         for rec in self:
@@ -185,7 +199,7 @@ class InboundOrder(models.Model):
     def get_unknown_expected_quantity_by_product(self):
         quantity_by_product = defaultdict(float)
         for rec in self:
-            for pallet_line in rec.inbound_order_product_ids:
+            for pallet_line in rec.sudo().inbound_order_product_ids:
                 for product_line in pallet_line.inbound_order_product_pallet_ids:
                     quantity_by_product[product_line.product_id.id] += product_line.quantity * pallet_line.pallets
         return quantity_by_product
@@ -715,8 +729,21 @@ class StockBarcodeLiteScanService(models.AbstractModel):
             return self.build_actual_pallet_binding_result("error", _("Validation"), error.args[0], inbound_order=inbound_order, action_name="validate_actual_pallets", success=False, next_step="scan_package")
         if not inbound_order.actual_pallet_structure_validated:
             return self.build_actual_pallet_binding_result("error", _("Validation"), _("Actual pallet differences were generated. Confirm the difference before confirming the inbound order or creating the receipt."), inbound_order=inbound_order, action_name="validate_actual_pallets", success=False, next_step="scan_package")
-        result = self.build_actual_pallet_binding_result("validation", _("Validation"), _("Actual pallet product quantities match the inbound demand."), inbound_order=inbound_order, action_name="validate_actual_pallets", next_step="scan_inbound")
+        try:
+            with self.env.cr.savepoint():
+                inbound_order.with_context(actual_pallet_binding_auto_confirm=True).action_confirm()
+                if inbound_order.project.name == "IBS":
+                    inbound_order.action_create_unknown_pallet_stock_picking()
+                else:
+                    inbound_order.action_create_stock_picking()
+                picking_id = inbound_order.stock_picking_id.id
+                if not picking_id:
+                    raise UserError(_("The inbound receipt was not created."))
+        except UserError as error:
+            return self.build_actual_pallet_binding_result("error", _("Validation"), error.args[0], inbound_order=inbound_order, action_name="validate_actual_pallets", success=False, next_step="scan_package")
+        result = self.build_actual_pallet_binding_result("validation", _("Validation"), _("Inbound order confirmed and receipt created."), inbound_order=inbound_order, action_name="create_inbound_picking", next_step="open_picking")
         result.pop("scan_state", None)
+        result["picking_id"] = picking_id
         return result
 
     @api.model

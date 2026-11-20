@@ -226,6 +226,7 @@ class InboundOrder(models.Model):
     def action_confirm(self):
         """Confirm the order."""
         for record in self:
+            read_record = record.sudo() if self.env.context.get("actual_pallet_binding_auto_confirm") else record
             # Ensure owner and project are filled
             if not record.owner:
                 raise UserError(_("Owner is required to confirm the order."))
@@ -235,11 +236,11 @@ class InboundOrder(models.Model):
             if not record.cntr_no:
                 raise UserError(_("Container No is required to confirm the order."))
             if record.project.is_check_origin_doc:
-                if not record.inbound_order_doc_ids:
+                if not read_record.inbound_order_doc_ids:
                     raise UserError(_("At least one document is required to confirm the order."))
                 else:
                     # check at least one orgin document
-                    has_origin_doc = any(doc.doc_type == 'origin' for doc in record.inbound_order_doc_ids)
+                    has_origin_doc = any(doc.doc_type == 'origin' for doc in read_record.inbound_order_doc_ids)
                     if not has_origin_doc:
                         raise UserError(_("At least one Origin Document is required to confirm the order."))
             
@@ -248,9 +249,9 @@ class InboundOrder(models.Model):
                 if not record.a_date:
                     raise UserError(_("Arrival Date is required to confirm the inbound order."))
                 # Ensure at least one product line exists
-                if not record.inbound_order_product_ids:
+                if not read_record.inbound_order_product_ids:
                     raise UserError(_("At least one pallet is required to confirm the order."))
-                for pallet in record.inbound_order_product_ids:
+                for pallet in read_record.inbound_order_product_ids:
                     if not pallet.inbound_order_product_pallet_ids or len(
                             pallet.inbound_order_product_pallet_ids) == 0:
                         raise UserError(_("At least one product is required for each pallet to confirm the order."))                
