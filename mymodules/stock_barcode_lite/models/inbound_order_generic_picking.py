@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from openai import project
 
 from odoo import _, models
 from odoo.exceptions import UserError
