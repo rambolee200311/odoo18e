@@ -65,6 +65,9 @@ export class ActualPalletBinding extends BaseBarcodePage {
             return _t("Scan the Inbound order QR code");
         }
         if (!this.state.currentPallet?.id) {
+            if (this.state.inbound.pallet_code_source === "customer") {
+                return _t("Scan a customer pallet code");
+            }
             return _t("Scan a system pallet QR code");
         }
         if (this.state.currentProduct?.id) {
@@ -138,6 +141,34 @@ export class ActualPalletBinding extends BaseBarcodePage {
         this.state.expandedPalletIds = this.isPalletExpanded(palletId)
             ? this.state.expandedPalletIds.filter((id) => id !== palletId)
             : [...this.state.expandedPalletIds, palletId];
+    }
+
+    startCustomerPalletScan() {
+        if (
+            this._isBusy() ||
+            this.state.quantityEntry ||
+            this.state.editingQuantityId ||
+            this.state.editingTrackingId ||
+            !this.state.inbound?.id ||
+            !this.state.currentPallet?.id
+        ) {
+            return;
+        }
+        if (this.state.inbound.pallet_code_source !== "customer") {
+            this.showMessage(
+                _t("This project uses system pallet codes. Scan a system pallet QR code instead."),
+                "warning"
+            );
+            this._focusBarcodeInput();
+            return;
+        }
+
+        this.state.currentPallet = {};
+        this.state.currentProduct = {};
+        this.state.currentTrackingNumber = false;
+        this.state.quantityValue = "";
+        this.state.nextStep = "scan_customer_pallet";
+        this._focusBarcodeInput();
     }
 
     getPalletProductsClass(palletId) {

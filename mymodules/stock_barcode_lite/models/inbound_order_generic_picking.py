@@ -9,6 +9,9 @@ class InboundOrder(models.Model):
     _inherit = "world.depot.inbound.order"
 
     def action_create_stock_picking(self):
+        if self.project.name == "IBS":
+            raise UserError(_("IBS inbound orders must use Inbound Actual Pallet Binding."))
+
         unknown_records = self.filtered(lambda record: record.project.pallet_structure_mode == "unknown")
         if unknown_records:
             if self - unknown_records:
