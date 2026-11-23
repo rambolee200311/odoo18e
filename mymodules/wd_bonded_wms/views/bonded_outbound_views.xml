@@ -126,6 +126,8 @@
                             <field name="picking_validation_time" readonly="1"/>
                             <field name="total_value" readonly="1" widget="monetary"/>
                             <field name="currency_id" readonly="state != 'draft'" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="total_net_weight" readonly="1"/>
+                            <field name="total_gross_weight" readonly="1"/>
                             <field name="remark" readonly="state != 'draft'"/>
                             <field name="remark1" readonly="state != 'draft'"/>
                             <field name="confirm_user_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
@@ -160,6 +162,10 @@
                             </group>
                         </page>
                         <page string="Products">
+                            <group col="2">
+                                <field name="pallet_count" readonly="state != 'draft'"/>
+                                <field name="pallet_weight" readonly="state != 'draft'"/>
+                            </group>
                             <field name="line_ids" readonly="state != 'draft'">
                                 <list editable="bottom">
                                     <field name="eligible_bonded_product_ids" column_invisible="1"/>

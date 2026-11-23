@@ -55,6 +55,10 @@ class BondedOutbound(models.Model):
     mrn_status = fields.Selection(related='mrn_id.state', string='MRN Status', store=True, readonly=True, index=True)
     expected_date = fields.Date(string='Planned Date', required=True, tracking=True)
     total_value = fields.Monetary(string='Total Value', compute='_compute_total_value', store=True, readonly=True, tracking=True)
+    total_net_weight = fields.Float(string='Total Net Weight (kg)', compute='_compute_total_weights', store=True, readonly=True, tracking=True)
+    total_gross_weight = fields.Float(string='Total Gross Weight (kg)', compute='_compute_total_weights', store=True, readonly=True, tracking=True)
+    pallet_count = fields.Integer(string='Pallet Count', default=0, tracking=True)
+    pallet_weight = fields.Float(string='Pallet Weight (kg)', tracking=True)
     currency_id = fields.Many2one('res.currency', string='Currency',
                                   default=lambda self: self.env.ref('base.EUR').id, tracking=True)
     picking_id = fields.Many2one('stock.picking', string='Outbound Order',
@@ -136,6 +140,12 @@ class BondedOutbound(models.Model):
     def _compute_total_value(self):
         for rec in self:
             rec.total_value = sum(rec.line_ids.mapped('subtotal_value'))
+
+    @api.depends('line_ids.demand_qty', 'line_ids.net_weight', 'line_ids.gross_weight')
+    def _compute_total_weights(self):
+        for rec in self:
+            rec.total_net_weight = sum(line.demand_qty * line.net_weight for line in rec.line_ids)
+            rec.total_gross_weight = sum(line.demand_qty * line.gross_weight for line in rec.line_ids)
 
     @api.depends('line_ids.inbound_tracking_no')
     def _compute_inbound_tracking_no(self):
@@ -276,21 +286,16 @@ class BondedOutbound(models.Model):
                     'operator_id': self.env.user.id,
                     'mrn': rec.mrn_id.mrn if rec.mrn_id else False,
                 })
-                self.env['bonded.book.line'].create({
+                book_line_vals = {
                     'bonded_book_id': rec.bonded_book_id.id,
                     'date': fields.Date.today(),
-                    'operation_type': {'t1_transit': 't1_outbound', 'destruction': 'destruction'}.get(rec.outbound_type, 'customs_outbound'),
                     'product_id': source_stock.product_id.id,
-                    'qty_change': -done_qty,
-                    'from_status': 'entrepot',
-                    'to_status': to_status,
-                    'direction': 'out',
                     'ref_doc_no': rec.name,
                     'inbound_tracking_no': source_stock.inbound_tracking_no,
-                    'bonded_stock_id': source_stock.id,
                     'customs_file_id': customs_file.id,
                     'picking_id': rec.picking_id.id,
-                })
+                }
+                self.env['bonded.book.line'].create({**book_line_vals, 'operation_type': {'t1_transit': 't1_outbound', 'destruction': 'destruction'}.get(rec.outbound_type, 'customs_outbound'), 'qty_change': -done_qty, 'from_status': 'vrij' if rec.outbound_type == 'l2f' else 'entrepot', 'to_status': to_status if rec.outbound_type != 'l2f' else False, 'direction': 'out', 'bonded_stock_id': moved_stock.id if rec.outbound_type == 'l2f' else source_stock.id})
             rec.write({'state': 'done'})
 
     def action_cancel(self):

@@ -33,7 +33,8 @@
                     <button name="action_return_to_draft" string="Return to Draft" type="object" invisible="state != 'customs_rejected'" class="btn-primary"/>
                     <button name="action_done" string="Close T1" type="object" invisible="state != 'customs_approved' or declaration_type != 't1_in'"/>
                     <button name="action_cancel" string="Cancel" type="object" invisible="state not in ('draft', 'to_be_submitted', 'submitted')"/>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,customs_approved,done" readonly="1"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,done" readonly="1" invisible="declaration_type != 'clearance_out'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,submitted,customs_approved,done" readonly="1" invisible="declaration_type == 'clearance_out'"/>
                 </header>
                 <sheet>
                     <div class="alert alert-danger" role="alert" invisible="state not in ('customs_rejected', 'draft') or not rejection_reason">

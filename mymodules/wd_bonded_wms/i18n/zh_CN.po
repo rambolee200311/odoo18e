@@ -5315,3 +5315,16 @@ msgstr "例如：NLAMS001"
 #: model:ir.model.fields,help:wd_bonded_wms.field_bonded_book__customs_office_code
 msgid "e.g. NLRTM"
 msgstr "例如：NLRTM"
+
+#. module: wd_bonded_wms
+#: code:addons/wd_bonded_wms/models/bonded_customs_file.py:0
+msgid "Please set a warehouse before generating an MRN declaration number."
+msgstr "生成 MRN 申报单号前，请先设置仓库。"
+
+#. module: wd_bonded_wms
+msgid "Pallet Count"
+msgstr "托盘数"
+
+#. module: wd_bonded_wms
+msgid "Pallet Weight (kg)"
+msgstr "托盘重量（kg）"
