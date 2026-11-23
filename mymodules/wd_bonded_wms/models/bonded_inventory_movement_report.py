@@ -73,7 +73,11 @@ class BondedInventoryMovementReport(models.Model):
                 opening_line = opening_lines[-1] if opening_lines else False
                 closing_line = closing_lines[-1] if closing_lines else False
                 opening_qty = opening_line.running_balance_qty if opening_line else 0.0
-                closing_qty = closing_line.running_balance_qty if closing_line else 0.0
+                closing_qty = 0.0
+                for book_line in closing_lines:
+                    status = book_line.from_status if book_line.operation_type == 'status_change' and book_line.qty_change < 0 else book_line.to_status if book_line.operation_type == 'status_change' else book_line.from_status or book_line.to_status
+                    if status == 'entrepot':
+                        closing_qty += book_line.qty_change
                 source_line = closing_line or opening_line or period_lines[-1]
                 stock = source_line.bonded_stock_id
                 inbound = stock.inbound_id
@@ -92,7 +96,8 @@ class BondedInventoryMovementReport(models.Model):
                     'unique_identifier_no': source_line.inbound_tracking_no,
                     'inbound_no': inbound.name or '',
                     'qty_of_colli': 0.0,
-                    'kind_of_colli': 'Carton',
+                    'kind_of_colli': 'Pallet',
+                    'product_uom_id': product.uom_id.id,
                     'value_euro': 0.0,
                     'gross_weight': 0.0,
                     'net_weight': 0.0,
@@ -100,6 +105,12 @@ class BondedInventoryMovementReport(models.Model):
                     'country_of_origin': inbound_line.origin_country_id.name or '',
                 }
                 def build_line_values(book_line, mutation_type, mutation_qty, status, date_of_mutation, outbound_no='', corresponding_mrn='', reference=''):
+                    pallet_qty = 0
+                    if mutation_type == 'inbound':
+                        pallet_qty = len({pallet_no for pallet_no in inbound.line_ids.mapped('pallet_no') if pallet_no})
+                    elif mutation_type in ('outbound', 'status_change'):
+                        outbound = book_line.picking_id.bonded_outbound_id or book_line.customs_file_id.bonded_outbound_id
+                        pallet_qty = outbound.pallet_count if outbound else 0
                     line_vals = dict(base_vals)
                     line_vals.update({
                         'sequence': sequence,
@@ -110,7 +121,7 @@ class BondedInventoryMovementReport(models.Model):
                         'outbound_no': outbound_no,
                         'corresponding_mrn': corresponding_mrn,
                         'customs_status': 'free' if status == 'vrij' else 'bonded',
-                        'qty_of_colli': mutation_qty,
+                        'qty_of_colli': pallet_qty,
                         'value_euro': mutation_qty * stock.unit_value,
                         'gross_weight': mutation_qty * inbound_line.gross_weight,
                         'net_weight': mutation_qty * inbound_line.net_weight,
@@ -141,23 +152,19 @@ class BondedInventoryMovementReport(models.Model):
                     mrn = book_line.customs_file_id.mrn or book_line.customs_file_id.mrn_id.mrn or ''
                     reference = outbound.reference if outbound else inbound.reference or ''
                     if mutation_type == 'status_change':
-                        status_qty = stock.quantity
-                        for status, mutation_qty in ((book_line.from_status, -status_qty), (book_line.to_status, status_qty)):
-                            if not status:
-                                continue
-                            line_vals = build_line_values(book_line, mutation_type, mutation_qty, status, book_line.date)
-                            if rec.customs_status_filter == 'all' or line_vals['customs_status'] == rec.customs_status_filter:
-                                movement_vals.append(line_vals)
-                                sequence += 1
+                        status = book_line.from_status if book_line.qty_change < 0 else book_line.to_status
+                        line_vals = build_line_values(book_line, mutation_type, book_line.qty_change, status or 'entrepot', book_line.date, outbound_no, mrn, reference)
+                        if rec.customs_status_filter == 'all' or line_vals['customs_status'] == rec.customs_status_filter:
+                            movement_vals.append(line_vals)
+                            sequence += 1
                         continue
                     status = (book_line.from_status or book_line.to_status or 'entrepot') if mutation_type in ('outbound', 'finding', 'missing', 'correction') else (book_line.to_status or book_line.from_status or 'entrepot')
                     line_vals = build_line_values(book_line, mutation_type, book_line.qty_change, status, book_line.date, outbound_no, mrn, reference)
                     if rec.customs_status_filter == 'all' or line_vals['customs_status'] == rec.customs_status_filter:
                         movement_vals.append(line_vals)
                         sequence += 1
-                if closing_line:
-                    status = closing_line.to_status or closing_line.from_status or 'entrepot'
-                    line_vals = build_line_values(closing_line, 'closing_balance', closing_qty, status, rec.period_end)
+                if closing_line and closing_qty > 0:
+                    line_vals = build_line_values(closing_line, 'closing_balance', closing_qty, 'entrepot', rec.period_end)
                     if rec.customs_status_filter == 'all' or line_vals['customs_status'] == rec.customs_status_filter:
                         movement_vals.append(line_vals)
                         sequence += 1
@@ -218,19 +225,19 @@ class BondedInventoryMovementReport(models.Model):
                     worksheet.write_number(row, 3, value, number_format)
                 else:
                     worksheet.write(row, 3, value or '')
-            headers = ['Product Name (SKU)', 'Product Description', 'Marks/Article No./Tech Desc.', 'Commodity Code', 'Date', 'Unique Identifier No.', 'Mutation Qty(Pcs)', 'Mutation Type', 'Inbound No.', 'Outbound No.', 'Corresponding MRN', 'Customs Status', 'Qty of Colli', 'Kind of Colli', 'Value (Euro)', 'Gross Weight (kg)', 'Net Weight (kg)', 'Container No', 'Reference', 'Country of Origin']
+            headers = ['Product Name (SKU)', 'Product Description', 'Marks/Article No./Tech Desc.', 'Commodity Code', 'Date', 'Unique Identifier No.', 'Mutation Qty(Pcs)', 'Kind of Colli', 'Mutation Type', 'Inbound No.', 'Outbound No.', 'Corresponding MRN', 'Customs Status', 'Qty of Colli', 'Kind of Colli', 'Value (Euro)', 'Gross Weight (kg)', 'Net Weight (kg)', 'Container No', 'Reference', 'Country of Origin']
             worksheet.write_row(11, 0, headers, header_format)
             worksheet.freeze_panes(12, 0)
-            widths = [28, 28, 34, 18, 14, 22, 16, 18, 20, 20, 22, 16, 14, 16, 16, 18, 18, 20, 20, 18]
+            widths = [28, 28, 34, 18, 14, 22, 16, 16, 18, 20, 20, 22, 16, 14, 16, 16, 18, 18, 20, 20, 18]
             for column, width in enumerate(widths):
                 worksheet.set_column(column, column, width)
             mutation_labels = dict(REPORT_MUTATION_TYPE_SELECTION)
             status_labels = dict(REPORT_CUSTOMS_STATUS_SELECTION)
             movement_lines = rec.movement_lines.sudo().sorted(key=lambda item: (item.sequence, item.id))
             for row, line in enumerate(movement_lines, start=12):
-                values = [line.product_name_sku, line.product_description, line.marks_article_technical_description, line.commodity_code, fields.Date.to_string(line.date), line.unique_identifier_no, line.mutation_qty, mutation_labels.get(line.mutation_type, ''), line.inbound_no, line.outbound_no, line.corresponding_mrn, status_labels.get(line.customs_status, ''), line.qty_of_colli, line.kind_of_colli, line.value_euro, line.gross_weight, line.net_weight, line.container_no, line.reference, line.country_of_origin]
+                values = [line.product_name_sku, line.product_description, line.marks_article_technical_description, line.commodity_code, fields.Date.to_string(line.date), line.unique_identifier_no, line.mutation_qty, line.product_uom_id.name, mutation_labels.get(line.mutation_type, ''), line.inbound_no, line.outbound_no, line.corresponding_mrn, status_labels.get(line.customs_status, ''), line.qty_of_colli, line.kind_of_colli, line.value_euro, line.gross_weight, line.net_weight, line.container_no, line.reference, line.country_of_origin]
                 for column, value in enumerate(values):
-                    if column in (6, 12, 14, 15, 16):
+                    if column in (6, 13, 15, 16, 17):
                         worksheet.write_number(row, column, value or 0.0, line_number_format)
                     else:
                         worksheet.write(row, column, value or '', cell_format)
@@ -265,6 +272,7 @@ class BondedInventoryMovementReportLine(models.Model):
     date = fields.Date(string='Date', required=True, readonly=True, copy=False, index=True)
     unique_identifier_no = fields.Char(string='Unique Identifier No.', required=True, readonly=True, copy=False, index=True)
     mutation_qty = fields.Float(string='Mutation Qty(Pcs)', readonly=True, copy=False)
+    product_uom_id = fields.Many2one('uom.uom', string='Kind of Colli', readonly=True, copy=False, ondelete='restrict')
     mutation_type = fields.Selection(REPORT_MUTATION_TYPE_SELECTION, string='Mutation Type', required=True, readonly=True, copy=False, index=True)
     inbound_no = fields.Char(string='Inbound No.', readonly=True, copy=False, index=True)
     outbound_no = fields.Char(string='Outbound No.', readonly=True, copy=False, index=True)

@@ -140,6 +140,7 @@ class BondedCustomsFile(models.Model):
                     rec.bonded_outbound_id.write({'mrn_id': rec.mrn_id.id})
                 if rec.bonded_inbound_id:
                     rec.bonded_inbound_id.write({'mrn_id': rec.mrn_id.id})
+        customs_files.set_mrn_declaration_no()
         return customs_files
 
     def write(self, vals):
@@ -171,7 +172,19 @@ class BondedCustomsFile(models.Model):
                     rec.bonded_outbound_id.write({'mrn_id': rec.mrn_id.id})
                 if rec.bonded_inbound_id:
                     rec.bonded_inbound_id.write({'mrn_id': rec.mrn_id.id})
+        if 'mrn' in vals or 'mrn_id' in vals:
+            self.set_mrn_declaration_no()
         return result
+
+    def set_mrn_declaration_no(self):
+        for rec in self:
+            if rec.declaration_type not in ('t1_in', 't1_out') or not rec.mrn:
+                continue
+            warehouse = rec.bonded_inbound_id.warehouse or rec.bonded_outbound_id.warehouse
+            warehouse_name = warehouse.code or warehouse.name
+            if not warehouse_name:
+                raise UserError(_('Please set a warehouse before generating an MRN declaration number.'))
+            rec.declaration_no = '%s-%s-WD' % (warehouse_name, rec.mrn)
 
     def unlink(self):
         for rec in self:
@@ -304,6 +317,15 @@ class BondedCustomsFile(models.Model):
                 raise UserError(_('Only submitted customs clearance outbound declarations can be completed.'))
             rec.write({'state': 'done'})
             outbound = rec.bonded_outbound_id
+            if outbound:
+                for line in outbound.line_ids:
+                    source_stock = line.bonded_stock_id
+                    if not source_stock or source_stock.current_customs_status != 'entrepot' or source_stock.quantity < line.demand_qty:
+                        raise UserError(_('The selected bonded stock is no longer available for customs clearance.'))
+                    self.env['bonded.book.line'].create([
+                        {'bonded_book_id': outbound.bonded_book_id.id, 'date': fields.Date.today(), 'operation_type': 'status_change', 'product_id': source_stock.product_id.id, 'qty_change': -line.demand_qty, 'from_status': 'entrepot', 'to_status': 'vrij', 'direction': 'none', 'ref_doc_no': outbound.name, 'inbound_tracking_no': source_stock.inbound_tracking_no, 'bonded_stock_id': source_stock.id, 'customs_file_id': rec.id},
+                        {'bonded_book_id': outbound.bonded_book_id.id, 'date': fields.Date.today(), 'operation_type': 'status_change', 'product_id': source_stock.product_id.id, 'qty_change': line.demand_qty, 'from_status': 'entrepot', 'to_status': 'vrij', 'direction': 'none', 'ref_doc_no': outbound.name, 'inbound_tracking_no': source_stock.inbound_tracking_no, 'bonded_stock_id': source_stock.id, 'customs_file_id': rec.id},
+                    ])
             active_files = outbound.customs_file_ids.filtered(lambda customs_file: customs_file.state not in ('customs_rejected', 'cancelled')) if outbound else self.env['bonded.customs.file']
             if outbound and active_files and all(customs_file.state == 'done' for customs_file in active_files):
                 rec.release_outbound_value()
