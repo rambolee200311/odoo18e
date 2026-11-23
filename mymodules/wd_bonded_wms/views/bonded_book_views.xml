@@ -95,14 +95,14 @@
                             </field>
                         </page>
                         <page string="Ledger Lines">
-                            <field name="ledger_lines">
+                            <field name="ledger_lines" domain="[('operation_type', '!=', 'snapshot')]">
                                 <list>
                                     <field name="date"/>
                                     <field name="operation_type"/>
                                     <field name="product_id"/>
                                     <field name="inbound_tracking_no"/>
                                     <field name="qty_change"/>
-                                    <field name="running_balance_qty"/>
+                                    <field name="running_balance_qty" column_invisible="1"/>
                                     <field name="ref_doc_no"/>
                                 </list>
                             </field>

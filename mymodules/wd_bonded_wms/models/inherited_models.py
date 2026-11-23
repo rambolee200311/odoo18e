@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
-import logging
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 from odoo.tools.float_utils import float_compare
-
-_logger = logging.getLogger(__name__)
 
 CUSTOMS_MUTATION_TYPE_SELECTION = [('inbound', 'Inbound'), ('outbound', 'Outbound'), ('finding', 'Finding'), ('missing', 'Missing'), ('correction', 'Correction')]
 
@@ -88,16 +85,13 @@ class StockPicking(models.Model):
                         'is in state "%s". Outbound instruction must be in "in progress" state first.'
                         % (picking.bonded_outbound_id.name, picking.bonded_outbound_id.state)
                     ))
-        result = super(StockPicking, self).button_validate()
+        result = super().button_validate()
         # 后处理: 触发指令完成
         for picking in self:
             if picking.picking_type_code == 'incoming' and picking.bonded_inbound_id and picking.state == 'done' and picking.bonded_inbound_id.state == 'in_progress':
                 picking.bonded_inbound_id.action_done()
             if picking.picking_type_code == 'outgoing' and picking.bonded_outbound_id and picking.state == 'done':
-                try:
-                    picking.bonded_outbound_id.action_done()
-                except Exception as e:
-                    _logger.error("Error in bonded post-validation for picking %s: %s", picking.name, str(e))
+                picking.bonded_outbound_id.action_done()
         return result
 
 

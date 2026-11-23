@@ -63,6 +63,7 @@
                                     <field name="date"/>
                                     <field name="unique_identifier_no"/>
                                     <field name="mutation_qty"/>
+                                    <field name="product_uom_id" options="{'no_create': True, 'no_open': True}"/>
                                     <field name="mutation_type"/>
                                     <field name="inbound_no"/>
                                     <field name="outbound_no"/>
@@ -98,6 +99,7 @@
                 <field name="date"/>
                 <field name="unique_identifier_no"/>
                 <field name="mutation_qty"/>
+                <field name="product_uom_id" options="{'no_create': True, 'no_open': True}"/>
                 <field name="mutation_type"/>
                 <field name="inbound_no"/>
                 <field name="outbound_no"/>
@@ -136,6 +138,7 @@
                             <field name="date" required="1" readonly="1"/>
                             <field name="unique_identifier_no" required="1" readonly="1"/>
                             <field name="mutation_qty" readonly="1"/>
+                            <field name="product_uom_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                             <field name="mutation_type" required="1" readonly="1"/>
                             <field name="inbound_no" readonly="1"/>
                             <field name="outbound_no" readonly="1"/>
