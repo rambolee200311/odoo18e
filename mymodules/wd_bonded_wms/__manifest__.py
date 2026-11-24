@@ -53,6 +53,7 @@
         'views/bonded_customs_file_views.xml',
         'views/bonded_mrn_views.xml',
         'views/bonded_customs_file_line_views.xml',
+        'views/project_bonded_book_views.xml',
         'views/bonded_product_views.xml',
         'views/gate_arrival_views.xml',
         'views/bonded_inbound_tracking_views.xml',

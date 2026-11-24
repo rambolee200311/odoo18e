@@ -80,7 +80,10 @@ class StockOutboundConfirmation(models.Model):
         line_values = []
         for package in package_move_lines.mapped('result_package_id'):
             line_values.append((0, 0, {'destination_package_id': package.id}))
-        return self.create({'picking_line_ids': [(6, 0, pickings.ids)], 'confirmation_lines': line_values, 'unpackaged_move_line_ids': [(6, 0, unpackaged_move_lines.ids)], 'confirmation_mode': confirmation_mode, 'company_id': pickings.company_id.id})
+        values = {'picking_line_ids': [(6, 0, pickings.ids)], 'confirmation_lines': line_values, 'confirmation_mode': confirmation_mode, 'company_id': pickings.company_id.id}
+        if confirmation_mode == 'direct':
+            values['unpackaged_move_line_ids'] = [(6, 0, unpackaged_move_lines.ids)]
+        return self.create(values)
 
     def action_scan_destination_package(self, package_id):
         for rec in self:
@@ -108,7 +111,12 @@ class StockOutboundConfirmation(models.Model):
                 raise UserError(_('Scan at least one destination pallet before confirming this batch.'))
             confirmed_move_lines = scanned_lines.mapped('move_line_ids')
             if rec.confirmation_mode == 'direct' or include_unpacked_lines:
-                confirmed_move_lines |= rec.unpackaged_move_line_ids
+                unpackaged_move_line_ids = self.env['stock.move.line'].sudo().search([('picking_id', 'in', rec.picking_line_ids.ids), ('result_package_id', '=', False), ('state', '!=', 'cancel'), ('quantity', '>', 0), ('secondary_outbound_confirmed', '=', False)]).ids
+                unpackaged_move_lines = self.env['stock.move.line'].browse(unpackaged_move_line_ids)
+                rec.write({'unpackaged_move_line_ids': [(6, 0, unpackaged_move_lines.ids)]})
+                confirmed_move_lines |= unpackaged_move_lines
+            elif rec.confirmation_mode == 'mixed' and rec.unpackaged_move_line_ids:
+                rec.write({'unpackaged_move_line_ids': [(5, 0, 0)]})
             if not confirmed_move_lines:
                 raise UserError(_('There are no move lines to confirm.'))
             confirmed_move_lines.write({'secondary_outbound_confirmed': True, 'outbound_confirmation_id': rec.id})
