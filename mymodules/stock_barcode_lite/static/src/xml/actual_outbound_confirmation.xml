@@ -74,7 +74,7 @@
                     <div class="card border-secondary">
                         <div class="card-body py-2">
                             <div class="small text-muted">Unpackaged Move Lines</div>
-                            <strong class="fs-5"><t t-esc="state.summary.unpackaged_move_lines"/></strong>
+                            <strong class="fs-5"><t t-esc="unpackagedMoveLinesDisplay"/></strong>
                         </div>
                     </div>
                 </div>

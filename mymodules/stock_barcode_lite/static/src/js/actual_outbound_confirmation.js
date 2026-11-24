@@ -50,6 +50,11 @@ export class ActualOutboundConfirmation extends BaseBarcodePage {
         );
     }
 
+    get unpackagedMoveLinesDisplay() {
+        const count = this.state.summary.unpackaged_move_lines || 0;
+        return this.state.confirmationMode === "mixed" && !count ? "—" : count;
+    }
+
     async onBarcodeScanned(barcode) {
         if (!barcode || this.state.loading || this._isProcessing || this._dialogOpen) {
             return;
@@ -151,7 +156,10 @@ export class ActualOutboundConfirmation extends BaseBarcodePage {
     }
 
     _continueOutboundAfterPalletCheck() {
-        if ((this.state.summary.unpackaged_move_lines || 0) > 0) {
+        if (
+            (this.state.summary.unpackaged_move_lines || 0) > 0 ||
+            this.state.confirmationMode === "mixed"
+        ) {
             this._showIncludeUnpackedDialog();
         } else {
             this._confirmBatch(false);
@@ -204,7 +212,7 @@ export class ActualOutboundConfirmation extends BaseBarcodePage {
         }
         this._showDecisionDialog({
             title: _t("Confirm outbound"),
-            body: _t("Ship unpackaged goods together with the scanned destination pallets?"),
+            body: _t("Ship any remaining unpackaged goods together with the scanned destination pallets?"),
             confirmLabel: _t("Pallets and loose goods"),
             cancelLabel: _t("Pallets only"),
             confirm: () => this._confirmBatch(true),
@@ -259,14 +267,12 @@ export class ActualOutboundConfirmation extends BaseBarcodePage {
     }
 
     confirmUnpacked() {
-        console.log(this.state)
         if (this.state.nextStep === "confirm_unpacked") {
             this._showUnpackedOnlyDialog();
         }
     }
 
     async _confirmBatch(includeUnpackedLines) {
-        console.log(this.state,'11h')
         const confirmationId = this.state.confirmationId;
         if (!confirmationId || this.state.loading || this._isProcessing) {
             return;
