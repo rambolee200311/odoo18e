@@ -115,6 +115,7 @@ class BondedOutbound(models.Model):
     @api.onchange('project_id')
     def onchange_project_id(self):
         for rec in self:
+            rec.bonded_book_id = rec.project_id.bonded_book_id
             if rec.project_id:
                 rec.warehouse = rec.project_id.warehouse
                 rec.pick_type = rec.project_id.outbound_pick_type

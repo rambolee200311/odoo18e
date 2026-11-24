@@ -158,6 +158,12 @@ class ProductProduct(models.Model):
                                                 string='Bonded Product Filings')
 
 
+class ProjectProject(models.Model):
+    _inherit = 'project.project'
+
+    bonded_book_id = fields.Many2one('bonded.book', string='Bonded Book', ondelete='restrict', index=True, domain=[('state', '=', 'active')])
+
+
 # ===== Res Users 扩展 =====
 class ResUsers(models.Model):
     _inherit = 'res.users'
