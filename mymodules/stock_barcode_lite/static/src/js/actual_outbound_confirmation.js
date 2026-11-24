@@ -29,7 +29,6 @@ export class ActualOutboundConfirmation extends BaseBarcodePage {
             scan_outbound: _t("Scan the outbound order barcode to open its active confirmation"),
             scan_destination_pallet: _t("Scan destination pallets, then validate this confirmation batch"),
             confirm_unpacked: _t("Only unpackaged goods remain in the current confirmation"),
-            complete: _t("All secondary confirmations for this outbound order are complete"),
         };
         return hints[this.state.nextStep] || hints.scan_outbound;
     }
@@ -39,7 +38,6 @@ export class ActualOutboundConfirmation extends BaseBarcodePage {
             scan_outbound: _t("Scan Order"),
             scan_destination_pallet: _t("Scan Pallets"),
             confirm_unpacked: _t("Confirm Loose Goods"),
-            complete: _t("Complete"),
         };
         return labels[this.state.nextStep] || labels.scan_outbound;
     }
@@ -111,6 +109,11 @@ export class ActualOutboundConfirmation extends BaseBarcodePage {
 
     _applyScanResult(result) {
         if (!result) {
+            return;
+        }
+        if (result.next_step === "complete") {
+            this._resetConfirmationState();
+            this.showMessage(_t("This outbound order is already complete. Scan the next order."), "success");
             return;
         }
         const current = result.current || {};
@@ -256,12 +259,14 @@ export class ActualOutboundConfirmation extends BaseBarcodePage {
     }
 
     confirmUnpacked() {
+        console.log(this.state)
         if (this.state.nextStep === "confirm_unpacked") {
             this._showUnpackedOnlyDialog();
         }
     }
 
     async _confirmBatch(includeUnpackedLines) {
+        console.log(this.state,'11h')
         const confirmationId = this.state.confirmationId;
         if (!confirmationId || this.state.loading || this._isProcessing) {
             return;
@@ -285,11 +290,8 @@ export class ActualOutboundConfirmation extends BaseBarcodePage {
             }
 
             if (confirmationResult.next_step === "complete") {
-                this.state.nextStep = "complete";
-                this.state.confirmationId = false;
-                this.state.destinationPallets = [];
-                this.state.summary = this._emptySummary();
-                this.showMessage(_t("Outbound order fully confirmed."), "success");
+                this._resetConfirmationState();
+                this.showMessage(_t("Outbound order fully confirmed. Scan the next order."), "success");
                 this._flashScreen([100, 250, 100], true);
                 return;
             }
@@ -332,11 +334,6 @@ export class ActualOutboundConfirmation extends BaseBarcodePage {
                 this._focusBarcodeInput();
             }
         }
-    }
-
-    startNewOrder() {
-        this._resetConfirmationState();
-        this._focusBarcodeInput();
     }
 
     _resetConfirmationState() {

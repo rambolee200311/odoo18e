@@ -20,7 +20,7 @@
                         <i class="fa fa-arrow-left"/>
                     </button>
                     <div class="o_sbl_header_title">
-                        <i class="fa fa-check-circle text-success me-1"/>Actual Outbound Confirmation
+                        <i class="fa fa-check-circle text-success me-1"/>Outbound Confirmation
                     </div>
                     <div class="o_sbl_scan_mode" t-attf-class="o_mode_{{ state.nextStep }}">
                         <t t-esc="stepLabel"/>
@@ -36,7 +36,7 @@
                     <t t-esc="stepHint"/>
                 </div>
 
-                <div t-if="state.confirmationId || state.nextStep === 'complete'" class="o_sbl_picking_bar">
+                <div t-if="state.confirmationId" class="o_sbl_picking_bar">
                     <div class="o_picking_info_row">
                         <span class="o_picking_label">
                             <i class="fa fa-clipboard-list text-success me-1"/>Outbound Order:
@@ -107,12 +107,6 @@
                 </p>
             </div>
 
-            <div t-if="state.nextStep === 'complete'" class="o_sbl_confirmation_empty text-center">
-                <i class="fa fa-check-circle fa-4x mb-3 d-block text-success opacity-75"/>
-                <p class="mb-1 fw-bold">Outbound Confirmation Complete</p>
-                <p class="small text-muted">All pending pallets and unpackaged goods for this order have been confirmed.</p>
-            </div>
-
             <div class="o_sbl_footer">
                 <button class="btn btn-secondary" t-on-click="exit">
                     <i class="fa fa-home me-1"/>Home
@@ -128,11 +122,6 @@
                         t-on-click="confirmUnpacked"
                         t-att-disabled="state.loading">
                     <i class="fa fa-truck me-1"/>Confirm Loose Goods
-                </button>
-                <button t-if="state.nextStep === 'complete'"
-                        class="btn btn-primary flex-grow-1"
-                        t-on-click="startNewOrder">
-                    <i class="fa fa-qrcode me-1"/>Scan Another Order
                 </button>
             </div>
         </div>
