@@ -6,6 +6,7 @@
     'depends': ['stock', 'stock_barcode', 'wd_project_profile'],
     'data': [
         'security/ir.model.access.csv',
+        'views/stock_outbound_confirmation_views.xml',
         'views/stock_picking_views.xml',
         'views/stock_quant_package_views.xml',
     ],
