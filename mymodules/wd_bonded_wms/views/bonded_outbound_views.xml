@@ -105,8 +105,8 @@
                             <field name="reference" readonly="state != 'draft'"/>
                             <field name="order_date" required="1" readonly="state != 'draft'"/>
                             <field name="expected_date" string="Planned Date" required="1" readonly="state != 'draft'"/>
-                            <field name="bonded_book_id" required="1" readonly="state != 'draft'" options="{'no_create': True, 'no_open': False}"/>
                             <field name="project_id" required="1" readonly="state != 'draft'" options="{'no_create': True, 'no_open': False}"/>
+                            <field name="bonded_book_id" required="1" readonly="state != 'draft'" options="{'no_create': True, 'no_open': False}"/>
                             <field name="owner_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                             <field name="warehouse" required="1" readonly="state != 'draft'" options="{'no_create': True, 'no_open': False}"/>
                             <field name="warehouse_address" readonly="1"/>

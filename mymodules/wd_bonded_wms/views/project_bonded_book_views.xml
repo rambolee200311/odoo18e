@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_project_form_inherit_bonded_book" model="ir.ui.view">
+        <field name="name">project.project.form.inherit.bonded.book</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="wd_project_profile.view_project_form_inherit_profile"/>
+        <field name="arch" type="xml">
+            <field name="category" position="after">
+                <field name="bonded_book_id" options="{'no_create': True, 'no_open': True}"/>
+            </field>
+        </field>
+    </record>
+</odoo>
