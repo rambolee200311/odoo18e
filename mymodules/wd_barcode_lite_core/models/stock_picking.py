@@ -1,5 +1,6 @@
 from odoo import _, fields, models
 from odoo.exceptions import UserError
+from odoo.tools.float_utils import float_compare
 
 
 class StockPicking(models.Model):
@@ -20,6 +21,37 @@ class StockPicking(models.Model):
         if any(rec.state != 'done' for rec in self):
             raise UserError(_('Secondary outbound confirmation could not complete all outgoing pickings.'))
         return True
+
+    def clear_incomplete_whole_pallet_result_packages(self):
+        move_line_model = self.env["stock.move.line"]
+        quant_model = self.env["stock.quant"]
+        for rec in self:
+            if not rec.is_unspecified_pallet_outgoing or rec.state in ("done", "cancel"):
+                continue
+            whole_lines = move_line_model.sudo().search([("picking_id", "=", rec.id), ("state", "not in", ("done", "cancel")), ("package_id", "!=", False), ("result_package_id", "!=", False), ("quantity", ">", 0)])
+            whole_packages = whole_lines.filtered(lambda line: line.package_id == line.result_package_id).mapped("package_id")
+            for package in whole_packages:
+                scanned_lines = move_line_model.sudo().search([("picking_id", "=", rec.id), ("state", "not in", ("done", "cancel")), ("package_id", "=", package.id), ("is_outbound_scanned", "=", True), ("outbound_scanned_quantity", ">", 0)])
+                package_quants = quant_model.sudo().search([("package_id", "=", package.id), ("location_id.usage", "=", "internal"), ("quantity", ">", 0)])
+                stock_quantities = {}
+                scanned_quantities = {}
+                product_by_key = {}
+                for quant in package_quants:
+                    key = (quant.location_id.id, quant.product_id.id, quant.lot_id.id, quant.owner_id.id)
+                    stock_quantities[key] = stock_quantities.get(key, 0.0) + quant.quantity
+                    product_by_key[key] = quant.product_id
+                for line in scanned_lines:
+                    key = (line.location_id.id, line.product_id.id, line.lot_id.id, line.owner_id.id)
+                    scanned_quantities[key] = scanned_quantities.get(key, 0.0) + line.outbound_scanned_quantity
+                    product_by_key[key] = line.product_id
+                complete = bool(stock_quantities) and set(stock_quantities) == set(scanned_quantities)
+                if complete:
+                    for key, stock_quantity in stock_quantities.items():
+                        if float_compare(stock_quantity, scanned_quantities[key], precision_rounding=product_by_key[key].uom_id.rounding) != 0:
+                            complete = False
+                            break
+                if not complete:
+                    move_line_model.browse(whole_lines.filtered(lambda line: line.package_id == package).ids).write({"result_package_id": False})
 
     def button_validate(self):
         secondary_outbound_pickings = self.filtered(lambda rec: not self.env.context.get('skip_secondary_outbound_validation') and rec.picking_type_code == 'outgoing' and rec.project_id.outbound_palletization_enabled and rec.state not in ('done', 'cancel'))
