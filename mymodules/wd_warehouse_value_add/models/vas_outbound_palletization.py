@@ -18,6 +18,9 @@ class VasOutboundPalletization(models.Model):
     state = fields.Selection([('pending', 'Pending'), ('in_progress', 'In Progress'), ('validated', 'Validated'), ('cancelled', 'Cancelled')], string='Status', required=True, default='pending', readonly=True, copy=False, index=True)
     palletization_lines = fields.One2many('wd.vas.outbound.palletization.line', 'palletization_id', string='Palletization Lines', copy=False)
     transport_pallet_ids = fields.One2many('stock.quant.package', 'vas_outbound_palletization_id', string='Transport Pallets', readonly=True, copy=False)
+    used_transport_pallet_count = fields.Integer(string='Used New Transport Pallets', compute='_compute_palletization_statistics', store=True, readonly=True)
+    direct_outbound_pallet_count = fields.Integer(string='Direct Whole Pallets', compute='_compute_palletization_statistics', store=True, readonly=True)
+    whole_and_loose_transport_pallet_count = fields.Integer(string='Whole and Loose Transport Pallets', compute='_compute_palletization_statistics', store=True, readonly=True)
     started_by_id = fields.Many2one('res.users', string='Started By', readonly=True, copy=False, ondelete='restrict')
     started_at = fields.Datetime(string='Started At', readonly=True, copy=False)
     validated_by_id = fields.Many2one('res.users', string='Validated By', readonly=True, copy=False, ondelete='restrict')
@@ -30,6 +33,35 @@ class VasOutboundPalletization(models.Model):
             if vals.get('name', 'New') == 'New':
                 vals['name'] = sequence.next_by_code('wd.vas.outbound.palletization') or 'New'
         return super().create(vals_list)
+
+    @api.depends('palletization_lines.source_move_line_id.quantity', 'palletization_lines.source_package_id', 'palletization_lines.destination_package_id', 'palletization_lines.quantity', 'palletization_lines.handling_type')
+    def _compute_palletization_statistics(self):
+        for rec in self:
+            palletization_lines = rec.palletization_lines
+            palletized_lines = palletization_lines.filtered(lambda line: line.handling_type == 'palletize')
+            rec.used_transport_pallet_count = len(palletized_lines.mapped('destination_package_id'))
+            rec.direct_outbound_pallet_count = len(palletization_lines.filtered(lambda line: line.handling_type == 'direct_outbound').mapped('source_package_id'))
+            whole_and_loose_count = 0
+            picking_move_lines = rec.get_picking_move_lines()
+            for destination_package in palletized_lines.mapped('destination_package_id'):
+                destination_lines = palletized_lines.filtered(lambda line: line.destination_package_id == destination_package)
+                whole_source_packages = self.env['stock.quant.package']
+                for source_package in destination_lines.mapped('source_package_id'):
+                    source_move_lines = picking_move_lines.filtered(lambda line: line.package_id == source_package)
+                    if not source_move_lines:
+                        continue
+                    is_whole_source_pallet = True
+                    for source_move_line in source_move_lines:
+                        allocated_quantity = sum(destination_lines.filtered(lambda line: line.source_move_line_id == source_move_line).mapped('quantity'))
+                        rounding = source_move_line.product_uom_id.rounding or source_move_line.product_id.uom_id.rounding
+                        if float_compare(allocated_quantity, source_move_line.quantity, precision_rounding=rounding) != 0:
+                            is_whole_source_pallet = False
+                            break
+                    if is_whole_source_pallet:
+                        whole_source_packages |= source_package
+                if whole_source_packages and destination_lines.mapped('source_package_id') - whole_source_packages:
+                    whole_and_loose_count += 1
+            rec.whole_and_loose_transport_pallet_count = whole_and_loose_count
 
     def lock_for_update(self):
         records = self.sorted('id')
