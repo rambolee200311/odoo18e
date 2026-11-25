@@ -1,0 +1,61 @@
+.o_sbl_outbound_confirmation {
+    .o_sbl_confirmation_content {
+        flex: 1 0 200px;
+        min-height: 0;
+        overflow-y: auto;
+        padding: 12px 12px 76px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .o_sbl_confirmation_summary {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        margin-bottom: 12px;
+
+        .card-body {
+            min-width: 0;
+        }
+    }
+
+    .o_sbl_confirmation_pallets {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .o_sbl_confirmation_pallet {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+        padding: 12px;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        background: #fff;
+
+        &.is-scanned {
+            border-color: #a3cfbb;
+            background: #f4fbf7;
+        }
+    }
+
+    .o_sbl_confirmation_pallet_icon {
+        flex: 0 0 24px;
+        font-size: 20px;
+        text-align: center;
+    }
+
+    .o_sbl_confirmation_pallet_info {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .o_sbl_confirmation_empty {
+        flex: 1 0 200px;
+        padding: 48px 24px 96px;
+    }
+}

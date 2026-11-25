@@ -7,6 +7,7 @@ import { useService } from "@web/core/utils/hooks";
 import { user } from "@web/core/user";
 import { standardActionServiceProps } from "@web/webclient/actions/action_service";
 import { ImagePreviewComponent } from "@wd_attachment_preview/components/image_preview_component";
+import { VasOutboundPalletizationDialog } from "@wd_warehouse_value_add/components/vas_outbound_palletization_dialog/vas_outbound_palletization_dialog";
 
 const WAREHOUSE_MODELS = {
     inbound: "world.depot.inbound.order",
@@ -17,7 +18,7 @@ const WAREHOUSE_MODELS = {
 export class VasPdaAction extends Component {
     static props = { ...standardActionServiceProps };
     static template = "wd_warehouse_value_add.VasPdaAction";
-    static components = { ImagePreviewComponent };
+    static components = { ImagePreviewComponent, VasOutboundPalletizationDialog };
 
     setup() {
         this.orm = useService("orm");
@@ -44,15 +45,20 @@ export class VasPdaAction extends Component {
                 quantityTime: 1,
                 note: "",
             },
+            palletizationDialogMode: null,
             busy: false,
         });
         onWillStart(async () => {
             this.state.operationTypes = await this.orm.searchRead(
                 "wd.vas.operation.type",
                 [["active", "=", true]],
-                ["id", "name", "unit"],
+                ["id", "name", "unit", "is_outbound_palletization"],
                 { order: "sequence, name" }
             );
+            const vasOrderId = this.props.action.context?.vas_order_id;
+            if (vasOrderId) {
+                await this.reloadOrder(vasOrderId);
+            }
         });
     }
 
@@ -72,6 +78,14 @@ export class VasPdaAction extends Component {
         return _t("Automatic");
     }
 
+    get hasOutboundPalletization() {
+        return this.state.lines.some((line) => line.isOutboundPalletization);
+    }
+
+    get isOutboundOrder() {
+        return this.state.order?.order_type === "outbound";
+    }
+
     async resolveWarehouseOrder(showWarning = true) {
         const billno = this.state.billno.trim();
         if (!billno) {
@@ -88,6 +102,17 @@ export class VasPdaAction extends Component {
         if (!this.state.warehouseOrder && showWarning) {
             this.notification.add(_t("Warehouse Order was not found."), { type: "warning" });
         }
+    }
+
+    async resolve_and_bind_warehouse_order() {
+        if (!this.state.billno.trim()) {
+            this.notification.add(_t("Please enter or scan a document number."), { type: "warning" });
+            return;
+        }
+        if (!this.state.order && !(await this.createDraft())) {
+            return;
+        }
+        await this.saveDraft();
     }
 
     async createDraft(allowUnresolvedDocument = false) {
@@ -125,10 +150,11 @@ export class VasPdaAction extends Component {
         const [order] = await this.orm.read(
             "wd.vas.order",
             [orderId],
-            ["name", "create_date", "state", "operator_id", "warehouse_order_billno", "warehouse_id",
+            ["name", "create_date", "state", "order_type", "operator_id", "warehouse_order_billno", "warehouse_id",
                 "inbound_order_id", "outbound_order_id", "transfer_order_id", "attachment_ids"]
         );
         this.state.order = order;
+        this.state.orderType = order.order_type || this.state.orderType;
         this.state.billno = order.warehouse_order_billno || this.state.billno;
         const lines = await this.orm.searchRead(
             "wd.vas.order.line",
@@ -148,6 +174,7 @@ export class VasPdaAction extends Component {
             return {
                 ...line,
                 operationTypeId: operationTypeId?.toString() || "",
+                isOutboundPalletization: operationTypes.some((item) => item.id === operationTypeId && item.is_outbound_palletization),
                 operationTypes,
                 quantityTime: line.quantity_time,
             };
@@ -255,28 +282,26 @@ export class VasPdaAction extends Component {
         }
     }
 
-    async saveDraft() {
+    async saveDraft(showNotification = true) {
         if (!this.state.order || !this.isDraft) {
-            return;
+            return false;
         }
         this.state.busy = true;
         try {
             const billno = this.state.billno.trim();
-            if (billno) {
-                await this.resolveWarehouseOrder();
-                if (!this.state.warehouseOrder) {
-                    return;
-                }
+            await this.resolveWarehouseOrder();
+            if (billno && !this.state.warehouseOrder) {
+                return false;
             }
-            const [projectId] = this.state.warehouseOrder?.project || [];
-            const [warehouseId] = this.state.warehouseOrder?.warehouse || [];
-            await this.orm.write("wd.vas.order", [this.state.order.id], {
-                warehouse_order_billno: billno,
-                project_id: projectId || false,
-                warehouse_id: warehouseId || false,
-            });
+            await this.orm.call("wd.vas.order", "action_bind_warehouse_order", [[this.state.order.id], this.state.orderType, billno]);
             await this.reloadOrder();
-            this.notification.add(_t("Draft saved."), { type: "success" });
+            if (showNotification) {
+                this.notification.add(_t("Draft saved."), { type: "success" });
+            }
+            return true;
+        } catch (error) {
+            this.notification.add(error.data?.arguments?.[0] || error.message || _t("Draft save failed."), { type: "danger" });
+            return false;
         } finally {
             this.state.busy = false;
         }
@@ -286,22 +311,11 @@ export class VasPdaAction extends Component {
         if (!this.state.order || !this.isDraft || this.state.busy) {
             return;
         }
+        if (!await this.saveDraft(false)) {
+            return;
+        }
         this.state.busy = true;
         try {
-            const billno = this.state.billno.trim();
-            if (billno) {
-                await this.resolveWarehouseOrder();
-                if (!this.state.warehouseOrder) {
-                    return;
-                }
-            }
-            const [projectId] = this.state.warehouseOrder?.project || [];
-            const [warehouseId] = this.state.warehouseOrder?.warehouse || [];
-            await this.orm.write("wd.vas.order", [this.state.order.id], {
-                warehouse_order_billno: billno,
-                project_id: projectId || false,
-                warehouse_id: warehouseId || false,
-            });
             await this.orm.call("wd.vas.order", "action_submit", [[this.state.order.id]]);
             await this.reloadOrder();
             this.notification.add(_t("Submitted."), { type: "success" });
@@ -313,6 +327,73 @@ export class VasPdaAction extends Component {
                     : (error.data?.arguments?.[0] || error.message || _t("Submit failed.")),
                 { type: this.state.order?.state === "submitted" ? "success" : "danger" }
             );
+        } finally {
+            this.state.busy = false;
+        }
+    }
+
+    openPalletizationDialog(mode) {
+        if (!this.state.order || !this.hasOutboundPalletization || !this.isOutboundOrder || this.state.busy) {
+            return;
+        }
+        this.state.palletizationDialogMode = mode;
+    }
+
+    closePalletizationDialog() {
+        this.state.palletizationDialogMode = null;
+    }
+
+    async startOutboundPalletization() {
+        if (!this.state.order || !this.hasOutboundPalletization || !this.isOutboundOrder || this.state.busy) {
+            return;
+        }
+        if (this.isDraft && !await this.saveDraft(false)) {
+            return;
+        }
+        this.state.busy = true;
+        try {
+            const result = await this.orm.call("wd.vas.order", "action_start_outbound_palletization", [[this.state.order.id]]);
+            this.notification.add(_t("Palletization is ready: ") + result.palletization_id, { type: "success" });
+            await this.reloadOrder();
+        } catch (error) {
+            this.notification.add(error.data?.arguments?.[0] || error.message || _t("Palletization could not be started."), { type: "danger" });
+        } finally {
+            this.state.busy = false;
+        }
+    }
+
+    async openTransportPalletCreateWizard() {
+        if (!this.state.order || !this.hasOutboundPalletization || !this.isOutboundOrder || this.state.busy) {
+            return;
+        }
+        if (this.isDraft && !await this.saveDraft(false)) {
+            return;
+        }
+        this.state.busy = true;
+        try {
+            const action = await this.orm.call("wd.vas.order", "action_open_transport_pallet_create_wizard", [[this.state.order.id]]);
+            await this.action.doAction(action);
+            await this.reloadOrder();
+        } catch (error) {
+            this.notification.add(error.data?.arguments?.[0] || error.message || _t("Transport pallets could not be created."), { type: "danger" });
+        } finally {
+            this.state.busy = false;
+        }
+    }
+
+    async printTransportPalletLabels() {
+        if (!this.state.order || !this.hasOutboundPalletization || !this.isOutboundOrder || this.state.busy) {
+            return;
+        }
+        if (this.isDraft && !await this.saveDraft(false)) {
+            return;
+        }
+        this.state.busy = true;
+        try {
+            const action = await this.orm.call("wd.vas.order", "action_print_transport_pallet_labels", [[this.state.order.id]]);
+            await this.action.doAction(action);
+        } catch (error) {
+            this.notification.add(error.data?.arguments?.[0] || error.message || _t("Transport pallet labels could not be printed."), { type: "danger" });
         } finally {
             this.state.busy = false;
         }
@@ -378,6 +459,7 @@ export class VasPdaAction extends Component {
         this.state.attachmentName = "";
         this.state.cancelModalOpen = false;
         this.state.cancelReason = "";
+        this.state.palletizationDialogMode = null;
     }
 
     openCancelModal() {

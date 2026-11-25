@@ -191,6 +191,27 @@
                         <field name="sunrise_pickup_delivery_sync_error_msg" readonly="1"/>
 
                     </group></page>
+                <page string="Secondary Outbound Confirmations">
+                    <field name="secondary_outbound_confirmation_lines" context="{'default_picking_line_ids': outgoing_picking_lines}" mode="list,form">
+                        <list>
+                            <field name="confirmation_mode" readonly="state in ('done', 'cancelled')"/>
+                            <field name="state" readonly="1"/>
+                            <field name="confirmed_by_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="confirmed_datetime" readonly="1"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_stock_outbound_confirmation_form_inherit" model="ir.ui.view">
+        <field name="name">stock.outbound.confirmation.form.inherit</field>
+        <field name="model">stock.outbound.confirmation</field>
+        <field name="inherit_id" ref="wd_barcode_lite_core.view_stock_outbound_confirmation_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='picking_line_ids']" position="before">
+                <field name="outbound_order_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
             </xpath>
         </field>
     </record>

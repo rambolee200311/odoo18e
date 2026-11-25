@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-inherit="wd_warehouse_value_add.VasDashboard" t-inherit-mode="extension">
+        <xpath expr="//button[@t-on-click='openOrders']/.." position="before">
+            <div class="col-12 col-md-6">
+                <button class="o_wd_vas_entry card w-100 text-start p-4" t-on-click="openPda">
+                    <strong class="fs-4 d-block">PDA Work Order Entry</strong>
+                    <span class="text-muted">On-site entry, scanning, photos, and work order submission</span>
+                </button>
+            </div>
+        </xpath>
+    </t>
+</templates>
