@@ -66,6 +66,22 @@
         }
     }
 
+    .o_wd_vas_palletization-summary {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+
+        > div {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 8px 10px;
+            background: #f7f7f7;
+            border: 1px solid #e2e2e2;
+            font-size: 12px;
+        }
+    }
+
     .o_wd_vas_palletization-panels {
         display: grid;
         grid-template-columns: minmax(0, 1fr);
@@ -397,5 +413,10 @@
             min-height: 0;
         }
 
+        .o_wd_vas_palletization-summary > div {
+            display: grid;
+            gap: 2px;
+            padding: 6px;
+        }
     }
 }

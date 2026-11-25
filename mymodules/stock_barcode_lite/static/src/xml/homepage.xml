@@ -102,7 +102,7 @@
                             </div>
                             <div class="card-body d-flex flex-column">
                                 <p class="text-muted mb-auto">Confirm actual outbound time for confirmed orders.</p>
-                                <button class="btn btn-secondary mt-3" t-on-click="">
+                                <button class="btn btn-secondary mt-3" t-on-click="_onActualOutboundConfirmationClick">
                                     <i class="fa fa-arrow-right me-2"/>Go
                                 </button>
                             </div>
