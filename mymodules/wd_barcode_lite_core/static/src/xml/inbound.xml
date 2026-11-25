@@ -218,7 +218,6 @@
                 </button>
                 <button class="btn btn-outline-primary"
                         style="flex: 1.6; font-size: 12px;"
-                        title="将当前入库单中未绑定货位的托盘绑定到当前货位"
                         t-on-click="bindPendingPalletLocations"
                         t-att-disabled="state.loading || !canBindPendingPalletLocations">
                     1-Click

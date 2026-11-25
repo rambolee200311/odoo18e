@@ -22,7 +22,7 @@
                     </button>
                     <div class="o_sbl_header_title">
                         <i class="fa fa-link text-primary me-1"/>
-                        Inbound Actual Pallet Binding
+                        Inbound Pallet Binding
                     </div>
                     <div class="o_sbl_scan_mode" t-attf-class="o_mode_{{ state.nextStep }}">
                         <t t-esc="state.nextStep.replaceAll('_', ' ')"/>

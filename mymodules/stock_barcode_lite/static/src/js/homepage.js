@@ -59,4 +59,8 @@ export class Homepage extends Component {
     _onActualInboundConfirmationClick() {
         this.action.doAction("stock_barcode_lite_actual_inbound_confirmation");
     }
+
+    _onActualOutboundConfirmationClick() {
+        this.action.doAction("stock_barcode_lite_actual_outbound_confirmation");
+    }
 }

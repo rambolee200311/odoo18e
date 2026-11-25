@@ -68,6 +68,11 @@
                             <div t-elif="showPalletizationResultMessage" class="o_wd_vas_palletization-message">
                                 <t t-esc="state.palletizationResult.message"/>
                             </div>
+                            <div class="o_wd_vas_palletization-summary">
+                                <div><span>Total</span><strong t-esc="palletizationScanState.summary?.total_quantity || 0"/></div>
+                                <div><span>Assigned</span><strong t-esc="palletizationScanState.summary?.assigned_quantity || 0"/></div>
+                                <div><span>Unassigned</span><strong t-esc="palletizationScanState.summary?.unassigned_quantity || 0"/></div>
+                            </div>
                             <section class="o_wd_vas_palletization-scan">
                                 <strong class="o_wd_vas_palletization-step-prompt" t-esc="palletizationPrompt"/>
                                 <div t-if="palletizationNextStep === 'choose_whole_handling'" class="o_wd_vas_palletization-whole-actions">
