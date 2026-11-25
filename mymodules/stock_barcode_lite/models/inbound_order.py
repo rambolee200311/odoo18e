@@ -61,10 +61,6 @@ class InboundOrder(models.Model):
 
     def action_open_actual_inbound_confirmation_wizard(self):
         for rec in self:
-            if rec.state != "confirm":
-                raise UserError(_("Only confirmed inbound orders can confirm actual inbound."))
-            if rec.project_stock_report_date_mode != "business":
-                raise UserError(_("Actual inbound confirmation is available only for projects using Order Business Date."))
             context = {"default_inbound_order_id": rec.id}
             if rec.actual_inbound_datetime:
                 context["default_actual_inbound_datetime"] = rec.actual_inbound_datetime
