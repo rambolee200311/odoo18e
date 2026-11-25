@@ -8,4 +8,8 @@
         <field name="name">VAS PDA Work Entry</field>
         <field name="tag">wd_warehouse_value_add.pda</field>
     </record>
+    <record id="action_vas_pda_order_selector" model="ir.actions.client">
+        <field name="name">VAS PDA Work Order List</field>
+        <field name="tag">wd_warehouse_value_add.pda_order_list</field>
+    </record>
 </odoo>

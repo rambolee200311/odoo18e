@@ -18,7 +18,7 @@ export class VasDashboard extends Component {
     }
 
     openOrders() {
-        return this.action.doAction("wd_warehouse_value_add.action_vas_order");
+        return this.action.doAction("wd_warehouse_value_add.action_vas_pda_order_selector");
     }
 }
 
