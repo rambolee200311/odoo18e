@@ -11,3 +11,5 @@ class StockMoveLine(models.Model):
     outbound_scanned_quantity = fields.Float(string='Outbound Scanned Quantity', default=0.0, copy=False)
     outbound_scanned_by_id = fields.Many2one('res.users', string='Outbound Scanned By', copy=False)
     outbound_scanned_datetime = fields.Datetime(string='Outbound Scanned Datetime', copy=False)
+    secondary_outbound_confirmed = fields.Boolean(string='Secondary Outbound Confirmed', default=False, copy=False, index=True)
+    outbound_confirmation_id = fields.Many2one('stock.outbound.confirmation', string='Outbound Confirmation', readonly=True, copy=False, index=True, ondelete='set null')
