@@ -156,6 +156,7 @@ class StockPicking(models.Model):
         for rec in self:
             if not rec.is_unspecified_pallet_outgoing or rec.state in ("done", "cancel"):
                 continue
+            rec.clear_incomplete_whole_pallet_result_packages()
             moves = move_model.sudo().search([("picking_id", "=", rec.id), ("state", "!=", "cancel")], order="id")
             scanned_lines = move_line_model.sudo().search([("move_id", "in", moves.ids), ("state", "!=", "cancel"), ("is_outbound_scanned", "=", True)]) if moves else move_line_model
             scanned_qty_by_move = {}
