@@ -4,7 +4,7 @@
         <field name="name">wd.vas.outbound.palletization.list</field>
         <field name="model">wd.vas.outbound.palletization</field>
         <field name="arch" type="xml">
-            <list>
+            <list create="false">
                 <field name="name"/>
                 <field name="vas_order_id"/>
                 <field name="state"/>
@@ -19,7 +19,7 @@
         <field name="name">wd.vas.outbound.palletization.form</field>
         <field name="model">wd.vas.outbound.palletization</field>
         <field name="arch" type="xml">
-            <form duplicate="false">
+            <form create="false" duplicate="false">
                 <header>
                     <button name="action_validate_palletization" type="object" string="Validate Palletization" class="oe_highlight" invisible="state != 'in_progress'"/>
                     <button name="action_reset_palletization" type="object" string="Reset Palletization" invisible="state not in ('pending', 'in_progress')"/>
