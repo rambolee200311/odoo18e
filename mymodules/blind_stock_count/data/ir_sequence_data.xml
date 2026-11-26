@@ -37,6 +37,15 @@
             <field name="number_increment">1</field>
             <field name="implementation">standard</field>
         </record>
+        <record id="sequence_blind_stock_count_delayed_outbound_batch" model="ir.sequence">
+            <field name="name">Blind Stock Count Delayed Outbound Batch</field>
+            <field name="code">blind.stock.count.delayed.outbound.batch</field>
+            <field name="prefix">BSCDB-%(year)s%(month)s%(day)s-</field>
+            <field name="padding">6</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+            <field name="implementation">standard</field>
+        </record>
         <record id="sequence_blind_stock_count_cancel_picking_batch" model="ir.sequence">
             <field name="name">Blind Stock Count Cancel Picking Batch</field>
             <field name="code">blind.stock.count.cancel.picking.batch</field>

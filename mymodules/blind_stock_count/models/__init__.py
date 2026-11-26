@@ -10,5 +10,6 @@ from . import blind_stock_count_line
 from . import blind_stock_count_check
 from . import blind_stock_count_check_line
 from . import blind_stock_count_clearance
+from . import blind_stock_count_delayed_outbound
 from . import blind_stock_count_receipt
 from . import stock_picking

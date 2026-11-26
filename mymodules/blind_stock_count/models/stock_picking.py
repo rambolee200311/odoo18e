@@ -12,9 +12,12 @@ class StockPicking(models.Model):
 
     is_blind_stock_count_clearance = fields.Boolean(string="Blind Stock Count Clearance", copy=False, index=True)
     is_blind_stock_count_receipt = fields.Boolean(string="Blind Stock Count Receipt", copy=False, index=True)
+    is_blind_stock_count_delayed_outbound = fields.Boolean(string="Blind Stock Count Delayed Outbound", copy=False, index=True)
     blind_stock_count_work_package_id = fields.Many2one("blind.stock.count.work.package", string="Blind Stock Count Work Package", readonly=True, copy=False, index=True)
     blind_stock_count_id = fields.Many2one("blind.stock.count", string="Blind Stock Count", readonly=True, copy=False, index=True)
     blind_stock_count_clearance_batch_id = fields.Many2one("blind.stock.count.clearance.batch", string="Clearance Batch", readonly=True, copy=False, index=True)
+    blind_stock_count_delayed_outbound_batch_id = fields.Many2one("blind.stock.count.delayed.outbound.batch", string="Delayed Outbound Batch", readonly=True, copy=False, index=True)
+    blind_stock_count_source_picking_id = fields.Many2one("stock.picking", string="Source Picking", readonly=True, copy=False, index=True)
     blind_stock_count_validation_state = fields.Selection([("queued", "Queued"), ("running", "Running"), ("done", "Done"), ("failed", "Failed")], string="Blind Stock Count Validation Status", readonly=True, copy=False, index=True)
     blind_stock_count_validation_error = fields.Text(string="Blind Stock Count Validation Error", readonly=True, copy=False)
     blind_stock_count_validation_queue_job_id = fields.Many2one("queue.job", string="Blind Stock Count Validation Queue Job", readonly=True, ondelete="set null", copy=False, index=True)
@@ -22,7 +25,7 @@ class StockPicking(models.Model):
     def button_validate(self):
         if self.env.context.get("blind_stock_count_clearance_validation") or self.env.context.get("blind_stock_count_queue_validation"):
             return super().button_validate()
-        blind_stock_count_pickings = self.filtered(lambda picking: picking.is_blind_stock_count_clearance or picking.is_blind_stock_count_receipt)
+        blind_stock_count_pickings = self.filtered(lambda picking: picking.is_blind_stock_count_clearance or picking.is_blind_stock_count_receipt or picking.is_blind_stock_count_delayed_outbound)
         other_pickings = self - blind_stock_count_pickings
         result = True
         if blind_stock_count_pickings:
@@ -36,9 +39,9 @@ class StockPicking(models.Model):
             raise UserError(_("Select at least one blind stock count picking to validate."))
         if not (self.env.user.has_group("blind_stock_count.group_blind_stock_count_administrator") or self.env.user.has_group("base.group_system")):
             raise UserError(_("Only a warehouse manager or system administrator can validate blind stock count pickings."))
-        invalid_pickings = self.filtered(lambda rec: not (rec.is_blind_stock_count_clearance or rec.is_blind_stock_count_receipt) or rec.state in ("done", "cancel"))
+        invalid_pickings = self.filtered(lambda rec: not (rec.is_blind_stock_count_clearance or rec.is_blind_stock_count_receipt or rec.is_blind_stock_count_delayed_outbound) or rec.state in ("done", "cancel"))
         if invalid_pickings:
-            raise UserError(_("Select only unvalidated blind stock count inbound or clearance pickings."))
+            raise UserError(_("Select only unvalidated blind stock count inbound, clearance, or delayed outbound pickings."))
         queued_pickings = self.filtered(lambda rec: rec.blind_stock_count_validation_state in ("queued", "running"))
         if queued_pickings:
             raise UserError(_("Picking %s already has a validation task in progress.") % queued_pickings[0].display_name)
@@ -54,6 +57,23 @@ class StockPicking(models.Model):
             pickings.write(vals)
         return {"type": "ir.actions.client", "tag": "display_notification", "params": {"type": "success", "message": _("Picking validation task(s) were queued."), "sticky": False}}
 
+    def action_delete_blind_stock_count_delayed_outbound_pickings(self):
+        if not self:
+            raise UserError(_("Select at least one delayed outbound picking to delete."))
+        if not (self.env.user.has_group("blind_stock_count.group_blind_stock_count_administrator") or self.env.user.has_group("base.group_system")):
+            raise UserError(_("Only a warehouse manager or system administrator can delete delayed outbound pickings."))
+        for rec in self:
+            if not rec.is_blind_stock_count_delayed_outbound or rec.state == "done":
+                raise UserError(_("Only unvalidated delayed outbound pickings can be deleted."))
+            if rec.blind_stock_count_validation_state in ("queued", "running"):
+                raise UserError(_("Picking %s has a validation task in progress and cannot be deleted.") % rec.display_name)
+        batch_line_model = self.env["blind.stock.count.delayed.outbound.batch.line"]
+        result_lines = batch_line_model.sudo().search([("outbound_picking_id", "in", self.ids)])
+        if result_lines:
+            batch_line_model.browse(result_lines.ids).write({"state": "deleted"})
+        self.unlink()
+        return {"type": "ir.actions.client", "tag": "display_notification", "params": {"type": "success", "message": _("Selected delayed outbound pickings were deleted."), "sticky": False}}
+
     def job_validate_blind_stock_count_pickings(self):
         for rec in self:
             if rec.state == "done":
@@ -66,7 +86,7 @@ class StockPicking(models.Model):
             try:
                 with self.env.cr.savepoint():
                     context = {"skip_backorder": True}
-                    if rec.is_blind_stock_count_clearance:
+                    if rec.is_blind_stock_count_clearance or rec.is_blind_stock_count_delayed_outbound:
                         move_line_groups = self.env["stock.move.line"].sudo()._read_group([("picking_id", "=", rec.id), ("state", "not in", ["done", "cancel"]), ("quantity_product_uom", ">", 0)], ["product_id", "location_id", "lot_id", "package_id", "owner_id"], ["quantity_product_uom:sum"])
                         if move_line_groups:
                             product_ids = list({product.id for product, location, lot, package, owner, quantity in move_line_groups})
@@ -76,7 +96,7 @@ class StockPicking(models.Model):
                             for product, location, lot, package, owner, quantity in move_line_groups:
                                 on_hand = quantities.get((product.id, location.id, lot.id, package.id, owner.id), 0)
                                 if float_compare(on_hand, quantity, precision_rounding=product.uom_id.rounding) < 0:
-                                    raise UserError(_("Insufficient clearance stock: product %(product)s, location %(location)s, lot/SN %(lot)s, package %(package)s, owner %(owner)s, required %(required)s, on hand %(on_hand)s.", product=product.display_name, location=location.display_name, lot=lot.display_name or "-", package=package.display_name or "-", owner=owner.display_name or "-", required=quantity, on_hand=on_hand))
+                                    raise UserError(_("Insufficient outbound stock: product %(product)s, location %(location)s, lot/SN %(lot)s, package %(package)s, owner %(owner)s, required %(required)s, on hand %(on_hand)s.", product=product.display_name, location=location.display_name, lot=lot.display_name or "-", package=package.display_name or "-", owner=owner.display_name or "-", required=quantity, on_hand=on_hand))
                         context.update({"blind_stock_count_clearance_validation": True, "skip_sanity_check": True})
                     else:
                         context["blind_stock_count_queue_validation"] = True
