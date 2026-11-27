@@ -6,6 +6,7 @@
         <field name="model">operation.order.clearance</field>
         <field name="arch" type="xml">
             <list string="Clearance Orders" create="false">
+                <field name="active" column_invisible="1"/>
                 <field name="name"/>
                 <field name="waybill_id"/>
                 <field name="project_id"/>

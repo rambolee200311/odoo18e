@@ -6,7 +6,7 @@
         <field name="model">operation.order.handover</field>
         <field name="arch" type="xml">
             <list string="Handover Orders" create="false">
-
+                <field name="active" column_invisible="1"/>
                 <field name="name"/>
                 <field name="parent_id"/>
                 <field name="waybill_id"/>

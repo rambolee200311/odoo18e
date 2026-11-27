@@ -53,6 +53,7 @@ class OperationOrderHandover(models.Model):
     state = fields.Selection(
         HANDOVER_STATE,
         string="Status", default="open", required=True, tracking=True, index=True)
+    active = fields.Boolean(string="Active", default=True, index=True)
     receivable_state = fields.Selection([("draft", "Charge Unconfirmed"), ("confirmed", "Charge Confirmed")], string="Receivable Status", default="draft", required=True, tracking=True, index=True, copy=False)
     receivable_confirm_user_id = fields.Many2one("res.users", string="Receivable Confirmed By", readonly=True, copy=False, index=True)
     receivable_confirm_time = fields.Datetime(string="Receivable Confirmed On", readonly=True, copy=False, index=True)
