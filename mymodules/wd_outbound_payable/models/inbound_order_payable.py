@@ -120,7 +120,7 @@ class InboundOrder(models.Model):
                 if quantity:
                     charge_values.append((0, 0, {
                         "charge_item_id": charge_item.id,
-                        "charge_billing_object": "fixed" if quotation_line.is_fixed_fee else charge_item.charge_billing_object,
+                        "charge_billing_object": "fixed" if quotation_line.is_fixed_fee else charge_item.charge_billing_object or "document",
                         "quantity": quantity,
                         "charge_unit_id": charge_item.unit_id.id,
                         "unit_price": quotation_line.unit_price,
@@ -236,7 +236,7 @@ class InboundOrderCharge(models.Model):
     _inherit = "world.depot.inbound.order.charge"
 
     manual_amount_total = fields.Monetary(string="Manual Amount", currency_field="currency_id", default=0.0)
-    charge_billing_object = fields.Selection([("fixed", "Fixed"), ("carton", "Carton"), ("pallet", "Pallet")], string="Billing Object", copy=False)
+    charge_billing_object = fields.Selection([("fixed", "Fixed Fee"), ("document", "Document"), ("carton", "Carton"), ("pallet", "Pallet"), ("operation_quantity", "Operation Quantity")], string="Billing Object", copy=False)
     quotation_id = fields.Many2one("charge.quotation", string="Quotation", readonly=True, index=True, copy=False, ondelete="restrict")
     quotation_line_id = fields.Many2one("charge.quotation.line", string="Quotation Line", readonly=True, index=True, copy=False, ondelete="restrict")
     is_import_quotation_charge = fields.Boolean(string="Imported Quotation Charge", default=False, readonly=True, copy=False, index=True)

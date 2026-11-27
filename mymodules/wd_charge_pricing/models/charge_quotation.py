@@ -55,6 +55,7 @@ class ChargeQuotation(models.Model):
         for rec in self:
             if not rec.quotation_lines:
                 raise ValidationError(_("Quotation must have at least one line."))
+            rec.quotation_lines.check_outbound_pallet_quantity_source()
             rec.write({"state": "active", "is_active": True})
 
     def action_set_draft(self):

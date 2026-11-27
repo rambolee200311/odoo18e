@@ -29,7 +29,11 @@ class VasOrder(models.Model):
             for work_line in work_lines:
                 charge_item = work_line.operation_type_id.charge_item_id
                 quotation_line = quotation_lines.filtered(lambda line: line.charge_item_id == charge_item)[:1]
-                values = {"inbound_order_id": source_rec.inbound_order_id.id, "charge_item_id": charge_item.id, "quantity": work_line.quantity_time, "charge_unit_id": charge_item.unit_id.id, "unit_price": quotation_line.unit_price if quotation_line else 0.0, "currency_id": quotation.currency_id.id if quotation_line else source_rec.inbound_order_id.currency_id.id, "description": work_line.note or _("Generated from warehouse work order %s") % source_rec.name, "quotation_id": quotation.id if quotation_line else False, "quotation_line_id": quotation_line.id, "is_warehouse_operation_charge": True, "vas_order_id": rec.id, "vas_order_line_id": work_line.id}
+                description = "%s - %s" % (
+                    work_line.operation_type_id.display_name,
+                    work_line.note or _("Generated from warehouse work order %s") % source_rec.name,
+                )
+                values = {"inbound_order_id": source_rec.inbound_order_id.id, "charge_item_id": charge_item.id, "charge_billing_object": "operation_quantity", "quantity": work_line.quantity_time, "charge_unit_id": charge_item.unit_id.id, "unit_price": quotation_line.unit_price if quotation_line else 0.0, "currency_id": quotation.currency_id.id if quotation_line else source_rec.inbound_order_id.currency_id.id, "description": description, "quotation_id": quotation.id if quotation_line else False, "quotation_line_id": quotation_line.id, "is_warehouse_operation_charge": True, "vas_order_id": rec.id, "vas_order_line_id": work_line.id}
                 existing_charge_line = existing_charge_by_vas_line_id.get(work_line.id)
                 if existing_charge_line:
                     existing_charge_line.write(values)
@@ -55,13 +59,17 @@ class VasOrder(models.Model):
             for work_line in work_lines:
                 charge_item = work_line.operation_type_id.charge_item_id
                 quotation_line = quotation_lines.filtered(lambda line: line.charge_item_id == charge_item)[:1]
+                description = "%s - %s" % (
+                    work_line.operation_type_id.display_name,
+                    work_line.note or _("Generated from warehouse work order %s") % source_rec.name,
+                )
                 values = {
                     "outbound_order_id": source_rec.outbound_order_id.id, "charge_item_id": charge_item.id, "quantity": work_line.quantity_time,
                     "charge_unit_id": charge_item.unit_id.id, "unit_price": quotation_line.unit_price if quotation_line else 0.0,
                     "currency_id": quotation.currency_id.id if quotation_line else source_rec.outbound_order_id.currency_id.id,
-                    "description": work_line.note or _("Generated from warehouse work order %s") % source_rec.name,
+                    "description": description,
                     "quotation_id": quotation.id if quotation_line else False, "quotation_line_id": quotation_line.id,
-                    "is_warehouse_operation_charge": True, "vas_order_id": rec.id, "vas_order_line_id": work_line.id,
+                    "charge_billing_object": "operation_quantity", "is_warehouse_operation_charge": True, "vas_order_id": rec.id, "vas_order_line_id": work_line.id,
                 }
                 existing_charge_line = existing_charge_by_vas_line_id.get(work_line.id)
                 if existing_charge_line:

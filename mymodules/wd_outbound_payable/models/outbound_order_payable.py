@@ -53,6 +53,7 @@ class OutboundOrder(models.Model):
     def prepare_outbound_charge_values(self, charge_scope="order"):
         env_move_line = self.env["stock.move.line"]
         env_vas_order = self.env["wd.vas.order"]
+        env_outbound_product_line = self.env["world.depot.outbound.order.product"].sudo()
         charge_data_by_order_id = {}
         for rec in self:
             quotation = getattr(rec.project, "quotation_id", False)
@@ -62,6 +63,7 @@ class OutboundOrder(models.Model):
                 charge_data_by_order_id[rec.id] = {"charge_values": charge_values, "currency_id": False, "remark": False}
                 continue
             quotation_lines = quotation.quotation_wh_out_lines.filtered(lambda line: line.active)
+            quotation_lines.check_outbound_pallet_quantity_source()
             carton_quantity = sum(product_line.quantity or 0.0 for product_line in rec.outbound_order_product_ids)
             carton_weight_data = []
             palletizations = self.env["wd.vas.outbound.palletization"]
@@ -70,7 +72,7 @@ class OutboundOrder(models.Model):
             if charge_scope == "carton_weight":
                 carton_move_lines = env_move_line.sudo().search([("picking_id.outbound_order_id", "=", rec.id), ("picking_id.picking_type_id.code", "=", "outgoing"), ("state", "!=", "cancel"), ("outbound_charge_billing_object", "=", "carton")])
                 for move_line in carton_move_lines:
-                    outbound_product_line = move_line.move_id.outbound_order_product_id
+                    outbound_product_line = env_outbound_product_line.browse(move_line.move_id.outbound_order_product_id).exists()
                     try:
                         product_gross_weight = float(outbound_product_line.gross_weight or move_line.product_id.gross_weight or 0.0)
                     except (TypeError, ValueError):
@@ -93,7 +95,7 @@ class OutboundOrder(models.Model):
                     gross_weight = 0.0
                     has_missing_weight = False
                     for move_line in move_lines:
-                        outbound_product_line = move_line.move_id.outbound_order_product_id
+                        outbound_product_line = env_outbound_product_line.browse(move_line.move_id.outbound_order_product_id).exists()
                         try:
                             product_gross_weight = float(outbound_product_line.gross_weight or move_line.product_id.gross_weight or 0.0)
                         except (TypeError, ValueError):
@@ -124,9 +126,6 @@ class OutboundOrder(models.Model):
                             remarks.append(_("Gross and net weight are both missing for %s pallets, so their weight-tier charges were not generated.") % missing_pallet_quantity)
                         quantity = sum(pack_quantity for pack_quantity, gross_weight in pallet_weight_data if gross_weight and math.isfinite(gross_weight) and gross_weight > charge_item.minimum_gross_weight and (not charge_item.maximum_gross_weight or gross_weight <= charge_item.maximum_gross_weight))
                     else:
-                        if not quotation_line.outbound_pallet_quantity_source:
-                            remarks.append(_("Pallet quantity source is not configured for %s.") % charge_item.display_name)
-                            continue
                         if not palletizations:
                             remarks.append(_("No validated outbound palletization is available for %s.") % charge_item.display_name)
                             continue
@@ -140,7 +139,7 @@ class OutboundOrder(models.Model):
                     else:
                         quantity = carton_quantity
                 if quantity:
-                    charge_values.append((0, 0, {"charge_item_id": charge_item.id, "charge_billing_object": "fixed" if quotation_line.is_fixed_fee else charge_item.charge_billing_object, "quantity": quantity, "charge_unit_id": charge_item.unit_id.id, "unit_price": quotation_line.unit_price, "currency_id": quotation.currency_id.id, "description": quotation_line.remark or _("Generated from quotation %s") % quotation.display_name, "quotation_id": quotation.id, "quotation_line_id": quotation_line.id, "is_import_quotation_charge": True}))
+                    charge_values.append((0, 0, {"charge_item_id": charge_item.id, "charge_billing_object": "fixed" if quotation_line.is_fixed_fee else charge_item.charge_billing_object or "document", "quantity": quantity, "charge_unit_id": charge_item.unit_id.id, "unit_price": quotation_line.unit_price, "currency_id": quotation.currency_id.id, "description": quotation_line.remark or _("Generated from quotation %s") % quotation.display_name, "quotation_id": quotation.id, "quotation_line_id": quotation_line.id, "is_import_quotation_charge": True}))
             charge_data_by_order_id[rec.id] = {"charge_values": charge_values, "currency_id": quotation.currency_id.id, "remark": "\n".join(remarks) or False}
         return charge_data_by_order_id
 
@@ -459,7 +458,7 @@ class OutboundOrderCharge(models.Model):
     _inherit = "world.depot.outbound.order.charge"
 
     manual_amount_total = fields.Monetary(string="Manual Amount", currency_field="currency_id", default=0.0)
-    charge_billing_object = fields.Selection([("fixed", "Fixed"), ("carton", "Carton"), ("pallet", "Pallet")], string="Billing Object", copy=False)
+    charge_billing_object = fields.Selection([("fixed", "Fixed Fee"), ("document", "Document"), ("carton", "Carton"), ("pallet", "Pallet"), ("operation_quantity", "Operation Quantity")], string="Billing Object", copy=False)
     quotation_id = fields.Many2one("charge.quotation", string="Quotation", readonly=True, index=True, copy=False, ondelete="restrict")
     quotation_line_id = fields.Many2one("charge.quotation.line", string="Quotation Line", readonly=True, index=True, copy=False, ondelete="restrict")
     is_import_quotation_charge = fields.Boolean(string="Imported Quotation Charge", default=False, readonly=True, copy=False, index=True)
