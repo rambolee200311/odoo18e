@@ -18,9 +18,11 @@ class VasOutboundPalletization(models.Model):
     state = fields.Selection([('pending', 'Pending'), ('in_progress', 'In Progress'), ('validated', 'Validated'), ('cancelled', 'Cancelled')], string='Status', required=True, default='pending', readonly=True, copy=False, index=True)
     palletization_lines = fields.One2many('wd.vas.outbound.palletization.line', 'palletization_id', string='Palletization Lines', copy=False)
     transport_pallet_ids = fields.One2many('stock.quant.package', 'vas_outbound_palletization_id', string='Transport Pallets', readonly=True, copy=False)
-    used_transport_pallet_count = fields.Integer(string='Used New Transport Pallets', compute='_compute_palletization_statistics', store=True, readonly=True)
+    used_transport_pallet_count = fields.Integer(string='Palletizing Count', compute='_compute_palletization_statistics', store=True, readonly=True)
     direct_outbound_pallet_count = fields.Integer(string='Direct Whole Pallets', compute='_compute_palletization_statistics', store=True, readonly=True)
+    total_outbound_pallet_count = fields.Integer(string='Total Outbound Pallet Count', compute='_compute_palletization_statistics', store=True, readonly=True)
     whole_and_loose_transport_pallet_count = fields.Integer(string='Whole and Loose Transport Pallets', compute='_compute_palletization_statistics', store=True, readonly=True)
+    new_transport_pallet_usage_count = fields.Integer(string='New Transport Pallet Usage Count', compute='_compute_palletization_statistics', store=True, readonly=True)
     started_by_id = fields.Many2one('res.users', string='Started By', readonly=True, copy=False, ondelete='restrict')
     started_at = fields.Datetime(string='Started At', readonly=True, copy=False)
     validated_by_id = fields.Many2one('res.users', string='Validated By', readonly=True, copy=False, ondelete='restrict')
@@ -34,34 +36,22 @@ class VasOutboundPalletization(models.Model):
                 vals['name'] = sequence.next_by_code('wd.vas.outbound.palletization') or 'New'
         return super().create(vals_list)
 
-    @api.depends('palletization_lines.source_move_line_id.quantity', 'palletization_lines.source_package_id', 'palletization_lines.destination_package_id', 'palletization_lines.quantity', 'palletization_lines.handling_type')
+    @api.depends('palletization_lines.source_move_line_id.quantity', 'palletization_lines.source_move_line_id.outbound_charge_billing_object', 'palletization_lines.source_package_id', 'palletization_lines.destination_package_id', 'palletization_lines.quantity', 'palletization_lines.handling_type')
     def _compute_palletization_statistics(self):
         for rec in self:
             palletization_lines = rec.palletization_lines
             palletized_lines = palletization_lines.filtered(lambda line: line.handling_type == 'palletize')
             rec.used_transport_pallet_count = len(palletized_lines.mapped('destination_package_id'))
             rec.direct_outbound_pallet_count = len(palletization_lines.filtered(lambda line: line.handling_type == 'direct_outbound').mapped('source_package_id'))
+            rec.total_outbound_pallet_count = rec.used_transport_pallet_count + rec.direct_outbound_pallet_count
             whole_and_loose_count = 0
-            picking_move_lines = rec.get_picking_move_lines()
             for destination_package in palletized_lines.mapped('destination_package_id'):
                 destination_lines = palletized_lines.filtered(lambda line: line.destination_package_id == destination_package)
-                whole_source_packages = self.env['stock.quant.package']
-                for source_package in destination_lines.mapped('source_package_id'):
-                    source_move_lines = picking_move_lines.filtered(lambda line: line.package_id == source_package)
-                    if not source_move_lines:
-                        continue
-                    is_whole_source_pallet = True
-                    for source_move_line in source_move_lines:
-                        allocated_quantity = sum(destination_lines.filtered(lambda line: line.source_move_line_id == source_move_line).mapped('quantity'))
-                        rounding = source_move_line.product_uom_id.rounding or source_move_line.product_id.uom_id.rounding
-                        if float_compare(allocated_quantity, source_move_line.quantity, precision_rounding=rounding) != 0:
-                            is_whole_source_pallet = False
-                            break
-                    if is_whole_source_pallet:
-                        whole_source_packages |= source_package
-                if whole_source_packages and destination_lines.mapped('source_package_id') - whole_source_packages:
+                billing_objects = set(destination_lines.mapped('source_move_line_id.outbound_charge_billing_object'))
+                if {'pallet', 'carton'}.issubset(billing_objects):
                     whole_and_loose_count += 1
             rec.whole_and_loose_transport_pallet_count = whole_and_loose_count
+            rec.new_transport_pallet_usage_count = max(rec.used_transport_pallet_count - whole_and_loose_count, 0)
 
     def lock_for_update(self):
         records = self.sorted('id')
@@ -156,10 +146,10 @@ class VasOutboundPalletization(models.Model):
             for move_line in move_lines:
                 rows = allocations_by_move_line[move_line.id].sorted('id')
                 first_row = rows[:1]
-                move_line.write({'quantity': first_row.quantity, 'result_package_id': first_row.destination_package_id.id, 'outbound_palletization_id': rec.id, 'outbound_palletization_type': first_row.handling_type})
+                move_line.write({'quantity': first_row.quantity, 'outbound_scanned_quantity': first_row.quantity, 'result_package_id': first_row.destination_package_id.id, 'outbound_palletization_id': rec.id, 'outbound_palletization_type': first_row.handling_type})
                 for row in rows[1:]:
                     values = move_line.copy_data()[0]
-                    values.update({'picking_id': move_line.picking_id.id, 'move_id': move_line.move_id.id, 'product_id': move_line.product_id.id, 'product_uom_id': move_line.product_uom_id.id, 'location_id': move_line.location_id.id, 'location_dest_id': move_line.location_dest_id.id, 'package_id': move_line.package_id.id, 'lot_id': move_line.lot_id.id, 'lot_name': move_line.lot_name, 'owner_id': move_line.owner_id.id, 'quantity': row.quantity, 'result_package_id': row.destination_package_id.id, 'outbound_palletization_id': rec.id, 'outbound_palletization_type': row.handling_type})
+                    values.update({'picking_id': move_line.picking_id.id, 'move_id': move_line.move_id.id, 'product_id': move_line.product_id.id, 'product_uom_id': move_line.product_uom_id.id, 'location_id': move_line.location_id.id, 'location_dest_id': move_line.location_dest_id.id, 'package_id': move_line.package_id.id, 'lot_id': move_line.lot_id.id, 'lot_name': move_line.lot_name, 'owner_id': move_line.owner_id.id, 'quantity': row.quantity, 'outbound_scanned_quantity': row.quantity, 'result_package_id': row.destination_package_id.id, 'outbound_palletization_id': rec.id, 'outbound_palletization_type': row.handling_type})
                     self.env['stock.move.line'].create(values)
             unused_packages = rec.transport_pallet_ids - target_packages
             if unused_packages:

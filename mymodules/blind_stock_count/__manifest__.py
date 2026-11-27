@@ -14,9 +14,11 @@
         "data/ir_cron_data.xml",
         "views/blind_stock_count_views.xml",
         "views/blind_stock_count_process_views.xml",
+        "views/blind_stock_count_delayed_outbound_views.xml",
         "report/blind_stock_count_pallet_label.xml",
         "wizard/print_pallet_labels_views.xml",
         "wizard/generate_clearance_batch_views.xml",
+        "wizard/generate_delayed_outbound_batch_views.xml",
         "views/stock_quant_package_views.xml",
     ],
     "assets": {

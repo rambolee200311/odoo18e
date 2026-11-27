@@ -33,6 +33,9 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
         location_id = line.location_id.id
         package_id = line.package_id.id
         editable_line = move_line_model.browse(line.id)
+        if package_id:
+            package_line_ids = move_line_model.sudo().search([("picking_id", "=", picking.id), ("package_id", "=", package_id), ("state", "not in", ("done", "cancel"))]).ids
+            move_line_model.browse(package_line_ids).write({"outbound_charge_billing_object": "carton"})
         if picking.is_unspecified_pallet_outgoing:
             editable_line.unlink()
             picking.clear_incomplete_whole_pallet_result_packages()
@@ -1042,6 +1045,7 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
             "location_id": stock_location.id,
             "is_outbound_scanned": True,
             "outbound_scanned_quantity": 1.0,
+            "outbound_charge_billing_object": "carton",
             "outbound_scanned_by_id": self.env.user.id,
             "outbound_scanned_datetime": now,
         }
@@ -1628,7 +1632,7 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
                     updated_lines.unlink()
                 return self.build_outgoing_scan_result("error", _("Error"), error_message, picking_id=picking.id, location_id=location.id, package_id=package.id, action_name="auto_whole_pallet_create_failed", success=False, next_step="scan_product")
             updated_lines |= created_lines
-        updated_lines.write({"result_package_id": package.id})
+        updated_lines.write({"result_package_id": package.id, "outbound_charge_billing_object": "pallet"})
         if self.is_unspecified_pallet_outgoing_complete(picking):
             next_step = "validate"
             next_location_id = location.id
@@ -1677,7 +1681,7 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
                 if float_compare(move_remaining_qty, 0.0, precision_rounding=rounding) <= 0:
                     continue
                 taken_qty = min(remaining_qty, owner_remaining_qty, move_remaining_qty)
-                created_lines |= move_line_model.create({"picking_id": picking.id, "move_id": move.id, "product_id": product.id, "product_uom_id": product.uom_id.id, "quantity": taken_qty, "location_id": location.id, "location_dest_id": move.location_dest_id.id, "package_id": package.id, "result_package_id": False, "lot_id": lot.id if lot else False, "owner_id": owner_id, "is_outbound_scanned": True, "outbound_scanned_quantity": taken_qty, "outbound_scanned_by_id": self.env.user.id, "outbound_scanned_datetime": now})
+                created_lines |= move_line_model.create({"picking_id": picking.id, "move_id": move.id, "product_id": product.id, "product_uom_id": product.uom_id.id, "quantity": taken_qty, "location_id": location.id, "location_dest_id": move.location_dest_id.id, "package_id": package.id, "result_package_id": False, "lot_id": lot.id if lot else False, "owner_id": owner_id, "is_outbound_scanned": True, "outbound_scanned_quantity": taken_qty, "outbound_charge_billing_object": "carton", "outbound_scanned_by_id": self.env.user.id, "outbound_scanned_datetime": now})
                 remaining_by_move[move.id] -= taken_qty
                 owner_remaining_qty -= taken_qty
                 remaining_qty -= taken_qty
@@ -1952,6 +1956,7 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
                 "location_id": location.id if location else line.location_id.id,
                 "is_outbound_scanned": True,
                 "outbound_scanned_quantity": line.quantity,
+                "outbound_charge_billing_object": "pallet",
                 "outbound_scanned_by_id": self.env.user.id,
                 "outbound_scanned_datetime": now,
             })
@@ -1976,6 +1981,7 @@ class StockBarcodeLiteOutgoingScanService(models.AbstractModel):
                 "location_id": location.id if location else sudo_line.location_id.id,
                 "outbound_scanned_quantity": new_scanned_qty,
                 "is_outbound_scanned": float_compare(new_scanned_qty, sudo_line.quantity or 0.0, precision_rounding=rounding) >= 0,
+                "outbound_charge_billing_object": "carton",
                 "outbound_scanned_by_id": self.env.user.id,
                 "outbound_scanned_datetime": now,
             })

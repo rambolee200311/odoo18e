@@ -17,10 +17,6 @@ class InboundActualInboundConfirmationWizard(models.TransientModel):
     def action_confirm_actual_inbound(self):
         for rec in self:
             inbound_order = rec.inbound_order_id
-            if inbound_order.state != "confirm":
-                raise UserError(_("Only confirmed inbound orders can confirm actual inbound."))
-            if inbound_order.project_stock_report_date_mode != "business":
-                raise UserError(_("Actual inbound confirmation is available only for projects using Order Business Date."))
             if not rec.actual_inbound_datetime:
                 raise UserError(_("Actual inbound time is required."))
             actual_inbound_date = fields.Datetime.context_timestamp(rec, rec.actual_inbound_datetime).date()

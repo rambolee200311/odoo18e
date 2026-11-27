@@ -64,7 +64,8 @@
                                 <list editable="bottom">
                                     <field name="sequence" widget="handle"/>
                                     <field name="operation_type_id" options="{'no_create': True, 'no_open': True}"/>
-                                    <field name="quantity_time"/>
+                                    <field name="is_outbound_palletization" column_invisible="1"/>
+                                    <field name="quantity_time" invisible="is_outbound_palletization"/>
                                     <field name="unit" readonly="1"/>
                                     <field name="note"/>
                                 </list>

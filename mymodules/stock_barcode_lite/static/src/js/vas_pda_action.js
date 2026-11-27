@@ -86,6 +86,10 @@ export class VasPdaAction extends Component {
         return this.state.order?.order_type === "outbound";
     }
 
+    get isLineDraftOutboundPalletization() {
+        return this.state.operationTypes.some((item) => item.id === Number(this.state.lineDraft.operationTypeId) && item.is_outbound_palletization);
+    }
+
     async resolveWarehouseOrder(showWarning = true) {
         const billno = this.state.billno.trim();
         if (!billno) {
@@ -219,7 +223,7 @@ export class VasPdaAction extends Component {
         await this.orm.create("wd.vas.order.line", [{
             order_id: this.state.order.id,
             operation_type_id: Number(operationTypeId),
-            quantity_time: Number(quantityTime),
+            quantity_time: this.isLineDraftOutboundPalletization ? 0 : Number(quantityTime),
             note,
         }]);
         this.state.lineModalOpen = false;
@@ -255,6 +259,10 @@ export class VasPdaAction extends Component {
         );
         line.operationTypeId = event.target.value;
         line.unit = operationType?.unit || "";
+        line.isOutboundPalletization = Boolean(operationType?.is_outbound_palletization);
+        if (line.isOutboundPalletization) {
+            line.quantityTime = 0;
+        }
     }
 
     async updateLine(line) {
@@ -269,7 +277,7 @@ export class VasPdaAction extends Component {
         try {
             await this.orm.write("wd.vas.order.line", [line.id], {
                 operation_type_id: Number(line.operationTypeId),
-                quantity_time: Number(line.quantityTime),
+                quantity_time: line.isOutboundPalletization ? 0 : Number(line.quantityTime),
                 note: line.note || "",
             });
             await this.reloadOrder();

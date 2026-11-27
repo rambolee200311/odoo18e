@@ -108,7 +108,7 @@
                                     </option>
                                 </select>
                             </div>
-                            <div class="o_wd_vas_form-row">
+                            <div t-if="!line.isOutboundPalletization" class="o_wd_vas_form-row">
                                 <label>Quantity / Time</label>
                                 <input class="form-control" type="number" min="0"
                                        t-att-disabled="state.busy"
@@ -129,12 +129,12 @@
                                     t-att-disabled="state.busy"
                                     t-on-click="startLineEdit.bind(this, line.id)">
                                 Operation Type: <t t-esc="line.operation_type_id?.[1]"/>
-                                <span>Quantity / Time: <t t-esc="line.quantity_time"/></span>
+                                <span t-if="!line.isOutboundPalletization">Quantity / Time: <t t-esc="line.quantity_time"/></span>
                                 <span>Unit: <t t-esc="line.unit || automaticLabel"/></span>
                             </button>
                             <div t-if="!isDraft" class="o_wd_vas_line-value">
                                 Operation Type: <t t-esc="line.operation_type_id?.[1]"/>
-                                <span>Quantity / Time: <t t-esc="line.quantity_time"/></span>
+                                <span t-if="!line.isOutboundPalletization">Quantity / Time: <t t-esc="line.quantity_time"/></span>
                                 <span>Unit: <t t-esc="line.unit || automaticLabel"/></span>
                             </div>
                             <button t-if="isDraft" class="btn o_wd_vas_line-edit-field o_wd_vas_line-note"
@@ -202,10 +202,12 @@
                             </option>
                         </select>
                         <small>Select from the list. Barcode scanning is not supported in this version.</small>
-                        <label>② Quantity / Time</label>
-                        <input class="form-control" type="number" min="0"
-                               t-model.number="state.lineDraft.quantityTime"/>
-                        <small>Enter quantity for physical work or time for manual work, based on the operation type.</small>
+                        <t t-if="!isLineDraftOutboundPalletization">
+                            <label>② Quantity / Time</label>
+                            <input class="form-control" type="number" min="0"
+                                   t-model.number="state.lineDraft.quantityTime"/>
+                            <small>Enter quantity for physical work or time for manual work, based on the operation type.</small>
+                        </t>
                         <label>③ Notes (Optional)</label>
                         <textarea class="form-control" rows="3"
                                   t-model="state.lineDraft.note"/>

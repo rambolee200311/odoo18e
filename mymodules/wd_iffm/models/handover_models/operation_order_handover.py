@@ -686,6 +686,7 @@ class OperationOrderHandoverInvoiceLine(models.Model):
                 "currency_id": rec.currency_id.id,
                 "journal_id": journal.id,
                 "ref": f"{rec.handover_id.name}/{rec.id}",
+                "payment_reference": rec.vendor_invoice_num,
                 "waybill_bill_number": waybill_bill_number,
                 "handover_id": rec.handover_id.id,
                 "invoice_request_user_id": self.env.user.id,
@@ -704,8 +705,6 @@ class OperationOrderHandoverInvoiceLine(models.Model):
                     "res_id": move.id,
                 })
 
-            # 过账（posted）
-            move.action_post_invoice_request()
             rec.write({
                 "vendor_invoice_id": move.id,
                 "payment_state": "paying",

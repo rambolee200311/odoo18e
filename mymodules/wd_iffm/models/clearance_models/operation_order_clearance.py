@@ -620,8 +620,8 @@ class OperationOrderClearance(models.Model):
         env_clearance = self.env["operation.order.clearance"]
 
         for rec in self:
-            if rec.state != "open":
-                raise ValidationError(_("Only Open orders can be deleted."))
+            # if rec.state != "open":
+            #     raise ValidationError(_("Only Open orders can be deleted."))
 
             if rec.parent_id or rec.waybill_id or not rec.clearance_container_ids:
                 continue
@@ -941,6 +941,7 @@ class OperationOrderClearanceInvoiceLine(models.Model):
                 "currency_id": rec.currency_id.id,
                 "journal_id": journal.id,
                 "ref": f"{rec.clearance_id.name}/{rec.id}",
+                "payment_reference": rec.vendor_invoice_num,
                 "waybill_bill_number": waybill_bill_number,
                 "clearance_id": rec.clearance_id.id,
                 "invoice_request_user_id": self.env.user.id,
@@ -959,8 +960,6 @@ class OperationOrderClearanceInvoiceLine(models.Model):
                     "res_id": move.id,
                 })
 
-
-            move.action_post_invoice_request()
             rec.write({
                 "vendor_invoice_id": move.id,
                 "payment_state": "paying",

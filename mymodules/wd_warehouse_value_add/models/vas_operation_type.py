@@ -45,3 +45,9 @@ class VasOperationType(models.Model):
             duplicate = self.sudo().search([('is_outbound_palletization', '=', True), ('id', '!=', rec.id)], limit=1)
             if duplicate:
                 raise ValidationError('Only one operation type can be configured for outbound palletization.')
+
+    @api.constrains('is_outbound_palletization', 'charge_item_id')
+    def check_outbound_palletization_charge_item(self):
+        for rec in self:
+            if rec.is_outbound_palletization and rec.charge_item_id:
+                raise ValidationError('Outbound palletization operation types cannot have a charge item.')

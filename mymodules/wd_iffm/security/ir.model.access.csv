@@ -30,9 +30,6 @@ access_operation_order_clearance_charge_line,operation.order.clearance.charge.li
 access_operation_order_clearance_cost_line,operation.order.clearance.cost.line,model_operation_order_clearance_cost_line,,1,1,1,1
 access_operation_order_clearance_container_line_user,Operation Order Container Line User,model_operation_order_clearance_container_line,,1,1,1,1
 
-access_statement_period_user,access.statement.period.user,model_statement_period,,1,1,1,1
-
-
 access_import_pickup_requirement_user,access.import.pickup.requirement.user,model_import_pickup_requirement,,1,1,1,1
 access_pickup_container_line_user,access.pickup.container.line.user,model_pickup_container_line,,1,1,1,1
 

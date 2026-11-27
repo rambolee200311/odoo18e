@@ -9,6 +9,13 @@ from odoo.exceptions import UserError, ValidationError
 from .charge_item import OPERATION_TYPE
 
 
+OUTBOUND_PALLET_QUANTITY_SOURCE = [
+    ("palletizing_count", "Palletizing Count"),
+    ("new_transport_pallet_usage_count", "New Transport Pallet Usage Count"),
+    ("total_outbound_pallet_count", "Total Outbound Pallet Count"),
+]
+
+
 class ChargeQuotation(models.Model):
     _name = "charge.quotation"
     _description = "Charge Quotation"
@@ -32,7 +39,7 @@ class ChargeQuotation(models.Model):
     quotation_wh_in_lines = fields.One2many("charge.quotation.line", "quotation_id", string="WH Inbound Lines", domain=[("tab_category", "=", "inbound")])
     quotation_storage_lines = fields.One2many("charge.quotation.line", "quotation_id", string="Storage Lines", domain=[("tab_category", "=", "clearance")])
     quotation_wh_out_lines = fields.One2many("charge.quotation.line", "quotation_id", string="WH Outbound Lines", domain=[("tab_category", "=", "outbound")])
-    quotation_wh_extra_lines = fields.One2many("charge.quotation.line", "quotation_id", string="WH Extra Lines", domain=[("tab_category", "=", "clearance")])
+    quotation_wh_extra_lines = fields.One2many("charge.quotation.line", "quotation_id", string="Warehouse Operation Lines", domain=[("tab_category", "=", "warehouse_operation")])
     quotation_wh_pack_lines = fields.One2many("charge.quotation.line", "quotation_id", string="WH Packaging Lines", domain=[("tab_category", "=", "clearance")])
     quotation_wh_monthly_lines = fields.One2many("charge.quotation.line", "quotation_id", string="WH Monthly Lines", domain=[("tab_category", "=", "clearance")])
     quotation_wh_other_lines = fields.One2many("charge.quotation.line", "quotation_id", string="WH Other Lines", domain=[("tab_category", "=", "clearance")])
@@ -131,6 +138,9 @@ class ChargeQuotationLine(models.Model):
     charge_item_id = fields.Many2one("world.depot.charge.item", string="Charge Item", required=True, ondelete="restrict", index=True)
     tab_category = fields.Selection(OPERATION_TYPE, string="Tab Category", index=True)
     is_fixed_fee = fields.Boolean(string="Fixed Fee", default=False)
+    charge_billing_object = fields.Selection(related="charge_item_id.charge_billing_object", string="Billing Object", readonly=True)
+    is_weight_tier = fields.Boolean(related="charge_item_id.is_weight_tier", string="Use Gross Weight Tier", readonly=True)
+    outbound_pallet_quantity_source = fields.Selection(OUTBOUND_PALLET_QUANTITY_SOURCE, string="Pallet Quantity Source")
     unit_price = fields.Monetary(string="Unit Price", required=True, default=0.0)
     unit_id = fields.Many2one("world.depot.charge.unit", string="Unit", related="charge_item_id.unit_id", readonly=True)
     currency_id = fields.Many2one("res.currency", string="Currency", related="quotation_id.currency_id", store=True, readonly=True)
@@ -148,3 +158,9 @@ class ChargeQuotationLine(models.Model):
             duplicate_count = env_quotation_line.sudo().search_count([("quotation_id", "=", rec.quotation_id.id), ("tab_category", "=", rec.tab_category), ("charge_item_id", "=", rec.charge_item_id.id), ("id", "!=", rec.id)])
             if duplicate_count:
                 raise ValidationError(_("This expense item already exists in this classification tab of the current quotation and cannot be added repeatedly."))
+
+    @api.constrains("tab_category", "charge_item_id", "is_fixed_fee", "outbound_pallet_quantity_source")
+    def check_outbound_pallet_quantity_source(self):
+        for rec in self:
+            if rec.tab_category == "outbound" and rec.charge_billing_object == "pallet" and not rec.is_weight_tier and not rec.is_fixed_fee and not rec.outbound_pallet_quantity_source:
+                raise ValidationError(_("Pallet quantity source is required for outbound pallet charges."))

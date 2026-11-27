@@ -23,6 +23,7 @@ OPERATION_TYPE = [
     ("transport", "Transportation"),
     ("inbound", "Inbound"),
     ("outbound", "Outbound"),
+    ("warehouse_operation", "Warehouse Operations"),
 ]
 
 

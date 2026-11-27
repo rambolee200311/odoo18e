@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_blind_stock_count_delayed_outbound_batch_form" model="ir.ui.view">
+        <field name="name">blind.stock.count.delayed.outbound.batch.form</field>
+        <field name="model">blind.stock.count.delayed.outbound.batch</field>
+        <field name="arch" type="xml">
+            <form string="Delayed Outbound Batch" duplicate="false">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" required="1" readonly="1"/>
+                            <field name="work_package_id" required="1" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="category_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="date_from" required="1" readonly="1"/>
+                            <field name="date_to" required="1" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="requested_by_id" required="1" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="requested_at" required="1" readonly="1"/>
+                            <field name="state" required="1" readonly="1"/>
+                            <field name="candidate_picking_count" required="1" readonly="1"/>
+                            <field name="generated_picking_count" required="1" readonly="1"/>
+                            <field name="skipped_picking_count" required="1" readonly="1"/>
+                            <field name="error_message" readonly="1" invisible="not error_message"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Generated Outbound Pickings">
+                            <field name="outbound_picking_lines" readonly="1">
+                                <list create="false" edit="false" delete="false">
+                                    <header>
+                                        <button name="action_queue_validate_blind_stock_count_pickings" type="object" string="Queue Validate Selected Pickings" class="btn-primary" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
+                                        <button name="action_delete_blind_stock_count_delayed_outbound_pickings" type="object" string="Delete Selected Pickings" confirm="Delete the selected unvalidated delayed outbound pickings?" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system"/>
+                                    </header>
+                                    <field name="name"/>
+                                    <field name="blind_stock_count_source_picking_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="outbound_order_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="picking_type_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="location_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="location_dest_id" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="state" widget="badge"/>
+                                    <field name="blind_stock_count_validation_state" widget="badge" optional="hide"/>
+                                    <field name="blind_stock_count_validation_error" optional="hide"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Generation Results">
+                            <button name="action_open_delayed_outbound_result_list" type="object" string="Open Generation Results List" class="btn-secondary"/>
+                            <field name="result_line_ids">
+                                <list create="false" edit="false" delete="true">
+                                    <field name="batch_id" required="1" readonly="1" invisible="1" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="source_picking_id" required="1" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="source_picking_state" readonly="1" widget="badge"/>
+                                    <field name="outbound_picking_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                                    <field name="outbound_picking_state" readonly="1" widget="badge"/>
+                                    <field name="state" required="1" readonly="1" widget="badge"/>
+                                    <field name="skip_reason" readonly="1"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+    <record id="view_blind_stock_count_delayed_outbound_batch_line_list" model="ir.ui.view">
+        <field name="name">blind.stock.count.delayed.outbound.batch.line.list</field>
+        <field name="model">blind.stock.count.delayed.outbound.batch.line</field>
+        <field name="arch" type="xml">
+            <list string="Generation Results" create="false" edit="false" delete="true">
+                <field name="batch_id" required="1" readonly="1" invisible="1" options="{'no_create': True, 'no_open': True}"/>
+                <field name="source_picking_id" required="1" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                <field name="source_picking_state" readonly="1" widget="badge"/>
+                <field name="outbound_picking_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                <field name="outbound_picking_state" readonly="1" widget="badge"/>
+                <field name="state" required="1" readonly="1" widget="badge"/>
+                <field name="skip_reason" readonly="1"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_blind_stock_count_delayed_outbound_picking_list" model="ir.ui.view">
+        <field name="name">blind.stock.count.delayed.outbound.picking.list</field>
+        <field name="model">stock.picking</field>
+        <field name="arch" type="xml">
+            <list string="Generated Outbound Pickings" create="false" edit="false" delete="false">
+                <header>
+                    <button name="action_queue_validate_blind_stock_count_pickings" type="object" string="Queue Validate Selected Pickings" class="btn-primary" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system" invisible="not context.get('blind_stock_count_delayed_outbound_list')"/>
+                    <button name="action_delete_blind_stock_count_delayed_outbound_pickings" type="object" string="Delete Selected Pickings" confirm="Delete the selected unvalidated delayed outbound pickings?" groups="blind_stock_count.group_blind_stock_count_administrator,base.group_system" invisible="not context.get('blind_stock_count_delayed_outbound_list')"/>
+                </header>
+                <field name="name"/>
+                <field name="blind_stock_count_source_picking_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="outbound_order_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="picking_type_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="location_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="location_dest_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="state" widget="badge"/>
+                <field name="blind_stock_count_validation_state" widget="badge" optional="hide"/>
+                <field name="blind_stock_count_validation_error" optional="hide"/>
+            </list>
+        </field>
+    </record>
+</odoo>

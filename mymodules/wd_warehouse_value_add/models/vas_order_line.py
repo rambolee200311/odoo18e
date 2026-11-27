@@ -27,6 +27,7 @@ class VasOrderLine(models.Model):
         digits=(16, 4),
         default=1
     )
+    is_outbound_palletization = fields.Boolean(related='operation_type_id.is_outbound_palletization', string='Outbound Palletization', readonly=True)
     unit = fields.Char(
         string='Unit',
         required=True,
@@ -38,6 +39,8 @@ class VasOrderLine(models.Model):
     def _onchange_operation_type_id(self):
         for record in self:
             record.unit = record.operation_type_id.unit
+            if record.operation_type_id.is_outbound_palletization:
+                record.quantity_time = 0
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -55,6 +58,8 @@ class VasOrderLine(models.Model):
             )
             if operation_type:
                 vals['unit'] = operation_type.unit
+                if operation_type.is_outbound_palletization:
+                    vals['quantity_time'] = 0
         return super().create(vals_list)
 
     def write(self, vals):
@@ -69,6 +74,8 @@ class VasOrderLine(models.Model):
                 vals['operation_type_id']
             )
             vals = dict(vals, unit=operation_type.unit)
+            if operation_type.is_outbound_palletization:
+                vals['quantity_time'] = 0
         return super().write(vals)
 
     def unlink(self):
@@ -90,3 +97,9 @@ class VasOrderLine(models.Model):
                 raise ValidationError(
                     'Line unit must match the operation type unit.'
                 )
+
+    @api.constrains('operation_type_id', 'quantity_time')
+    def check_outbound_palletization_quantity(self):
+        for rec in self:
+            if rec.operation_type_id.is_outbound_palletization and rec.quantity_time:
+                raise ValidationError('Outbound palletization operation lines cannot have a quantity or time.')

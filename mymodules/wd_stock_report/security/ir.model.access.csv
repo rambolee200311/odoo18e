@@ -1,0 +1,17 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_stock_pallet_detail_report,stock.pallet.detail.report,model_stock_pallet_detail_report,,1,1,1,1
+access_stock_pallet_detail_report_line,stock.pallet.detail.report.line,model_stock_pallet_detail_report_line,,1,1,1,1
+access_stock_pallet_detail_report_stock_line,stock.pallet.detail.report.stock.line,model_stock_pallet_detail_report_stock_line,,1,1,1,1
+access_stock_pallet_detail_report_operation_line,stock.pallet.detail.report.operation.line,model_stock_pallet_detail_report_operation_line,,1,1,1,1
+access_sunrise_stock_report,sunrise.stock.report,model_sunrise_stock_report,,1,1,1,1
+access_sunrise_stock_report_line,sunrise.stock.report.line,model_sunrise_stock_report_line,,1,1,1,1
+access_sunrise_stock_report_product_line,sunrise.stock.report.product.line,model_sunrise_stock_report_product_line,,1,1,1,1
+access_sunrise_stock_report_operation_line,sunrise.stock.report.operation.line,model_sunrise_stock_report_operation_line,,1,1,1,1
+access_sunrise_inbound_pallet_summary_report,sunrise.inbound.pallet.summary.report,model_sunrise_inbound_pallet_summary_report,,1,1,1,1
+access_sunrise_inbound_pallet_summary_report_line,sunrise.inbound.pallet.summary.report.line,model_sunrise_inbound_pallet_summary_report_line,,1,1,1,1
+access_sunrise_inbound_pallet_summary_outbound_line,sunrise.inbound.pallet.summary.outbound.line,model_sunrise_inbound_pallet_summary_outbound_line,,1,1,1,1
+access_sunrise_outbound_pallet_summary_report,sunrise.outbound.pallet.summary.report,model_sunrise_outbound_pallet_summary_report,,1,1,1,1
+access_sunrise_outbound_pallet_summary_report_line,sunrise.outbound.pallet.summary.report.line,model_sunrise_outbound_pallet_summary_report_line,,1,1,1,1
+access_sunrise_outbound_pallet_summary_report_pallet_line,sunrise.outbound.pallet.summary.report.pallet.line,model_sunrise_outbound_pallet_summary_report_pallet_line,,1,1,1,1
+access_sunrise_monthly_category_pallet_report,sunrise.monthly.category.pallet.report,model_sunrise_monthly_category_pallet_report,,1,1,1,1
+access_sunrise_monthly_category_pallet_report_line,sunrise.monthly.category.pallet.report.line,model_sunrise_monthly_category_pallet_report_line,,1,1,1,1
