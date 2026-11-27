@@ -288,6 +288,15 @@ export class ActualPalletBinding extends BaseBarcodePage {
 
         this.state.nextStep = result.next_step || this.state.nextStep;
 
+        if (
+            result.success === false &&
+            result.barcode_type === "Validation" &&
+            result.next_step === "scan_package" &&
+            this.state.expectedProducts.length
+        ) {
+            this.state.expectedProductsExpanded = true;
+        }
+
         if (result.message) {
             const messageType = result.success === false ? "danger" : "success";
             this.showMessage(result.message, messageType);
@@ -454,6 +463,34 @@ export class ActualPalletBinding extends BaseBarcodePage {
             if (this._isDestroyed) {
                 return;
             }
+
+            const pickingId = Number(result?.picking_id);
+            if (
+                result?.success === true &&
+                result?.next_step === "open_picking" &&
+                Number.isInteger(pickingId) &&
+                pickingId > 0
+            ) {
+                if (result.message) {
+                    this.showMessage(result.message, "success");
+                    this._flashScreen([100, 200, 100], false);
+                }
+                await this.action.doAction({
+                    type: "ir.actions.client",
+                    name: _t("Inbound"),
+                    tag: "stock_barcode_lite_inbound",
+                    context: {
+                        ...this.props.action?.context,
+                        pickingId,
+                    },
+                    target: "main",
+                });
+                if (!this._isDestroyed) {
+                    this._resetBindingState();
+                }
+                return;
+            }
+
             this._applyScanResult(result);
             if (result?.success === true) {
                 this._resetBindingState();
