@@ -6,46 +6,23 @@ import xlsxwriter
 
 
 class StatementPeriod(models.Model):
-    _name = "statement.period"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
-    _description = "Statement Period"
-    _order = "id desc"
-
-    name = fields.Char(string="Statement No", required=True, copy=False, default=lambda self: _("New"), index=True)
-    date_start = fields.Date(string="Start Date", required=True)
-    date_end = fields.Date(string="End Date", required=True)
-    project_id = fields.Many2one('project.project', string="Project", required=True)
+    _inherit = "statement.period"
 
     statement_time_type = fields.Selection([
         ('eta', 'ETA Time'),
         ('finish', 'Finish Time')
-    ], string="Statement Time Type", default='finish', required=True)
+    ], string="Statement Time Type", default="finish", required=True, copy=False, index=True)
 
     operation_order_scope = fields.Selection([
         ('master', 'Master Order'),
         ('child', 'Child Order'),
         ('both', 'Master & Child')
-    ], string="Operation Order Scope", default='both', required=True)
-
-    state = fields.Selection([
-        ('draft', 'Draft'),
-        ('expense_confirmed', 'Expense Confirmed'),
-        ('payment_in_progress', 'Payment In Progress'),
-        ('calculated', 'Calculated'),
-        ('cancelled', 'Cancelled'),
-    ], string="State", default='draft', required=True, track_visibility='onchange')
-
-    expense_confirmed_datetime = fields.Datetime(string="Expense Confirmed Date")
-    handover_order_lines = fields.One2many('operation.order.handover', 'statement_period_id', ondelete='set null', string="Handover Orders")
-    clearance_order_lines = fields.One2many('operation.order.clearance', 'statement_period_id', ondelete='set null',
-                                            string="Clearance Orders")
-
-    handover_total_amount = fields.Monetary(string="Total Handover Amount", currency_field='currency_id', compute="_compute_handover_amount")
-    clearance_total_amount = fields.Monetary(string="Total Clearance Amount", currency_field='currency_id', compute="_compute_clearance_amount")
-
-    # 汇总用币种
-    currency_id = fields.Many2one('res.currency', related='project_id.quotation_id.currency_id', store=True,string='Currency')
-    customer_invoice_id = fields.Many2one('account.move', string="Customer Invoice")
+    ], string="Operation Order Scope", default="both", required=True, copy=False, index=True)
+    handover_order_lines = fields.One2many("operation.order.handover", "statement_period_id", string="Handover Orders", copy=False)
+    clearance_order_lines = fields.One2many("operation.order.clearance", "statement_period_id", string="Clearance Orders", copy=False)
+    handover_total_amount = fields.Monetary(string="Total Handover Amount", currency_field="currency_id", compute="_compute_handover_amount")
+    clearance_total_amount = fields.Monetary(string="Total Clearance Amount", currency_field="currency_id", compute="_compute_clearance_amount")
+    customer_invoice_id = fields.Many2one("account.move", string="Customer Invoice", copy=False, index=True)
     customer_invoice_attachment_ids = fields.Many2many(
         "ir.attachment",
         "statement_period_customer_invoice_attach_rel",
@@ -60,15 +37,6 @@ class StatementPeriod(models.Model):
         for rec in self:
             if rec.customer_invoice_id.payment_state == "paid":
                 rec.state = "calculated"
-
-    def action_confirm_expense(self):
-        for period in self:
-            period.write({'state': 'expense_confirmed',
-                          'expense_confirmed_datetime': fields.Datetime.now(),})
-
-    def action_draft(self):
-        for period in self:
-            period.write({'state': 'draft'})
 
     @api.depends('handover_order_lines')
     def _compute_handover_amount(self):
@@ -174,15 +142,6 @@ class StatementPeriod(models.Model):
                 },
             },
         }
-
-
-
-    @api.model_create_multi
-    def create(self, vals_list):
-        for vals in vals_list:
-            if vals.get("name", _("New")) == _("New"):
-                vals["name"] = self.env["ir.sequence"].next_by_code("statement.period") or _("New")
-        return super().create(vals_list)
 
     def action_export_statement_xlsx(self):
         for rec in self:

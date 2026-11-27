@@ -61,7 +61,7 @@ class StockMovementHistoryPortal(MarstekStockPortal):
                 elif not portal_location_is_allowed(request.env, filters["location_id"]):
                     error = "location_id is not available for this portal user."
         project_ids = portal_stock_operation_project_ids(request.env)
-        history_filters = dict(filters, project_ids=project_ids)
+        history_filters = dict(filters, project_ids=project_ids, timezone=request.env.user.tz or "UTC", use_actual_datetime=True, reconcile_current_quant=True)
         try:
             history_result = request.env["stock.move.line"].sudo().get_package_movement_history(history_filters)
         except ValidationError as error:

@@ -15,11 +15,11 @@ class AccountMove(models.Model):
         if not self.env.user.has_group("wd_account_extension.group_invoice_applicant"):
             raise AccessError(_("Only invoice applicants can submit invoice requests."))
 
-    def action_register_payment(self):
+    def action_force_register_payment(self):
         vendor_bills = self.filtered(lambda move: move.move_type == "in_invoice")
         if len(vendor_bills.mapped("partner_id")) > 1:
             raise ValidationError(_("Only vendor bills from the same vendor can be paid together."))
-        return super().action_register_payment()
+        return super().action_force_register_payment()
 
     def action_post_invoice_request(self):
         self.check_invoice_applicant_permission()

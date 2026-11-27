@@ -23,6 +23,9 @@ class StockMoveLineHistorySummary(models.Model):
     @api.model
     def get_package_lifecycle_data(self, filters=None):
         filters = filters or {}
+        use_actual_datetime = bool(filters.get("use_actual_datetime"))
+        picking_model = self.env["stock.picking"]
+        has_blind_stock_count = {"is_blind_stock_count_clearance", "is_blind_stock_count_receipt", "blind_stock_count_work_package_id"}.issubset(picking_model._fields)
         date_from = fields.Date.to_date(filters.get("date_from"))
         date_to = fields.Date.to_date(filters.get("date_to"))
         if not date_from or not date_to:
@@ -35,6 +38,12 @@ class StockMoveLineHistorySummary(models.Model):
                 location_id = int(location_id)
             except (TypeError, ValueError):
                 raise ValidationError(_("Location must be a valid record."))
+        warehouse_id = filters.get("warehouse_id")
+        if warehouse_id:
+            try:
+                warehouse_id = int(warehouse_id)
+            except (TypeError, ValueError):
+                raise ValidationError(_("Warehouse must be a valid record."))
         filter_location_ids = filters.get("location_ids")
         if filter_location_ids is not None and not isinstance(filter_location_ids, (list, tuple, set)):
             raise ValidationError(_("Locations must be a valid record list."))
@@ -58,12 +67,23 @@ class StockMoveLineHistorySummary(models.Model):
             project_ids = set(project_model.search([]).ids)
         business_project_ids = set(project_model.search([("id", "in", list(project_ids)), ("stock_report_date_mode", "=", "business")]).ids)
         validation_project_ids = project_ids - business_project_ids
+        blind_move_lines = move_line_model.browse()
+        if has_blind_stock_count:
+            project_category_ids = project_model.search([("id", "in", list(project_ids))]).mapped("category").ids
+            if project_category_ids:
+                blind_domain = [("state", "=", "done"), ("date", "<", date_to_datetime), ("picking_id.blind_stock_count_work_package_id.category_id", "in", project_category_ids), "|", ("package_id", "!=", False), ("result_package_id", "!=", False)]
+                blind_type_domain = expression.OR([[("picking_id.is_blind_stock_count_clearance", "=", True)], [("picking_id.is_blind_stock_count_receipt", "=", True)]])
+                if location_id:
+                    blind_type_domain = expression.OR([[("picking_id.is_blind_stock_count_clearance", "=", True), ("location_id", "child_of", location_id)], [("picking_id.is_blind_stock_count_receipt", "=", True), ("location_dest_id", "child_of", location_id)]])
+                blind_move_lines = move_line_model.search(expression.AND([blind_domain, blind_type_domain]), order="date asc, id asc")
         inbound_domain = [
             ("state", "=", "done"),
             ("result_package_id", "!=", False),
             ("picking_id.inbound_order_id", "!=", False),
             ("picking_id.picking_type_id.code", "=", "incoming"),
         ]
+        if warehouse_id:
+            inbound_domain.append(("picking_id.inbound_order_id.warehouse", "=", warehouse_id))
         if filters.get("owner_id"):
             inbound_domain.append(("picking_id.inbound_order_id.owner", "=", filters["owner_id"]))
         cprojectid = str(filters.get("cprojectid") or "").strip()
@@ -72,29 +92,34 @@ class StockMoveLineHistorySummary(models.Model):
             inbound_order_ids = inbound_pallets.mapped("inbound_order_product_id.inbound_order_id").ids
             inbound_domain.append(("picking_id.inbound_order_id", "in", inbound_order_ids))
         if business_project_ids:
+            inbound_business_datetime_field = "actual_inbound_datetime" if use_actual_datetime else "actual_inbound_date"
             missing_inbound_domain = [
                 ("state", "=", "done"),
                 ("date", "<", date_to_datetime),
                 ("result_package_id", "!=", False),
                 ("picking_id.inbound_order_id", "!=", False),
                 ("picking_id.picking_type_id.code", "=", "incoming"),
-                ("picking_id.inbound_order_id.actual_inbound_date", "=", False),
+                ("picking_id.inbound_order_id.%s" % inbound_business_datetime_field, "=", False),
                 ("picking_id.inbound_order_id.project", "in", list(business_project_ids)),
             ]
             if filters.get("owner_id"):
                 missing_inbound_domain.append(("picking_id.inbound_order_id.owner", "=", filters["owner_id"]))
             if cprojectid:
                 missing_inbound_domain.append(("picking_id.inbound_order_id", "in", inbound_order_ids))
+            if warehouse_id:
+                missing_inbound_domain.append(("picking_id.inbound_order_id.warehouse", "=", warehouse_id))
             missing_inbound_move_line = move_line_model.search(missing_inbound_domain, limit=1)
             if missing_inbound_move_line:
-                raise ValidationError(_("Manual Inbound Date is required for inbound order %s.") % missing_inbound_move_line.picking_id.inbound_order_id.display_name)
+                field_name = _("Actual Inbound Time") if use_actual_datetime else _("Manual Inbound Date")
+                raise ValidationError(_("%(field_name)s is required for inbound order %(order_name)s.") % {"field_name": field_name, "order_name": missing_inbound_move_line.picking_id.inbound_order_id.display_name})
         inbound_move_lines = move_line_model.browse()
         if business_project_ids:
-            inbound_move_lines |= move_line_model.search(inbound_domain + [("picking_id.inbound_order_id.project", "in", list(business_project_ids)), ("picking_id.inbound_order_id.actual_inbound_date", "<=", date_to)], order="date asc, id asc")
+            inbound_business_date_domain = ("picking_id.inbound_order_id.actual_inbound_datetime", "<", date_to_datetime) if use_actual_datetime else ("picking_id.inbound_order_id.actual_inbound_date", "<=", date_to)
+            inbound_move_lines |= move_line_model.search(inbound_domain + [("picking_id.inbound_order_id.project", "in", list(business_project_ids)), inbound_business_date_domain], order="date asc, id asc")
         if validation_project_ids:
             inbound_move_lines |= move_line_model.search(inbound_domain + [("picking_id.inbound_order_id.project", "in", list(validation_project_ids)), ("date", "<", date_to_datetime)], order="date asc, id asc")
         inbound_move_lines = inbound_move_lines.sorted(key=lambda move_line: (move_line.date, move_line.id))
-        if not inbound_move_lines:
+        if not inbound_move_lines and not blind_move_lines:
             return {"date_from": date_from, "date_to": date_to, "timezone_name": timezone_name, "package_lifecycle_data": []}
         selected_segment_map = {}
         selected_package_ids = set()
@@ -102,7 +127,7 @@ class StockMoveLineHistorySummary(models.Model):
             inbound_order = move_line.picking_id.inbound_order_id
             package = move_line.result_package_id
             use_business_date = inbound_order.project.id in business_project_ids
-            inbound_datetime = datetime.combine(inbound_order.actual_inbound_date, time.min) if use_business_date else move_line.date
+            inbound_datetime = inbound_order.actual_inbound_datetime if use_business_date and use_actual_datetime else datetime.combine(inbound_order.actual_inbound_date, time.min) if use_business_date else move_line.date
             segment_key = (inbound_order.id, package.id)
             segment = selected_segment_map.setdefault(segment_key, {
                 "inbound_order_id": inbound_order.id,
@@ -122,6 +147,29 @@ class StockMoveLineHistorySummary(models.Model):
             batch_name = (pallet_detail.lot_name if pallet_detail else "") or move_line.lot_id.name or move_line.lot_name or ""
             if batch_name:
                 segment["batch_names"].add(batch_name)
+        blind_clearance_line_map = {}
+        for move_line in blind_move_lines:
+            picking = move_line.picking_id
+            package = move_line.result_package_id if picking.is_blind_stock_count_receipt else move_line.package_id
+            if not package:
+                continue
+            selected_package_ids.add(package.id)
+            if picking.is_blind_stock_count_clearance:
+                blind_clearance_line_map.setdefault(package.id, move_line)
+                continue
+            segment_key = (-picking.id, package.id)
+            segment = selected_segment_map.setdefault(segment_key, {"inbound_order_id": -picking.id, "inbound_order_name": picking.origin or picking.name, "first_inbound_datetime": move_line.date, "use_business_date": False, "cproject_ids": set(), "batch_names": set(), "is_selected": True})
+            if move_line.date < segment["first_inbound_datetime"]:
+                segment["first_inbound_datetime"] = move_line.date
+            batch_name = move_line.lot_id.name or move_line.lot_name or ""
+            if batch_name:
+                segment["batch_names"].add(batch_name)
+        selected_segment_package_ids = {package_id for inbound_order_id, package_id in selected_segment_map}
+        for package_id, move_line in blind_clearance_line_map.items():
+            if package_id in selected_segment_package_ids:
+                continue
+            picking = move_line.picking_id
+            selected_segment_map[(-picking.id, package_id)] = {"inbound_order_id": -picking.id, "inbound_order_name": picking.origin or picking.name, "first_inbound_datetime": move_line.date, "use_business_date": False, "cproject_ids": set(), "batch_names": set(), "is_selected": True}
         move_line_domain = [
             ("state", "=", "done"),
             "|",
@@ -137,7 +185,7 @@ class StockMoveLineHistorySummary(models.Model):
                 return {"date_from": date_from, "date_to": date_to, "timezone_name": timezone_name, "package_lifecycle_data": []}
         elif filter_location_ids is not None:
             try:
-                location_ids = {int(filter_location_id) for filter_location_id in filter_location_ids}
+                location_ids = set(location_model.search([("id", "in", [int(filter_location_id) for filter_location_id in filter_location_ids])]).ids)
             except (TypeError, ValueError):
                 raise ValidationError(_("Locations must be a valid record list."))
             if not location_ids:
@@ -160,14 +208,17 @@ class StockMoveLineHistorySummary(models.Model):
             use_business_date = inbound_order.project.id in business_project_ids if inbound_order else outbound_order.project.id in business_project_ids if outbound_order else False
             event_uses_business_date = use_business_date and (is_actual_inbound or is_actual_outbound)
             if event_uses_business_date:
-                business_date = inbound_order.actual_inbound_date if inbound_order else outbound_order.o_date if outbound_order else False
+                business_datetime = inbound_order.actual_inbound_datetime if inbound_order else outbound_order.actual_outbound_datetime if outbound_order else False
+                business_date = fields.Datetime.context_timestamp(self.with_context(tz=timezone_name), business_datetime).date() if use_actual_datetime and business_datetime else inbound_order.actual_inbound_date if inbound_order else outbound_order.o_date if outbound_order else False
+                if use_actual_datetime and not business_datetime:
+                    business_date = False
                 if not business_date:
                     if move_line.date < date_to_datetime:
-                        field_name = _("Manual Inbound Date") if inbound_order else _("Outbound Date")
+                        field_name = _("Actual Inbound Time") if inbound_order and use_actual_datetime else _("Actual Outbound Datetime") if use_actual_datetime else _("Manual Inbound Date") if inbound_order else _("Outbound Date")
                         order_name = inbound_order.display_name if inbound_order else outbound_order.display_name
                         raise ValidationError(_("%(field_name)s is required for order %(order_name)s.") % {"field_name": field_name, "order_name": order_name})
                     continue
-                event_datetime = datetime.combine(business_date, time.min)
+                event_datetime = business_datetime if use_actual_datetime else datetime.combine(business_date, time.min)
                 event_date = business_date
             if event_uses_business_date and event_date > date_to:
                 continue
@@ -232,9 +283,20 @@ class StockMoveLineHistorySummary(models.Model):
                     "is_outbound": source_inside and not destination_inside,
                     "is_actual_outbound": source_inside and move_line.location_dest_id.usage != "internal" and move_line.picking_id.picking_type_id.code == "outgoing",
                     "outbound_cproject_ids": outbound_cproject_ids,
+                    "blind_clearance_group_id": picking.blind_stock_count_work_package_id.id if has_blind_stock_count and picking.is_blind_stock_count_clearance else False,
                 })
         for package_events in package_event_map.values():
             package_events.sort(key=lambda event: (event["event_datetime"], event["move_line_id"]))
+            blind_clearance_event_map = defaultdict(list)
+            for event in package_events:
+                if event["blind_clearance_group_id"]:
+                    blind_clearance_event_map[event["blind_clearance_group_id"]].append(event)
+            for blind_clearance_events in blind_clearance_event_map.values():
+                clearance_snapshot_quantity_map = defaultdict(float)
+                for event in blind_clearance_events:
+                    clearance_snapshot_quantity_map[(event["product_id"], event["lot_id"])] += event["move_quantity"]
+                blind_clearance_events[0]["clearance_snapshot_quantity_map"] = dict(clearance_snapshot_quantity_map)
+                blind_clearance_events[-1]["force_clear"] = True
         package_lifecycle_data = []
         for package_id in selected_package_ids:
             segments = sorted(package_segment_map[package_id].values(), key=lambda segment: (segment["first_inbound_datetime"], segment["inbound_order_id"]))
@@ -251,6 +313,10 @@ class StockMoveLineHistorySummary(models.Model):
             location_name_map = {}
             events = []
             for event_sequence, event in enumerate(package_event_map[package_id]):
+                if event.get("clearance_snapshot_quantity_map"):
+                    quantity_map.clear()
+                    quantity_map.update(event["clearance_snapshot_quantity_map"])
+                    location_quantity_map.clear()
                 if not opening_captured and event["event_date"] >= date_from:
                     opening_inbound_order_id = current_inbound_order_id
                     opening_active = any(quantity > 0.000001 for quantity in quantity_map.values())
@@ -260,6 +326,9 @@ class StockMoveLineHistorySummary(models.Model):
                     segment_index += 1
                 before_active = any(quantity > 0.000001 for quantity in quantity_map.values())
                 quantity_map[(event["product_id"], event["lot_id"])] += event["quantity"]
+                if event.get("force_clear"):
+                    for product_lot_key in quantity_map:
+                        quantity_map[product_lot_key] = 0.0
                 after_active = any(quantity > 0.000001 for quantity in quantity_map.values())
                 if event["is_source_package"] and event["source_inside"]:
                     location_key = (event["product_id"], event["lot_id"], event["source_location_id"])
@@ -271,6 +340,8 @@ class StockMoveLineHistorySummary(models.Model):
                     location_quantity_map[location_key] += event["move_quantity"]
                     location_last_sequence_map[event["destination_location_id"]] = event_sequence * 2 + 1
                     location_name_map[event["destination_location_id"]] = event["destination_location_name"]
+                if event.get("force_clear"):
+                    location_quantity_map.clear()
                 event.update({"inbound_order_id": current_inbound_order_id, "before_active": before_active, "after_active": after_active})
                 events.append(event)
             if not opening_captured:
@@ -308,23 +379,43 @@ class StockMoveLineHistorySummary(models.Model):
     @api.model
     def get_package_movement_history(self, filters=None):
         filters = filters or {}
+        use_actual_datetime = bool(filters.get("use_actual_datetime"))
+        picking_model = self.env["stock.picking"].sudo()
+        has_blind_stock_count = {"is_blind_stock_count_clearance", "is_blind_stock_count_receipt", "blind_stock_count_work_package_id"}.issubset(picking_model._fields)
         lifecycle_result = self.get_package_lifecycle_data(filters)
         location_id = filters.get("location_id")
         if not location_id:
             return dict(lifecycle_result, movement_rows=[])
-        try:
-            location_id = int(location_id)
-        except (TypeError, ValueError):
-            raise ValidationError(_("Location must be a valid record."))
-        project_ids = filters.get("project_ids")
+        warehouse_id = filters.get("warehouse_id")
+        if warehouse_id:
+            try:
+                warehouse_id = int(warehouse_id)
+            except (TypeError, ValueError):
+                raise ValidationError(_("Warehouse must be a valid record."))
+        project_ids = filters.get("project_ids") or []
+        if not project_ids and filters.get("project_id"):
+            project_ids = [filters["project_id"]]
         if not project_ids:
             return dict(lifecycle_result, movement_rows=[])
         date_from = lifecycle_result["date_from"]
         date_to = lifecycle_result["date_to"]
         date_to_datetime = datetime.combine(date_to, time.max)
-        location_ids = set(self.env["stock.location"].sudo().search([("id", "child_of", location_id)]).ids)
+        location_model = self.env["stock.location"].sudo()
+        try:
+            location_id = int(location_id)
+        except (TypeError, ValueError):
+            raise ValidationError(_("Location must be a valid record."))
+        location_ids = set(location_model.search([("id", "child_of", location_id)]).ids)
+        loose_location_domain = ["|", ("location_id", "child_of", location_id), ("location_dest_id", "child_of", location_id)]
         if not location_ids:
             return dict(lifecycle_result, movement_rows=[])
+        blind_stock_count_reset_datetime = False
+        project_category_ids = []
+        if has_blind_stock_count:
+            project_category_ids = self.env["project.project"].sudo().search([("id", "in", project_ids)]).mapped("category").ids
+            if project_category_ids:
+                reset_picking_domain = [("state", "=", "done"), ("date_done", "<", date_to_datetime), ("is_blind_stock_count_clearance", "=", True), ("blind_stock_count_work_package_id.category_id", "in", project_category_ids), ("location_id", "child_of", location_id)]
+                blind_stock_count_reset_datetime = picking_model.search(reset_picking_domain, order="date_done desc, id desc", limit=1).date_done
 
         lifecycle_move_line_ids = {
             event["move_line_id"]
@@ -354,17 +445,23 @@ class StockMoveLineHistorySummary(models.Model):
                     "direction": lifecycle_event["direction"],
                     "signed_quantity": lifecycle_event["quantity"],
                     "inside_location": move_line.location_dest_id if lifecycle_event["destination_inside"] else move_line.location_id,
+                    "clearance_snapshot_quantity_map": lifecycle_event.get("clearance_snapshot_quantity_map"),
+                    "force_clear": lifecycle_event.get("force_clear"),
                 })
-        project_move_line_domain = expression.OR([
-            [("picking_id.inbound_order_id.project", "in", project_ids)],
-            [("picking_id.outbound_order_id.project", "in", project_ids)],
-        ])
+        inbound_project_domain = [("picking_id.inbound_order_id.project", "in", project_ids)]
+        outbound_project_domain = [("picking_id.outbound_order_id.project", "in", project_ids)]
+        if warehouse_id:
+            inbound_project_domain.append(("picking_id.inbound_order_id.warehouse", "=", warehouse_id))
+            outbound_project_domain.append(("picking_id.outbound_order_id.warehouse", "=", warehouse_id))
+        project_move_line_domain = expression.OR([inbound_project_domain, outbound_project_domain])
+        if has_blind_stock_count and project_category_ids:
+            blind_loose_project_domain = expression.AND([[("picking_id.blind_stock_count_work_package_id.category_id", "in", project_category_ids)], expression.OR([[("picking_id.is_blind_stock_count_clearance", "=", True)], [("picking_id.is_blind_stock_count_receipt", "=", True)]])])
+            project_move_line_domain = expression.OR([project_move_line_domain, blind_loose_project_domain])
         loose_move_lines = move_line_model.search(expression.AND([[
             ("state", "=", "done"),
             ("package_id", "=", False),
             ("result_package_id", "=", False),
-            "|", ("location_id", "child_of", location_id), ("location_dest_id", "child_of", location_id),
-        ], project_move_line_domain]), order="date asc, id asc")
+        ] + loose_location_domain, project_move_line_domain]), order="date asc, id asc")
         for move_line in loose_move_lines:
             picking = move_line.picking_id
             inbound_order = picking.inbound_order_id
@@ -377,14 +474,17 @@ class StockMoveLineHistorySummary(models.Model):
             is_actual_outbound = move_line.location_id.usage == "internal" and move_line.location_dest_id.usage != "internal"
             event_uses_business_date = use_business_date and (is_actual_inbound or is_actual_outbound)
             if event_uses_business_date:
-                business_date = inbound_order.actual_inbound_date if inbound_order else outbound_order.o_date if outbound_order else False
+                business_datetime = inbound_order.actual_inbound_datetime if inbound_order else outbound_order.actual_outbound_datetime if outbound_order else False
+                business_date = fields.Datetime.context_timestamp(self.with_context(tz=lifecycle_result["timezone_name"]), business_datetime).date() if use_actual_datetime and business_datetime else inbound_order.actual_inbound_date if inbound_order else outbound_order.o_date if outbound_order else False
+                if use_actual_datetime and not business_datetime:
+                    business_date = False
                 if not business_date:
                     if move_line.date <= date_to_datetime:
-                        field_name = _("Manual Inbound Date") if inbound_order else _("Outbound Date")
+                        field_name = _("Actual Inbound Time") if inbound_order and use_actual_datetime else _("Actual Outbound Datetime") if use_actual_datetime else _("Manual Inbound Date") if inbound_order else _("Outbound Date")
                         order_name = inbound_order.display_name if inbound_order else outbound_order.display_name
                         raise ValidationError(_("%(field_name)s is required for order %(order_name)s.") % {"field_name": field_name, "order_name": order_name})
                     continue
-                event_datetime = datetime.combine(business_date, time.min)
+                event_datetime = business_datetime if use_actual_datetime else datetime.combine(business_date, time.min)
                 event_date = business_date
             if event_uses_business_date and event_date > date_to:
                 continue
@@ -426,6 +526,7 @@ class StockMoveLineHistorySummary(models.Model):
             first_move_line = package_events[0]["move_line"]
             product_data_map = {}
             quantity_map = defaultdict(float)
+            opening_quantity_map = {}
             operation_line_ids = []
             inbound_order_names = []
             outbound_order_names = []
@@ -438,6 +539,7 @@ class StockMoveLineHistorySummary(models.Model):
             inbound_pallet_count = 0
             outbound_pallet_count = 0
             lifecycle_start_datetime = False
+            lifecycle_start_inbound_order_id = False
             consumed_datetime = False
             closing_location = False
             opening_set = False
@@ -475,10 +577,16 @@ class StockMoveLineHistorySummary(models.Model):
                 if not is_loose and not pallet_no and move_line.inbound_order_product_pallet_id:
                     pallet_no = move_line.inbound_order_product_pallet_id.inbound_order_product_id.pallet_no or ""
 
+                if package_event.get("clearance_snapshot_quantity_map"):
+                    quantity_map.clear()
+                    quantity_map.update(package_event["clearance_snapshot_quantity_map"])
                 if not opening_set and event_date >= date_from:
-                    for product_key_value, quantity in quantity_map.items():
-                        if product_key_value in product_data_map:
-                            product_data_map[product_key_value]["opening_quantity"] = quantity
+                    if has_blind_stock_count:
+                        opening_quantity_map = dict(quantity_map)
+                    else:
+                        for product_key_value, quantity in quantity_map.items():
+                            if product_key_value in product_data_map:
+                                product_data_map[product_key_value]["opening_quantity"] = quantity
                     opening_has_stock = any(quantity > 0.000001 for quantity in quantity_map.values())
                     opening_pallet_count = 1 if not is_loose and opening_has_stock else 0
                     opening_set = True
@@ -487,11 +595,15 @@ class StockMoveLineHistorySummary(models.Model):
 
                 before_active = any(quantity > 0.000001 for quantity in quantity_map.values())
                 quantity_map[product_key] += package_event["signed_quantity"]
+                if package_event.get("force_clear"):
+                    for product_key_value in quantity_map:
+                        quantity_map[product_key_value] = 0.0
                 product_data["closing_location_name"] = package_event["inside_location"].complete_name or package_event["inside_location"].display_name or ""
                 closing_location = package_event["inside_location"]
                 after_active = any(quantity > 0.000001 for quantity in quantity_map.values())
                 if not before_active and after_active:
                     lifecycle_start_datetime = event_datetime
+                    lifecycle_start_inbound_order_id = move_line.picking_id.inbound_order_id.id if move_line.picking_id.inbound_order_id else False
                     consumed_datetime = False
                 elif before_active and not after_active:
                     consumed_datetime = event_datetime
@@ -555,9 +667,12 @@ class StockMoveLineHistorySummary(models.Model):
                 })
 
             if not opening_set:
-                for product_key_value, quantity in quantity_map.items():
-                    if product_key_value in product_data_map:
-                        product_data_map[product_key_value]["opening_quantity"] = quantity
+                if has_blind_stock_count:
+                    opening_quantity_map = dict(quantity_map)
+                else:
+                    for product_key_value, quantity in quantity_map.items():
+                        if product_key_value in product_data_map:
+                            product_data_map[product_key_value]["opening_quantity"] = quantity
                 opening_has_stock = any(quantity > 0.000001 for quantity in quantity_map.values())
                 opening_pallet_count = 1 if not is_loose and opening_has_stock else 0
                 if opening_has_stock:
@@ -586,6 +701,8 @@ class StockMoveLineHistorySummary(models.Model):
                 "closing_product_summary": defaultdict(float),
             }
             for product_key, product_data in product_data_map.items():
+                if has_blind_stock_count:
+                    product_data["opening_quantity"] = opening_quantity_map.get(product_key, 0.0)
                 product_data["on_hand_quantity"] = quantity_map[product_key]
                 if not any(abs(product_data[field_name]) > 0.000001 for field_name in ("opening_quantity", "inbound_quantity", "outbound_quantity", "on_hand_quantity")):
                     continue
@@ -614,7 +731,9 @@ class StockMoveLineHistorySummary(models.Model):
                 "closing_location_name": (closing_location.complete_name or closing_location.display_name or "") if closing_location else "",
                 "lifecycle_state": "active" if closing_has_stock else "consumed",
                 "lifecycle_start_datetime": fields.Datetime.to_string(lifecycle_start_datetime) if lifecycle_start_datetime else "",
+                "first_inbound_order_id": lifecycle_start_inbound_order_id,
                 "consumed_datetime": fields.Datetime.to_string(consumed_datetime) if consumed_datetime else "",
+                "anomaly_message": "",
                 "inbound_order_names": ", ".join(dict.fromkeys(inbound_order_names)),
                 "outbound_order_names": ", ".join(dict.fromkeys(outbound_order_names)),
                 "inbound_picking_names": ", ".join(dict.fromkeys(inbound_picking_names)),
@@ -640,22 +759,56 @@ class StockMoveLineHistorySummary(models.Model):
                 package_ids.append(package.id)
 
         if date_to == fields.Date.context_today(self) and rows:
+            current_quantity_map = defaultdict(float)
             reserved_quantity_map = defaultdict(float)
+            if package_ids and filters.get("reconcile_current_quant"):
+                current_quant_domain = [("quantity", "!=", 0), ("package_id", "in", package_ids)]
+                if location_id:
+                    current_quant_domain.append(("location_id", "child_of", location_id))
+                current_quants = self.env["stock.quant"].sudo().search(current_quant_domain)
+                for quant in current_quants:
+                    current_quantity_map[(quant.package_id.id, quant.product_id.id, quant.lot_id.id)] += quant.quantity
             if package_ids:
-                quants = self.env["stock.quant"].sudo().search([
-                    ("location_id", "child_of", location_id),
-                    ("reserved_quantity", "!=", 0),
-                    ("package_id", "in", package_ids),
-                ])
-                for quant in quants:
+                reserved_quant_domain = [("reserved_quantity", "!=", 0), ("package_id", "in", package_ids)]
+                if location_id:
+                    reserved_quant_domain.append(("location_id", "child_of", location_id))
+                reserved_quants = self.env["stock.quant"].sudo().search(reserved_quant_domain)
+                for quant in reserved_quants:
                     reserved_quantity_map[(quant.package_id.id, quant.product_id.id, quant.lot_id.id)] += quant.reserved_quantity
             for row in rows:
                 if not row["package_id"]:
                     continue
+                current_quant_differs = False
+                movement_quantity_map = {}
                 for stock_line in row["stock_line_ids"]:
+                    if filters.get("reconcile_current_quant"):
+                        movement_quantity_map[(stock_line["product_id"], stock_line["lot_id"])] = stock_line["on_hand_quantity"]
+                        current_quantity = current_quantity_map[(row["package_id"], stock_line["product_id"], stock_line["lot_id"])]
+                        current_quant_differs = current_quant_differs or abs(stock_line["on_hand_quantity"] - current_quantity) > 0.000001
+                        stock_line["on_hand_quantity"] = current_quantity
                     stock_line["reserved_quantity"] = reserved_quantity_map[(row["package_id"], stock_line["product_id"], stock_line["lot_id"])]
                     stock_line["available_quantity"] = stock_line["on_hand_quantity"] - stock_line["reserved_quantity"]
                     stock_line["reservation_note"] = ""
+                if filters.get("reconcile_current_quant") and current_quant_differs:
+                    row["anomaly_message"] = _("Current quant differs from package movement history.")
+                if filters.get("reconcile_current_quant") and not any(stock_line["on_hand_quantity"] > 0.000001 for stock_line in row["stock_line_ids"]):
+                    row["closing_pallet_count"] = 0
+                    row["closing_location_name"] = ""
+                    row["lifecycle_state"] = "consumed"
+                    lifecycle_start_datetime = fields.Datetime.to_datetime(row["lifecycle_start_datetime"]) if row["lifecycle_start_datetime"] else False
+                    if blind_stock_count_reset_datetime and lifecycle_start_datetime and lifecycle_start_datetime < blind_stock_count_reset_datetime:
+                        blind_stock_count_reset_date = fields.Datetime.context_timestamp(self.with_context(tz=lifecycle_result["timezone_name"]), blind_stock_count_reset_datetime).date()
+                        if date_from > blind_stock_count_reset_date:
+                            row["exclude_after_blind_stock_count_reset"] = True
+                        else:
+                            for stock_line in row["stock_line_ids"]:
+                                movement_quantity = movement_quantity_map.get((stock_line["product_id"], stock_line["lot_id"]), 0.0)
+                                if movement_quantity > 0.000001:
+                                    stock_line["outbound_quantity"] += movement_quantity
+                            row["outbound_pallet_count"] += 1
+                        row["consumed_datetime"] = fields.Datetime.to_string(blind_stock_count_reset_datetime)
+                        row["anomaly_message"] = _("Blind stock count reset time was used.")
+        rows = [row for row in rows if not row.get("exclude_after_blind_stock_count_reset")]
         return dict(lifecycle_result, movement_rows=sorted(rows, key=lambda row: (row["lifecycle_start_datetime"], row["package_name"]), reverse=True))
 
     @api.model

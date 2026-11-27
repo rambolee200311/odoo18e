@@ -2,17 +2,20 @@
 {
     "name": "WD Charge Pricing",
     "summary": "Shared charge items and logistics quotations",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.1.0",
     "category": "Operations",
     "depends": ["base", "mail", "project"],
     "pre_init_hook": "migrate_charge_pricing_xml_ids",
     "data": [
         "security/ir.model.access.csv",
         "data/ir_sequence_quotation.xml",
+        "data/ir_sequence_statement_period.xml",
         "views/charge_item_views.xml",
         "wizard/charge_quotation_add_wizard_views.xml",
         "views/charge_quotation_views.xml",
         "views/vendor_cost_quotation_views.xml",
+        "views/menu.xml",
+        "views/settlement_account_views/statement_period_views.xml",
     ],
     "assets": {
         "web.assets_backend": [

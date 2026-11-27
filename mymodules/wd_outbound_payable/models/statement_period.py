@@ -17,11 +17,11 @@ class StatementPeriod(models.Model):
     inbound_order_lines = fields.One2many("world.depot.inbound.order", "statement_period_id", string="Inbound Orders")
     inbound_total_amount = fields.Monetary(string="Total Inbound Amount", currency_field="currency_id", compute="_compute_inbound_total_amount", store=True)
 
-    @api.depends("outbound_order_lines.manual_amount_total", "outbound_order_lines.outbound_order_charge_ids.amount")
+    @api.depends("outbound_order_lines.manual_amount_total", "outbound_order_lines.outbound_order_charge_ids.amount", "outbound_order_lines.outbound_order_charge_ids.is_warehouse_operation_charge")
     def _compute_outbound_total_amount(self):
         for rec in self:
             rec.outbound_total_amount = sum(
-                outbound_order.manual_amount_total if outbound_order.manual_amount_total > 0 else sum(outbound_order.outbound_order_charge_ids.mapped("amount"))
+                (outbound_order.manual_amount_total if outbound_order.manual_amount_total > 0 else sum(outbound_order.outbound_order_charge_ids.filtered(lambda line: not line.is_warehouse_operation_charge).mapped("amount"))) + sum(outbound_order.warehouse_operation_charge_lines.mapped("amount"))
                 for outbound_order in rec.outbound_order_lines)
 
     @api.depends("inbound_order_lines.inbound_order_charge_ids.amount")
@@ -69,7 +69,7 @@ class StatementPeriod(models.Model):
             formats = self.get_xlsx_formats(wb)
             self.build_handover_sheet(wb, rec, formats)
             self.build_clearance_sheet(wb, rec, formats)
-            self.build_outbound_sheet(wb, rec, formats)
+            self.build_outbound_charge_sheet(wb, rec, formats)
             self.build_inbound_sheet(wb, rec, formats)
             wb.close()
             output.seek(0)
@@ -85,7 +85,7 @@ class StatementPeriod(models.Model):
             })
             return {"type": "ir.actions.act_url", "url": f"/web/content/{attachment.id}?download=true", "target": "self"}
 
-    def build_outbound_sheet(self, wb, rec, fmt):
+    def build_outbound_charge_sheet(self, wb, rec, fmt):
         ws = wb.add_worksheet("Outbound")
         fixed_left = ["Outbound No", "Outbound Time"]
         fee_names = set()
@@ -114,10 +114,9 @@ class StatementPeriod(models.Model):
                 outbound_time = fields.Datetime.context_timestamp(outbound_order, outbound_datetime).strftime("%Y-%m-%d %H:%M:%S") if outbound_datetime else ""
             ws.write(row, 1, outbound_time, fmt["cell"])
             for index, fee_name in enumerate(fee_cols):
-                charge_lines = outbound_order.outbound_order_charge_ids.filtered(
-                    lambda charge_line: charge_line.charge_item_id and charge_line.charge_item_id.item_name == fee_name)
+                charge_lines = outbound_order.outbound_order_charge_ids.filtered(lambda charge_line: charge_line.charge_item_id and charge_line.charge_item_id.item_name == fee_name)
                 ws.write_number(row, fee_start + index, float(sum(charge_lines.mapped("amount"))), fmt["money"])
-            line_total = outbound_order.manual_amount_total if outbound_order.manual_amount_total > 0 else sum(outbound_order.outbound_order_charge_ids.mapped("amount"))
+            line_total = (outbound_order.manual_amount_total if outbound_order.manual_amount_total > 0 else sum(outbound_order.outbound_order_charge_ids.filtered(lambda line: not line.is_warehouse_operation_charge).mapped("amount"))) + sum(outbound_order.warehouse_operation_charge_lines.mapped("amount"))
             ws.write_number(row, amount_col, float(line_total or 0.0), fmt["money"])
             row += 1
         ws.merge_range(row, 0, row, amount_col - 1, "Total amount", fmt["total_label"])

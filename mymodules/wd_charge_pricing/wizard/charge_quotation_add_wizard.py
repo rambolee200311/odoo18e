@@ -4,6 +4,7 @@ from odoo import _, api, fields, models
 from odoo.exceptions import ValidationError
 
 from odoo.addons.wd_charge_pricing.models.charge_item import OPERATION_TYPE
+from odoo.addons.wd_charge_pricing.models.charge_quotation import OUTBOUND_PALLET_QUANTITY_SOURCE
 
 
 class ChargeQuotationAddWizard(models.TransientModel):
@@ -35,7 +36,7 @@ class ChargeQuotationAddWizard(models.TransientModel):
             existing_lines = env_quotation_line.sudo().search([("quotation_id", "=", rec.quotation_id.id), ("tab_category", "=", rec.tab_category), ("charge_item_id", "in", selected_item_ids)])
             if existing_lines:
                 raise ValidationError(_("These charge items already exist in the quotation: %s") % ", ".join(existing_lines.mapped("charge_item_id.display_name")))
-            values_list = [{"quotation_id": rec.quotation_id.id, "charge_item_id": line.charge_item_id.id, "tab_category": rec.tab_category, "is_fixed_fee": line.is_fixed_fee, "unit_price": line.unit_price, "remark": line.remark} for line in rec.wizard_lines]
+            values_list = [{"quotation_id": rec.quotation_id.id, "charge_item_id": line.charge_item_id.id, "tab_category": rec.tab_category, "is_fixed_fee": line.is_fixed_fee, "outbound_pallet_quantity_source": line.outbound_pallet_quantity_source, "unit_price": line.unit_price, "remark": line.remark} for line in rec.wizard_lines]
             if values_list:
                 env_quotation_line.create(values_list)
         return {"type": "ir.actions.act_window_close"}
@@ -48,6 +49,9 @@ class ChargeQuotationAddWizardLine(models.TransientModel):
     wizard_id = fields.Many2one("charge.quotation.add.wizard", string="Wizard", required=True, ondelete="cascade")
     charge_item_id = fields.Many2one("world.depot.charge.item", string="Charge Item", required=True, ondelete="restrict")
     is_fixed_fee = fields.Boolean(string="Fixed Fee", default=False)
+    charge_billing_object = fields.Selection(related="charge_item_id.charge_billing_object", string="Billing Object", readonly=True)
+    is_weight_tier = fields.Boolean(related="charge_item_id.is_weight_tier", string="Use Gross Weight Tier", readonly=True)
+    outbound_pallet_quantity_source = fields.Selection(OUTBOUND_PALLET_QUANTITY_SOURCE, string="Pallet Quantity Source")
     unit_price = fields.Monetary(string="Unit Price", default=0.0, currency_field="currency_id")
     currency_id = fields.Many2one("res.currency", related="wizard_id.currency_id", store=True, readonly=True)
     remark = fields.Text(string="Remark")

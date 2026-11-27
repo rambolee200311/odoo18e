@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_stock_pallet_detail_report_list" model="ir.ui.view">
+        <field name="name">stock.pallet.detail.report.list</field>
+        <field name="model">stock.pallet.detail.report</field>
+        <field name="arch" type="xml">
+            <list string="Pallet Detail Stock Reports">
+                <field name="name" optional="show"/>
+                <field name="project_id" options="{'no_create': True, 'no_open': True}" optional="show"/>
+                <field name="warehouse_id" options="{'no_create': True, 'no_open': True}" optional="show"/>
+                <field name="date_from" optional="show"/>
+                <field name="date_to" optional="show"/>
+                <field name="location_id" options="{'no_create': True, 'no_open': True}" optional="show"/>
+                <field name="opening_pallet_count" optional="show"/>
+                <field name="inbound_pallet_count" optional="show"/>
+                <field name="outbound_pallet_count" optional="show"/>
+                <field name="closing_pallet_count" optional="show"/>
+                <field name="state" optional="show"/>
+                <field name="refreshed_by_id" options="{'no_create': True, 'no_open': True}" optional="show"/>
+                <field name="refreshed_datetime" options="{'show_time': False}" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_stock_pallet_detail_report_form" model="ir.ui.view">
+        <field name="name">stock.pallet.detail.report.form</field>
+        <field name="model">stock.pallet.detail.report</field>
+        <field name="arch" type="xml">
+            <form string="Pallet Detail Stock Report" duplicate="false">
+                <header>
+                    <button name="action_refresh_report" type="object" string="Refresh Report" class="oe_highlight"/>
+                    <button name="action_view_report_lines" type="object" string="View Detail Lines" invisible="not line_ids"/>
+                    <button name="action_export_excel" type="object" string="Export Summary" context="{'export_type': 'summary'}" invisible="state != 'done'"/>
+                    <button name="action_export_excel" type="object" string="Export Stock Details" context="{'export_type': 'stock'}" invisible="state != 'done'"/>
+                    <button name="action_export_excel" type="object" string="Export Operations" context="{'export_type': 'operation'}" invisible="state != 'done'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,done"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name" readonly="1"/>
+                            <field name="project_id" options="{'no_create': True, 'no_open': True}" readonly="state == 'done'"/>
+                            <field name="warehouse_id" options="{'no_create': True, 'no_open': True}" readonly="state == 'done'"/>
+                            <field name="date_from" readonly="state == 'done'"/>
+                            <field name="date_to" readonly="state == 'done'"/>
+                            <field name="location_id" options="{'no_create': True, 'no_open': True}" readonly="state == 'done'"/>
+                        </group>
+                        <group>
+                            <field name="refreshed_by_id" options="{'no_create': True, 'no_open': True}" readonly="1"/>
+                            <field name="refreshed_datetime" readonly="1"/>
+                            <field name="opening_pallet_count" readonly="1"/>
+                            <field name="inbound_pallet_count" readonly="1"/>
+                            <field name="outbound_pallet_count" readonly="1"/>
+                            <field name="closing_pallet_count" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Pallet Summary">
+                            <field name="line_ids" readonly="1">
+                                <list create="0" edit="0" delete="0">
+                                    <field name="report_id" column_invisible="True" optional="show"/>
+                                    <field name="row_type" optional="show"/>
+                                    <field name="package_id" options="{'no_create': True, 'no_open': True}" optional="show"/>
+                                    <field name="inbound_reference" optional="show"/>
+                                    <field name="lifecycle_state" optional="show"/>
+                                    <field name="lifecycle_start_datetime" options="{'show_time': False}" optional="show"/>
+                                    <field name="consumed_datetime" options="{'show_time': False}" optional="show"/>
+                                    <field name="closing_location_name" optional="show"/>
+                                    <field name="opening_pallet_count" sum="Total" optional="show"/>
+                                    <field name="inbound_pallet_count" sum="Total" optional="show"/>
+                                    <field name="outbound_pallet_count" sum="Total" optional="show"/>
+                                    <field name="closing_pallet_count" sum="Total" optional="show"/>
+                                    <field name="opening_product_summary" sum="Total" optional="show"/>
+                                    <field name="inbound_product_summary" sum="Total" optional="show"/>
+                                    <field name="outbound_product_summary" sum="Total" optional="show"/>
+                                    <field name="closing_product_summary" sum="Total" optional="show"/>
+                                    <field name="storage_week_count" optional="show"/>
+                                    <field name="anomaly_message" optional="show"/>
+                                    <field name="lot_summary" optional="hide"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_stock_pallet_detail_report_search" model="ir.ui.view">
+        <field name="name">stock.pallet.detail.report.search</field>
+        <field name="model">stock.pallet.detail.report</field>
+        <field name="arch" type="xml">
+            <search string="Pallet Detail Stock Reports">
+                <field name="project_id"/>
+                <field name="warehouse_id"/>
+                <field name="date_from"/>
+                <field name="date_to"/>
+                <field name="location_id"/>
+                <field name="state"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_stock_pallet_detail_report_line_list" model="ir.ui.view">
+        <field name="name">stock.pallet.detail.report.line.list</field>
+        <field name="model">stock.pallet.detail.report.line</field>
+        <field name="arch" type="xml">
+            <list string="Pallet Detail Stock Report Lines" create="0" edit="0" delete="0">
+                <field name="report_id" column_invisible="True" optional="show"/>
+                <field name="row_type" optional="show"/>
+                <field name="package_id" options="{'no_create': True, 'no_open': True}" optional="show"/>
+                <field name="inbound_reference" optional="show"/>
+                <field name="lifecycle_state" optional="show"/>
+                <field name="lifecycle_start_datetime" options="{'show_time': False}" optional="show"/>
+                <field name="consumed_datetime" options="{'show_time': False}" optional="show"/>
+                <field name="closing_location_name" optional="show"/>
+                <field name="opening_pallet_count" sum="Total" optional="show"/>
+                <field name="inbound_pallet_count" sum="Total" optional="show"/>
+                <field name="outbound_pallet_count" sum="Total" optional="show"/>
+                <field name="closing_pallet_count" sum="Total" optional="show"/>
+                <field name="opening_product_summary" sum="Total" optional="show"/>
+                <field name="inbound_product_summary" sum="Total" optional="show"/>
+                <field name="outbound_product_summary" sum="Total" optional="show"/>
+                <field name="closing_product_summary" sum="Total" optional="show"/>
+                <field name="storage_week_count" optional="show"/>
+                <field name="anomaly_message" optional="show"/>
+                <field name="lot_summary" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_stock_pallet_detail_report_line_form" model="ir.ui.view">
+        <field name="name">stock.pallet.detail.report.line.form</field>
+        <field name="model">stock.pallet.detail.report.line</field>
+        <field name="arch" type="xml">
+            <form string="Pallet Detail Stock Report Line" duplicate="false" create="0" edit="0" delete="0">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="report_id" invisible="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="package_id" options="{'no_create': True, 'no_open': False}" readonly="1"/>
+                            <field name="inbound_reference" readonly="1"/>
+                            <field name="closing_location_name" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="lifecycle_state" readonly="1"/>
+                            <field name="lifecycle_start_datetime" options="{'show_time': False}" readonly="1"/>
+                            <field name="consumed_datetime" options="{'show_time': False}" readonly="1"/>
+                            <field name="storage_week_count" readonly="1"/>
+                            <field name="anomaly_message" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Pallet Statistics">
+                        <group>
+                            <field name="opening_pallet_count" readonly="1"/>
+                            <field name="inbound_pallet_count" readonly="1"/>
+                            <field name="outbound_pallet_count" readonly="1"/>
+                            <field name="closing_pallet_count" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="opening_product_summary" readonly="1" sum="Total"/>
+                            <field name="inbound_product_summary" readonly="1" sum="Total"/>
+                            <field name="outbound_product_summary" readonly="1" sum="Total"/>
+                            <field name="closing_product_summary" readonly="1" sum="Total"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Product Details">
+                            <field name="stock_line_ids" readonly="1">
+                                <list create="0" edit="0" delete="0">
+                                    <field name="report_line_id" column_invisible="True" optional="show"/>
+                                    <field name="product_name" optional="show"/>
+                                    <field name="lot_name" optional="show"/>
+                                    <field name="closing_location_name" optional="show"/>
+                                    <field name="opening_quantity" sum="Total" optional="show"/>
+                                    <field name="inbound_quantity" sum="Total" optional="show"/>
+                                    <field name="outbound_quantity" sum="Total" optional="show"/>
+                                    <field name="on_hand_quantity" sum="Total" optional="show"/>
+                                    <field name="uom_name" optional="show"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Operation Details">
+                            <field name="operation_line_ids" readonly="1">
+                                <list create="0" edit="0" delete="0">
+                                    <field name="report_line_id" column_invisible="True" optional="show"/>
+                                    <field name="direction" optional="show"/>
+                                    <field name="inbound_order_name" optional="show"/>
+                                    <field name="outbound_order_name" optional="show"/>
+                                    <field name="picking_name" optional="show"/>
+                                    <field name="picking_state" optional="show"/>
+                                    <field name="product_name" optional="show"/>
+                                    <field name="lot_name" optional="show"/>
+                                    <field name="planned_quantity" sum="Total" optional="show"/>
+                                    <field name="done_quantity" sum="Total" optional="show"/>
+                                    <field name="uom_name" optional="show"/>
+                                    <field name="operation_datetime" options="{'show_time': False}" optional="show"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_stock_pallet_detail_report_stock_line_list" model="ir.ui.view">
+        <field name="name">stock.pallet.detail.report.stock.line.list</field>
+        <field name="model">stock.pallet.detail.report.stock.line</field>
+        <field name="arch" type="xml">
+            <list string="Pallet Detail Stock Details" create="0" edit="0" delete="0">
+                <field name="product_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="product_name"/>
+                <field name="product_code"/>
+                <field name="lot_id" options="{'no_create': True, 'no_open': True}"/>
+                <field name="lot_name"/>
+                <field name="uom_name"/>
+                <field name="opening_quantity"/>
+                <field name="inbound_quantity"/>
+                <field name="outbound_quantity"/>
+                <field name="on_hand_quantity"/>
+                <field name="reserved_quantity"/>
+                <field name="available_quantity"/>
+                <field name="closing_location_name"/>
+                <field name="reservation_note"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_stock_pallet_detail_report_stock_line_form" model="ir.ui.view">
+        <field name="name">stock.pallet.detail.report.stock.line.form</field>
+        <field name="model">stock.pallet.detail.report.stock.line</field>
+        <field name="arch" type="xml">
+            <form string="Pallet Detail Stock Detail" duplicate="false" create="0" edit="0" delete="0">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="report_line_id" options="{'no_create': True, 'no_open': True}" readonly="1"/>
+                            <field name="product_id" options="{'no_create': True, 'no_open': True}" readonly="1"/>
+                            <field name="product_name" readonly="1"/>
+                            <field name="product_code" readonly="1"/>
+                            <field name="lot_id" options="{'no_create': True, 'no_open': True}" readonly="1"/>
+                            <field name="lot_name" readonly="1"/>
+                            <field name="uom_name" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="closing_location_name" readonly="1"/>
+                            <field name="opening_quantity" readonly="1"/>
+                            <field name="inbound_quantity" readonly="1"/>
+                            <field name="outbound_quantity" readonly="1"/>
+                            <field name="on_hand_quantity" readonly="1"/>
+                            <field name="reserved_quantity" readonly="1"/>
+                            <field name="available_quantity" readonly="1"/>
+                            <field name="reservation_note" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_stock_pallet_detail_report_operation_line_list" model="ir.ui.view">
+        <field name="name">stock.pallet.detail.report.operation.line.list</field>
+        <field name="model">stock.pallet.detail.report.operation.line</field>
+        <field name="arch" type="xml">
+            <list string="Pallet Detail Stock Operations" create="0" edit="0" delete="0">
+                <field name="direction"/>
+                <field name="operation_datetime"/>
+                <field name="inbound_order_name"/>
+                <field name="outbound_order_name"/>
+                <field name="picking_name"/>
+                <field name="picking_state"/>
+                <field name="product_name"/>
+                <field name="lot_name"/>
+                <field name="planned_quantity"/>
+                <field name="reserved_quantity"/>
+                <field name="done_quantity"/>
+                <field name="uom_name"/>
+                <field name="source_location_name"/>
+                <field name="destination_location_name"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_stock_pallet_detail_report_operation_line_form" model="ir.ui.view">
+        <field name="name">stock.pallet.detail.report.operation.line.form</field>
+        <field name="model">stock.pallet.detail.report.operation.line</field>
+        <field name="arch" type="xml">
+            <form string="Pallet Detail Stock Operation" duplicate="false" create="0" edit="0" delete="0">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="report_line_id" options="{'no_create': True, 'no_open': True}" readonly="1"/>
+                            <field name="direction" readonly="1"/>
+                            <field name="operation_datetime" readonly="1"/>
+                            <field name="inbound_order_id" options="{'no_create': True, 'no_open': True}" readonly="1"/>
+                            <field name="inbound_order_name" readonly="1"/>
+                            <field name="outbound_order_id" options="{'no_create': True, 'no_open': True}" readonly="1"/>
+                            <field name="outbound_order_name" readonly="1"/>
+                            <field name="picking_id" options="{'no_create': True, 'no_open': True}" readonly="1"/>
+                            <field name="picking_name" readonly="1"/>
+                            <field name="picking_state" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="product_id" options="{'no_create': True, 'no_open': True}" readonly="1"/>
+                            <field name="product_name" readonly="1"/>
+                            <field name="product_code" readonly="1"/>
+                            <field name="lot_id" options="{'no_create': True, 'no_open': True}" readonly="1"/>
+                            <field name="lot_name" readonly="1"/>
+                            <field name="planned_quantity" readonly="1"/>
+                            <field name="reserved_quantity" readonly="1"/>
+                            <field name="done_quantity" readonly="1"/>
+                            <field name="uom_name" readonly="1"/>
+                            <field name="source_location_name" readonly="1"/>
+                            <field name="destination_location_name" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_stock_pallet_detail_report" model="ir.actions.act_window">
+        <field name="name">Pallet Detail Stock Report</field>
+        <field name="res_model">stock.pallet.detail.report</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_stock_pallet_detail_report_list"/>
+        <field name="search_view_id" ref="view_stock_pallet_detail_report_search"/>
+    </record>
+
+    <menuitem id="menu_stock_pallet_detail_report" name="Pallet Detail Stock Report" parent="worlddepot.stock_report_menu" action="action_stock_pallet_detail_report" sequence="503"/>
+</odoo>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="menu_stock_barcode_lite_report" name="Reports" parent="stock_barcode_lite.menu_stock_barcode_lite_root" sequence="50"/>
+    <menuitem id="menu_sunrise_stock_report" name="Sunrise Pallet Detail Report" parent="menu_stock_barcode_lite_report" action="action_sunrise_stock_report" sequence="5"/>
+    <menuitem id="menu_sunrise_inbound_pallet_summary_report" name="Inbound Pallet Summary Report" parent="menu_stock_barcode_lite_report" action="action_sunrise_inbound_pallet_summary_report" sequence="7"/>
+    <menuitem id="menu_sunrise_outbound_pallet_summary_report" name="Outbound Pallet Summary Report" parent="menu_stock_barcode_lite_report" action="action_sunrise_outbound_pallet_summary_report" sequence="8"/>
+    <menuitem id="menu_sunrise_location_occupancy_report" name="Warehouse Location Occupancy" parent="menu_stock_barcode_lite_report" action="action_sunrise_location_occupancy_report" sequence="10"/>
+    <menuitem id="menu_sunrise_monthly_category_pallet_report" name="Sunrise Monthly Category Pallet Report" parent="menu_stock_barcode_lite_report" action="action_sunrise_monthly_category_pallet_report" sequence="11"/>
+</odoo>

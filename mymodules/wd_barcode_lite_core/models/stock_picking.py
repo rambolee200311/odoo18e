@@ -53,6 +53,12 @@ class StockPicking(models.Model):
                 if not complete:
                     move_line_model.browse(whole_lines.filtered(lambda line: line.package_id == package).ids).write({"result_package_id": False})
 
+    def sync_outbound_charge_billing_object(self):
+        for rec in self:
+            if rec.picking_type_code != 'outgoing' or rec.state in ('done', 'cancel'):
+                continue
+            rec.move_line_ids.filtered(lambda line: line.state != 'cancel' and line.quantity > 0 and not line.outbound_charge_billing_object).write({'outbound_charge_billing_object': 'carton'})
+
     def button_validate(self):
         secondary_outbound_pickings = self.filtered(lambda rec: not self.env.context.get('skip_secondary_outbound_validation') and rec.picking_type_code == 'outgoing' and rec.project_id.outbound_palletization_enabled and rec.state not in ('done', 'cancel'))
         if secondary_outbound_pickings:
@@ -61,12 +67,14 @@ class StockPicking(models.Model):
             preparation_pickings = secondary_outbound_pickings.filtered(lambda rec: rec.outbound_preparation_state != 'prepared')
             if preparation_pickings:
                 for rec in preparation_pickings:
+                    rec.sync_outbound_charge_billing_object()
                     rec.write({'outbound_preparation_state': 'prepared', 'outbound_prepared_by_id': self.env.user.id, 'outbound_prepared_at': fields.Datetime.now()})
                 return True
             for rec in secondary_outbound_pickings:
                 unconfirmed_move_lines = rec.move_line_ids.filtered(lambda line: line.state != 'cancel' and line.quantity > 0 and not line.secondary_outbound_confirmed)
                 if unconfirmed_move_lines:
                     raise UserError(_('Complete secondary outbound confirmation before validating outgoing picking %s.') % rec.name)
+        self.sync_outbound_charge_billing_object()
         result = super().button_validate()
         quant_model = self.env['stock.quant'].sudo()
         for rec in self:

@@ -7,3 +7,4 @@ access_wd_vendor_cost_quotation,vendor.cost.quotation,model_vendor_cost_quotatio
 access_wd_vendor_cost_quotation_line,vendor.cost.quotation.line,model_vendor_cost_quotation_line,,1,1,1,1
 access_wd_charge_quotation_add_wizard,charge.quotation.add.wizard,model_charge_quotation_add_wizard,,1,1,1,1
 access_wd_charge_quotation_add_wizard_line,charge.quotation.add.wizard.line,model_charge_quotation_add_wizard_line,,1,1,1,1
+access_statement_period_user,statement.period user,model_statement_period,,1,1,1,1

@@ -620,8 +620,8 @@ class OperationOrderClearance(models.Model):
         env_clearance = self.env["operation.order.clearance"]
 
         for rec in self:
-            if rec.state != "open":
-                raise ValidationError(_("Only Open orders can be deleted."))
+            # if rec.state != "open":
+            #     raise ValidationError(_("Only Open orders can be deleted."))
 
             if rec.parent_id or rec.waybill_id or not rec.clearance_container_ids:
                 continue

@@ -16,19 +16,56 @@
             </xpath>
             <xpath expr="//field[@name='inbound_order_charge_ids']" position="attributes">
                 <attribute name="readonly">state == 'cancel' or receivable_state == 'confirmed'</attribute>
+                <attribute name="domain">[('is_warehouse_operation_charge', '=', False)]</attribute>
+            </xpath>
+            <xpath expr="//page[field[@name='inbound_order_charge_ids']]/field[@name='inbound_order_charge_ids']" position="before">
+                <group>
+                    <button name="action_add_quotation_charges" type="object" string="Add Charges" class="btn-secondary" invisible="state != 'confirm' or receivable_state == 'confirmed'"/>
+                </group>
             </xpath>
             <xpath expr="//field[@name='inbound_order_charge_ids']/list/field[@name='charge_item_id']" position="attributes">
                 <attribute name="domain">[('operation_type', '=', 'inbound')]</attribute>
                 <attribute name="options">{'no_create': True, 'no_open': True}</attribute>
             </xpath>
             <xpath expr="//field[@name='inbound_order_charge_ids']/list/field[@name='quantity']" position="before">
-                <field name="charge_billing_object"/>
+                <field name="charge_billing_object" readonly="1"/>
             </xpath>
             <xpath expr="//field[@name='inbound_order_charge_ids']/list/field[@name='amount']" position="after">
                 <field name="manual_amount_total"/>
                 <field name="quotation_id" column_invisible="1" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                 <field name="quotation_line_id" column_invisible="1" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                 <field name="is_import_quotation_charge" column_invisible="1" readonly="1"/>
+            </xpath>
+            <xpath expr="//page[field[@name='inbound_order_charge_ids']]" position="after">
+                <page string="Warehouse Operations">
+                    <group>
+                        <field name="receivable_state" widget="statusbar" statusbar_visible="draft,confirmed" readonly="1"/>
+                        <button name="action_confirm_receivable" type="object" string="Confirm Receivable" class="btn-success" invisible="state == 'cancel' or receivable_state == 'confirmed'"/>
+                        <button name="action_unconfirm_receivable" type="object" string="Unconfirm Receivable" class="btn-secondary" confirm="Are you sure you want to unconfirm receivable?" invisible="state == 'cancel' or receivable_state != 'confirmed'"/>
+                        <field name="receivable_confirm_user_id" readonly="1" invisible="receivable_state != 'confirmed'" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="receivable_confirm_time" readonly="1" invisible="receivable_state != 'confirmed'"/>
+                        <field name="charge_calculation_remark"/>
+                    </group>
+                    <group>
+                        <button name="action_add_warehouse_operation_charges" type="object" string="Add Charges" class="btn-secondary" invisible="state != 'confirm' or receivable_state == 'confirmed'"/>
+                    </group>
+                    <field name="warehouse_operation_charge_lines" context="{'default_is_warehouse_operation_charge': True}" readonly="state == 'cancel' or receivable_state == 'confirmed'">
+                        <list editable="bottom">
+                            <field name="inbound_order_id" column_invisible="1" required="1" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="charge_item_id" required="1" options="{'no_create': True, 'no_open': True}" domain="[('operation_type', '=', 'warehouse_operation')]"/>
+                            <field name="quantity" required="1" sum="Total Quantity"/>
+                            <field name="currency_id" required="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="unit_price" required="1"/>
+                            <field name="amount" readonly="1" sum="Total Amount"/>
+                            <field name="manual_amount_total"/>
+                            <field name="description"/>
+                            <field name="quotation_id" column_invisible="1" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="quotation_line_id" column_invisible="1" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="vas_order_id" column_invisible="1" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="vas_order_line_id" column_invisible="1" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                        </list>
+                    </field>
+                </page>
             </xpath>
         </field>
     </record>

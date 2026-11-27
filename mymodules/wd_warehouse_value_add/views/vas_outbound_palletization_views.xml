@@ -33,6 +33,8 @@
                             <field name="vas_order_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                             <field name="picking_ids" widget="many2many_tags" readonly="1" options="{'no_create': True, 'no_open': True}"/>
                             <field name="used_transport_pallet_count" readonly="1"/>
+                            <field name="total_outbound_pallet_count" readonly="1"/>
+                            <field name="new_transport_pallet_usage_count" readonly="1"/>
                             <field name="direct_outbound_pallet_count" readonly="1"/>
                             <field name="whole_and_loose_transport_pallet_count" readonly="1"/>
                         </group>

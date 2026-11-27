@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from . import outbound_order_payable
+from . import stock_picking
+from . import vas_order
 from . import inbound_order_payable
 from . import account_move
 from . import statement_period

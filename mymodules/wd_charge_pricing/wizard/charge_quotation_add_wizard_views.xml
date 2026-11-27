@@ -15,6 +15,9 @@
                         <list editable="bottom">
                             <field name="charge_item_id" required="1" options="{'no_create': True, 'no_open': True}" domain="[('is_leaf', '=', True)]"/>
                             <field name="is_fixed_fee"/>
+                            <field name="charge_billing_object" column_invisible="1"/>
+                            <field name="is_weight_tier" column_invisible="1"/>
+                            <field name="outbound_pallet_quantity_source" invisible="parent.tab_category != 'outbound' or charge_billing_object != 'pallet' or is_weight_tier or is_fixed_fee" required="parent.tab_category == 'outbound' and charge_billing_object == 'pallet' and not is_weight_tier and not is_fixed_fee"/>
                             <field name="unit_price"/>
                             <field name="currency_id" readonly="1"/>
                             <field name="remark"/>

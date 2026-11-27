@@ -133,7 +133,7 @@ class VasOrder(models.Model):
                     raise ValidationError('Each line must use an active Operation Type.')
                 if not line.unit or line.unit != line.operation_type_id.unit:
                     raise ValidationError('Each line unit must match its Operation Type.')
-                if line.quantity_time is None or line.quantity_time <= 0:
+                if not line.operation_type_id.is_outbound_palletization and (line.quantity_time is None or line.quantity_time <= 0):
                     raise ValidationError('Each line quantity or time must be greater than zero.')
 
     def action_submit(self):

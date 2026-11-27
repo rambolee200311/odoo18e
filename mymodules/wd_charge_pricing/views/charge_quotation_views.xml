@@ -47,7 +47,7 @@
                             </group>
                             <field name="quotation_thc_lines" readonly="state != 'draft'" context="{'default_tab_category': 'handover'}">
                                 <list editable="bottom">
-                                    <field name="charge_item_id" required="1" options="{'no_create': True, 'no_open': True}" domain="['|', ('operation_type', '=', 'handover'), ('operation_type', '=', False), ('is_leaf', '=', True)]"/>
+                                    <field name="charge_item_id" required="1" options="{'no_create': True, 'no_open': False}" domain="['|', ('operation_type', '=', 'handover'), ('operation_type', '=', False), ('is_leaf', '=', True)]"/>
                                     <field name="tab_category" column_invisible="1"/>
                                     <field name="is_fixed_fee"/>
                                     <field name="unit_price" required="1"/>
@@ -61,7 +61,7 @@
                             </group>
                             <field name="quotation_customs_lines" readonly="state != 'draft'" context="{'default_tab_category': 'clearance'}">
                                 <list editable="bottom">
-                                    <field name="charge_item_id" required="1" options="{'no_create': True, 'no_open': True}" domain="['|', ('operation_type', '=', 'clearance'), ('operation_type', '=', False), ('is_leaf', '=', True)]"/>
+                                    <field name="charge_item_id" required="1" options="{'no_create': True, 'no_open': False}" domain="['|', ('operation_type', '=', 'clearance'), ('operation_type', '=', False), ('is_leaf', '=', True)]"/>
                                     <field name="tab_category" column_invisible="1"/>
                                     <field name="is_fixed_fee"/>
                                     <field name="unit_price" required="1"/>
@@ -75,7 +75,7 @@
                             </group>
                             <field name="quotation_wh_in_lines" readonly="state != 'draft'" context="{'default_tab_category': 'inbound'}">
                                 <list editable="bottom">
-                                    <field name="charge_item_id" required="1" options="{'no_create': True, 'no_open': True}" domain="['|', ('operation_type', '=', 'inbound'), ('operation_type', '=', False), ('is_leaf', '=', True)]"/>
+                                    <field name="charge_item_id" required="1" options="{'no_create': True, 'no_open': False}" domain="['|', ('operation_type', '=', 'inbound'), ('operation_type', '=', False), ('is_leaf', '=', True)]"/>
                                     <field name="tab_category" column_invisible="1"/>
                                     <field name="is_fixed_fee"/>
                                     <field name="unit_price" required="1"/>
@@ -89,7 +89,24 @@
                             </group>
                             <field name="quotation_wh_out_lines" readonly="state != 'draft'" context="{'default_tab_category': 'outbound'}">
                                 <list editable="bottom">
-                                    <field name="charge_item_id" required="1" options="{'no_create': True, 'no_open': True}" domain="['|', ('operation_type', '=', 'outbound'), ('operation_type', '=', False), ('is_leaf', '=', True)]"/>
+                                    <field name="charge_item_id" required="1" options="{'no_create': True, 'no_open': False}" domain="['|', ('operation_type', '=', 'outbound'), ('operation_type', '=', False), ('is_leaf', '=', True)]"/>
+                                    <field name="tab_category" column_invisible="1"/>
+                                    <field name="is_fixed_fee"/>
+                                    <field name="charge_billing_object" column_invisible="1"/>
+                                    <field name="is_weight_tier" column_invisible="1"/>
+                                    <field name="outbound_pallet_quantity_source" invisible="charge_billing_object != 'pallet' or is_weight_tier or is_fixed_fee" required="charge_billing_object == 'pallet' and not is_weight_tier and not is_fixed_fee"/>
+                                    <field name="unit_price" required="1"/>
+                                    <field name="remark"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Warehouse Operations">
+                            <group>
+                                <button name="%(action_charge_quotation_add_wizard)d" string="Batch Add" type="action" class="btn-secondary" invisible="state != 'draft'" context="{'default_quotation_id': id, 'default_tab_category': 'warehouse_operation'}"/>
+                            </group>
+                            <field name="quotation_wh_extra_lines" readonly="state != 'draft'" context="{'default_tab_category': 'warehouse_operation'}">
+                                <list editable="bottom">
+                                    <field name="charge_item_id" required="1" options="{'no_create': True, 'no_open': False}" domain="['|', ('operation_type', '=', 'warehouse_operation'), ('operation_type', '=', False), ('is_leaf', '=', True)]"/>
                                     <field name="tab_category" column_invisible="1"/>
                                     <field name="is_fixed_fee"/>
                                     <field name="unit_price" required="1"/>

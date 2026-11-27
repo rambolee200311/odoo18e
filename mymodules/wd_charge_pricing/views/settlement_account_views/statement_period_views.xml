@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_statement_period_tree" model="ir.ui.view">
+        <field name="name">statement.period.list</field>
+        <field name="model">statement.period</field>
+        <field name="arch" type="xml">
+            <list string="Statement Periods">
+                <field name="name"/>
+                <field name="date_start"/>
+                <field name="date_end"/>
+                <field name="project_id"/>
+                <field name="currency_id" optional="show"/>
+                <field name="state"/>
+                <field name="expense_confirmed_datetime" optional="show"/>
+                <field name="create_date" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_statement_period_form" model="ir.ui.view">
+        <field name="name">statement.period.form</field>
+        <field name="model">statement.period</field>
+        <field name="arch" type="xml">
+            <form string="Statement Period" duplicate="false">
+                <header>
+                    <button name="action_confirm_expense" string="Confirm Expense" type="object" class="oe_highlight" invisible="state in ('expense_confirmed', 'payment_in_progress', 'calculated', 'cancelled')"/>
+                    <button name="action_draft" string="Draft" type="object" invisible="state in ('draft', 'payment_in_progress', 'calculated', 'cancelled')" groups="base.group_system"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,expense_confirmed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="date_start" readonly="state != 'draft'"/>
+                            <field name="date_end" readonly="state != 'draft'"/>
+                            <field name="project_id" readonly="state != 'draft'" options="{'no_create': True, 'no_open': True}"/>
+                        </group>
+                        <group>
+                            <field name="currency_id" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                            <field name="expense_confirmed_datetime" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_statement_period" model="ir.actions.act_window">
+        <field name="name">Statement Periods</field>
+        <field name="res_model">statement.period</field>
+        <field name="view_mode">list,form</field>
+        <field name="view_id" ref="view_statement_period_tree"/>
+    </record>
+
+    <menuitem id="menu_statement_period" name="Manage Statement Periods" parent="menu_charge_pricing_root" action="action_statement_period" sequence="30"/>
+</odoo>

@@ -8,8 +8,8 @@ Read-only ORM methods for Marstek portal stock, inbound, outbound, SN, and attac
     """,
     "author": "World Depot B.V.",
     "category": "进口/进口",
-    "version": "18.0.1.0.0",
-    "depends": ["worlddepot", "wd_project_profile", "portal", "website", "stock", "stock_barcode_lite", "stock_operation_portal"],
+    "version": "18.0.1.1.0",
+    "depends": ["worlddepot", "wd_project_profile", "portal", "website", "stock", "stock_barcode_lite", "wd_stock_report", "stock_operation_portal"],
     "data": [
         "security/ir.model.access.csv",
         "security/security.xml",
