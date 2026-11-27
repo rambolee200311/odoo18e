@@ -6,6 +6,10 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='ref']" position="after">
                 <field name="payment_info_synced" invisible="1"/>
+                <field name="waybill_bill_number" readonly="1" invisible="move_type != 'in_invoice'"/>
+                <field name="project_id" readonly="1" invisible="move_type != 'in_invoice'" options="{'no_create': True, 'no_open': True}"/>
+                <field name="invoice_no" readonly="1" invisible="move_type != 'in_invoice'"/>
+                <field name="eta" readonly="1" invisible="move_type != 'in_invoice'"/>
 <!--                <field name="invoice_request_user_id" readonly="1" invisible="not invoice_request_user_id" options="{'no_create': True, 'no_open': True}"/>-->
                 <field name="bank_proof_attachment_ids" widget="attachment_preview" string="Bank Proof (Water Slip)" readonly="payment_info_synced" invisible="move_type != 'in_invoice'"/>
             </xpath>
@@ -20,6 +24,9 @@
                 <group invisible="partner_type != 'supplier'">
                     <field name="bank_proof_attachment_ids" widget="attachment_preview" required="partner_type == 'supplier'"/>
                 </group>
+            </xpath>
+            <xpath expr="//div[field[@name='qr_code']]" position="attributes">
+                <attribute name="invisible">1</attribute>
             </xpath>
         </field>
     </record>
@@ -36,4 +43,164 @@
             </xpath>
         </field>
     </record>
+    <record id="view_in_invoice_bill_list_inherit_logistics_fields" model="ir.ui.view">
+        <field name="name">account.move.in.invoice.bill.list.inherit.logistics.fields</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_in_invoice_bill_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='invoice_date'][1]" position="after">
+                <field name="waybill_bill_number" string="Bill of Lading" optional="show"/>
+                <field name="project_id" string="Project（项目）" optional="show" options="{'no_create': True, 'no_open': True}"/>
+                <field name="invoice_no" string="Invoice No" optional="show"/>
+                <field name="eta" string="ETA" optional="show"/>
+            </xpath>
+            <xpath expr="//field[@name='currency_id']" position="attributes">
+                <attribute name="optional">show</attribute>
+            </xpath>
+            <xpath expr="//field[@name='amount_total_in_currency_signed'][1]" position="attributes">
+                <attribute name="string">Amount（欧元金额）</attribute>
+            </xpath>
+            <xpath expr="//field[@name='amount_total_in_currency_signed'][2]" position="attributes">
+                <attribute name="string">Amount（欧元金额）</attribute>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_vendor_bill_list" model="ir.ui.view">
+        <field name="name">account.move.vendor.bill.list</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_in_invoice_bill_tree"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="replace">
+                <list string="Vendor Bills">
+                    <header>
+                        <button name="action_force_register_payment" type="object" string="Pay" groups="account.group_account_invoice" invisible="context.get('default_move_type') not in ('in_invoice', 'in_refund', 'in_receipt')"/>
+                    </header>
+                    <field name="name" optional="hide"/>
+                    <field name="invoice_date" string="Invoice Date"/>
+                    <field name="invoice_partner_display_name" string="Payee"/>
+                    <field name="waybill_bill_number" string="Bill of Lading"/>
+                    <field name="project_id" string="Project（项目）" options="{'no_create': True, 'no_open': True}"/>
+                    <field name="invoice_no" string="Invoice No"/>
+                    <field name="eta" string="ETA"/>
+                    <field name="currency_id" string="Bill Currency"/>
+                    <field name="amount_total_in_currency_signed" string="Amount（欧元金额）" sum="Total"/>
+                    <field name="status_in_payment" string="Status" widget="badge" decoration-info="state == 'draft'" decoration-danger="payment_state == 'not_paid' and invoice_date_due &lt; context_today().strftime('%Y-%m-%d')" decoration-warning="payment_state in ('partial', 'in_payment')" decoration-success="payment_state in ('paid', 'reversed')" invisible="payment_state == 'invoicing_legacy' or move_type == 'entry'"/>
+                    <field name="state" column_invisible="1"/>
+                    <field name="payment_state" column_invisible="1"/>
+                    <field name="invoice_date_due" column_invisible="1"/>
+                    <field name="move_type" column_invisible="1"/>
+                </list>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_vendor_bill_search" model="ir.ui.view">
+        <field name="name">account.move.vendor.bill.search</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_account_bill_filter"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="waybill_bill_number" string="Bill of Lading"/>
+                <field name="project_id" string="Project（项目）"/>
+                <field name="invoice_no" string="Invoice No"/>
+                <field name="eta" string="ETA"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="account.action_move_in_invoice" model="ir.actions.act_window">
+        <field name="view_id" ref="view_vendor_bill_list"/>
+        <field name="search_view_id" ref="view_vendor_bill_search"/>
+    </record>
+    <record id="view_vendor_bill_line_list" model="ir.ui.view">
+        <field name="name">account.move.line.vendor.bill.list</field>
+        <field name="model">account.move.line</field>
+        <field name="arch" type="xml">
+            <list string="Vendor Bill Lines" create="0" edit="0" delete="0">
+                <field name="invoice_date" string="Invoice Date"/>
+                <field name="partner_id" string="Payee"/>
+                <field name="charge_item_id" string="Item Name(费用项目名称)" options="{'no_create': True, 'no_open': True}"/>
+                <field name="waybill_bill_number" string="Bill of Lading"/>
+                <field name="project_id" string="Project（项目）" options="{'no_create': True, 'no_open': True}"/>
+                <field name="invoice_no" string="Invoice No"/>
+                <field name="eta" string="ETA"/>
+                <field name="currency_id" string="Bill Currency"/>
+                <field name="price_subtotal" string="Amount（欧元金额）" sum="Total"/>
+                <field name="parent_state" string="State" widget="badge" decoration-info="parent_state == 'draft'" decoration-success="parent_state == 'posted'" decoration-muted="parent_state == 'cancel'"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_vendor_bill_line_form" model="ir.ui.view">
+        <field name="name">account.move.line.vendor.bill.form</field>
+        <field name="model">account.move.line</field>
+        <field name="arch" type="xml">
+            <form string="Vendor Bill Line" create="0" edit="0" delete="0" duplicate="false">
+                <sheet>
+                    <group>
+                        <field name="invoice_date" string="Invoice Date" readonly="1"/>
+                        <field name="partner_id" string="Payee" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="charge_item_id" string="Item Name(费用项目名称)" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="waybill_bill_number" string="Bill of Lading" readonly="1"/>
+                        <field name="project_id" string="Project（项目）" readonly="1" options="{'no_create': True, 'no_open': True}"/>
+                        <field name="invoice_no" string="Invoice No" readonly="1"/>
+                        <field name="eta" string="ETA" readonly="1"/>
+                        <field name="currency_id" string="Bill Currency" readonly="1"/>
+                        <field name="price_subtotal" string="Amount（欧元金额）" readonly="1"/>
+                        <field name="parent_state" string="State" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_vendor_bill_line_search" model="ir.ui.view">
+        <field name="name">account.move.line.vendor.bill.search</field>
+        <field name="model">account.move.line</field>
+        <field name="arch" type="xml">
+            <search string="Search Vendor Bill Lines">
+                <field name="invoice_date" string="Invoice Date"/>
+                <field name="partner_id" string="Payee" operator="child_of"/>
+                <field name="charge_item_id" string="Item Name(费用项目名称)"/>
+                <field name="waybill_bill_number" string="Bill of Lading"/>
+                <field name="project_id" string="Project（项目）"/>
+                <field name="invoice_no" string="Invoice No"/>
+                <field name="eta" string="ETA"/>
+                <field name="currency_id" string="Bill Currency"/>
+                <separator/>
+                <filter name="draft" string="Draft" domain="[('parent_state', '=', 'draft')]"/>
+                <filter name="posted" string="Posted" domain="[('parent_state', '=', 'posted')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_by_invoice_date" string="Invoice Date" context="{'group_by': 'invoice_date'}"/>
+                    <filter name="group_by_partner" string="Payee" context="{'group_by': 'partner_id'}"/>
+                    <filter name="group_by_project" string="Project（项目）" context="{'group_by': 'project_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="action_vendor_bill_line" model="ir.actions.act_window">
+        <field name="name">Vendor Bill Lines</field>
+        <field name="res_model">account.move.line</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_vendor_bill_line_search"/>
+        <field name="domain">[('move_id.move_type', '=', 'in_invoice'), ('display_type', '=', 'product')]</field>
+        <field name="context">{'create': False, 'edit': False, 'delete': False}</field>
+    </record>
+    <record id="action_vendor_bill_line_list_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_vendor_bill_line_list"/>
+        <field name="act_window_id" ref="action_vendor_bill_line"/>
+    </record>
+    <record id="action_vendor_bill_line_form_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="2"/>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_vendor_bill_line_form"/>
+        <field name="act_window_id" ref="action_vendor_bill_line"/>
+    </record>
+    <record id="account.menu_action_move_in_refund_type" model="ir.ui.menu">
+        <field name="sequence">3</field>
+    </record>
+    <record id="account.menu_action_move_in_receipt_type" model="ir.ui.menu">
+        <field name="sequence">4</field>
+    </record>
+    <menuitem id="menu_vendor_bill_line" name="Vendor Bill Lines" parent="account.menu_finance_payables" action="action_vendor_bill_line" sequence="2"/>
 </odoo>

@@ -10,6 +10,10 @@ class AccountMove(models.Model):
     bank_proof_attachment_ids = fields.Many2many("ir.attachment", "account_move_bank_proof_attachment_rel", "move_id", "attachment_id", string="Bank Proof Attachments", copy=False, tracking=True)
     payment_info_synced = fields.Boolean(string="Payment Information Synced", readonly=True, copy=False, tracking=True)
     invoice_request_user_id = fields.Many2one("res.users", string="Invoice Applicant", readonly=True, index=True, copy=False, tracking=True)
+    waybill_bill_number = fields.Char(string="Bill of Lading", readonly=True, index=True, copy=False)
+    project_id = fields.Many2one("project.project", string="Project", readonly=True, ondelete="restrict", index=True, copy=False)
+    invoice_no = fields.Char(string="Invoice No", readonly=True, index=True, copy=False)
+    eta = fields.Date(string="ETA", readonly=True, index=True, copy=False)
 
     def check_invoice_applicant_permission(self):
         if not self.env.user.has_group("wd_account_extension.group_invoice_applicant"):
@@ -45,3 +49,7 @@ class AccountMoveLine(models.Model):
     _inherit = "account.move.line"
 
     charge_item_id = fields.Many2one("world.depot.charge.item", string="Charge Item", ondelete="restrict", copy=False, index=True)
+    waybill_bill_number = fields.Char(related="move_id.waybill_bill_number", string="Bill of Lading", store=True, readonly=True, index=True)
+    project_id = fields.Many2one(related="move_id.project_id", string="Project", store=True, readonly=True, index=True)
+    invoice_no = fields.Char(related="move_id.invoice_no", string="Invoice No", store=True, readonly=True, index=True)
+    eta = fields.Date(related="move_id.eta", string="ETA", store=True, readonly=True, index=True)

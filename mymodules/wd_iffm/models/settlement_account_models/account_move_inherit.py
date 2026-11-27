@@ -10,7 +10,6 @@ _logger = logging.getLogger(__name__)
 class AccountMoveInherit(models.Model):
     _inherit = "account.move"
 
-    waybill_bill_number = fields.Char(string="Waybill Bill Number", copy=False)
     handover_id = fields.Many2one("operation.order.handover", string="Handover", ondelete="set null", copy=False, index=True)
     clearance_id = fields.Many2one("operation.order.clearance", string="Clearance", ondelete="set null", copy=False, index=True)
     def action_push_customer_invoice_files_to_period(self):

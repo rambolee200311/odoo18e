@@ -280,6 +280,9 @@ class OutboundOrderPayable(models.Model):
     name = fields.Char(string="Outbound Payable", compute="_compute_name", store=True, index=True, copy=False)
     outbound_order_id = fields.Many2one("world.depot.outbound.order", string="Outbound Order", required=True,
                                         ondelete="cascade", index=True, copy=False)
+    waybill_bill_number = fields.Char(related="outbound_order_id.billno", string="Bill of Lading", store=True, readonly=True, index=True)
+    project_id = fields.Many2one(related="outbound_order_id.project", string="Project", store=True, readonly=True, index=True)
+    eta = fields.Date(string="ETA", index=True, copy=False)
     company_id = fields.Many2one("res.company", string="Company", required=True, default=lambda self: self.env.company,
                                  index=True, copy=False)
     clearance_no = fields.Char(string="Clearance No.", index=True, copy=False)
@@ -419,7 +422,8 @@ class OutboundOrderPayable(models.Model):
             vendor_bill = move_model.create(
                 {"move_type": "in_invoice", "partner_id": rec.receipt_company_id.id, "invoice_date": rec.payable_date,
                  "currency_id": rec.currency_id.id, "journal_id": journal.id, "ref": rec.outbound_order_id.billno,
-                 "outbound_payable_id": rec.id, "invoice_request_user_id": self.env.user.id,
+                 "waybill_bill_number": rec.waybill_bill_number, "project_id": rec.project_id.id, "invoice_no": rec.vendor_invoice_num,
+                 "eta": rec.eta, "outbound_payable_id": rec.id, "invoice_request_user_id": self.env.user.id,
                  "invoice_line_ids": [(0, 0, line_vals) for line_vals in invoice_line_vals]})
             for attachment in rec.vendor_invoice_attachment_ids:
                 attachment.copy({"res_model": "account.move", "res_id": vendor_bill.id})
